@@ -1,9 +1,13 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 
 import { EditorList } from "./EditorList";
-import { EditorListItem } from "./EditorListItem";
+import { EditorListRow } from "./EditorListItem";
+
+/** Anything the browser could move focus to, by Tab or by script. */
+const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex], [contenteditable='true']";
 
 const ITEMS = Array.from({ length: 1000 }, (_, index) => ({ slug: `item-${index}`, name: `Item ${index}` }));
 
@@ -13,7 +17,7 @@ function Harness({ onSelect, search = false }: { onSelect?: (key: string) => voi
     <EditorList
       items={ITEMS}
       getKey={(item) => item.slug}
-      renderItem={(item, { selected: active }) => <EditorListItem active={active} title={item.name} />}
+      renderItem={(item, { selected: active }) => <EditorListRow active={active} title={item.name} />}
       selectedKey={selected}
       onSelect={(key) => {
         onSelect?.(key);
@@ -69,7 +73,7 @@ describe("EditorList", () => {
         getKey={(entry) => entry.key}
         isOption={(entry) => entry.kind === "row"}
         renderItem={(entry, { selected }) =>
-          entry.kind === "heading" ? <h3>{entry.name}</h3> : <EditorListItem active={selected} title={entry.name} tabIndex={-1} />
+          entry.kind === "heading" ? <h3>{entry.name}</h3> : <EditorListRow active={selected} title={entry.name} />
         }
         selectedKey="a"
         onSelect={onSelect}
@@ -93,7 +97,7 @@ describe("EditorList", () => {
       <EditorList
         items={ITEMS.slice(0, 3)}
         getKey={(item) => item.slug}
-        renderItem={(item, { selected }) => <EditorListItem active={selected} title={item.name} tabIndex={-1} />}
+        renderItem={(item, { selected }) => <EditorListRow active={selected} title={item.name} />}
         selectedKey="item-1"
         onSelect={onSelect}
         multiSelect={{
@@ -106,15 +110,24 @@ describe("EditorList", () => {
         label="Checkable"
       />,
     );
-    expect(screen.queryByRole("checkbox", { name: "Select Item 0" })).not.toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "Select Item 2" })).toBeChecked();
+    const listbox = screen.getByRole("listbox", { name: "Checkable" });
+    const [first, second, third] = within(listbox).getAllByRole("option");
+    expect(first).not.toHaveAttribute("aria-checked");
+    expect(screen.queryByTitle("Select Item 0")).not.toBeInTheDocument();
+    expect(second).toHaveAttribute("aria-checked", "false");
+    expect(third).toHaveAttribute("aria-checked", "true");
+    // The current row is still the one selected option, apart from the bulk ticks.
+    expect(second).toHaveAttribute("aria-selected", "true");
+    expect(third).toHaveAttribute("aria-selected", "false");
 
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select Item 1" }));
+    fireEvent.click(screen.getByTitle("Select Item 1"));
     expect(onToggle).toHaveBeenLastCalledWith("item-1");
     expect(onSelect).not.toHaveBeenCalled();
 
-    fireEvent.keyDown(screen.getByRole("listbox", { name: "Checkable" }), { key: " " });
+    fireEvent.keyDown(listbox, { key: " " });
     expect(onToggle).toHaveBeenCalledTimes(2);
+    expect(listbox.querySelectorAll(FOCUSABLE)).toHaveLength(0);
+    expect(within(listbox).queryByRole("checkbox")).not.toBeInTheDocument();
   });
 
   it("selects on click and filters through the search box", () => {
@@ -131,5 +144,109 @@ describe("EditorList", () => {
 
     fireEvent.change(screen.getByRole("searchbox", { name: "Search items" }), { target: { value: "nothing" } });
     expect(within(listbox).getByText("No items match.")).toBeInTheDocument();
+  });
+
+  it("is one tab stop with no focusable descendants", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Harness />
+        <button type="button">After</button>
+      </>,
+    );
+    const listbox = screen.getByRole("listbox", { name: "Items" });
+    expect(listbox.querySelectorAll(FOCUSABLE)).toHaveLength(0);
+
+    screen.getByRole("button", { name: "Before" }).focus();
+    await user.tab();
+    expect(listbox).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "After" })).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(listbox).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Before" })).toHaveFocus();
+  });
+
+  it("selects with ArrowDown, ArrowUp, Home and End from the keyboard", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    const listbox = screen.getByRole("listbox", { name: "Items" });
+    const active = () => document.getElementById(listbox.getAttribute("aria-activedescendant") ?? "");
+
+    expect(listbox).not.toHaveAttribute("aria-activedescendant");
+    await user.tab();
+    await user.keyboard("{ArrowDown}");
+    expect(active()).toHaveTextContent("Item 0");
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    expect(active()).toHaveTextContent("Item 2");
+    await user.keyboard("{ArrowUp}");
+    expect(active()).toHaveTextContent("Item 1");
+    await user.keyboard("{End}");
+    expect(active()).toHaveTextContent("Item 999");
+    expect(active()).toHaveAttribute("aria-selected", "true");
+    await user.keyboard("{Home}");
+    expect(active()).toHaveTextContent("Item 0");
+  });
+
+  it("numbers the windowed options against the whole list", () => {
+    type Entry = { kind: "heading" | "row"; key: string; name: string };
+    const entries: Entry[] = [
+      { kind: "heading", key: "h-1", name: "Group one" },
+      { kind: "row", key: "a", name: "Alpha" },
+      { kind: "row", key: "b", name: "Beta" },
+      { kind: "heading", key: "h-2", name: "Group two" },
+      { kind: "row", key: "c", name: "Gamma" },
+    ];
+    render(
+      <EditorList
+        items={entries}
+        getKey={(entry) => entry.key}
+        isOption={(entry) => entry.kind === "row"}
+        renderItem={(entry, { selected }) =>
+          entry.kind === "heading" ? <h3>{entry.name}</h3> : <EditorListRow active={selected} title={entry.name} />
+        }
+        emptyText="Nothing."
+        label="Grouped"
+      />,
+    );
+    const options = within(screen.getByRole("listbox", { name: "Grouped" })).getAllByRole("option");
+    expect(options.map((option) => [option.getAttribute("aria-posinset"), option.getAttribute("aria-setsize")])).toEqual([
+      ["1", "3"],
+      ["2", "3"],
+      ["3", "3"],
+    ]);
+
+    render(<Harness />);
+    const windowed = within(screen.getByRole("listbox", { name: "Items" })).getAllByRole("option");
+    expect(windowed[0]).toHaveAttribute("aria-setsize", "1000");
+    expect(windowed[5]).toHaveAttribute("aria-posinset", "6");
+  });
+
+  it("keeps the active descendant mounted after the pointer scrolls it out of the window", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    const listbox = screen.getByRole("listbox", { name: "Items" });
+    await user.tab();
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+
+    // A wheel or scrollbar drag moves the box without touching the selection.
+    Object.defineProperty(listbox, "scrollTop", { configurable: true, writable: true, value: 500 * 60 });
+    fireEvent.scroll(listbox);
+
+    expect(within(listbox).queryByText("Item 3")).not.toBeInTheDocument();
+    const activeId = listbox.getAttribute("aria-activedescendant");
+    expect(activeId).toBeTruthy();
+    const active = document.getElementById(activeId ?? "");
+    expect(active).not.toBeNull();
+    expect(listbox).toContainElement(active);
+    expect(active).toHaveAttribute("role", "option");
+    expect(active).toHaveTextContent("Item 1");
+    expect(active).toHaveAttribute("aria-posinset", "2");
+
+    // The keys still step from the selection, not from the scrolled window.
+    await user.keyboard("{ArrowDown}");
+    expect(document.getElementById(listbox.getAttribute("aria-activedescendant") ?? "")).toHaveTextContent("Item 2");
   });
 });

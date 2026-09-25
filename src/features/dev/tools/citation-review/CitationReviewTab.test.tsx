@@ -410,7 +410,7 @@ describe("CitationReviewTab decisions refresh in place", () => {
     render(<CitationReviewTab />);
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/citation-evidence?slug=lsd", undefined));
-    await user.click(await screen.findByRole("button", { name: /mdma/i }));
+    await user.click(await screen.findByRole("option", { name: /mdma/i }));
     expect(await screen.findByText("MDMA claim")).toBeInTheDocument();
 
     holdLsd.resolve();

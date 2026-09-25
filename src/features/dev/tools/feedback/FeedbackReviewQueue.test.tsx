@@ -717,10 +717,12 @@ describe("FeedbackReviewQueue keyboard triage and bulk actions", () => {
     const posts = stubLiveQueue();
     render(<Queue adapter={articleFeedbackAdapter} />);
 
-    await screen.findByRole("listbox", { name: "Feedback queue" });
-    await user.click(screen.getByRole("checkbox", { name: "Select Alprazolam" }));
-    await user.click(screen.getByRole("checkbox", { name: "Select Clonazepam" }));
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    // The tick boxes answer the pointer; the options report the ticks.
+    await user.click(screen.getByTitle("Select Alprazolam"));
+    await user.click(screen.getByTitle("Select Clonazepam"));
     expect(screen.getByText("2 selected")).toBeInTheDocument();
+    expect(within(list).getAllByRole("option").map((option) => option.getAttribute("aria-checked"))).toEqual(["true", "false", "true"]);
 
     await user.click(within(screen.getByRole("toolbar", { name: "Bulk feedback actions" })).getByRole("button", { name: "Mark as spam" }));
     const dialog = await screen.findByRole("dialog", { name: "Mark 2 feedback items as spam?" });

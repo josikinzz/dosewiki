@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
@@ -73,9 +73,8 @@ export function TagListPanel({
           }
         }}
         renderItem={(usage, { selected: isActive }) => (
-          <EditorListItem
+          <EditorListRow
             active={isActive}
-            tabIndex={-1}
             title={usage.tag}
             badge={
               <span className="text-xs tabular-nums theme-text-faint">{articleCount(usage.count)}</span>

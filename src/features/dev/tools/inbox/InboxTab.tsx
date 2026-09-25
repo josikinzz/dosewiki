@@ -10,7 +10,7 @@ import {
   ActionNotice,
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -485,7 +485,7 @@ function InboxRow({ item, active, actorEmail }: { item: InboxItem; active: boole
       : formatReviewerIdentity(item.claimedBy) ?? item.claimedBy
     : "Unassigned";
   return (
-    <EditorListItem active={active} tabIndex={-1} className="items-start">
+    <EditorListRow active={active} className="items-start">
       <span className="min-w-0 flex-1 space-y-1">
         <span className="flex items-center justify-between gap-3">
           <span className={`min-w-0 truncate text-sm font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>
@@ -505,6 +505,6 @@ function InboxRow({ item, active, actorEmail }: { item: InboxItem; active: boole
           {item.subtitle ? ` · ${item.subtitle}` : ""}
         </span>
       </span>
-    </EditorListItem>
+    </EditorListRow>
   );
 }

@@ -14,7 +14,7 @@ import {
   EditorActionStatus,
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorNavTabs,
   EditorNotice,
   EditorSection,
@@ -456,9 +456,8 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
                 isSearching ? "No block key, label or text matches that." : "No copy blocks in this group."
               }
               renderItem={(block, { selected }) => (
-                <EditorListItem
+                <EditorListRow
                   active={selected}
-                  tabIndex={-1}
                   title={block.label}
                   subtitle={isSearching ? `${block.group} / ${block.key}` : block.key}
                   badge={

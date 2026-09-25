@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import {
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorSection,
   EditorStatusPill,
 } from "@/features/dev/components";
@@ -21,13 +21,12 @@ const getSubstanceKey = (substance: SubstanceInfo) => substance.slug;
 function renderSubstanceRow(substance: SubstanceInfo, { selected }: { selected: boolean }) {
   const statusMeta = REVIEW_STATUS_META[substance.reviewStatus];
   return (
-    <EditorListItem
+    <EditorListRow
       active={selected}
-      tabIndex={-1}
       badge={<EditorStatusPill tone={statusMeta.tone}>{statusMeta.label}</EditorStatusPill>}
     >
       <span className="theme-text-primary truncate font-medium">{substance.name}</span>
-    </EditorListItem>
+    </EditorListRow>
   );
 }
 

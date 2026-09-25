@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Icon } from "@/components/common/Icon";
 import {
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -163,7 +163,7 @@ export function CitationQueuePanel({
             entry.blockingNeedsReviewCount +
             entry.blockingRejectedCount;
           return (
-            <EditorListItem active={selected} tabIndex={-1} className="flex-col items-stretch gap-1 px-4 py-3">
+            <EditorListRow active={selected} className="flex-col items-stretch gap-1 px-4 py-3">
               <span className="flex items-start justify-between gap-3">
                 <span
                   className={`min-w-0 truncate text-sm font-semibold ${
@@ -186,7 +186,7 @@ export function CitationQueuePanel({
                 {entry.approvedCount} {CITATION_STATUS_LABEL.approved.toLowerCase()} · Updated{" "}
                 {formatUpdatedAt(entry.updatedAt)}
               </span>
-            </EditorListItem>
+            </EditorListRow>
           );
         }}
       />

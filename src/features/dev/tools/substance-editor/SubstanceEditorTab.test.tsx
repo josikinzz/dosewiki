@@ -35,7 +35,7 @@ describe("SubstanceEditorTab selection", () => {
   it("records selections in the URL without rewriting an initial deep link", async () => {
     const replaceState = vi.spyOn(window.history, "replaceState");
     const { unmount } = render(<SubstanceEditorTab />);
-    fireEvent.click(screen.getByRole("button", { name: /lsd/i }));
+    fireEvent.click(screen.getByRole("option", { name: /lsd/i }));
     await waitFor(() => expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/articles/lsd"));
     unmount();
     replaceState.mockClear();
@@ -45,13 +45,13 @@ describe("SubstanceEditorTab selection", () => {
 
   it("reveals URL-only articles on request and keeps a URL-only deep link selectable", () => {
     const { unmount } = render(<SubstanceEditorTab />);
-    expect(screen.queryByRole("button", { name: /quiet/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /hidden for now/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /quiet/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /hidden for now/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Include URL-only" }));
-    expect(screen.getByRole("button", { name: /quiet/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /hidden for now/i })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /quiet/i })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /hidden for now/i })).toBeInTheDocument();
     unmount();
     render(<SubstanceEditorTab initialSlug="quiet" />);
-    expect(screen.getByRole("button", { name: /quiet/i })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /quiet/i })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,5 @@
 import type { KeyboardEvent, ReactNode, RefObject } from "react";
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -28,8 +28,9 @@ export interface EditorListProps<T> {
    */
   isOption?: (item: T) => boolean;
   /**
-   * A checkbox on each row for bulk actions, separate from the one selected
-   * row. Space on the list ticks the selected row.
+   * A tick box on each row for bulk actions, separate from the one selected
+   * row. Space on the list ticks the selected row; the box itself answers the
+   * pointer only, and the option reports its state through aria-checked.
    */
   multiSelect?: EditorListMultiSelect<T>;
 }
@@ -37,7 +38,7 @@ export interface EditorListProps<T> {
 export interface EditorListMultiSelect<T> {
   checkedKeys: ReadonlySet<string>;
   onToggle: (key: string) => void;
-  /** Accessible name of a row's checkbox, such as "Select Mescaline". */
+  /** Tooltip of a row's tick box, such as "Select Mescaline". */
   checkLabel: (item: T) => string;
   /** Rows that cannot take the bulk actions get no checkbox. */
   canCheck?: (item: T) => boolean;
@@ -104,14 +105,19 @@ function useWindow(count: number, estimate: number, scrollRef: RefObject<HTMLDiv
  * selection with the arrow keys, Home and End, and keeps the selected row in
  * view whenever `selectedKey` changes.
  *
- * Rows must share one height. The row wrapper owns the click and calls
- * `onSelect(key)`; `renderItem` should render a presentational row (an
- * `EditorListItem` with `active={selected}` and no `onSelect`) so a tap does
- * not report twice.
+ * Focus model: the listbox is the only tab stop. It keeps the current row in
+ * `aria-activedescendant`, and options carry no tab index, so `renderItem`
+ * must render a presentational row (`EditorListRow` with `active={selected}`)
+ * and no buttons, links or inputs. The option wrapper owns the click and calls
+ * `onSelect(key)`. The selected option stays mounted even when the pointer
+ * scrolls it out of the window, so the active descendant always resolves, and
+ * each option carries aria-posinset and aria-setsize against the whole list.
  *
- * `isOption` lets group headings sit in the list at a row's pitch without
- * becoming options, and `multiSelect` adds a checkbox per row for bulk
- * actions. The intake queues pair this list with `useTriageShortcuts`.
+ * Rows must share one height. `isOption` lets group headings sit in the list
+ * at a row's pitch without becoming options, and `multiSelect` adds a tick box
+ * per row for bulk actions. The ticks are aria-checked on the option, apart
+ * from aria-selected, which marks the one current row. The intake queues pair
+ * this list with `useTriageShortcuts`.
  */
 export function EditorList<T>({
   items,
@@ -165,6 +171,18 @@ export function EditorList<T>({
 
   const optionAt = useCallback((index: number) => !isOption || isOption(visible[index]), [isOption, visible]);
 
+  // 1-based position of each option among the options (headings excluded),
+  // so windowed rows can report aria-posinset and aria-setsize.
+  const { positions, optionCount } = useMemo(() => {
+    const next = new Array<number>(visible.length);
+    let count = 0;
+    for (let index = 0; index < visible.length; index += 1) {
+      if (optionAt(index)) count += 1;
+      next[index] = count;
+    }
+    return { positions: next, optionCount: count };
+  }, [optionAt, visible.length]);
+
   /** The nearest option from `from` stepping by `step`, or -1 past either end. */
   const seekOption = useCallback(
     (from: number, step: 1 | -1) => {
@@ -210,6 +228,42 @@ export function EditorList<T>({
   // Row heights are measured from an option, never from a heading.
   const measuredOffset = rows.findIndex((_, offset) => optionAt(start + offset));
   const activeId = selectedIndex >= 0 ? `${id}-option-${selectedIndex}` : undefined;
+  // A pointer scroll can carry the selected row out of the window. It stays
+  // mounted at its own offset so aria-activedescendant never dangles.
+  const selectedOutside = selectedIndex >= 0 && (selectedIndex < start || selectedIndex >= end);
+
+  const renderOption = (item: T, index: number, measure: boolean) => {
+    const key = getKey(item);
+    const selected = index === selectedIndex;
+    const checkable = multiSelect !== undefined && (!multiSelect.canCheck || multiSelect.canCheck(item));
+    return (
+      // Keyboard selection lives on the listbox (aria-activedescendant); options only take the pointer
+      // and must not be focusable, or the list would grow a tab stop per row.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+      <div
+        id={`${id}-option-${index}`}
+        role="option"
+        aria-selected={selected}
+        aria-checked={checkable ? multiSelect.checkedKeys.has(key) : undefined}
+        aria-posinset={positions[index]}
+        aria-setsize={optionCount}
+        ref={measure ? measureRow : undefined}
+        onClick={onSelect ? () => onSelect(key) : undefined}
+        className={multiSelect ? "flex items-center gap-2 pb-1" : "pb-1"}
+      >
+        {multiSelect ? (
+          <>
+            <span className="flex w-5 shrink-0 justify-center">
+              {checkable ? <TickBox item={item} itemKey={key} multiSelect={multiSelect} /> : null}
+            </span>
+            <div className="min-w-0 flex-1">{renderItem(item, { selected })}</div>
+          </>
+        ) : (
+          renderItem(item, { selected })
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className={cn("flex min-h-0 flex-col gap-2", className)}>
@@ -243,56 +297,61 @@ export function EditorList<T>({
             <div style={{ transform: `translateY(${start * rowHeight}px)` }}>
               {rows.map((item, offset) => {
                 const index = start + offset;
-                const key = getKey(item);
                 if (!optionAt(index)) {
                   return (
-                    <div key={key} aria-hidden="true" style={{ height: rowHeight }} className="flex flex-col justify-end">
+                    <div key={getKey(item)} aria-hidden="true" style={{ height: rowHeight }} className="flex flex-col justify-end">
                       {renderItem(item, { selected: false })}
                     </div>
                   );
                 }
-                const selected = index === selectedIndex;
-                const checkable = multiSelect !== undefined && (!multiSelect.canCheck || multiSelect.canCheck(item));
-                return (
-                  // Keyboard selection lives on the listbox (aria-activedescendant); rows only take the pointer.
-                  // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-                  <div
-                    key={key}
-                    id={`${id}-option-${index}`}
-                    role="option"
-                    aria-selected={selected}
-                    tabIndex={-1}
-                    ref={offset === measuredOffset ? measureRow : undefined}
-                    onClick={onSelect ? () => onSelect(key) : undefined}
-                    className={multiSelect ? "flex items-center gap-2 pb-1" : "pb-1"}
-                  >
-                    {multiSelect ? (
-                      <>
-                        <span className="flex w-5 shrink-0 justify-center">
-                          {checkable ? (
-                            <input
-                              type="checkbox"
-                              tabIndex={-1}
-                              aria-label={multiSelect.checkLabel(item)}
-                              checked={multiSelect.checkedKeys.has(key)}
-                              onClick={(event) => event.stopPropagation()}
-                              onChange={() => multiSelect.onToggle(key)}
-                              className="theme-replication-checkbox"
-                            />
-                          ) : null}
-                        </span>
-                        <div className="min-w-0 flex-1">{renderItem(item, { selected })}</div>
-                      </>
-                    ) : (
-                      renderItem(item, { selected })
-                    )}
-                  </div>
-                );
+                return <Fragment key={getKey(item)}>{renderOption(item, index, offset === measuredOffset)}</Fragment>;
               })}
             </div>
+            {selectedOutside ? (
+              <div style={{ position: "absolute", top: selectedIndex * rowHeight, left: 0, right: 0 }}>
+                {renderOption(visible[selectedIndex], selectedIndex, false)}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * The bulk tick for one row. It answers the pointer only: the listbox keeps
+ * the single tab stop, Space ticks the current row, and the option reports the
+ * state through aria-checked, so the box is hidden from assistive tech.
+ */
+function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; multiSelect: EditorListMultiSelect<T> }) {
+  const checked = multiSelect.checkedKeys.has(itemKey);
+  return (
+    <span
+      aria-hidden="true"
+      title={multiSelect.checkLabel(item)}
+      data-checked={checked || undefined}
+      onClick={(event) => {
+        event.stopPropagation();
+        multiSelect.onToggle(itemKey);
+      }}
+      className="flex h-5 w-5 cursor-pointer items-center justify-center"
+    >
+      {/* Drawn, not a native input, so nothing inside the listbox can take focus. */}
+      <span
+        className={cn(
+          "flex size-4 items-center justify-center rounded border transition",
+          checked
+            ? "border-[color:var(--theme-accent-strong)] bg-[var(--theme-accent-strong)] text-[color:var(--theme-surface-deep)]"
+            : "border-[var(--theme-border-subtle)] bg-[var(--theme-field-surface)]",
+        )}
+      >
+        {checked ? (
+          <svg viewBox="0 0 16 16" className="size-3" fill="none" stroke="currentColor" strokeWidth={2.5}>
+            <path d="M3.5 8.5l3 3 6-7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : null}
+      </span>
+    </span>
   );
 }
