@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { FormProvider } from "react-hook-form";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle, createEmptyDosageRoute } from "@/data/schema";
@@ -18,6 +18,17 @@ vi.mock("./QuickAddReferenceCard", () => ({
 }));
 
 const renderCounts = new Map<string, number>();
+
+/** Returns the open confirmation's title and description, as the editor reads them. */
+async function confirmationText() {
+  const dialog = await screen.findByRole("dialog");
+  return dialog.textContent ?? "";
+}
+
+async function answerConfirm(button: string) {
+  fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: button }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+}
 
 vi.mock("./EntryCard", async () => {
   const actual = await vi.importActual<typeof import("./EntryCard")>("./EntryCard");
@@ -112,56 +123,57 @@ describe("ReferencesFieldsRHF", () => {
     expect(renderCounts.get("Remove reference 1")).toBeGreaterThan(secondCardRenders);
   });
 
-  it("keeps the reference when the removal confirm is declined", () => {
+  it("keeps the reference when the removal confirm is declined", async () => {
     renderCounts.clear();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<Harness />);
 
     fireEvent.click(screen.getByLabelText("Remove reference 1"));
 
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining("ref-one"));
+    expect(await confirmationText()).toContain("ref-one");
+    await answerConfirm("Cancel");
     expect(screen.getAllByLabelText("Stable ID")).toHaveLength(2);
   });
 
-  it("removes the reference once the confirm is accepted", () => {
+  it("removes the reference once the confirm is accepted", async () => {
     renderCounts.clear();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness />);
 
     fireEvent.click(screen.getByLabelText("Remove reference 1"));
 
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining("Nothing in the article cites it."));
+    expect(await confirmationText()).toContain("Nothing in the article cites it.");
+    await answerConfirm("Remove reference");
     const remaining = screen.getAllByLabelText("Stable ID");
     expect(remaining).toHaveLength(1);
     expect(remaining[0]).toHaveValue("ref-two");
   });
 
-  it("strips inline markers and route reference IDs when removal is accepted", () => {
+  it("strips inline markers and route reference IDs when removal is accepted", async () => {
     renderCounts.clear();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness article={citedArticle} />);
 
     fireEvent.click(screen.getByLabelText("Remove reference 1"));
 
     // The form hook pairs routes by name, so the seeded dosage route gains a
     // duration twin that inherits its reference_ids — two route references.
-    expect(confirmSpy).toHaveBeenCalledWith(
-      'Remove "ref-one"? This also deletes 1 inline [cite:...] marker(s) and 2 route reference(s).',
+    const dialog = await screen.findByRole("dialog", { name: 'Remove "ref-one"?' });
+    expect(dialog).toHaveAccessibleDescription(
+      "This also deletes 1 inline [cite:...] marker(s) and 2 route reference(s).",
     );
+    await answerConfirm("Remove reference");
     expect(lastFormMethods?.getValues("summary")).toBe("Intro text continues.");
     expect(lastFormMethods?.getValues("dosage.routes.0.reference_ids")).toEqual([]);
     expect(lastFormMethods?.getValues("duration.routes.0.reference_ids")).toEqual([]);
     expect(screen.getAllByLabelText("Stable ID")).toHaveLength(1);
   });
 
-  it("leaves markers and route references intact when removal is declined", () => {
+  it("leaves markers and route references intact when removal is declined", async () => {
     renderCounts.clear();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<Harness article={citedArticle} />);
 
     fireEvent.click(screen.getByLabelText("Remove reference 1"));
 
-    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining("2 route reference(s)"));
+    expect(await confirmationText()).toContain("2 route reference(s)");
+    await answerConfirm("Cancel");
     expect(lastFormMethods?.getValues("summary")).toBe("Intro text [cite:ref-one] continues.");
     expect(lastFormMethods?.getValues("dosage.routes.0.reference_ids")).toEqual(["ref-one"]);
     expect(lastFormMethods?.getValues("duration.routes.0.reference_ids")).toEqual(["ref-one"]);

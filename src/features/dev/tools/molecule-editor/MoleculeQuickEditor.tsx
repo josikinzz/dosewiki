@@ -22,14 +22,7 @@ import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
+  ConfirmDialog,
   EditorActionStatus,
   EditorNotice,
   EditorStatusPill,
@@ -245,29 +238,20 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         </div>
       </div>
 
-      <Dialog
-        open={confirmRevert}
-        onOpenChange={(open) => {
-          if (!open) dismissRevert();
-        }}
-      >
-        <DialogContent className="max-w-md" showClose={false}>
-          <DialogHeader>
-            <DialogTitle>Discard unsaved edits?</DialogTitle>
-            <DialogDescription className="theme-text-muted">
-              Reverting to the automatic layout will discard your unsaved changes.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={dismissRevert}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={applyRevert}>
-              Discard and revert
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        request={
+          confirmRevert
+            ? {
+                title: "Discard unsaved edits?",
+                description: "Reverting to the automatic layout will discard your unsaved changes.",
+                confirmLabel: "Discard and revert",
+                destructive: true,
+                onConfirm: applyRevert,
+              }
+            : null
+        }
+        onClose={dismissRevert}
+      />
     </div>
   );
 }

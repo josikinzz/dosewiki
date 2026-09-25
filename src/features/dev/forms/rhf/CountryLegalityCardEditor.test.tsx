@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
@@ -61,5 +61,22 @@ describe("CountryLegalityCardEditor", () => {
       Existing: existing,
       "St. Fixture [North]": { status: "", notes: "" },
     });
+  });
+
+  it("removes a country only after the shared confirm dialog, never a native confirm", async () => {
+    const user = userEvent.setup();
+    const collect = vi.fn();
+    const nativeConfirm = vi.spyOn(window, "confirm");
+    render(<Harness countries={{ Existing: { status: "Fixture status", notes: "" } }} collect={collect} submit={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Remove Existing" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Remove Existing?" })).getByRole("button", { name: "Cancel" }));
+    expect(screen.getByRole("button", { name: "Remove Existing" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Remove Existing" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Remove Existing" }));
+    await user.click(screen.getByRole("button", { name: "Collect draft" }));
+    expect(collect.mock.calls[0][0].legality.countries).toEqual({});
+    expect(nativeConfirm).not.toHaveBeenCalled();
   });
 });

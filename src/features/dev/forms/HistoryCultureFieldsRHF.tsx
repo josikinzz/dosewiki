@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { Surface } from "@/components/ui/surface";
-import { EditorFieldRow } from "@/features/dev/components";
+import { EditorFieldRow, useConfirm, type ConfirmRequest } from "@/features/dev/components";
 import { FormEditorField } from "./FormEditorField";
 
 import { CharacterCount } from "./FormHelpers";
@@ -29,10 +29,12 @@ function SubsectionsFieldArray({
   sectionIndex,
   idPrefix,
   embedded,
+  confirm,
 }: {
   sectionIndex: number;
   idPrefix: string;
   embedded: boolean;
+  confirm: (request: ConfirmRequest) => void;
 }) {
   const { register, control, getValues, setFocus } = useFormContext<SubstanceArticle>();
   const addSubsectionRef = useRef<HTMLButtonElement>(null);
@@ -51,16 +53,28 @@ function SubsectionsFieldArray({
     const populated = subsection?.heading?.trim() || subsection?.content?.trim()
       || subsection?.date_range?.start?.trim() || subsection?.date_range?.end?.trim();
     const heading = subsection?.heading?.trim() || `Subsection ${subIndex + 1}`;
-    if (populated && typeof window !== "undefined" && !window.confirm(`Remove "${heading}"? This cannot be undone.`)) return;
-    remove(subIndex);
-    requestAnimationFrame(() => {
-      if (fields.length > 1) {
-        setFocus(`history_culture.sections.${sectionIndex}.subsections.${Math.min(subIndex, fields.length - 2)}.heading`);
-      } else {
-        addSubsectionRef.current?.focus();
-      }
+    const removeSubsection = () => {
+      remove(subIndex);
+      requestAnimationFrame(() => {
+        if (fields.length > 1) {
+          setFocus(`history_culture.sections.${sectionIndex}.subsections.${Math.min(subIndex, fields.length - 2)}.heading`);
+        } else {
+          addSubsectionRef.current?.focus();
+        }
+      });
+    };
+    if (!populated) {
+      removeSubsection();
+      return;
+    }
+    confirm({
+      title: `Remove "${heading}"?`,
+      description: "This cannot be undone.",
+      confirmLabel: "Remove subsection",
+      destructive: true,
+      onConfirm: removeSubsection,
     });
-  }, [fields.length, getValues, remove, sectionIndex, setFocus]);
+  }, [confirm, fields.length, getValues, remove, sectionIndex, setFocus]);
 
   if (fields.length === 0) {
     return (
@@ -173,6 +187,7 @@ function SubsectionsFieldArray({
 }
 
 export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryCultureFieldsRHFProps) {
+  const { confirm, dialog } = useConfirm();
   const { register, control, watch, getValues, setFocus } = useFormContext<SubstanceArticle>();
   const addSectionRef = useRef<HTMLButtonElement>(null);
 
@@ -198,21 +213,23 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
     const subsectionDetail = subsectionCount > 0
       ? ` and its ${subsectionCount} subsection${subsectionCount === 1 ? "" : "s"}`
       : "";
-    if (
-      typeof window !== "undefined"
-      && !window.confirm(`Remove "${heading}"${subsectionDetail}? This cannot be undone.`)
-    ) {
-      return;
-    }
-    remove(index);
-    requestAnimationFrame(() => {
-      if (fields.length > 1) {
-        setFocus(`history_culture.sections.${Math.min(index, fields.length - 2)}.heading`);
-      } else {
-        addSectionRef.current?.focus();
-      }
+    confirm({
+      title: `Remove "${heading}"${subsectionDetail}?`,
+      description: "This cannot be undone.",
+      confirmLabel: "Remove section",
+      destructive: true,
+      onConfirm: () => {
+        remove(index);
+        requestAnimationFrame(() => {
+          if (fields.length > 1) {
+            setFocus(`history_culture.sections.${Math.min(index, fields.length - 2)}.heading`);
+          } else {
+            addSectionRef.current?.focus();
+          }
+        });
+      },
     });
-  }, [fields.length, getValues, remove, setFocus]);
+  }, [confirm, fields.length, getValues, remove, setFocus]);
 
   const handleMoveUp = useCallback((index: number) => {
     if (index > 0) {
@@ -340,7 +357,7 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
                 </FormEditorField>
 
                 {/* Nested subsections */}
-                <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} embedded={embedded} />
+                <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} embedded={embedded} confirm={confirm} />
               </div>
 
               {/* Delete button */}
@@ -371,6 +388,7 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
           Add Section
         </Button>
       </div>
+      {dialog}
     </section>
   );
 }

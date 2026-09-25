@@ -11,7 +11,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { EditorFieldRow, EditorSelect } from "@/features/dev/components";
+import { EditorFieldRow, EditorSelect, useConfirm } from "@/features/dev/components";
 import type { SubstanceArticle } from "@/schema";
 import { collectCitationTextEntries } from "@/lib/citations/editorReferenceDiagnostics";
 
@@ -425,6 +425,7 @@ export function ReferencesFieldsRHF({ embedded = false }: { embedded?: boolean }
   const { references, addReference, removeReference } = useArticleFormContext();
   const [copiedReferenceId, setCopiedReferenceId] = useState<string | null>(null);
   const [copyError, setCopyError] = useState("");
+  const { confirm, dialog } = useConfirm();
 
   /**
    * A reference is the resolution target for every `[cite:id]` token and route
@@ -476,14 +477,18 @@ export function ReferencesFieldsRHF({ embedded = false }: { embedded?: boolean }
     const consequence = markerCount === 0 && routeIdCount === 0
       ? "Nothing in the article cites it."
       : `This also deletes ${markerCount} inline [cite:...] marker(s) and ${routeIdCount} route reference(s).`;
-    if (typeof window !== "undefined" && !window.confirm(`Remove ${label}? ${consequence}`)) {
-      return;
-    }
-
-    removeReference(index);
-    for (const edit of pendingEdits) {
-      setValue(edit.path, edit.value as never, { shouldDirty: true });
-    }
+    confirm({
+      title: `Remove ${label}?`,
+      description: consequence,
+      confirmLabel: "Remove reference",
+      destructive: true,
+      onConfirm: () => {
+        removeReference(index);
+        for (const edit of pendingEdits) {
+          setValue(edit.path, edit.value as never, { shouldDirty: true });
+        }
+      },
+    });
   };
 
   const copyReferenceTag = (id: string) => {
@@ -533,6 +538,7 @@ export function ReferencesFieldsRHF({ embedded = false }: { embedded?: boolean }
         Add structured reference
       </Button>
       {embedded ? <ReferencesCitationDiagnostics control={control} /> : null}
+      {dialog}
     </section>
   );
 }

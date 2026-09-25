@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +30,11 @@ export interface ConfirmRequest {
 export interface ConfirmDialogProps {
   request: ConfirmRequest | null;
   onClose: () => void;
+  /**
+   * Where focus lands when the dialog closes. Defaults to whatever held focus
+   * when it opened; pass a ref when that control may be gone or disabled by then.
+   */
+  returnFocus?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -38,7 +43,7 @@ export interface ConfirmDialogProps {
  * or a completed confirm) clears the request through `onClose`. While an async
  * `onConfirm` is settling both buttons lock so a double tap cannot fire twice.
  */
-export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
+export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
   const returnFocus = useRef<HTMLElement | null>(null);
 
@@ -71,9 +76,10 @@ export function ConfirmDialog({ request, onClose }: ConfirmDialogProps) {
           returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         }}
         onCloseAutoFocus={(event) => {
-          if (returnFocus.current?.isConnected) {
+          const target = returnFocusTarget?.current ?? returnFocus.current;
+          if (target?.isConnected) {
             event.preventDefault();
-            returnFocus.current.focus({ preventScroll: true });
+            target.focus({ preventScroll: true });
           }
         }}
       >

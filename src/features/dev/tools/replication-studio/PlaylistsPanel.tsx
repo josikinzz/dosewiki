@@ -1,21 +1,20 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { ActionNotice, EditorSection, EditorStatusPill, useUnsavedWork } from "@/features/dev/components";
+import {
+  ActionNotice,
+  ConfirmDialog,
+  EditorSection,
+  EditorStatusPill,
+  useConfirm,
+  useUnsavedWork,
+} from "@/features/dev/components";
 
 import type { ReplicationPlaylistSummary } from "./replicationPlaylistModel";
 import type { StudioRow } from "./replicationStudioModel";
@@ -100,7 +99,7 @@ export function PlaylistsPanel({
     isSaving,
     feedback,
   } = controller;
-  const [deleteTarget, setDeleteTarget] = useState<ReplicationPlaylistSummary | null>(null);
+  const { confirm, dialog: deleteDialog } = useConfirm();
   const titleFieldId = useId();
   // A saved playlist changes no gallery, so the shell may save it as well as
   // discard it.
@@ -120,6 +119,20 @@ export function PlaylistsPanel({
         },
     discard: resetDraft,
   });
+
+  const requestDelete = (playlist: ReplicationPlaylistSummary) =>
+    confirm({
+      title: `Delete ${playlist.title}?`,
+      description: `This permanently deletes the saved playlist. Existing drug galleries are unchanged because playlist application is a one-time copy.${
+        draft?.key === playlist.key && isDirty ? " Your unsaved edits to this playlist will also be discarded." : ""
+      }`,
+      confirmLabel: "Delete playlist",
+      destructive: true,
+      onConfirm: () => {
+        if (isSaving || deletingKeys.has(playlist.key)) return;
+        void controller.remove(playlist);
+      },
+    });
 
   return (
     <EditorSection
@@ -170,7 +183,7 @@ export function PlaylistsPanel({
                 action={renderSavedPlaylistAction?.(playlist)}
                 actionsDisabled={isSaving}
                 onOpen={controller.openPlaylist}
-                onRequestDelete={setDeleteTarget}
+                onRequestDelete={requestDelete}
               />
             ))}
           </ul>
@@ -222,67 +235,22 @@ export function PlaylistsPanel({
         </EmptyStateSurface>
       )}
 
-      <Dialog
-        open={pendingTransition !== null}
-        onOpenChange={(open) => {
-          if (!open) controller.cancelPendingTransition();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Discard the unsaved playlist?</DialogTitle>
-            <DialogDescription>
-              This draft has changes that are not saved. Continue only if you want to discard them.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" disabled={isSaving} onClick={controller.cancelPendingTransition}>
-              Keep editing
-            </Button>
-            <Button type="button" variant="destructive" disabled={isSaving} onClick={controller.discardPendingTransition}>
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={deleteTarget !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete {deleteTarget?.title ?? "this playlist"}?</DialogTitle>
-            <DialogDescription>
-              This permanently deletes the saved playlist. Existing drug galleries are unchanged because playlist application is a one-time copy.
-              {deleteTarget && draft?.key === deleteTarget.key && isDirty
-                ? " Your unsaved edits to this playlist will also be discarded."
-                : ""}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={isSaving || Boolean(deleteTarget && deletingKeys.has(deleteTarget.key))}
-              onClick={() => {
-                if (isSaving) return;
-                if (!deleteTarget) return;
-                const target = deleteTarget;
-                setDeleteTarget(null);
-                void controller.remove(target);
-              }}
-            >
-              Delete playlist
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        request={
+          pendingTransition
+            ? {
+                title: "Discard the unsaved playlist?",
+                description: "This draft has changes that are not saved. Continue only if you want to discard them.",
+                cancelLabel: "Keep editing",
+                confirmLabel: "Discard changes",
+                destructive: true,
+                onConfirm: controller.discardPendingTransition,
+              }
+            : null
+        }
+        onClose={controller.cancelPendingTransition}
+      />
+      {deleteDialog}
     </EditorSection>
   );
 }

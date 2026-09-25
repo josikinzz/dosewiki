@@ -273,3 +273,44 @@ describe("submitting one change for review", () => {
     expect(request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
 });
+
+describe("leaving and discarding through the shared guard and confirm", () => {
+  it("asks before closing a dirty section, and Discard changes drops the local edit", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(snapshot(ownerSummary))));
+    render(view(state, "summary"));
+    const field = await screen.findByDisplayValue(ownerSummary);
+    fireEvent.change(field, { target: { value: "Unsaved private correction" } });
+    fireEvent.input(field);
+
+    const panel = screen.getByRole("dialog", { name: /^Edit / });
+    await user.click(within(panel).getByRole("button", { name: "Close" }));
+    const guard = await screen.findByRole("dialog", { name: "Keep your article edits?" });
+    await user.click(within(guard).getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByDisplayValue("Unsaved private correction")).toBeTruthy();
+
+    await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Close" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Keep your article edits?" })).getByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.queryByDisplayValue("Unsaved private correction")).toBeNull();
+  });
+
+  it("discards the saved private draft only after the shared confirm", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.method === "POST" ? Response.json({ draftVersion: 2 }) : Response.json(snapshot(ownerSummary)));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    await screen.findByText(ownerSummary);
+
+    await user.click(screen.getByRole("button", { name: "Private preview options" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Discard saved draft" }));
+    const confirm = await screen.findByRole("dialog", { name: "Discard your private article draft?" });
+    expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+    await user.click(within(confirm).getByRole("button", { name: "Discard private draft" }));
+
+    await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1));
+    const [, init] = request.mock.calls.find(([, call]) => call?.method === "POST")!;
+    expect(JSON.parse(init!.body as string)).toMatchObject({ action: "discardDraft" });
+  });
+});

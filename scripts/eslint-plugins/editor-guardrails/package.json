@@ -1,0 +1,13 @@
+{
+  "name": "eslint-plugin-editor-guardrails",
+  "version": "1.0.0",
+  "description": "ESLint plugin that keeps dose.wiki dev tools and in-page editors on the shared unsaved-work guard and confirmation dialog",
+  "main": "index.js",
+  "keywords": [
+    "eslint",
+    "eslintplugin"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  }
+}

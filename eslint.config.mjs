@@ -5,6 +5,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
+import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';
 
 export default tseslint.config(
   {
@@ -97,6 +98,30 @@ export default tseslint.config(
     rules: {
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+    },
+  },
+  // Dev tools and in-page editors share one unsaved-work guard and one confirm
+  // dialog. The shared implementations themselves are the only exemptions.
+  {
+    files: [
+      'src/features/dev/**/*.{ts,tsx}',
+      'src/features/*/editing/**/*.{ts,tsx}',
+      'src/features/contextual-editing/**/*.{ts,tsx}',
+      'src/features/editor-launcher/**/*.{ts,tsx}',
+      'src/features/replications/viewer/editor/**/*.{ts,tsx}',
+      'src/**/*.editor.{ts,tsx}',
+    ],
+    ignores: [
+      'src/**/*.test.{ts,tsx}',
+      'src/features/dev/components/ConfirmDialog.tsx',
+      'src/features/dev/components/unsavedWork.tsx',
+      'src/features/dev/components/useDirtyGuard.tsx',
+    ],
+    plugins: {
+      'editor-guardrails': editorGuardrails,
+    },
+    rules: {
+      'editor-guardrails/use-shared-guard-and-confirm': 'error',
     },
   },
   {

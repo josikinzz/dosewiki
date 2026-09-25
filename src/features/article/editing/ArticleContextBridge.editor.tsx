@@ -13,11 +13,11 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ExpandButton } from "@/components/common/ExpandButton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { useContextualEditing, type DraftNavigationGuard } from "@/features/contextual-editing/context";
 import { EditorToolbar } from "@/features/dev/components/EditorToolbar";
 import { useConfirm } from "@/features/dev/components/ConfirmDialog";
+import { useDirtyGuard } from "@/features/dev/components/useDirtyGuard";
 import { canDraft, type AppRole } from "@/lib/auth/roles";
 import { ArticleLayout, type ArticleLayoutProps } from "../components/ArticleLayout";
 import { ArticleEditProvider, type ArticleEditContextValue } from "./ArticleEditContext";
@@ -129,9 +129,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   // wrote, so the prefill keeps tracking the changes until a person types.
   const [summaryEdited, setSummaryEdited] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [leaveOpen, setLeaveOpen] = useState(false);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
-  const [discardOpen, setDiscardOpen] = useState(false);
   const { confirm, dialog: confirmDialog } = useConfirm();
   useEffect(() => { if (requestedSection && active) setSection(requestedSection); }, [requestedSection, active]);
   useEffect(() => { onDirtyChange?.(lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked); return () => onDirtyChange?.(false); }, [onDirtyChange, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
@@ -172,6 +170,30 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The operation was not confirmed. Your edits are retained."); }
   };
   const closePanel = () => { setSection(null); setReview(false); onSectionClose?.(); };
+  // The launcher's guard already holds the browser tab while this session is dirty.
+  const leaveGuard = useDirtyGuard(formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked, {
+    title: "Keep your article edits?",
+    description: proposalNotesDirty
+      ? "Unposted discussion and rejection notes cannot be saved as an article draft. Keep editing to post them, or discard them. No option publishes the article."
+      : "Save a private draft, discard unsaved local edits, or keep editing. No option publishes the article.",
+    onSave: operationLocked || proposalNotesDirty ? undefined : saveDraft,
+    onDiscard: discardLocal,
+    canDiscard: !operationLocked,
+    warnOnUnload: false,
+  });
+  const requestDiscardDraft = () => confirm({
+    title: "Discard your private article draft?",
+    description: proposalNotesDirty
+      ? "Post or discard the unposted proposal notes before discarding the draft."
+      : "This removes your saved draft and local edits, then loads the current published article. Published content remains unchanged.",
+    ...(proposalNotesDirty ? {} : { confirmLabel: "Discard private draft", destructive: true }),
+    onConfirm: () => attempt(async () => {
+      await lifecycle.act("discardDraft");
+      for (const draft of inlineDrafts.current.values()) draft.discard();
+      inlineDrafts.current.clear(); setInlineDirty(false);
+      setFormDirty(false); setFormEpoch((value) => value + 1);
+    }),
+  });
   const preview = async () => {
     lifecycle.preview(await collect()); setFormDirty(false); setFormEpoch((value) => value + 1); closePanel();
   };
@@ -235,7 +257,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     });
   };
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
-    void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); setDiscardOpen(false); closePanel(); router.refresh(); });
+    void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
   }}>Retry previous operation</Button> : null;
   const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
   // Until the refreshed list names it, the proposal just submitted is pending;
@@ -284,7 +306,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="min-h-11" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Refresh latest baseline</DropdownMenuItem>
               </>}
-              {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={() => setDiscardOpen(true)}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
+              {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -304,7 +326,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     </StickyArticleEditorLayout>
     <ContextualEditorPanel title={section ? `Edit ${ARTICLE_SECTION_LABELS[section].toLowerCase()}` : "Review article changes"} open={!!section || review} onOpenChange={(open) => {
       if (open) return;
-      if (formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked) setLeaveOpen(true); else closePanel();
+      leaveGuard.guard(closePanel);
     }}>
       <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
         {section && <fieldset className="min-w-0" disabled={operationLocked} onInput={() => setFormDirty(true)}><ArticleSectionForm key={`${section}:${formEpoch}`} article={lifecycle.article} slug={slug} section={section} form={form} handleRef={formRef} /></fieldset>}
@@ -373,17 +395,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         {refreshControl}
       </div>
     </ContextualEditorPanel>
-    <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}><DialogContent><DialogHeader><DialogTitle>Keep your article edits?</DialogTitle><DialogDescription>Save a private draft, discard unsaved local edits, or stay in the editor. No option publishes the article.</DialogDescription></DialogHeader>
-      <div className="flex flex-wrap gap-2"><Button disabled={operationLocked || proposalNotesDirty} onClick={() => { void attempt(async () => { await saveDraft(); setLeaveOpen(false); closePanel(); }); }}>Save draft</Button><Button variant="outline" disabled={operationLocked} onClick={() => { discardLocal(); setLeaveOpen(false); closePanel(); }}>Discard local edits</Button><Button variant="ghost" onClick={() => setLeaveOpen(false)}>Stay</Button></div>
-      {proposalNotesDirty && <p className="theme-text-muted text-sm">Unposted discussion and rejection notes cannot be saved as an article draft. Stay to post them, or discard them.</p>}
-      {localError && <p role="alert">{localError}</p>}
-    </DialogContent></Dialog>
-    <Dialog open={discardOpen} onOpenChange={setDiscardOpen}><DialogContent><DialogHeader><DialogTitle>Discard your private article draft?</DialogTitle><DialogDescription>This removes your saved draft and local edits, then loads the current published article. Published content remains unchanged.</DialogDescription></DialogHeader><Button disabled={operationLocked || proposalNotesDirty} onClick={() => { void attempt(async () => {
-      await lifecycle.act("discardDraft");
-      for (const draft of inlineDrafts.current.values()) draft.discard();
-      inlineDrafts.current.clear(); setInlineDirty(false);
-      setFormDirty(false); setFormEpoch((value) => value + 1); setDiscardOpen(false);
-    }); }}>Discard private draft</Button>{localError && <p role="alert">{localError}</p>}</DialogContent></Dialog>
+    {leaveGuard.dialog}
     <ContextualEditorPanel title="Reconcile article draft" open={!!lifecycle.recovery} onOpenChange={(open) => { if (!open && !requestLocked) lifecycle.cancelRecovery(); }} description="The latest public article and saved draft have been fetched. Your local draft is still unchanged. Nothing is saved or published by this review.">
       {lifecycle.recovery && <div className="space-y-5 overflow-y-auto">
         <p className="theme-text-muted text-sm">Before is the refreshed public article. After is your retained draft, including any older values. Keep your draft to reconcile these differences in the editor against the latest revision, or discard local edits and load the latest saved state.</p>

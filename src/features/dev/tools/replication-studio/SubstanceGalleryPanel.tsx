@@ -5,18 +5,11 @@ import { useEffect, useRef } from "react";
 import { Icon } from "@/components/common/Icon";
 import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { EmptyStateSurface, InteractiveContentCard } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   ActionNotice,
+  ConfirmDialog,
   DiffSurface,
   EditorActionStatus,
   EditorSection,
@@ -462,38 +455,22 @@ export function SubstanceGalleryPanel({
         </>
       ) : null}
 
-      <Dialog
-        open={pendingSlug !== null}
-        onOpenChange={(open) => (open ? undefined : controller.setPendingSlug(null))}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Discard unsaved curation?</DialogTitle>
-            <DialogDescription>
-              This gallery has changes that were never saved. Switching substances throws them away;
-              the article keeps whatever the server already holds.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => controller.setPendingSlug(null)}
-            >
-              Keep editing
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              onClick={controller.discardAndSwitch}
-            >
-              Discard and switch
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        request={
+          pendingSlug !== null
+            ? {
+                title: "Discard unsaved curation?",
+                description:
+                  "This gallery has changes that were never saved. Switching substances throws them away; the article keeps whatever the server already holds.",
+                cancelLabel: "Keep editing",
+                confirmLabel: "Discard and switch",
+                destructive: true,
+                onConfirm: controller.discardAndSwitch,
+              }
+            : null
+        }
+        onClose={() => controller.setPendingSlug(null)}
+      />
     </EditorSection>
   );
 }

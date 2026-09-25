@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import type { SubstanceArticle } from "@/schema";
+import { useConfirm } from "@/features/dev/components";
 
 import { useArticleFormContext } from "./ArticleFormContext";
 import { FormEditorField } from "./FormEditorField";
@@ -119,6 +120,7 @@ export function ComparisonsFieldsRHF() {
   const { getValues, setFocus } = useFormContext<SubstanceArticle>();
   const addButton = useRef<HTMLButtonElement>(null);
   const [status, setStatus] = useState("");
+  const { confirm, dialog } = useConfirm();
   const count = comparisons.fields.length;
 
   const handleRemove = useCallback(
@@ -127,19 +129,30 @@ export function ComparisonsFieldsRHF() {
       const drug = entry?.drug?.trim() ?? "";
       const label = entryLabel(drug, index);
       const populated = Boolean(drug || entry?.comparison?.trim());
-      if (populated && typeof window !== "undefined"
-        && !window.confirm(`Remove "${label}"? This cannot be undone.`)) return;
-      const remaining = count - 1;
-      comparisons.remove(index);
-      setStatus(`Removed ${label}. ${remaining === 1 ? "1 comparison remains" : `${remaining} comparisons remain`}.`);
-      // The removed row took the focused control with it; land on a real
-      // neighbour instead of the dialog container.
-      requestAnimationFrame(() => {
-        if (remaining > 0) setFocus(`comparisons.${Math.min(index, remaining - 1)}.drug`);
-        else addButton.current?.focus();
+      const removeEntry = () => {
+        const remaining = count - 1;
+        comparisons.remove(index);
+        setStatus(`Removed ${label}. ${remaining === 1 ? "1 comparison remains" : `${remaining} comparisons remain`}.`);
+        // The removed row took the focused control with it; land on a real
+        // neighbour instead of the dialog container.
+        requestAnimationFrame(() => {
+          if (remaining > 0) setFocus(`comparisons.${Math.min(index, remaining - 1)}.drug`);
+          else addButton.current?.focus();
+        });
+      };
+      if (!populated) {
+        removeEntry();
+        return;
+      }
+      confirm({
+        title: `Remove "${label}"?`,
+        description: "This cannot be undone.",
+        confirmLabel: "Remove comparison",
+        destructive: true,
+        onConfirm: removeEntry,
       });
     },
-    [comparisons, count, getValues, setFocus],
+    [comparisons, confirm, count, getValues, setFocus],
   );
 
   const handleAdd = useCallback(() => {
@@ -191,6 +204,7 @@ export function ComparisonsFieldsRHF() {
         <Icon icon="lucide:plus" className="h-3.5 w-3.5" size={14} />
         Add comparison
       </Button>
+      {dialog}
     </section>
   );
 }
