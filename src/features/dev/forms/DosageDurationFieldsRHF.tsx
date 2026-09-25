@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { EditorFieldRow } from "@/features/dev/components";
+import { EditorFieldRow, useConfirm } from "@/features/dev/components";
 
 import { useArticleFormContext } from "./ArticleFormContext";
 import { FormEditorField } from "./FormEditorField";
@@ -62,35 +61,33 @@ function CopyDurationStages({ index }: { index: number }) {
   const { applyDurationFromRoute } = useArticleFormContext();
   const source = useWatch<SubstanceArticle>({ name: "dosage.routes.0.route" });
   const destination = useWatch<SubstanceArticle>({ name: `dosage.routes.${index}.route` });
-  const [open, setOpen] = useState(false);
+  const { confirm, dialog } = useConfirm();
   const [copied, setCopied] = useState(false);
   const sourceName = typeof source === "string" && source.trim() ? source.trim() : "Route 1";
   const destinationName = typeof destination === "string" && destination.trim() ? destination.trim() : `Route ${index + 1}`;
 
   return (
     <div className="space-y-2">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button type="button" variant="ghost" size="sm" className="h-auto max-w-full whitespace-normal text-left">
-            Copy duration stages from {sourceName}
-          </Button>
-        </DialogTrigger>
-        <DialogContent showClose={false} className="[overflow-wrap:anywhere]">
-          <DialogHeader>
-            <DialogTitle>Replace duration stages for {destinationName}?</DialogTitle>
-            <DialogDescription>
-              Copy all six duration stages from {sourceName}, replacing this route&apos;s current stages.
-              Half-life, notes, and reference IDs stay unchanged.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-wrap gap-2">
-            <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>
-            <Button type="button" onClick={() => { applyDurationFromRoute(0, index); setCopied(true); setOpen(false); }}>
-              Replace duration stages
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-auto max-w-full whitespace-normal text-left"
+        onClick={() =>
+          confirm({
+            title: `Replace duration stages for ${destinationName}?`,
+            description: `Copy all six duration stages from ${sourceName}, replacing this route's current stages. Half-life, notes, and reference IDs stay unchanged.`,
+            confirmLabel: "Replace duration stages",
+            onConfirm: () => {
+              applyDurationFromRoute(0, index);
+              setCopied(true);
+            },
+          })
+        }
+      >
+        Copy duration stages from {sourceName}
+      </Button>
+      {dialog}
       {copied && <p role="status" className="theme-text-muted text-sm">Duration stages copied. Half-life, notes, and reference IDs are unchanged.</p>}
     </div>
   );

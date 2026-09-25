@@ -3,7 +3,7 @@ import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { EditorField, EditorFieldRow, EditorSelect } from "@/features/dev/components";
+import { EditorField, EditorFieldRow, EditorSelect, useConfirm } from "@/features/dev/components";
 import { EntryCard } from "../EntryCard";
 import { CANONICAL_LEGAL_STATUSES, CANONICAL_STATUS_LABELS } from "@/schema/substance/legalStatuses";
 import type { CountryLegality, SubstanceArticle } from "@/schema";
@@ -16,6 +16,7 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
   const id = useId();
   const [newCountry, setNewCountry] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
   const update = (country: string, patch: Partial<CountryLegality>) => {
     setValue("legality.countries", { ...countries, [country]: { ...countries[country], ...patch } }, { shouldDirty: true });
   };
@@ -34,12 +35,17 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
       <p className="theme-text-muted mb-4 max-w-prose text-sm">Country identity is fixed. Review status, legal instrument, public notes, and cited sources together. Keep research and internal review notes out of public prose.</p>
       <div className="space-y-4">
         {Object.entries(countries).map(([country, entry], index) => (
-          <EntryCard key={country} title={country} bodyClassName="space-y-4" removeLabel={`Remove ${country}`} onRemove={() => {
-            if (!window.confirm(`Remove ${country} and its legal status, instrument, and public notes from this draft?`)) return;
-            const next = { ...countries };
-            delete next[country];
-            setValue("legality.countries", next, { shouldDirty: true });
-          }}>
+          <EntryCard key={country} title={country} bodyClassName="space-y-4" removeLabel={`Remove ${country}`} onRemove={() => confirm({
+            title: `Remove ${country}?`,
+            description: "Its legal status, instrument, and public notes leave this draft.",
+            confirmLabel: `Remove ${country}`,
+            destructive: true,
+            onConfirm: () => {
+              const next = { ...countries };
+              delete next[country];
+              setValue("legality.countries", next, { shouldDirty: true });
+            },
+          })}>
             <EditorFieldRow layout="twoColumn">
               <EditorField label="Canonical legal status" htmlFor={`${id}-canonical-${index}`} description="Sets the public status badge when selected.">
                 {(props) => <EditorSelect {...props} value={entry.canonicalStatus ?? ""} onChange={(event) => update(country, { canonicalStatus: event.target.value as CountryLegality["canonicalStatus"] })}>
@@ -76,6 +82,7 @@ export function CountryLegalityCardEditor({ className }: CountryLegalityCardEdit
         </EditorField>
         <Button type="button" variant="outline" onClick={addCountry}>Add country</Button>
       </EditorFieldRow>
+      {dialog}
     </div>
   );
 }

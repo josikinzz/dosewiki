@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { LD50Entry, OrganToxicityEntry } from "@/schema";
 
@@ -27,7 +27,7 @@ describe("LD50ArrayEditor", () => {
     expect(screen.getByLabelText("Unit")).toHaveValue("mg/kg");
   });
 
-  it("keeps rows keyed to their entry when a middle row is removed", () => {
+  it("keeps rows keyed to their entry when a middle row is removed", async () => {
     render(
       <LD50Harness
         initial={[
@@ -40,13 +40,14 @@ describe("LD50ArrayEditor", () => {
 
     const [, , thirdUnitBefore] = screen.getAllByLabelText("Unit");
 
-    const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
     const remove = screen.getByRole("button", { name: "Remove Rat · Oral" });
     fireEvent.click(remove);
+    fireEvent.click(within(await screen.findByRole("dialog", { name: "Remove LD50 entry 2?" })).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getAllByLabelText("Unit").map((input) => (input as HTMLInputElement).value)).toEqual(["a", "b", "c"]);
-    confirmation.mockReturnValue(true);
     fireEvent.click(remove);
-    confirmation.mockRestore();
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Remove entry" }));
+    await waitFor(() => expect(screen.getAllByLabelText("Unit")).toHaveLength(2));
 
     const units = screen.getAllByLabelText("Unit");
     expect(units).toHaveLength(2);
@@ -67,7 +68,7 @@ describe("LD50ArrayEditor", () => {
 });
 
 describe("OrganToxicityArrayEditor", () => {
-  it("keeps rows keyed to their entry when a middle row is removed", () => {
+  it("keeps rows keyed to their entry when a middle row is removed", async () => {
     render(
       <OrganToxicityHarness
         initial={[
@@ -80,13 +81,14 @@ describe("OrganToxicityArrayEditor", () => {
 
     const [, , thirdFindingsBefore] = screen.getAllByLabelText("Findings");
 
-    const confirmation = vi.spyOn(window, "confirm").mockReturnValue(false);
     const remove = screen.getByRole("button", { name: "Remove Renal" });
     fireEvent.click(remove);
+    fireEvent.click(within(await screen.findByRole("dialog", { name: "Remove Renal?" })).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getAllByLabelText("Findings").map((input) => (input as HTMLTextAreaElement).value)).toEqual(["one", "two", "three"]);
-    confirmation.mockReturnValue(true);
     fireEvent.click(remove);
-    confirmation.mockRestore();
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Remove entry" }));
+    await waitFor(() => expect(screen.getAllByLabelText("Findings")).toHaveLength(2));
 
     const findings = screen.getAllByLabelText("Findings");
     expect(findings.map((input) => (input as HTMLTextAreaElement).value)).toEqual(["one", "three"]);

@@ -259,7 +259,8 @@ export function useReviewSettings({
  * Moving between articles: the in-app arrows, the picker, and the browser's
  * own back / forward. Sits after the writes hook because leaving an article
  * clears a stale tick error, and after the draft controller because leaving
- * one with unapplied form edits asks first.
+ * one with unapplied form edits asks first. A reload or tab close is held by
+ * the `useDirtyGuard` behind `guardNavigation`, which also owns unload.
  */
 export function useReviewNavigation({
   settings,
@@ -370,22 +371,6 @@ export function useReviewNavigation({
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [clearTickError, currentSlugRef, entryIndexRef, setCurrentSlug, setSettings, formDirty, pushLocation, guardNavigation, viewModeRef]);
-
-  /**
-   * The only guard a traverse or a tab close can still honour. `popstate`
-   * cannot be cancelled, so unapplied editor edits are defended here instead of
-   * with a confirm that arrives after the fact.
-   */
-  useEffect(() => {
-    if (!formDirty) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      // Legacy browsers key the prompt off a non-empty returnValue.
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [formDirty]);
 
   return { navigateTo, goNext, goPrev, canGoPrev, canGoNext };
 }

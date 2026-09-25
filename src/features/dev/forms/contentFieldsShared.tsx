@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EditorField, EditorFieldRow } from "@/features/dev/components";
+import { EditorField, EditorFieldRow, useConfirm } from "@/features/dev/components";
 import { EntryCard } from "./EntryCard";
 import { useEntryKeys } from "./useEntryKeys";
 import type {
@@ -202,6 +202,7 @@ export function LD50ArrayEditor({
   onChange: (entries: LD50Entry[]) => void;
 }) {
   const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
+  const { confirm, dialog } = useConfirm();
 
   const handleAdd = () => {
     appendKey();
@@ -217,9 +218,21 @@ export function LD50ArrayEditor({
   const handleRemove = (index: number) => {
     const entry = entries[index];
     const populated = entry.species.trim() || entry.route.trim() || entry.value != null || (entry.unit.trim() && entry.unit !== "mg/kg");
-    if (populated && typeof window !== "undefined" && !window.confirm(`Remove LD50 entry ${index + 1}? This cannot be undone.`)) return;
-    removeKey(index);
-    onChange(entries.filter((_, entryIndex) => entryIndex !== index));
+    const removeEntry = () => {
+      removeKey(index);
+      onChange(entries.filter((_, entryIndex) => entryIndex !== index));
+    };
+    if (!populated) {
+      removeEntry();
+      return;
+    }
+    confirm({
+      title: `Remove LD50 entry ${index + 1}?`,
+      description: "This cannot be undone.",
+      confirmLabel: "Remove entry",
+      destructive: true,
+      onConfirm: removeEntry,
+    });
   };
 
   return (
@@ -252,6 +265,7 @@ export function LD50ArrayEditor({
           ))}
         </div>
       )}
+      {dialog}
     </div>
   );
 }
@@ -336,6 +350,7 @@ export function OrganToxicityArrayEditor({
   onChange: (entries: OrganToxicityEntry[]) => void;
 }) {
   const { keys, appendKey, removeKey } = useEntryKeys(entries.length);
+  const { confirm, dialog } = useConfirm();
 
   const handleAdd = () => {
     appendKey();
@@ -351,9 +366,21 @@ export function OrganToxicityArrayEditor({
   const handleRemove = (index: number) => {
     const entry = entries[index];
     const populated = entry.system.trim() || entry.findings.trim() || entry.mechanism.trim() || entry.notes.trim();
-    if (populated && typeof window !== "undefined" && !window.confirm(`Remove ${entry.system.trim() || `organ toxicity entry ${index + 1}`}? This cannot be undone.`)) return;
-    removeKey(index);
-    onChange(entries.filter((_, entryIndex) => entryIndex !== index));
+    const removeEntry = () => {
+      removeKey(index);
+      onChange(entries.filter((_, entryIndex) => entryIndex !== index));
+    };
+    if (!populated) {
+      removeEntry();
+      return;
+    }
+    confirm({
+      title: `Remove ${entry.system.trim() || `organ toxicity entry ${index + 1}`}?`,
+      description: "This cannot be undone.",
+      confirmLabel: "Remove entry",
+      destructive: true,
+      onConfirm: removeEntry,
+    });
   };
 
   return (
@@ -386,6 +413,7 @@ export function OrganToxicityArrayEditor({
           ))}
         </div>
       )}
+      {dialog}
     </div>
   );
 }

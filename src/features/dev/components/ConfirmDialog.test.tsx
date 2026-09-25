@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { useRef, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { useConfirm } from "./ConfirmDialog";
+import { ConfirmDialog, useConfirm } from "./ConfirmDialog";
 
 function Harness({ onConfirm, affected }: { onConfirm: () => void; affected?: string[] }) {
   const { confirm, dialog } = useConfirm();
@@ -56,5 +57,28 @@ describe("useConfirm / ConfirmDialog", () => {
     expect(screen.getByText("row-8")).toBeInTheDocument();
     expect(screen.queryByText("row-9")).not.toBeInTheDocument();
     expect(screen.getByText("and 3 more")).toBeInTheDocument();
+  });
+
+  it("returns focus to an explicit target when the opener cannot take it back", async () => {
+    function ReturnHarness() {
+      const target = useRef<HTMLButtonElement>(null);
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <button type="button" ref={target}>Start write</button>
+          <ConfirmDialog
+            returnFocus={target}
+            onClose={() => setOpen(false)}
+            request={open ? { title: "Allow it?", description: "Nothing is saved yet.", confirmLabel: "Allow", onConfirm: vi.fn() } : null}
+          />
+        </>
+      );
+    }
+    render(<ReturnHarness />);
+
+    const dialog = await screen.findByRole("dialog", { name: "Allow it?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Start write" })).toHaveFocus());
   });
 });
