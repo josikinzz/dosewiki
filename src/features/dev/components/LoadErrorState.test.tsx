@@ -13,6 +13,12 @@ describe("LoadErrorState", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("says Try again once when the message already ends with it", () => {
+    render(<LoadErrorState message="The server returned an unreadable response. Try again." onRetry={() => {}} />);
+    expect(screen.getByText("The server returned an unreadable response.")).toBeInTheDocument();
+    expect(screen.getAllByText(/Try again\./)).toHaveLength(1);
+  });
+
   it("locks the button while a retry is in flight", () => {
     render(<LoadErrorState message="Still loading." onRetry={() => {}} busy />);
     expect(screen.getByRole("button", { name: "Retrying" })).toBeDisabled();

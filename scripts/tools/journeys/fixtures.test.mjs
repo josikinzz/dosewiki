@@ -79,6 +79,24 @@ describe("journey fixtures", () => {
     assert.deepEqual(get(fixture, "/api/dev/replications").json.rows, []);
   });
 
+  it("answers the Home reads for every role, in the tool's state", () => {
+    const loaded = createJourneyFixture({ role: "editor_translator" });
+    assert.deepEqual(loaded.session.user.glossaryLocales, ["de", "nl", "ja"]);
+    assert.equal(fixtureSession("editor").user.glossaryLocales, undefined);
+    const work = get(loaded, "/api/dev/my-work").json;
+    assert.deepEqual(work.drafts.map((draft) => draft.slug), ["launch-post"]);
+    assert.deepEqual(work.proposals.map((proposal) => proposal._id), ["journeyseed000001"]);
+    assert.equal(get(loaded, "/api/dev/translation-inbox", "?locale=de").json.total, 7);
+    assert.equal(get(loaded, "/api/dev/invites").json.invites.filter((invite) => invite.status === "active").length, 2);
+    assert.equal(get(loaded, "/api/dev/contributor-profile", "?key=ME").json.profile.key, "ME");
+
+    const empty = createJourneyFixture({ role: "editor", state: "empty" });
+    assert.deepEqual(get(empty, "/api/dev/my-work").json, { ok: true, drafts: [], proposals: [] });
+    assert.deepEqual(get(empty, "/api/dev/invites").json.invites, []);
+    assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/dev/my-work").status, 500);
+    assert.deepEqual(loaded.unhandled, []);
+  });
+
   it("refuses a save made against an older revision, then takes one made against the newer", () => {
     const fixture = createJourneyFixture();
     const row = loadRow(fixture);

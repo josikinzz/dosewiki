@@ -100,6 +100,42 @@ builds a new shared primitive, add it to **Conventions** and log it under
   automatically. `ConfirmDialog` shows a rejected `onConfirm` inside the
   dialog and relabels the button "Try again"; let the error throw with a
   readable message instead of catching it in the handler.
+- **Link rows.** A list of places to go (queues, drafts, languages) is an
+  open, separated list, not a card per row and not rail chrome: a `ul` with
+  `theme-dev-link-list -mx-2.5` (hairlines stay on the text column, the hover
+  fill bleeds so row text lines up with the section heading) and rows with
+  `theme-dev-link-row` plus a trailing `theme-dev-link-row-chevron`. The row
+  a section leads with adds `theme-dev-link-lead`. A count of zero steps back
+  with `theme-dev-link-count[data-zero]`. Classes live in
+  `src/features/dev/dev-tools.css`; Home's `LinkRow`, `CountValue`,
+  `CappedList`, `RowSkeletons`, `CountFailureLine`, `OnwardLink` and
+  `HeadingCount` (`src/features/dev/tools/home/homeParts.tsx`) are the
+  reference use. Do not reuse `theme-dev-rail-tab` for content rows.
+- **Spoken row names.** A link row's visible parts join without spaces in the
+  accessible name, so `LinkRow` inserts sr-only ", " before its meta and
+  trailing slots ("Trip reports, 3 waiting"). Pass `label` when the joined
+  parts still read badly; it must start with the visible label.
+- **Counts in words.** A count uses `tabular-nums` in the body face, never
+  `font-mono`. Loading is a skeleton bar with sr-only "Loading"; a failed
+  count is "Unknown" with a warning glyph, never zero; a stale count keeps
+  its number with "last known". Failed counts get one inline line with
+  "Retry counts" under the lead, not a button in the section header.
+- **Long lists cap at five** (`HOME_LIST_CAP`) behind an `ExpandButton`
+  `count` variant labelled "Show all" / "Show fewer".
+- **Dates on rows** are relative words in a `<time>` with the full date as
+  its title (`describeDay` in `homeModel.ts`); add a warning tone only when a
+  deadline is close.
+- **One read, one error.** When one request feeds several sections, a failure
+  renders one `LoadErrorState` (with `what`) and one Try again, not one per
+  section. `LoadErrorState` now drops a trailing "Try again." from the
+  message because the card already says it.
+- **Empty states point onward.** An empty list says why it is empty and
+  offers an `OnwardLink` to the tool where the work starts, named with the
+  registry's `labelFor(role)` label.
+- **Accent links** use `text-dose-accent-strong theme-accent-underline
+  underline-offset-4 hover:underline`; `theme-accent-link` is not defined in
+  any sheet (it silently renders body text; `ContributorProfileEditor` still
+  uses it).
 - **Utilities** (`/dev/kit`, `/dev/themes`) lead with `EditorBackLink`.
 - The user-facing name of the surface is "Editor" (sr-only h1, nav landmarks
   "Editor tools" / "Editor sections", "Leave editor").
@@ -185,4 +221,57 @@ For later passes:
 - `theme:tokens:check` was already failing at baseline (201 unreviewed
   findings); the new `var(--theme-*)` reads in `dev-tools.css` are CSS
   declarations in the feature sheet, the sanctioned place for them.
+
+### Pass 2: Home (`/dev/home`)
+
+Commit: see `git log --grep "Dev tools redesign: Home"`.
+Screenshots: `tmp/redesign/home/before/` and `tmp/redesign/home/after/`
+(every role; loaded, empty, failed, one count failed, loading, long lists,
+many invites; dark and light), captured by `tmp/redesign/home/capture.mjs`.
+Critique in `tmp/redesign/home/critique.md`, inventory in
+`tmp/redesign/home/inventory.md`.
+
+Main changes:
+
+- A welcome line (`HomeIntro`): first name, role, and one sentence saying
+  what this Home holds (`homeSummaryFor`).
+- Layout by role instead of an auto two-column grid (`HomeRow`): admin gets a
+  3:2 lead row (queues, invites), editor and contributor an even row, a lone
+  section keeps `max-w-3xl`.
+- Admin: the Inbox leads as a raised row with the total ("All clear" at a
+  known zero), queues are link rows with demoted zeros, a "Counted at" line,
+  and inline "Retry counts". Invites are link rows to People with the note on
+  its own line and a relative close date that warns within two days.
+- Admin now also sees their own drafts and proposals (`homeCardSetsFor`
+  returns `["admin", "editor"]`); glossary languages stay covered by the
+  Glossary feedback queue row.
+- Editor: one error for the one `/api/dev/my-work` read; drafts and
+  proposals capped at five; proposals put "Changes requested" first with
+  updated date and comment count; empty states link onward.
+- Translator: each language row is one link with native name (`lang`), count
+  and Continue (Open when empty); total in the heading.
+- Contributor: "N of 4 done", complete note, stronger To do; new "Your trip
+  reports" section reading the existing My reports routes
+  (`fetchMySubmissions`, `fetchOwnedReports`) with an onward link.
+- Shared: `LoadErrorState` strips a trailing "Try again." (every tool);
+  compact `StateCard` titles use the body face without tight tracking (the
+  display face crowded at 16px); new link-row classes in `dev-tools.css`.
+- Journeys fixtures now answer the Home reads (`/api/dev/my-work`,
+  `/api/dev/invites`, `/api/dev/translation-inbox`,
+  `/api/dev/contributor-profile`, `/api/dev/trip-reports/mine[/submissions]`)
+  and give translating roles `glossaryLocales` (`FIXTURE_GLOSSARY_LOCALES`).
+
+Deferred, with reasons:
+
+- Age of the oldest item per queue and "claimed by you": the count routes
+  return counts only; needs server fields.
+- A summed translation inbox endpoint (one request instead of one per
+  language): backend.
+- Deep links to one invite in People or one field in the profile editor:
+  those tools have no such routes yet; revisit in their passes.
+- Keyboard shortcuts on Home: every row is a link in tab order and Cmd+K
+  reaches any tool; no single primary action warrants a key.
+- Rail badge "13" (stale) vs Home "At least 13": the rail is shell chrome.
+- The `theme:tokens:check` count rises by the twelve `var(--theme-*)` reads
+  in the new `dev-tools.css` rules, the sanctioned place for them.
 

@@ -12,22 +12,38 @@ import { devHref } from "@/utils/devHref";
  * - `admin`: everything waiting on an admin, and the pending invites.
  * - `editor`: the member's own saved drafts and open proposals.
  * - `translator`: the review inbox count per language the member holds.
- * - `contributor`: a checklist for the member's own public profile.
+ * - `contributor`: a checklist for the member's own public profile, and
+ *   their trip reports.
  */
 export type HomeCardSet = "admin" | "editor" | "translator" | "contributor";
 
 /**
- * The card sets a role sees, in page order. An admin's Home is the queue of
- * what waits on them; an editor who also translates sees both sets; the
- * profile checklist is for a member with no editor or translator work.
+ * The card sets a role sees, in page order. An admin's Home leads with the
+ * queue of what waits on them, then their own drafts and proposals (the
+ * Glossary feedback queue already covers every language for an admin); an
+ * editor who also translates sees both sets; the profile checklist is for a
+ * member with no editor or translator work.
  */
 export function homeCardSetsFor(role: AppRole | null): HomeCardSet[] {
-  if (canApprove(role)) return ["admin"];
+  if (canApprove(role)) return ["admin", "editor"];
   const sets: HomeCardSet[] = [];
   if (roleMeetsFloor(role, "editor")) sets.push("editor");
   if (roleMeetsFloor(role, "translator")) sets.push("translator");
   if (sets.length === 0 && roleMeetsFloor(role, "contributor")) sets.push("contributor");
   return sets;
+}
+
+/** One line under the page title: what this Home holds for these sets. */
+export function homeSummaryFor(sets: readonly HomeCardSet[]): string {
+  const parts: string[] = [];
+  if (sets.includes("admin")) parts.push("the queues waiting on admins", "open invites");
+  if (sets.includes("editor")) parts.push("your drafts and proposals");
+  if (sets.includes("translator")) parts.push("the review inbox for each of your languages");
+  if (sets.includes("contributor")) parts.push("your profile and trip reports");
+  if (parts.length === 0) return "";
+  // Parts carry their own "and", so the list always takes the serial comma.
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+  return `${list[0].toUpperCase()}${list.slice(1)}. Each row opens the tool that owns it.`;
 }
 
 /**
@@ -99,4 +115,43 @@ export function glossaryInboxHref(locale?: string): string {
   if (locale) params.set("locale", locale);
   params.set("translationView", "inbox");
   return `${devHref({ type: "dev", tab: "glossary" })}?${params.toString()}`;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * A day as a card shows it: relative words for the row ("3 days ago", "in 2
+ * days", "today") and the full date for a tooltip. Null for a date that does
+ * not parse, so a row drops its meta rather than printing half a sentence.
+ */
+export type HomeDay = { relative: string; full: string; days: number };
+
+export function describeDay(iso: string, now: number = Date.now()): HomeDay | null {
+  const time = new Date(iso).getTime();
+  if (Number.isNaN(time)) return null;
+  const startOf = (value: number) => {
+    const date = new Date(value);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  };
+  const days = Math.round((startOf(time) - startOf(now)) / DAY_MS);
+  const date = new Date(time);
+  const sameYear = date.getFullYear() === new Date(now).getFullYear();
+  const absolute = date.toLocaleDateString("en", { day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) });
+  const relative = Math.abs(days) <= 13
+    ? new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(days, "day")
+    : absolute;
+  const full = date.toLocaleDateString("en", { weekday: "short", day: "numeric", month: "long", year: "numeric" });
+  return { relative, full, days };
+}
+
+/** An invite closing within this many days reads as a warning. */
+export const INVITE_CLOSING_DAYS = 2;
+
+/** How many rows a Home list shows before "Show all". */
+export const HOME_LIST_CAP = 5;
+
+/** A plural noun for a count: `countNoun(1, "draft")` is "1 draft". */
+export function countNoun(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
 }

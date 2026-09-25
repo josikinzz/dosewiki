@@ -53,10 +53,38 @@ export const FIXTURE_EMAIL = "screenshot-viewer@localhost.invalid";
 /** The session the viewer's `SessionProvider` reads; presentation only, like the viewer's own. */
 export function fixtureSession(role, now = FIXTURE_EPOCH) {
   if (!JOURNEY_ROLES.includes(role)) throw new Error(`Unknown journey role: ${role}.`);
+  const translates = role === "translator" || role === "editor_translator";
   return {
-    user: { email: FIXTURE_EMAIL, name: `Journey ${role.replace(/_/g, " ")}`, role },
+    user: {
+      email: FIXTURE_EMAIL,
+      name: `Journey ${role.replace(/_/g, " ")}`,
+      role,
+      // The languages a translating role reviews, so Home and Glossary have something to show.
+      ...(translates ? { glossaryLocales: [...FIXTURE_GLOSSARY_LOCALES] } : {}),
+    },
     expires: new Date(now + 60 * 60 * 1000).toISOString(),
   };
+}
+
+/** The languages a translating fixture role holds. */
+export const FIXTURE_GLOSSARY_LOCALES = Object.freeze(["de", "nl", "ja"]);
+
+/** Review inbox totals per fixture language: one busy, one empty, one small. */
+const TRANSLATION_INBOX_TOTALS = Object.freeze({ de: 7, nl: 0, ja: 2 });
+
+/** Invite codes for the admin's Home and People: two open, one expired. */
+function seedInvites() {
+  const day = 86_400_000;
+  const at = (offset) => new Date(FIXTURE_EPOCH + offset * day).toISOString();
+  const invite = (id, role, created, expires, status, note) => ({
+    id, role, createdBy: FIXTURE_EMAIL, createdAt: at(created), expiresAt: at(expires),
+    maxUses: 1, redemptions: [], status, ...(note ? { note } : {}),
+  });
+  return [
+    invite("fixture-invite-1", "editor", -2, 5, "active", "For the fixture reviewer"),
+    invite("fixture-invite-2", "translator", -1, 13, "active"),
+    invite("fixture-invite-3", "contributor", -20, -13, "expired", "Old batch"),
+  ];
 }
 
 /** A 64-character hex revision from a counter, so every run names the same revisions. */
@@ -359,6 +387,62 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
     const proposalMatch = /^\/api\/dev\/proposals\/([^/]+)$/.exec(pathname);
     if (proposalMatch && upper === "GET") return toolRead(() => proposalDetail(decodeURIComponent(proposalMatch[1])));
+
+    // Home: the member's own drafts and proposals, invites, language inboxes, own profile.
+    if (pathname === "/api/dev/my-work" && upper === "GET") {
+      return toolRead(() => json(200, {
+        ok: true,
+        drafts: [...writing.values()]
+          .filter((row) => row.status === "draft")
+          .map((row) => ({ slug: row.slug, title: row.title, updatedAt: new Date(row.creationTime).toISOString() })),
+        proposals: proposals.filter((row) => row.isAuthor && (row.status === "submitted" || row.status === "changes_requested")).map(proposalSummary),
+      }));
+    }
+    if (pathname === "/api/dev/invites" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, continuationCursor: null, invites: fixture.state === "empty" ? [] : seedInvites() }));
+    }
+    if (pathname === "/api/dev/translation-inbox" && upper === "GET") {
+      const locale = params.get("locale") ?? "";
+      const total = fixture.state === "empty" ? 0 : (TRANSLATION_INBOX_TOTALS[locale] ?? 0);
+      return toolRead(() => json(200, { ok: true, locale, items: [], total, counts: {} }));
+    }
+    if (pathname === "/api/dev/contributor-profile" && upper === "GET") {
+      const key = params.get("key") ?? "";
+      return toolRead(() => json(200, {
+        ok: true,
+        profile: {
+          key,
+          displayName: fixture.session.user.name,
+          // Name and bio done in the loaded state, only the name in the empty one.
+          bio: fixture.state === "empty" ? "" : "Writes field notes.",
+          links: [],
+          avatarUrl: null,
+          storedAvatarUrl: null,
+        },
+        works: [],
+        reports: [],
+      }));
+    }
+
+    // Home and My reports: the member's own trip report submissions and published reports.
+    if (pathname === "/api/dev/trip-reports/mine/submissions" && upper === "GET") {
+      const at = (hours) => new Date(FIXTURE_EPOCH - hours * 3_600_000).toISOString();
+      return toolRead(() => json(200, {
+        ok: true,
+        submissions: fixture.state === "empty" ? [] : [
+          { id: "fixture-submission-1", title: "A quiet evening with a fixture", status: "reviewing", submitted_at: at(30) },
+          { id: "fixture-submission-2", title: "Fixture festival notes", status: "published", submitted_at: at(400), decided_at: at(300), report_slug: "fixture-festival-notes" },
+        ],
+      }));
+    }
+    if (pathname === "/api/dev/trip-reports/mine" && upper === "GET") {
+      return toolRead(() => json(200, {
+        ok: true,
+        reports: fixture.state === "empty" ? [] : [
+          { id: "fixture-report-1", slug: "fixture-festival-notes", title: "Fixture festival notes", createdAt: FIXTURE_EPOCH - 300 * 3_600_000 },
+        ],
+      }));
+    }
 
     if (pathname === "/api/dev/replications" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, ...structuredClone(replications) }));

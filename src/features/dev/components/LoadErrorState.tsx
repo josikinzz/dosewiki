@@ -23,6 +23,13 @@ export function isTechnicalLoadMessage(message: string): boolean {
 }
 
 /**
+ * Request helpers end their messages with "Try again." for callers that show
+ * the message alone. The card already says it, so a trailing copy is dropped
+ * rather than read twice.
+ */
+const TRAILING_TRY_AGAIN = /\s*Try again\.?\s*$/i;
+
+/**
  * The one retry affordance for a load failure: what went wrong in plain
  * words, and a single button that tries again. `busy` locks the button while
  * the retry is in flight. A message that reads like a request log is tucked
@@ -31,6 +38,7 @@ export function isTechnicalLoadMessage(message: string): boolean {
  */
 export function LoadErrorState({ message, onRetry, busy = false, what, secondary }: LoadErrorStateProps) {
   const technical = isTechnicalLoadMessage(message);
+  const plain = message.replace(TRAILING_TRY_AGAIN, "") || message;
   return (
     <StateCard
       tone="danger"
@@ -41,7 +49,7 @@ export function LoadErrorState({ message, onRetry, busy = false, what, secondary
       description={
         <>
           <span className="block">
-            <span className="theme-text-secondary">{technical ? "The server did not answer the request." : message}</span>{" "}
+            <span className="theme-text-secondary">{technical ? "The server did not answer the request." : plain}</span>{" "}
             <span className="theme-text-muted">Try again. If it keeps failing, tell an admin.</span>
           </span>
           {technical ? (

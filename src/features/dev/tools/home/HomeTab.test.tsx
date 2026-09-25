@@ -57,6 +57,8 @@ const HEALTHY: Record<string, Answer> = {
   },
   "/api/dev/translation-inbox?locale=de": { body: { ok: true, locale: "de", items: [], total: 7, counts: {} } },
   "/api/dev/translation-inbox?locale=nl": { body: { ok: true, locale: "nl", items: [], total: 0, counts: {} } },
+  "/api/dev/trip-reports/mine/submissions": { body: { ok: true, submissions: [] } },
+  "/api/dev/trip-reports/mine": { body: { ok: true, reports: [] } },
   "/api/dev/contributor-profile?key=ADA": {
     body: {
       ok: true,
@@ -106,7 +108,7 @@ afterEach(() => {
 });
 
 describe("Home, per role", () => {
-  it("shows an admin everything waiting and the pending invites, and nothing else", async () => {
+  it("shows an admin everything waiting, the pending invites, then their own drafts and proposals", async () => {
     const home = renderHome("admin");
 
     const inbox = await within(home).findByRole("link", { name: /^Inbox/ });
@@ -119,8 +121,8 @@ describe("Home, per role", () => {
     expect(await within(home).findByText(/For Ben/)).toBeTruthy();
     expect(within(home).queryByText(/expired/i)).toBeNull();
 
-    expect(cardTitles(home)).toEqual(["Waiting on admins", "Pending invites"]);
-    expect(requested).not.toContain("/api/dev/my-work");
+    expect(cardTitles(home)).toEqual(["Waiting on admins", "Pending invites", "My drafts", "My open proposals"]);
+    // Every language's glossary feedback is already a queue row for an admin.
     expect(requested.some((path) => path.startsWith("/api/dev/translation-inbox"))).toBe(false);
   });
 
@@ -138,10 +140,10 @@ describe("Home, per role", () => {
   it("shows a translator the inbox count per language with Continue, and nothing else", async () => {
     const home = renderHome("translator", ["de", "nl"]);
 
-    const german = await within(home).findByRole("listitem", { name: /German/ });
+    const german = await within(home).findByRole("link", { name: /German/ });
     await waitFor(() => expect(german).toHaveTextContent("7"));
-    expect(within(german).getByRole("link", { name: /Continue/ })).toBeTruthy();
-    const dutch = within(home).getByRole("listitem", { name: /Dutch/ });
+    expect(german).toHaveAccessibleName(/Continue in Deutsch \(German\)/);
+    const dutch = within(home).getByRole("link", { name: /Dutch/ });
     await waitFor(() => expect(dutch).toHaveTextContent("Nothing waiting"));
 
     expect(cardTitles(home)).toEqual(["Translation inbox"]);
@@ -160,12 +162,13 @@ describe("Home, per role", () => {
     const home = renderHome("contributor");
 
     const checklist = await within(home).findByRole("list", { name: "Profile checklist" });
-    await waitFor(() => expect(within(checklist).getByRole("listitem", { name: /Display name/ })).toHaveTextContent("Done"));
-    expect(within(checklist).getByRole("listitem", { name: /Short bio/ })).toHaveTextContent("To do");
-    expect(within(checklist).getByRole("listitem", { name: /Profile picture/ })).toHaveTextContent("To do");
-    expect(within(checklist).getByRole("listitem", { name: /link/i })).toHaveTextContent("To do");
+    await waitFor(() => expect(within(checklist).getByRole("link", { name: /Display name/ })).toHaveTextContent("Done"));
+    expect(within(checklist).getByRole("link", { name: /Short bio/ })).toHaveTextContent("To do");
+    expect(within(checklist).getByRole("link", { name: /Profile picture/ })).toHaveTextContent("To do");
+    expect(within(checklist).getByRole("link", { name: /link/i })).toHaveTextContent("To do");
+    expect(within(home).getByText("1 of 4 done")).toBeTruthy();
 
-    expect(cardTitles(home)).toEqual(["Your profile"]);
+    expect(cardTitles(home)).toEqual(["Your profile", "Your trip reports"]);
     expect(requested).not.toContain("/api/dev/my-work");
   });
 });
@@ -181,7 +184,11 @@ describe("Home cards", () => {
       "/dev/citation-review",
       "/dev/queue",
       "/dev/queue",
+      // The open invite row, then Open People.
       "/dev/people",
+      "/dev/people",
+      "/dev/articles/lsd",
+      "/dev/queue/prop-1",
     ]],
     ["editor", [], ["/dev/articles/lsd", "/dev/queue/prop-1"]],
     // In the site's language order, whatever order the grant lists them in.
@@ -194,6 +201,7 @@ describe("Home cards", () => {
       "/dev/contributors?scope=me",
       "/dev/contributors?scope=me",
       "/dev/contributors?scope=me",
+      "/dev/my-reports",
     ]],
   ] as const)("link a %s to the exact item each card names", async (role, locales, expected) => {
     const home = renderHome(role, [...locales]);
@@ -218,7 +226,7 @@ describe("Home counts", () => {
     stubNetwork({ "/api/dev/translation-inbox?locale=de": { status: 500, body: { error: "down" } } });
     const home = renderHome("translator", ["de"]);
 
-    const german = await within(home).findByRole("listitem", { name: /German/ });
+    const german = await within(home).findByRole("link", { name: /German/ });
     await waitFor(() => expect(german).toHaveTextContent("Unknown"));
     expect(german).not.toHaveTextContent("Nothing waiting");
   });
@@ -227,7 +235,9 @@ describe("Home counts", () => {
     stubNetwork({ "/api/dev/my-work": { status: 500, body: { error: "Unable to load your drafts and proposals right now." } } });
     const home = renderHome("editor");
 
-    expect(await within(home).findAllByText("Unable to load your drafts and proposals right now.")).not.toHaveLength(0);
+    // One read feeds both lists: one error, one retry.
+    expect(await within(home).findAllByText("Unable to load your drafts and proposals right now.")).toHaveLength(1);
+    expect(within(home).getAllByRole("button", { name: "Try again" })).toHaveLength(1);
     expect(within(home).queryByText(/No saved drafts/)).toBeNull();
   });
 });

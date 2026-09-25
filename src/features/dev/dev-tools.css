@@ -161,6 +161,64 @@
     box-shadow: inset 0 0 0 1px var(--theme-border-strong);
   }
 
+  /*
+   * Open, separated link rows (Home): a list of places to go, each row one
+   * link. A hairline between rows, a quiet lift on hover, the trailing chevron
+   * wakes with the row. Not a card per row (style guide, Index lists).
+   */
+  /* The hairline stays inside the row padding, so a list that bleeds its hover fill past the section edge keeps its rules on the text column. */
+  .theme-dev-link-list > * {
+    position: relative;
+  }
+
+  .theme-dev-link-list > * + *::before {
+    content: "";
+    position: absolute;
+    inset: 0 0.625rem auto;
+    height: 1px;
+    background: var(--theme-border-subtle);
+    pointer-events: none;
+  }
+
+  .theme-dev-link-row {
+    color: var(--theme-text-secondary);
+  }
+
+  .theme-dev-link-row:focus-visible {
+    outline: 1px solid var(--theme-text-secondary);
+    outline-offset: -1px;
+  }
+
+  .theme-dev-link-row-chevron {
+    color: var(--theme-text-faint);
+  }
+
+  @media (hover: hover) {
+    .theme-dev-link-row:hover {
+      background: var(--theme-frosted-control-on-panel-hover-bg);
+      color: var(--theme-text-primary);
+    }
+
+    .theme-dev-link-row:hover .theme-dev-link-row-chevron {
+      color: var(--theme-accent-strong);
+    }
+  }
+
+  /* The one row a section leads with (Home's Inbox): a raised control on the panel. */
+  .theme-dev-link-lead {
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow:
+      inset 0 0 0 1px var(--theme-frosted-control-on-panel-border),
+      var(--theme-frosted-control-on-panel-shadow);
+    color: var(--theme-text-primary);
+  }
+
+  /* A count of zero steps back so the rows with work stand out. */
+  .theme-dev-link-count[data-zero] {
+    color: var(--theme-text-faint);
+    font-weight: 400;
+  }
+
   /* The member's initials on the account trigger and menu header. */
   .theme-dev-avatar {
     background: var(--theme-frosted-control-on-panel-hover-bg);

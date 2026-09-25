@@ -78,8 +78,10 @@ export function StateCard({
       <div className={cn("max-w-xl", compact ? "space-y-1" : "space-y-1.5")}>
         <h2
           className={cn(
-            "theme-text-primary font-display font-semibold tracking-tight",
-            compact ? "text-base" : "text-lg sm:text-xl",
+            "theme-text-primary font-semibold",
+            // The display face is for large titles; at the compact size its
+            // tight tracking crowds the letters, so compact reads in the body face.
+            compact ? "text-base" : "font-display text-lg tracking-tight sm:text-xl",
           )}
         >
           {title}
