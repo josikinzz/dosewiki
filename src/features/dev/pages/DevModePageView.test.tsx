@@ -59,6 +59,7 @@ function buildController(
     activeTab,
     changeLog: {},
     commitPanel: null,
+    stagedRecovery: { offer: null, held: null, restoring: false, error: null, checkpointSavedAt: null },
     tagEditorTabProps: {},
     sessionProfileKey: "EDITOR",
     contributorDirectory: { profiles: [], isLoading: false },

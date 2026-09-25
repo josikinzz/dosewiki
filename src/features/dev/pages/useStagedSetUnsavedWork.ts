@@ -16,16 +16,19 @@ const NO_OP = () => {};
 export function useStagedSetUnsavedWork({
   hasArticleDatasetChanges,
   hasIndexLayoutChanges,
+  onDiscardArticles = NO_OP,
 }: {
   hasArticleDatasetChanges: boolean;
   hasIndexLayoutChanges: boolean;
+  /** Discarding the article edits also drops their browser recovery copy. */
+  onDiscardArticles?: () => void;
 }): void {
   useUnsavedWork({
     id: "staged-set:articles",
     tab: "tag-editor",
     label: "Tags: article edits not yet committed",
     dirty: hasArticleDatasetChanges,
-    discard: NO_OP,
+    discard: onDiscardArticles,
     keepsOnTabSwitch: true,
   });
   useUnsavedWork({

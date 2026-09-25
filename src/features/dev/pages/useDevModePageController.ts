@@ -17,6 +17,7 @@ import { useDevModeChangelogState } from "./useDevModeChangelogState";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
 import { useDevSupportTabsController } from "./useDevModeSupportTabProps";
 import { useDevRouteAccess } from "./useDevRouteAccess";
+import { useStagedArticlesRecovery } from "./useStagedArticlesRecovery";
 import { useStagedSetUnsavedWork } from "./useStagedSetUnsavedWork";
 
 export function useDevModePageController({
@@ -48,6 +49,8 @@ export function useDevModePageController({
     requestIndexLayouts,
     retryIndexLayouts,
     requestLibrary,
+    applyArticlesTransform,
+    articleHydration,
   } = useDevMode();
 
   // The contributor directory and the changelog feed are per-tab, not per-shell:
@@ -102,9 +105,18 @@ export function useDevModePageController({
     close,
     onTabNoticeClear: clearNoticesForTab,
   });
+  const stagedRecovery = useStagedArticlesRecovery({
+    articles,
+    getOriginalArticles,
+    applyArticlesTransform,
+    hydrateArticlesNow: articleHydration.hydrateArticlesNow,
+    hasChanges: changelogState.hasArticleDatasetChanges,
+    libraryReady: !isLibraryLoading && articles.length > 0,
+  });
   useStagedSetUnsavedWork({
     hasArticleDatasetChanges: changelogState.hasArticleDatasetChanges,
     hasIndexLayoutChanges: changelogState.hasManualChanges,
+    onDiscardArticles: stagedRecovery.forget,
   });
   const changeLog = useDevModeChangeLog({
     changeLogEntries,
@@ -208,6 +220,7 @@ export function useDevModePageController({
     activeTab,
     changeLog,
     commitPanel,
+    stagedRecovery,
     articlesInitialSlug: initialArticleSlug,
     citationReviewInitialSlug: initialArticleSlug,
     moleculeEditorInitialSlug: initialArticleSlug,

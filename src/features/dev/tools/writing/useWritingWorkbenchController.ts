@@ -5,6 +5,8 @@ import { contentHash } from "../../../../../lib/proposals/contentHash";
 import { prepareVCode } from "@/features/effects/vcode/editing";
 
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { useDraftRecoveryStore } from "@/features/dev/recovery/DraftRecoveryContext";
+import type { DraftCheckpoint } from "@/features/dev/recovery/draftRecovery";
 
 import type {
   EditorActionStatusState,
@@ -27,6 +29,24 @@ import {
 } from "./writingEditorModel";
 
 const API_PATH = "/api/dev/writing-article";
+/** The revision a row that does not exist yet is saved against. */
+const NEW_ROW_REVISION = contentHash(null);
+/** How long typing pauses before the browser recovery copy is rewritten. */
+const CHECKPOINT_DELAY_MS = 400;
+
+/** A recovery copy found for the open record, waiting on the editor's choice. */
+export type WritingRecoveryOffer = {
+  checkpoint: DraftCheckpoint<WritingDraft>;
+  /** The copy was made against an older saved version than the one now loaded. */
+  stale: boolean;
+};
+
+/** A stale copy under review: the fields where it differs from the loaded version. */
+export type WritingRecoveryReview = {
+  recovered: WritingDraft;
+  fields: Array<keyof WritingDraft>;
+  used: Array<keyof WritingDraft>;
+};
 
 type SaveState = EditorActionStatusState | "idle";
 export type WritingSelection =
@@ -74,6 +94,18 @@ export function useWritingWorkbenchController({
   const [dateIncomplete, setDateIncomplete] = useState(false);
   const slugTouchedRef = useRef(false);
   const operationRef = useRef<{ body: string; id: string } | null>(null);
+  // Draft recovery (see `draftRecovery.ts`): a browser copy of the open
+  // record's unsaved work, scoped to the signed-in account. Absent outside the
+  // /dev shell, where nothing is kept.
+  const recoveryStore = useDraftRecoveryStore();
+  const [recoveryOffer, setRecoveryOffer] = useState<WritingRecoveryOffer | null>(null);
+  const [recoveryReview, setRecoveryReview] = useState<WritingRecoveryReview | null>(null);
+  const [checkpointSavedAt, setCheckpointSavedAt] = useState<number | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const checkedRecordRef = useRef<string | null>(null);
+  // The copy not yet written when typing last paused; written on unmount and
+  // page hide so a reload keeps the last keystrokes.
+  const flushRef = useRef<(() => void) | null>(null);
 
   const refreshList = useCallback(async () => {
     if (contextual) { setEntries([]); return; }
@@ -155,13 +187,71 @@ export function useWritingWorkbenchController({
   }, [selectedSlug]);
 
   const slugAvailability = checkSlugAvailability(draft.slug, entries ?? [], selectedSlug);
-  const readOnly = isLoadingRow || saveState === "saving" || uncertain || (selectedSlug !== null && loadedRow === null);
+  // A recovery choice holds the form still, so nothing typed can land under
+  // (or be overwritten by) the copy the editor is deciding about.
+  const readOnly = isLoadingRow || saveState === "saving" || uncertain || (selectedSlug !== null && loadedRow === null)
+    || recoveryOffer !== null || recoveryReview !== null;
   const parsedBody = useMemo(() => {
     try {
       return { ast: draft.bodyFormat === "vcode" ? prepareVCode(draft.body, { raw: loadedRow?.body_raw, ast: loadedRow?.body_ast }) : undefined, error: null };
     } catch (error) { return { ast: undefined, error: error instanceof Error ? error.message : "Invalid VCode." }; }
   }, [draft.body, draft.bodyFormat, loadedRow]);
   const isDirty = uncertain || !isSameDraft(draft, baseline);
+
+  // The recovery record: the open row, or the one unsaved new draft.
+  const recordKey = selection.type === "row" ? `row:${selection.slug}` : selection.type === "new" ? "new" : null;
+  const baselineRevision = loadedRow?.baseRevision ?? NEW_ROW_REVISION;
+  const recordReady = selection.type === "new"
+    ? loadedRow === null
+    : selection.type === "row" && !isLoadingRow && loadedRow?.slug === selection.slug;
+
+  useEffect(() => {
+    if (!recoveryStore || !recordKey || !recordReady) return;
+    // The first look at a record reads its copy before anything can write one.
+    const checkKey = `${recoveryStore.actor}|${recordKey}`;
+    if (checkedRecordRef.current !== checkKey) {
+      checkedRecordRef.current = checkKey;
+      const found = recoveryStore.read<WritingDraft>("writing", recordKey);
+      if (found && (found.pending || !isSameDraft(found.draft, draft))) {
+        setRecoveryOffer({ checkpoint: found, stale: found.baseline !== baselineRevision });
+        return;
+      }
+    }
+    // An open choice keeps the copy as it is; an unconfirmed save owns it.
+    if (recoveryOffer || recoveryReview || uncertain) return;
+    if (isSameDraft(draft, baseline)) {
+      flushRef.current = null;
+      recoveryStore.clear("writing", recordKey);
+      setCheckpointSavedAt(null);
+      return;
+    }
+    const write = () => {
+      flushRef.current = null;
+      const at = recoveryStore.write<WritingDraft>({ tool: "writing", record: recordKey, baseline: baselineRevision, draft });
+      setCheckpointSavedAt(at);
+    };
+    flushRef.current = write;
+    const timer = window.setTimeout(write, CHECKPOINT_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [recoveryStore, recordKey, recordReady, draft, baseline, baselineRevision, recoveryOffer, recoveryReview, uncertain]);
+
+  useEffect(() => {
+    const flush = () => flushRef.current?.();
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, []);
+
+  /** Drops the open record's copy: the editor discarded it or moved on after being asked. */
+  const forgetRecovery = useCallback(() => {
+    flushRef.current = null;
+    if (recoveryStore && recordKey) recoveryStore.clear("writing", recordKey);
+    setCheckpointSavedAt(null);
+    setRecoveryOffer(null);
+    setRecoveryReview(null);
+  }, [recoveryStore, recordKey]);
   const dateError = dateIncomplete ? "Finish the date, or clear the field." : publicationDateError(draft.publicationDate);
   const coverError = coverImageUrlError(draft.coverImageUrl);
   const canSave =
@@ -184,9 +274,10 @@ export function useWritingWorkbenchController({
 
   const startNew = useCallback(() => {
     if (uncertain || saveState === "saving") return;
+    forgetRecovery();
     setSelection({ type: "new" });
     resetDraft();
-  }, [resetDraft, uncertain, saveState]);
+  }, [forgetRecovery, resetDraft, uncertain, saveState]);
 
   // The kind filter. A loaded row of the other kind cannot stay open under a
   // rail that no longer lists it, so the editor drops to a fresh draft of the
@@ -207,15 +298,17 @@ export function useWritingWorkbenchController({
   // is dropped rather than kept dirty behind it.
   const selectPinned = useCallback(() => {
     if (uncertain || saveState === "saving") return;
+    forgetRecovery();
     setSelection({ type: "pinned" });
     resetDraft();
-  }, [resetDraft, uncertain, saveState]);
+  }, [forgetRecovery, resetDraft, uncertain, saveState]);
 
   const selectRow = useCallback((slug: string) => {
     if (uncertain || saveState === "saving") return;
+    forgetRecovery();
     setSelection({ type: "row", slug });
     setNotice(null);
-  }, [uncertain, saveState]);
+  }, [forgetRecovery, uncertain, saveState]);
 
   const updateTitle = useCallback((title: string) => {
     setDraft((current) => ({
@@ -240,19 +333,33 @@ export function useWritingWorkbenchController({
 
   const save = useCallback(
     /** Resolves true once the server confirmed the save; false when it did not happen. */
-    async (status: WritingDraft["status"]): Promise<boolean> => {
+    async (requestedStatus: WritingDraft["status"]): Promise<boolean> => {
       if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error) return false;
       setSaveState("saving");
       setNotice(null);
+      const savingRecord = recordKey;
       try {
-        const document = {
-          ...draft, slug: draft.slug.trim(), originalSlug: loadedRow?.slug,
-          kind: loadedRow?.kind ?? kind, status, title: draft.title.trim(),
-          tags: draft.tags, expectedRevision: loadedRow?.baseRevision ?? contentHash(null),
-          publicationDate: draft.publicationDate.trim() || undefined,
-        };
-        const serialized = JSON.stringify(document);
+        // An unconfirmed operation is replayed exactly as it first left, with
+        // its own id, so the server answers with the outcome it recorded.
+        const serialized = uncertain && operationRef.current
+          ? operationRef.current.body
+          : JSON.stringify({
+              ...draft, slug: draft.slug.trim(), originalSlug: loadedRow?.slug,
+              kind: loadedRow?.kind ?? kind, status: requestedStatus, title: draft.title.trim(),
+              tags: draft.tags, expectedRevision: loadedRow?.baseRevision ?? NEW_ROW_REVISION,
+              publicationDate: draft.publicationDate.trim() || undefined,
+            });
+        const document = JSON.parse(serialized) as WritingDraft & { expectedRevision: string; kind: WritingKind; originalSlug?: string };
+        const status = document.status;
         if (operationRef.current?.body !== serialized) operationRef.current = { body: serialized, id: crypto.randomUUID() };
+        // The operation's identity is kept before it leaves, so a lost answer
+        // survives a reload and is reconciled rather than sent again.
+        if (recoveryStore && savingRecord) {
+          flushRef.current = null;
+          recoveryStore.write<WritingDraft>({
+            tool: "writing", record: savingRecord, baseline: document.expectedRevision, draft, pending: operationRef.current,
+          });
+        }
         setUncertain(true);
         const response = await fetch(API_PATH, {
           method: "POST",
@@ -261,11 +368,20 @@ export function useWritingWorkbenchController({
         });
         const payload = (await response.json()) as { slug?: string; error?: string; revision?: string };
         if (!response.ok) {
-          if (response.status < 500) setUncertain(false);
+          if (response.status < 500) {
+            // A definite refusal: nothing is pending any more, the edit still is.
+            setUncertain(false);
+            if (recoveryStore && savingRecord) {
+              recoveryStore.write<WritingDraft>({ tool: "writing", record: savingRecord, baseline: document.expectedRevision, draft });
+            }
+          }
           throw new Error(payload.error ?? "The article could not be saved.");
         }
         if (!payload.revision) throw new Error("The server did not confirm publication. Retry to reconcile this operation.");
         setUncertain(false);
+        if (recoveryStore && savingRecord) recoveryStore.clear("writing", savingRecord);
+        setCheckpointSavedAt(null);
+        setSavedAt(Date.now());
         setLoadedRow(current => ({ ...current, ...document, body_raw: draft.body, body_ast: parsedBody.ast, baseRevision: payload.revision! }));
         // What was posted is the new baseline; anything typed meanwhile stays dirty.
         setBaseline({ ...draft, status });
@@ -291,7 +407,7 @@ export function useWritingWorkbenchController({
         return false;
       }
     },
-    [draft, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState],
+    [draft, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
   );
   /**
    * An editor's save: the same document the admin's save posts, held as a
@@ -320,6 +436,8 @@ export function useWritingWorkbenchController({
         summary: `${loadedRow ? "Update" : "New"} ${label} “${title}”`,
         baselines: [{ kind: "writing", key: draft.slug.trim(), document: loadedRow }],
       });
+      // The proposal holds the edit now; the browser copy has done its job.
+      forgetRecovery();
       if (loadedRow) {
         setDraft(baseline);
       } else {
@@ -340,8 +458,53 @@ export function useWritingWorkbenchController({
       });
       return false;
     }
-  }, [baseline, canSave, draft, kind, loadedRow]);
-  const discard = useCallback(() => { if (uncertain || saveState === "saving") return; setDraft(baseline); setNotice(null); }, [baseline, uncertain, saveState]);
+  }, [baseline, canSave, draft, forgetRecovery, kind, loadedRow]);
+  const discard = useCallback(() => {
+    if (uncertain || saveState === "saving") return;
+    forgetRecovery();
+    setDraft(baseline);
+    setNotice(null);
+  }, [baseline, forgetRecovery, uncertain, saveState]);
+
+  /**
+   * Puts a recovery copy back. A copy of the loaded version replaces the
+   * draft. A copy made against an older version opens a review of both, and
+   * the newer saved version stays in the editor until the editor picks a
+   * field from the copy. A copy holding an unconfirmed save brings that exact
+   * operation back, so the next write is its confirmation, not a new save.
+   */
+  const restoreRecovery = useCallback(() => {
+    if (!recoveryOffer) return;
+    const { checkpoint, stale } = recoveryOffer;
+    setRecoveryOffer(null);
+    slugTouchedRef.current = true;
+    if (checkpoint.pending) {
+      operationRef.current = checkpoint.pending;
+      setDraft(checkpoint.draft);
+      setUncertain(true);
+      return;
+    }
+    if (!stale) {
+      setDraft(checkpoint.draft);
+      return;
+    }
+    const fields = (Object.keys(checkpoint.draft) as Array<keyof WritingDraft>)
+      .filter((key) => JSON.stringify(checkpoint.draft[key]) !== JSON.stringify(draft[key]));
+    setRecoveryReview({ recovered: checkpoint.draft, fields, used: [] });
+  }, [recoveryOffer, draft]);
+  const discardRecovery = useCallback(() => {
+    if (!recoveryOffer) return;
+    forgetRecovery();
+  }, [forgetRecovery, recoveryOffer]);
+  /** Takes one field from the recovered copy into the draft. */
+  const takeRecoveredField = useCallback((key: keyof WritingDraft) => {
+    if (!recoveryReview) return;
+    const value = recoveryReview.recovered[key];
+    setDraft((current) => ({ ...current, [key]: value }));
+    setRecoveryReview((current) => current && !current.used.includes(key) ? { ...current, used: [...current.used, key] } : current);
+  }, [recoveryReview]);
+  /** Ends the review; the draft as it now stands becomes the browser copy. */
+  const finishRecoveryReview = useCallback(() => setRecoveryReview(null), []);
   const reconcile = useCallback(async () => {
     if (!loadedRow || uncertain || saveState === "saving") return;
     try {
@@ -367,6 +530,14 @@ export function useWritingWorkbenchController({
     parsedBody,
     discard,
     reconcile,
+    recoveryOffer,
+    recoveryReview,
+    restoreRecovery,
+    discardRecovery,
+    takeRecoveredField,
+    finishRecoveryReview,
+    checkpointSavedAt,
+    savedAt,
     isLoadingRow,
     saveState,
     uncertain,

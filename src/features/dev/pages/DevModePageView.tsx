@@ -12,6 +12,7 @@ import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
 import { findDevTab } from "./devTabRegistry";
 import { DevToolSaveLine } from "./DevToolSaveLine";
+import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
 
 /**
  * Every tool is its own lazily-loaded chunk. The shell used to pull every tool
@@ -180,6 +181,12 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
       {/* Keyed so a Cmd+K record remounts the open tool on the record it names. */}
       <div key={controller.toolMountKey} className={controller.contentWrapperClass}>
         <DevToolSaveLine tab={activeDescriptor} canApprove={controller.canApprove} />
+        {controller.canDraft ? (
+          <StagedArticlesRecoveryNotice
+            recovery={controller.stagedRecovery}
+            showSaveTime={controller.activeTab === "tag-editor"}
+          />
+        ) : null}
         {controller.activeTabLockReason !== null ? (
           <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
         ) : controller.activeTab === "index-layout"
