@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -440,6 +441,7 @@ export function ReplicationEditorDrawer({
   const single = selected.length === 1 ? selected[0] : null;
   const { draft, setDraft, dirty } = useSingleDraft(single);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [hintsOpen, setHintsOpen] = useState(false);
   const { bulk, setBulk, resetBulk, dirty: bulkDirty } = useBulkDraft(selected);
   const { confirm, dialog } = useConfirm();
 
@@ -536,7 +538,26 @@ export function ReplicationEditorDrawer({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         {selected.length === 0 ? (
-          <KeyboardHints />
+          // Idle help stays one line tall until asked for.
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-expanded={hintsOpen}
+              aria-controls="studio-inspector-hints"
+              onClick={() => setHintsOpen((open) => !open)}
+            >
+              <Icon icon="lucide:keyboard" size={15} />
+              Keyboard shortcuts
+              <ExpandIndicator isExpanded={hintsOpen} />
+            </Button>
+            {hintsOpen ? (
+              <div id="studio-inspector-hints">
+                <KeyboardHints />
+              </div>
+            ) : null}
+          </div>
         ) : single && draft ? (
           <div className="space-y-6">
             {previewOpen ? <ReplicationThumb row={single} className="aspect-[4/3]" enableVideoPreview /> : null}

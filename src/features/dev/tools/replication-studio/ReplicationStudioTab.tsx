@@ -179,13 +179,19 @@ export function ReplicationStudioTab({
   const [view, setView] = useState<StudioGridView>("grid");
   const [density, setDensity] = useState<StudioGridDensity>("comfortable");
   const [groupMenuOpen, setGroupMenuOpen] = useState(false);
+  // From xl the idle inspector can be pinned open (the grid never moves when
+  // a selection lands) or unpinned (the grid takes its space until a work is
+  // selected). Either way the grid box stays mounted, so selection and scroll
+  // position survive the column opening or closing.
+  const [inspectorPinned, setInspectorPinned] = useState(true);
   const isLibrary = activePanel === null;
   const hasSelection = selection.size > 0;
-  // From lg the inspector is always a column. Between lg and xl there is room
+  // From lg the inspector is a column. Between lg and xl there is room
   // for two columns beside the grid, not three, so while something is
   // selected the rail makes way (it folds into the toolbar's filter popover)
   // and comes back when the selection clears. Under lg it is a sheet.
-  const inspectorColumn = drawerInColumn || (railInColumn && hasSelection);
+  const inspectorColumn =
+    (drawerInColumn && (inspectorPinned || hasSelection)) || (railInColumn && hasSelection);
   const railColumn = railInColumn && (drawerInColumn || !hasSelection);
   const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
 
@@ -384,7 +390,15 @@ export function ReplicationStudioTab({
             ))}
           </ToggleGroup>
         ) : null}
-        {drawerInColumn ? null : (
+        {drawerInColumn ? (
+          <ToggleIcon
+            label="Keep the inspector open"
+            icon="lucide:panel-right"
+            pressed={inspectorPinned}
+            onClick={() => setInspectorPinned((pinned) => !pinned)}
+          />
+        ) : null}
+        {inspectorColumn && !hasSelection ? null : (
           <Popover>
             <PopoverTrigger asChild>
               <Button type="button" variant="ghost" size="icon" className="size-8 max-md:hidden" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
