@@ -301,6 +301,26 @@ export function resolveEnabledBanners(
   return matchingPresets(presets, slug).slice(0, MAX_BANNERS_PER_ARTICLE);
 }
 
+/**
+ * The article's banner stack as the substance route renders it. Once the
+ * citation audit has run on an article, its beta disclaimer takes the slot of
+ * the stored citation-overhaul presets, so they are dropped before the cap is
+ * applied. The route loader and the editor's article preview both call this,
+ * so a preview cannot stack banners in an order no reader sees.
+ */
+export function resolveArticleBanners(
+  presets: readonly WarningBannerPreset[],
+  slug: string,
+  { showBetaDisclaimer }: { showBetaDisclaimer: boolean },
+): WarningBannerPreset[] {
+  return resolveEnabledBanners(
+    showBetaDisclaimer
+      ? presets.filter((preset) => !preset.key.startsWith(CITATION_OVERHAUL_BANNER_KEY_PREFIX))
+      : presets,
+    slug,
+  );
+}
+
 /** Enabled on this slug but over the cap, so not rendered. Studio-facing. */
 export function resolveSuppressedBanners(
   presets: readonly WarningBannerPreset[],

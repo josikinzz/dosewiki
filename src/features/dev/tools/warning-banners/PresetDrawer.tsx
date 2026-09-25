@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,19 @@ type PresetDrawerProps = {
   onRequestEnablement?: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onRequestDelete?: (preset: WarningBannerPreset) => void;
   onInspectCoverage?: (slug: string) => void;
+  /**
+   * The studio passes the article preview frame here. Contextual editing sits
+   * on the article itself, so it omits this and keeps the lone banner.
+   */
+  renderPreview?: (preview: DrawerPreview) => ReactNode;
+};
+
+/** What the drawer hands its preview: the draft and the article to show it on. */
+export type DrawerPreview = {
+  draft: WarningBannerPreset;
+  slug: string | null;
+  slugOptions: { slug: string; title: string }[];
+  onSlugChange: (slug: string) => void;
 };
 
 export function PresetDrawer({
@@ -87,8 +100,10 @@ export function PresetDrawer({
   onRequestEnablement,
   onRequestDelete,
   onInspectCoverage,
+  renderPreview,
 }: PresetDrawerProps) {
   const [query, setQuery] = useState("");
+  const [previewSlug, setPreviewSlug] = useState<string | null>(null);
   const [staged, setStaged] = useState<Set<string>>(new Set());
   const validationId = useId();
 
@@ -102,7 +117,27 @@ export function PresetDrawer({
   }, [draft.key, draft.enabledSlugs]);
   useEffect(() => {
     setQuery("");
+    setPreviewSlug(null);
   }, [draft.key]);
+
+  const titles = useMemo(
+    () => new Map(targets.map((target) => [target.slug, target.title])),
+    [targets],
+  );
+  const titleOf = (slug: string) => titles.get(slug) ?? slug;
+  // The articles the preview can open: the preset's own list, or every
+  // substance when it is sitewide or not on any list yet.
+  const previewOptions = useMemo(
+    () =>
+      !draft.allSubstances && draft.enabledSlugs.length > 0
+        ? draft.enabledSlugs.map((slug) => ({ slug, title: titles.get(slug) ?? slug }))
+        : targets.map((target) => ({ slug: target.slug, title: target.title })),
+    [draft.allSubstances, draft.enabledSlugs, targets, titles],
+  );
+  const activePreviewSlug =
+    previewSlug && previewOptions.some((option) => option.slug === previewSlug)
+      ? previewSlug
+      : (previewOptions[0]?.slug ?? null);
 
   const enabled = useMemo(() => new Set(draft.enabledSlugs), [draft.enabledSlugs]);
   const results = useMemo(() => searchWarningBannerTargets(query, targets), [query, targets]);
@@ -139,14 +174,22 @@ export function PresetDrawer({
    * publishes with it. Neither depends on the copy being valid.
    */
   const canChangeScope = saveState !== "saving";
+  // Coverage opens on the article the preview shows, when that article is on
+  // the list; otherwise on the first listed substance.
+  const readerSlug =
+    activePreviewSlug && draft.enabledSlugs.includes(activePreviewSlug)
+      ? activePreviewSlug
+      : (draft.enabledSlugs[0] ?? "");
   const request = (change: EnablementChange) => onRequestEnablement?.(draft, change);
 
   return (
     <div className="space-y-7">
-      {/* The one preview, full width, above the fields that feed it. It renders
-          at the saved global glyph size so the preview and a live article cannot
-          disagree; the primitive owns the dark severity chip and the markdown
-          list rule.
+      {/* The one preview, full width, above the fields that feed it. In the
+          studio it is the article itself: the draft in the article's banner
+          stack, in either theme and at phone or desktop width. Either way it
+          renders at the saved global glyph size so the preview and a live
+          article cannot disagree; the primitive owns the dark severity chip and
+          the markdown list rule.
 
           Never dimmed. An earlier pass faded a preset that was enabled nowhere,
           reasoning that a full-strength preview of an invisible banner overstates
@@ -159,12 +202,21 @@ export function PresetDrawer({
         title="Preview"
         description={state === "live" ? undefined : WHERE_IT_RENDERS[state]}
       >
-        <SafetyBanner variant={draft.tone} icon={draft.icon} iconSize={iconSize}>
-          <SafetyBannerTitle severityLabel={draft.severityLabel} tone={draft.tone}>
-            {draft.headline || "Untitled headline"}
-          </SafetyBannerTitle>
-          <SafetyBannerPoints points={points} />
-        </SafetyBanner>
+        {renderPreview ? (
+          renderPreview({
+            draft,
+            slug: activePreviewSlug,
+            slugOptions: previewOptions,
+            onSlugChange: setPreviewSlug,
+          })
+        ) : (
+          <SafetyBanner variant={draft.tone} icon={draft.icon} iconSize={iconSize}>
+            <SafetyBannerTitle severityLabel={draft.severityLabel} tone={draft.tone}>
+              {draft.headline || "Untitled headline"}
+            </SafetyBannerTitle>
+            <SafetyBannerPoints points={points} />
+          </SafetyBanner>
+        )}
       </EditorSection>
 
       <EditorSection headingLevel="h3" icon="lucide:type" title="Words">
@@ -505,8 +557,8 @@ export function PresetDrawer({
                   key={slug}
                   variant="compact"
                   removeTone="danger"
-                  label={<span className="font-mono">{slug}</span>}
-                  removeLabel={`Disable on ${slug}`}
+                  label={titles.has(slug) ? titleOf(slug) : <span className="font-mono">{slug}</span>}
+                  removeLabel={`Disable on ${titleOf(slug)}`}
                   onRemove={() => request({ action: "disable", slugs: [slug] })}
                 />
               ))}
@@ -526,9 +578,9 @@ export function PresetDrawer({
               type="button"
               variant="textLink"
               size="auto"
-              onClick={() => onInspectCoverage?.(draft.enabledSlugs[0])}
+              onClick={() => onInspectCoverage?.(readerSlug)}
             >
-              {`See what a reader sees on ${draft.enabledSlugs[0]}`}
+              {`See what a reader sees on ${titleOf(readerSlug)}`}
             </Button>
           ) : null}
         </div>

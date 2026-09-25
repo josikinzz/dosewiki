@@ -47,9 +47,10 @@ import {
   type EditorActionStatusState,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
+import { ArticlePreviewFrame } from "@/features/dev/components/ArticlePreviewFrame";
 import { cn } from "@/lib/utils";
 import type { EnablementChange } from "./enablement";
-import { PresetDrawer } from "./PresetDrawer";
+import { PresetDrawer, type DrawerPreview } from "./PresetDrawer";
 
 /**
  * System A — enablement state. Grey for `off` because off is the correct
@@ -143,6 +144,18 @@ export function PresetsView({
     onRequestEnablement,
     onRequestDelete,
     onInspectCoverage,
+    // The draft in the article's real banner stack: every stored preset stays
+    // in play, so the order and the two-banner cap are the ones readers get.
+    renderPreview: ({ draft: previewDraft, slug, slugOptions, onSlugChange }: DrawerPreview) => (
+      <ArticlePreviewFrame
+        label="Banner preview"
+        slug={slug}
+        slugOptions={slugOptions}
+        onSlugChange={onSlugChange}
+        draft={{ banner: { preset: previewDraft, presets } }}
+        overrides={{ warningBannerIconSize: iconSizeControl.size }}
+      />
+    ),
   };
 
   /**

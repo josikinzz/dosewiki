@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createEmptyArticle } from "@/data/schema";
 import type { WarningBannerPreset, WarningBannerTarget } from "@/data/substanceWarningBanners";
+import type { SubstanceArticle } from "@/schema";
+import { clearArticlePreviewCache } from "@/features/dev/components/ArticlePreviewFrame";
 import type { EditableWarningPreset } from "./warningEditing";
 
 const { useQueryMock } = vi.hoisted(() => ({
@@ -36,11 +39,18 @@ import { WarningBannersTab } from "./WarningBannersTab";
 
 const PRESET_API = "/api/dev/warning-banner";
 const TARGETS_API = "/api/dev/warning-banner/targets";
+const LIBRARY_API = "/api/dev/editor-library";
 
 const TARGETS: WarningBannerTarget[] = [
   { slug: "diazepam", title: "Diazepam", classes: ["Benzodiazepine"] },
   { slug: "alprazolam", title: "Alprazolam", classes: ["Benzodiazepine"] },
 ];
+
+/** Whole articles the preview frame can open; anything else is a 404. */
+const ARTICLES: Record<string, SubstanceArticle> = {
+  diazepam: { ...createEmptyArticle(), slug: "diazepam", title: "Diazepam" } as unknown as SubstanceArticle,
+  alprazolam: { ...createEmptyArticle(), slug: "alprazolam", title: "Alprazolam" } as unknown as SubstanceArticle,
+};
 
 const PRESET: EditableWarningPreset = {
   key: "opioid-respiratory",
@@ -70,6 +80,15 @@ function stubApi({ prune = [] }: { prune?: string[] } = {}) {
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === "string" ? input : input.toString();
+      if (url.startsWith(LIBRARY_API)) {
+        // The preview frame's article read. Unknown slugs are a 404, which the
+        // frame answers with the banner stack alone.
+        const slug = new URL(url, "http://localhost").searchParams.get("slug") ?? "";
+        const article = ARTICLES[slug];
+        return article
+          ? new Response(JSON.stringify({ ok: true, scope: "article", article }), { status: 200 })
+          : new Response("{}", { status: 404 });
+      }
       if (url === TARGETS_API) {
         return new Response(JSON.stringify({ items: TARGETS }), { status: 200 });
       }
@@ -91,6 +110,10 @@ function stubApi({ prune = [] }: { prune?: string[] } = {}) {
           { status: 200 },
         );
       }
+      if (url.startsWith("/api/reagent-proxy")) {
+        // The previewed article's reagent section asks for external results.
+        return new Response("{}", { status: 404 });
+      }
       throw new Error(`Unexpected fetch ${url}`);
     }),
   );
@@ -102,6 +125,10 @@ function stubPresets(presets: WarningBannerPreset[]) {
   useQueryMock.mockImplementation((query: string) => {
     if (query === "siteConfig:getBannerDisplay") {
       return { iconSize: 40 };
+    }
+    // The article preview frame versions the saved depiction; none here.
+    if (query === "moleculeOverrides:getMetadataBySlug") {
+      return null;
     }
     throw new Error(`Unexpected query ${query}`);
   });
@@ -126,10 +153,16 @@ async function confirmWrite(user: UserEvent, label: string | RegExp) {
   return dialog;
 }
 
+beforeAll(() => {
+  // cmdk scrolls the active option into view; jsdom has no scrollIntoView.
+  Element.prototype.scrollIntoView ??= () => {};
+});
+
 beforeEach(() => {
   vi.unstubAllGlobals();
   useQueryMock.mockReset();
   stubPresets([PRESET]);
+  clearArticlePreviewCache();
 });
 
 describe("WarningBannersTab presets", () => {
@@ -193,6 +226,46 @@ describe("WarningBannersTab presets", () => {
     expect(within(dialog).queryByText("Points")).not.toBeInTheDocument();
     expect(within(dialog).getByRole("listitem")).toHaveTextContent("Diazepam");
     expect(dialog).not.toHaveTextContent("diazepam");
+  });
+
+  it("previews the draft in the article's banner stack on any enabled substance, named by title", async () => {
+    const caution: WarningBannerPreset = {
+      ...PRESET,
+      key: "benzo-caution",
+      tone: "caution",
+      severityLabel: "Caution",
+      headline: "Benzodiazepines build tolerance fast",
+      enabledSlugs: ["diazepam", "alprazolam"],
+    };
+    stubPresets([{ ...PRESET, enabledSlugs: ["diazepam", "alprazolam"] }, caution]);
+    stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.clear(headline);
+    await user.type(headline, "Draft headline");
+
+    // The drawer's preview is the article: the draft sits in the stack, ahead
+    // of the caution preset by the render rule, above the article title.
+    const frame = () => screen.getByTitle(/Banner preview/) as HTMLIFrameElement;
+    const inFrame = () => within(frame().contentDocument!.body);
+    const title = await inFrame().findByRole("heading", { level: 1, name: "Diazepam" });
+    const drafted = inFrame().getByText("Draft headline");
+    const other = inFrame().getByText(caution.headline);
+    expect(drafted.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(other.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Enabled substances read as titles, and any of them can be previewed.
+    expect(screen.getByRole("button", { name: "Disable on Diazepam" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "See what a reader sees on Diazepam" })).toBeInTheDocument();
+    await user.click(screen.getByRole("combobox", { name: "Preview article" }));
+    await user.click(await screen.findByRole("option", { name: /^Alprazolam/ }));
+
+    await inFrame().findByRole("heading", { level: 1, name: "Alprazolam" });
+    expect(inFrame().getByText("Draft headline")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "See what a reader sees on Alprazolam" })).toBeInTheDocument();
   });
 
   it("blocks Publish with a field error when the headline is empty", async () => {
@@ -300,7 +373,7 @@ describe("WarningBannersTab presets", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(writes).toHaveLength(0);
-    expect(screen.getByRole("button", { name: "Disable on alprazolam" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Disable on Alprazolam" })).toBeInTheDocument();
   });
 
   it("deletes a preset only after the dialog confirms, then closes the drawer", async () => {
@@ -394,7 +467,7 @@ describe("WarningBannersTab presets", () => {
     );
     // Never optimistic: the drawer shows the server's list, not the submitted one.
     expect(screen.queryByRole("button", { name: "Disable on ghost-slug" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Disable on diazepam" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Disable on Diazepam" })).toBeInTheDocument();
     expect(screen.getByText("Enabled on 1 substance")).toBeInTheDocument();
   });
 });
@@ -431,7 +504,7 @@ describe("WarningBannersTab coverage", () => {
     });
 
     await screen.findByText("Enabled opioid-respiratory on 1 substance.");
-    expect(screen.getByRole("button", { name: "Disable on alprazolam" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Disable on Alprazolam" })).toBeInTheDocument();
     expect(screen.getByText("Enabled on 2 substances")).toBeInTheDocument();
     // The unsaved headline is still a draft in the drawer.
     expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
@@ -445,7 +518,7 @@ describe("WarningBannersTab coverage", () => {
     expect(writes[1].body.headline).toBe(PRESET.headline);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await screen.findByText("Restored the previous list for opioid-respiratory.");
-    expect(screen.queryByRole("button", { name: "Disable on alprazolam" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Disable on Alprazolam" })).not.toBeInTheDocument();
   });
 
   it("keeps staged ticks when the enable dialog is cancelled", async () => {
