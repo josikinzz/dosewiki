@@ -172,6 +172,11 @@ describe("trip report submission intake", () => {
       reviewed_at: "2026-06-11T12:02:00.000Z",
       updated_at: "2026-06-11T12:02:00.000Z",
     });
+    // A blank note records only the outcome; the stored note stays.
+    expect(
+      transitionTripReportSubmission(accepted, { status: "reviewing", reviewer: "editor@example.com", notes: "  " })
+        .review_notes,
+    ).toBe("Good candidate.");
     expect(() =>
       transitionTripReportSubmission(accepted, {
         status: "submitted",

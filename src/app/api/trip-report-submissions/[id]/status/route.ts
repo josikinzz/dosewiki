@@ -8,9 +8,10 @@ import {
 } from "@/features/reports/submissions/tripReportSubmissionStore.server";
 import { TripReportSubmissionNotFoundError } from "@/features/reports/submissions/dataTripReportSubmissionStore";
 import {
+  decisionNoteOrUndefined,
   isTripReportSubmissionStatus,
   type TripReportSubmissionStatus,
-} from "@/features/reports/submissions/tripReportSubmissions";
+} from "@/features/reports/submissions/tripReportSubmissionStatus";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,8 @@ export async function POST(request: Request, context: StatusRouteContext) {
       maxBytes: MAX_STATUS_BODY_BYTES,
       parse: (body) => ({
         status: parseStatus(body.status),
-        notes: typeof body.notes === "string" ? body.notes : undefined,
+        // A blank note records only the outcome and keeps the stored note.
+        notes: decisionNoteOrUndefined(body.notes),
       }),
     },
     unexpectedErrorLabel: "Failed to update trip report submission status:",
@@ -46,7 +48,7 @@ export async function POST(request: Request, context: StatusRouteContext) {
       const submission = await store.transition(id, {
         status: body.status,
         actorEmail,
-        notes: body.notes,
+        ...(body.notes !== undefined ? { notes: body.notes } : {}),
       });
 
       return NextResponse.json({ ok: true, submission });

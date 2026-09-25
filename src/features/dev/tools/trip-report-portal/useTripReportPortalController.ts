@@ -365,7 +365,7 @@ export function useTripReportPortalController() {
     }
   }
 
-  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes: string) {
+  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes?: string) {
     if (!selectedSubmission) {
       return;
     }
@@ -376,7 +376,7 @@ export function useTripReportPortalController() {
       const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, notes }),
+        body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
       });
 
       const payload = await response.json().catch(() => ({}));

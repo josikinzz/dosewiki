@@ -79,8 +79,11 @@ const promotionPayload = {
   tags: ["psychedelic"],
 };
 
-function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [publishedReport]) {
-  const storedSubmissions = submissions.map((row) => ({ ...row, review_notes: "" }));
+function stubCorpus(
+  submissions: (typeof submission & { review_notes?: string })[],
+  reports: unknown[] = [publishedReport],
+) {
+  const storedSubmissions = submissions.map((row) => ({ review_notes: "", ...row }));
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -101,9 +104,10 @@ function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [pu
         const id = segments[segments.length - 2];
         const row = storedSubmissions.find((entry) => entry.id === id);
         if (!row) return Response.json({ error: "Not found" }, { status: 404 });
-        const decision = JSON.parse(String(init.body)) as { status: string; notes: string };
+        const decision = JSON.parse(String(init.body)) as { status: string; notes?: string };
         row.status = decision.status;
-        row.review_notes = decision.notes;
+        // The server keeps the stored note when a decision carries none.
+        if (decision.notes !== undefined) row.review_notes = decision.notes;
         return Response.json({ ok: true, submission: row });
       }
 
@@ -213,6 +217,29 @@ describe("TripReportPortalTab", () => {
     );
     expect(await screen.findByText("Sober sitter present.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
+  });
+
+  it("keeps the earlier rejection reason when review restarts with a blank decision note", async () => {
+    const user = userEvent.setup();
+    stubCorpus([
+      { ...submission, status: "rejected", review_notes: "No dose given for the second substance." },
+    ]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^All/ }));
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(await screen.findByText("No dose given for the second substance.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reopen review" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/trip-report-submissions/submission-1/status",
+        expect.objectContaining({ method: "POST", body: JSON.stringify({ status: "reviewing" }) }),
+      ),
+    );
+    expect(await screen.findByText(/Review started on/)).toBeInTheDocument();
+    expect(screen.getByText("No dose given for the second substance.")).toBeInTheDocument();
   });
 
   it("requires confirmation before removing a submission from the review queue", async () => {
