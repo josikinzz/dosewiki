@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { getPortalRecord } from "../server/tripReports";
 import { assignOwnerHandler, listOwnedHandler, updateHandler } from "../server/lib/tripReportPortalHandlers";
-import { create, promoteHandler } from "../server/tripReportSubmissions";
+import { create, promoteHandler, transition } from "../server/tripReportSubmissions";
 
 // Postgres registered functions keep the original handler on `_handler`; there is
 // no in-repo Postgres runtime harness, so the handler is exercised directly.
@@ -238,6 +238,51 @@ async function readReportRevision(db: FakeDb, id = "r1"): Promise<string> {
   const record = await handlerOf(getPortalRecord)(db.ctx, { ...as("admin@example.com"), id }) as { revision: string };
   return record.revision;
 }
+
+describe("tripReportSubmissions.transition review note", () => {
+  const rejected: Row = {
+    _id: "s1",
+    id: "sub-1",
+    status: "rejected",
+    schema_version: 1,
+    report: structuredClone(fields),
+    title: fields.title,
+    author_name: "nervewing",
+    substance_names: ["Psilocybin"],
+    may_contact: false,
+    publish_consent: true,
+    age_confirmed: true,
+    honeypot_triggered: false,
+    review_notes: "No dose given for the second substance.",
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
+  };
+
+  async function reopen(notes?: string) {
+    const { ctx, rowsOf } = createCtx({ memberships: [admin], tripReportSubmissions: [rejected] });
+    const result = (await handlerOf(transition)(ctx, {
+      ...as("admin@example.com"),
+      id: "sub-1",
+      status: "reviewing",
+      ...(notes !== undefined ? { notes } : {}),
+    })) as { status: string; review_notes?: string };
+    return { result, stored: rowsOf("tripReportSubmissions").get("s1") };
+  }
+
+  it("keeps the stored note when the status change carries none, or only a blank one", async () => {
+    for (const notes of [undefined, "", "   "]) {
+      const { result, stored } = await reopen(notes);
+      expect(result).toMatchObject({ status: "reviewing", review_notes: "No dose given for the second substance." });
+      expect(stored?.review_notes).toBe("No dose given for the second substance.");
+    }
+  });
+
+  it("replaces the stored note when the status change carries text", async () => {
+    const { result, stored } = await reopen("Author sent the missing dose.");
+    expect(result.review_notes).toBe("Author sent the missing dose.");
+    expect(stored?.review_notes).toBe("Author sent the missing dose.");
+  });
+});
 
 describe("tripReports.update ownership", () => {
   let current: FakeDb;

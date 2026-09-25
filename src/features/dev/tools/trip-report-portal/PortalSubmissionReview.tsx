@@ -20,8 +20,11 @@ import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import type {
   DataTripReportImportPayload,
   TripReportSubmissionRow,
-  TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
+import {
+  TRIP_REPORT_SUBMISSION_TRANSITIONS,
+  type TripReportSubmissionStatus,
+} from "@/features/reports/submissions/tripReportSubmissionStatus";
 
 /**
  * The intake queue's review surface, unchanged in capability from the tool the
@@ -37,17 +40,6 @@ const STATUS_LABELS: Record<TripReportSubmissionStatus, string> = {
   rejected: "Rejected",
   spam: "Spam",
   exported: "Exported",
-};
-
-// Mirrors VALID_TRANSITIONS in src/features/reports/submissions/tripReportSubmissions.ts
-// (not imported: that module is server-only via node:crypto).
-const STATUS_TRANSITIONS: Record<TripReportSubmissionStatus, TripReportSubmissionStatus[]> = {
-  submitted: ["reviewing", "accepted", "rejected", "spam"],
-  reviewing: ["accepted", "rejected", "spam", "submitted"],
-  accepted: ["reviewing", "rejected"],
-  rejected: ["reviewing"],
-  spam: ["reviewing"],
-  exported: [],
 };
 
 const STATUS_TONE: Record<TripReportSubmissionStatus, EditorStatusPillTone> = {
@@ -67,15 +59,6 @@ export type PromotionAttribution = {
 /** Every write this panel can start; the clicked control shows its own busy label. */
 type PendingAction = TripReportSubmissionStatus | "preview" | "publish";
 
-const DEFAULT_NOTES: Record<TripReportSubmissionStatus, string> = {
-  submitted: "Returned to the queue",
-  reviewing: "Review started",
-  accepted: "Accepted",
-  rejected: "Rejected",
-  spam: "Marked as spam",
-  exported: "Published",
-};
-
 export function PortalSubmissionReview({
   busy,
   feedback,
@@ -94,7 +77,8 @@ export function PortalSubmissionReview({
   onDismissFeedback: () => void;
   onNavigate: (direction: -1 | 1) => void;
   onPromotion: (publish: boolean, attribution: PromotionAttribution) => void;
-  onStatusChange: (status: TripReportSubmissionStatus, notes: string) => void;
+  /** `notes` is omitted when the field is blank, so the stored note stays. */
+  onStatusChange: (status: TripReportSubmissionStatus, notes?: string) => void;
   promotionPayload: DataTripReportImportPayload | null;
   /** Where this row sits in the list as painted; `index` is -1 once it has filtered out. */
   queuePosition: { index: number; total: number };
@@ -108,7 +92,7 @@ export function PortalSubmissionReview({
 
   const attribution: PromotionAttribution = { profileKey, confirmAuthorNameClaim };
   const canPromote = submission.status === "accepted";
-  const validTargets = STATUS_TRANSITIONS[submission.status] ?? [];
+  const validTargets = TRIP_REPORT_SUBMISSION_TRANSITIONS[submission.status] ?? [];
   const subject = submission.report.subject;
   const substanceNames = Array.from(new Set(submission.substance_names));
   // Only the write in flight shows a busy label; the flag resets with it.
@@ -121,7 +105,7 @@ export function PortalSubmissionReview({
 
   function decide(status: TripReportSubmissionStatus) {
     setPending(status);
-    onStatusChange(status, note.trim() || DEFAULT_NOTES[status]);
+    onStatusChange(status, note.trim() || undefined);
   }
 
   function promote(publish: boolean) {
@@ -266,7 +250,7 @@ export function PortalSubmissionReview({
           <EditorPanel variant="toolbar" className="space-y-3 p-3">
             <EditorField
               label="Decision note"
-              description="Stored with the decision you make next. Leave it empty to record only the outcome."
+              description="Stored with the decision you make next. Leave it empty to record only the outcome and keep the current note."
             >
               {(controlProps) => (
                 <Input

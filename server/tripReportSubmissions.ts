@@ -21,17 +21,12 @@ import {
   type SubmissionStatus,
 } from "./lib/tripReportSubmissionRows";
 import { findMembershipByEmail } from "./lib/tripReportOwnership";
+import {
+  canTransitionTripReportSubmission,
+  decisionNoteOrUndefined,
+} from "../src/features/reports/submissions/tripReportSubmissionStatus";
 
 type ReadCtx = { db: QueryCtx["db"] };
-
-const VALID_TRANSITIONS: Record<SubmissionStatus, SubmissionStatus[]> = {
-  submitted: ["reviewing", "accepted", "rejected", "spam"],
-  reviewing: ["accepted", "rejected", "spam", "submitted"],
-  accepted: ["reviewing", "rejected"],
-  rejected: ["reviewing"],
-  spam: ["reviewing"],
-  exported: [],
-};
 
 export const create = mutation({
   args: {
@@ -227,18 +222,20 @@ export const transition = mutation({
     );
 
     const doc = await requireSubmission(ctx, args.id);
-    if (!VALID_TRANSITIONS[doc.status].includes(args.status)) {
+    if (!canTransitionTripReportSubmission(doc.status, args.status)) {
       throw new Error(`Illegal transition: ${doc.status} -> ${args.status}.`);
     }
 
     const timestamp = new Date().toISOString();
+    // A blank note records only the outcome; the stored note stays.
+    const notes = decisionNoteOrUndefined(args.notes);
     const patch = {
       status: args.status,
       // The resolved actor, never a caller-supplied name.
       reviewed_by: auditStampFor(actor, undefined),
       reviewed_at: timestamp,
       updated_at: timestamp,
-      ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
+      ...(notes !== undefined ? { review_notes: notes } : {}),
     };
     await ctx.db.patch(doc._id, patch);
 
@@ -319,7 +316,7 @@ export async function promoteHandler(
     updated_at: timestamp,
     exported_at: timestamp,
     exported_trip_report_id: reportId,
-    ...(args.notes !== undefined ? { review_notes: args.notes } : {}),
+    ...(decisionNoteOrUndefined(args.notes) !== undefined ? { review_notes: args.notes } : {}),
   };
   await ctx.db.patch(doc._id, patch);
 

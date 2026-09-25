@@ -2,16 +2,16 @@ import { createHmac } from "node:crypto";
 
 const TRIP_REPORT_SUBMISSION_SCHEMA_VERSION = 1
 
-const SUBMISSION_STATUSES = [
-  "submitted",
-  "reviewing",
-  "accepted",
-  "rejected",
-  "spam",
-  "exported",
-] as const
+import {
+  canTransitionTripReportSubmission,
+  decisionNoteOrUndefined,
+  type TripReportSubmissionStatus,
+} from "./tripReportSubmissionStatus";
 
-export type TripReportSubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
+export {
+  isTripReportSubmissionStatus,
+  type TripReportSubmissionStatus,
+} from "./tripReportSubmissionStatus";
 
 export type TimelineEntryInput = {
   time?: string;
@@ -142,19 +142,6 @@ const IGNORED_AVATAR_URL_WARNING = "Avatar URL was ignored; a published report s
 
 const IGNORED_PDF_URL_WARNING = "PDF URL was ignored; outbound links on a published report are added by an editor, not by the submitter."
 
-const VALID_TRANSITIONS: Record<TripReportSubmissionStatus, TripReportSubmissionStatus[]> = {
-  submitted: ["reviewing", "accepted", "rejected", "spam"],
-  reviewing: ["accepted", "rejected", "spam", "submitted"],
-  accepted: ["reviewing", "rejected"],
-  rejected: ["reviewing"],
-  spam: ["reviewing"],
-  exported: [],
-};
-
-export function isTripReportSubmissionStatus(value: unknown): value is TripReportSubmissionStatus {
-  return typeof value === "string" && SUBMISSION_STATUSES.includes(value as TripReportSubmissionStatus);
-}
-
 export function validateTripReportSubmission(
   input: TripReportSubmissionInput,
 ): TripReportSubmissionValidationResult {
@@ -246,7 +233,7 @@ export function transitionTripReportSubmission(
   row: TripReportSubmissionRow,
   options: TransitionTripReportSubmissionOptions,
 ): TripReportSubmissionRow {
-  if (!VALID_TRANSITIONS[row.status].includes(options.status)) {
+  if (!canTransitionTripReportSubmission(row.status, options.status)) {
     throw new Error(`Illegal transition: ${row.status} -> ${options.status}.`);
   }
 
@@ -254,7 +241,7 @@ export function transitionTripReportSubmission(
   return {
     ...row,
     status: options.status,
-    review_notes: typeof options.notes === "string" ? options.notes : row.review_notes,
+    review_notes: decisionNoteOrUndefined(options.notes) ?? row.review_notes,
     reviewed_by: options.reviewer,
     reviewed_at: timestamp,
     updated_at: timestamp,

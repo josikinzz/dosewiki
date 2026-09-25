@@ -7,6 +7,7 @@ import type {
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
+import { useDirtyGuard } from "@/features/dev/components";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
@@ -37,6 +38,11 @@ type DetailState =
   | { status: "error"; message: string };
 
 type Feedback = { tone: "success" | "danger"; message: string };
+
+const DISCARD_COPY = {
+  title: "Discard your edits?",
+  description: "This report has changes that were not saved. Discarding them leaves the live page as it is now.",
+};
 
 export function useTripReportPortalController() {
   const { corpus, load, loadPublished, loadSubmissionIndex, updateReports, replaceSubmission } =
@@ -187,7 +193,16 @@ export function useTripReportPortalController() {
     [orderedRows, selectedId],
   );
 
-  const selectRow = useCallback(
+  // Only a published report holds a draft; a submission review has nothing to drop.
+  const dirty =
+    selected?.origin === "published" &&
+    draft !== null &&
+    detail !== null &&
+    detail.id === selected.id &&
+    JSON.stringify(draft) !== JSON.stringify(detail.fields);
+  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, DISCARD_COPY);
+
+  const openRow = useCallback(
     (row: PortalRow) => {
       setSelectedId(row.id);
       setFeedback(null);
@@ -205,6 +220,9 @@ export function useTripReportPortalController() {
     },
     [loadReportBody, loadSubmissionDetail],
   );
+
+  /** Open a row from the list, asking first when that would drop unsaved edits. */
+  const selectRow = useCallback((row: PortalRow) => guard(() => openRow(row)), [guard, openRow]);
 
   /**
    * Step to the neighbouring row in list order. A row that has just left the
@@ -227,7 +245,8 @@ export function useTripReportPortalController() {
     [orderedRows, queuePosition, selectRow],
   );
 
-  const closeEditor = useCallback(() => {
+  /** Close without asking; for paths where the record is already gone. */
+  const dropEditor = useCallback(() => {
     openReportRef.current = null;
     setSelectedId(null);
     setDetail(null);
@@ -238,8 +257,16 @@ export function useTripReportPortalController() {
     setSubmissionDetail(null);
   }, []);
 
+  /** Close the open record, asking first when that would drop unsaved edits. */
+  const closeEditor = useCallback(() => guard(dropEditor), [guard, dropEditor]);
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      // A dialog or field that handled the key keeps it.
+      if (event.defaultPrevented) {
+        return;
+      }
+
       const target = event.target as HTMLElement | null;
       const typing = target ? /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName) : false;
 
@@ -251,6 +278,11 @@ export function useTripReportPortalController() {
       }
 
       if (event.key === "Escape") {
+        // Escape that dismisses a dialog (confirm, discard) closes only that dialog.
+        if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
+          return;
+        }
+
         if (typing) {
           target?.blur();
           return;
@@ -356,7 +388,7 @@ export function useTripReportPortalController() {
       }
 
       updateReports((reports) => reports.filter((report) => report.id !== selected.id));
-      closeEditor();
+      dropEditor();
       void loadPublished();
     } catch {
       setFeedback({ tone: "danger", message: "Network error while deleting the report." });
@@ -365,7 +397,7 @@ export function useTripReportPortalController() {
     }
   }
 
-  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes: string) {
+  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes?: string) {
     if (!selectedSubmission) {
       return;
     }
@@ -376,7 +408,7 @@ export function useTripReportPortalController() {
       const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, notes }),
+        body: JSON.stringify({ status, ...(notes !== undefined ? { notes } : {}) }),
       });
 
       const payload = await response.json().catch(() => ({}));
@@ -472,6 +504,7 @@ export function useTripReportPortalController() {
     corpus,
     deleteReport,
     detailState,
+    discardDialog,
     draft,
     editorOpen,
     facets,

@@ -67,6 +67,22 @@ const publishedReportRecord = {
   },
 };
 
+/** A second published row, so the list has somewhere to switch to. */
+const secondPublishedReport = {
+  ...publishedReport,
+  id: "report-2",
+  slug: "quiet-river",
+  title: "Quiet river",
+  createdAt: Date.parse("2024-01-01T00:00:00Z"),
+};
+
+const secondPublishedReportRecord = {
+  ...publishedReportRecord,
+  id: "report-2",
+  slug: "quiet-river",
+  fields: { ...publishedReportRecord.fields, title: "Quiet river" },
+};
+
 const promotionPayload = {
   slug: "careful-low-dose-museum-walk",
   title: "Careful low dose museum walk",
@@ -79,17 +95,24 @@ const promotionPayload = {
   tags: ["psychedelic"],
 };
 
-function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [publishedReport]) {
-  const storedSubmissions = submissions.map((row) => ({ ...row, review_notes: "" }));
+function stubCorpus(
+  submissions: (typeof submission & { review_notes?: string })[],
+  reports: unknown[] = [publishedReport],
+) {
+  const storedSubmissions = submissions.map((row) => ({ review_notes: "", ...row }));
   vi.stubGlobal(
     "fetch",
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       // The record endpoint serves both the GET body read and the POST writes.
       if (url.includes("/api/dev/trip-reports/record")) {
+        const id = new URL(url, "https://dose.wiki").searchParams.get("id");
         return init?.method === "POST"
           ? Response.json({ ok: true, slug: "alpine-clarity", fields: publishedReportRecord.fields, revision: "1".repeat(64) })
-          : Response.json({ ok: true, report: publishedReportRecord });
+          : Response.json({
+              ok: true,
+              report: id === secondPublishedReportRecord.id ? secondPublishedReportRecord : publishedReportRecord,
+            });
       }
 
       if (url.includes("/api/dev/trip-reports")) {
@@ -101,9 +124,10 @@ function stubCorpus(submissions: (typeof submission)[], reports: unknown[] = [pu
         const id = segments[segments.length - 2];
         const row = storedSubmissions.find((entry) => entry.id === id);
         if (!row) return Response.json({ error: "Not found" }, { status: 404 });
-        const decision = JSON.parse(String(init.body)) as { status: string; notes: string };
+        const decision = JSON.parse(String(init.body)) as { status: string; notes?: string };
         row.status = decision.status;
-        row.review_notes = decision.notes;
+        // The server keeps the stored note when a decision carries none.
+        if (decision.notes !== undefined) row.review_notes = decision.notes;
         return Response.json({ ok: true, submission: row });
       }
 
@@ -213,6 +237,29 @@ describe("TripReportPortalTab", () => {
     );
     expect(await screen.findByText("Sober sitter present.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
+  });
+
+  it("keeps the earlier rejection reason when review restarts with a blank decision note", async () => {
+    const user = userEvent.setup();
+    stubCorpus([
+      { ...submission, status: "rejected", review_notes: "No dose given for the second substance." },
+    ]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^All/ }));
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(await screen.findByText("No dose given for the second substance.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reopen review" }));
+
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/trip-report-submissions/submission-1/status",
+        expect.objectContaining({ method: "POST", body: JSON.stringify({ status: "reviewing" }) }),
+      ),
+    );
+    expect(await screen.findByText(/Review started on/)).toBeInTheDocument();
+    expect(screen.getByText("No dose given for the second substance.")).toBeInTheDocument();
   });
 
   it("requires confirmation before removing a submission from the review queue", async () => {
@@ -355,6 +402,77 @@ describe("TripReportPortalTab", () => {
       // An untouched attribution field must not be sent at all.
       expect("profile_key" in body).toBe(false);
     });
+  });
+
+  it("asks before a row click drops unsaved edits, and keeps them on Keep editing", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission], [publishedReport, secondPublishedReport]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^Published/ }));
+    await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
+    const title = await screen.findByLabelText("Report title");
+    await user.type(title, " revisited");
+
+    await user.click(screen.getByRole("option", { name: /Quiet river/ }));
+    const dialog = await screen.findByRole("dialog", { name: "Discard your edits?" });
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByLabelText("Report title")).toHaveValue("Alpine clarity revisited");
+
+    await user.click(screen.getByRole("option", { name: /Quiet river/ }));
+    await user.click(
+      within(await screen.findByRole("dialog", { name: "Discard your edits?" })).getByRole("button", {
+        name: "Discard changes",
+      }),
+    );
+    await waitFor(() => expect(screen.getByLabelText("Report title")).toHaveValue("Quiet river"));
+  });
+
+  it("switches rows from a clean editor without asking", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission], [publishedReport, secondPublishedReport]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^Published/ }));
+    await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
+    expect(await screen.findByLabelText("Report title")).toHaveValue("Alpine clarity");
+
+    await user.click(screen.getByRole("option", { name: /Quiet river/ }));
+    await waitFor(() => expect(screen.getByLabelText("Report title")).toHaveValue("Quiet river"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("asks before Escape drops unsaved edits, and Escape in that dialog closes only the dialog", async () => {
+    const user = userEvent.setup();
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^Published/ }));
+    await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
+    await user.type(await screen.findByLabelText("Report title"), " revisited");
+
+    // The first Escape leaves the field; the next one asks to close.
+    await user.keyboard("{Escape}");
+    await user.keyboard("{Escape}");
+    expect(await screen.findByRole("dialog", { name: "Discard your edits?" })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByLabelText("Report title")).toHaveValue("Alpine clarity revisited");
+  });
+
+  it("closes only the confirm dialog when Escape dismisses it", async () => {
+    const user = userEvent.setup();
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(await screen.findByRole("button", { name: "Mark as spam" }));
+    expect(await screen.findByRole("dialog", { name: "Mark as spam?" })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
   });
 
   it("requires the slug typed back before it will delete a report", async () => {

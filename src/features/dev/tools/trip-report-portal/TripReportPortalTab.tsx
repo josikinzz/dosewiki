@@ -41,6 +41,7 @@ export function TripReportPortalTab() {
     corpus,
     deleteReport,
     detailState,
+    discardDialog,
     draft,
     editorOpen,
     facets,
@@ -77,6 +78,7 @@ export function TripReportPortalTab() {
 
   return (
     <div className="space-y-4">
+      {discardDialog}
       <header className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
           <h2 className="theme-accent-heading font-display text-2xl font-semibold">Trip Report Portal</h2>

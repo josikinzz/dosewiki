@@ -70,6 +70,21 @@ describe("trip report submission status route", () => {
     });
   });
 
+  it("forwards no note when the decision note is blank, so the stored note stays", async () => {
+    const { POST } = await import("./route");
+
+    for (const body of [{ status: "reviewing" }, { status: "reviewing", notes: "" }, { status: "reviewing", notes: "   " }]) {
+      mocks.storeTransition.mockClear();
+      const response = await POST(statusRequest(body), context);
+
+      expect(response.status).toBe(200);
+      expect(mocks.storeTransition).toHaveBeenCalledTimes(1);
+      const [, options] = mocks.storeTransition.mock.calls[0];
+      expect(options).toEqual({ status: "reviewing", actorEmail: "admin@example.com" });
+      expect("notes" in options).toBe(false);
+    }
+  });
+
   it("refuses an editor before touching the store", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const { POST } = await import("./route");
