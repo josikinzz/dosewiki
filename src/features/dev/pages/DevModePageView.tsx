@@ -184,10 +184,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
             enableStickyPanels={controller.enableStickyPanels}
-            commitPanel={controller.renderCommitPanel(
-              undefined,
-              "Index layout edits stay in your draft until you commit them. Committed changes appear on the live site right away.",
-            )}
+            commitPanel={controller.commitPanel}
           />
         ) : controller.activeTab === "writing" ? (
           <WritingTab

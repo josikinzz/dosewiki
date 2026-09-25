@@ -13,11 +13,19 @@ type DevModeCommitPanelProps = {
   actionSlot?: ReactNode;
   /** Tab-specific panel copy; falls back to the neutral DevCommitCard default. */
   description?: ReactNode;
-  /** The returned proposal the draft rebases, when the working set was seeded from one. */
+  /** The returned proposal the draft revises, when the working set was seeded from one. */
   rebase?: DevCommitRebase | null;
+  onDismissNotice?: () => void;
 };
 
-export function DevModeCommitPanel({ notice, destination, actionSlot, description, rebase }: DevModeCommitPanelProps) {
+export function DevModeCommitPanel({
+  notice,
+  destination,
+  actionSlot,
+  description,
+  rebase,
+  onDismissNotice,
+}: DevModeCommitPanelProps) {
   return (
     <DevCommitCard
       notice={notice}
@@ -25,6 +33,7 @@ export function DevModeCommitPanel({ notice, destination, actionSlot, descriptio
       actionSlot={actionSlot}
       description={description}
       rebase={rebase}
+      onDismissNotice={onDismissNotice}
     />
   );
 }
