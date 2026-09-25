@@ -27,9 +27,11 @@ import {
   type CitationReviewCommands,
 } from "./citationReviewModels";
 import {
+  CitationUndoBar,
   toneIconClass,
   toneTileClass,
   type CitationEvidenceDecisionHandlers,
+  type CitationUndoOffer,
 } from "./CitationReviewPanels";
 
 
@@ -37,25 +39,44 @@ export function CitationEvidenceSection({
   group,
   commands,
   handlers,
+  openedClaimKeys,
+  sectionUndo,
+  rowUndo,
   onApproveSection,
 }: {
   group: { section: string; label: string; rows: CitationEvidenceRowModel[] };
   commands: CitationReviewCommands;
   handlers: CitationEvidenceDecisionHandlers;
+  /** Rows the reviewer has opened, so their quote has been read in full. */
+  openedClaimKeys: ReadonlySet<string>;
+  /** Undo for a decision made on this whole section. */
+  sectionUndo?: CitationUndoOffer | null;
+  /** Undo for a single-row decision; rendered inside that row. */
+  rowUndo?: CitationUndoOffer | null;
   onApproveSection: (section: string, claimKeys: string[]) => void;
 }) {
   const sectionCommand = commands.sections[group.section]?.approve ?? { claimKeys: [], disabled: true };
+  const readyCount = sectionCommand.claimKeys.length;
+  const openedCount = sectionCommand.claimKeys.filter((claimKey) => openedClaimKeys.has(claimKey)).length;
+  // Same rule as the article-wide approval: every quote it would publish has
+  // been opened first.
+  const locked = readyCount > 0 && openedCount < readyCount;
+  const rowCount = formatCitationCount(group.rows.length, "evidence row");
 
   return (
     <EditorSection
       title={formatCitationSectionLabel(group.section)}
-      description={`${formatCitationCount(group.rows.length, "evidence row")} for this section.`}
+      description={
+        locked
+          ? `${rowCount} for this section. Open each ready row to approve them together (${openedCount} of ${readyCount} opened).`
+          : `${rowCount} for this section.`
+      }
       actions={(
         <Button
           variant="outline"
           size="pill"
           className="rounded-full"
-          disabled={sectionCommand.disabled}
+          disabled={sectionCommand.disabled || locked}
           onClick={() => onApproveSection(group.section, sectionCommand.claimKeys)}
         >
           <Icon icon="lucide:badge-check" size={16} />
@@ -64,6 +85,7 @@ export function CitationEvidenceSection({
       )}
     >
       <div className="space-y-3">
+        {sectionUndo ? <CitationUndoBar offer={sectionUndo} /> : null}
         {group.rows.map((row) => (
           <CitationEvidenceRow
             key={`${row.section}-${row.claimKey}`}
@@ -75,6 +97,7 @@ export function CitationEvidenceSection({
               rejectDisabled: true,
             }}
             handlers={handlers}
+            undo={rowUndo && rowUndo.decision.prior[0]?.claimKey === row.claimKey ? rowUndo : null}
           />
         ))}
       </div>
@@ -185,10 +208,12 @@ function CitationEvidenceRow({
   row,
   command,
   handlers,
+  undo,
 }: {
   row: CitationEvidenceRowModel;
   command: CitationReviewCommands["rows"][string];
   handlers: CitationEvidenceDecisionHandlers;
+  undo: CitationUndoOffer | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -204,9 +229,13 @@ function CitationEvidenceRow({
   const showLegacyRationale =
     legacyRationale.length > 0 &&
     !supports.some((support) => support.rationale.trim() === legacyRationale);
+  const claimLabel = row.claimText?.trim() || row.fieldPath || row.claimKey;
+  // The collapsed row previews the quote it rests on, so a scan of the list
+  // already shows what each approval would publish.
+  const previewQuote = supports.find((support) => support.supportingQuote.trim())?.supportingQuote.trim() || legacySnippet;
 
   return (
-    <EditorPanel variant="inset">
+    <EditorPanel variant="inset" role="group" aria-label={`Evidence row: ${claimLabel}`}>
       <button
         type="button"
         aria-expanded={expanded}
@@ -217,7 +246,10 @@ function CitationEvidenceRow({
         className="theme-focus-ring-inset flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5"
       >
         <Icon icon="lucide:chevron-right" size={16} className={`theme-text-faint shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`} />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium theme-text-primary">{row.claimText?.trim() || row.fieldPath || row.claimKey}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium theme-text-primary">{claimLabel}</span>
+          {!expanded && previewQuote ? <span className="mt-1 line-clamp-2 block text-sm theme-text-muted">{previewQuote}</span> : null}
+        </span>
         <span className="flex shrink-0 flex-wrap items-center justify-end gap-2">
           {typeof row.confidence === "number" ? <span className="text-xs theme-text-faint">{formatCitationConfidence(row.confidence)}</span> : null}
           {row.severity === "blocking" ? <EditorStatusPill tone={isUnresolved ? citationTone({ kind: "severity", value: row.severity }) : "neutral"} title="Blocks publication if left unresolved">{CITATION_SEVERITY_LABEL[row.severity]}</EditorStatusPill> : null}
@@ -225,10 +257,12 @@ function CitationEvidenceRow({
         </span>
       </button>
 
+      {undo ? <div className="border-t border-[color:var(--editor-panel-border)] px-4 py-3 sm:px-5"><CitationUndoBar offer={undo} /></div> : null}
+
       {expanded ? (
         <EditorPanelBody className="border-t border-[color:var(--editor-panel-border)]">
           <div className="min-w-0">
-            <p className="text-sm font-semibold theme-text-primary">{row.claimText?.trim() || row.fieldPath || row.claimKey}</p>
+            <p className="text-sm font-semibold theme-text-primary">{claimLabel}</p>
             <p className="mt-1 break-all text-xs theme-text-faint">{row.claimKey}{row.fieldPath ? ` · ${row.fieldPath}` : ""}</p>
           </div>
           {reviewerNote ? <div className={`mt-3 ${toneTileClass(citationTone({ kind: "status", value: row.status }))}`}><p className="text-xs font-medium uppercase tracking-[0.2em] theme-text-faint">Reviewer note</p><p className="mt-1 text-sm theme-text-secondary">{reviewerNote}</p></div> : null}

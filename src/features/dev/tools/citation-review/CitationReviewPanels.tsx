@@ -9,6 +9,7 @@ import {
   formatCitationCount,
   type CitationReviewApproveCommand,
   type CitationReviewChecklistItem,
+  type CitationReviewDecisionRecord,
   type CitationReviewQueueSummary,
 } from "./citationReviewModels";
 
@@ -62,6 +63,45 @@ export type CitationEvidenceDecisionHandlers = {
   /** A row was opened, so its quote has been on screen. */
   onRowExpanded: (claimKey: string) => void;
 };
+
+/** The undo for the last decision, rendered where that decision was made. */
+export type CitationUndoOffer = {
+  decision: CitationReviewDecisionRecord;
+  disabled: boolean;
+  onUndo: () => void;
+  onKeep: () => void;
+};
+
+/**
+ * Inline undo shown inside the row, section or panel the decision came from.
+ * It stays until the next decision replaces it or the reviewer keeps it.
+ */
+export function CitationUndoBar({ offer }: { offer: CitationUndoOffer }) {
+  const { decision } = offer;
+  const verb = decision.status === "approved" ? "Approved" : "Rejected";
+  return (
+    <div
+      role="status"
+      className={`flex flex-wrap items-center gap-x-4 gap-y-2 ${toneTileClass("success")}`}
+    >
+      <p className="min-w-0 flex-1 text-sm theme-text-secondary">
+        <span className="font-medium theme-text-primary">
+          {verb} {formatCitationCount(decision.prior.length, "row")}
+        </span>{" "}
+        Saved to the live article. Undo puts each row back the way it was.
+      </p>
+      <span className="flex items-center gap-3">
+        <Button variant="outline" size="sm" disabled={offer.disabled} onClick={offer.onUndo}>
+          <Icon icon="lucide:undo-2" size={16} />
+          Undo
+        </Button>
+        <Button variant="quiet" size="quiet" onClick={offer.onKeep}>
+          Keep
+        </Button>
+      </span>
+    </div>
+  );
+}
 
 export function CitationSelectedSummary({
   selectedSummary,
@@ -157,20 +197,23 @@ export function CitationChecklistPanel({ checklist }: { checklist: CitationRevie
 
 /**
  * The article-wide approval, placed after every evidence section so it is the
- * last thing the reviewer reaches. It stays locked until a row has been opened
- * in this session; the confirmation lives in the tab.
+ * last thing the reviewer reaches. It stays locked until every ready row has
+ * been opened in this session; the confirmation lives in the tab.
  */
 export function CitationBulkApprovePanel({
   command,
-  hasReadRow,
+  openedCount,
+  undo,
   onApproveAll,
 }: {
   command: CitationReviewApproveCommand;
-  hasReadRow: boolean;
+  /** How many of the ready rows the reviewer has opened. */
+  openedCount: number;
+  undo?: CitationUndoOffer | null;
   onApproveAll: (claimKeys: string[]) => void;
 }) {
   const readyCount = command.claimKeys.length;
-  const locked = readyCount > 0 && !hasReadRow;
+  const locked = readyCount > 0 && openedCount < readyCount;
 
   return (
     <EditorSection
@@ -192,11 +235,12 @@ export function CitationBulkApprovePanel({
     >
       <p className="text-sm theme-text-muted">
         {locked
-          ? "Open at least one row above before approving the set. Each approval publishes that quote as the article's evidence."
+          ? `Open each ready row above before approving the set (${openedCount} of ${readyCount} opened). Each approval publishes that quote as the article's evidence.`
           : readyCount > 0
             ? "You will be asked to confirm, with the sections this touches listed."
             : "Every row with a verified quote has already been decided."}
       </p>
+      {undo ? <div className="mt-4"><CitationUndoBar offer={undo} /></div> : null}
     </EditorSection>
   );
 }

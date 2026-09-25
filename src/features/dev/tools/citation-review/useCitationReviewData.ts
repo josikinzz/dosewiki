@@ -10,9 +10,6 @@ import {
   type CitationReviewQueueSummary,
 } from "./citationReviewModels";
 
-/** How long the Undo stays offered after a decision lands. */
-const CITATION_UNDO_WINDOW_MS = 8000
-
 class QueueLoadError extends Error {
   readonly failure: CitationReviewQueueLoadFailure;
 
@@ -46,6 +43,8 @@ function loadFailure(error: unknown, fallback: string): CitationReviewQueueLoadF
   return { error: error instanceof Error ? error.message : fallback };
 }
 
+const NO_ROWS: CitationEvidenceRow[] = [];
+
 async function postStatus(body: {
   slug: string;
   claimKeys: string[];
@@ -63,43 +62,42 @@ export function useCitationReviewData(initialSlug?: string) {
   const [queue, setQueue] = useState<CitationReviewQueueSummary[]>([]);
   const [queueFilter, setQueueFilter] = useState<CitationReviewQueueFilter>("open");
   const [queueError, setQueueError] = useState<CitationReviewQueueLoadFailure | null>(null);
-  const [isQueueLoading, setIsQueueLoading] = useState(true);
+  // The full-page loader belongs to the first load only. Later refreshes keep
+  // the queue and the evidence rows mounted, so expanded rows, half-typed
+  // reject reasons and the scroll position survive a decision.
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const hasLoadedQueueRef = useRef(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
-  const [rows, setRows] = useState<CitationEvidenceRow[]>([]);
+  // Rows remember the article they were fetched for, so a slow reply for one
+  // article can never render or be decided under another.
+  const [detail, setDetail] = useState<{ slug: string; rows: CitationEvidenceRow[] } | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const detailRequestRef = useRef(0);
+  const rowsSlug = detail?.slug ?? null;
+  const rows = useMemo(
+    () => (detail && detail.slug === selectedSlug ? detail.rows : NO_ROWS),
+    [detail, selectedSlug],
+  );
+  // Loading means no rows have landed for this article yet; a refresh of the
+  // same article keeps its rows on screen.
+  const isDetailLoading = selectedSlug !== null && rowsSlug !== selectedSlug;
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingClaimKeys, setPendingClaimKeys] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
-  // The last write that landed, offered for undo until the window closes or
-  // the next decision replaces it.
+  // The last write that landed, offered for undo until the next decision
+  // replaces it. No timer: the reviewer may read on before deciding to undo.
   const [undoableDecision, setUndoableDecision] = useState<CitationReviewDecisionRecord | null>(null);
-  const undoTimerRef = useRef<number | null>(null);
-
   const clearUndo = useCallback(() => {
-    if (undoTimerRef.current !== null) {
-      window.clearTimeout(undoTimerRef.current);
-      undoTimerRef.current = null;
-    }
     setUndoableDecision(null);
   }, []);
 
-  useEffect(() => clearUndo, [clearUndo]);
-
-  const offerUndo = useCallback(
-    (decision: CitationReviewDecisionRecord) => {
-      clearUndo();
-      setUndoableDecision(decision);
-      undoTimerRef.current = window.setTimeout(() => {
-        undoTimerRef.current = null;
-        setUndoableDecision(null);
-      }, CITATION_UNDO_WINDOW_MS);
-    },
-    [clearUndo],
-  );
-
   const refreshQueue = useCallback(async () => {
-    setIsQueueLoading(true);
+    if (hasLoadedQueueRef.current) {
+      setRefreshing(true);
+    } else {
+      setInitialLoading(true);
+    }
     setQueueError(null);
 
     try {
@@ -108,6 +106,7 @@ export function useCitationReviewData(initialSlug?: string) {
         `/api/citation-evidence/queue?${searchParams.toString()}`,
       );
       const nextQueue = Array.isArray(result.queue) ? result.queue : [];
+      hasLoadedQueueRef.current = true;
       setQueue(nextQueue);
 
       setSelectedSlug((current) => {
@@ -121,14 +120,21 @@ export function useCitationReviewData(initialSlug?: string) {
       });
     } catch (error) {
       setQueueError(loadFailure(error, "Unable to load citation review queue."));
-      setQueue([]);
+      // A failed refresh keeps the rows already on screen; only a queue that
+      // never loaded is replaced by the error state.
+      if (!hasLoadedQueueRef.current) {
+        setQueue([]);
+      }
     } finally {
-      setIsQueueLoading(false);
+      setInitialLoading(false);
+      setRefreshing(false);
     }
   }, [initialSlug, queueFilter]);
 
+  // Every detail request takes a token; only the latest one may land, so
+  // clicking A then B shows B even when A's reply arrives last.
   const refreshDetail = useCallback(async (slug: string) => {
-    setIsDetailLoading(true);
+    const requestId = ++detailRequestRef.current;
     setDetailError(null);
 
     try {
@@ -136,12 +142,17 @@ export function useCitationReviewData(initialSlug?: string) {
       const result = await readJson<{ rows?: CitationEvidenceRow[] }>(
         `/api/citation-evidence?${searchParams.toString()}`,
       );
-      setRows(Array.isArray(result.rows) ? result.rows : []);
+      if (requestId !== detailRequestRef.current) {
+        return;
+      }
+      setDetail({ slug, rows: Array.isArray(result.rows) ? result.rows : [] });
     } catch (error) {
-      setRows([]);
+      if (requestId !== detailRequestRef.current) {
+        return;
+      }
+      // A failed refresh keeps the rows already on screen for this article.
+      setDetail((current) => (current?.slug === slug ? current : { slug, rows: [] }));
       setDetailError(loadFailure(error, "Unable to load citation evidence.").error);
-    } finally {
-      setIsDetailLoading(false);
     }
   }, []);
 
@@ -151,7 +162,8 @@ export function useCitationReviewData(initialSlug?: string) {
 
   useEffect(() => {
     if (!selectedSlug) {
-      setRows([]);
+      detailRequestRef.current += 1;
+      setDetail(null);
       return;
     }
 
@@ -160,7 +172,8 @@ export function useCitationReviewData(initialSlug?: string) {
 
   const updateStatuses = useCallback(
     async (claimKeys: string[], status: CitationReviewDecisionStatus, statusReason?: string) => {
-      if (!selectedSlug || claimKeys.length === 0) {
+      // Decide only rows that are on screen for the selected article.
+      if (!selectedSlug || rowsSlug !== selectedSlug || claimKeys.length === 0) {
         return;
       }
 
@@ -169,16 +182,20 @@ export function useCitationReviewData(initialSlug?: string) {
       const prior = rows
         .filter((row) => wanted.has(row.claimKey))
         .map((row) => ({ claimKey: row.claimKey, status: row.status, statusReason: row.statusReason }));
+      if (prior.length === 0) {
+        return;
+      }
+      const decidedKeys = prior.map((row) => row.claimKey);
 
       clearUndo();
       setActionError(null);
-      setPendingClaimKeys(claimKeys);
-      setIsBulkUpdating(claimKeys.length > 1);
+      setPendingClaimKeys(decidedKeys);
+      setIsBulkUpdating(decidedKeys.length > 1);
 
       try {
-        await postStatus({ slug, claimKeys, status, statusReason });
+        await postStatus({ slug, claimKeys: decidedKeys, status, statusReason });
         await Promise.all([refreshQueue(), refreshDetail(slug)]);
-        offerUndo({ status, slug, prior });
+        setUndoableDecision({ status, slug, prior });
       } catch (error) {
         setActionError(error instanceof Error ? error.message : "Unable to update citation review status.");
       } finally {
@@ -186,7 +203,7 @@ export function useCitationReviewData(initialSlug?: string) {
         setIsBulkUpdating(false);
       }
     },
-    [clearUndo, offerUndo, refreshDetail, refreshQueue, rows, selectedSlug],
+    [clearUndo, refreshDetail, refreshQueue, rows, rowsSlug, selectedSlug],
   );
 
   const undoLastDecision = useCallback(async () => {
@@ -231,7 +248,8 @@ export function useCitationReviewData(initialSlug?: string) {
     queueFilter,
     setQueueFilter,
     queueError,
-    isQueueLoading,
+    initialLoading,
+    refreshing,
     selectedSlug,
     setSelectedSlug,
     selectedSummary,
