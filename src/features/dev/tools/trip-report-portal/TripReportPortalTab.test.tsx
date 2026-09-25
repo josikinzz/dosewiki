@@ -698,8 +698,8 @@ describe("TripReportPortalTab keyboard triage and bulk actions", () => {
     stubCorpus([submission, second]);
     render(<TripReportPortalTab />);
 
-    await user.click(await screen.findByRole("checkbox", { name: "Select Careful low dose museum walk" }));
-    await user.click(screen.getByRole("checkbox", { name: "Select Second museum walk" }));
+    await user.click(await screen.findByTitle("Select Careful low dose museum walk"));
+    await user.click(screen.getByTitle("Select Second museum walk"));
     expect(screen.getByText("2 selected")).toBeInTheDocument();
     // Ticking is not opening.
     expect(screen.queryByRole("heading", { name: "Careful low dose museum walk" })).not.toBeInTheDocument();

@@ -40,6 +40,7 @@ export {
 
 export {
   EditorListItem,
+  EditorListRow,
 } from "./EditorListItem";
 
 export {

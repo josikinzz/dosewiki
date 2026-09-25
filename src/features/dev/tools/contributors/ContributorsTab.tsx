@@ -8,7 +8,7 @@ import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorNotice,
   EditorSection,
   EditorSegmentedControl,
@@ -208,9 +208,8 @@ export function ContributorsTab({
                     : "No contributor matches that search."
                 }
                 renderItem={(profile, { selected }) => (
-                  <EditorListItem
+                  <EditorListRow
                     active={selected}
-                    tabIndex={-1}
                     title={profile.displayName}
                     subtitle={
                       profile.aliases.length > 0

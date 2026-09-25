@@ -18,7 +18,7 @@ import {
   EditorActionGroup,
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorPanel,
   EditorSection,
   EditorStatusPill,
@@ -898,7 +898,7 @@ function QueueRow({
   title: string;
 }) {
   return (
-    <EditorListItem active={active} tabIndex={-1} className="items-start">
+    <EditorListRow active={active} className="items-start">
       <span className="min-w-0 flex-1 space-y-1">
         <span className="flex items-center justify-between gap-3">
           <span className="min-w-0 truncate text-sm">
@@ -912,7 +912,7 @@ function QueueRow({
         </span>
         <span className="theme-text-muted block truncate text-xs">{row.details}</span>
       </span>
-    </EditorListItem>
+    </EditorListRow>
   );
 }
 

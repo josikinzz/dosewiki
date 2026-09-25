@@ -404,7 +404,7 @@ describe("TagEditorTab state-machine integration", () => {
 
     expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
 
-    fireEvent.click(screen.getByRole("button", { name: /Empathogen/i }));
+    fireEvent.click(screen.getByRole("option", { name: /Empathogen/i }));
     expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Empathogen");
 
     fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
@@ -594,8 +594,8 @@ describe("TagEditorTab state-machine integration", () => {
 
     renderTab();
 
-    expect(await screen.findByRole("button", { name: /Classic Rock/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Classic\b(?! Rock)/ })).toBeNull();
+    expect(await screen.findByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();
     expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic Rock");
 
     // Renaming the renamed tag again reaches the article that carries it.
@@ -637,8 +637,8 @@ describe("TagEditorTab state-machine integration", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reload tags" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Reload tags" })).not.toBeDisabled());
 
-    expect(screen.getByRole("button", { name: /Classic Rock/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /^Classic\b(?! Rock)/ })).toBeNull();
+    expect(screen.getByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();
   });
 
   it("shows a retry state when the registry fetch fails", async () => {

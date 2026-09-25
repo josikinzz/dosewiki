@@ -27,7 +27,7 @@ import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
   EditorField,
   EditorList,
-  EditorListItem,
+  EditorListRow,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
@@ -250,9 +250,8 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
                 onSelect={pick}
                 emptyText={view === "unlinked" ? "Everyone is linked." : "Nobody matches that search."}
                 renderItem={(person, { selected: active }) => (
-                  <EditorListItem
+                  <EditorListRow
                     active={active}
-                    tabIndex={-1}
                     title={personLabel(person)}
                     subtitle={personSubtitle(person)}
                     badge={
