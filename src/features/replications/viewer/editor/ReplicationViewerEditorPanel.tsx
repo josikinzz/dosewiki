@@ -159,7 +159,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
       event.preventDefault();
       props.onOpenChange(true);
       if (locked) {
-        setError("This publication is pending or its outcome is unknown. Reconcile the exact reviewed request before leaving; its operation identity cannot be discarded.");
+        setError("This publication is pending or its outcome is unknown. Retry the reviewed publication before leaving; it cannot be discarded.");
         return;
       }
       const proceed = (event as CustomEvent<{ proceed: () => void }>).detail.proceed;
@@ -269,7 +269,7 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
         setPendingPublication(null);
         setReview(publication);
       }
-      setError(cause instanceof Error ? cause.message : "Publication was not confirmed. Its exact request is retained for explicit reconciliation.");
+      setError(cause instanceof Error ? cause.message : "Publication was not confirmed. The reviewed change is kept so you can retry it.");
     } finally { setBusy(false); }
   };
 
@@ -297,9 +297,9 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
         {error ? <div role="alert" className="theme-text-primary space-y-2 text-sm"><p>{error}</p><Button size="sm" variant="secondary" disabled={busy} onClick={() => void load().catch(cause => setError(String(cause)))}>Retry read</Button>{session ? <Button size="sm" variant="ghostDestructive" disabled={locked} onClick={() => void load(undefined, true).catch(cause => setError(String(cause)))}>Discard this draft and reload stored version</Button> : null}</div> : null}
         {notice ? <p role="status" className="theme-text-primary text-sm">{notice}</p> : null}
         {receipt && !review ? <PublicationReceiptChips receipt={receipt} /> : null}
-        {pendingPublication ? <section aria-label="Publication reconciliation" className="space-y-3">
+        {pendingPublication ? <section aria-label="Unconfirmed publication" className="space-y-3">
           <h3 className="theme-text-primary font-semibold">{busy ? "Publication pending" : "Publication outcome unknown"}</h3>
-          <p className="theme-text-muted text-sm">The {pendingPublication.mode} change for {pendingPublication.collectionKey ?? pendingPublication.slug} retains its original request identity. Nothing is replayed automatically. Retry only this exact reviewed request to confirm whether it was applied.</p>
+          <p className="theme-text-muted text-sm">The {pendingPublication.mode} change for {pendingPublication.collectionKey ?? pendingPublication.slug} is kept exactly as you reviewed it. Nothing is sent again automatically. Retry it to confirm whether it went through.</p>
           <pre className="theme-text-primary whitespace-pre-wrap break-all text-xs">{JSON.stringify(pendingPublication.after, null, 2)}</pre>
           <Button variant="accent" disabled={busy} onClick={() => void publish()}>Retry exact reviewed publication</Button>
         </section> : null}

@@ -71,7 +71,7 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
     setNotice({
       tone: failed.length || stopped ? (approved.length ? "warning" : "danger") : "success",
       message: <div className="space-y-1">
-        <p>Approved {approved.length} {approved.length === 1 ? "label" : "labels"}. Awaiting a UI catalog build, deployment, and public verification.</p>
+        <p>Approved {approved.length} {approved.length === 1 ? "label" : "labels"}. They go live with the next site release.</p>
         {failed.length ? <ul className="list-disc pl-5">{failed.map((result) => <li key={result.id}>{sources.get(result.id) ?? result.id}: {result.error}</li>)}</ul> : null}
         {stopped ? <p>{unsent} {unsent === 1 ? "label was" : "labels were"} not sent: {stopped}</p> : null}
       </div>,

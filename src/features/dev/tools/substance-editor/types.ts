@@ -1,4 +1,5 @@
 import type { EditorStatusPillTone } from "@/features/dev/components";
+import { REVIEW_STATUS_NAMES } from "@/features/dev/tools/review-mode/reviewStatusNames";
 
 
 
@@ -22,10 +23,11 @@ export interface SubstanceEditorTabProps {
 export type SortOrder = "alpha-asc" | "alpha-desc";
 export type ReviewStatus = "needed" | "in_progress" | "completed";
 
+/** Labels come from the shared review status names, so Substances and /review agree. */
 export const REVIEW_STATUS_META: Record<ReviewStatus, { label: string; tone: EditorStatusPillTone }> = {
-  needed: { label: "Review Needed", tone: "danger" },
-  in_progress: { label: "In Progress", tone: "warning" },
-  completed: { label: "Completed", tone: "success" },
+  needed: { label: REVIEW_STATUS_NAMES.needed, tone: "danger" },
+  in_progress: { label: REVIEW_STATUS_NAMES.in_progress, tone: "warning" },
+  completed: { label: REVIEW_STATUS_NAMES.completed, tone: "success" },
 };
 
 export interface SubstanceInfo {

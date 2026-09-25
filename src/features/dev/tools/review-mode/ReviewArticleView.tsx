@@ -136,7 +136,7 @@ export function ReviewArticleView({
         {articlesRefreshConflict ? (
           <div className="mb-4">
             <Notice
-              tone="warning" title="Showing an older copy" message="This page is held on the data loaded earlier, because unapplied editor changes are keeping the working set from taking updates. The database has moved on since then, so an inline edit may be refused as stale. Apply and commit the pending editor changes, or reload the page, to catch up."
+              tone="warning" title="Showing an older copy" message="This page shows the articles as they were loaded earlier, because your uncommitted working changes are holding it. Articles have changed since then, so an inline edit may be refused as out of date. Commit or discard the working changes, or reload the page, to catch up."
             />
           </div>
         ) : null}

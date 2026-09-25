@@ -67,10 +67,10 @@ export async function writeWarning(method: "POST" | "DELETE", body: Record<strin
     const state = await readWarningState(body.key, changeId);
     if (state.operation) {
       pending.delete(body.key);
-      if (previous?.fingerprint !== fingerprint) throw new Error("The previous warning publication committed. Reload its current version before publishing different edits.");
+      if (previous?.fingerprint !== fingerprint) throw new Error("The previous warning publication went through. Reload its current version before publishing different edits.");
       return state.operation;
     }
-    if (previous?.fingerprint !== fingerprint) throw new Error("The previous warning publication remains unconfirmed. Retry the original edits to reconcile that operation before making another change.");
+    if (previous?.fingerprint !== fingerprint) throw new Error("The previous warning publication remains unconfirmed. Retry the original edits to confirm it before making another change.");
   } else {
     changeId = crypto.randomUUID();
     pending.set(body.key, { fingerprint, changeId, method, body: JSON.parse(JSON.stringify(body)) });
@@ -89,7 +89,7 @@ export async function writeWarning(method: "POST" | "DELETE", body: Record<strin
     if (error instanceof WarningRequestError && error.status < 500) throw error;
     const state = await readWarningState(body.key, changeId);
     if (state.operation) { pending.delete(body.key); return state.operation; }
-    throw new Error("Publication is not yet confirmed. Keep these edits and retry; the same change will be reconciled before any repeat write.");
+    throw new Error("Publication is not yet confirmed. Keep these edits and retry; the same change is checked before anything publishes again.");
   }
 }
 

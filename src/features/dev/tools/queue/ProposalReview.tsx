@@ -230,7 +230,7 @@ export function ProposalReview({
               ? "Published changes, compared with the snapshot taken before publication."
               : proposal.comparisonMode === "submitted"
                 ? "Submitted changes, captured by the server when this proposal was created."
-                : proposal.comparisonMode === "verified_live" ? "Changes compared with the verified submission baseline." : "Recorded change comparison."}
+                : proposal.comparisonMode === "verified_live" ? "Changes compared with the live article the proposal was written against." : "Recorded change comparison."}
           </p>
         )}
         <h4 className="theme-accent-heading text-sm font-semibold">What changed</h4>

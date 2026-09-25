@@ -102,7 +102,7 @@ export function useReplicationCorpus() {
       setEffects(payload.effects);
       setLoad({ status: "ready" });
     } catch {
-      setLoad({ status: "error", message: "Failed to reach the corpus endpoint." });
+      setLoad({ status: "error", message: "Could not reach the server to load replications." });
     }
   }, []);
 
@@ -150,7 +150,7 @@ export function useReplicationCorpus() {
         setFeedback({ tone: "success", message: `Saved ${row.slug}.` });
         await reload();
       } catch {
-        setFeedback({ tone: "danger", message: "Save failed: the editor endpoint is unreachable." });
+        setFeedback({ tone: "danger", message: "Save failed: the server could not be reached." });
       } finally {
         setBusy(false);
       }
@@ -188,7 +188,7 @@ export function useReplicationCorpus() {
       } catch {
         setFeedback({
           tone: "danger",
-          message: "Bulk edit failed: the editor endpoint is unreachable.",
+          message: "Bulk edit failed: the server could not be reached.",
         });
         return false;
       } finally {

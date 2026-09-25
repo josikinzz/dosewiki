@@ -311,7 +311,7 @@ const JOURNEYS = {
     await session.expectValue(title, "Launch post");
     assert.equal(session.fixture.requestsTo("POST", "/api/dev/writing-article").length, 0, "an editor's submit never saves directly");
 
-    await session.activate(page.getByRole("link", { name: "View in queue" }));
+    await session.activate(page.getByRole("link", { name: "Open in Change Review" }));
     await page.waitForURL((url) => url.pathname === "/dev/queue", { timeout: 60_000 });
     await session.settle();
     const row = page.getByRole("button", { name: /Update blog post “Launch post revised”/ });

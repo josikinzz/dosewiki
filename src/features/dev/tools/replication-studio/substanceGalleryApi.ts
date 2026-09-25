@@ -37,9 +37,9 @@ export async function fetchGalleryCandidates(): Promise<GalleryCandidatesResult>
     const payload = (await response.json()) as { substances?: GalleryCandidate[] };
     return Array.isArray(payload.substances)
       ? { status: "ready", candidates: payload.substances }
-      : { status: "error", message: "The substances endpoint returned no substance list." };
+      : { status: "error", message: "The server returned no substance list." };
   } catch {
-    return { status: "error", message: "Failed to reach the substance list endpoint." };
+    return { status: "error", message: "Could not reach the server to load the substance list." };
   }
 }
 
@@ -54,7 +54,7 @@ export async function fetchGalleryDetail(slug: string): Promise<GalleryDetailRes
     }
     return { status: "ready", detail: (await response.json()) as GalleryDetail };
   } catch {
-    return { status: "error", message: "Failed to reach the gallery endpoint." };
+    return { status: "error", message: "Could not reach the server to load the gallery." };
   }
 }
 
@@ -111,6 +111,6 @@ export async function saveGalleryCuration(
       updatedAt: payload.updated_at,
     };
   } catch {
-    return { status: "error", message: "Failed to reach the gallery endpoint." };
+    return { status: "error", message: "Could not reach the server to load the gallery." };
   }
 }

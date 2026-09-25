@@ -22,7 +22,7 @@ export function useCopyIndexOperation() {
       }
       throw new Error("error" in value && typeof value.error === "string" ? value.error : "Publication was rejected. Your draft is preserved.");
     }
-    if (!("revision" in value) || typeof value.revision !== "number" || !Number.isSafeInteger(value.revision) || !("replayed" in value) || typeof value.replayed !== "boolean" || !("unchanged" in value) || typeof value.unchanged !== "boolean") throw new Error("No valid publication receipt was received. Retry the same publication to reconcile it before closing.");
+    if (!("revision" in value) || typeof value.revision !== "number" || !Number.isSafeInteger(value.revision) || !("replayed" in value) || typeof value.replayed !== "boolean" || !("unchanged" in value) || typeof value.unchanged !== "boolean") throw new Error("Publication was not confirmed. Retry the same publication to confirm it before closing.");
     if (pending.current) pending.current.uncertain = false;
     setUncertain(false);
     return { revision: value.revision, replayed: value.replayed, unchanged: value.unchanged };

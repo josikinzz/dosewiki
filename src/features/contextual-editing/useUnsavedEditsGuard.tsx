@@ -22,7 +22,7 @@ export function useUnsavedEditsGuard(dirty: boolean, options: {
 }) {
   const canDiscard = options.canDiscard !== false;
   const description = !canDiscard
-    ? "Return to the open editor to save, discard, or reconcile its pending publication before leaving."
+    ? "Return to the open editor to save, discard, or retry its unconfirmed publication before leaving."
     : options.onSave
       ? "Save a private draft, discard your changes, or keep editing. Nothing is published by leaving."
       : "Discard your changes or keep editing. Nothing is published by leaving.";

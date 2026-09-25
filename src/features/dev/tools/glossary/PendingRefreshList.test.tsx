@@ -34,12 +34,12 @@ describe("waiting for glossary refresh", () => {
     // A record compiled before terms were recorded still lists the row.
     expect(within(list).getByRole("row", { name: /Tutorials and resources/ })).toHaveTextContent("Not recorded");
     expect(within(list).queryByText("Light")).not.toBeInTheDocument();
-    expect(screen.getByText(/last catalog compile ran offline/i)).toBeInTheDocument();
+    expect(screen.getByText(/could not refresh these strings because it ran offline/i)).toBeInTheDocument();
   });
 
   it("opens a waiting row in the one-at-a-time view for a human override", async () => {
     const user = await openFilter(true);
-    expect(screen.queryByText(/last catalog compile ran offline/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/could not refresh these strings because it ran offline/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Review Back to replications" }));
     expect(screen.getByRole("button", { name: "One at a time" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("textbox", { name: "Translation for gallery.back" })).toHaveValue("返回复现");

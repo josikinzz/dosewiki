@@ -162,7 +162,7 @@ describe("useDevModeSaveActions", () => {
     });
     expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
     expect(screen.getByText("Submitted Proposal #abc123 for review as JOSIE.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+    expect(screen.getByRole("link", { name: "Open in Change Review" })).toHaveAttribute("href", "/dev/queue");
     expect(args.markChangesSaved).toHaveBeenCalledTimes(1);
     expect(args.onAppendChangeLogEntry).not.toHaveBeenCalled();
   });

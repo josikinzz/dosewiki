@@ -331,7 +331,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
       setSaveState("saved");
       setNotice({
         tone: "success",
-        message: payload.unchanged ? "No publication was needed; the loaded content is unchanged." : payload.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : "Saved. The public About page is rebuilding with it now.",
+        message: payload.unchanged ? "No publication was needed; the loaded content is unchanged." : payload.replayed ? "Your earlier publication went through. Someone may have published changes since." : "Saved. The public About page is rebuilding with it now.",
       });
     } catch (error) {
       setSaveState("error");

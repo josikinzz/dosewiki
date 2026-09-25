@@ -37,7 +37,7 @@ describe("UI translation review", () => {
     expect(writes[0]).toMatchObject({ action: "save", expectedRevision: 0, target: "浅色", reason: { kind: "fluency", note: "" }, glossaryExceptions: [] });
     expect(writes).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Approve" }));
-    await screen.findByText("Approved. Awaiting a UI catalog build.");
+    await screen.findByText("Approved. It goes live with the next site release.");
     expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 1 });
     expect(writes[1]).not.toHaveProperty("target");
   });

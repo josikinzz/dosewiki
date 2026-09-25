@@ -152,7 +152,7 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
       router.refresh();
     } catch (reason) {
       if (pending.current) setUncertain(true);
-      setError(reason instanceof Error ? reason.message : "Publication response unavailable. Reconcile this operation before making another edit.");
+      setError(reason instanceof Error ? reason.message : "Publication was not confirmed. Retry it before making another edit.");
     } finally { setBusy(false); }
   }
   const row = record ? { ...toPortalRowFromReport({ id: record.id, slug: report.slug, title: record.fields.title, subject: record.fields.subject, substances: record.fields.substances, tags: record.fields.tags, featured: report.featured === true, license: report.license, profileKey: report.subject.profile_key, createdAt: 0 }), fields: record.fields } : null;
@@ -163,7 +163,7 @@ function ReportSession({ report, substanceBySlug, substanceLinks, onClose, retur
       {loading ? <p role="status">Loading this report and checking ownership…</p> : null}
       {error ? <div role="alert" className="space-y-3"><p>{error}</p>{!record ? <Button variant="outline" onClick={() => setReload((value) => value + 1)}>Retry access check</Button> : !uncertain ? <Button variant="outline" onClick={() => confirm({ title: "Discard corrections and reload?", description: "Your local corrections will be discarded and replaced with the current published report.", confirmLabel: "Discard and reload", destructive: true, onConfirm: () => { setReview(false); setReload((value) => value + 1); } })}>Discard corrections and reload published report</Button> : null}</div> : null}
       {success ? <div className="space-y-2"><p role="status">Saved on the editor host. The report and its attributed history were saved together.</p>{receipt ? <PublicationReceiptChips receipt={receipt} /> : null}</div> : null}
-      {uncertain ? <div role="alert"><p>The response was lost. Editing is paused until the original operation is reconciled.</p><Button disabled={busy} onClick={() => void publish()}>Reconcile publication</Button></div> : null}
+      {uncertain ? <div role="alert"><p>The response was lost. Editing is paused until you retry the original publication.</p><Button disabled={busy} onClick={() => void publish()}>Retry publication</Button></div> : null}
       {record && draft && row ? <>
         <fieldset ref={editorFields} hidden={review} disabled={busy || uncertain}>
           <PortalReportEditor busy={busy || uncertain} contributors={[]} draft={draft} feedback={null} onChange={(next) => { setDraft(next); setSuccess(false); setReview(false); resetReceipt(); }} onClose={close} onDelete={close} onDismissFeedback={() => setError(null)} onRevert={() => { setDraft(record.fields); setReview(false); }} onSave={() => setReview(true)} row={row} contentOnly saveLabel="Review" />

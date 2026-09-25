@@ -201,7 +201,7 @@ describe("CopyStudioTab", () => {
     expect(body.summary).toMatch(/^Update copy "/);
 
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "View in queue" })).toHaveAttribute("href", "/dev/queue");
+    expect(screen.getByRole("link", { name: "Open in Change Review" })).toHaveAttribute("href", "/dev/queue");
   });
 
   it("reports its unsaved block to the shell, whose Save submits it before leaving", async () => {

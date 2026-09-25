@@ -294,7 +294,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
           tone: "danger",
           title: "Couldn't save that preset",
           message: error instanceof Error ? error.message : "The preset could not be saved.",
-          actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button> : undefined,
+          actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button> : undefined,
         });
         return null;
       }
@@ -389,8 +389,8 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     if (!operation) return;
     confirm({
       title: `Resolve pending warning ${key}?`,
-      description: <><p>Check the receipt, then retry only this original request with the same change id if necessary. Different local edits will not be sent.</p><pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(operation.body, null, 2)}</pre></>,
-      confirmLabel: "Reconcile or retry original change",
+      description: <><p>Retry sends the original change again. If it already went through, nothing publishes twice. Different local edits are not sent.</p><pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(operation.body, null, 2)}</pre></>,
+      confirmLabel: "Retry original change",
       onConfirm: async () => {
         setSaveState("saving");
         try {
@@ -404,8 +404,8 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
           setSaveState("error");
           setNotice({
             tone: "danger", title: "Original warning change unresolved",
-            message: error instanceof Error ? error.message : "The original request could not be reconciled.",
-            actions: pendingWarning(key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(key)}>Reconcile original change</Button> : undefined,
+            message: error instanceof Error ? error.message : "The original change could not be confirmed.",
+            actions: pendingWarning(key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(key)}>Retry original change</Button> : undefined,
           });
         }
       },
@@ -416,8 +416,8 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     setEditor(preset ? editorFor(preset, BLANK_PRESET) : null);
     setSaveState("idle");
     setNotice(preset && pendingWarning(preset.key) ? {
-      tone: "warning", message: "An earlier warning publication remains unconfirmed. Resolve its original request before making another change.",
-      actions: <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button>,
+      tone: "warning", message: "An earlier warning publication remains unconfirmed. Retry the original change before making another.",
+      actions: <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button>,
     } : null);
   }, []);
 
@@ -500,7 +500,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         tone: "danger",
         title: "Couldn't delete that preset",
         message: error instanceof Error ? error.message : "The preset could not be deleted.",
-        actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button> : undefined,
+        actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button> : undefined,
       });
     }
   }, []);

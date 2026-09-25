@@ -407,7 +407,7 @@ export function NarrativeReview({
         )
       )
         setNotice(
-          "Approved, but cache delivery is incomplete. Reloading the public page is not proof of delivery; retain the receipt and retry publication through the operator workflow.",
+          "Approved, but the public page may not show it yet. A reload is not proof that it is live; ask an admin to publish it again.",
         );
       await load(row.id);
     } catch (cause) {

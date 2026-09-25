@@ -59,7 +59,7 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
       const response = await fetch("/api/dev/copy-block", { method: "POST", headers: { "Content-Type": "application/json" }, body: publicationBody({ ...document, expected: baseline, expectedRevision: revision }) });
       const payload = await response.json();
       acknowledge(response, payload);
-      setRevision(payload.revision); setBaseline({ ...document, revision: payload.revision }); setNotice(payload.unchanged ? "No publication was needed; this content is unchanged." : payload.replayed ? "Your earlier publication receipt is confirmed. Later public edits may exist." : "Published shared copy. All public renderings of this key are refreshing."); router.refresh();
+      setRevision(payload.revision); setBaseline({ ...document, revision: payload.revision }); setNotice(payload.unchanged ? "No publication was needed; this content is unchanged." : payload.replayed ? "Your earlier publication went through. Someone may have published changes since." : "Published shared copy. All public renderings of this key are refreshing."); router.refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Publication failed. Your draft is preserved."); }
     finally { setSaving(false); }
   }

@@ -392,7 +392,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId }: Qu
           {proposals && proposals.length === 0 ? (
             <EmptyStateSurface padding="md" radius="lg" className="theme-text-muted space-y-3 text-sm">
               <p className="theme-text-primary font-medium">{canApprove ? "No submissions to review." : "You have not submitted any changes yet."}</p>
-              <p>Submit a staged change from an editor to start a review. Nothing is published until an admin approves it.</p>
+              <p>Use Submit for review in any editor to start a review. Nothing is published until an admin approves it.</p>
               <Button asChild variant="outline" size="sm" className="rounded-full">
                 <a href={viewToPath({ type: "dev", tab: "articles" })}>Open the Substances editor</a>
               </Button>

@@ -229,8 +229,8 @@ An advisory to-do attached to an article or section by the review workflow or a 
 _Avoid_: blocker, approval gate, review failure
 
 **Hold**:
-The in-progress review status a reviewer sets in /review when an article cannot be finished now. The reason goes in a Review Flag note from the notes and flags panel; a held article stays in the queue.
-_Avoid_: flag (for the status), in-progress flag, blocked
+The in-progress review status a reviewer sets in /review when an article cannot be finished now, shown as On hold (see Review Status Names). The reason goes in a Review Flag note from the notes and flags panel; a held article stays in the queue.
+_Avoid_: flag (for the status), in-progress flag, Flagged in progress, In Progress, blocked
 
 **Flag Severity**:
 The size of a flag's to-do: `major` for absent or substantially deficient work, `minor` for a bounded fix, or `note` for an optional improvement. It never controls approval or visibility.
@@ -259,6 +259,38 @@ _Avoid_: outdated review, expired review, unreviewed (for a stale sign-off)
 **Recommended Reviewed**:
 An editor's request that an admin sign off an article, made with R in /review. Stored as `editorial_review.recommendation` (`revision`, `recommended_by`, `recommended_at`, `note`) bound to the published revision the editor read; it never changes the review status. Admins approve recommendations in batches from the Review recommendations lane in Change Review, which writes `completed` at the recommended revision. A recommendation whose revision is no longer the published one is stale and needs another review before approval.
 _Avoid_: editor sign-off, pending review, soft reviewed
+
+**Review Status Names**:
+The one set of names every editor surface shows for an article's review status: **Not reviewed** (`needed`), **On hold** (`in_progress`, set with Hold), **Reviewed** (`completed`), and **Changed since review** (the derived `stale`). Recommended reviewed is a request on top of a status, never a status of its own. The Substances list, the /review picker and command bar read them from `REVIEW_STATUS_NAMES` in `src/features/dev/tools/review-mode/reviewStatusNames.ts`. The public article only says whether an article is reviewed: its Article Status reads "Not yet reviewed" until sign-off, and a Changed since review article still reads as reviewed there.
+_Avoid_: Review Needed, In Progress, Flagged in progress, Completed (as a status name)
+
+## Editor Vocabulary
+
+The words every editor-facing string uses in `/dev`, /review and the editors that open on public pages. `src/features/dev/editorVocabulary.test.ts` fails when a visible string in those modules uses a banned phrase (git, pipeline and transport jargon such as baseline, rebase, reconcile, working set, staged change, projection, payload, receipt, endpoint), and names the word to use instead. Stored values, identifiers and API fields keep their names; only visible copy follows this list.
+
+**Change Review**:
+The `/dev` tool where admins decide proposals and Recommended Reviewed requests. A submission's notice links to it with Open in Change Review.
+_Avoid_: View in queue, the queue (as the tool's name), proposal queue
+
+**Publish**:
+The action that makes a change live for readers. Only admins publish; an editor's change goes through Submit for review. In-page editors and record tools offer the fixed verbs Save draft, Review, Publish and Submit for review.
+_Avoid_: deploy, push, apply to production
+
+**Submit for review**:
+Sending a change to Change Review as a proposal. The published page stays unchanged until an admin approves it.
+_Avoid_: submit a staged change, stage, propose (as a button)
+
+**Working Changes**:
+The edits a batch tool (Tags and Index layout) collects across tools, which go live together with Commit to production after one confirmation. Commit names this one action and nothing else.
+_Avoid_: working set, staged set, the draft (for the shared batch)
+
+**Latest Published Version**:
+What an editor loads to catch up with work published since they started: Load latest published version. When their own edits overlap, the two are combined as a Merged Draft.
+_Avoid_: baseline, refresh baseline, upstream, rebase
+
+**Unconfirmed Change**:
+A save, submission or publication whose answer never arrived, so the editor cannot know whether it went through. Editing pauses until the editor retries it; a retry sends the original change again and never publishes it twice, and later edits are not sent with it.
+_Avoid_: reconcile, replay, operation identity, receipt
 
 ## Intake Language
 

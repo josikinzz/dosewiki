@@ -545,7 +545,7 @@ export function useSubstanceGalleryController({
         });
       } catch {
         setSaveState("error");
-        setFeedback({ tone: "danger", message: "Saving failed: the gallery endpoint is unreachable." });
+        setFeedback({ tone: "danger", message: "Saving failed: the server could not be reached." });
       }
     },
     [substanceSlug],

@@ -73,7 +73,7 @@ export function useTripReportPortalCorpus() {
     } catch {
       setLoad((current) => ({
         ...current,
-        corpus: { status: "error", message: "Failed to reach the trip report corpus endpoint." },
+        corpus: { status: "error", message: "Could not reach the server to load trip reports." },
       }));
     }
   }, []);
@@ -104,7 +104,7 @@ export function useTripReportPortalCorpus() {
     } catch {
       setLoad((current) => ({
         ...current,
-        submissions: { status: "error", message: "Failed to reach the submission queue endpoint." },
+        submissions: { status: "error", message: "Could not reach the server to load submissions." },
       }));
     }
   }, []);

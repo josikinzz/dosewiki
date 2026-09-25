@@ -392,7 +392,7 @@ export function useWritingWorkbenchController({
           }
           throw new Error(payload.error ?? "The article could not be saved.");
         }
-        if (!payload.revision) throw new Error("The server did not confirm publication. Retry to reconcile this operation.");
+        if (!payload.revision) throw new Error("The server did not confirm publication. Retry to confirm it.");
         setUncertain(false);
         if (recoveryStore && savingRecord) recoveryStore.clear("writing", savingRecord);
         setCheckpointSavedAt(null);

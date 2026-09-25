@@ -244,7 +244,7 @@ describe("saveOrchestratorReducer", () => {
           changelogEntry: null,
           markChangesSaved: true,
           actionHref: "/dev/queue",
-          actionLabel: "View in queue",
+          actionLabel: "Open in Change Review",
         },
       });
 
@@ -252,7 +252,7 @@ describe("saveOrchestratorReducer", () => {
         type: "success",
         message: "Submitted Proposal #abc123 for review as EDITOR.",
         actionHref: "/dev/queue",
-        actionLabel: "View in queue",
+        actionLabel: "Open in Change Review",
       });
     });
   });

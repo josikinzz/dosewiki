@@ -24,13 +24,14 @@ import {
   type ReviewQueueEntry,
   type ReviewQueueGroup,
 } from "./reviewQueue";
+import { REVIEW_STATUS_NAMES } from "./reviewStatusNames";
 
 /** Status colours shared by the picker rows and the command bar's own dot. */
 export const STATUS_DOT: Record<ReviewState, { className: string; label: string }> = {
-  completed: { className: "theme-review-status-completed", label: "Reviewed" },
-  stale: { className: "theme-review-status-stale", label: "Changed since review" },
-  in_progress: { className: "theme-review-status-in-progress", label: "Flagged in progress" },
-  needed: { className: "theme-review-status-needed", label: "Not reviewed" },
+  completed: { className: "theme-review-status-completed", label: REVIEW_STATUS_NAMES.completed },
+  stale: { className: "theme-review-status-stale", label: REVIEW_STATUS_NAMES.stale },
+  in_progress: { className: "theme-review-status-in-progress", label: REVIEW_STATUS_NAMES.in_progress },
+  needed: { className: "theme-review-status-needed", label: REVIEW_STATUS_NAMES.needed },
 };
 
 type PickerEntry = Pick<ReviewQueueEntry, "slug" | "name" | "status" | "flagSummary">;
@@ -210,7 +211,7 @@ function EntryItem({
             entry.flagSummary ? undefined : "ml-auto",
           )}
         >
-          reviewed
+          {REVIEW_STATUS_NAMES.completed.toLowerCase()}
         </EditorStatusPill>
       ) : entry.status === "stale" ? (
         <EditorStatusPill
@@ -221,7 +222,7 @@ function EntryItem({
             entry.flagSummary ? undefined : "ml-auto",
           )}
         >
-          changed since review
+          {REVIEW_STATUS_NAMES.stale.toLowerCase()}
         </EditorStatusPill>
       ) : entry.status === "in_progress" ? (
         <EditorStatusPill
@@ -232,7 +233,7 @@ function EntryItem({
             entry.flagSummary ? undefined : "ml-auto",
           )}
         >
-          in progress
+          {REVIEW_STATUS_NAMES.in_progress.toLowerCase()}
         </EditorStatusPill>
       ) : null}
     </CommandItem>
