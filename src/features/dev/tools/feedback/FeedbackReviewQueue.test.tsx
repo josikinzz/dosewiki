@@ -218,6 +218,53 @@ describe.each([
   });
 });
 
+describe("FeedbackReviewQueue with a malformed list response", () => {
+  it("shows a retryable error on a first load that returns an empty object, never an empty queue", async () => {
+    const user = userEvent.setup();
+    let malformed = true;
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      if (malformed) {
+        malformed = false;
+        return Response.json({});
+      }
+      return Response.json({ ok: true, feedback: [articleRow] });
+    }));
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.queryByText("No article feedback yet.")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect((await screen.findAllByText("Mescaline")).length).toBeGreaterThan(0);
+  });
+
+  it("keeps the loaded rows when the refresh after a decision returns invalid JSON", async () => {
+    const user = userEvent.setup();
+    const second = { ...articleRow, id: "article-2", substance_title: "Psilocybin" };
+    let lists = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (init?.method === "POST") {
+        return Response.json({ ok: true, feedback: { ...articleRow, status: "reviewing" } });
+      }
+      if (url.startsWith("/api/article-feedback/queue")) {
+        lists += 1;
+        return lists === 1
+          ? Response.json({ ok: true, feedback: [articleRow, second] })
+          : new Response("<html>502</html>", { status: 200 });
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    }));
+    render(<Queue adapter={articleFeedbackAdapter} />);
+
+    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await user.click(screen.getByRole("button", { name: "Reviewing" }));
+
+    expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(within(list).getByText("Psilocybin")).toBeInTheDocument();
+  });
+});
+
 describe("FeedbackReviewQueue filter", () => {
   it("opens on the New rows when there are any and counts every status in the filter", async () => {
     const user = userEvent.setup();

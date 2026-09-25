@@ -162,7 +162,7 @@ describe("FeedbackTab", () => {
     expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Spam (1)");
     expect(window.location.search).toBe("?source=site&status=spam");
-    expect(fetch).toHaveBeenCalledWith("/api/site-feedback/queue?limit=250");
+    expect(fetch).toHaveBeenCalledWith("/api/site-feedback/queue?limit=250", expect.anything());
     expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("status=spam"));
   });
 
@@ -246,7 +246,7 @@ describe("FeedbackTab", () => {
     });
 
     render(<FeedbackTab />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/article-feedback/queue?limit=250"));
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/article-feedback/queue?limit=250", expect.anything()));
 
     await user.click(screen.getByRole("button", { name: "Site" }));
     await screen.findAllByText("Website technical issue");

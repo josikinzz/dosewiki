@@ -14,22 +14,14 @@ export type GlossaryFeedbackItem = FeedbackQueueItem & {
 export function glossaryFeedbackAdapter(
   locale: string,
 ): FeedbackSourceAdapter<GlossaryFeedbackItem> {
+  // The glossary queue is per locale; the shared client validates its shape.
   const requests = createFeedbackRequests<GlossaryFeedbackItem>(
     "/api/glossary-feedback",
+    { listUrl: `/api/glossary-feedback/queue?locale=${encodeURIComponent(locale)}` },
   );
   return {
     source: "glossary",
     ...requests,
-    fetchList: async () => {
-      const response = await fetch(
-        `/api/glossary-feedback/queue?locale=${encodeURIComponent(locale)}`,
-        { cache: "no-store" },
-      );
-      const body = await response.json();
-      if (!response.ok)
-        throw new Error(body.error ?? "Unable to load glossary feedback.");
-      return body.feedback;
-    },
     transitions: SITE_FEEDBACK_STATUS_TRANSITIONS,
     labels: {
       icon: "lucide:book-open-text",
