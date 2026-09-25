@@ -13,6 +13,12 @@ import {
   getPublicIntakeWriteCapability,
   getServerDataWriteCapability,
 } from "@server/data/serverWriteCapability";
+import type {
+  CorrectionCandidates,
+  FeedbackOutcome,
+  LinkedChange,
+  ResolvedCorrection,
+} from "@/features/intake/feedbackCorrection";
 import {
   createArticleFeedbackRow,
   validateArticleFeedback,
@@ -120,9 +126,22 @@ const transitionFeedbackRef = makeFunctionReference<
     id: string;
     status: ArticleFeedbackStatus;
     note?: string;
+    outcome?: FeedbackOutcome;
   },
   ArticleFeedbackQueueItem
 >("articleFeedback:transition");
+
+const correctionsRef = makeFunctionReference<
+  "query",
+  { apiKey: string; actorEmail: string; id: string },
+  { corrections: ResolvedCorrection[]; candidates: CorrectionCandidates }
+>("articleFeedback:corrections");
+
+const linkChangeRef = makeFunctionReference<
+  "mutation",
+  { apiKey: string; actorEmail: string; id: string; change: LinkedChange; note?: string },
+  ArticleFeedbackQueueItem
+>("articleFeedback:linkChange");
 
 type FeedbackCreateOptions = {
   client: Pick<DataCallableClient, "mutationAsService">;
@@ -199,16 +218,47 @@ export class DataArticleFeedbackStore {
 
   async transition(
     id: string,
-    options: { status: ArticleFeedbackStatus; actorEmail: string; note?: string },
+    options: { status: ArticleFeedbackStatus; actorEmail: string; note?: string; outcome?: FeedbackOutcome },
   ): Promise<ArticleFeedbackQueueItem> {
+    return await this.withNotFound(id, async () => await this.options.client.mutation(transitionFeedbackRef, {
+      apiKey: this.options.apiKey,
+      actorEmail: options.actorEmail,
+      id,
+      status: options.status,
+      ...(options.note !== undefined ? { note: options.note } : {}),
+      ...(options.outcome !== undefined ? { outcome: options.outcome } : {}),
+    }) as ArticleFeedbackQueueItem);
+  }
+
+  /** The changes linked to one item and where each stands, plus the article's changes to link. */
+  async corrections(
+    id: string,
+    options: { actorEmail: string },
+  ): Promise<{ corrections: ResolvedCorrection[]; candidates: CorrectionCandidates }> {
+    return await this.withNotFound(id, async () => await this.options.client.query(correctionsRef, {
+      apiKey: this.options.apiKey,
+      actorEmail: options.actorEmail,
+      id,
+    }) as { corrections: ResolvedCorrection[]; candidates: CorrectionCandidates });
+  }
+
+  /** Link an existing proposal or published revision of the same article. */
+  async linkChange(
+    id: string,
+    options: { actorEmail: string; change: LinkedChange; note?: string },
+  ): Promise<ArticleFeedbackQueueItem> {
+    return await this.withNotFound(id, async () => await this.options.client.mutation(linkChangeRef, {
+      apiKey: this.options.apiKey,
+      actorEmail: options.actorEmail,
+      id,
+      change: options.change,
+      ...(options.note !== undefined ? { note: options.note } : {}),
+    }) as ArticleFeedbackQueueItem);
+  }
+
+  private async withNotFound<T>(id: string, run: () => Promise<T>): Promise<T> {
     try {
-      return await this.options.client.mutation(transitionFeedbackRef, {
-        apiKey: this.options.apiKey,
-        actorEmail: options.actorEmail,
-        id,
-        status: options.status,
-        ...(options.note !== undefined ? { note: options.note } : {}),
-      }) as ArticleFeedbackQueueItem;
+      return await run();
     } catch (error) {
       if (error instanceof Error && error.message.includes("Article feedback not found")) {
         throw new ArticleFeedbackNotFoundError(id);

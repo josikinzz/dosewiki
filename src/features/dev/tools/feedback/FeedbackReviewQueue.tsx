@@ -35,6 +35,12 @@ import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { decisionLogOf, type DecisionLogEntry } from "@/features/intake/decisionLog";
+import {
+  FEEDBACK_OUTCOMES,
+  FEEDBACK_OUTCOME_LABEL,
+  FEEDBACK_OUTCOME_STATUS,
+  type FeedbackOutcome,
+} from "@/features/intake/feedbackCorrection";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 
 import {
@@ -51,7 +57,7 @@ export type FeedbackQueueStatus = "new" | "reviewing" | "resolved" | "rejected" 
 
 export type FeedbackQueueFilter = FeedbackQueueStatus | "all";
 
-export type FeedbackTransitionInput = { status: FeedbackQueueStatus; note?: string };
+export type FeedbackTransitionInput = { status: FeedbackQueueStatus; note?: string; outcome?: FeedbackOutcome };
 
 export type FeedbackQueueItem = {
   id: string;
@@ -85,6 +91,17 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
    * decision. A source without one shows only its latest note.
    */
   keepsDecisionLog?: boolean;
+  /**
+   * True when the source records an explicit outcome (Duplicate, Explanation
+   * provided, No change needed) with the decision that closes an item.
+   */
+  recordsOutcomes?: boolean;
+  /**
+   * The source's correction tracking under the details (article feedback:
+   * Start correction, Link existing change, and where each linked change
+   * stands). `onRowChange` puts the row a link left back in the queue.
+   */
+  renderCorrection?: (item: Item, onRowChange: (updated: Item) => void) => ReactNode;
   labels: {
     icon: string;
     title: string;
@@ -448,7 +465,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     );
   }
 
-  async function updateStatus(status: FeedbackQueueStatus) {
+  async function updateStatus(status: FeedbackQueueStatus, outcome?: FeedbackOutcome) {
     if (!selected || pendingId || bulkPending) {
       return;
     }
@@ -462,6 +479,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       const updated = await adapter.transition(decidedId, {
         status,
         note: trimmedNote.length > 0 ? trimmedNote : undefined,
+        ...(outcome ? { outcome } : {}),
       });
       applyTransition(updated, previousStatus);
       setLastDecision(
@@ -475,7 +493,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       if (currentRowId.current === decidedId) {
         setActionFeedback({
           tone: "success",
-          message: labels.transitioned(updated, STATUS_LABELS[status].toLowerCase()),
+          message: labels.transitioned(
+            updated,
+            outcome
+              ? `${STATUS_LABELS[status].toLowerCase()} as ${FEEDBACK_OUTCOME_LABEL[outcome]}`
+              : STATUS_LABELS[status].toLowerCase(),
+          ),
         });
         setNote("");
         if (activeFilter !== "all" && updated.status !== activeFilter) {
@@ -499,17 +522,17 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
   }
 
-  function decide(status: FeedbackQueueStatus) {
+  function decide(status: FeedbackQueueStatus, outcome?: FeedbackOutcome) {
     if (!selected) {
       return;
     }
     if (status !== "rejected" && status !== "spam") {
-      void updateStatus(status);
+      void updateStatus(status, outcome);
       return;
     }
     const decision = CONFIRMED_DECISIONS[status];
     confirm({
-      title: decision.title,
+      title: outcome ? `Close as ${FEEDBACK_OUTCOME_LABEL[outcome]}?` : decision.title,
       description: (
         <>
           {decision.verb} the feedback for &ldquo;{labels.itemTitle(selected)}&rdquo; writes to production right away
@@ -517,10 +540,15 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           {note.trim().length > 0 ? " Your review note is saved with it." : null}
         </>
       ),
-      confirmLabel: decision.confirmLabel,
+      confirmLabel: outcome ? FEEDBACK_OUTCOME_LABEL[outcome] : decision.confirmLabel,
       destructive: decision.destructive,
-      onConfirm: () => updateStatus(status),
+      onConfirm: () => updateStatus(status, outcome),
     });
+  }
+
+  /** Put a row a correction link left back in the list; its status did not move. */
+  function replaceRow(updated: Item) {
+    setFeedback((rows) => rows.map((row) => (row.id === updated.id ? { ...row, ...updated } : row)));
   }
 
   const undoTo = lastDecision ? undoTarget(adapter.transitions, lastDecision) : null;
@@ -828,6 +856,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
             <FeedbackDetail
               row={selected}
               header={adapter.renderDetail(selected)}
+              correction={adapter.renderCorrection?.(selected, replaceRow) ?? null}
+              recordsOutcomes={adapter.recordsOutcomes === true}
               keepsDecisionLog={adapter.keepsDecisionLog === true}
               validTargets={adapter.transitions[selected.status] ?? []}
               pending={pendingId === selected.id || bulkPending}
@@ -918,6 +948,8 @@ function QueueRow({
 
 function FeedbackDetail({
   actionFeedback,
+  correction,
+  recordsOutcomes,
   header,
   keepsDecisionLog,
   note,
@@ -932,13 +964,15 @@ function FeedbackDetail({
 }: {
   undo: { label: string; disabled: boolean; onUndo: () => void } | null;
   actionFeedback: ActionFeedback | null;
+  correction: ReactNode;
+  recordsOutcomes: boolean;
   header: ReactNode;
   keepsDecisionLog: boolean;
   note: string;
   noteId: string;
   onDismissFeedback: () => void;
   onNoteChange: (note: string) => void;
-  onStatusChange: (status: FeedbackQueueStatus) => void;
+  onStatusChange: (status: FeedbackQueueStatus, outcome?: FeedbackOutcome) => void;
   pending: boolean;
   row: FeedbackQueueItem;
   validTargets: FeedbackQueueStatus[];
@@ -954,8 +988,14 @@ function FeedbackDetail({
         <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.details}</p>
       </section>
 
+      {correction}
+
       {keepsDecisionLog ? (
-        <DecisionLogSection entries={decisionLogOf(row)} statusLabel={(status) => STATUS_LABELS[status]} />
+        <DecisionLogSection
+          entries={decisionLogOf(row)}
+          statusLabel={(status) => STATUS_LABELS[status]}
+          outcomeLabel={(outcome) => FEEDBACK_OUTCOME_LABEL[outcome]}
+        />
       ) : row.review_notes || row.reviewed_by ? (
         <section>
           <h4 className="theme-accent-heading text-sm font-semibold">Review notes</h4>
@@ -1019,6 +1059,21 @@ function FeedbackDetail({
                 Reject
               </Button>
             </EditorActionGroup>
+            {recordsOutcomes ? (
+              <EditorActionGroup label="Close without a correction">
+                {FEEDBACK_OUTCOMES.map((outcome) => (
+                  <Button
+                    key={outcome}
+                    type="button"
+                    variant="outline"
+                    disabled={!canMoveTo(FEEDBACK_OUTCOME_STATUS[outcome])}
+                    onClick={() => onStatusChange(FEEDBACK_OUTCOME_STATUS[outcome], outcome)}
+                  >
+                    {FEEDBACK_OUTCOME_LABEL[outcome]}
+                  </Button>
+                ))}
+              </EditorActionGroup>
+            ) : null}
             <EditorActionGroup label="Classification" align="end">
               <Button
                 type="button"

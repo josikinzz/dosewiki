@@ -246,6 +246,12 @@ export const feedbackDecisionLog = v.array(
     note: v.optional(v.string()),
     public_reason: v.optional(v.string()),
     migrated: v.optional(v.boolean()),
+    // Advisory correction tracking (src/features/intake/feedbackCorrection.ts).
+    outcome: v.optional(v.union(v.literal("duplicate"), v.literal("explanation_provided"), v.literal("no_change_needed"))),
+    linked_change: v.optional(v.object({
+      kind: v.union(v.literal("proposal"), v.literal("revision")),
+      id: v.string(),
+    })),
   }),
 );
 

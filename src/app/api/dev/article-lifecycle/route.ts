@@ -8,6 +8,7 @@ import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { sanitizeArticleForDataMutation } from "../../save-article/saveArticleUtils";
 import { revalidateSavedPaths } from "../../save-article/revalidateSavedPaths";
 import { projectPublicArticle } from "@/data/projections/substanceReadProjections";
+import { readFeedbackRef, type FeedbackRef } from "@/features/intake/feedbackCorrection";
 
 export const runtime = "nodejs";
 const slugPattern = /^[a-z0-9][a-z0-9-]*$/;
@@ -25,8 +26,8 @@ export const GET = protectedRouteOperation({
 });
 
 type Action = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
-type Body = { action?: unknown; slug?: unknown; baseHash?: unknown; changeId?: unknown; article?: unknown; summary?: unknown; revisionId?: unknown; revisionOf?: unknown; draftVersion?: unknown };
-type Parsed = { action: Action; slug: string; baseHash: string; changeId: string; article?: Infer<typeof substanceArticleLightValidator>; summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number };
+type Body = { action?: unknown; slug?: unknown; baseHash?: unknown; changeId?: unknown; article?: unknown; summary?: unknown; revisionId?: unknown; revisionOf?: unknown; draftVersion?: unknown; feedbackRef?: unknown };
+type Parsed = { action: Action; slug: string; baseHash: string; changeId: string; article?: Infer<typeof substanceArticleLightValidator>; summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number; feedbackRef?: FeedbackRef };
 export const POST = protectedRouteOperation<Body, Parsed>({
   auth: "editor", rateLimit: "editorHeavyWrite", capabilities: [{ type: "dataWrite" }],
   body: { maxBytes: 2 * 1024 * 1024, parse: (raw) => {
@@ -34,6 +35,10 @@ export const POST = protectedRouteOperation<Body, Parsed>({
     if (typeof raw.slug !== "string" || !slugPattern.test(raw.slug)) throw new JsonBodyError(400, "A valid article slug is required.");
     if (typeof raw.baseHash !== "string" || !raw.baseHash || typeof raw.changeId !== "string" || !raw.changeId) throw new JsonBodyError(400, "The loaded base revision and a stable change ID are required.");
     if (raw.draftVersion !== undefined && (typeof raw.draftVersion !== "number" || !Number.isInteger(raw.draftVersion) || raw.draftVersion < 0)) throw new JsonBodyError(400, "The draft version must be a non-negative integer.");
+    // Only the feedback id and section travel: anything else a client adds is dropped here.
+    const carriesFeedback = raw.action === "submit" || raw.action === "publish";
+    const feedbackRef = carriesFeedback ? readFeedbackRef(raw.feedbackRef) : undefined;
+    if (carriesFeedback && raw.feedbackRef !== undefined && raw.feedbackRef !== null && !feedbackRef) throw new JsonBodyError(400, "The reader feedback reference is not valid.");
     return {
       action: raw.action as Action, slug: raw.slug, baseHash: raw.baseHash, changeId: raw.changeId,
       ...(raw.article !== undefined ? { article: sanitizeArticleForDataMutation(raw.article) as Infer<typeof substanceArticleLightValidator> } : {}),
@@ -41,6 +46,7 @@ export const POST = protectedRouteOperation<Body, Parsed>({
       ...(typeof raw.revisionId === "string" ? { revisionId: raw.revisionId as Id<"articleRevisions"> } : {}),
       ...(typeof raw.revisionOf === "string" ? { revisionOf: raw.revisionOf as Id<"changeProposals"> } : {}),
       ...(typeof raw.draftVersion === "number" ? { draftVersion: raw.draftVersion } : {}),
+      ...(feedbackRef ? { feedbackRef } : {}),
     };
   } },
   unexpectedErrorLabel: "Failed to write article lifecycle:", unexpectedErrorMessage: "Unable to complete this article action. Your local changes are preserved.",

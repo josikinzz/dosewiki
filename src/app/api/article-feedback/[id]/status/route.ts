@@ -4,12 +4,14 @@ import {
   ArticleFeedbackStorageConfigurationError,
   getArticleFeedbackStore,
 } from "@/features/article/feedback/articleFeedbackStore.server";
+import { isFeedbackOutcome } from "@/features/intake/feedbackCorrection";
 import { feedbackStatusRoute } from "@/lib/http/feedbackStatusRoute";
 
 export const runtime = "nodejs";
 
 export const POST = feedbackStatusRoute({
   isStatus: isArticleFeedbackStatus,
+  isOutcome: isFeedbackOutcome,
   getStore: getArticleFeedbackStore,
   NotFoundError: ArticleFeedbackNotFoundError,
   StorageConfigurationError: ArticleFeedbackStorageConfigurationError,

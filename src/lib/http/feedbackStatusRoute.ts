@@ -10,18 +10,25 @@ export type FeedbackStatusRouteContext = {
 type StatusBody = {
   status?: unknown;
   note?: unknown;
+  outcome?: unknown;
 };
 
 type FeedbackStatusStore<Status extends string> = {
   transition(
     id: string,
-    options: { status: Status; actorEmail: string; note?: string },
+    options: { status: Status; actorEmail: string; note?: string; outcome?: string },
   ): Promise<unknown>;
 };
 
 export type FeedbackStatusRouteOptions<Status extends string> = {
   /** Type guard over the route's status vocabulary. */
   isStatus: (value: unknown) => value is Status;
+  /**
+   * Type guard over the explicit outcomes this source records with a decision
+   * (article feedback: duplicate, explanation provided, no change needed). A
+   * source without one refuses any outcome.
+   */
+  isOutcome?: (value: unknown) => boolean;
   getStore: () => Promise<FeedbackStatusStore<Status>>;
   /** Thrown by the store when the id names no row; mapped to 404. */
   NotFoundError: abstract new (...args: never[]) => Error;
@@ -43,13 +50,20 @@ export function feedbackStatusRoute<Status extends string>(
   options: FeedbackStatusRouteOptions<Status>,
 ) {
   return async function POST(request: Request, context: FeedbackStatusRouteContext) {
-    return protectedRouteOperation<StatusBody, { status: Status; note?: string }>({
+    return protectedRouteOperation<StatusBody, { status: Status; note?: string; outcome?: string }>({
       // Triage moves feedback through the queue; that is an admin decision.
       auth: "admin",
       rateLimit: "editorSmallWrite",
       body: {
         maxBytes: MAX_STATUS_BODY_BYTES,
-        parse: (body) => ({ status: parseStatus(body.status, options.isStatus), note: parseNote(body.note) }),
+        parse: (body) => {
+          const outcome = parseOutcome(body.outcome, options.isOutcome);
+          return {
+            status: parseStatus(body.status, options.isStatus),
+            note: parseNote(body.note),
+            ...(outcome ? { outcome } : {}),
+          };
+        },
       },
       unexpectedErrorLabel: options.unexpectedErrorLabel,
       unexpectedErrorMessage: options.unexpectedErrorMessage,
@@ -62,6 +76,7 @@ export function feedbackStatusRoute<Status extends string>(
           status: body.status,
           actorEmail,
           note: body.note,
+          ...(body.outcome ? { outcome: body.outcome } : {}),
         });
 
         return NextResponse.json({ ok: true, feedback });
@@ -79,6 +94,16 @@ function parseStatus<Status extends string>(
   }
 
   return value;
+}
+
+function parseOutcome(value: unknown, isOutcome: ((value: unknown) => boolean) | undefined): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (!isOutcome || !isOutcome(value)) {
+    throw new JsonBodyError(400, "A valid feedback outcome is required.");
+  }
+  return value as string;
 }
 
 function parseNote(value: unknown): string | undefined {

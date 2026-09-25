@@ -10,6 +10,9 @@ import { submitHandler } from "./changeProposals";
 import { readProposalTarget } from "./lib/changeProposalTargets";
 import type { Id } from "../lib/postgres/runtime/dataModel";
 import { projectProposalSummary } from "../lib/proposals/proposalPublic";
+import { recordFeedbackCorrectionLink } from "./articleFeedback";
+import { isArticleEditorSection } from "../src/features/article/editing/articleSections";
+import type { FeedbackRef } from "../src/features/intake/feedbackCorrection";
 
 const authArgs = { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) };
 export const get = query({
@@ -74,12 +77,30 @@ const writeArgs = {
   ...authArgs, action: actionValidator, slug: v.string(), baseHash: v.string(), changeId: v.string(),
   article: v.optional(substanceArticleLightValidator), summary: v.optional(v.string()),
   revisionId: v.optional(v.id("articleRevisions")), revisionOf: v.optional(v.id("changeProposals")), draftVersion: v.optional(v.number()),
+  // The reader feedback a submitted correction answers: its id and section, nothing more.
+  feedbackRef: v.optional(v.object({ id: v.string(), section: v.optional(v.string()) })),
 };
 type WriteArgs = {
   apiKey?: string; actorEmail?: string; action: "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
   slug: string; baseHash: string; changeId: string; article?: { id: number | null; title: string; slug?: string } & Record<string, unknown>;
   summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number;
+  feedbackRef?: FeedbackRef;
 };
+
+/**
+ * The feedback reference a submission carries, checked against the article:
+ * the feedback must exist and report on this slug, and the section must be one
+ * the in-page editor names. Only the id and section travel on.
+ */
+async function checkedFeedbackRef(ctx: MutationCtx, ref: FeedbackRef | undefined, slug: string): Promise<FeedbackRef | undefined> {
+  if (!ref) return undefined;
+  const feedback = await ctx.db.query("articleFeedback").withIndex("by_public_id", (q) => q.eq("id", ref.id)).first();
+  if (!feedback || feedback.substance_slug !== slug) {
+    throw new PostgresError({ code: "FEEDBACK_REF_INVALID", message: "The reader feedback this correction answers is not about this article." });
+  }
+  const section = isArticleEditorSection(ref.section) ? ref.section : undefined;
+  return section ? { id: ref.id, section } : { id: ref.id };
+}
 
 export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
   const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" }, args.action === "publish" || args.action === "restore" ? "admin" : "editor");
@@ -133,12 +154,19 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     }
     const article = validateArticleChange(before, proposed, true, args.action === "restore");
     if (contentHash(article) === contentHash(before)) throw new PostgresError({ code: "ARTICLE_UNCHANGED", message: "No article content changed." });
+    // A restore undoes history; it never answers reader feedback.
+    const feedbackRef = args.action === "restore" ? undefined : await checkedFeedbackRef(ctx, args.feedbackRef, args.slug);
     if (args.action === "submit") {
       const proposal = await submitHandler(ctx, {
         apiKey: args.apiKey, actorEmail: args.actorEmail, payload: { articles: [article] }, summary,
         baselines: [{ kind: "article", key: args.slug, document: await readProposalTarget(ctx, { kind: "article", key: args.slug }) }],
         ...(args.revisionOf ? { revisionOf: args.revisionOf } : {}),
+        ...(feedbackRef ? { feedbackRef } : {}),
       });
+      // The feedback records the proposal it led to; its status and triage stay the admin's.
+      if (feedbackRef) {
+        await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "proposal", id: proposal.proposalId } });
+      }
       result = { ...proposal, status: "submitted", changeId: args.changeId, baseHash };
     } else {
       // Changed units replace exactly; unrelated sections never enter the patch.
@@ -148,6 +176,10 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
         before, after: article, actor, changeId: args.changeId, baseHash, summary,
         ...(args.action === "restore" ? { restoredFrom: args.revisionId } : {}),
       });
+      // An admin who publishes the correction directly links the revision it made.
+      if (feedbackRef) {
+        await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "revision", id: String(result.revisionId) } });
+      }
     }
     // Never erase a newer draft saved by a concurrent tab.
     let draftVersion = draft?.version ?? 0;

@@ -263,8 +263,32 @@ _Avoid_: editor sign-off, pending review, soft reviewed
 ## Intake Language
 
 **Decision Log**:
-The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is the one reason the submitter may see: a trip report author signed in with the submission's contact email reads it in My reports under Submissions while that decision still stands, and never sees the note, the actor, or anyone else's submissions. Glossary feedback keeps only its latest note.
+The append-only record of every status change on a trip report submission, article feedback, or site feedback item, stored per item as `decision_log` entries `{ at, actor, from, to, note, public_reason }`. The actor is the resolved signed-in member, never a supplied name. `review_notes` still holds the latest note for compatibility. An item decided before the log existed shows its stored note as one migrated entry, which the next decision stores ahead of its own. `public_reason` is the one reason the submitter may see: a trip report author signed in with the submission's contact email reads it in My reports under Submissions while that decision still stands, and never sees the note, the actor, or anyone else's submissions. Glossary feedback keeps only its latest note. Article feedback entries may also carry an `outcome` (see Feedback Outcome) and a `linked_change` (see Linked Correction); a link entry leaves the status where it was.
 _Avoid_: review history (for the note field), audit trail, overwritten note
+
+**Feedback Outcome**:
+An explicit reason an admin closes article feedback without a correction, recorded as `outcome` on the decision entry that closes it. Each outcome closes the item with a shared Intake Status:
+
+- **Duplicate**: another item already covers it. Closes as Resolved.
+- **Explanation provided**: the reader's point is answered by an explanation, not an article change. Closes as Resolved.
+- **No change needed**: the article already says what it should. Closes as Rejected.
+
+Outcomes are advisory: they gate nothing, and feedback is never a Review Flag.
+_Avoid_: new status words for outcomes, won't fix, invalid
+
+**Linked Correction**:
+A proposal or published article revision connected to an article feedback item, from Start correction (the in-page article editor opens on the article, and the submitted proposal carries the feedback id and section as `feedbackRef`, never the reader's contact details or words) or Link existing change. The feedback detail shows where each linked change stands, following a replaced proposal to its later revision:
+
+- **Proposal pending**: waiting on an admin.
+- **Proposal returned for changes**: sent back to its author.
+- **Correction published**: applied, with the resulting revision named. The only state that counts as a completed correction.
+- **Proposal rejected**: declined by an admin.
+- **Proposal withdrawn**: replaced by a revision that no longer exists.
+- **Correction reverted**: applied and then undone.
+- **Change unavailable**: the linked change cannot be read.
+
+A link is advisory. It never gates a proposal's approval or publication, and the feedback's status stays an admin decision.
+_Avoid_: fix (for a pending proposal), completed (for a rejected or withdrawn proposal), blocking feedback
 
 **Home**:
 Where bare `/dev` opens, for every member role: that member's own work as cards, each linking to the exact item it names. An admin sees the Inbox total, each queue's count, and pending invites; an editor sees their saved article drafts and open proposals (read from `/api/dev/my-work`, scoped to the session's actor); a translator sees the review inbox count per language they hold, with Continue; a contributor sees a checklist for their own profile. Counts come from the rail badge reads, so a count that failed to load reads Unknown, never zero. The Inbox and every tool stay one click away on the rail.
