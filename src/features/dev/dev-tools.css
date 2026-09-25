@@ -3,6 +3,24 @@
    Rules sit in the utilities layer exactly as they did in
    src/styles/utilities-theme.css, so call-site Tailwind utilities keep the
    same precedence. */
+/* Phone-width guard for every tool in the /dev shell. A grid track with no
+   explicit size (`grid gap-6` below its `lg:grid-cols-*`) grows to its
+   widest unbreakable child: one truncated row, a long URL, or an audit
+   string like `reviewed-profile-import:...@dosewiki.internal`. The root
+   clips horizontal overflow, so everything in that column silently runs off
+   the right edge of the phone. Letting grid items shrink and long words
+   break keeps each tool inside the viewport. It sits below the utilities
+   layer so any explicit `min-w-*` or `break-*` at a call site still wins. */
+@layer components {
+  .theme-dev-shell {
+    overflow-wrap: break-word;
+  }
+
+  .theme-dev-shell :where(.grid) > * {
+    min-width: 0;
+  }
+}
+
 @layer utilities {
   .theme-elevation-none {
     box-shadow: var(--theme-elevation-none);

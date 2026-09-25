@@ -42,7 +42,7 @@ export function useDevChromeEnvironment({
   return {
     enableStickyPanels,
     leaveEditor,
-    mainClassName: "w-full px-4 py-6 theme-text-primary md:px-6 lg:px-8",
+    mainClassName: "theme-dev-shell w-full px-4 py-6 theme-text-primary md:px-6 lg:px-8",
     contentWrapperClass,
   };
 }
