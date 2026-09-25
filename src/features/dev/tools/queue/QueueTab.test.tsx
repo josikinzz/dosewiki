@@ -147,6 +147,32 @@ describe("QueueTab", () => {
     expect(screen.queryByRole("button", { name: "Revert" })).toBeNull();
   });
 
+  it("shows an article proposal with the same field diff the author read in the page", async () => {
+    stubQueueApi([submitted], {
+      cp_1: {
+        ...submittedDetail,
+        diff: "# article: lsd / summary\n\n- Stored summary\n+ Proposed summary\n\n# indexLayout: chemical / version\n\n- 1\n+ 2\n",
+        articlePatches: [{
+          slug: "lsd",
+          changes: [{
+            path: "dosage.routes[oral].dose_ranges.moderate",
+            before: { min: 10, max: 20, unit: "mg" },
+            after: { min: 15, max: 25, unit: "mg" },
+          }],
+        }],
+      },
+    });
+    renderQueue({ canApprove: true });
+    await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
+
+    const diff = await screen.findByLabelText("Article change review");
+    expect(within(diff).getByRole("heading", { level: 3 })).toHaveTextContent("Dosage and duration");
+    expect(diff).toHaveTextContent("Oral › Dose ranges › Moderate: 10-20 mg to 15-25 mg");
+    // The article's text section is not repeated; the layout keeps its text diff.
+    expect(screen.queryByText(/Stored summary/)).toBeNull();
+    expect(screen.getByRole("insertion")).toHaveTextContent("2");
+  });
+
   it("keeps unrelated JSON fields as separate removals and additions, not a prose replacement", async () => {
     stubQueueApi([submitted], {
       cp_1: { ...submittedDetail, diff: '# LSD\n- "_id": "old",\n+ "summary": "New summary",' },

@@ -5,8 +5,9 @@ import type { Doc, Id } from "../lib/postgres/runtime/dataModel";
 import { canTransition, type ProposalStatus } from "../lib/proposals/proposalStatus";
 import { contentHash } from "../lib/proposals/contentHash";
 import { proposalComparableDocument, type ProposalBaseline } from "../lib/proposals/proposalBaseline";
-import { buildProposalDiff } from "./lib/changeProposalDiff";
-import type { ProposalPayload } from "./lib/changeProposalApply";
+import { buildArticlePatches, buildProposalDiff } from "./lib/changeProposalDiff";
+import { readArticlePatches, type ArticlePatch } from "../lib/proposals/articlePatch";
+import type { ProposalPayload, ProposalSnapshotEntry } from "./lib/changeProposalApply";
 import { requireRole } from "./lib/auth";
 import { deriveProposalTargets, proposalHashDocument, readProposalTarget } from "./lib/changeProposalTargets";
 import {
@@ -169,7 +170,9 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     updatedAt: now,
     status: "submitted",
     targets,
-    payload: args.payload,
+    // The structured patch rides in the payload jsonb, so Change Review reads
+    // the same field changes the author saw without a schema change.
+    payload: { ...args.payload, articlePatches: buildArticlePatches(args.payload as ProposalPayload, snapshots) },
     summary,
     diff: buildProposalDiff(args.payload as ProposalPayload, snapshots),
     diffVersion: 1,
@@ -371,6 +374,22 @@ export async function getHandler(
     : comparisonMode === "submitted" ? row.diff
     : comparisonMode === "verified_live" ? buildProposalDiff(row.payload as ProposalPayload, baseline)
     : "";
+  // The patch stored at submit is what the author saw. An older proposal has
+  // none, so it is computed from the same before and after the text diff
+  // uses, whenever that comparison is trustworthy.
+  const patchBaseline = comparisonMode === "applied" ? row.snapshotBefore as ProposalSnapshotEntry[]
+    : comparisonMode === "verified_live" || (comparisonMode === "submitted" && liveMatchesBase) ? baseline
+    : null;
+  let articlePatches: ArticlePatch[] | undefined = comparisonMode === "applied" ? undefined
+    : readArticlePatches((row.payload as { articlePatches?: unknown } | null)?.articlePatches) ?? undefined;
+  if (!articlePatches && patchBaseline) {
+    try {
+      articlePatches = buildArticlePatches(row.payload as ProposalPayload, patchBaseline);
+    } catch {
+      // A payload the current validators refuse still has its text diff.
+      articlePatches = undefined;
+    }
+  }
   const comparisonNote = comparisonMode === "unavailable"
     ? "Historical comparison unavailable: this older proposal has no verified server-generated diff or captured baseline. The original client-supplied diff is not trusted. Reload current production and submit a fresh revision to review these changes."
     : undefined;
@@ -382,7 +401,7 @@ export async function getHandler(
     comments: await Promise.all(row.comments.map(async (comment) => ({
       ...comment, authorName: await nameOf(comment.by),
     }))),
-    diff, comparisonMode, comparisonNote, liveHashes,
+    diff, comparisonMode, comparisonNote, liveHashes, articlePatches,
   }, actor.email, { includePayload: args.includePayload });
 }
 

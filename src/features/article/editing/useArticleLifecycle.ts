@@ -9,6 +9,8 @@ import { findEquivalentReference } from "../../../../lib/citations/referenceIden
 import { ArticleFieldCommitError, type ArticleEditContextValue } from "./ArticleEditContext";
 import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 import { articlePublicationNotice, type ArticlePublicationNotice } from "./publicationNotice";
+import { articleSectionForPath, type ArticleEditorSection } from "./articleSections";
+import { placeWords } from "./changeNote";
 
 /**
  * What the local preview holds at one allow-listed field path, or `null` when
@@ -53,7 +55,14 @@ type Snapshot = {
 };
 export type ArticleLifecycleAction = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
 
-export function articleValidationIssues(article: SubstanceArticle, before: SubstanceArticle, publication = true): Array<{ path: string; message: string }> {
+/**
+ * One reason an article change cannot be saved or published. `sectionId` is
+ * the in-page section whose form edits `path`, derived from the path itself,
+ * so a caller that offers "Edit this section" never reads the message text.
+ */
+export type ArticleValidationIssue = { path: string; message: string; sectionId: ArticleEditorSection | null };
+
+export function articleValidationIssues(article: SubstanceArticle, before: SubstanceArticle, publication = true): ArticleValidationIssue[] {
   try {
     validateArticleChange(before as unknown as ArticleDocument, article, publication);
     return [];
@@ -62,14 +71,19 @@ export function articleValidationIssues(article: SubstanceArticle, before: Subst
       const data = failure.data as { path?: string; message?: string };
       const path = data.path ?? "article";
       const message = data.message ?? "The article change is invalid.";
-      return [{ path, message: message.startsWith(`${path}: `) ? message.slice(path.length + 2) : message }];
+      return [{ path, message: message.startsWith(`${path}: `) ? message.slice(path.length + 2) : message, sectionId: articleSectionForPath(path) }];
     }
-    return [{ path: "article", message: failure instanceof Error ? failure.message : "The article change is invalid." }];
+    return [{ path: "article", message: failure instanceof Error ? failure.message : "The article change is invalid.", sectionId: null }];
   }
 }
 
-export function articlePublicationErrors(article: SubstanceArticle, before: SubstanceArticle): string[] {
-  return articleValidationIssues(article, before).map((issue) => `${issue.path}: ${issue.message}`);
+/** A validation issue as one line a person reads: its place in words, then why. */
+export function describeValidationIssue(issue: ArticleValidationIssue): string {
+  return issue.path === "article" ? issue.message : `${placeWords(issue.path)}: ${issue.message}`;
+}
+
+export function articlePublicationErrors(article: SubstanceArticle, before: SubstanceArticle): ArticleValidationIssue[] {
+  return articleValidationIssues(article, before);
 }
 
 export function useArticleLifecycle(slug: string, initialArticle: SubstanceArticle, active: boolean) {
@@ -214,7 +228,10 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     const nextArticle = candidate ?? current.current;
     if (action === "publish" || action === "submit") {
       const problems = articlePublicationErrors(nextArticle, snapshot.article);
-      if (problems.length) { setError(problems.join("\n")); throw new Error(problems.join("\n")); }
+      if (problems.length) {
+        const text = problems.map(describeValidationIssue).join("\n");
+        setError(text); throw new Error(text);
+      }
     }
     const body = {
       action, slug, baseHash: action === "restore" ? snapshot.baseHash : baseHash,

@@ -22,26 +22,9 @@ import type { Translate } from "@/i18n/messages";
 import { EditableValue, useArticleEdit } from "../../editing";
 import { DOSE_TIERS, DURATION_STAGES } from "./dosageDurationLabels";
 import { normalizeDurationStageForDisplay } from "./durationUnits";
-import { formatRouteLabel } from "./dosageDurationModel";
+import { formatDose, formatRouteLabel } from "./dosageDurationModel";
 
-export function formatDose(
-  range: DoseRange | null,
-  isThreshold = false,
-): string {
-  if (!range || (range.min === null && range.max === null)) return "N/A";
-  if (range.min !== null && range.max !== null) {
-    if (range.min === range.max) {
-      return `${range.min} ${range.unit}`;
-    }
-    return `${range.min}-${range.max} ${range.unit}`;
-  }
-  if (range.min !== null) {
-    return isThreshold
-      ? `~${range.min} ${range.unit}`
-      : `${range.min}+ ${range.unit}`;
-  }
-  return `${range.max} ${range.unit}`;
-}
+export { formatDose };
 
 /**
  * Display only. The stage is normalized to a sensible time unit first — see

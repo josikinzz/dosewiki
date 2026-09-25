@@ -1,4 +1,5 @@
 import type { ProposalStatus } from "./proposalStatus";
+import { readArticlePatches } from "./articlePatch";
 
 /** Display identity is explicitly chosen public profile text, never an email-derived name. */
 export function safeProposalName(value: unknown, fallback: "Contributor" | "Reviewer"): string {
@@ -131,9 +132,12 @@ export function projectProposalDetail(row: SummarySource & {
   comments: CommentSource[];
   revertedAt?: string;
   liveHashes: Array<{ kind: Target["kind"]; key: string; hash: string }>;
+  articlePatches?: unknown;
 }, actorEmail: string, options: { includePayload?: boolean } = {}) {
   const diff = proposalPublicDiff(row.diff);
   const privateComparison = row.diff.trim().length > 0 && diff.trim().length === 0;
+  // Field changes are read only when the comparison they came from is shown.
+  const articlePatches = privateComparison || row.comparisonMode === "unavailable" ? null : readArticlePatches(row.articlePatches);
   return {
     ...projectProposalSummary(row, actorEmail),
     ...(options.includePayload === false ? {} : { payload: projectProposalPayload(row.payload) }),
@@ -145,5 +149,6 @@ export function projectProposalDetail(row: SummarySource & {
     comments: row.comments.map(projectProposalComment),
     revertedAt: row.revertedAt,
     liveHashes: row.liveHashes.map(({ kind, key, hash }) => ({ kind, key, hash })),
+    ...(articlePatches ? { articlePatches } : {}),
   };
 }

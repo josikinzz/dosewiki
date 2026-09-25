@@ -79,6 +79,18 @@ describe("dev proposal detail and comment routes", () => {
     });
   });
 
+  it("forwards the structured article patch, and withholds it when the comparison is unavailable", async () => {
+    const articlePatches = [{ slug: "lsd", changes: [{ path: "summary", before: "Before", after: "After" }] }];
+    grantWriteCapability(createClient({ ...PROPOSAL, comparisonMode: "submitted", articlePatches }));
+    const { GET } = await import("./route");
+    const shown = await (await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"))).json();
+    expect(shown.proposal.articlePatches).toEqual(articlePatches);
+
+    grantWriteCapability(createClient({ ...PROPOSAL, diff: "", comparisonMode: "unavailable", articlePatches }));
+    const hidden = await (await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"))).json();
+    expect(hidden.proposal.articlePatches).toBeUndefined();
+  });
+
   it("does not forward historical audit identities, contact metadata, snapshots or client changelogs", async () => {
     const privateEmail = "private-contributor@example.com";
     const article = { title: "LSD", summary: "Published contact: research@example.org" };

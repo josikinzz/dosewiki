@@ -8,7 +8,7 @@ import { FormProvider, useWatch, type FieldPath } from "react-hook-form";
 import type { UseArticleFormReturn } from "@/hooks/useArticleForm";
 import { buildDevTagOptions } from "@/hooks/useDevTagOptions";
 import type { SubstanceArticle } from "@/schema";
-import { articleValidationIssues } from "./useArticleLifecycle";
+import { articleValidationIssues, describeValidationIssue } from "./useArticleLifecycle";
 import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
 import { ArticleFormProvider } from "@/features/dev/forms/ArticleFormContext";
 import { OverviewFieldsRHF } from "@/features/dev/forms/OverviewFieldsRHF";
@@ -22,15 +22,9 @@ import { LegalityFieldsRHF } from "@/features/dev/forms/LegalityFieldsRHF";
 import { ReferencesFieldsRHF } from "@/features/dev/forms/ReferencesFieldsRHF";
 import { ReagentPreviewFieldsRHF } from "@/features/dev/forms/ReagentPreviewFieldsRHF";
 import { ComparisonsFieldsRHF } from "@/features/dev/forms/ComparisonsFieldsRHF";
+import type { ArticleEditorSection } from "./articleSections";
 
-export const ARTICLE_SECTION_LABELS = {
-  summary: "Summary", identification: "Identification", classification: "Classification",
-  dosage: "Dosage and duration", subjective_effects: "Subjective effects", comparisons: "Comparisons",
-  reagent_testing: "Reagent testing", pharmacology: "Pharmacology", interactions: "Interactions",
-  tolerance: "Tolerance", harm_potential: "Harm potential", history_culture: "History and culture",
-  legality: "Legality", references: "References",
-} as const;
-export type ArticleEditorSection = keyof typeof ARTICLE_SECTION_LABELS;
+export { ARTICLE_SECTION_LABELS, type ArticleEditorSection } from "./articleSections";
 export type SectionFormHandle = { collect: () => Promise<SubstanceArticle> };
 
 export function ArticleSectionForm({ section, article, slug, form, handleRef }: {
@@ -74,7 +68,7 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef }: 
       const issues = articleValidationIssues(next, article, false);
       for (const issue of issues) methods.setError(issue.path as FieldPath<SubstanceArticle>, { type: "validate", message: issue.message });
       if (issues.some(issue => issue.path === "references" || issue.path.startsWith("references."))) setReferencesExpanded(true);
-      if (issues.length) throw new Error(issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
+      if (issues.length) throw new Error(issues.map(describeValidationIssue).join("\n"));
       return next;
     } };
     // The account-bound parent owns the form, including while its UI is concealed.
