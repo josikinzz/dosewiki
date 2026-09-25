@@ -36,7 +36,6 @@ describe("useDevChromeEnvironment", () => {
       useDevChromeEnvironment({
         activeTab: "articles",
         close: vi.fn(),
-        hasPendingChanges: false,
         onTabNoticeClear: vi.fn(),
       }),
     );
@@ -57,7 +56,6 @@ describe("useDevChromeEnvironment", () => {
       useDevChromeEnvironment({
         activeTab: "articles",
         close,
-        hasPendingChanges: false,
         onTabNoticeClear: vi.fn(),
       }),
     );
@@ -74,7 +72,7 @@ describe("useDevChromeEnvironment", () => {
     expect(close).not.toHaveBeenCalled();
   });
 
-  it("reports the shared draft to the unsaved-work registry so Leave asks, not a native confirm", () => {
+  it("leaves the editor without reading the staged working set, and registers no unsaved work of its own", () => {
     const confirmSpy = vi.spyOn(window, "confirm");
     const close = vi.fn();
     const probe: { registry: ReturnType<typeof useUnsavedWorkRegistry> | null } = { registry: null };
@@ -84,32 +82,24 @@ describe("useDevChromeEnvironment", () => {
         return useDevChromeEnvironment({
           activeTab: "articles",
           close,
-          hasPendingChanges: true,
           onTabNoticeClear: vi.fn(),
         });
       },
       { wrapper: UnsavedWorkProvider },
     );
 
-    expect(probe.registry?.dirtyEntries.map((entry) => entry.label)).toEqual(["Draft edits not yet committed"]);
-
-    // A rail switch keeps the shared draft, so it never blocks one.
-    const switchTab = vi.fn();
-    act(() => probe.registry?.confirmExit(switchTab, "tab"));
-    expect(switchTab).toHaveBeenCalledTimes(1);
-
-    // The chrome routes Leave through the registry; the hook's own leave is the bare close.
-    const leave = vi.fn();
-    act(() => probe.registry?.confirmExit(leave, "leave"));
-    expect(leave).not.toHaveBeenCalled();
-    expect(confirmSpy).not.toHaveBeenCalled();
+    // The staged set reports through useStagedSetUnsavedWork; this hook takes
+    // no pending-changes input and adds no entry.
+    expect(probe.registry?.dirtyEntries).toEqual([]);
     expect(result.current.leaveEditor).toBe(close);
+    act(() => result.current.leaveEditor());
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(confirmSpy).not.toHaveBeenCalled();
   });
 
   it("keeps the toolbar full width but caps the content column outside the wide tools", () => {
     const props = {
       close: vi.fn(),
-      hasPendingChanges: false,
       onTabNoticeClear: vi.fn(),
     };
     const { result, rerender } = renderHook(
@@ -144,8 +134,7 @@ describe("useDevChromeEnvironment", () => {
         useDevChromeEnvironment({
           activeTab,
           close: vi.fn(),
-          hasPendingChanges: false,
-          onTabNoticeClear,
+            onTabNoticeClear,
         }),
       { initialProps: { activeTab: "articles" as DevModeTab } },
     );

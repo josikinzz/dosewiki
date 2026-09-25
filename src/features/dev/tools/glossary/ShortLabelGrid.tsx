@@ -37,7 +37,9 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
   const targetFor = (row: UiTranslationRow) => edits.get(`${locale}:${row.id}`)?.target ?? savedTarget(row);
   const editTarget = (row: UiTranslationRow, value: string) => {
     const key = `${locale}:${row.id}`;
-    edits.set(key, { ...edits.get(key), target: value, reason: edits.get(key)?.reason ?? "" });
+    const kept = edits.get(key);
+    if (value === savedTarget(row) && !kept?.reason && !kept?.kind && !kept?.exceptions?.length) edits.delete(key);
+    else edits.set(key, { ...kept, target: value, reason: kept?.reason ?? "" });
     rerender((value) => value + 1);
   };
   const toggle = (id: string) => setSelected((current) => { const next = new Set(current); if (!next.delete(id)) next.add(id); return next; });

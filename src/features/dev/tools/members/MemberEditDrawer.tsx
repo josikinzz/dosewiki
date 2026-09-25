@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useUnsavedWork } from "@/features/dev/components";
 import { approvedGlossaryLocales, isManagedRole, roleMeetsFloor, type ManagedRole } from "@/lib/auth/roles";
 import { MemberPermissionFields } from "./MemberPermissionFields";
 import type { MemberRow } from "./membersModel";
@@ -54,6 +55,20 @@ function MemberEditBody({ row, onChangeRole, onToggleBan, onIssueReset }: Omit<M
   const [glossaryLocales, setGlossaryLocales] = useState<string[]>(approvedGlossaryLocales(row));
   const changed = role !== row.role || glossaryLocales.join(",") !== approvedGlossaryLocales(row).join(",");
   const missingLanguages = roleMeetsFloor(role, "translator") && glossaryLocales.length === 0;
+  // Permissions apply on the member's next request, so the shell never saves
+  // them: it asks before Leave or a reload drops the staged change, and only
+  // discards.
+  useUnsavedWork({
+    id: "members:permissions",
+    tab: "members",
+    label: `Members: permissions for ${label}`,
+    dirty: changed,
+    publishesLive: true,
+    discard: () => {
+      setRole(isManagedRole(row.role) ? row.role : "contributor");
+      setGlossaryLocales(approvedGlossaryLocales(row));
+    },
+  });
   return (
     <>
       <DialogHeader>
