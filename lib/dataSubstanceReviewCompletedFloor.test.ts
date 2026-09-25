@@ -29,6 +29,9 @@ function createCtx(memberships: Record<string, Role>, article: Record<string, un
           if (table === "substanceIndex") {
             return { first: vi.fn(async () => article) };
           }
+          if (table === "articleRevisions") {
+            return { order: () => ({ first: vi.fn(async () => null), take: vi.fn(async () => []) }) };
+          }
           return {
             unique: vi.fn(async () => {
               const role = memberships[key];

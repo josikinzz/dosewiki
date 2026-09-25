@@ -19,15 +19,16 @@ import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { EditorStatusPill } from "@/features/dev/components";
 import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
 import { cn } from "@/lib/utils";
-import type { ReviewStatus } from "../substance-editor/types";
+import type { ReviewState } from "@/schema/substance/editorial";
 import {
   type ReviewQueueEntry,
   type ReviewQueueGroup,
 } from "./reviewQueue";
 
 /** Status colours shared by the picker rows and the command bar's own dot. */
-export const STATUS_DOT: Record<ReviewStatus, { className: string; label: string }> = {
+export const STATUS_DOT: Record<ReviewState, { className: string; label: string }> = {
   completed: { className: "theme-review-status-completed", label: "Reviewed" },
+  stale: { className: "theme-review-status-stale", label: "Changed since review" },
   in_progress: { className: "theme-review-status-in-progress", label: "Flagged in progress" },
   needed: { className: "theme-review-status-needed", label: "Not reviewed" },
 };
@@ -210,6 +211,17 @@ function EntryItem({
           )}
         >
           reviewed
+        </EditorStatusPill>
+      ) : entry.status === "stale" ? (
+        <EditorStatusPill
+          tone="info"
+          icon="lucide:git-compare"
+          className={cn(
+            "hidden sm:inline-flex",
+            entry.flagSummary ? undefined : "ml-auto",
+          )}
+        >
+          changed since review
         </EditorStatusPill>
       ) : entry.status === "in_progress" ? (
         <EditorStatusPill

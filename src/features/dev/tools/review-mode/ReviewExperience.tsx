@@ -16,6 +16,7 @@ import { useDevMode } from "../../context/DevModeContext";
 import type { ReviewStatus, SubstanceEditorTabProps } from "../substance-editor/types";
 import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
 import { ReviewArticleView } from "./ReviewArticleView";
+import { ReviewChangesSinceReview } from "./ReviewChangesSinceReview";
 import { Kbd, ReviewToast } from "./ReviewBarChrome";
 import { ReviewClassCelebration } from "./ReviewClassCelebration";
 import { ReviewCommandBar } from "./ReviewCommandBar";
@@ -23,6 +24,7 @@ import { ReviewNotesPanel } from "./ReviewNotesPanel";
 import { resolveOverriddenEditorialReview } from "./reviewQueue";
 import { STATUS_DOT } from "./ReviewSubstancePicker";
 import { useReviewQueue } from "./useReviewQueue";
+import { usePublishedRevisions } from "./useReviewRevisions";
 import { useReviewNavigation, useReviewSettings } from "./useReviewSettings";
 import {
   useReviewOverlays,
@@ -116,11 +118,15 @@ export const ReviewExperience = memo(function ReviewExperience({
   // Review Flags written from the notes panel, keyed by slug, until the
   // working set re-reads them.
   const [flagOverrides, setFlagOverrides] = useState<Record<string, ReviewFlag[]>>({});
+  // Each article's current published revision, so a sign-off that an edit
+  // has since overtaken reads "Changed since review".
+  const publishedRevisions = usePublishedRevisions();
   const queueState = useReviewQueue({
     typedArticles,
     layout,
     overrides: overlays.overrides,
     flagOverrides,
+    publishedRevisions,
     settings,
   });
   const {
@@ -203,6 +209,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     setOverrides: overlays.setOverrides,
     canSignOff,
     currentHydrated: currentArticleHydrated,
+    publishedRevisions,
   });
   const { lastTick, milestone, celebration, toggleReviewed, undoLastTick } =
     status;
@@ -394,6 +401,17 @@ export const ReviewExperience = memo(function ReviewExperience({
       />
 
       {articleNavigation.dialog}
+      {current?.status === "stale" && current.reviewedRevision ? (
+        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+          <ReviewChangesSinceReview
+            key={`${current.slug}:${current.reviewedRevision}`}
+            slug={current.slug}
+            name={current.name}
+            reviewedRevision={current.reviewedRevision}
+            reviewedBy={current.reviewedBy}
+          />
+        </div>
+      ) : null}
       {notesPanelOpen && current ? (
         <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
           <ReviewNotesPanel

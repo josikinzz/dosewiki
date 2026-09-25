@@ -385,6 +385,10 @@
     background-color: var(--theme-warning-text);
   }
 
+  .theme-review-status-stale {
+    background-color: var(--theme-accent-strong);
+  }
+
   .theme-review-status-needed {
     background-color: var(--theme-text-faint);
   }

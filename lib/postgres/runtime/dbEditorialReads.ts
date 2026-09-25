@@ -14,6 +14,23 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return Number(result.rows[0]?.totalCount ?? 0);
   }
 
+  /**
+   * Each article's latest recorded revision hash, the value a review sign-off
+   * compares against. Only the two small columns are read, never the snapshots.
+   */
+  async getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>> {
+    const result = await this.client.query(
+      `SELECT DISTINCT ON ("slug" COLLATE "C") "slug", "resultHash"
+       FROM "articleRevisions"
+       ORDER BY "slug" COLLATE "C", "_creationTime" DESC`,
+    );
+    return result.rows.flatMap((row) =>
+      typeof row.slug === "string" && typeof row.resultHash === "string" && row.resultHash
+        ? [{ slug: row.slug, revision: row.resultHash }]
+        : [],
+    );
+  }
+
   async getEditorLibraryPage(args: { numItems: number; cursor: string | null }) {
     const after = args.cursor
       ? decodeDocumentValue(JSON.parse(args.cursor)) as { _creationTime: number; _id: string }

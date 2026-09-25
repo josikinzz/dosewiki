@@ -59,6 +59,40 @@ describe("editorial review route", () => {
   });
 
 
+  it("signs off the revision the reviewer read and returns the reviewer and revision it stored", async () => {
+    const stored = {
+      status: "completed",
+      notes: "",
+      reviewed_by: "admin@example.com",
+      reviewed_at: "2026-09-25T00:00:00.000Z",
+      reviewed_revision: "a1b2c3",
+    };
+    routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: stored });
+    const response = await POST(new Request("https://dose.wiki/api/dev/editorial-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+      body: JSON.stringify({ slug: "2c-b", status: "completed", revision: "a1b2c3" }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(routeMocks.mutation).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ slug: "2c-b", status: "completed", revision: "a1b2c3", actorEmail: "admin@example.com" }),
+    );
+    await expect(response.json()).resolves.toMatchObject({ editorial_review: stored });
+  });
+
+  it("refuses a revision on anything but a sign-off, and a malformed revision", async () => {
+    const post = (body: unknown) => POST(new Request("https://dose.wiki/api/dev/editorial-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+      body: JSON.stringify(body),
+    }));
+    expect((await post({ slug: "2c-b", status: "needed", revision: "a1b2c3" })).status).toBe(400);
+    expect((await post({ slug: "2c-b", status: "completed", revision: "not a hash" })).status).toBe(400);
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed labels before calling Postgres", async () => {
     const response = await POST(flagRequest({ label: "this label has too many words", severity: "minor", note: "" }));
     expect(response.status).toBe(400);

@@ -3,12 +3,16 @@
  *
  * Flips only the editor-only `editorial_review` state for one article via
  * `substanceIndex.setEditorialReview`, which preserves review notes and stamps
- * who completed the review. Editors move a review between `needed` and
- * `in_progress` and manage flags; marking it `completed` is admin-only, since
- * that is what the public `expert_reviewed` derivation reads. The full save
- * flow (diff, commit message, changelog) stays reserved for content edits.
+ * who completed the review and which published revision it covered. Editors
+ * move a review between `needed` and `in_progress` and manage flags; marking it
+ * `completed` is admin-only, since that is what the public `expert_reviewed`
+ * derivation reads. The full save flow (diff, commit message, changelog) stays
+ * reserved for content edits.
  *
- *   POST /api/dev/editorial-review   { slug, status }  → set review status
+ *   POST /api/dev/editorial-review   { slug, status, revision? }  → set review status
+ *
+ * `revision` is the published revision the reviewer read. It is only accepted
+ * with `completed`; without it the article's current revision is recorded.
  */
 import { NextResponse } from "next/server";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
@@ -25,6 +29,8 @@ const addHumanReviewFlagMutation = makeFunctionReference<"mutation">("substanceI
 const deleteReviewFlagMutation = makeFunctionReference<"mutation">("substanceIndex:deleteReviewFlag");
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
+/** A revision `resultHash` (hex) or the `initial` marker, never free text. */
+const REVISION_RE = /^[A-Za-z0-9]{1,128}$/;
 const REVIEW_STATUSES = ["needed", "in_progress", "completed"] as const;
 type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
@@ -32,6 +38,7 @@ type SetReviewBody = {
   action?: unknown;
   slug?: unknown;
   status?: unknown;
+  revision?: unknown;
   flag?: unknown;
   identity?: unknown;
 };
@@ -39,7 +46,7 @@ type SetReviewBody = {
 type FlagInput = { label: string; severity: "major" | "minor" | "note"; note: string; section?: string };
 type FlagIdentity = { created_at: string; label: string; source: "agent" | "human" };
 type ParsedSetReview =
-  | { action: "status"; slug: string; status: ReviewStatus }
+  | { action: "status"; slug: string; status: ReviewStatus; revision?: string }
   | { action: "add-flag"; slug: string; flag: FlagInput }
   | { action: "delete-flag"; slug: string; identity: FlagIdentity };
 
@@ -78,7 +85,14 @@ function parseSetReviewBody(body: SetReviewBody): ParsedSetReview {
   if (!REVIEW_STATUSES.includes(status as ReviewStatus)) {
     throw new JsonBodyError(400, "A valid review status is required.");
   }
-  return { action, slug, status: status as ReviewStatus };
+  if (body.revision === undefined) return { action, slug, status: status as ReviewStatus };
+  if (status !== "completed") {
+    throw new JsonBodyError(400, "A revision is only recorded when a review is marked reviewed.");
+  }
+  if (typeof body.revision !== "string" || !REVISION_RE.test(body.revision)) {
+    throw new JsonBodyError(400, "A valid published revision is required.");
+  }
+  return { action, slug, status: "completed", revision: body.revision };
 }
 
 export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
@@ -106,7 +120,13 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
       ? await dataWrite.client.mutation(addHumanReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, flag: body.flag })
       : body.action === "delete-flag"
         ? await dataWrite.client.mutation(deleteReviewFlagMutation, { apiKey, actorEmail, slug: body.slug, identity: body.identity })
-        : await dataWrite.client.mutation(api.substanceIndex.setEditorialReview, { apiKey, actorEmail, slug: body.slug, status: body.status });
+        : await dataWrite.client.mutation(api.substanceIndex.setEditorialReview, {
+          apiKey,
+          actorEmail,
+          slug: body.slug,
+          status: body.status,
+          ...(body.revision !== undefined ? { revision: body.revision } : {}),
+        });
 
     // The tick changes the public-safe `expert_reviewed` derivation, so the
     // coverage audit and the article's own cached projections must refresh.

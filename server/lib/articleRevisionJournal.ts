@@ -6,6 +6,7 @@ import { contentHash } from "../../lib/proposals/contentHash";
 import { deriveSubmittedBy } from "../../lib/changelog/submitterStamp";
 import { articleChangePatch, type ArticleDocument } from "./articleLifecycleValidation";
 import { encodeFieldPathKey, getArticleValueByPath } from "../../src/data/schema/fieldPath";
+import { REVIEW_INITIAL_REVISION } from "../../src/schema/substance/editorial";
 
 export async function loadArticle(ctx: QueryCtx | MutationCtx, slug: string) {
   const rows = await ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.eq("slug", slug)).take(2);
@@ -100,4 +101,50 @@ export async function recordArticleRevision(ctx: MutationCtx, input: {
 
 export function articleRevisionResult(revision: Doc<"articleRevisions">) {
   return { revisionId: revision._id, article: revision.after, baseHash: revision.resultHash, changeId: revision.changeId };
+}
+
+/** Revisions one article may carry before review lookups refuse to guess. */
+const REVIEW_REVISION_SCAN_LIMIT = 1000;
+
+/**
+ * The article's current published revision, as a review sign-off records it:
+ * the latest revision's `resultHash`, or `REVIEW_INITIAL_REVISION` when no
+ * revision has been recorded yet.
+ */
+export async function publishedArticleRevision(ctx: QueryCtx | MutationCtx, slug: string): Promise<string> {
+  const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
+  return latest?.resultHash || REVIEW_INITIAL_REVISION;
+}
+
+async function articleRevisionsOldestFirst(ctx: QueryCtx | MutationCtx, slug: string) {
+  const revisions = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("asc").take(REVIEW_REVISION_SCAN_LIMIT + 1);
+  if (revisions.length > REVIEW_REVISION_SCAN_LIMIT) {
+    throw new PostgresError({ code: "ARTICLE_REVISION_LIMIT", message: "This article has too many revisions to locate a review sign-off." });
+  }
+  return revisions;
+}
+
+/** Whether `revision` names a published state of this article that a review can cover. */
+export async function isArticleRevision(ctx: QueryCtx | MutationCtx, slug: string, revision: string): Promise<boolean> {
+  if (revision === REVIEW_INITIAL_REVISION) return true;
+  const revisions = await articleRevisionsOldestFirst(ctx, slug);
+  return revisions.some((row) => row.resultHash === revision);
+}
+
+/**
+ * The article as it stood at a signed revision: that revision's `after`, or
+ * for `REVIEW_INITIAL_REVISION` the first revision's `before` (the current
+ * article when nothing was ever published). Null when the revision is unknown
+ * for this slug.
+ */
+export async function articleAtRevision(
+  ctx: QueryCtx | MutationCtx,
+  slug: string,
+  revision: string,
+  current: ArticleDocument,
+): Promise<ArticleDocument | null> {
+  const revisions = await articleRevisionsOldestFirst(ctx, slug);
+  if (revision === REVIEW_INITIAL_REVISION) return (revisions[0]?.before as ArticleDocument | undefined) ?? current;
+  const signed = revisions.find((row) => row.resultHash === revision);
+  return signed ? (signed.after as ArticleDocument) : null;
 }
