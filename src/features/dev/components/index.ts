@@ -138,5 +138,12 @@ export {
 } from "./useTriageShortcuts";
 export type { TriageAction, TriageShortcutHandlers } from "./useTriageShortcuts";
 
+export {
+  MERGE_CONFLICT_COPY,
+  MergeConflictChoices,
+  unresolvedConflictText,
+} from "./MergeConflictChoices";
+export type { MergeConflictCopy } from "./MergeConflictChoices";
+
 export { DevShortcutsProvider, useDevShortcutList, useDevShortcuts } from "./devShortcuts";
 export type { DevShortcut } from "./devShortcuts";

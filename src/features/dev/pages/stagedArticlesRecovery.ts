@@ -1,4 +1,6 @@
 import { contentHash } from "../../../../lib/proposals/contentHash";
+import { articleArrayIdentity } from "../../../../lib/proposals/articlePatch";
+import { mergeThreeWay, type MergeChoices, type ThreeWayMerge } from "../../../../lib/proposals/threeWayMerge";
 import type { ArticleRecord } from "../context/devModeTypes";
 import { resolveEditorArticleSlug } from "../context/devModeUtils";
 import { isSameDocument } from "../context/editorDocumentSession";
@@ -16,6 +18,12 @@ export type StagedArticleChange = {
   baseline: string;
   set: Record<string, unknown>;
   unset: string[];
+  /**
+   * The baseline's value of every field in `set` and `unset`, so an edit held
+   * aside can be merged into a newer article instead of laid over it. Absent
+   * on copies kept before it was recorded.
+   */
+  before?: Record<string, unknown>;
 };
 
 export type StagedArticlesDraft = { changes: StagedArticleChange[] };
@@ -50,7 +58,9 @@ export function stagedArticleChanges(
       if (!isSameDocument(after[key], before[key])) set[key] = after[key];
     }
     const unset = Object.keys(before).filter((key) => before[key] !== undefined && after[key] === undefined);
-    changes.push({ slug, baseline: stagedArticleBaseline(original), set, unset });
+    const previous: Record<string, unknown> = {};
+    for (const key of [...Object.keys(set), ...unset]) if (before[key] !== undefined) previous[key] = before[key];
+    changes.push({ slug, baseline: stagedArticleBaseline(original), set, unset, before: previous });
   });
   return changes;
 }
@@ -59,5 +69,37 @@ export function stagedArticleChanges(
 export function applyStagedArticleChange(article: ArticleRecord | undefined, change: StagedArticleChange): ArticleRecord {
   const next = { ...(article ?? {}), ...change.set } as Record<string, unknown>;
   for (const key of change.unset) delete next[key];
+  return next as unknown as ArticleRecord;
+}
+
+/**
+ * A copied edit merged into the newer article it now meets, field by field
+ * from the baseline it was made against: what only the copy changed is laid
+ * in, what only the newer article changed stays, and a field both changed
+ * waits on `choices`. Null for a copy that did not record its baseline.
+ */
+export function mergeStagedArticleChange(
+  current: ArticleRecord,
+  change: StagedArticleChange,
+  choices: MergeChoices = {},
+): ThreeWayMerge<Record<string, unknown>> | null {
+  if (!change.before) return null;
+  const latest = current as unknown as Record<string, unknown>;
+  const base: Record<string, unknown> = {}, mine: Record<string, unknown> = {}, theirs: Record<string, unknown> = {};
+  for (const key of [...Object.keys(change.set), ...change.unset]) {
+    if (change.before[key] !== undefined) base[key] = change.before[key];
+    if (key in change.set) mine[key] = change.set[key];
+    if (latest[key] !== undefined) theirs[key] = latest[key];
+  }
+  return mergeThreeWay<Record<string, unknown>>(base, mine, theirs, { choices, identity: articleArrayIdentity });
+}
+
+/** The newer article with a merged copy's fields laid in; a field the merge removed is removed. */
+export function applyMergedStagedArticle(current: ArticleRecord, change: StagedArticleChange, merged: Record<string, unknown>): ArticleRecord {
+  const next = { ...(current as unknown as Record<string, unknown>) };
+  for (const key of [...Object.keys(change.set), ...change.unset]) {
+    if (merged[key] === undefined) delete next[key];
+    else next[key] = merged[key];
+  }
   return next as unknown as ArticleRecord;
 }

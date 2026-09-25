@@ -16,7 +16,8 @@ function keyWords(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-function displayValue(value: unknown, path: string): string {
+/** One value of a change as a person reads it: a range as a dose, a list as names. */
+export function displayValue(value: unknown, path: string): string {
   if (value === undefined || value === null) return "Not present";
   if (isRangeValue(value)) return formatDose(value, path.endsWith(".threshold"));
   if (typeof value === "string") return value || "Empty";

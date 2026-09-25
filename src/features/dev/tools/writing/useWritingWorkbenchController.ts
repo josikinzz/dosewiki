@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { contentHash } from "../../../../../lib/proposals/contentHash";
+import { mergeThreeWay, type MergeSide, type ThreeWayMerge } from "../../../../../lib/proposals/threeWayMerge";
 import { prepareVCode } from "@/features/effects/vcode/editing";
 
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
@@ -41,12 +42,25 @@ export type WritingRecoveryOffer = {
   stale: boolean;
 };
 
-/** A stale copy under review: the fields where it differs from the loaded version. */
-export type WritingRecoveryReview = {
-  recovered: WritingDraft;
-  fields: Array<keyof WritingDraft>;
-  used: Array<keyof WritingDraft>;
+/**
+ * The local draft meeting a newer saved version: a recovered copy made against
+ * an older version, or the editor's open edits after "Load the latest saved
+ * version". `base` is the version the local draft was edited from, or null
+ * for a copy kept before copies recorded it, where every differing field is
+ * the editor's to choose.
+ */
+export type WritingMergeReview = {
+  source: "recovery" | "reload";
+  base: WritingDraft | null;
+  mine: WritingDraft;
+  theirs: WritingDraft;
+  choices: Record<string, MergeSide>;
 };
+
+/** The proposed draft and what overlaps, for one review and its choices. */
+export function writingMerge(review: WritingMergeReview): ThreeWayMerge<WritingDraft> {
+  return mergeThreeWay<WritingDraft>(review.base ?? {}, review.mine, review.theirs, { choices: review.choices });
+}
 
 type SaveState = EditorActionStatusState | "idle";
 export type WritingSelection =
@@ -99,7 +113,8 @@ export function useWritingWorkbenchController({
   // /dev shell, where nothing is kept.
   const recoveryStore = useDraftRecoveryStore();
   const [recoveryOffer, setRecoveryOffer] = useState<WritingRecoveryOffer | null>(null);
-  const [recoveryReview, setRecoveryReview] = useState<WritingRecoveryReview | null>(null);
+  const [mergeReview, setMergeReview] = useState<WritingMergeReview | null>(null);
+  const merge = useMemo(() => mergeReview ? writingMerge(mergeReview) : null, [mergeReview]);
   const [checkpointSavedAt, setCheckpointSavedAt] = useState<number | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const checkedRecordRef = useRef<string | null>(null);
@@ -190,7 +205,7 @@ export function useWritingWorkbenchController({
   // A recovery choice holds the form still, so nothing typed can land under
   // (or be overwritten by) the copy the editor is deciding about.
   const readOnly = isLoadingRow || saveState === "saving" || uncertain || (selectedSlug !== null && loadedRow === null)
-    || recoveryOffer !== null || recoveryReview !== null;
+    || recoveryOffer !== null || mergeReview !== null;
   const parsedBody = useMemo(() => {
     try {
       return { ast: draft.bodyFormat === "vcode" ? prepareVCode(draft.body, { raw: loadedRow?.body_raw, ast: loadedRow?.body_ast }) : undefined, error: null };
@@ -218,7 +233,7 @@ export function useWritingWorkbenchController({
       }
     }
     // An open choice keeps the copy as it is; an unconfirmed save owns it.
-    if (recoveryOffer || recoveryReview || uncertain) return;
+    if (recoveryOffer || mergeReview || uncertain) return;
     if (isSameDraft(draft, baseline)) {
       flushRef.current = null;
       recoveryStore.clear("writing", recordKey);
@@ -227,13 +242,13 @@ export function useWritingWorkbenchController({
     }
     const write = () => {
       flushRef.current = null;
-      const at = recoveryStore.write<WritingDraft>({ tool: "writing", record: recordKey, baseline: baselineRevision, draft });
+      const at = recoveryStore.write<WritingDraft>({ tool: "writing", record: recordKey, baseline: baselineRevision, base: baseline, draft });
       setCheckpointSavedAt(at);
     };
     flushRef.current = write;
     const timer = window.setTimeout(write, CHECKPOINT_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [recoveryStore, recordKey, recordReady, draft, baseline, baselineRevision, recoveryOffer, recoveryReview, uncertain]);
+  }, [recoveryStore, recordKey, recordReady, draft, baseline, baselineRevision, recoveryOffer, mergeReview, uncertain]);
 
   useEffect(() => {
     const flush = () => flushRef.current?.();
@@ -250,7 +265,7 @@ export function useWritingWorkbenchController({
     if (recoveryStore && recordKey) recoveryStore.clear("writing", recordKey);
     setCheckpointSavedAt(null);
     setRecoveryOffer(null);
-    setRecoveryReview(null);
+    setMergeReview(null);
   }, [recoveryStore, recordKey]);
   const dateError = dateIncomplete ? "Finish the date, or clear the field." : publicationDateError(draft.publicationDate);
   const coverError = coverImageUrlError(draft.coverImageUrl);
@@ -357,7 +372,7 @@ export function useWritingWorkbenchController({
         if (recoveryStore && savingRecord) {
           flushRef.current = null;
           recoveryStore.write<WritingDraft>({
-            tool: "writing", record: savingRecord, baseline: document.expectedRevision, draft, pending: operationRef.current,
+            tool: "writing", record: savingRecord, baseline: document.expectedRevision, base: baseline, draft, pending: operationRef.current,
           });
         }
         setUncertain(true);
@@ -372,7 +387,7 @@ export function useWritingWorkbenchController({
             // A definite refusal: nothing is pending any more, the edit still is.
             setUncertain(false);
             if (recoveryStore && savingRecord) {
-              recoveryStore.write<WritingDraft>({ tool: "writing", record: savingRecord, baseline: document.expectedRevision, draft });
+              recoveryStore.write<WritingDraft>({ tool: "writing", record: savingRecord, baseline: document.expectedRevision, base: baseline, draft });
             }
           }
           throw new Error(payload.error ?? "The article could not be saved.");
@@ -407,7 +422,7 @@ export function useWritingWorkbenchController({
         return false;
       }
     },
-    [draft, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
+    [draft, baseline, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
   );
   /**
    * An editor's save: the same document the admin's save posts, held as a
@@ -468,10 +483,11 @@ export function useWritingWorkbenchController({
 
   /**
    * Puts a recovery copy back. A copy of the loaded version replaces the
-   * draft. A copy made against an older version opens a review of both, and
-   * the newer saved version stays in the editor until the editor picks a
-   * field from the copy. A copy holding an unconfirmed save brings that exact
-   * operation back, so the next write is its confirmation, not a new save.
+   * draft. A copy made against an older version is merged with the newer
+   * saved version: what only one side changed is kept, and each field both
+   * changed holds the saved value until the editor picks a version. A copy
+   * holding an unconfirmed save brings that exact operation back, so the next
+   * write is its confirmation, not a new save.
    */
   const restoreRecovery = useCallback(() => {
     if (!recoveryOffer) return;
@@ -488,35 +504,56 @@ export function useWritingWorkbenchController({
       setDraft(checkpoint.draft);
       return;
     }
-    const fields = (Object.keys(checkpoint.draft) as Array<keyof WritingDraft>)
-      .filter((key) => JSON.stringify(checkpoint.draft[key]) !== JSON.stringify(draft[key]));
-    setRecoveryReview({ recovered: checkpoint.draft, fields, used: [] });
+    const review: WritingMergeReview = { source: "recovery", base: checkpoint.base ?? null, mine: checkpoint.draft, theirs: draft, choices: {} };
+    setMergeReview(review);
+    setDraft(writingMerge(review).merged);
   }, [recoveryOffer, draft]);
   const discardRecovery = useCallback(() => {
     if (!recoveryOffer) return;
     forgetRecovery();
   }, [forgetRecovery, recoveryOffer]);
-  /** Takes one field from the recovered copy into the draft. */
-  const takeRecoveredField = useCallback((key: keyof WritingDraft) => {
-    if (!recoveryReview) return;
-    const value = recoveryReview.recovered[key];
-    setDraft((current) => ({ ...current, [key]: value }));
-    setRecoveryReview((current) => current && !current.used.includes(key) ? { ...current, used: [...current.used, key] } : current);
-  }, [recoveryReview]);
-  /** Ends the review; the draft as it now stands becomes the browser copy. */
-  const finishRecoveryReview = useCallback(() => setRecoveryReview(null), []);
+  /** Picks one side for a field both changed; the proposed draft follows at once. */
+  const chooseMerge = useCallback((path: string, side: MergeSide) => {
+    if (!mergeReview) return;
+    const next = { ...mergeReview, choices: { ...mergeReview.choices, [path]: side } };
+    setMergeReview(next);
+    setDraft(writingMerge(next).merged);
+  }, [mergeReview]);
+  /**
+   * Ends the review once every overlap has a chosen version; the merged draft
+   * then becomes the working draft and the browser copy.
+   */
+  const finishMergeReview = useCallback(() => {
+    if (!merge || merge.unresolved.length > 0) return;
+    setMergeReview(null);
+  }, [merge]);
   const reconcile = useCallback(async () => {
     if (!loadedRow || uncertain || saveState === "saving") return;
     try {
       const response = await fetch(`${API_PATH}?slug=${encodeURIComponent(loadedRow.slug)}`);
       const payload = await response.json() as { article?: WritingArticleRow; error?: string };
       if (!response.ok || !payload.article) throw new Error(payload.error ?? "Unable to load the latest saved version.");
+      const latest = draftFromRow(payload.article);
+      // The edits were made from `baseline`; the newer version is merged into
+      // them rather than laid beside them, and the save that follows is
+      // checked against this newer revision.
+      const review: WritingMergeReview = { source: "reload", base: baseline, mine: draft, theirs: latest, choices: {} };
+      const merged = writingMerge(review);
       setLoadedRow(payload.article);
-      setBaseline(draftFromRow(payload.article));
+      setBaseline(latest);
+      setDraft(merged.merged);
       operationRef.current = null;
-      setNotice({ tone: "warning", message: "Loaded the latest saved version. Your edits are kept; check what changed before you save." });
+      if (merged.conflicts.length > 0 || merged.theirs.length > 0) setMergeReview(review);
+      setNotice({
+        tone: "warning",
+        message: merged.conflicts.length > 0
+          ? "Loaded the latest saved version. Changes only one of you made are merged; choose a version for each field you both changed."
+          : merged.theirs.length > 0
+            ? "Loaded the latest saved version and merged it with your edits. Nothing overlapped; check the draft before you save."
+            : "Loaded the latest saved version. It matched the version you started from, so your edits are unchanged.",
+      });
     } catch (error) { setNotice({ tone: "danger", message: error instanceof Error ? error.message : "Reload failed." }); }
-  }, [loadedRow, uncertain, saveState]);
+  }, [loadedRow, uncertain, saveState, baseline, draft]);
 
   return {
     kind,
@@ -531,11 +568,12 @@ export function useWritingWorkbenchController({
     discard,
     reconcile,
     recoveryOffer,
-    recoveryReview,
+    mergeReview,
+    merge,
     restoreRecovery,
     discardRecovery,
-    takeRecoveredField,
-    finishRecoveryReview,
+    chooseMerge,
+    finishMergeReview,
     checkpointSavedAt,
     savedAt,
     isLoadingRow,

@@ -6,8 +6,11 @@ import { resolveEditorArticleSlug } from "../context/devModeUtils";
 import { isSameDocument } from "../context/editorDocumentSession";
 import { useDraftRecoveryStore } from "../recovery/DraftRecoveryContext";
 import type { DraftCheckpoint } from "../recovery/draftRecovery";
+import type { MergeSide, ThreeWayMerge } from "../../../../lib/proposals/threeWayMerge";
 import {
+  applyMergedStagedArticle,
   applyStagedArticleChange,
+  mergeStagedArticleChange,
   NEW_ARTICLE_BASELINE,
   stagedArticleBaseline,
   stagedArticleChanges,
@@ -21,7 +24,13 @@ const RECORD = "working-set";
 const CHECKPOINT_DELAY_MS = 800;
 
 /** A copied edit held aside because the article moved on after the copy was made. */
-export type HeldStagedChange = { change: StagedArticleChange; current: ArticleRecord | null };
+export type HeldStagedChange = {
+  change: StagedArticleChange;
+  current: ArticleRecord | null;
+  /** The copy merged into the newer article, or null when that cannot be measured. */
+  merge: ThreeWayMerge<Record<string, unknown>> | null;
+  choices: Record<string, MergeSide>;
+};
 
 export type StagedArticlesRecovery = {
   offer: DraftCheckpoint<StagedArticlesDraft> | null;
@@ -32,6 +41,8 @@ export type StagedArticlesRecovery = {
   restore: () => Promise<void>;
   discardOffer: () => void;
   applyHeld: (slug: string) => void;
+  /** Picks a side for one field both the copy and the newer article changed. */
+  chooseHeld: (slug: string, path: string, side: MergeSide) => void;
   dismissHeld: () => void;
   /** Drops the copy: the working set was discarded on purpose. */
   forget: () => void;
@@ -150,7 +161,7 @@ export function useStagedArticlesRecovery({
           ? current === undefined
           : current !== undefined && stagedArticleBaseline(current) === change.baseline;
         if (matches && !editedHere) apply.push({ change, current });
-        else aside.push({ change, current: current ?? null });
+        else aside.push({ change, current: current ?? null, choices: {}, merge: current ? mergeStagedArticleChange(current, change) : null });
       }
       if (apply.length > 0) {
         applyArticlesTransform((previous) => {
@@ -179,15 +190,22 @@ export function useStagedArticlesRecovery({
     setError(null);
   }, [store]);
 
+  /**
+   * Puts a held edit into the working set. A copy that knows its baseline is
+   * merged, and waits until every field both sides changed has a choice; an
+   * older copy is laid over the newer article as it always was.
+   */
   const applyHeld = useCallback((slug: string) => {
     const entry = held?.find((item) => item.change.slug === slug);
     if (!entry?.current) return;
+    if (entry.merge && entry.merge.unresolved.length > 0) return;
     const current = entry.current;
+    const merged = entry.merge?.merged;
     applyArticlesTransform((previous) => {
       const index = previous.findIndex(bySlug(slug));
       if (index < 0) return previous;
       const next = [...previous];
-      next[index] = applyStagedArticleChange(current, entry.change);
+      next[index] = merged ? applyMergedStagedArticle(current, entry.change, merged) : applyStagedArticleChange(current, entry.change);
       return next;
     });
     setHeld((items) => {
@@ -195,6 +213,14 @@ export function useStagedArticlesRecovery({
       return rest.length > 0 ? rest : null;
     });
   }, [held, applyArticlesTransform]);
+
+  const chooseHeld = useCallback((slug: string, path: string, side: MergeSide) => {
+    setHeld((items) => items?.map((item) => {
+      if (item.change.slug !== slug || !item.current) return item;
+      const choices = { ...item.choices, [path]: side };
+      return { ...item, choices, merge: mergeStagedArticleChange(item.current, item.change, choices) };
+    }) ?? null);
+  }, []);
 
   const dismissHeld = useCallback(() => setHeld(null), []);
 
@@ -204,5 +230,5 @@ export function useStagedArticlesRecovery({
     setCheckpointSavedAt(null);
   }, [store]);
 
-  return { offer, held, restoring, error, checkpointSavedAt, restore, discardOffer, applyHeld, dismissHeld, forget };
+  return { offer, held, restoring, error, checkpointSavedAt, restore, discardOffer, applyHeld, chooseHeld, dismissHeld, forget };
 }

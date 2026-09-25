@@ -30,6 +30,8 @@ import { isArticleEditorSection } from "./articleSections";
 import { ArticleChangeDiff, articleFieldChanges } from "./ArticleChangeDiff";
 import { synthesizeChangeNote } from "./changeNote";
 import { ArticleProposalReview } from "./ArticleProposalReview";
+import { ArticleMergeReview } from "./ArticleMergeReview";
+import { unresolvedConflictText } from "@/features/dev/components/MergeConflictChoices";
 import { useArticleLifecycle, articlePublicationErrors, describeValidationIssue, fieldIssueMessage, type ArticleRevision } from "./useArticleLifecycle";
 import type { SubstanceArticle } from "@/schema";
 import { CORRECTION_FEEDBACK_PARAM, CORRECTION_SECTION_PARAM, readCorrectionParams } from "@/features/intake/feedbackCorrection";
@@ -454,18 +456,19 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     </ContextualEditorPanel>
     {leaveGuard.dialog}
     <ContextualEditorPanel title="Reconcile article draft" open={!!lifecycle.recovery} onOpenChange={(open) => { if (!open && !requestLocked) lifecycle.cancelRecovery(); }} description="The latest public article and saved draft have been fetched. Your local draft is still unchanged. Nothing is saved or published by this review.">
-      {lifecycle.recovery && <div className="space-y-5 overflow-y-auto">
-        <p className="theme-text-muted text-sm">Before is the refreshed public article. After is your retained draft, including any older values. Keep your draft to reconcile these differences in the editor against the latest revision, or discard local edits and load the latest saved state.</p>
-        <ArticleChangeDiff before={lifecycle.recovery.article} after={lifecycle.article} />
+      {lifecycle.recovery && lifecycle.merge && <div className="space-y-5 overflow-y-auto">
+        <p className="theme-text-muted text-sm">Your draft is compared with the latest public article from the revision you started on. A field only one of you changed is already in the merged draft. A field you both changed waits for you to choose a version. Publishing still checks the latest revision, so a change that lands after this merge is refused.</p>
+        <ArticleMergeReview merge={lifecycle.merge} choices={lifecycle.mergeChoices} onChoose={lifecycle.chooseMerge} />
         {lifecycle.recovery.draft && <section className="space-y-3">
           <h3 className="theme-text-primary font-semibold">Latest saved private draft compared with your local draft</h3>
           <ArticleChangeDiff before={lifecycle.recovery.draft.article} after={lifecycle.article} />
         </section>}
         <div className="flex flex-wrap gap-2">
-          <Button className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked} onClick={() => { void attempt(async () => { lifecycle.reconcile(true); setReview(true); }); }}>Keep my draft on latest baseline</Button>
+          <Button className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked || lifecycle.merge.unresolved.length > 0} onClick={() => { void attempt(async () => { lifecycle.reconcile(true); setFormEpoch((value) => value + 1); setReview(true); }); }}>Use the merged draft</Button>
           <Button variant="outline" className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked} onClick={() => { void attempt(async () => { lifecycle.reconcile(false); setFormEpoch((value) => value + 1); }); }}>{lifecycle.recovery.draft ? "Discard local edits and load saved draft" : "Discard local edits and load published article"}</Button>
           <Button variant="ghost" disabled={requestLocked} onClick={() => lifecycle.cancelRecovery()}>Keep current baseline</Button>
         </div>
+        {lifecycle.merge.unresolved.length > 0 && <p className="theme-text-muted text-sm">{unresolvedConflictText(lifecycle.merge.unresolved.length)}</p>}
         {(localError || lifecycle.error) && <p role="alert" className="theme-text-primary whitespace-pre-wrap text-sm">{localError || lifecycle.error}</p>}
       </div>}
     </ContextualEditorPanel>

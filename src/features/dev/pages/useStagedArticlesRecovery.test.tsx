@@ -49,6 +49,16 @@ function Shell({ source }: { source: Row[] }) {
           ])
         }
       />
+      <input
+        aria-label={`Name for ${first.slug}`}
+        value={first.name}
+        onChange={(event) =>
+          document.applyDraftTransform((previous) => [
+            asRecord({ ...(previous[0] as unknown as Row), name: event.target.value }),
+            ...previous.slice(1),
+          ])
+        }
+      />
       <output aria-label="Working set">{JSON.stringify(document.draft)}</output>
     </>
   );
@@ -126,7 +136,46 @@ describe("staged working set recovery", () => {
     expect(within(held).getByText(/lsd: tags/)).toBeInTheDocument();
     expect(workingSet()[0].tags).toEqual(["psychedelic", "theirs"]);
 
+    // Applying merges: the newer tag stays, and the copy's tag joins it.
     await user.click(within(held).getByRole("button", { name: "Apply my edits to lsd" }));
-    expect(workingSet()[0].tags).toEqual(["psychedelic", "mine"]);
+    expect(workingSet()[0].tags).toEqual(["psychedelic", "theirs", "mine"]);
+  });
+
+  it("keeps a held edit and a newer change to a different field of the same article", async () => {
+    const user = userEvent.setup();
+    const first = renderShell();
+    await user.type(screen.getByLabelText("Tags for lsd"), ",mine");
+    await screen.findByText(/Uncommitted article edits kept in this browser at/);
+    first.unmount();
+
+    library = [{ ...library[0], name: "Lysergide" }, library[1]];
+    renderShell();
+    await user.click(within(await screen.findByRole("region", { name: "Recovered article edits" })).getByRole("button", { name: "Restore" }));
+    const held = await screen.findByRole("region", { name: "Article edits held aside" });
+    await user.click(within(held).getByRole("button", { name: "Apply my edits to lsd" }));
+    expect(workingSet()[0]).toEqual({ slug: "lsd", name: "Lysergide", tags: ["psychedelic", "mine"] });
+  });
+
+  it("asks which version to keep when the held edit and the newer article changed the same field", async () => {
+    const user = userEvent.setup();
+    const first = renderShell();
+    await user.clear(screen.getByLabelText("Name for lsd"));
+    await user.type(screen.getByLabelText("Name for lsd"), "LSD-25");
+    await screen.findByText(/Uncommitted article edits kept in this browser at/);
+    first.unmount();
+
+    library = [{ ...library[0], name: "Lysergide" }, library[1]];
+    renderShell();
+    await user.click(within(await screen.findByRole("region", { name: "Recovered article edits" })).getByRole("button", { name: "Restore" }));
+    const held = await screen.findByRole("region", { name: "Article edits held aside" });
+    const both = within(held).getByRole("group", { name: "name, changed by both" });
+    expect(within(both).getByText("LSD-25")).toBeInTheDocument();
+    expect(within(both).getByText("Lysergide")).toBeInTheDocument();
+    const apply = within(held).getByRole("button", { name: "Apply my edits to lsd" });
+    expect(apply).toBeDisabled();
+
+    await user.click(within(both).getByRole("button", { name: "Use yours name" }));
+    await user.click(apply);
+    expect(workingSet()[0].name).toBe("LSD-25");
   });
 });

@@ -57,7 +57,7 @@ describe("private article session boundaries", () => {
     expect(screen.queryByText("Unsaved private correction")).toBeNull();
     expect(screen.queryByRole("button", { name: "Save draft" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Refresh latest baseline" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Keep my draft on latest baseline" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Use the merged draft" }));
     const review = await screen.findByRole("dialog", { name: "Review article changes" });
     expect(within(review).getByText("Unsaved private correction")).toBeTruthy();
   });
@@ -384,5 +384,96 @@ describe("leaving and discarding through the shared guard and confirm", () => {
     await waitFor(() => expect(request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1));
     const [, init] = request.mock.calls.find(([, call]) => call?.method === "POST")!;
     expect(JSON.parse(init!.body as string)).toMatchObject({ action: "discardDraft" });
+  });
+});
+
+describe("reconciling a draft with a newer published article", () => {
+  // Someone else published while this editor's private draft (a new summary)
+  // was open: the refresh answers with a newer public article and hash.
+  const newer = (changes: Partial<SubstanceArticle>) => ({
+    article: { ...article, ...changes }, baseHash: "public-revision-2", history: [], draftVersion: 1,
+    draft: { article: { ...article, summary: ownerSummary }, baseHash: "public-revision", version: 1 },
+  });
+  const refreshTo = async (user: ReturnType<typeof userEvent.setup>) => {
+    await screen.findByText(ownerSummary);
+    await user.click(screen.getByRole("button", { name: "Private preview options" }));
+    await user.click(await screen.findByRole("menuitem", { name: "Refresh latest baseline" }));
+    return screen.findByRole("dialog", { name: "Reconcile article draft" });
+  };
+  const posts = (request: ReturnType<typeof vi.fn>) => request.mock.calls
+    .filter(([, init]) => init?.method === "POST")
+    .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+
+  it("keeps both editors' changes when they changed different fields", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json(newer({ title: "Fixture, renamed" })))
+      .mockResolvedValueOnce(published(ownerSummary))
+      .mockResolvedValue(Response.json(snapshot(null)));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    const panel = await refreshTo(user);
+
+    expect(within(panel).queryByRole("region", { name: "Changed by both" })).toBeNull();
+    expect(within(within(panel).getByRole("region", { name: "Your changes, kept" })).getByText(ownerSummary)).toBeTruthy();
+    expect(within(within(panel).getByRole("region", { name: "Someone else's changes, kept" })).getByText("Fixture, renamed")).toBeTruthy();
+
+    await user.click(within(panel).getByRole("button", { name: "Use the merged draft" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
+
+    await waitFor(() => expect(posts(request)).toHaveLength(1));
+    // Both changes travel, checked against the revision the merge was made on.
+    expect(posts(request)[0]).toMatchObject({
+      action: "publish", baseHash: "public-revision-2",
+      article: { summary: ownerSummary, title: "Fixture, renamed" },
+    });
+  });
+
+  it("shows both versions of a field both editors changed and needs a choice", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json(newer({ summary: "Their correction" }))));
+    render(view(state));
+    const panel = await refreshTo(user);
+
+    const both = within(panel).getByRole("region", { name: "Changed by both" });
+    const row = within(both).getByRole("group", { name: "Summary, changed by both" });
+    expect(within(row).getByText("You changed")).toBeTruthy();
+    expect(within(row).getByText(ownerSummary)).toBeTruthy();
+    expect(within(row).getByText("Someone else changed")).toBeTruthy();
+    expect(within(row).getByText("Their correction")).toBeTruthy();
+    expect(within(both).getByRole("status").textContent).toBe("Choose a version for 1 field both of you changed.");
+    const use = within(panel).getByRole("button", { name: "Use the merged draft" }) as HTMLButtonElement;
+    expect(use.disabled).toBe(true);
+
+    await user.click(within(row).getByRole("button", { name: "Use yours Summary" }));
+    expect(use.disabled).toBe(false);
+    await user.click(use);
+    const review = await screen.findByRole("dialog", { name: "Review article changes" });
+    expect(within(review).getByText(ownerSummary)).toBeTruthy();
+    expect(screen.getByRole("article", { name: "Article preview", hidden: true }).textContent).toBe(ownerSummary);
+  });
+
+  it("still refuses to publish over a further change that lands after the merge", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json(newer({ title: "Fixture, renamed" })))
+      .mockResolvedValueOnce(Response.json({ error: "The article changed after you loaded it. Refresh the latest baseline." }, { status: 409 }));
+    vi.stubGlobal("fetch", request);
+    render(view(state));
+    const panel = await refreshTo(user);
+    await user.click(within(panel).getByRole("button", { name: "Use the merged draft" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Publish/ }));
+    await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
+
+    expect((await screen.findAllByText(/The article changed after you loaded it/)).length).toBeGreaterThan(0);
+    expect(posts(request)[0]).toMatchObject({ action: "publish", baseHash: "public-revision-2" });
+    expect(screen.queryByTestId("article-publication-notice")).toBeNull();
+    // The merged draft stays in front of the editor for the next reconcile.
+    expect(screen.getByRole("article", { name: "Article preview", hidden: true }).textContent).toBe(ownerSummary);
   });
 });

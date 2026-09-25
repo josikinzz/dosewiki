@@ -32,15 +32,29 @@ export function isRangeValue(value: unknown): value is { min: number | null; max
   return isRecord(value) && "min" in value && "max" in value && typeof value.unit === "string";
 }
 
-/** Every field that differs between two versions of one article. */
-export function articleFieldChanges(before: unknown, after: unknown): ArticleFieldChange[] {
-  const left = isRecord(before) ? before : {};
-  const right = isRecord(after) ? after : {};
+/**
+ * The field that names each entry of a keyed article array, or null when the
+ * array at `path` has no domain identity and is read as one value. Routes are
+ * named by their route, references by their id; a legality country is a
+ * record key already, so it needs no rule here.
+ */
+export function articleArrayIdentity(path: string): string | null {
+  return path.endsWith(".routes") ? "route" : path === "references" ? "id" : null;
+}
+
+/**
+ * Every leaf that differs between two values below `path`, walked the way an
+ * article is: records by key, keyed arrays by identity, ranges as one value.
+ */
+export function fieldChangesAt(
+  before: unknown, after: unknown, path: string,
+  identity: (path: string) => string | null = articleArrayIdentity,
+): ArticleFieldChange[] {
   const changes: ArticleFieldChange[] = [];
   const walk = (a: unknown, b: unknown, path: string) => {
     if (JSON.stringify(a) === JSON.stringify(b)) return;
     if (Array.isArray(a) && Array.isArray(b)) {
-      const key = path.endsWith(".routes") ? "route" : path === "references" ? "id" : null;
+      const key = identity(path);
       if (key) {
         const keyed = (items: unknown[]) => Object.fromEntries(items.map((item) => [String((item as Record<string, unknown>)[key]), item]));
         const x = keyed(a), y = keyed(b);
@@ -50,13 +64,20 @@ export function articleFieldChanges(before: unknown, after: unknown): ArticleFie
       }
     }
     if (isRecord(a) && isRecord(b) && !isRangeValue(a) && !isRangeValue(b)) {
-      for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) walk(a[key], b[key], `${path}.${key}`);
+      for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) walk(a[key], b[key], path ? `${path}.${key}` : key);
       return;
     }
     changes.push({ path, before: a, after: b });
   };
-  for (const key of ARTICLE_PATCH_FIELDS) walk(left[key], right[key], key);
+  walk(before, after, path);
   return changes;
+}
+
+/** Every field that differs between two versions of one article. */
+export function articleFieldChanges(before: unknown, after: unknown): ArticleFieldChange[] {
+  const left = isRecord(before) ? before : {};
+  const right = isRecord(after) ? after : {};
+  return ARTICLE_PATCH_FIELDS.flatMap((key) => fieldChangesAt(left[key], right[key], key));
 }
 
 /** A stored patch as it came back from storage, or null when it is not one. */

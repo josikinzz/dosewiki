@@ -1,21 +1,31 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { EditorNotice, EditorSection, EditorToolbar } from "@/features/dev/components";
+import { EditorNotice, EditorSection, EditorToolbar, MERGE_CONFLICT_COPY, MergeConflictChoices, unresolvedConflictText } from "@/features/dev/components";
 import { formatCheckpointTime } from "@/features/dev/recovery/draftRecovery";
 
 import type { WritingDraft } from "./writingEditorModel";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
 
-function fieldText(value: WritingDraft[keyof WritingDraft]): string {
-  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+function fieldText(value: unknown): string {
+  if (value === undefined) return "Not present";
+  if (Array.isArray(value)) return value.length === 0 ? "None" : value.join(", ");
+  return typeof value === "string" ? value || "Empty" : JSON.stringify(value, null, 2);
+}
+
+/** The fields one side's carried changes touched, in words, once each. */
+function changedFields(paths: string[], fieldLabels: Record<keyof WritingDraft, string>): string {
+  const labels = [...new Set(paths.map((path) => fieldLabels[path as keyof WritingDraft] ?? path))];
+  return labels.join(", ");
 }
 
 /**
- * The browser recovery copy of the open record, when one outlived the page:
- * the offer to restore or discard it, then, for a copy made against an older
- * saved version, a field-by-field review that keeps both until the editor
- * picks. Nothing here writes to the server.
+ * The browser recovery copy of the open record, when one outlived the page,
+ * and the merge review a newer saved version opens: the offer to restore or
+ * discard a copy, then, for a copy made against an older saved version or a
+ * reload under open edits, what each side changed. Fields only one side
+ * changed are already in the draft; each field both changed shows both
+ * versions and waits for a choice. Nothing here writes to the server.
  */
 export function WritingRecoveryPanels({
   controller,
@@ -24,7 +34,7 @@ export function WritingRecoveryPanels({
   controller: WritingWorkbenchController;
   fieldLabels: Record<keyof WritingDraft, string>;
 }) {
-  const { recoveryOffer: offer, recoveryReview: review } = controller;
+  const { recoveryOffer: offer, mergeReview: review, merge } = controller;
 
   if (offer) {
     const time = formatCheckpointTime(offer.checkpoint.savedAt);
@@ -56,49 +66,36 @@ export function WritingRecoveryPanels({
     );
   }
 
-  if (review) {
+  if (review && merge) {
+    const recovery = review.source === "recovery";
+    const copy = recovery ? { ...MERGE_CONFLICT_COPY, useMine: "Use recovered", useTheirs: "Use latest saved" } : MERGE_CONFLICT_COPY;
+    const mine = changedFields(merge.mine.map((change) => change.path), fieldLabels);
+    const theirs = changedFields(merge.theirs.map((change) => change.path), fieldLabels);
     return (
-      <section aria-label="Review recovered changes">
+      <section aria-label={recovery ? "Review recovered changes" : "Review changes saved meanwhile"}>
         <EditorSection
           headingLevel="h3"
-          title="Review recovered changes"
-          description="Someone saved this page after your copy was made. The latest saved version is in the editor; take any field from your copy. Nothing is saved until you save."
+          title={recovery ? "Review recovered changes" : "Review changes saved meanwhile"}
+          description={`Someone saved this page after ${recovery ? "your copy was made" : "you started editing"}. The editor holds both sets of changes; a field you both changed keeps the latest saved version until you choose. Nothing is saved until you save.`}
         >
-          {review.fields.length === 0 ? (
-            <p className="theme-text-muted text-sm">Your copy matches the latest saved version.</p>
+          {merge.conflicts.length === 0 && !mine && !theirs ? (
+            <p className="theme-text-muted text-sm">{recovery ? "Your copy matches the latest saved version." : "Nothing changed on either side."}</p>
           ) : null}
-          {review.fields.map((key) => (
-            <div key={key} className="min-w-0 space-y-2">
-              <h4 className="font-semibold">{fieldLabels[key]}</h4>
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="min-w-0">
-                  <p className="theme-text-muted text-sm">Latest saved version</p>
-                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{fieldText(controller.baseline[key])}</pre>
-                </div>
-                <div className="min-w-0">
-                  <p className="theme-text-muted text-sm">Your recovered copy</p>
-                  <pre className="max-h-64 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{fieldText(review.recovered[key])}</pre>
-                </div>
-              </div>
-              {review.used.includes(key) ? (
-                <p className="theme-text-muted text-sm">Using your recovered copy.</p>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  aria-label={`Use recovered ${fieldLabels[key]}`}
-                  onClick={() => controller.takeRecoveredField(key)}
-                >
-                  Use recovered
-                </Button>
-              )}
-            </div>
-          ))}
+          <MergeConflictChoices
+            conflicts={merge.conflicts}
+            choices={review.choices}
+            onChoose={controller.chooseMerge}
+            label={(path) => fieldLabels[path as keyof WritingDraft] ?? path}
+            format={fieldText}
+            copy={copy}
+          />
+          {mine ? <p className="theme-text-primary text-sm"><span className="font-medium">{`${MERGE_CONFLICT_COPY.mine}, kept: `}</span>{mine}</p> : null}
+          {theirs ? <p className="theme-text-primary text-sm"><span className="font-medium">{`${MERGE_CONFLICT_COPY.theirs}, kept: `}</span>{theirs}</p> : null}
           <EditorToolbar>
-            <Button type="button" variant="accent" size="sm" onClick={controller.finishRecoveryReview}>
+            <Button type="button" variant="accent" size="sm" disabled={merge.unresolved.length > 0} onClick={controller.finishMergeReview}>
               Done reviewing
             </Button>
+            {merge.unresolved.length > 0 ? <span className="theme-text-muted text-sm">{unresolvedConflictText(merge.unresolved.length)}</span> : null}
           </EditorToolbar>
         </EditorSection>
       </section>

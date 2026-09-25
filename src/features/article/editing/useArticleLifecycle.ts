@@ -12,6 +12,8 @@ import { articlePublicationNotice, type ArticlePublicationNotice } from "./publi
 import { articleSectionForPath, type ArticleEditorSection } from "./articleSections";
 import { placeWords } from "./changeNote";
 import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
+import { articleArrayIdentity } from "../../../../lib/proposals/articlePatch";
+import { mergeThreeWay, type MergeSide } from "../../../../lib/proposals/threeWayMerge";
 
 /**
  * What the local preview holds at one allow-listed field path, or `null` when
@@ -54,6 +56,21 @@ type Snapshot = {
   draftVersion?: number;
   proposals?: ProposalSummary[];
 };
+/**
+ * The article a local draft was edited from: the loaded public article when
+ * the draft's baseline is that revision, else the revision history's copy of
+ * it, or null when history no longer has it.
+ */
+function articleAtRevision(hash: string, snapshots: Array<Snapshot | null>): SubstanceArticle | null {
+  for (const candidate of snapshots) {
+    if (!candidate) continue;
+    if (candidate.baseHash === hash) return candidate.article;
+    const revision = candidate.history?.find((entry) => entry.resultHash === hash);
+    if (revision) return revision.after;
+  }
+  return null;
+}
+
 export type ArticleLifecycleAction = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
 
 /**
@@ -108,6 +125,8 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [recovery, setRecovery] = useState<Snapshot | null>(null);
   const [baselineRefreshRequired, setBaselineRefreshRequired] = useState(false);
+  // The editor's pick for each field both they and someone else changed.
+  const [mergeChoices, setMergeChoices] = useState<Record<string, MergeSide>>({});
   const [savedArticle, setSavedArticle] = useState(initialArticle);
   const [baseHash, setBaseHash] = useState("");
   const [version, setVersion] = useState<number | undefined>();
@@ -126,6 +145,8 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [expired, setExpired] = useState(false);
   const current = useRef(article);
   current.current = article;
+  // A fresh baseline starts a fresh set of choices.
+  useEffect(() => { setMergeChoices({}); }, [recovery]);
   const requestLock = useRef(false);
   // Keep an uncertain operation's identity and exact body for a deliberate retry.
   const pending = useRef<{ identity: string; changeId: string } | null>(null);
@@ -223,10 +244,23 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       throw failure;
     } finally { requestLock.current = false; setBusy(false); }
   }, [readSnapshot]);
+  /**
+   * The three-way merge of the refreshed public article with the local draft,
+   * measured from the revision the draft was edited against: what only this
+   * editor changed, what only someone else changed, and what both changed.
+   */
+  const merge = useMemo(() => {
+    if (!recovery) return null;
+    const base = articleAtRevision(baseHash, [snapshot, recovery]) ?? snapshot?.article ?? recovery.article;
+    return mergeThreeWay<SubstanceArticle>(base, article, recovery.article, { choices: mergeChoices, identity: articleArrayIdentity });
+  }, [recovery, snapshot, baseHash, article, mergeChoices]);
+  const chooseMerge = useCallback((path: string, side: MergeSide) => setMergeChoices((choices) => ({ ...choices, [path]: side })), []);
   const reconcile = useCallback((keepDraft: boolean) => {
     if (!recovery || requestLock.current || pending.current) throw new Error("Load the latest baseline after reconciling the previous operation.");
     if (keepDraft) {
-      const value = { ...current.current, id: recovery.article.id, slug: recovery.article.slug, editorial_review: recovery.article.editorial_review };
+      if (!merge || merge.unresolved.length > 0) throw new Error("Choose a version for every field both of you changed before using the merged draft.");
+      // Identity and review state are the record's, never the draft's.
+      const value = { ...merge.merged, id: recovery.article.id, slug: recovery.article.slug, editorial_review: recovery.article.editorial_review };
       setSnapshot(recovery);
       setBaseHash(recovery.baseHash);
       setVersion(recovery.draftVersion ?? recovery.draft?.version ?? 0);
@@ -234,13 +268,13 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       preview(value);
       setBaselineRefreshRequired(false);
       setRecovery(null);
-      setNotice("Your draft now uses the refreshed public revision. Review and reconcile its differences before saving or publishing.");
+      setNotice("Your draft now holds your changes and the newer published ones, on the latest public revision. Review it before saving or publishing.");
     } else {
       adoptSnapshot(recovery);
       setNotice("Latest saved state loaded. Unsaved local edits were discarded; published content has not changed.");
     }
     setError(null);
-  }, [recovery, preview, adoptSnapshot]);
+  }, [recovery, merge, preview, adoptSnapshot]);
 
   const act = useCallback(async (action: ArticleLifecycleAction, summary = "", revisionId?: string, candidate?: SubstanceArticle) => {
     if (!snapshot || expired || baselineRefreshRequired || recovery || requestLock.current) throw new Error("Article writes are unavailable. Refresh and reconcile the current baseline; your local changes are retained.");
@@ -354,5 +388,5 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published, isFieldChanged, history: snapshot?.history ?? [],
     hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
-    dirty, load, refresh, recovery, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, feedbackRef, setFeedbackRef, proposals: snapshot?.proposals ?? [], submittedProposalId };
+    dirty, load, refresh, recovery, merge, mergeChoices, chooseMerge, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, feedbackRef, setFeedbackRef, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }
