@@ -145,7 +145,9 @@ function ExpandableNoteRow({
               {valuePath ? (
                 <EditableValue
                   emptyLabel={valueEmptyLabel}
-                  label={ariaLabelBase}
+                  // `ariaLabelBase` arrives translated; only the template is a key.
+                  label="{{label}}"
+                  labelValues={{ label: ariaLabelBase }}
                   path={valuePath}
                   value={value}
                 >
@@ -186,7 +188,8 @@ function ExpandableNoteRow({
               <EditableValue
                 as="div"
                 emptyLabel={notesEmptyLabel}
-                label={`${ariaLabelBase} notes`}
+                label="{{label}} notes"
+                labelValues={{ label: ariaLabelBase }}
                 path={notesPath}
                 value={notes ?? ""}
               >
@@ -254,9 +257,13 @@ export function DoseTiersTable({
                 <span className="theme-text-muted font-mono text-xs">
                   {canEdit ? (
                     <EditableValue<EditableBounds>
-                      emptyLabel={`Add ${label.toLowerCase()} dose`}
+                      emptyLabel="Add {{tier}} dose"
                       format={doseRangeTransformer.toForm}
-                      label={`${routeLabel} ${label.toLowerCase()} dose`}
+                      label="{{route}} {{tier}} dose"
+                      labelValues={{
+                        route: routeLabel,
+                        tier: t(label).toLowerCase(),
+                      }}
                       parse={doseRangeTransformer.toSchema}
                       parseErrorLabel={DOSE_PARSE_ERROR}
                       citeHint="Cite this dose in the route notes."
@@ -284,7 +291,9 @@ export function DoseTiersTable({
             routePath ? `${routePath}.bioavailability_notes` : undefined
           }
           panelId={`dosage-${routeId}-bioavailability-notes`}
-          value={route.bioavailability ? t(route.bioavailability) : ""}
+          // The stored text, not its translation: this seeds the editor, and
+          // `bioavailabilityContent` already renders the translated reading.
+          value={route.bioavailability ?? ""}
           valueContent={bioavailabilityContent}
           notesContent={bioavailabilityNotesContent}
           valueEmptyLabel="Add bioavailability"
@@ -297,7 +306,8 @@ export function DoseTiersTable({
             {routePath ? (
               <EditableValue
                 emptyLabel="Add dosage notes"
-                label={`${routeLabel} dosage notes`}
+                label="{{route}} dosage notes"
+                labelValues={{ route: routeLabel }}
                 path={`${routePath}.notes`}
                 value={route.notes ?? ""}
               >
@@ -365,9 +375,13 @@ export function DurationPanelView({
               <span className="theme-text-muted font-mono text-xs">
                 {canEdit ? (
                   <EditableValue<EditableBounds>
-                    emptyLabel={`Add ${label.toLowerCase()} duration`}
+                    emptyLabel="Add {{stage}} duration"
                     format={durationStageTransformer.toForm}
-                    label={`${routeLabel} ${label.toLowerCase()} duration`}
+                    label="{{route}} {{stage}} duration"
+                    labelValues={{
+                      route: routeLabel,
+                      stage: t(label).toLowerCase(),
+                    }}
                     parse={durationStageTransformer.toSchema}
                     parseErrorLabel={DURATION_PARSE_ERROR}
                     citeHint="Cite this duration in the route notes."

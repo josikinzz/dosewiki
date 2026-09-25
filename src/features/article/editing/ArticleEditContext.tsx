@@ -128,6 +128,20 @@ export interface ArticleEditContextValue {
    * references.
    */
   references?: Reference[];
+  /**
+   * Whether the local preview holds a different value at `path` than the
+   * published article does. Drives the changed dot, so an editor can see at a
+   * glance which values the next review will carry. Absent means the surface
+   * has no baseline to compare against, never that nothing changed.
+   */
+  isChanged?: (path: string) => boolean;
+  /**
+   * Why the local preview cannot be published as it stands at `path`, read
+   * from the same article validation the review sheet runs, or `null` when
+   * that validation names no problem at or around this field. A field shows
+   * this beside itself the moment its edit applies.
+   */
+  fieldIssue?: (path: string) => string | null;
 }
 
 const ArticleEditContext = createContext<ArticleEditContextValue | null>(null);

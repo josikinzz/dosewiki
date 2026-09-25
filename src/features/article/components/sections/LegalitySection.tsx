@@ -178,7 +178,8 @@ function Row({
         notesPath ? (
           <EditableValue
             as="div"
-            label={`${name} legality notes`}
+            label="{{name}} legality notes"
+            labelValues={{ name }}
             path={notesPath}
             value={note}
           >
@@ -202,8 +203,9 @@ function Row({
       ) : notesPath ? (
         <EditableSlot
           className="mt-1"
-          emptyLabel={`Add ${name} legality notes`}
-          label={`${name} legality notes`}
+          emptyLabel="Add {{name}} legality notes"
+          label="{{name}} legality notes"
+          labelValues={{ name }}
           path={notesPath}
           value=""
         />
@@ -336,7 +338,8 @@ export const LegalitySection = memo(function LegalitySection({
         <EditableValue
           key={index}
           as="div"
-          label={`International legality entry ${index + 1}`}
+          label="International legality entry {{n}}"
+          labelValues={{ n: index + 1 }}
           path={buildFieldPath("legality", "international", index)}
           value={item}
         >

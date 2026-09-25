@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { fullArticleWithDosage } from "@/test/fixtures/articles";
 import type { SubstanceArticle } from "@/schema";
-import { articleValidationIssues, describeValidationIssue } from "./useArticleLifecycle";
+import { articleValidationIssues, describeValidationIssue, fieldIssueMessage, issueConcernsField } from "./useArticleLifecycle";
 import { articleSectionForPath } from "./articleSections";
 
 const published = structuredClone(fullArticleWithDosage) as SubstanceArticle;
@@ -30,6 +30,19 @@ describe("article validation issues", () => {
     }), published);
     expect(issue.path).toBe("duration.routes[0].stages.onset.unit");
     expect(issue.sectionId).toBe("dosage");
+  });
+
+  it("reach the field they concern by path, and no other", () => {
+    const issues = articleValidationIssues(edited((article) => {
+      article.dosage.routes[0].dose_ranges.moderate = { min: 200, max: 100, unit: "μg" };
+    }), published);
+    expect(fieldIssueMessage(issues, "dosage.routes[0].dose_ranges.moderate")).toBe("Minimum cannot exceed maximum.");
+    expect(fieldIssueMessage(issues, "dosage.routes[0].dose_ranges.mod")).toBeNull();
+    expect(fieldIssueMessage(issues, "dosage.routes[1].dose_ranges.moderate")).toBeNull();
+    // A group rule reaches each member; a part of a range reaches the range.
+    expect(issueConcernsField("dosage.routes[0].dose_ranges", "dosage.routes[0].dose_ranges.light")).toBe(true);
+    expect(issueConcernsField("duration.routes[0].stages.onset.unit", "duration.routes[0].stages.onset")).toBe(true);
+    expect(issueConcernsField("dosage.routes[1]", "dosage.routes[10].notes")).toBe(false);
   });
 
   it("name no section for a field no in-page section owns", () => {

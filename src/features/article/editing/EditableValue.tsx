@@ -57,12 +57,16 @@ interface EditableValueProps<T extends EditableValueInput = string> {
    * on screen instead.
    */
   parse?: (raw: string) => T | null;
-  /** Shown instead of committing when `parse` returns `null`. */
+  /**
+   * Message key shown instead of committing when `parse` returns `null`.
+   * Translated here with `labelValues`, like `label`.
+   */
   parseErrorLabel?: string;
   /**
-   * Where to cite this value instead. A parsed field has no Cite control: its
-   * parser would read a marker as part of the stored value (a dose unit of
-   * `mg[cite:x]`), so the field says where the citation belongs.
+   * Message key saying where to cite this value instead. A parsed field has
+   * no Cite control: its parser would read a marker as part of the stored
+   * value (a dose unit of `mg[cite:x]`), so the field says where the citation
+   * belongs.
    */
   citeHint?: string;
   children: ReactNode;
@@ -71,12 +75,16 @@ interface EditableValueProps<T extends EditableValueInput = string> {
    * keep producing valid markup; pass `div` when the children render blocks.
    */
   as?: "span" | "div";
-  /** Human name for the field, used in the accessible label. */
+  /**
+   * Message key naming the field, used in the accessible label. A name built
+   * from data is a template (`"{{route}} dosage notes"`) with its parts in
+   * `labelValues`, never a finished sentence: only the template is a key.
+   */
   label?: string;
-  /** Interpolation values for a translated label projected outside the client boundary. */
+  /** Interpolation values for `label`, `emptyLabel` and `parseErrorLabel`. */
   labelValues?: MessageValues;
   /**
-   * Placeholder shown when the field is empty, e.g. "Add dosage notes". Without
+   * Message key for the placeholder shown when the field is empty, e.g. "Add dosage notes". Without
    * it an absent value renders nothing and can never be filled in — but the
    * placeholder only ever appears inside an editing surface, so the public page
    * keeps rendering nothing at all.
@@ -125,8 +133,12 @@ type FieldConflict<T> = { stored: T; storedText: string };
  *
  * Without an `ArticleEditContext` — which is every public render — this is a
  * fragment: the children pass through and the DOM is byte-identical to the
- * unwrapped markup. Inside an editing surface it gains a hover affordance and
- * swaps to a small inline editor whose seed is the raw field value.
+ * unwrapped markup. Inside an editing surface it draws a resting outline, on
+ * every pointer and without hover, so an editor sees what can change before
+ * reaching for it; a dot marks a value that differs from the published
+ * article, and a validation problem with the value shows beside it the moment
+ * the edit applies. Activating it swaps to a small inline editor whose seed
+ * is the raw field value.
  *
  * Enter commits, Shift+Enter inserts a newline, Esc cancels, blur commits.
  * A failed commit keeps the article's prior value and shows the reason inline
@@ -144,7 +156,7 @@ export function EditableValue<T extends EditableValueInput = string>({
   format,
   parse,
   parseErrorLabel,
-  citeHint = "Cite this value in the notes beside it.",
+  citeHint: citeHintKey = "Cite this value in the notes beside it.",
   children,
   as = "span",
   label: labelKey,
@@ -156,6 +168,11 @@ export function EditableValue<T extends EditableValueInput = string>({
   const label = labelKey === undefined ? undefined : t(labelKey, labelValues);
   const emptyLabel =
     emptyLabelKey === undefined ? undefined : t(emptyLabelKey, labelValues);
+  const citeHint = t(citeHintKey);
+  const parseError = t(
+    parseErrorLabel ?? "That is not a value this field can hold.",
+    labelValues,
+  );
   const editing = useArticleEdit();
   // The textarea is always a string; only the wire carries the parsed value.
   const toText = useCallback(
@@ -168,7 +185,23 @@ export function EditableValue<T extends EditableValueInput = string>({
   const [draft, setDraft] = useState(text);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState("");
+  // What the field last announced. Progress and cancellation are for screen
+  // readers only; an outcome (Applied, a removed citation) is also drawn next
+  // to the value for a few seconds, because a field that quietly closes reads
+  // the same whether the edit landed or not.
+  const [status, setStatusState] = useState({ text: "", shown: false });
+  const setStatus = useCallback(
+    (text: string, shown = false) => setStatusState({ text, shown }),
+    [],
+  );
+  useEffect(() => {
+    if (!status.shown) return;
+    const timer = window.setTimeout(
+      () => setStatusState((current) => ({ ...current, shown: false })),
+      4000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [status]);
   const fieldId = useId();
   const editorRef = useRef<HTMLElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -322,12 +355,12 @@ export function EditableValue<T extends EditableValueInput = string>({
       if (parsed === null) {
         // Never coerce: the stored value stays exactly as it was, and the
         // unparseable draft stays on screen where it can be corrected.
-        setError(parseErrorLabel ?? "That is not a value this field can hold.");
+        setError(parseError);
         return;
       }
       setIsPending(true);
       setError(null);
-      setStatus("Applying to preview…");
+      setStatus(t("Applying to preview…"));
       editing
         // Same runtime object either way; see `EditableValueInput`.
         .commit(
@@ -337,7 +370,7 @@ export function EditableValue<T extends EditableValueInput = string>({
         )
         .then(() => {
           commitPendingReferences(next);
-          setStatus("Applied to local preview.");
+          setStatus(t("Applied"), true);
           finish();
         })
         .catch((reason: unknown) => {
@@ -348,7 +381,7 @@ export function EditableValue<T extends EditableValueInput = string>({
           setError(
             reason instanceof Error
               ? reason.message
-              : "Unable to apply this edit locally.",
+              : t("Unable to apply this edit locally."),
           );
 
           if (!isArticleFieldConflict(reason)) {
@@ -383,8 +416,10 @@ export function EditableValue<T extends EditableValueInput = string>({
       finish,
       isPending,
       parse,
-      parseErrorLabel,
+      parseError,
       path,
+      setStatus,
+      t,
       toText,
     ],
   );
@@ -395,8 +430,11 @@ export function EditableValue<T extends EditableValueInput = string>({
         const parsed = parse ? parse(draft) : (draft as T);
         if (parsed === null)
           throw new Error(
-            parseErrorLabel ??
-              `${label ?? path}: correct this value before saving.`,
+            parseErrorLabel === undefined
+              ? t("{{field}}: correct this value before saving.", {
+                  field: label ?? path,
+                })
+              : parseError,
           );
         await editing.commit(
           path,
@@ -421,8 +459,10 @@ export function EditableValue<T extends EditableValueInput = string>({
     baseValue,
     parse,
     parseErrorLabel,
+    parseError,
     label,
     path,
+    t,
     text,
     commitPendingReferences,
     finish,
@@ -450,7 +490,7 @@ export function EditableValue<T extends EditableValueInput = string>({
     setError(null);
     setConflict(null);
     setIsEditing(true);
-  }, [text]);
+  }, [setStatus, text]);
   /**
    * Open this field at one of its own markers.
    *
@@ -473,7 +513,7 @@ export function EditableValue<T extends EditableValueInput = string>({
       setCiteOpen(true);
       setIsEditing(true);
     },
-    [text],
+    [setStatus, text],
   );
   /**
    * Drop one marker from the stored value. The reference stays on the article:
@@ -485,20 +525,20 @@ export function EditableValue<T extends EditableValueInput = string>({
       const next = withoutMarker(text, marker);
       const parsed = parse ? parse(next) : (next as T);
       if (parsed === null) return;
-      setStatus("Applying to preview…");
+      setStatus(t("Applying to preview…"));
       editing
         .commit(path, parsed as EditableFieldValue, value as EditableFieldValue)
-        .then(() => setStatus("Citation removed from local preview."))
+        .then(() => setStatus(t("Citation removed"), true))
         .catch((reason: unknown) => {
           setStatus("");
           setError(
             reason instanceof Error
               ? reason.message
-              : "Unable to remove this citation.",
+              : t("Unable to remove this citation."),
           );
         });
     },
-    [editing, parse, path, text, value],
+    [editing, parse, path, setStatus, t, text, value],
   );
   const markerContext = useMemo(
     () => ({ markers: parseCitationMarkers(text), citeAtMarker, removeMarker }),
@@ -507,7 +547,7 @@ export function EditableValue<T extends EditableValueInput = string>({
   const cancelEditing = () => {
     cancelledRef.current = true;
     setError(null);
-    setStatus("Edit cancelled.");
+    setStatus(t("Edit cancelled."));
     finish();
   };
 
@@ -516,12 +556,29 @@ export function EditableValue<T extends EditableValueInput = string>({
   }
 
   const fieldLabel = label ?? path;
+  const editLabel = t("Edit {{field}}", { field: fieldLabel });
   const Wrapper = as;
   const statusMessage = (
-    <span role="status" className="sr-only">
-      {status}
+    <span
+      role="status"
+      data-editable-status
+      className={
+        status.shown && !isEditing
+          ? "theme-text-muted ms-1.5 text-xs font-normal not-italic"
+          : "sr-only"
+      }
+    >
+      {status.text}
     </span>
   );
+  // Only a value this session changed carries its problem inline: untouched
+  // legacy values are the review sheet's business, and a group rule (one unit
+  // per route) should point at the tier that broke it, not at every tier.
+  const changed = editing.isChanged?.(path) ?? false;
+  const issue =
+    !isEditing && (changed || !editing.isChanged)
+      ? (editing.fieldIssue?.(path) ?? null)
+      : null;
 
   if (isEditing) {
     return (
@@ -546,7 +603,7 @@ export function EditableValue<T extends EditableValueInput = string>({
         >
           <Textarea
             ref={focusOnMount}
-            aria-label={`Edit ${fieldLabel}`}
+            aria-label={editLabel}
             aria-describedby={`${fieldId}-hint${error ? ` ${fieldId}-error` : ""}`}
             aria-invalid={!!error}
             variant={error ? "error" : "default"}
@@ -579,7 +636,9 @@ export function EditableValue<T extends EditableValueInput = string>({
             id={`${fieldId}-hint`}
             className="theme-text-faint mt-1 block text-sm leading-snug"
           >
-            {isPending ? "Applying to preview…" : "Enter applies · Esc cancels"}
+            {isPending
+              ? t("Applying to preview…")
+              : t("Enter applies · Esc cancels")}
             {parse && editing.addReference ? (
               <span className="block">{citeHint}</span>
             ) : null}
@@ -644,10 +703,23 @@ export function EditableValue<T extends EditableValueInput = string>({
         ref={focusTriggerOnMount}
         role="button"
         tabIndex={0}
-        aria-label={`Edit ${fieldLabel}`}
+        aria-label={editLabel}
+        aria-describedby={
+          [changed && `${fieldId}-changed`, issue && `${fieldId}-issue`]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
+        // A button cannot be aria-invalid; the problem reaches assistive
+        // technology through the description above and the alert below.
+        data-invalid={issue ? true : undefined}
         data-editable-path={path}
+        data-editable-affordance="resting"
+        data-changed={changed || undefined}
         className={cn(
-          "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-none transition-colors duration-150",
+          // The resting outline is the affordance: present on every pointer
+          // and without hover, so edit mode shows at a glance what can change.
+          "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-1 outline-offset-1 outline-dashed transition-colors duration-150",
+          issue ? "outline-dose-danger" : "outline-dose-border-strong",
           "hover:decoration-current focus-visible:decoration-current focus-visible:ring-1 focus-visible:ring-current",
           "motion-reduce:transition-none",
           TOUCH_PILL,
@@ -687,6 +759,23 @@ export function EditableValue<T extends EditableValueInput = string>({
             <span className="theme-text-faint italic">{emptyLabel}</span>
           )}
         </FieldMarkerProvider>
+        {changed ? (
+          <>
+            <span
+              aria-hidden
+              data-changed-dot
+              className={cn(
+                "inline-block size-1.5 rounded-full bg-dose-accent",
+                as === "div"
+                  ? "absolute -start-2.5 top-2"
+                  : "ms-1 align-middle",
+              )}
+            />
+            <span id={`${fieldId}-changed`} className="sr-only">
+              {t("Changed from the published article")}
+            </span>
+          </>
+        ) : null}
         <Icon
           icon="lucide:pencil-line"
           size={12}
@@ -699,6 +788,15 @@ export function EditableValue<T extends EditableValueInput = string>({
         />
       </Wrapper>
       {statusMessage}
+      {issue ? (
+        <span
+          id={`${fieldId}-issue`}
+          role="alert"
+          className="theme-danger-text mt-1 block text-xs font-normal not-italic leading-snug"
+        >
+          {issue}
+        </span>
+      ) : null}
     </>
   );
 }

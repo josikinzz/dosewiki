@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { doseRangeTransformer } from "@/data/schema";
 import { fetchReferenceMetadata } from "@/lib/citations/referenceIntake";
@@ -625,5 +625,71 @@ describe("EditableValue inside a clickable ancestor", () => {
     expect(
       screen.getByRole("textbox", { name: "Edit history_culture.content" }),
     ).toHaveValue("Stored prose.");
+  });
+});
+
+describe("EditableValue in edit mode", () => {
+  function Harness({ fieldIssue }: { fieldIssue?: (value: string) => string | null }) {
+    const [value, setValue] = useState("Original note.");
+    return (
+      <ArticleEditProvider
+        value={{
+          commit: async (_path, next) => {
+            setValue(next as string);
+            return next;
+          },
+          isChanged: () => value !== "Original note.",
+          fieldIssue: fieldIssue ? () => fieldIssue(value) : undefined,
+        }}
+      >
+        <EditableValue path="dosage.routes[1].notes" value={value} label="Oral notes">
+          <span>{value}</span>
+        </EditableValue>
+      </ArticleEditProvider>
+    );
+  }
+
+  it("outlines every editable value at rest, without hover", () => {
+    render(<Harness />);
+    const field = screen.getByRole("button", { name: "Edit Oral notes" });
+    expect(field).toHaveAttribute("data-editable-affordance", "resting");
+    // The outline is a resting class, not a hover or coarse-pointer variant.
+    const classes = field.className.split(/\s+/);
+    expect(classes).toContain("outline-dashed");
+    expect(classes).toContain("outline-dose-border-strong");
+    expect(classes).not.toContain("outline-none");
+  });
+
+  it("marks a value changed and shows a visible Applied after Enter", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    const field = screen.getByRole("button", { name: "Edit Oral notes" });
+    expect(field).not.toHaveAttribute("data-changed");
+    expect(field.querySelector("[data-changed-dot]")).toBeNull();
+
+    await user.click(field);
+    await user.type(screen.getByRole("textbox", { name: "Edit Oral notes" }), " More.{Enter}");
+
+    const applied = await screen.findByRole("status");
+    expect(applied).toHaveTextContent("Applied");
+    expect(applied).not.toHaveClass("sr-only");
+    const changed = screen.getByRole("button", { name: "Edit Oral notes" });
+    expect(changed).toHaveAttribute("data-changed", "true");
+    expect(changed.querySelector("[data-changed-dot]")).not.toBeNull();
+    expect(changed).toHaveAccessibleDescription("Changed from the published article");
+  });
+
+  it("shows the field's validation problem beside it once the edit applies", async () => {
+    const user = userEvent.setup();
+    render(<Harness fieldIssue={(value) => (value.includes("bad") ? "This note is invalid." : null)} />);
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
+    await user.type(screen.getByRole("textbox", { name: "Edit Oral notes" }), " bad{Enter}");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("This note is invalid.");
+    const field = screen.getByRole("button", { name: "Edit Oral notes" });
+    expect(field).toHaveAttribute("data-invalid", "true");
+    expect(field.className.split(/\s+/)).toContain("outline-dose-danger");
   });
 });

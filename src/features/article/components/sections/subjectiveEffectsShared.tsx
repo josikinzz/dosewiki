@@ -22,7 +22,7 @@ import { isPlainLeftClick } from "@/utils/navigation";
 import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 import { EditableSlot, EditableValue, buildFieldPath } from "../../editing";
-import { useT } from "@/i18n/client";
+import { useT, type MessageValues } from "@/i18n/client";
 
 export { SENSORY_CATEGORIES };
 
@@ -228,18 +228,27 @@ function EffectsGroup({
 function MaybeEditable({
   children,
   label,
+  labelValues,
   path,
   value,
 }: {
   children: ReactNode;
+  /** A message key; `EditableValue` translates it with `labelValues`. */
   label: string;
+  labelValues?: MessageValues;
   path?: string;
   value: string;
 }) {
   if (!path) return <>{children}</>;
 
   return (
-    <EditableValue as="div" label={label} path={path} value={value ?? ""}>
+    <EditableValue
+      as="div"
+      label={label}
+      labelValues={labelValues}
+      path={path}
+      value={value ?? ""}
+    >
       {children}
     </EditableValue>
   );
@@ -316,7 +325,8 @@ export function CollapsibleStage({
         >
           <div className="overflow-hidden">
             <MaybeEditable
-              label={t("{{label}} note", { label: stageLabel })}
+              label="{{label}} note"
+              labelValues={{ label: stageLabel }}
               path={notePath}
               value={note}
             >
@@ -335,8 +345,9 @@ export function CollapsibleStage({
       {!hasNote && notePath ? (
         <EditableSlot
           className="pb-3 pl-[2.625rem] pr-3"
-          emptyLabel={t("Add a {{label}} note", { label: stageLabel })}
-          label={t("{{label}} note", { label: stageLabel })}
+          emptyLabel="Add a {{label}} note"
+          label="{{label}} note"
+          labelValues={{ label: stageLabel }}
           path={notePath}
           value={note ?? ""}
         />
@@ -392,7 +403,8 @@ function SubcategorySection({
       )}
       {hasSubcategoryNote && (
         <MaybeEditable
-          label={t("{{label}} note", { label: subcategoryLabel })}
+          label="{{label}} note"
+          labelValues={{ label: subcategoryLabel }}
           path={notePath}
           value={subcategoryData.note}
         >
@@ -404,8 +416,9 @@ function SubcategorySection({
       {!hasSubcategoryNote && notePath ? (
         <EditableSlot
           className="mb-3"
-          emptyLabel={t("Add a {{label}} note", { label: subcategoryLabel })}
-          label={t("{{label}} note", { label: subcategoryLabel })}
+          emptyLabel="Add a {{label}} note"
+          label="{{label}} note"
+          labelValues={{ label: subcategoryLabel }}
           path={notePath}
           value={subcategoryData.note ?? ""}
         />
@@ -489,9 +502,8 @@ export function CategoryEffects({
       {flatNotes.map(({ subcategory, note }) => (
         <MaybeEditable
           key={subcategory}
-          label={t("{{label}} note", {
-            label: t(resolveSubcategory(subcategory).label),
-          })}
+          label="{{label}} note"
+          labelValues={{ label: t(resolveSubcategory(subcategory).label) }}
           path={
             notePathBase
               ? buildFieldPath(...notePathBase, subcategory, "note")
