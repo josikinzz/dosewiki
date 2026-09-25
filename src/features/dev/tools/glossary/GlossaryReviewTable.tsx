@@ -31,9 +31,14 @@ import {
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
 import type { GlossaryUsageMap, GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
+import type { ReviewReason } from "@lib/translation/reviewReason";
+import { ApprovalActions, ReasonPicker, reasonFor, type ReasonDraft } from "./CorrectionReason";
 
-/** Unsaved wording survives category changes and search, scoped to its locale and source revision. */
-export type GlossaryEditDrafts = Map<string, { value: string; revision: string }>;
+/** Unsaved wording and its reason survive category changes and search, scoped to its locale and source revision. */
+export type GlossaryEditDrafts = Map<string, { value: string; revision: string; reason?: ReasonDraft }>;
+
+/** A term edit usually corrects terminology, so that kind starts chosen, visibly, and a click changes it. */
+const TERM_REASON: ReasonDraft = { kind: "terminology", note: "" };
 
 /** The outcome of the last single-row write, shown on that row rather than at the top of the page. */
 export type GlossaryRowNotice = { term: string; tone: "success" | "danger"; message: string };
@@ -62,8 +67,8 @@ export type GlossaryGroupSectionProps = {
   onConfirmAll: () => void;
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
-  onSave: (row: GlossaryRow, target: string) => void;
-  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
+  onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
   rowNotice: GlossaryRowNotice | null;
@@ -147,8 +152,8 @@ type GlossaryTableProps = {
   canDefine: boolean;
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
-  onSave: (row: GlossaryRow, target: string) => void;
-  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
+  onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
   rowNotice: GlossaryRowNotice | null;
@@ -201,8 +206,8 @@ type GlossaryTableRowProps = {
   writing: boolean;
   onApprove: (row: GlossaryRow) => void;
   onConfirm: (row: GlossaryRow) => void;
-  onSave: (row: GlossaryRow, target: string) => void;
-  onSaveAndApprove: (row: GlossaryRow, target: string) => void;
+  onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
+  onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: () => Promise<void>;
   notice: GlossaryRowNotice | null;
@@ -211,24 +216,31 @@ type GlossaryTableRowProps = {
 function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, notice }: GlossaryTableRowProps) {
   const draftKey = JSON.stringify([row.locale, row.term]);
   const [draft, setDraft] = useState(() => editDrafts.get(draftKey)?.value ?? row.target);
+  const [reason, setReason] = useState<ReasonDraft>(() => editDrafts.get(draftKey)?.reason ?? TERM_REASON);
   useEffect(() => {
     const saved = editDrafts.get(draftKey);
     if (saved && saved.value.trim() === row.target) editDrafts.delete(draftKey);
     setDraft(editDrafts.get(draftKey)?.value ?? row.target);
+    setReason(editDrafts.get(draftKey)?.reason ?? TERM_REASON);
   }, [draftKey, editDrafts, row.target]);
   const dirty = draft.trim() !== row.target && draft.trim().length > 0;
   const held = disabled || writing;
   const unchecked = isLiveUnchecked(row);
   const canSave = draft.trim().length > 0 && (dirty || unchecked);
+  const blocked = dirty && !reason.kind;
   const editedRow = () => ({ ...row, revision: editDrafts.get(draftKey)?.revision ?? row.revision });
+  const sentReason = () => reasonFor(reason, "Saved the wording as it stands.");
   const save = () => {
-    if (canSave) onSave(editedRow(), draft.trim());
+    if (canSave && !blocked) onSave(editedRow(), draft.trim(), sentReason());
+  };
+  const editReason = (next: ReasonDraft) => {
+    setReason(next);
+    editDrafts.set(draftKey, { value: draft, revision: editDrafts.get(draftKey)?.revision ?? row.revision, reason: next });
   };
   // Enter only saves drafts. Approval always uses the explicit review button.
   const submit = () => {
     if (held) return;
     if (dirty) save();
-
   };
   return (
     <EditorTableRow data-term={row.term} data-status={row.status} data-needs-review={row.status === "draft" || unchecked || undefined} aria-busy={writing || undefined}>
@@ -264,7 +276,7 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             const value = event.target.value;
             setDraft(value);
             if (value === row.target) editDrafts.delete(draftKey);
-            else editDrafts.set(draftKey, { value, revision: editDrafts.get(draftKey)?.revision ?? row.revision });
+            else editDrafts.set(draftKey, { value, revision: editDrafts.get(draftKey)?.revision ?? row.revision, reason });
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -273,6 +285,8 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             }
           }}
         />
+        {/* The shared reason control, once there is a change to explain; a term's natural reason is chosen to start, in plain view. */}
+        {dirty ? <div className="mt-2"><ReasonPicker value={reason} onChange={editReason} disabled={held} needed noteAriaLabel={`Note for ${row.term}`} /></div> : null}
       </EditorTableCell>
       <EditorTableCell label="Status">
         {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: <span lang={row.locale} dir="auto">{row.approved_target}</span></p> : null}
@@ -289,30 +303,23 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
           a clean draft is approved, live wording is confirmed. Save draft stays
           as the quieter choice whenever there is something to save.
         */}
-        <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Actions for ${row.term}`}>
-          {dirty ? (
-            <Button type="button" variant="accent" size="sm" disabled={held} onClick={() => onSaveAndApprove(editedRow(), draft.trim())}>
-              <Icon icon="lucide:check" size={14} />
-              Save and approve
-            </Button>
-          ) : row.status === "draft" ? (
-            <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={held} onClick={() => onApprove(row)}>
-              <Icon icon="lucide:check" size={14} />
-              Approve
-            </Button>
-          ) : unchecked ? (
+        <ApprovalActions
+          label={`Actions for ${row.term}`}
+          changed={dirty}
+          canSave={canSave}
+          approvable={row.status === "draft"}
+          busy={held}
+          blocked={blocked}
+          onSave={save}
+          onSaveAndApprove={() => onSaveAndApprove(editedRow(), draft.trim(), sentReason())}
+          onApprove={() => onApprove(row)}
+          extra={unchecked ? (
             <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={held} onClick={() => onConfirm(row)}>
               <Icon icon="lucide:badge-check" size={14} />
               Confirm
             </Button>
           ) : null}
-          {canSave ? (
-            <Button type="button" variant="outline" size="sm" disabled={held} onClick={save}>
-              <Icon icon="lucide:save" size={14} />
-              Save draft
-            </Button>
-          ) : null}
-        </div>
+        />
         {/* Always mounted, so screen readers announce the result when it arrives. */}
         <p role="status" className={notice ? `mt-1 text-xs ${notice.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}` : "sr-only"}>
           {notice?.message ?? ""}

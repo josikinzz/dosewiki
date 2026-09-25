@@ -61,7 +61,7 @@ export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, s
         </p>
       ) : null}
       {nothingTranslatedYet ? (
-        <p className="theme-text-faint text-xs">Starting the main translation uses the shared worker pool, capped at 100 simultaneous GLM 5.3 Flash requests.</p>
+        <p className="theme-text-faint text-xs">Starting the main translation uses the shared worker pool, capped at 100 simultaneous requests to the translation model.</p>
       ) : null}
       {!nothingTranslatedYet ? <PendingTermsList terms={pending} /> : null}
     </section>

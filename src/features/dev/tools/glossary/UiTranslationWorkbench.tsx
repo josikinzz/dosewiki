@@ -11,7 +11,7 @@ import { EditorNotice, EditorStatusPill, type EditorNoticeMessage } from "@/feat
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
 import { ShortLabelGrid } from "./ShortLabelGrid";
 import { PendingRefreshList } from "./PendingRefreshList";
-import { CorrectionReasonFields, correctionReason, exceptionsFor, openConflicts, type CorrectionDraft } from "./CorrectionReason";
+import { ApprovalActions, CorrectionReasonFields, exceptionsFor, openConflicts, reasonFor, type CorrectionDraft } from "./CorrectionReason";
 import type { CorrectionReasonKind } from "@lib/translation/reviewReason";
 
 /** What each label state is called on its pill; the same words the summary line uses. */
@@ -53,7 +53,7 @@ export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "",
   const needle = search.trim().toLowerCase();
   const shown = rows?.filter((row) => [row.source, row.context, row.id, row.draft?.target ?? "", row.approved?.target ?? row.compiledTarget ?? ""].some((value) => value.toLowerCase().includes(needle)));
   return <section aria-label="UI labels" className="space-y-4">
-    <p className="theme-text-secondary text-sm">Set the exact wording for each meaning. Saving creates an unreviewed draft. Approval preserves human wording for the next UI catalog build.</p>
+    <p className="theme-text-secondary text-sm">Set the exact wording for each meaning. Save and approve keeps your wording for the next site build; Save draft leaves it for another reviewer.</p>
     <div className="flex flex-wrap items-center gap-2">
       <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reload UI labels</Button>
       <div role="group" aria-label="UI label view" className="flex gap-1">
@@ -95,20 +95,28 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
   const conflicts = openConflicts(row.source, target, row.glossary, exceptionsFor(correction, row.id));
   const savedTarget = row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "";
   const dirty = target.trim() !== savedTarget;
-  const write = async (action: "save" | "approve" | "restore", restoreRevision?: number) => {
+  const canSave = Boolean(target.trim()) && (dirty || row.status === "stale" || row.status === "unreviewed");
+  const approvable = !dirty && Boolean(row.draft) && row.draft?.source === row.source && row.draft?.context === row.context;
+  const send = async (action: "save" | "approve" | "restore", expectedRevision: number, restoreRevision?: number) => (await translationRequest<UiTranslationWriteResponse>(endpoint, {
+    locale, id: row.id, action, expectedRevision,
+    ...(action === "save" ? { target: target.trim(), glossaryExceptions: exceptionsFor(correction, row.id) } : {}),
+    ...(restoreRevision === undefined ? {} : { restoreRevision }),
+    reason: reasonFor(correction, action === "save" ? "Saved the wording as it stands." : action === "approve" ? "Reviewed wording in its UI context." : `Restore revision ${restoreRevision} for review.`),
+  })).row;
+  /** Save and approve saves first, then approves exactly the revision that save produced. */
+  const write = async (action: "save" | "approve" | "restore" | "save-approve", restoreRevision?: number) => {
     if (inFlight.current) return;
     inFlight.current = true; setBusy(true); setNotice(null);
     try {
-      const result = await translationRequest<UiTranslationWriteResponse>(endpoint, {
-        locale, id: row.id, action, expectedRevision: row.revision,
-        ...(action === "save" ? { target: target.trim() } : {}),
-        ...(restoreRevision === undefined ? {} : { restoreRevision }),
-        ...(action === "save" ? { glossaryExceptions: exceptionsFor(correction, row.id) } : {}),
-        reason: correctionReason(correction) ?? (correction.note.trim() || (action === "approve" ? "Reviewed wording in its UI context." : `Restore revision ${restoreRevision} for review.`)),
-      });
+      let result = await send(action === "save-approve" ? "save" : action, row.revision, restoreRevision);
+      if (action === "save-approve") {
+        edits.delete(editKey);
+        update(result);
+        result = await send("approve", result.revision);
+      }
       edits.delete(editKey);
-      update(result.row); setCorrection({ kind: null, note: "", segment: row.id, exceptions: [] });
-      setNotice({ tone: "success", message: action === "approve" ? "Approved. Awaiting a UI catalog build." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
+      update(result); setCorrection({ kind: null, note: "", segment: row.id, exceptions: [] });
+      setNotice({ tone: "success", message: action === "approve" || action === "save-approve" ? "Approved. Awaiting a UI catalog build." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
     } catch (cause) {
       setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change was not saved." });
       // Keep the typed rendering on errors; a stale revision must be deliberately reviewed.
@@ -122,11 +130,9 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     {row.compiledTarget ? <p className="theme-text-secondary text-sm">Compiled wording: <span lang={locale} dir="auto" className="theme-text-primary">{row.compiledTarget}</span></p> : null}
     {row.approved ? <p className="theme-text-secondary text-sm">Approved wording: <span lang={locale} dir="auto" className="theme-text-primary">{row.approved.target}</span></p> : <p className="theme-text-faint text-xs">No human-approved wording is recorded for this context.</p>}
     <div className="space-y-1"><label htmlFor={inputId} className="theme-text-secondary text-xs">Translation</label>{row.source.length > 100 || row.source.includes("\n") || target.length > 100 || target.includes("\n") ? <Textarea id={inputId} textareaSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} /> : <Input id={inputId} inputSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={target} onChange={(event) => editTarget(event.target.value)} disabled={busy} />}</div>
-    <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />
-    <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" size="sm" disabled={busy || !target.trim() || !correction.kind || conflicts.length > 0 || (!dirty && row.status !== "stale" && row.status !== "unreviewed")} onClick={() => void write("save").catch(() => {})}>Save draft</Button>
-      <Button type="button" variant="accent" size="sm" disabled={busy || dirty || !row.draft || row.draft.source !== row.source || row.draft.context !== row.context} onClick={() => void write("approve").catch(() => {})}>Approve saved draft</Button>
-    </div>
+    <CorrectionReasonFields value={correction} onChange={editCorrection} segment={row.id} source={row.source} target={target} mentions={row.glossary} locale={locale} disabled={busy} needed={dirty} noteLabel="Review note (optional)" noteAriaLabel={`Review note for ${row.id}`} />
+    <ApprovalActions changed={dirty && Boolean(target.trim())} canSave={canSave} approvable={approvable} busy={busy} blocked={(dirty && !correction.kind) || conflicts.length > 0}
+      onSave={() => void write("save").catch(() => {})} onSaveAndApprove={() => void write("save-approve").catch(() => {})} onApprove={() => void write("approve").catch(() => {})} />
     {notice ? <EditorNotice notice={notice} /> : null}
     <TranslationHistory revision={row.revision} name={row.id} disabled={busy || dirty} load={async () => (await translationRequest<UiTranslationHistoryResponse>(`${endpoint}/history?locale=${encodeURIComponent(locale)}&id=${encodeURIComponent(row.id)}`)).history} restore={(revision) => write("restore", revision)} />
   </Surface>;

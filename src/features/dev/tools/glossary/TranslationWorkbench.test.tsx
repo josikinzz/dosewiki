@@ -26,15 +26,17 @@ describe("UI translation review", () => {
     render(<UiTranslationWorkbench locale="zh-Hans" />);
     const input = await screen.findByRole("textbox", { name: "Translation for appearance.light" });
     await user.type(input, "浅色");
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    // Unsaved wording offers no bare Approve.
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
     // A correction names its reason before it is saved.
     expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save and approve" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. The approved wording is unchanged.");
     expect(writes[0]).toMatchObject({ action: "save", expectedRevision: 0, target: "浅色", reason: { kind: "fluency", note: "" }, glossaryExceptions: [] });
     expect(writes).toHaveLength(1);
-    await user.click(screen.getByRole("button", { name: "Approve saved draft" }));
+    await user.click(screen.getByRole("button", { name: "Approve" }));
     await screen.findByText("Approved. Awaiting a UI catalog build.");
     expect(writes[1]).toMatchObject({ action: "approve", expectedRevision: 1 });
     expect(writes[1]).not.toHaveProperty("target");
@@ -53,7 +55,7 @@ describe("UI translation review", () => {
     expect(await screen.findByRole("textbox", { name: "Translation for appearance.light" })).toHaveValue("浅色");
     expect(screen.getByText("No human review")).toBeInTheDocument();
     expect(screen.getByText("Compiled wording:")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Fluency" }));
     await user.click(screen.getByRole("button", { name: "Save draft" }));
     await screen.findByText("Draft saved. The approved wording is unchanged.");
@@ -72,7 +74,7 @@ describe("UI translation review", () => {
     await screen.findByText("This translation changed. Reload before reviewing.");
     expect(input).toHaveValue("浅色");
     expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
   });
 
   it("shows who changed wording and restores a historical revision as a draft", async () => {
@@ -92,7 +94,7 @@ describe("UI translation review", () => {
     await user.click(screen.getByRole("button", { name: "Restore revision 1 as draft" }));
     await screen.findByText("Restored as a draft. Review the wording before approving.");
     expect(writes[0]).toMatchObject({ action: "restore", expectedRevision: 2, restoreRevision: 1 });
-    expect(screen.getByRole("button", { name: "Approve saved draft" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Approve" })).toBeEnabled();
     expect(screen.getByText("Approved wording:")).toBeInTheDocument();
   });
 

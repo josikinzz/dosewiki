@@ -1,11 +1,15 @@
 "use client";
 /**
- * The reason and glossary check every correction editor shares: four reason
- * chips with an optional note, the glossary conflict notice ("Fine here" or
- * "Update the glossary"), and a glossary proposal that saves a draft and
- * never approves it.
+ * The reason control and approval actions every surface of the translation
+ * workbench shares (terms, interface text, article paragraphs, style guide):
+ * four reason chips with an optional note, one save-then-approve button set,
+ * the glossary conflict notice ("Fine here" or "Update the glossary"), and a
+ * glossary proposal that saves a draft and never approves it.
+ *
+ * The one rule: changed wording needs a reason kind before it is saved;
+ * approving saved wording as it stands needs none.
  */
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditorSelect } from "@/features/dev/components";
@@ -32,14 +36,86 @@ export function openConflicts(source: string, target: string, mentions: readonly
 
 /** The four reason chips; one is chosen at a time. */
 export function ReasonKindChips({ value, onChange, disabled, label = "Reason" }: { value: CorrectionReasonKind | null; onChange: (kind: CorrectionReasonKind) => void; disabled?: boolean; label?: string }) {
-  return <div role="group" aria-label={label} className="flex flex-wrap items-center gap-1">
+  return <div className="flex flex-wrap items-center gap-1">
     <span className="theme-text-secondary mr-1 text-xs">{label}</span>
     {CORRECTION_REASON_KINDS.map((kind) => <Button key={kind} type="button" size="sm" variant={value === kind ? "accent" : "outline"} aria-pressed={value === kind} disabled={disabled}
       onClick={() => onChange(kind)}>{CORRECTION_REASON_LABEL[kind]}</Button>)}
   </div>;
 }
 
-export function CorrectionReasonFields({ value, onChange, segment, source, target, mentions, locale, disabled, noteLabel = "Note (optional)", noteAriaLabel }: {
+/** What the reason control holds: a kind once chosen, and an optional note. */
+export type ReasonDraft = { kind: CorrectionReasonKind | null; note: string };
+export const EMPTY_REASON: ReasonDraft = { kind: null, note: "" };
+export const REASON_NEEDED = "Choose a reason to save this change.";
+
+/**
+ * The one reason control: the four kinds and an optional note, the same on
+ * every surface. `needed` says in visible text why saving waits, so a
+ * disabled button never has to explain itself in a tooltip.
+ */
+export function ReasonPicker({ value, onChange, disabled, needed = false, noteLabel = "Note (optional)", noteAriaLabel }: {
+  value: ReasonDraft;
+  onChange: (next: ReasonDraft) => void;
+  disabled?: boolean;
+  /** Changed wording is waiting on a kind. */
+  needed?: boolean;
+  noteLabel?: string;
+  noteAriaLabel?: string;
+}) {
+  const id = useId();
+  return <div role="group" aria-label="Reason" className="space-y-2">
+    <ReasonKindChips value={value.kind} onChange={(kind) => onChange({ ...value, kind })} disabled={disabled} />
+    <div className="space-y-1">
+      <label htmlFor={`${id}-note`} className="theme-text-secondary text-xs">{noteLabel}</label>
+      <Input id={`${id}-note`} inputSize="sm" aria-label={noteAriaLabel} value={value.note} maxLength={1000} disabled={disabled} placeholder="What was wrong, in a few words" onChange={(event) => onChange({ ...value, note: event.target.value })} />
+    </div>
+    {needed && !value.kind ? <p className="theme-text-faint text-xs">{REASON_NEEDED}</p> : null}
+  </div>;
+}
+
+/**
+ * The reason a write sends: the chosen kind and note, or, when saved wording
+ * is approved or restored as it stands, a plain note saying so. The routes
+ * that record history need one or the other.
+ */
+export function reasonFor(draft: ReasonDraft, fallback: string): ReviewReason {
+  return draft.kind ? { kind: draft.kind, note: draft.note.trim() } : { kind: "unspecified", note: draft.note.trim() || fallback };
+}
+
+/**
+ * The one approval action. Changed wording offers Save and approve (the main
+ * action) and Save draft; saved wording waiting for review offers Approve. A
+ * translator may approve their own edits. `extra` is a surface's own main
+ * action when there is nothing to approve (Confirm on a live, never checked
+ * term); `children` follow the save buttons.
+ */
+export function ApprovalActions({ changed, canSave = changed, approvable, blocked = false, busy = false, label, onSave, onSaveAndApprove, onApprove, extra, children }: {
+  /** The wording differs from what is saved. */
+  changed: boolean;
+  /** Save draft applies; defaults to `changed`. */
+  canSave?: boolean;
+  /** A saved draft is waiting and nothing unsaved sits on top of it. */
+  approvable: boolean;
+  /** Saving waits on a reason or an open glossary conflict; the surface says which in text. */
+  blocked?: boolean;
+  busy?: boolean;
+  label?: string;
+  onSave: () => void;
+  onSaveAndApprove: () => void;
+  onApprove: () => void;
+  extra?: ReactNode;
+  children?: ReactNode;
+}) {
+  return <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
+    {changed ? <Button type="button" variant="accent" size="sm" disabled={busy || blocked} onClick={onSaveAndApprove}>Save and approve</Button>
+      : approvable ? <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={busy} onClick={onApprove}>Approve</Button>
+      : extra ?? null}
+    {canSave ? <Button type="button" variant="outline" size="sm" disabled={busy || blocked} onClick={onSave}>Save draft</Button> : null}
+    {children}
+  </div>;
+}
+
+export function CorrectionReasonFields({ value, onChange, segment, source, target, mentions, locale, disabled, needed, noteLabel = "Note (optional)", noteAriaLabel }: {
   value: CorrectionDraft;
   onChange: (next: CorrectionDraft) => void;
   /** The segment or label being corrected; "Fine here" applies to it alone. */
@@ -49,20 +125,17 @@ export function CorrectionReasonFields({ value, onChange, segment, source, targe
   mentions: readonly GlossaryMention[] | undefined;
   locale: string;
   disabled?: boolean;
+  /** Changed wording is waiting on a reason kind. */
+  needed?: boolean;
   noteLabel?: string;
   noteAriaLabel?: string;
 }) {
-  const id = useId();
   const [proposal, setProposal] = useState<string | null>(null);
   const exceptions = exceptionsFor(value, segment);
   const conflicts = openConflicts(source, target, mentions, exceptions);
   const proposable = mentions ?? [];
   return <div className="space-y-2">
-    <ReasonKindChips value={value.kind} onChange={(kind) => onChange({ ...value, kind })} disabled={disabled} />
-    <div className="space-y-1">
-      <label htmlFor={`${id}-note`} className="theme-text-secondary text-xs">{noteLabel}</label>
-      <Input id={`${id}-note`} inputSize="sm" aria-label={noteAriaLabel} value={value.note} maxLength={1000} disabled={disabled} placeholder="What was wrong, in a few words" onChange={(event) => onChange({ ...value, note: event.target.value })} />
-    </div>
+    <ReasonPicker value={value} onChange={(next) => onChange({ ...value, ...next })} disabled={disabled} needed={needed} noteLabel={noteLabel} noteAriaLabel={noteAriaLabel} />
     {conflicts.map((conflict) => <div key={conflict.term} role="status" className="theme-text-secondary flex flex-wrap items-center gap-2 text-sm">
       <span>{glossaryConflictMessage(conflict)}</span>
       <Button type="button" size="sm" variant="outline" disabled={disabled} onClick={() => onChange({ ...value, segment, exceptions: [...exceptions, conflict.term] })}>Fine here</Button>
