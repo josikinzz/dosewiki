@@ -35,10 +35,7 @@ import {
   getWarningBannerPresets,
 } from "./warningBanners";
 import { getCopyByKeys } from "./copyBlocks";
-import {
-  CITATION_OVERHAUL_BANNER_KEY_PREFIX,
-  resolveEnabledBanners,
-} from "../../src/data/substanceWarningBanners";
+import { resolveArticleBanners } from "../../src/data/substanceWarningBanners";
 import { substanceHasCitationNeeded } from "../../src/lib/citations/citationTokens";
 import {
   DOSAGE_PANEL_DISCLAIMER_KEY,
@@ -215,19 +212,14 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
   // stored "citation system overhaul" presets (keys `citation-system-overhaul-*`
   // in the warningBannerPresets table) no longer describe it: the audit has run
   // here, and the sitewide beta disclaimer takes the banner's slot instead
-  // (rendered by ArticleLayout). Filtering before resolveEnabledBanners also
+  // (rendered by ArticleLayout). resolveArticleBanners filters before the cap, which also
   // frees the MAX_BANNERS_PER_ARTICLE slot for real safety banners. The apply
   // script revalidates the article path when it ships a strip, so the swap
   // reaches readers without a redeploy.
   const showBetaDisclaimer = substanceHasCitationNeeded(substance);
-  const warningBanners = resolveEnabledBanners(
-    showBetaDisclaimer
-      ? warningBannerPresets.filter(
-          (preset) => !preset.key.startsWith(CITATION_OVERHAUL_BANNER_KEY_PREFIX),
-        )
-      : warningBannerPresets,
-    slug,
-  );
+  const warningBanners = resolveArticleBanners(warningBannerPresets, slug, {
+    showBetaDisclaimer,
+  });
 
   const viewModel = buildSubstanceArticleViewModel({
     slug,

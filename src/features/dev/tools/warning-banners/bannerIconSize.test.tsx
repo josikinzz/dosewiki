@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -15,6 +15,8 @@ vi.mock("@/components/common/Icon", () => ({
     <span data-icon={icon} data-size={size} />
   ),
 }));
+
+vi.mock("@/hooks/useEditorRead", () => ({ useEditorRead: () => null }));
 
 // The icon field resolves real Iconify ids over the network on a debounce.
 vi.mock("@iconify/react", () => ({
@@ -98,11 +100,17 @@ describe("global safety-banner icon size", () => {
     );
   });
 
-  it("renders the drawer preview glyph at the global size", () => {
-    const { container } = renderPresets(iconSizeControl());
+  it("renders the drawer preview glyph at the global size, inside the article frame", async () => {
+    renderPresets(iconSizeControl());
 
-    const glyphs = container.querySelectorAll('[data-icon="custom:banner-glyph"][data-size="58"]');
-    expect(glyphs).toHaveLength(1);
+    // The drawer previews the banner in the article frame, which is its own
+    // document; the stack renders there while the article loads.
+    const frame = screen.getByTitle(/Banner preview/) as HTMLIFrameElement;
+    await waitFor(() =>
+      expect(
+        frame.contentDocument!.querySelectorAll('[data-icon="custom:banner-glyph"][data-size="58"]'),
+      ).toHaveLength(1),
+    );
   });
 
   it("renders every Coverage preview glyph at the global size", () => {

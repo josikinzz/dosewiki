@@ -20,6 +20,7 @@ import type {
   MoleculeSnapKind,
   MoleculeSnapOutcome,
 } from "./moleculeTransforms";
+import { MoleculeArticlePreview } from "./MoleculeArticlePreview";
 import { OclEditor } from "./OclEditor";
 import { OCL_KEY_LEGEND } from "./oclToolbar";
 import {
@@ -527,6 +528,11 @@ export function MoleculeEditorWorkbench({
             ),
           }}
         />
+      ) : null}
+
+      {/* Substances only: a class or template structure has no one article. */}
+      {mode === "substances" && selected && hasCanvas ? (
+        <MoleculeArticlePreview slug={selected} svg={previewSvg} />
       ) : null}
     </EditorSection>
   );

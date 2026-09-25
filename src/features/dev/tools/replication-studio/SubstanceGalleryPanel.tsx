@@ -398,7 +398,7 @@ export function SubstanceGalleryPanel({
             </div>
           ) : null}
 
-          <GalleryStagePreview matches={effectiveOrder} />
+          <GalleryStagePreview matches={effectiveOrder} substanceSlug={substanceSlug} />
 
           <GalleryLibraryAdd
             rows={visibleRows}
