@@ -116,28 +116,29 @@ export function PresetDrawer({
   const overSlugBudget = draft.enabledSlugs.length > WARNING_BANNER_LIMITS.maxEnabledSlugs;
   const longList =
     !draft.allSubstances && draft.enabledSlugs.length >= SITEWIDE_HINT_THRESHOLD;
+  // The same required fields the route enforces, checked here in both modes so
+  // a missing headline shows on its field instead of failing after the confirm.
   const headlineError = draft.headline.length > WARNING_BANNER_LIMITS.headlineMaxLength
     ? `The headline is ${draft.headline.length} characters; the limit is ${WARNING_BANNER_LIMITS.headlineMaxLength}.`
-    : contextual && !draft.headline.trim() ? "Add a headline before publishing." : null;
+    : !draft.headline.trim() ? "Add a headline before publishing." : null;
   const pointsError = points.length > WARNING_BANNER_LIMITS.maxPoints
     ? `That is ${points.length} lines; the limit is ${WARNING_BANNER_LIMITS.maxPoints}.`
-    : contextual && points.some((point) => point.length > WARNING_BANNER_LIMITS.pointMaxLength)
+    : points.some((point) => point.length > WARNING_BANNER_LIMITS.pointMaxLength)
       ? `Shorten each line to ${WARNING_BANNER_LIMITS.pointMaxLength} characters or fewer.` : null;
-  const severityError = contextual && !draft.severityLabel.trim()
+  const severityError = !draft.severityLabel.trim()
     ? "Add a severity label before publishing."
-    : contextual && draft.severityLabel.length > WARNING_BANNER_LIMITS.severityLabelMaxLength
+    : draft.severityLabel.length > WARNING_BANNER_LIMITS.severityLabelMaxLength
       ? `Shorten the severity label to ${WARNING_BANNER_LIMITS.severityLabelMaxLength} characters or fewer.` : null;
   const contentInvalid = Boolean(headlineError || pointsError || severityError);
-  const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving" && (!contextual || !contentInvalid);
+  const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving" && !contentInvalid;
 
   /**
-   * Every enablement button writes the whole draft, unsaved copy edits included:
-   * one POST is the only write this tool has, and the alternative, persisting
-   * the new slug list while quietly discarding the headline beside it, would
-   * leave the drawer showing words the server never received. `canWrite` gates
-   * these buttons on the same key and icon checks as Save for that reason. The
-   * controller confirms before it writes.
+   * Enablement buttons change scope only. On a saved preset the controller
+   * confirms and writes the saved words with the new list, so unsaved copy in
+   * this drawer never rides along; on a new preset the list is a draft that
+   * publishes with it. Neither depends on the copy being valid.
    */
+  const canChangeScope = saveState !== "saving";
   const request = (change: EnablementChange) => onRequestEnablement?.(draft, change);
 
   return (
@@ -210,7 +211,7 @@ export function PresetDrawer({
         </EditorField>
 
         <EditorField
-          label="Mechanism"
+          label="Points"
           description="One per line. Lines are paragraphs; start a line with - or * to make it a bullet. Adjectives are not warnings."
           counter={`${points.length}/${WARNING_BANNER_LIMITS.maxPoints}`}
           error={pointsError}
@@ -278,7 +279,7 @@ export function PresetDrawer({
             {!draft.enabled ? " This preset remains disabled." : null}
           </p>
         ) : null}
-        {contextual && contentInvalid ? (
+        {contentInvalid ? (
           <p id={validationId} role="status" className="text-dose-danger text-sm">
             Fix the highlighted fields before publishing. Your local changes are kept.
           </p>
@@ -291,7 +292,7 @@ export function PresetDrawer({
               variant="accent"
               size="sm"
               disabled={!isDirty || !canWrite}
-              aria-describedby={contextual && contentInvalid ? validationId : undefined}
+              aria-describedby={contentInvalid ? validationId : undefined}
               onClick={onSave}
             >
               <Icon icon="lucide:save" size={15} />
@@ -320,7 +321,9 @@ export function PresetDrawer({
               </Button>
             ) : null}
           </div>
-          {saveState === "idle" ? (
+          {/* A scope write saves the list but leaves unsaved words behind, so
+              "saved" yields to the dirty pill while a draft remains. */}
+          {saveState === "idle" || (saveState === "saved" && isDirty) ? (
             <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
               {isDirty ? "Unsaved changes" : "No changes"}
             </EditorStatusPill>
@@ -452,7 +455,9 @@ export function PresetDrawer({
             type="button"
             variant="accent"
             size="sm"
-            disabled={draft.allSubstances || stagedSlugs.length === 0 || !canWrite}
+            disabled={
+              draft.allSubstances || stagedSlugs.length === 0 || overSlugBudget || !canChangeScope
+            }
             onClick={() => request({ action: "enable", slugs: stagedSlugs })}
           >
             {`Enable on ${stagedSlugs.length} substance${stagedSlugs.length === 1 ? "" : "s"}`}
@@ -464,7 +469,9 @@ export function PresetDrawer({
             type="button"
             variant="secondary"
             size="sm"
-            disabled={draft.allSubstances || pending.length === 0 || !canWrite}
+            disabled={
+              draft.allSubstances || pending.length === 0 || overSlugBudget || !canChangeScope
+            }
             onClick={() =>
               request({ action: "enable", slugs: pending.map((result) => result.slug) })
             }
@@ -489,9 +496,9 @@ export function PresetDrawer({
             </p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
-              {/* Each X is a production write, so it is inked like one and
-                  asks before it lands; Discard changes above never touches
-                  this list. */}
+              {/* On a saved preset each X is a production write, so it is
+                  inked like one and asks before it lands; Discard changes
+                  above never touches this list. */}
               {draft.enabledSlugs.map((slug) => (
                 <TagToken
                   key={slug}

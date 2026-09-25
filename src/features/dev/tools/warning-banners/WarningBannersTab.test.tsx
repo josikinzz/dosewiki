@@ -159,6 +159,101 @@ describe("WarningBannersTab presets", () => {
     expect(screen.queryByText("Couldn't save that preset")).not.toBeInTheDocument();
   });
 
+  it("shows the copy before and after, and the substances by title, in the publish confirm", async () => {
+    stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.clear(headline);
+    await user.type(headline, "Mixing opioids and benzos");
+    await user.click(screen.getByRole("button", { name: /Publish preset/ }));
+
+    const dialog = await screen.findByRole("dialog");
+    const change = within(dialog).getByText("Headline").closest("div") as HTMLElement;
+    expect(change).toHaveTextContent(`Before: ${PRESET.headline}`);
+    expect(change).toHaveTextContent("After: Mixing opioids and benzos");
+    // Unchanged fields are not repeated.
+    expect(within(dialog).queryByText("Points")).not.toBeInTheDocument();
+    expect(within(dialog).getByRole("listitem")).toHaveTextContent("Diazepam");
+    expect(dialog).not.toHaveTextContent("diazepam");
+  });
+
+  it("blocks Publish with a field error when the headline is empty", async () => {
+    const writes = stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.clear(headline);
+
+    expect(screen.getByText("Add a headline before publishing.")).toBeInTheDocument();
+    expect(headline).toHaveAttribute("aria-invalid", "true");
+    const publish = screen.getByRole("button", { name: /Publish preset/ });
+    expect(publish).toBeDisabled();
+    await user.click(publish);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(writes).toHaveLength(0);
+  });
+
+  it("labels the banner lines Points", async () => {
+    stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+    await openDrawer(user);
+
+    expect(screen.getByLabelText("Points")).toHaveValue(PRESET.points.join("\n"));
+    expect(screen.queryByLabelText("Mechanism")).not.toBeInTheDocument();
+  });
+
+  it("asks before switching presets, creating one, or closing the drawer over a dirty draft", async () => {
+    stubPresets([PRESET, { ...PRESET, key: "second-preset", headline: "Second headline" }]);
+    const writes = stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.type(headline, "!");
+
+    await user.click(screen.getByRole("button", { name: /second-preset/, expanded: false }));
+    let dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Discard unsaved changes?");
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
+
+    await user.click(screen.getByRole("button", { name: /New preset/ }));
+    dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
+
+    await user.click(screen.getByRole("button", { name: /second-preset/, expanded: false }));
+    dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.getByLabelText("Headline")).toHaveValue("Second headline"));
+    expect(writes).toHaveLength(0);
+  });
+
+  it("keeps scope changes on a new preset as a draft until it is published", async () => {
+    const writes = stubApi();
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    await user.click(screen.getByRole("button", { name: /New preset/ }));
+    await user.type(await screen.findByLabelText("Find substances"), "alpraz");
+    await user.click(screen.getByRole("button", { name: "Enable on Alprazolam" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(writes).toHaveLength(0);
+    expect(screen.getByRole("button", { name: "Disable on alprazolam" })).toBeInTheDocument();
+  });
+
   it("deletes a preset only after the dialog confirms, then closes the drawer", async () => {
     const writes = stubApi();
     const user = userEvent.setup();
@@ -256,7 +351,7 @@ describe("WarningBannersTab presets", () => {
 });
 
 describe("WarningBannersTab coverage", () => {
-  it("enables a searched substance only after the dialog confirms, writes the whole preset and offers Undo", async () => {
+  it("enables a searched substance only after the dialog confirms, writes the saved words only and offers Undo", async () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab />);
@@ -268,11 +363,11 @@ describe("WarningBannersTab coverage", () => {
     await user.click(screen.getByRole("button", { name: "Enable on Alprazolam" }));
 
     // Nothing is written until the dialog agrees, and the dialog says the
-    // unsaved headline rides along.
+    // unsaved headline stays behind as a draft.
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Enable opioid-respiratory on Alprazolam?");
     expect(dialog).toHaveTextContent("Readers of Alprazolam see this banner");
-    expect(dialog).toHaveTextContent("Unsaved edits to its words are saved with it.");
+    expect(dialog).toHaveTextContent("Your unsaved edits to its words are not published by this change; they stay a draft.");
     expect(writes).toHaveLength(0);
     await user.click(within(dialog).getByRole("button", { name: "Enable on alprazolam" }));
 
@@ -280,7 +375,8 @@ describe("WarningBannersTab coverage", () => {
     expect(writes[0].method).toBe("POST");
     expect(writes[0].body).toMatchObject({
       key: "opioid-respiratory",
-      headline: `${PRESET.headline}!`,
+      // The half-written headline never leaves the page with a scope write.
+      headline: PRESET.headline,
       // `normalizeEnabledSlugs` sorts, so the new slug lands ahead of the stored one.
       enabledSlugs: ["alprazolam", "diazepam"],
     });
@@ -288,14 +384,16 @@ describe("WarningBannersTab coverage", () => {
     await screen.findByText("Enabled opioid-respiratory on 1 substance.");
     expect(screen.getByRole("button", { name: "Disable on alprazolam" })).toBeInTheDocument();
     expect(screen.getByText("Enabled on 2 substances")).toBeInTheDocument();
-    // The write came from inside the drawer, so the drawer must not call it dirty.
-    expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+    // The unsaved headline is still a draft in the drawer.
+    expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
 
     // Undo is the escape hatch and never asks.
     await user.click(screen.getByRole("button", { name: /Undo/ }));
 
     await waitFor(() => expect(writes).toHaveLength(2));
     expect(writes[1].body.enabledSlugs).toEqual(["diazepam"]);
+    expect(writes[1].body.headline).toBe(PRESET.headline);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await screen.findByText("Restored the previous list for opioid-respiratory.");
     expect(screen.queryByRole("button", { name: "Disable on alprazolam" })).not.toBeInTheDocument();

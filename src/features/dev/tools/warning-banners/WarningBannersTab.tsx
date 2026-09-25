@@ -37,6 +37,7 @@ import {
 } from "@/data/substanceWarningBanners";
 import {
   useConfirm,
+  useDirtyGuard,
   type EditorActionStatusState,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
@@ -48,6 +49,16 @@ import {
 } from "./WarningBannersStudioView";
 import { summarizeBannerCoverage } from "./bannerCoverage";
 import { planEnablementChange, type EnablementChange } from "./enablement";
+import {
+  applyDraftChange,
+  composeDraft,
+  describeCopyChanges,
+  editorFor,
+  isCopyDirty,
+  isScopeDirty,
+  substanceTitles,
+  type PresetEditor,
+} from "./presetDrafts";
 import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
@@ -85,15 +96,6 @@ type WarningBannerPresetDoc = {
 type StudioView = WarningBannersStudioViewMode;
 
 type SaveState = EditorActionStatusState | "idle";
-
-/**
- * `origin === null` marks a preset that does not exist yet, which is what makes
- * the key field editable and Save an insert rather than an update.
- */
-type PresetEditor = {
-  origin: EditableWarningPreset | null;
-  draft: EditableWarningPreset;
-};
 
 const BLANK_PRESET: WarningBannerPreset = {
   key: "",
@@ -173,9 +175,11 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
-  const isDirty = editor
-    ? editor.origin === null || JSON.stringify(editor.origin) !== JSON.stringify(editor.draft)
-    : false;
+  const isDirty = editor ? isCopyDirty(editor) || isScopeDirty(editor) : false;
+  const draft = useMemo(() => (editor ? composeDraft(editor) : null), [editor]);
+  // Replacing the open draft (another preset, New preset, Coverage's Edit, or
+  // closing the drawer) asks first while it holds unsaved work.
+  const { guard: guardDraft, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty);
 
   /**
    * The site-wide glyph size. Its own query, draft, save state and notice, none
@@ -239,7 +243,8 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
 
   /**
    * One POST is every write in this tool: authoring copy, enabling a class of
-   * substances, and disabling one slug all submit the whole preset. Returns the
+   * substances, and disabling one slug all submit a whole preset. Scope writes
+   * submit the saved copy, never the drawer's unsaved words. Returns the
    * confirmed preset and its new revision for the caller to adopt, or `null`
    * when the write failed and local edits must remain untouched.
    */
@@ -306,11 +311,17 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     const previous = preset.enabledSlugs;
     const adopted = await submitPreset({ ...preset, enabledSlugs: nextSlugs });
     if (!adopted) return;
-    // Keep an open drawer in step with a write made from inside it, so the
-    // dirty pill does not claim unsaved changes the server already has.
-    if (editor && (editor.origin === null || editor.origin.key === preset.key)) {
-      setEditor({ origin: adopted, draft: adopted });
-    }
+    // Keep an open drawer in step with a write made from inside it: the saved
+    // list becomes the scope draft's list, and unsaved words stay a draft.
+    setEditor((current) =>
+      current?.origin?.key === adopted.key
+        ? {
+            origin: adopted,
+            copyDraft: current.copyDraft,
+            scopeDraft: { ...current.scopeDraft, enabledSlugs: adopted.enabledSlugs },
+          }
+        : current,
+    );
 
     setNotice({
       tone: "info",
@@ -338,16 +349,29 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   /**
    * The only door to `commitEnabledSlugs` from a view. Disabling a slug removes
    * a warning from a public article the moment the write lands, so it confirms
-   * as destructive; enabling confirms too, because the write lands the whole
-   * draft and the dialog is where an editor learns that.
+   * as destructive; enabling confirms too. Both write the saved copy with the
+   * new list, and the dialog says unsaved words stay behind. A preset that does
+   * not exist yet has nothing live to change, so its list is a draft that
+   * publishes with the preset.
    */
   function requestEnablement(preset: WarningBannerPreset, change: EnablementChange) {
-    const dirty =
-      isDirty && editor !== null && (editor.origin === null || editor.origin.key === preset.key);
-    const plan = planEnablementChange(preset, change, targets, { dirty });
+    if (editor && editor.origin === null) {
+      const { nextSlugs } = planEnablementChange(
+        { ...preset, enabledSlugs: editor.scopeDraft.enabledSlugs },
+        change,
+        targets,
+        { dirty: false },
+      );
+      setEditor({ ...editor, scopeDraft: { ...editor.scopeDraft, enabledSlugs: nextSlugs } });
+      return;
+    }
+    const open = editor?.origin?.key === preset.key ? editor : null;
+    const saved = open?.origin ?? preset;
+    const dirty = open !== null && isCopyDirty(open);
+    const plan = planEnablementChange(saved, change, targets, { dirty });
     confirm({
       ...plan.request,
-      onConfirm: () => commitEnabledSlugs(preset, plan.nextSlugs, plan.summary),
+      onConfirm: () => commitEnabledSlugs(saved, plan.nextSlugs, plan.summary),
     });
   }
 
@@ -364,7 +388,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
           const result = await retryPendingWarning(key);
           const adopted = result.preset ? { ...result.preset, baseHash: result.baseHash } : null;
           setRows((current) => [...(current ?? []).filter((row) => row.key !== key), ...(adopted ? [adopted] : [])]);
-          setEditor(adopted ? { origin: adopted, draft: adopted } : null);
+          setEditor(adopted ? editorFor(adopted, BLANK_PRESET) : null);
           setSaveState("saved");
           setNotice({ tone: "info", message: `Confirmed the original change for ${key}.` });
         } catch (error) {
@@ -380,7 +404,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
   }
 
   const openPreset = useCallback((preset: WarningBannerPreset | null) => {
-    setEditor(preset ? { origin: preset, draft: preset } : null);
+    setEditor(preset ? editorFor(preset, BLANK_PRESET) : null);
     setSaveState("idle");
     setNotice(preset && pendingWarning(preset.key) ? {
       tone: "warning", message: "An earlier warning publication remains unconfirmed. Resolve its original request before making another change.",
@@ -390,17 +414,49 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
 
   const handleSave = useCallback(() => {
     if (!editor) return;
-    const reach = editor.draft.allSubstances ? "every substance article, including future articles" : editor.draft.enabledSlugs.join(", ") || "no assigned articles";
+    const submitted = composeDraft(editor);
+    const changes = describeCopyChanges(editor.origin, editor.copyDraft);
+    const titles = substanceTitles(submitted.enabledSlugs, targets);
+    const reach = submitted.allSubstances
+      ? "Every substance article, including future articles."
+      : titles.length === 0
+        ? "No assigned articles."
+        : `${titles.length} substance article${titles.length === 1 ? "" : "s"}.`;
     confirm({
       title: "Publish shared warning preset?",
-      description: `This changes shared warning copy on dose.wiki and Effect Index. Affected scope: ${reach}.`,
+      description: (
+        <>
+          <span className="block">
+            This changes shared warning copy on dose.wiki and Effect Index. {reach}
+            {submitted.enabled ? "" : " The preset stays switched off."}
+          </span>
+          {changes.length > 0 ? (
+            <span className="mt-3 block space-y-2">
+              {changes.map((change) => (
+                <span key={change.label} className="block">
+                  <span className="theme-text-primary block font-medium">{change.label}</span>
+                  <span className="block whitespace-pre-line">
+                    Before: {change.before || "(empty)"}
+                  </span>
+                  <span className="theme-text-primary block whitespace-pre-line">
+                    After: {change.after || "(empty)"}
+                  </span>
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span className="mt-2 block">The words are unchanged; only where it shows changes.</span>
+          )}
+        </>
+      ),
+      affected: submitted.allSubstances ? undefined : titles,
       confirmLabel: "Publish preset",
       onConfirm: async () => {
-        const adopted = await submitPreset(editor.draft);
-        if (adopted) setEditor({ origin: adopted, draft: adopted });
+        const adopted = await submitPreset(submitted);
+        if (adopted) setEditor(editorFor(adopted, BLANK_PRESET));
       },
     });
-  }, [editor, submitPreset, confirm]);
+  }, [editor, submitPreset, confirm, targets]);
 
   const deletePreset = useCallback(async (preset: EditableWarningPreset) => {
     setSaveState("saving");
@@ -434,7 +490,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         : `${preset.enabledSlugs.length} substance${preset.enabledSlugs.length === 1 ? "" : "s"}`;
       confirm({
         title: `Delete ${preset.key}?`,
-        description: `${preset.key} is enabled on ${reach}. Deleting destroys its headline and mechanism text, and it stops rendering everywhere.`,
+        description: `${preset.key} is enabled on ${reach}. Deleting destroys its headline and points, and it stops rendering everywhere.`,
         confirmLabel: "Delete preset",
         destructive: true,
         onConfirm: () => deletePreset(preset),
@@ -500,7 +556,12 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
 
   return (
     <WarningBannersStudioView
-      confirmDialog={confirmDialog}
+      confirmDialog={
+        <>
+          {confirmDialog}
+          {dirtyGuardDialog}
+        </>
+      }
       initialSubstanceSlug={initialSubstanceSlug}
       presets={presets}
       targets={targets}
@@ -509,7 +570,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       view={view}
       coverageSlug={coverageSlug}
       openKey={openKey}
-      draft={editor?.draft ?? null}
+      draft={draft}
       isNew={editor !== null && editor.origin === null}
       isDirty={isDirty}
       saveState={saveState}
@@ -535,20 +596,22 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       onRetryTargets={() => setTargetsToken((token) => token + 1)}
       onViewChange={setView}
       onIconValidityChange={setIconValid}
-      onDraftChange={(draft) => {
+      onDraftChange={(next) => {
         setSaveState("idle");
-        setEditor((current) => (current ? { ...current, draft } : current));
+        setEditor((current) => (current ? applyDraftChange(current, next) : current));
       }}
-      onOpen={openPreset}
-      onCreate={() => {
-        setEditor({ origin: null, draft: BLANK_PRESET });
-        setSaveState("idle");
-        setNotice(null);
-      }}
+      onOpen={(preset) => guardDraft(() => openPreset(preset))}
+      onCreate={() =>
+        guardDraft(() => {
+          setEditor(editorFor(null, BLANK_PRESET));
+          setSaveState("idle");
+          setNotice(null);
+        })
+      }
       onSave={() => void handleSave()}
       onDiscard={() =>
         setEditor((current) =>
-          current?.origin ? { origin: current.origin, draft: current.origin } : null,
+          current?.origin ? editorFor(current.origin, BLANK_PRESET) : null,
         )
       }
       onRequestEnablement={requestEnablement}
@@ -558,10 +621,12 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
         setView("coverage");
       }}
       onCoverageSlugChange={setCoverageSlug}
-      onEditCoveragePreset={(preset) => {
-        openPreset(preset);
-        setView("presets");
-      }}
+      onEditCoveragePreset={(preset) =>
+        guardDraft(() => {
+          openPreset(preset);
+          setView("presets");
+        })
+      }
     />
   );
 }
