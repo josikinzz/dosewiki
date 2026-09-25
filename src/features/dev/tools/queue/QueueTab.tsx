@@ -23,6 +23,7 @@ import {
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import { ProposalReview } from "./ProposalReview";
+import { ReviewRecommendationsLane } from "./ReviewRecommendationsLane";
 import { viewToPath } from "@/utils/routing";
 import {
   STATUS_LABELS,
@@ -316,6 +317,9 @@ export function QueueTab({ canApprove, onLoadIntoEditor }: QueueTabProps) {
           />
         ) : null}
       </EditorSection>
+
+      {/* Editors recommend sign-offs from /review; approving them is admin work. */}
+      {canApprove ? <ReviewRecommendationsLane /> : null}
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
         <EditorSection

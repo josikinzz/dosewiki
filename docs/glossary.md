@@ -256,6 +256,10 @@ _Avoid_: approved, agent-approved, auto-complete
 The derived `stale` review status: a sign-off whose `reviewed_revision` is no longer the article's latest published revision. It is never stored, counts as not reviewed in /review, and opens with a diff of the fields changed since the signed revision. Public pages still show the article as reviewed.
 _Avoid_: outdated review, expired review, unreviewed (for a stale sign-off)
 
+**Recommended Reviewed**:
+An editor's request that an admin sign off an article, made with R in /review. Stored as `editorial_review.recommendation` (`revision`, `recommended_by`, `recommended_at`, `note`) bound to the published revision the editor read; it never changes the review status. Admins approve recommendations in batches from the Review recommendations lane in Change Review, which writes `completed` at the recommended revision. A recommendation whose revision is no longer the published one is stale and needs another review before approval.
+_Avoid_: editor sign-off, pending review, soft reviewed
+
 ## Replications Surface Language
 
 The [replication classification field guide](workflows/replication-classification-guide.html) is the canonical intake and taxonomy procedure. It keeps gallery admission, viewing mode, effect evidence, title-only drug tags, and artist practice as separate decisions.

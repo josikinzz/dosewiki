@@ -37,7 +37,41 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     );
   }
 
-  async getEditorLibraryPage(args: { numItems: number; cursor: string | null }) {
+  /**
+   * Every article carrying an editor's review recommendation, for the admin's
+   * Review recommendations lane. Only the slug, title and the small review
+   * fields are read, never the article body.
+   */
+  async getReviewRecommendationRows(): Promise<Array<{
+    slug: string;
+    title: string;
+    status: string | null;
+    reviewedRevision: string | null;
+    recommendation: unknown;
+  }>> {
+    const result = await this.client.query(
+      `SELECT "slug", "title",
+              "editorial_review"->>'status' AS "status",
+              "editorial_review"->>'reviewed_revision' AS "reviewedRevision",
+              "editorial_review"->'recommendation' AS "recommendation"
+       FROM "substanceIndex"
+       WHERE jsonb_typeof("editorial_review"->'recommendation') = 'object'
+       ORDER BY "slug" COLLATE "C"`,
+    );
+    return result.rows.flatMap((row) =>
+      typeof row.slug === "string"
+        ? [{
+            slug: row.slug,
+            title: typeof row.title === "string" ? row.title : row.slug,
+            status: typeof row.status === "string" ? row.status : null,
+            reviewedRevision: typeof row.reviewedRevision === "string" ? row.reviewedRevision : null,
+            recommendation: row.recommendation,
+          }]
+        : [],
+    );
+  }
+
+  async getEditorLibraryPage(args:{ numItems: number; cursor: string | null }) {
     const after = args.cursor
       ? decodeDocumentValue(JSON.parse(args.cursor)) as { _creationTime: number; _id: string }
       : null;

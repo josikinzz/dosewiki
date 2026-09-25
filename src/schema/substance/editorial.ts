@@ -33,6 +33,14 @@ const reviewFlagSchema = z.object({
   created_by: z.string().optional(),
 })
 
+/** An editor's pending "Recommended reviewed", bound to the revision they read. */
+const reviewRecommendationSchema = z.object({
+  revision: z.string(),
+  recommended_by: z.string(),
+  recommended_at: z.string(),
+  note: z.string(),
+});
+
 /** Manual editorial review states used in Dev Tools */
 export const editorialReviewStatusSchema = z.enum([
   "needed",
@@ -60,6 +68,13 @@ export const editorialReviewSchema = z.object({
    * publish records a new revision, so the review derives `stale`.
    */
   reviewed_revision: z.string().optional(),
+  /**
+   * An editor's recommendation that this article is reviewed, awaiting an
+   * admin. It never changes `status`: completion stays admin-only, and an
+   * admin approval writes `completed` with the recommended `revision`. When
+   * the published revision moves on, the recommendation reads as stale.
+   */
+  recommendation: reviewRecommendationSchema.optional(),
   /** Declared so editor saves preserve Review Flags instead of stripping them. */
   flags: z.array(reviewFlagSchema).optional(),
 });
@@ -93,6 +108,18 @@ export function deriveReviewState(
 }
 
 
+/**
+ * Whether a recommendation still covers what is published. One made before
+ * the latest publish is stale and cannot be approved without re-review.
+ */
+export function isRecommendationStale(
+  recommendation: { revision?: unknown } | null | undefined,
+  publishedRevision: string,
+): boolean {
+  return recommendation?.revision !== publishedRevision;
+}
+
 export type EditorialReview = z.infer<typeof editorialReviewSchema>;
+export type ReviewRecommendation = z.infer<typeof reviewRecommendationSchema>;
 export type ReviewFlag = z.infer<typeof reviewFlagSchema>;
 export type ReviewFlagSeverity = z.infer<typeof reviewFlagSeveritySchema>;

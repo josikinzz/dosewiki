@@ -4,7 +4,15 @@
  * routes beneath `/api/dev/proposals/<id>/`.
  */
 
-import type { ApproveOutcome, ProposalComment, ProposalDetail, ProposalStatus, ProposalSummary } from "./queueModel";
+import type {
+  ApproveOutcome,
+  ProposalComment,
+  ProposalDetail,
+  ProposalStatus,
+  ProposalSummary,
+  RecommendationApproval,
+  ReviewRecommendationRow,
+} from "./queueModel";
 
 const BASE_PATH = "/api/dev/proposals";
 
@@ -54,6 +62,40 @@ export async function rejectProposal(id: string, note: string): Promise<void> {
 
 export async function revertProposal(id: string): Promise<void> {
   await postJson(id, "revert", {}, "Unable to revert that proposal.");
+}
+
+const RECOMMENDATIONS_PATH = "/api/dev/review-recommendations";
+
+/** Every editor recommendation awaiting an admin, with whether each is stale. */
+export async function fetchReviewRecommendations(): Promise<ReviewRecommendationRow[]> {
+  const payload = await requestJson(RECOMMENDATIONS_PATH, undefined, {
+    network: "Network error while loading review recommendations.",
+    failure: "Unable to load review recommendations.",
+  });
+  if (!Array.isArray(payload.recommendations)) {
+    throw new Error("The server did not return the recommendation list. Refresh to try again.");
+  }
+  return payload.recommendations as ReviewRecommendationRow[];
+}
+
+/** Approves each recommendation at the revision it covered; stale or changed ones come back unapproved. */
+export async function approveReviewRecommendations(
+  items: ReadonlyArray<{ slug: string; revision: string }>,
+): Promise<RecommendationApproval> {
+  const payload = await requestJson(
+    RECOMMENDATIONS_PATH,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items }) },
+    { network: "Network error while approving recommendations.", failure: "Unable to approve those recommendations." },
+  );
+  const list = (value: unknown) =>
+    Array.isArray(value) ? value.filter((slug): slug is string => typeof slug === "string") : null;
+  const approved = list(payload.approved);
+  const stale = list(payload.stale);
+  const missing = list(payload.missing);
+  if (!approved || !stale || !missing) {
+    throw new Error("The server did not confirm the approval. Refresh to check the recommendations before trying again.");
+  }
+  return { approved, stale, missing };
 }
 
 async function postJson(

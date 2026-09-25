@@ -97,6 +97,30 @@ export const metaGeneratedFieldRegistry = {
     default: undefined,
     isNullable: false,
   },
+  "editorial_review.recommendation.revision": {
+    path: "editorial_review.recommendation.revision",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "editorial_review.recommendation.recommended_by": {
+    path: "editorial_review.recommendation.recommended_by",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "editorial_review.recommendation.recommended_at": {
+    path: "editorial_review.recommendation.recommended_at",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
+  "editorial_review.recommendation.note": {
+    path: "editorial_review.recommendation.note",
+    type: "text",
+    default: "",
+    isNullable: false,
+  },
   "editorial_review.flags": {
     path: "editorial_review.flags",
     type: "object",

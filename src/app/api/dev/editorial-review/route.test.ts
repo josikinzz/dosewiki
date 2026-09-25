@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getFunctionName } from "@server/postgres/runtime/api";
 import {
   describeRoleFloor,
   installProtectedRouteMocks,
@@ -90,6 +91,42 @@ describe("editorial review route", () => {
     }));
     expect((await post({ slug: "2c-b", status: "needed", revision: "a1b2c3" })).status).toBe(400);
     expect((await post({ slug: "2c-b", status: "completed", revision: "not a hash" })).status).toBe(400);
+    expect(routeMocks.mutation).not.toHaveBeenCalled();
+  });
+
+  it("records an editor recommendation that is not a completed review", async () => {
+    signInAs("editor");
+    const stored = {
+      status: "needed",
+      notes: "",
+      recommendation: { revision: "a1b2c3", recommended_by: "editor@example.com", recommended_at: "2026-09-25T00:00:00.000Z", note: "Doses checked" },
+    };
+    routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: stored });
+    const response = await POST(new Request("https://dose.wiki/api/dev/editorial-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+      body: JSON.stringify({ action: "recommend", slug: "2c-b", revision: "a1b2c3", note: " Doses checked " }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(routeMocks.mutation).toHaveBeenCalledTimes(1);
+    const [reference, args] = routeMocks.mutation.mock.calls[0];
+    expect(getFunctionName(reference as never)).toBe("substanceIndex:recommendEditorialReview");
+    expect(args).toMatchObject({ slug: "2c-b", revision: "a1b2c3", note: "Doses checked" });
+    expect(args).not.toHaveProperty("status");
+    const payload = await response.json() as { editorial_review: { status: string } };
+    expect(payload.editorial_review.status).not.toBe("completed");
+  });
+
+  it("refuses a malformed recommendation revision or an overlong note before calling Postgres", async () => {
+    signInAs("editor");
+    const post = (body: unknown) => POST(new Request("https://dose.wiki/api/dev/editorial-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
+      body: JSON.stringify(body),
+    }));
+    expect((await post({ action: "recommend", slug: "2c-b", revision: "not a hash" })).status).toBe(400);
+    expect((await post({ action: "recommend", slug: "2c-b", note: "x".repeat(1001) })).status).toBe(400);
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
 

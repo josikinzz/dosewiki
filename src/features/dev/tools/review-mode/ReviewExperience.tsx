@@ -8,9 +8,11 @@ import { useEditorRead } from "@/hooks/useEditorRead";
 import { Icon } from "@/components/common/Icon";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
-import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
+import { EditorNotice, useConfirm, useDirtyGuard } from "@/features/dev/components";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
-import { canApprove, canDraft, resolveSessionRole } from "@/lib/auth/roles";
+import { canApprove, canDraft, resolveSessionRole, roleMeetsFloor } from "@/lib/auth/roles";
 import type { ReviewFlag, SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
 import type { ReviewStatus, SubstanceEditorTabProps } from "../substance-editor/types";
@@ -104,6 +106,12 @@ export const ReviewExperience = memo(function ReviewExperience({
   const canSignOff =
     session.status === "authenticated" &&
     canApprove(resolveSessionRole({ role: session.data?.user?.role }));
+  // Editors recommend instead: R records "Recommended reviewed" for an admin
+  // to approve in Change Review, and never completes the review itself.
+  const canRecommend =
+    !canSignOff &&
+    session.status === "authenticated" &&
+    roleMeetsFloor(resolveSessionRole({ role: session.data?.user?.role }), "editor");
 
   const settings = useReviewSettings({ initialSlug });
   const {
@@ -208,11 +216,38 @@ export const ReviewExperience = memo(function ReviewExperience({
     reviewedCount,
     setOverrides: overlays.setOverrides,
     canSignOff,
+    canRecommend,
     currentHydrated: currentArticleHydrated,
     publishedRevisions,
   });
-  const { lastTick, milestone, celebration, toggleReviewed, undoLastTick } =
+  const { lastTick, lastRecommended, milestone, celebration, toggleReviewed, undoLastTick } =
     status;
+
+  // An editor's R asks once, with room for an optional note, before the
+  // recommendation is recorded against the version on screen.
+  const { confirm: confirmRecommend, dialog: recommendDialog } = useConfirm();
+  const recommendNoteRef = useRef<HTMLInputElement | null>(null);
+  const { currentRecommendation, recommendReviewed, isTicking } = status;
+  const requestRecommendation = useCallback(() => {
+    if (!current || !canRecommend || !currentArticleHydrated || isTicking) return;
+    // A current sign-off needs no recommendation; a stale one does.
+    if (current.status === "completed") return;
+    if (currentRecommendation && !currentRecommendation.stale) return;
+    confirmRecommend({
+      title: `Recommend ${current.name} as reviewed?`,
+      description:
+        "An admin approves recommendations in Change Review. Yours covers the version you are reading; if the article is published again first, it needs another review.",
+      body: (
+        <div className="space-y-1.5">
+          <Label htmlFor="review-recommendation-note">Note for the admin (optional)</Label>
+          <Input id="review-recommendation-note" ref={recommendNoteRef} maxLength={1000} autoComplete="off" />
+        </div>
+      ),
+      confirmLabel: "Recommend reviewed",
+      onConfirm: () => recommendReviewed(recommendNoteRef.current?.value ?? ""),
+    });
+  }, [canRecommend, confirmRecommend, current, currentArticleHydrated, currentRecommendation, isTicking, recommendReviewed]);
+  const pressReviewed = canSignOff ? toggleReviewed : requestRecommendation;
 
   const [articleDirty, setArticleDirty] = useState(false);
   const [operationLocked, setOperationLocked] = useState(false);
@@ -303,7 +338,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         goNext();
       } else if (event.key === "r" || event.key === "R") {
         event.preventDefault();
-        toggleReviewed();
+        pressReviewed();
       } else if (event.key === "u" || event.key === "U") {
         event.preventDefault();
         undoLastTick();
@@ -336,11 +371,11 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, [
     goNext,
     goPrev,
+    pressReviewed,
     toggleCitationPanel,
     toggleInlineEdit,
     toggleMoleculePanel,
     toggleNotesPanel,
-    toggleReviewed,
     undoLastTick,
   ]);
 
@@ -382,7 +417,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       <ReviewCommandBar
         settings={{ ...settings, changeViewMode: (view) => articleNavigation.guard(() => settings.changeViewMode(view)) }}
         queue={queueState}
-        status={status}
+        status={{ ...status, toggleReviewed: pressReviewed }}
         navigateTo={navigateTo}
         goPrev={goPrev}
         goNext={goNext}
@@ -401,6 +436,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       />
 
       {articleNavigation.dialog}
+      {recommendDialog}
       {current?.status === "stale" && current.reviewedRevision ? (
         <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
           <ReviewChangesSinceReview
@@ -477,6 +513,14 @@ export const ReviewExperience = memo(function ReviewExperience({
           <Icon icon="lucide:party-popper" size={16} />
           <span className="font-semibold">{milestone} reviewed!</span>
           <span className="theme-text-faint">Keep rolling.</span>
+        </ReviewToast>
+      ) : lastRecommended ? (
+        <ReviewToast tone="success">
+          <Icon icon="lucide:send" size={16} />
+          <span>
+            Recommended <span className="font-semibold">{lastRecommended}</span> as reviewed.
+            An admin approves it in Change Review.
+          </span>
         </ReviewToast>
       ) : lastTick ? (
         <ReviewToast tone="success">
