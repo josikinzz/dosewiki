@@ -1,35 +1,25 @@
+import { DevShortcutsProvider } from "../components/devShortcuts";
 import { UnsavedWorkProvider } from "../components/unsavedWork";
 import { DevModePageView } from "./DevModePageView";
 import type { DevModePageProps } from "./devModePageTypes";
 import { useDevModePageController } from "./useDevModePageController";
 
-function DevModePageContent({
-  activeTab,
-  initialArticleSlug,
-  initialFilter,
-  initialProfileKey,
-  isLibraryLoading,
-  onTabChange,
-}: DevModePageProps) {
-  const controller = useDevModePageController({
-    activeTab,
-    initialArticleSlug,
-    initialFilter,
-    initialProfileKey,
-    isLibraryLoading,
-    onTabChange,
-  });
+function DevModePageContent(props: DevModePageProps) {
+  const controller = useDevModePageController(props);
   return <DevModePageView controller={controller} />;
 }
 
 /**
- * The registry sits above the controller so the shell's own shared draft and
- * every tool below report into the one dialog the chrome consults.
+ * The registries sit above the controller so the shell's own shared draft and
+ * every tool below report into the one dialog the chrome consults, and every
+ * tool's keys reach the one `?` sheet the chrome owns.
  */
 export function DevModePage(props: DevModePageProps) {
   return (
     <UnsavedWorkProvider>
-      <DevModePageContent {...props} />
+      <DevShortcutsProvider>
+        <DevModePageContent {...props} />
+      </DevShortcutsProvider>
     </UnsavedWorkProvider>
   );
 }

@@ -49,6 +49,11 @@ type DevTabDescriptorOf<Id extends string> = {
   group: DevToolGroup | "chrome";
   /** Route path segments, other than `id`, that resolve to this tab. */
   aliases: readonly string[];
+  /**
+   * Extra words the Cmd+K palette matches this tool by, beyond its label, id
+   * and route aliases: the words an editor reaches for that are not addresses.
+   */
+  keywords?: readonly string[];
   /** Lowest role that may use the tool; the rail disables the tab, with a reason, for anyone below it. */
   role: RoleFloor;
   data: ReadonlySet<DevTabDataNeed>;
@@ -130,6 +135,7 @@ const REGISTRY = [
     label: "Substances",
     group: "content",
     aliases: ["generator", "gen"],
+    keywords: ["articles", "drugs"],
     role: "editor",
     data: CORPUS_WITH_LAYOUTS,
     saveModel: "record",
@@ -154,6 +160,7 @@ const REGISTRY = [
     label: "Citations",
     group: "intake",
     aliases: ["citations"],
+    keywords: ["references", "sources"],
     role: "admin",
     data: NO_DATA,
     saveModel: "instant",
@@ -218,6 +225,7 @@ const REGISTRY = [
     // article is likely to type; the tool itself is named Banners per the
     // design brief's glossary.
     aliases: ["warnings"],
+    keywords: ["safety"],
     role: "admin",
     data: NO_DATA,
     saveModel: "instant",
@@ -229,6 +237,7 @@ const REGISTRY = [
     label: "Replications",
     group: "content",
     aliases: ["replication-studio"],
+    keywords: ["gallery", "images"],
     role: "admin",
     data: NO_DATA,
     saveModel: "instant",
@@ -241,6 +250,7 @@ const REGISTRY = [
     label: "Writing",
     group: "site",
     aliases: [],
+    keywords: ["blog", "effects"],
     role: "editor",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "record",
@@ -267,6 +277,7 @@ const REGISTRY = [
     label: "Change Review",
     group: "intake",
     aliases: ["proposals"],
+    keywords: ["submissions"],
     role: "editor",
     data: NO_DATA,
     saveModel: "instant",
@@ -311,6 +322,7 @@ const REGISTRY = [
     label: "Members",
     group: "site",
     aliases: [],
+    keywords: ["people", "accounts", "roles", "invites"],
     // Roster, roles, bans, resets, invites: every action is admin-only in Postgres too.
     role: "admin",
     data: NO_DATA,
@@ -323,6 +335,7 @@ const REGISTRY = [
     label: "Glossary",
     group: "site",
     aliases: ["translation-glossary"],
+    keywords: ["translation", "languages", "locales"],
     // The locale mirrors' term list. Approving a rendering changes every prompt
     // but spends nothing, so translators own it; the paid actions (drafting,
     // retranslating, the main run) stay admin inside the tab and their routes.

@@ -52,6 +52,10 @@ export type DevModePageChromeProps = {
   userName?: string | null;
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
+  /** Opens a Cmd+K record by App Path, after the unsaved-work registry agrees. Absent: a page load. */
+  onOpenPath?: (path: string) => void;
+  /** The session's glossary grant, for the palette's Glossary languages. */
+  glossaryLocales?: readonly string[];
   onSignIn: () => void;
   onLeave: () => void;
 };

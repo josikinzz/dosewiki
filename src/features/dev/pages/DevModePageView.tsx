@@ -169,13 +169,16 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         userEmail={controller.userEmail}
         userImage={controller.userImage}
         userName={controller.userName}
+        glossaryLocales={controller.glossaryLocales}
         onPrimaryTabChange={controller.onPrimaryTabChange}
         onTabChange={controller.onTabChange}
+        onOpenPath={controller.onOpenPath}
         onSignIn={controller.onSignIn}
         onLeave={controller.onLeave}
       />
 
-      <div className={controller.contentWrapperClass}>
+      {/* Keyed so a Cmd+K record remounts the open tool on the record it names. */}
+      <div key={controller.toolMountKey} className={controller.contentWrapperClass}>
         <DevToolSaveLine tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.activeTabLockReason !== null ? (
           <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
@@ -240,7 +243,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "banners" ? (
           <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
         ) : controller.activeTab === "members" ? (
-          <MembersTab />
+          <MembersTab initialMember={controller.membersInitialKey} />
         ) : controller.activeTab === "glossary" ? (
           <GlossaryTab viewerRole={controller.role} />
         ) : controller.activeTab === "my-reports" ? (

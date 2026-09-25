@@ -21,7 +21,7 @@
  * other.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
@@ -61,6 +61,7 @@ import {
   type PresetEditor,
 } from "./presetDrafts";
 import {
+  bannerPresetFromSlug,
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
 } from "./warningBannerTargets";
@@ -113,7 +114,10 @@ const BLANK_PRESET: WarningBannerPreset = {
 };
 
 export type WarningBannersTabProps = {
-  /** `/dev/banners/<slug>` — opens Coverage on that substance. */
+  /**
+   * `/dev/banners/<slug>` opens Coverage on that substance;
+   * `/dev/banners/preset:<key>` opens that preset's editor.
+   */
   initialSubstanceSlug?: string;
 };
 
@@ -130,7 +134,9 @@ export function WarningBannersTab(props: WarningBannersTabProps) {
   );
 }
 
-function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) {
+function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBannersTabProps) {
+  const initialPresetKey = bannerPresetFromSlug(initialSlug);
+  const initialSubstanceSlug = initialPresetKey === null ? initialSlug : undefined;
   const [rows, setRows] = useState<WarningBannerPresetDoc[] | undefined>(undefined);
   const [rowsError, setRowsError] = useState<string | null>(null);
   const [rowsToken, setRowsToken] = useState(0);
@@ -227,7 +233,7 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
     };
   }, [editor, targetsToken, view]);
 
-  // A deep link can arrive while the tab is already mounted — an editor reading
+  // A deep link can arrive while the tab is already mounted: an editor reading
   // an article clicks through to `/dev/banners/<slug>` and the controller hands
   // down a new slug rather than remounting. Mirrors `ReplicationStudioTab`.
   useEffect(() => {
@@ -414,6 +420,19 @@ function WarningBannersStudio({ initialSubstanceSlug }: WarningBannersTabProps) 
       actions: <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Reconcile original change</Button>,
     } : null);
   }, []);
+
+  // `/dev/banners/preset:<key>` (the Cmd+K palette's preset records) opens
+  // that preset's editor once the presets arrive. Each key opens once, so
+  // closing the drawer sticks.
+  const openedPresetRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!initialPresetKey || rows === undefined || openedPresetRef.current === initialPresetKey) return;
+    const preset = presets.find((candidate) => candidate.key === initialPresetKey);
+    if (!preset) return;
+    openedPresetRef.current = initialPresetKey;
+    setView("presets");
+    guardDraft(() => openPreset(preset));
+  }, [guardDraft, initialPresetKey, openPreset, presets, rows]);
 
   const handleSave = useCallback(() => {
     if (!editor) return;

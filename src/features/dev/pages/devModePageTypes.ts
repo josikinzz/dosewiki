@@ -15,6 +15,14 @@ export type DevModePageProps = {
   /** True while the editor corpus is still draining behind the shell. */
   isLibraryLoading?: boolean;
   onTabChange: (tab: DevModeTab) => void;
+  /**
+   * Opens an App Path inside the shell (a Cmd+K record). The route client
+   * remounts the open tool once the address lands, so the tool reads the
+   * record from its initial props the way a deep link does.
+   */
+  onOpenPath?: (path: string) => void;
+  /** Changes when the open tool must remount onto a new record; the tool subtree is keyed by it. */
+  toolMountKey?: number;
 };
 
 type DevModePageChromeSessionStatus =
@@ -42,6 +50,8 @@ export type DevModePageControllerState = {
   userEmail?: string | null;
   userImage?: string | null;
   userName?: string | null;
+  /** The session's glossary grant. */
+  glossaryLocales?: readonly string[];
   articlesLength: number;
   isLibraryLoading: boolean;
   indexLayoutsReadiness: DevIndexLayoutsReadiness;
@@ -70,6 +80,10 @@ export type DevModePageControllerState = {
   queueInitialId?: string;
   /** `/dev/playlists/<key>`: the playlist the tab opens on. */
   playlistsInitialKey?: string;
+  /** `/dev/members/<email>`: the member whose row Members opens on. */
+  membersInitialKey?: string;
+  /** Keys the tool subtree; see `DevModePageProps.toolMountKey`. */
+  toolMountKey: number;
   /**
    * The active tab's URL filter value (`/dev/writing?kind=blog`), already
    * validated against the registry descriptor's `filter.values`. Each tab
@@ -94,6 +108,8 @@ export type DevModePageControllerState = {
   };
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
+  /** Opens an App Path in the shell (a Cmd+K record); the chrome asks the unsaved-work registry first. */
+  onOpenPath: (path: string) => void;
   /** Queue: seed the working set from a proposal, then open the substances editor. */
   onLoadProposal: (seed: DevProposalSeed) => Promise<void>;
   onSignIn: () => void;

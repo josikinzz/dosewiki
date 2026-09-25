@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
+import type { DevShortcut } from "../../components/devShortcuts";
 
 /** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
 export const MOLECULE_PANEL_ID = "review-molecule-panel";
@@ -346,16 +347,20 @@ const REVIEW_CRITERIA = [
   "Tone and formatting match the site; no generation artifacts left behind.",
 ];
 
-const SHORTCUTS: Array<[string, string]> = [
-  ["←", "Previous article"],
-  ["→", "Next article"],
-  ["R", "Toggle reviewed (editors: recommend reviewed)"],
-  ["F", "Notes and flags"],
-  ["U", "Undo the last status change"],
-  ["M", "Molecule depiction panel"],
-  ["C", "Citation palette"],
-  ["E", "Toggle inline editing"],
-  ["?", "This panel"],
+/**
+ * The workbench's keys, in the shell registry's `{ keys, label }` shape.
+ * /review runs outside the /dev shell, so this panel is its one `?` sheet.
+ */
+export const REVIEW_SHORTCUTS: readonly DevShortcut[] = [
+  { keys: "←", label: "Previous article" },
+  { keys: "→", label: "Next article" },
+  { keys: "R", label: "Toggle reviewed (editors: recommend reviewed)" },
+  { keys: "F", label: "Notes and flags" },
+  { keys: "U", label: "Undo the last status change" },
+  { keys: "M", label: "Molecule depiction panel" },
+  { keys: "C", label: "Citation palette" },
+  { keys: "E", label: "Toggle inline editing" },
+  { keys: "?", label: "This panel" },
 ];
 
 /** "What counts as reviewed" plus the keyboard map. Shared with the sheet. */
@@ -389,7 +394,7 @@ export function ReviewHelpPanel() {
           Keyboard
         </h2>
         <dl className="theme-text-secondary grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-          {SHORTCUTS.map(([key, label]) => (
+          {REVIEW_SHORTCUTS.map(({ keys: key, label }) => (
             <Fragment key={key}>
               <dt>
                 <kbd

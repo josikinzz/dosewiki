@@ -11,6 +11,7 @@ import {
   EditorPanelBody,
   TagToken,
   useConfirm,
+  useDevShortcuts,
   useUnsavedWork,
 } from "@/features/dev/components";
 import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
@@ -18,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 import { IncomingTray } from "./IncomingTray";
 import { ApplyPlaylistToDrugsAction } from "./ApplyPlaylistToDrugsAction";
-import { KeyboardHints, ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
+import { KeyboardHints, REPLICATION_STUDIO_SHORTCUTS, ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
 import {
@@ -140,6 +141,7 @@ export function ReplicationStudioTab({
   initialSubstanceSlug,
 }: { initialSubstanceSlug?: string } = {}) {
   const controller = useReplicationStudioController(initialSubstanceSlug);
+  useDevShortcuts(REPLICATION_STUDIO_SHORTCUTS);
   const {
     load,
     rows,

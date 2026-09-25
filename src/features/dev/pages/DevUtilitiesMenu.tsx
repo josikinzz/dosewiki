@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Icon } from "@/components/common/Icon";
 import { roleMeetsFloor, type AppRole, type RoleFloor } from "@/lib/auth/roles";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { RAIL_ICON_BUTTON_CLASS } from "./DevModeToolRail";
 
 export type DevUtility = { href: string; label: string; detail: string; icon: string; role: RoleFloor };
 
@@ -37,9 +37,10 @@ export function devUtilitiesFor(role: AppRole | null | undefined): readonly DevU
 }
 
 /**
- * Wrench button in the chrome cluster that opens a short menu of the developer
- * utility routes. Until this existed, `/dev/kit` and `/dev/themes` were reachable
- * only by typed URL.
+ * Utilities button in the chrome cluster that opens a short menu of the
+ * developer utility routes. Until this existed, `/dev/kit` and `/dev/themes`
+ * were reachable only by typed URL. Its icon is not the wrench: the wrench is
+ * the rail's Dev Tools mark, and two wrenches side by side read as one thing.
  */
 export function DevUtilitiesMenu({ utilities = DEV_UTILITIES }: { utilities?: readonly DevUtility[] }) {
   return (
@@ -49,9 +50,9 @@ export function DevUtilitiesMenu({ utilities = DEV_UTILITIES }: { utilities?: re
           type="button"
           title="Utilities"
           aria-label="Utilities"
-          className={`theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${TOUCH_ICON}`}
+          className={RAIL_ICON_BUTTON_CLASS}
         >
-          <Icon icon="lucide:wrench" size={15} />
+          <Icon icon="lucide:blocks" size={15} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" aria-label="Utilities" className="w-60 p-1.5">

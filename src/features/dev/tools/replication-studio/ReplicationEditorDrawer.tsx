@@ -14,6 +14,7 @@ import {
   EditorStatusPill,
   useConfirm,
   useUnsavedWork,
+  type DevShortcut,
 } from "@/features/dev/components";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -486,18 +487,20 @@ function BulkFields({
   );
 }
 
-const KEYBOARD_HINTS: [string, string][] = [
-  ["/", "search"],
-  ["← ↑ → ↓", "move through the grid"],
-  ["Esc", "clear the selection"],
-  ["Shift + click", "select a range"],
-  ["Ctrl / ⌘ + click", "add or remove one"],
+/** The studio's keys: listed in the empty inspector and, through the shell registry, in the `?` sheet. */
+export const REPLICATION_STUDIO_SHORTCUTS: readonly DevShortcut[] = [
+  { keys: "/", label: "search" },
+  { keys: "← ↑ → ↓", label: "move through the grid" },
+  { keys: "Shift + arrow", label: "extend the selection" },
+  { keys: "Esc", label: "clear the selection" },
+  { keys: "Shift + click", label: "select a range" },
+  { keys: "Ctrl / ⌘ + click", label: "add or remove one" },
 ];
 
 export function KeyboardHints() {
   return (
     <ul className="space-y-1.5">
-      {KEYBOARD_HINTS.map(([key, description]) => (
+      {REPLICATION_STUDIO_SHORTCUTS.map(({ keys: key, label: description }) => (
         <li key={key} className="flex items-center gap-2 text-sm">
           <kbd className="theme-replication-muted-panel theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] px-1.5 py-0.5 font-mono text-xs">
             {key}

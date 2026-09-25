@@ -13,7 +13,9 @@ import {
   TagToken,
   TriageShortcutHint,
   useConfirm,
+  useDevShortcuts,
   useTriageShortcuts,
+  type DevShortcut,
 } from "@/features/dev/components";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { INTAKE_STATUS_LABEL, TRIP_REPORT_INTAKE_STATUS } from "@/features/intake/intakeStatus";
@@ -35,6 +37,12 @@ const SORTS: { value: PortalSort; label: string }[] = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
   { value: "title", label: "Title" },
+];
+
+/** Keys the portal answers to beyond the shared triage keys. */
+const TRIP_REPORT_SEARCH_SHORTCUTS: readonly DevShortcut[] = [
+  { keys: "/", label: "Search submissions" },
+  { keys: "Esc", label: "Leave a field, or close the open submission" },
 ];
 
 export function TripReportPortalTab({ initialSubmissionId }: { initialSubmissionId?: string } = {}) {
@@ -129,6 +137,7 @@ export function TripReportPortalTab({ initialSubmissionId }: { initialSubmission
     onNote: () => triageRef.current?.note(),
     onUndo: () => void undoLastDecision(),
   });
+  useDevShortcuts(TRIP_REPORT_SEARCH_SHORTCUTS);
 
   return (
     <div className="space-y-4">

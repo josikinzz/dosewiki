@@ -34,7 +34,7 @@ export const RAIL_TAB_CLASS =
 const MENU_TAB_CLASS =
   "theme-dev-rail-tab flex min-h-9 w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[0.8125rem] font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none data-[state=active]:font-semibold [@media(pointer:coarse)]:min-h-11";
 const MENU_CONTENT_CLASS = "p-1.5 motion-reduce:animate-none";
-const RAIL_GROUP_CAPTION_CLASS =
+export const RAIL_GROUP_CAPTION_CLASS =
   "theme-dev-rail-group shrink-0 select-none px-1 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.14em]";
 export const RAIL_ICON_BUTTON_CLASS =
   `theme-dev-rail-button flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${TOUCH_ICON}`;
@@ -44,7 +44,7 @@ export function RailDivider() {
   return <span aria-hidden className="theme-dev-rail-divider mx-1 h-4 w-px shrink-0" />;
 }
 
-function CountBadge({ count, label = "awaiting review" }: { count: number; label?: string }) {
+export function CountBadge({ count, label = "awaiting review" }: { count: number; label?: string }) {
   return (
     <>
       <span aria-hidden title={`${count} ${label}`} className="theme-portal-count-badge inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1.5 font-mono text-[10px] font-semibold leading-none">

@@ -26,6 +26,8 @@ export function useDevModePageController({
   initialProfileKey,
   isLibraryLoading = false,
   onTabChange,
+  onOpenPath,
+  toolMountKey = 0,
 }: DevModePageProps): DevModePageControllerState {
   const {
     articles,
@@ -163,6 +165,12 @@ export function useDevModePageController({
     window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   }, []);
 
+  // Outside the route client (a test, a bare mount) a record opens as a page load.
+  const handleOpenPath = useCallback((path: string) => {
+    if (onOpenPath) onOpenPath(path);
+    else window.location.assign(path);
+  }, [onOpenPath]);
+
   const { onTabChange: changeTab } = routeAccess;
   // The seed lands in the working set before the editor opens on it, so the
   // substances tab never renders a half-applied rebase.
@@ -190,6 +198,7 @@ export function useDevModePageController({
     userEmail: routeAccess.userEmail,
     userImage: routeAccess.userImage,
     userName: routeAccess.userName,
+    glossaryLocales: routeAccess.glossaryLocales,
     articlesLength: articles.length,
     // Treat "still draining" and "drained to nothing" alike: both mean the
     // corpus-backed tools have nothing real to show yet.
@@ -207,6 +216,8 @@ export function useDevModePageController({
     writingInitialSlug: initialArticleSlug,
     copyStudioInitialKey: initialArticleSlug,
     playlistsInitialKey: initialArticleSlug,
+    membersInitialKey: initialArticleSlug,
+    toolMountKey,
     tripReportsInitialId: initialArticleSlug,
     queueInitialId: initialArticleSlug,
     initialFilter,
@@ -214,6 +225,7 @@ export function useDevModePageController({
     contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,
+    onOpenPath: handleOpenPath,
     onLoadProposal: handleLoadProposal,
     onSignIn: handleSignIn,
     onLeave: chromeEnvironment.leaveEditor,
