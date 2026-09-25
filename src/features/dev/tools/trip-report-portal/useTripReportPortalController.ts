@@ -7,7 +7,7 @@ import type {
   TripReportSubmissionRow,
   TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissions";
-import { useDirtyGuard } from "@/features/dev/components";
+import { useDirtyGuard, useUnsavedWork } from "@/features/dev/components";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
 import type { EditorSaveRequest } from "./PortalReportEditor";
@@ -200,7 +200,20 @@ export function useTripReportPortalController() {
     detail !== null &&
     detail.id === selected.id &&
     JSON.stringify(draft) !== JSON.stringify(detail.fields);
-  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, DISCARD_COPY);
+  // The in-tool guard keeps row clicks, Prev/Next and Close; the shell owns
+  // rail clicks, Leave and unload. A report save replaces the live page, so
+  // the shell only discards.
+  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
+  useUnsavedWork({
+    id: "trip-report-submissions:report",
+    tab: "trip-report-submissions",
+    label: `Trip reports: edits to ${selected?.title?.trim() ? `"${selected.title.trim()}"` : "a published report"}`,
+    dirty,
+    publishesLive: true,
+    discard: () => {
+      if (detail) setDraft(detail.fields);
+    },
+  });
 
   const openRow = useCallback(
     (row: PortalRow) => {

@@ -373,13 +373,11 @@ export function useContributorsController({
   );
   const isProfileDirty =
     detail && form ? isContributorFormDirty(detail.profile, form, avatarFile !== null || avatarRemoved) : false;
+  const isWorkOrderDirty = detail !== null && !ordersEqual(workOrder, detail.profile.replicationOrder);
+  const isReportOrderDirty = detail !== null && !ordersEqual(reportOrder, detail.profile.reportOrder);
   // Anything a row change or scope flip would throw away: the profile draft
   // and either unsaved order.
-  const hasUnsavedChanges =
-    isProfileDirty ||
-    (detail !== null &&
-      (!ordersEqual(workOrder, detail.profile.replicationOrder) ||
-        !ordersEqual(reportOrder, detail.profile.reportOrder)));
+  const hasUnsavedChanges = isProfileDirty || isWorkOrderDirty || isReportOrderDirty;
 
   const selectProfile = useCallback((key: string) => {
     setSelectedKey(key);
@@ -471,6 +469,8 @@ export function useContributorsController({
     saveOrdering,
     knownAuthorNames,
     isProfileDirty,
+    isWorkOrderDirty,
+    isReportOrderDirty,
     hasUnsavedChanges,
     completeDangerOperation,
     removeSelectedProfile,

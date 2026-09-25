@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Surface } from "@/components/ui/surface";
 import { StateCard } from "@/components/common/StateCard";
+import { useUnsavedWork } from "@/features/dev/components";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
 import { ApprovalActions, EMPTY_REASON, ReasonPicker, reasonFor, type ReasonDraft } from "./CorrectionReason";
 import { languageLabel } from "./glossaryModel";
@@ -107,6 +108,29 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   const proposed = documentOf(value);
   const unsaved = packet ? !sameDocument(proposed, packet.draft ?? packet.approved) : false;
   const approvable = Boolean(packet?.draft) && !unsaved;
+
+  // The shell asks before a rail click, Leave, a reload or a language switch
+  // drops the draft guide. Saving leaves it as a draft (translations follow
+  // only the approved guide), so the dialog may save once a reason is chosen;
+  // a failed save throws so the dialog keeps the work and says why.
+  useUnsavedWork({
+    id: "glossary:style-guide",
+    tab: "glossary",
+    label: `Glossary: style guide for ${languageLabel(locale)}`,
+    dirty: unsaved,
+    saveLabel: "Save draft",
+    save: reason.kind && packet
+      ? async () => {
+          await send("save", packet.revision);
+          setReason(EMPTY_REASON);
+          await load();
+        }
+      : undefined,
+    discard: () => {
+      if (packet) setValue(working(packet.draft ?? packet.approved));
+      setReason(EMPTY_REASON);
+    },
+  });
   const canAdd = adding.before.trim() && adding.after.trim() && adding.why.trim() && adding.before.trim() !== adding.after.trim();
 
   if (!packet) return error ? <StateCard compact tone="danger" title="Style guide unavailable" description={error} /> : <p className="theme-text-secondary text-sm">Loading the style guide.</p>;

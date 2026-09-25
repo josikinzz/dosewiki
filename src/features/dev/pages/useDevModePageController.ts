@@ -17,6 +17,7 @@ import { useDevModeChangelogState } from "./useDevModeChangelogState";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
 import { useDevSupportTabsController } from "./useDevModeSupportTabProps";
 import { useDevRouteAccess } from "./useDevRouteAccess";
+import { useStagedSetUnsavedWork } from "./useStagedSetUnsavedWork";
 
 export function useDevModePageController({
   activeTab,
@@ -97,8 +98,11 @@ export function useDevModePageController({
   const chromeEnvironment = useDevChromeEnvironment({
     activeTab,
     close,
-    hasPendingChanges: changelogState.hasPendingChanges,
     onTabNoticeClear: clearNoticesForTab,
+  });
+  useStagedSetUnsavedWork({
+    hasArticleDatasetChanges: changelogState.hasArticleDatasetChanges,
+    hasIndexLayoutChanges: changelogState.hasManualChanges,
   });
   const changeLog = useDevModeChangeLog({
     changeLogEntries,

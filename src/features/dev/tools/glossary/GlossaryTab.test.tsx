@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { UnsavedWorkProvider } from "../../components/unsavedWork";
 import { GlossaryTab } from "./GlossaryTab";
 import type { GlossaryList, GlossaryRow } from "./glossaryModel";
 
@@ -584,10 +585,10 @@ describe("GlossaryTab", () => {
     await waitFor(() => expect(rowFor("Artist").getByRole("button", { name: "Approve" })).toHaveFocus());
   });
 
-  it("asks before leaving the page with unsaved wording", async () => {
+  it("asks before leaving the page with unsaved wording, through the shell's unload guard", async () => {
     stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
-    render(<GlossaryTab viewerRole="translator" />);
+    render(<UnsavedWorkProvider><GlossaryTab viewerRole="translator" /></UnsavedWorkProvider>);
     const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     const clean = new Event("beforeunload", { cancelable: true });
     window.dispatchEvent(clean);

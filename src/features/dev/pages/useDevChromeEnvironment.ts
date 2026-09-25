@@ -2,43 +2,24 @@ import { useEffect, useMemo } from "react";
 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-import { useUnsavedWork } from "../components/unsavedWork";
-
 import { findDevTab, type DevModeTab } from "./devTabRegistry";
-
-/** The registry id for the shared draft; it belongs to no single rail tab. */
-export const SHARED_DRAFT_ENTRY_ID = "shared-draft";
-// Leaving drops the in-memory draft on its own; nothing more to clear.
-const NO_OP = () => {};
 
 export function useDevChromeEnvironment({
   activeTab,
   close,
-  hasPendingChanges,
   onTabNoticeClear,
 }: {
   activeTab: DevModeTab;
   close: () => void;
-  hasPendingChanges: boolean;
   onTabNoticeClear: (tab: DevModeTab) => void;
 }) {
   const enableStickyPanels = useMediaQuery("(pointer: fine)");
 
-  // The shared draft (article and layout edits waiting for Commit) outlives a
-  // rail switch but not the editor, so it only stops Leave, sign-out and a
-  // browser unload. It has no one-step save: Commit asks its own questions.
-  useUnsavedWork({
-    id: SHARED_DRAFT_ENTRY_ID,
-    label: "Draft edits not yet committed",
-    dirty: hasPendingChanges,
-    discard: NO_OP,
-    keepsOnTabSwitch: true,
-  });
-
   // "Leave the editor" is a button, never a key: Escape belongs to whatever
   // menu, dialog or field has focus. The chrome asks the unsaved-work
   // registry before it calls this, then `close()` returns to the page the
-  // editor came from.
+  // editor came from. The staged working set is one more registry entry
+  // (useStagedSetUnsavedWork), never a special case here.
   const leaveEditor = close;
 
   useEffect(() => {

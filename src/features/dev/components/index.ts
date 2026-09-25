@@ -127,4 +127,4 @@ export {
   useUnsavedWork,
   useUnsavedWorkRegistry,
 } from "./unsavedWork";
-export type { UnsavedWorkEntry, UnsavedWorkExit, UnsavedWorkRegistry } from "./unsavedWork";
+export type { UnsavedWorkEntry, UnsavedWorkExit, UnsavedWorkExitScope, UnsavedWorkRegistry } from "./unsavedWork";

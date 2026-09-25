@@ -37,6 +37,14 @@ export interface UnsavedWorkEntry {
 /** What is about to drop the work: a rail switch, or leaving the editor entirely. */
 export type UnsavedWorkExit = "tab" | "leave";
 
+export interface UnsavedWorkExitScope {
+  /**
+   * Only this rail tab's work is at stake: a switch inside one tool that
+   * replaces all of its scopes at once (the Glossary language picker).
+   */
+  tab?: string;
+}
+
 export interface UnsavedWorkRegistry {
   /** Every registered entry that is dirty right now, in registration order. */
   dirtyEntries: readonly UnsavedWorkEntry[];
@@ -45,9 +53,10 @@ export interface UnsavedWorkRegistry {
   /**
    * Runs `proceed` at once when nothing would be lost. Otherwise opens the one
    * dialog, and runs `proceed` only after every listed entry is saved or
-   * discarded. Cancel runs nothing.
+   * discarded. Cancel runs nothing. `scope.tab` narrows the question to one
+   * tool's work.
    */
-  confirmExit: (proceed: () => void, exit?: UnsavedWorkExit) => void;
+  confirmExit: (proceed: () => void, exit?: UnsavedWorkExit, scope?: UnsavedWorkExitScope) => void;
 }
 
 type RegistryContext = UnsavedWorkRegistry & {
@@ -65,8 +74,17 @@ const INERT_REGISTRY: UnsavedWorkRegistry = {
 
 type PendingExit = { ids: readonly string[]; proceed: () => void };
 
-function exitBlockers(entries: Iterable<UnsavedWorkEntry>, exit: UnsavedWorkExit): UnsavedWorkEntry[] {
-  return [...entries].filter((entry) => entry.dirty && (exit === "leave" || !entry.keepsOnTabSwitch));
+function exitBlockers(
+  entries: Iterable<UnsavedWorkEntry>,
+  exit: UnsavedWorkExit,
+  scope: UnsavedWorkExitScope | undefined,
+): UnsavedWorkEntry[] {
+  return [...entries].filter(
+    (entry) =>
+      entry.dirty &&
+      (exit === "leave" || !entry.keepsOnTabSwitch) &&
+      (scope?.tab === undefined || (entry.tab ?? entry.id) === scope.tab),
+  );
 }
 
 /**
@@ -110,8 +128,8 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const confirmExit = useCallback((proceed: () => void, exit: UnsavedWorkExit = "tab") => {
-    const blockers = exitBlockers(entriesRef.current.values(), exit);
+  const confirmExit = useCallback((proceed: () => void, exit: UnsavedWorkExit = "tab", scope?: UnsavedWorkExitScope) => {
+    const blockers = exitBlockers(entriesRef.current.values(), exit, scope);
     if (blockers.length === 0) {
       proceed();
       return;

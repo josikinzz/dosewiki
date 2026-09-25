@@ -2,8 +2,16 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 
+import {
+  expectRailMarksUnsaved,
+  renderInDevShell,
+  switchTabExpectingGuard,
+} from "../../pages/devShellTestHarness";
 import { ContributorsTab } from "./ContributorsTab";
 import type { EditorContributorProfile } from "./contributorsModel";
 
@@ -360,6 +368,38 @@ describe("ContributorsTab", () => {
 
     await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
     expect(fetchMock).toHaveBeenCalledWith("/api/dev/contributor-profile?key=JOSIE");
+  });
+
+  it("marks the rail and asks through the shell before a rail click drops unsaved profile changes", async () => {
+    const user = userEvent.setup();
+    stubProfileApi({
+      ADA: storedProfile("ADA", "Ada Lovelace"),
+      JOSIE: storedProfile("JOSIE", "Josie Kins"),
+    });
+    const add = vi.spyOn(window, "addEventListener");
+    const { nav, onTabChange } = renderInDevShell(
+      <ContributorsTab profiles={DIRECTORY} isDirectoryLoading={false} canEdit canApprove sessionProfileKey="JOSIE" />,
+      { tab: "contributors" },
+    );
+    const displayName = await screen.findByLabelText("Display name");
+    await waitFor(() => expect(displayName).toHaveValue("Ada Lovelace"));
+    await user.type(displayName, " Byron");
+
+    expectRailMarksUnsaved(nav, "Contributors");
+    const dialog = switchTabExpectingGuard(nav, onTabChange);
+    expect(within(dialog).getByText("Contributors: profile of Ada Lovelace")).toBeTruthy();
+    // A profile save is live on the public page: the shell only discards.
+    expect(within(dialog).queryByRole("button", { name: "Save" })).toBeNull();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Keep editing" }));
+    expect(onTabChange).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace Byron");
+
+    fireEvent.click(within(switchTabExpectingGuard(nav, onTabChange)).getByRole("button", { name: "Discard" }));
+    expect(onTabChange).toHaveBeenCalledWith("articles");
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+    // The shell owns unload; the tool adds no listener of its own.
+    expect(add.mock.calls.filter(([type]) => type === "beforeunload")).toHaveLength(1);
   });
 
   it("keeps the merge confirm locked until a searched destination is shown with its key and aliases", async () => {

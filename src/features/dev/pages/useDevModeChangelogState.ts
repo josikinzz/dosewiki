@@ -107,6 +107,8 @@ export function useDevModeChangelogState({
     chemicalManualChangelog,
     mechanismManualChangelog,
     datasetChangelog,
+    hasArticleDatasetChanges,
+    hasManualChanges,
     hasPendingChanges,
     combinedChangelogMarkdown,
   };

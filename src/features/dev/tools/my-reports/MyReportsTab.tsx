@@ -31,6 +31,7 @@ import {
   TagToken,
   useConfirm,
   useDirtyGuard,
+  useUnsavedWork,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import type { TripReportEditableFields } from "../../../../../server/lib/tripReportEditing";
@@ -61,7 +62,17 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   const dirty = open !== null && JSON.stringify(open.draft) !== JSON.stringify(open.record.fields);
-  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, DISCARD_COPY);
+  // The in-tool guard keeps row clicks and Close; the shell owns rail clicks,
+  // Leave and unload. Saving republishes the page, so the shell only discards.
+  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
+  useUnsavedWork({
+    id: "my-reports:report",
+    tab: "my-reports",
+    label: `My reports: edits to /reports/${open?.record.slug ?? ""}`,
+    dirty,
+    publishesLive: true,
+    discard: () => setOpen((current) => (current ? { ...current, draft: current.record.fields } : current)),
+  });
   const { confirm, dialog: publishDialog } = useConfirm();
 
   const load = useCallback(async () => {

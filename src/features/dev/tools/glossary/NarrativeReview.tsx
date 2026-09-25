@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Surface } from "@/components/ui/surface";
 import { SmartLink } from "@/components/common/SmartLink";
 import { StateCard } from "@/components/common/StateCard";
+import { useUnsavedWork } from "@/features/dev/components";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { count, languageLabel } from "./glossaryModel";
 import { loadSearchManifestIndex } from "@/hooks/useSearchManifest";
@@ -135,6 +136,8 @@ export function NarrativeReview({ locale, canAdmin = false }: {
     const [slug, setSlug] = useState("");
     const [packet, setPacket] = useState<Packet | null>(null), [selected, setSelected] = useState("");
     const [target, setTarget] = useState(""), [reason, setReason] = useState<CorrectionDraft>(EMPTY_CORRECTION);
+    /** The wording the open paragraph's editor started from; typing away from it is unsaved work. */
+    const [openedTarget, setOpenedTarget] = useState("");
     const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState("");
     const [publication, setPublication] = useState<PublicationReceipt[]>([]);
     const [history, setHistory] = useState<ReviewHistoryEntry[]>([]);
@@ -173,7 +176,9 @@ export function NarrativeReview({ locale, canAdmin = false }: {
             setHistory(data.history ?? []);
             if (id) {
                 const next = data.rows.find((r: Row) => r.id === id);
-                setTarget(next?.draft?.target ?? next?.approved?.target ?? next?.machine?.target ?? "");
+                const opened = next?.draft?.target ?? next?.approved?.target ?? next?.machine?.target ?? "";
+                setTarget(opened);
+                setOpenedTarget(opened);
                 requestAnimationFrame(() => {
                     correctionRef.current?.scrollIntoView?.({ block: "center" });
                     correctionRef.current?.focus();
@@ -254,6 +259,19 @@ export function NarrativeReview({ locale, canAdmin = false }: {
     const changed = Boolean(row && target.trim() && target.trim() !== savedTarget.trim());
     const approvable = Boolean(row?.draft && !changed && row.status !== "stale" && row.draft.context === row.context && target === row.draft.target);
     const canSave = Boolean(target.trim()) && (changed || Boolean(row?.draft && !approvable));
+    // Opening a machine paragraph is not an edit, so the shell hears only about
+    // typing. A correction needs its reason and conflict checks, so the shell
+    // only discards it.
+    useUnsavedWork({
+        id: "glossary:article-correction",
+        tab: "glossary",
+        label: `Glossary: correction to ${packet?.slug ?? "an article"}${row ? `, ${row.field}` : ""} in ${languageLabel(locale)}`,
+        dirty: Boolean(row) && target !== openedTarget,
+        discard: () => {
+            setTarget(openedTarget);
+            setReason(EMPTY_CORRECTION);
+        },
+    });
     const editor = row ? <Surface variant="subtle" padding="sm" radius="lg" className="min-w-0 space-y-3 break-words">
    <h4 className="theme-text-primary font-medium">{row.field} · {MARKS[row.status]?.label ?? row.status}</h4>
    <p className="theme-text-secondary text-sm" title={`Model ${row.machine?.model ?? "unknown"} · prompt ${row.machine?.prompt_version ?? "unknown"}`}>Machine translation: {row.machine?.target ?? "Missing"}</p>

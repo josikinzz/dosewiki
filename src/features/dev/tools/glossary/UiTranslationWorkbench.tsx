@@ -89,7 +89,12 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
   const inFlight = useRef(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- correctionOf reads the same edits entry keyed by editKey.
   useEffect(() => { setTarget(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? ""); setCorrection(correctionOf()); }, [row, edits, editKey]);
-  const remember = (nextTarget: string, next: CorrectionDraft) => edits.set(editKey, { target: nextTarget, reason: next.note, kind: next.kind, exceptions: next.exceptions });
+  // Typing back to the stored wording with no reason is no unsaved work, so the entry goes.
+  const remember = (nextTarget: string, next: CorrectionDraft) => {
+    const untouched = nextTarget === (row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "") && !next.kind && !next.note && !next.exceptions.length;
+    if (untouched) edits.delete(editKey);
+    else edits.set(editKey, { target: nextTarget, reason: next.note, kind: next.kind, exceptions: next.exceptions });
+  };
   const editTarget = (value: string) => { remember(value, correction); setTarget(value); };
   const editCorrection = (next: CorrectionDraft) => { remember(target, next); setCorrection(next); };
   const conflicts = openConflicts(row.source, target, row.glossary, exceptionsFor(correction, row.id));

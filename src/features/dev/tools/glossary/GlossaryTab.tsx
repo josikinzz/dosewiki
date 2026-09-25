@@ -45,6 +45,8 @@ import {
   EditorSelect,
   LoadErrorState,
   useConfirm,
+  useUnsavedWork,
+  useUnsavedWorkRegistry,
   type EditorNoticeMessage,
 } from "@/features/dev/components";
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
@@ -81,6 +83,7 @@ import { TranslationChanges } from "./TranslationChanges";
 import { NarrativeReview } from "./NarrativeReview";
 import { ReviewInbox } from "./ReviewInbox";
 import { StyleGuidePanel } from "./StyleGuidePanel";
+import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
 import { parseWorkbenchDeepLink } from "../../../../../lib/translation/reviewInboxTypes";
 import type { PagesSection, WorkbenchView, WordsList } from "@lib/translation/reviewInboxTypes";
 import { TranslationCoverage } from "./TranslationCoverage";
@@ -200,8 +203,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     if (next === "terms" || next === "labels" || next === "style") openWordsList(next);
     else openView(next);
   };
-  const uiEditDrafts = useRef<UiEditDrafts>(new Map());
-  const termEditDrafts = useRef<GlossaryEditDrafts>(new Map());
+  const [uiEditDrafts] = useState<DraftMapOf<UiEditDrafts>>(() => new DraftMap());
+  const [termEditDrafts] = useState<DraftMapOf<GlossaryEditDrafts>>(() => new DraftMap());
   const [category, setCategory] = useState<string | null>(null);
   const canAdmin = roleMeetsFloor(viewerRole, "admin");
   const canDefine = roleMeetsFloor(viewerRole, "editor");
@@ -257,17 +260,27 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     void load(params.get("locale") ?? params.get("translationLocale"));
   }, [load]);
 
-  // Unsaved term and label wording lives only in memory, so leaving or
-  // reloading the page asks first.
-  useEffect(() => {
-    const warn = (event: BeforeUnloadEvent) => {
-      if (termEditDrafts.current.size === 0 && uiEditDrafts.current.size === 0) return;
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, []);
+  // Unsaved term and label wording lives only in memory. Each scope reports
+  // to the shell, which asks before a rail click, Leave or a reload drops it.
+  // Each row needs its own reason before it saves, so the shell only discards.
+  const hasTermDrafts = useDraftMapHasEntries(termEditDrafts);
+  const hasUiDrafts = useDraftMapHasEntries(uiEditDrafts);
+  const languageName = locale ? languageLabel(locale) : "this language";
+  useUnsavedWork({
+    id: "glossary:terms",
+    tab: "glossary",
+    label: `Glossary: term wording in ${languageName}`,
+    dirty: hasTermDrafts,
+    discard: () => termEditDrafts.clear(),
+  });
+  useUnsavedWork({
+    id: "glossary:ui-text",
+    tab: "glossary",
+    label: `Glossary: interface text in ${languageName}`,
+    dirty: hasUiDrafts,
+    discard: () => uiEditDrafts.clear(),
+  });
+  const { confirmExit } = useUnsavedWorkRegistry();
 
   useEffect(() => {
     if (!data || data.jobs.active === 0 || locked) return;
@@ -419,7 +432,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const saveTarget = (row: GlossaryRow, target: string, reason: ReviewReason) =>
     run("approve", async (collisionConfirmation) => {
       const saved = await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
-      termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
+      termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
       return `Saved "${saved.term}" as ${saved.target}; awaiting approval.`;
     }, row.term, undefined, true);
 
@@ -433,7 +446,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     let saved: GlossaryRow | null = null;
     return run("approve", async (collisionConfirmation) => {
       saved ??= await editTerm(locale!, row.term, target, collisionConfirmation, row.revision, reason);
-      termEditDrafts.current.delete(JSON.stringify([row.locale, row.term]));
+      termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
       await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
       return `Approved "${row.term}" as ${saved.target}.`;
     }, row.term);
@@ -524,6 +537,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
   };
 
+  // Every panel below is keyed on the language, so a switch remounts them and
+  // drops their typed work: the shell's dialog asks first for this tab's scopes.
+  const requestLocale = (code: string) => {
+    if (code === locale) return;
+    confirmExit(() => changeLocale(code), "tab", { tab: "glossary" });
+  };
+
   const changeLocale = (code: string) => {
     const url = new URL(window.location.href);
     url.searchParams.set("locale", code);
@@ -580,7 +600,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     label: `${languageLabel(option.locale)}${option.live ? ", live" : ""}`,
                   }))}
                   disabled={locked}
-                  onChange={(event) => changeLocale(event.target.value)}
+                  onChange={(event) => requestLocale(event.target.value)}
                 />
               </div>
               <EditorSegmentedControl label="Workbench view" value={section} onChange={(next) => openSection(next as WorkbenchSection)} options={SECTIONS.map((option) => ({ ...option, disabled: locked }))} />
@@ -651,7 +671,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   ) : null}
                 </div>
               ) : null}
-              {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts.current} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
+              {visitedViews.labels ? <div hidden={wordsList !== "labels"}><UiTranslationWorkbench key={data.locale} locale={data.locale} editDrafts={uiEditDrafts} search={filters.search} onSearchChange={(search) => setFilters((current) => ({ ...current, search }))} /></div> : null}
               {visitedViews.style ? <div hidden={wordsList !== "style"}><StyleGuidePanel key={data.locale} locale={data.locale} /></div> : null}
             <section aria-label="Glossary terms" hidden={wordsList !== "terms"} className="space-y-3">
             {workingRows.length > 0 && canDefine ? <p className="theme-text-muted text-xs">Click a definition to edit it.</p> : null}
@@ -681,7 +701,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                     totals={totals[group.category.id] ?? { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount }}
                     statusFilter={filters.status}
                     expanded={Boolean(filters.search.trim()) || category === group.category.id}
-                    editDrafts={termEditDrafts.current}
+                    editDrafts={termEditDrafts}
                     disabled={busy !== null}
                     writingTerm={writingTerm}
                     glosses={data.glosses}
