@@ -14,6 +14,7 @@ import {
   GLOSSARY_BODY_MAX_BYTES,
   glossaryCollisionResponse,
   glossaryLocaleAccess,
+  glossaryRowPatch,
   parseCollisionConfirmation,
   parseLocale,
   parseTerms,
@@ -64,7 +65,7 @@ export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
     getDataBackend();
     const denied = glossaryLocaleAccess(auth, body.locale);
     if (denied) return denied;
-    await mutateGlossaryReview(
+    const rows = await mutateGlossaryReview(
       body.locale,
       body.terms.map((term) => ({
         term,
@@ -76,6 +77,6 @@ export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
       body.reason,
     );
     const approved = body.terms;
-    return NextResponse.json({ ok: true, locale: body.locale, approved });
+    return NextResponse.json({ ok: true, locale: body.locale, approved, ...glossaryRowPatch(rows, approved) });
   },
 });

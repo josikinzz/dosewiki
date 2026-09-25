@@ -3,6 +3,11 @@
  * locale plus the locale picker (live mirrors and any locale with rows), the
  * prompt digest the approved set and approved style guide produce, and the locale-independent glosses.
  * Translator and up.
+ *
+ * `?progress=1&promptVersion=<digest>` is the workbench's 5s poll during a
+ * run: only the job and segment counts, measured against the digest the
+ * caller already holds, so the poll never rereads the glossary or recomputes
+ * the prompt context. A full load (Refresh) picks up a changed digest.
  */
 import { NextResponse } from "next/server";
 
@@ -21,7 +26,15 @@ import { loadApprovedStyleGuide } from "@server/translation/approvedStyleGuide";
 import { translationContextFromRows } from "@server/translation/liveTranslation";
 import { translationJobCounts, translationSegmentCounts } from "@server/translation/segmentStore";
 import { getGlossaryUsages } from "@server/translation/glossaryUsage";
-import { glossaryAccessibleLocales, glossaryLocaleAccess, parseLocale, type GlossaryListResponse, type GlossaryLocaleOption } from "./glossaryRoutes";
+import {
+  glossaryAccessibleLocales,
+  glossaryLocaleAccess,
+  parseLocale,
+  parsePromptVersion,
+  type GlossaryListResponse,
+  type GlossaryLocaleOption,
+  type GlossaryProgressResponse,
+} from "./glossaryRoutes";
 
 export const runtime = "nodejs";
 
@@ -47,8 +60,11 @@ export const GET = protectedRouteOperation({
         { status: 403 },
       );
     let locale: string;
+    let progressVersion: string | null = null;
     try {
       locale = parseLocale(requested ?? allowedLocales[0]);
+      if (searchParams.get("progress") === "1")
+        progressVersion = parsePromptVersion(searchParams.get("promptVersion"));
     } catch (error) {
       if (error instanceof JsonBodyError)
         return NextResponse.json(
@@ -59,6 +75,22 @@ export const GET = protectedRouteOperation({
     }
     const denied = glossaryLocaleAccess(auth, locale);
     if (denied) return denied;
+
+    if (progressVersion !== null) {
+      const [segments, jobs] = await Promise.all([
+        translationSegmentCounts(locale, progressVersion),
+        translationJobCounts(locale),
+      ]);
+      const progress: GlossaryProgressResponse = {
+        ok: true,
+        generatedAt: Date.now(),
+        locale,
+        promptVersion: progressVersion,
+        segments,
+        jobs,
+      };
+      return NextResponse.json(progress);
+    }
 
     const [summaries, rows, glosses, styleGuide] = await Promise.all([
       glossaryLocales(allowedLocales),

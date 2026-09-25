@@ -6,7 +6,7 @@
 import type { GlossaryCollision, GlossaryStatus } from "@server/translation/glossary";
 import type { GlossaryGloss } from "@server/translation/glossaryGloss";
 import type { ReviewReason } from "@server/translation/reviewReason";
-import type { GlossaryListResponse } from "@/app/api/dev/translation-glossary/glossaryRoutes";
+import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch } from "@/app/api/dev/translation-glossary/glossaryRoutes";
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 
@@ -42,6 +42,14 @@ export function standingLabel({ drafts, unchecked }: Pick<ReviewCounts, "drafts"
 }
 
 export type GlossaryList = GlossaryListResponse;
+export type GlossaryProgress = GlossaryProgressResponse;
+export type { GlossaryRowPatch };
+
+/** The list with a row write's result applied: written rows replace theirs in place, and the retranslation list follows the server. */
+export function applyRowPatch(list: GlossaryList, patch: GlossaryRowPatch): GlossaryList {
+  const written = new Map(patch.rows.map((row) => [row.term, row]));
+  return { ...list, rows: list.rows.map((row) => written.get(row.term) ?? row), pending: patch.pending };
+}
 
 export type GlossaryStatusFilter = "all" | "draft" | "unchecked" | "approved";
 
@@ -228,22 +236,44 @@ export async function fetchGlossary(locale: string | null, includeUsage = false)
   return payload as unknown as GlossaryList;
 }
 
-/** Returns the terms whose status changed. */
-export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>, reason?: ReviewReason): Promise<string[]> {
-  const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions, reason }, "Unable to approve those terms.");
-  return Array.isArray(payload.approved) ? (payload.approved as string[]) : [];
+/** The poll during a run: job and segment counts against the digest already held, never the rows. */
+export async function fetchGlossaryProgress(locale: string, promptVersion: string): Promise<GlossaryProgress> {
+  const params = new URLSearchParams({ locale, progress: "1", promptVersion });
+  const payload = await requestJson(`${BASE_PATH}?${params}`, { cache: "no-store" }, {
+    network: "Network error while refreshing progress.",
+    failure: "Unable to refresh progress.",
+  });
+  return payload as unknown as GlossaryProgress;
 }
 
-/** Confirms live wording nobody has checked, unchanged, at the revisions shown; returns the confirmed terms. */
-export async function confirmTerms(locale: string, terms: readonly string[], expectedRevisions: Record<string, string>, collisionConfirmation?: string, reason?: ReviewReason): Promise<string[]> {
+/** The written rows a row write returns, or `null` from a server that sent none, so the caller reloads instead. */
+function rowPatchOf(payload: Record<string, unknown>): GlossaryRowPatch | null {
+  return Array.isArray(payload.rows) && Array.isArray(payload.pending) ? { rows: payload.rows as GlossaryRow[], pending: payload.pending as string[] } : null;
+}
+
+/** `terms` are those whose status changed; `patch` is the written rows as they now stand. */
+export type GlossaryWrite = { terms: string[]; patch: GlossaryRowPatch | null };
+
+export async function approveTerms(locale: string, terms: readonly string[], collisionConfirmation?: string, expectedRevisions?: Record<string, string>, reason?: ReviewReason): Promise<GlossaryWrite> {
+  const payload = await postJson("approve", { locale, terms, collisionConfirmation, expectedRevisions, reason }, "Unable to approve those terms.");
+  return { terms: Array.isArray(payload.approved) ? (payload.approved as string[]) : [], patch: rowPatchOf(payload) };
+}
+
+/** Confirms live wording nobody has checked, unchanged, at the revisions shown. */
+export async function confirmTerms(locale: string, terms: readonly string[], expectedRevisions: Record<string, string>, collisionConfirmation?: string, reason?: ReviewReason): Promise<GlossaryWrite> {
   const payload = await postJson("confirm", { locale, terms, expectedRevisions, collisionConfirmation, reason }, "Unable to confirm those terms.");
-  return Array.isArray(payload.confirmed) ? (payload.confirmed as string[]) : [];
+  return { terms: Array.isArray(payload.confirmed) ? (payload.confirmed as string[]) : [], patch: rowPatchOf(payload) };
 }
 
 /** Saves a draft rendering; never approves it. */
 export async function editTerm(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string, reason?: ReviewReason): Promise<GlossaryRow> {
+  return (await saveTermDraft(locale, term, target, collisionConfirmation, expectedRevision, reason)).row;
+}
+
+/** `editTerm` plus the row patch the workbench applies in place. */
+export async function saveTermDraft(locale: string, term: string, target: string, collisionConfirmation?: string, expectedRevision?: string, reason?: ReviewReason): Promise<{ row: GlossaryRow; patch: GlossaryRowPatch | null }> {
   const payload = await postJson("edit", { locale, term, target, collisionConfirmation, expectedRevision, intent: "draft", reason }, "Unable to save that term.");
-  return payload.row as GlossaryRow;
+  return { row: payload.row as GlossaryRow, patch: rowPatchOf(payload) };
 }
 
 /** Writes the English definition shown under the term on every mirror and injected into every prompt; editor and up. */

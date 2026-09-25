@@ -7,6 +7,7 @@ import {
   GLOSSARY_BODY_MAX_BYTES,
   glossaryCollisionResponse,
   glossaryLocaleAccess,
+  glossaryRowPatch,
   parseExpectedRevision,
   parseLocale,
   parseTerm,
@@ -77,6 +78,7 @@ export const POST = protectedRouteOperation({
     return NextResponse.json({
       ok: true,
       row: rows.find((row) => row.term === body.term),
+      ...glossaryRowPatch(rows, [body.term]),
     });
   },
 });

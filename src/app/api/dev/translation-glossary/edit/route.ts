@@ -7,6 +7,7 @@ import {
   GLOSSARY_BODY_MAX_BYTES,
   glossaryCollisionResponse,
   glossaryLocaleAccess,
+  glossaryRowPatch,
   parseExpectedRevision,
   parseLocale,
   parseTarget,
@@ -76,6 +77,6 @@ export const POST = protectedRouteOperation<EditBody, ParsedEdit>({
         { status: 404 },
       );
     }
-    return NextResponse.json({ ok: true, row });
+    return NextResponse.json({ ok: true, row, ...glossaryRowPatch(rows, [body.term]) });
   },
 });

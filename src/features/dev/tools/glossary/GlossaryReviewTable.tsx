@@ -25,13 +25,14 @@ import {
   STATE_WORD,
   type GlossaryGroup,
   type GlossaryRow,
+  type GlossaryRowPatch,
   type GlossaryStatusFilter,
 } from "./glossaryModel";
 
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
-import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
+import type { ReviewHistoryEntry } from "@server/translation/reviewTypes";
 import type { GlossaryUsageMap, GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
-import type { ReviewReason } from "@lib/translation/reviewReason";
+import type { ReviewReason } from "@server/translation/reviewReason";
 import { ApprovalActions, ReasonPicker, reasonFor, type ReasonDraft } from "./CorrectionReason";
 
 /** Unsaved wording and its reason survive category changes and search, scoped to its locale and source revision. */
@@ -70,7 +71,7 @@ export type GlossaryGroupSectionProps = {
   onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
-  onRestored: () => Promise<void>;
+  onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
   rowNotice: GlossaryRowNotice | null;
 };
 
@@ -155,7 +156,7 @@ type GlossaryTableProps = {
   onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
-  onRestored: () => Promise<void>;
+  onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
   rowNotice: GlossaryRowNotice | null;
 };
 
@@ -209,7 +210,7 @@ type GlossaryTableRowProps = {
   onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
-  onRestored: () => Promise<void>;
+  onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
   notice: GlossaryRowNotice | null;
 };
 
@@ -237,10 +238,19 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
     setReason(next);
     editDrafts.set(draftKey, { value: draft, revision: editDrafts.get(draftKey)?.revision ?? row.revision, reason: next });
   };
-  // Enter only saves drafts. Approval always uses the explicit review button.
+  // Plain Enter only saves an edit as a draft; on a clean row it does nothing,
+  // and the hint above the table says so. Approving takes the button or
+  // Ctrl/Command+Enter, which runs the same main action the button shows.
   const submit = () => {
     if (held) return;
     if (dirty) save();
+  };
+  const runMainAction = () => {
+    if (held) return;
+    if (dirty) {
+      if (!blocked) onSaveAndApprove(editedRow(), draft.trim(), sentReason());
+    } else if (row.status === "draft") onApprove(row);
+    else if (unchecked) onConfirm(row);
   };
   return (
     <EditorTableRow data-term={row.term} data-status={row.status} data-needs-review={row.status === "draft" || unchecked || undefined} aria-busy={writing || undefined}>
@@ -255,8 +265,8 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
         <TranslationHistory revision={row.revision} name={row.term} disabled={held || dirty}
           load={async () => (await translationRequest<{ history: ReviewHistoryEntry[] }>(`/api/dev/translation-glossary/history?locale=${encodeURIComponent(row.locale)}&term=${encodeURIComponent(row.term)}`)).history}
           restore={async (restoreRevision) => {
-            await translationRequest("/api/dev/translation-glossary/history", { locale: row.locale, term: row.term, expectedRevision: row.revision, restoreRevision });
-            await onRestored();
+            const restored = await translationRequest<Partial<GlossaryRowPatch>>("/api/dev/translation-glossary/history", { locale: row.locale, term: row.term, expectedRevision: row.revision, restoreRevision });
+            await onRestored(restored.rows && restored.pending ? { rows: restored.rows, pending: restored.pending } : null);
           }} />
       </EditorTableCell>
       <EditorTableCell label="Type" className="theme-text-secondary text-xs">
@@ -279,10 +289,10 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             else editDrafts.set(draftKey, { value, revision: editDrafts.get(draftKey)?.revision ?? row.revision, reason });
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              submit();
-            }
+            if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+            event.preventDefault();
+            if (event.metaKey || event.ctrlKey) runMainAction();
+            else submit();
           }}
         />
         {/* The shared reason control, once there is a change to explain; a term's natural reason is chosen to start, in plain view. */}
@@ -339,17 +349,30 @@ type GlossaryDefinitionProps = {
 
 /**
  * The definition under a term, for an editor: the text is a button that
- * swaps in a one-line input. Enter saves a changed, non-empty definition;
- * Escape or leaving the field puts the text back unchanged. The server
- * decides what is too long or empty, and its message lands in the notice.
+ * swaps in a one-line input. Enter or leaving the field saves a changed,
+ * non-empty definition, so clicking away never drops typed text; only
+ * Escape puts the text back unchanged. The server decides what is too long
+ * or empty, and its message lands in the notice.
  */
 function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  /** Set once Enter, Escape or blur has closed the field, so the blur an unmount can fire never saves twice. */
+  const closed = useRef(false);
   const editing = draft !== null;
   useEffect(() => {
-    if (editing) input.current?.focus();
+    if (editing) {
+      closed.current = false;
+      input.current?.focus();
+    }
   }, [editing]);
+  const close = (save: boolean) => {
+    if (closed.current || draft === null) return;
+    closed.current = true;
+    const next = draft.trim();
+    setDraft(null);
+    if (save && next.length > 0 && next !== gloss) onSave(next);
+  };
   if (editing) {
     return (
       <Input
@@ -359,16 +382,14 @@ function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionPro
         aria-label={`Definition for ${term}`}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => setDraft(null)}
+        onBlur={() => close(true)}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && !event.nativeEvent.isComposing) {
             event.preventDefault();
-            const next = draft.trim();
-            setDraft(null);
-            if (next.length > 0 && next !== gloss) onSave(next);
+            close(true);
           } else if (event.key === "Escape") {
             event.preventDefault();
-            setDraft(null);
+            close(false);
           }
         }}
       />

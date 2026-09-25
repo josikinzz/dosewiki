@@ -13,6 +13,7 @@ import {
 import type { RoleSessionGranted } from "@/lib/auth/requireEditorSession";
 import {
   GlossaryCollisionError,
+  pendingRetranslation,
   type GlossaryLocaleSummary,
 } from "@server/translation/glossary";
 import { TranslationReviewError } from "@server/translation/reviewStore";
@@ -112,6 +113,13 @@ export function parseCollisionConfirmation(raw: unknown): string | undefined {
   return raw;
 }
 
+/** The digest a progress poll measures segments against; the client echoes what the last full load returned. */
+export function parsePromptVersion(raw: unknown): string {
+  if (typeof raw !== "string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(raw))
+    throw new JsonBodyError(400, "Refresh the glossary before polling its progress.");
+  return raw;
+}
+
 export function parseExpectedRevision(raw: unknown): string {
   if (typeof raw !== "string" || !/^\d+:\d+$/.test(raw))
     throw new JsonBodyError(
@@ -174,3 +182,23 @@ export type GlossaryListResponse = {
   /** `term -> gloss`, the locale-independent English definitions; shown under each row and injected into every prompt. */
   glosses: Record<string, string>;
 };
+
+/** The progress-only answer to the workbench's poll: counts, no rows. */
+export type GlossaryProgressResponse = Pick<GlossaryListResponse, "ok" | "generatedAt" | "locale" | "promptVersion" | "segments" | "jobs">;
+
+/**
+ * What a row write returns so the workbench patches those rows in place
+ * instead of reloading the locale: the written rows as the list shows them,
+ * and the retranslation list, which an approval can change.
+ */
+export type GlossaryRowPatch = Pick<GlossaryListResponse, "rows" | "pending">;
+
+export function glossaryRowPatch(rows: readonly GlossaryReviewRow[], terms: readonly string[]): GlossaryRowPatch {
+  const written = new Set(terms);
+  return {
+    rows: rows.filter((row) => written.has(row.term)),
+    // A review row shows a pending draft over the stored status; the list's
+    // retranslation set reads the stored status, which `approved_target` keeps.
+    pending: pendingRetranslation(rows.map((row) => ({ ...row, status: row.approved_target === null ? ("draft" as const) : ("approved" as const) }))),
+  };
+}

@@ -9,19 +9,38 @@
  * mutation with the revision shown; Edit opens that item's existing editor;
  * Fine here records a durable exception for a QA finding; Skip hides the item
  * for this browser session. Keys: J and K move, A accepts, E edits, F marks
- * fine, S skips. When Accept leaves out an approved glossary rendering, the
- * item shows the term with its own "Fine here" choice, which resends the save
- * with that term as a glossary exception.
+ * fine, S skips, U undoes. When Accept leaves out an approved glossary
+ * rendering, the item shows the term with its own "Fine here" choice, which
+ * resends the save with that term as a glossary exception.
+ *
+ * A stray key must never put machine text in use, so A alone only schedules
+ * the accept: the item leaves the list and the notice offers Undo for 10
+ * seconds before anything is written. The Accept button writes at once. The
+ * single-letter keys can be turned off for this browser (WCAG 2.1.4).
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+
+import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import { focusRingClassName, Surface } from "@/components/ui/surface";
-import { StateCard } from "@/components/common/StateCard";
-import { EditorNotice, EditorSelect, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
-import { INBOX_CHECK_LABEL, INBOX_PAGE_SIZE, INBOX_REASON_LABEL, INBOX_SCOPE_LABEL, type InboxItem, type InboxReason, type InboxResponse } from "../../../../../lib/translation/reviewInboxTypes";
-import type { GlossaryRendering } from "@lib/translation/glossaryConflicts";
-import { acceptInboxItem, fetchInbox, glossaryConflictsOf, inboxItemKey, markFineHere, readSkipped, writeSkipped } from "./reviewInboxModel";
+import { EditorCheckbox, EditorNotice, EditorSelect, EditorStatusPill, type EditorNoticeMessage } from "@/features/dev/components";
+import type { GlossaryRendering } from "@server/translation/glossaryConflicts";
+import { INBOX_CHECK_LABEL, INBOX_PAGE_SIZE, INBOX_REASON_LABEL, INBOX_SCOPE_LABEL, type InboxItem, type InboxReason, type InboxResponse } from "@server/translation/reviewInboxTypes";
+import {
+  acceptInboxItem,
+  fetchInbox,
+  glossaryConflictsOf,
+  inboxItemKey,
+  markFineHere,
+  readShortcutsEnabled,
+  readSkipped,
+  writeShortcutsEnabled,
+  writeSkipped,
+} from "./reviewInboxModel";
+
+/** How long a keyboard accept waits, with Undo on screen, before it writes. */
+export const UNDO_WINDOW_MS = 10_000;
 
 const REASON_TONE: Partial<Record<InboxReason, "info" | "warning" | "danger">> = {
   "segment-rejected": "danger",
@@ -57,6 +76,14 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   const [notice, setNotice] = useState<EditorNoticeMessage | null>(null);
   /** The approved renderings the last Accept left out, for the item it named. */
   const [glossaryConflict, setGlossaryConflict] = useState<{ key: string; conflicts: GlossaryRendering[] } | null>(null);
+  const [shortcutsOn, setShortcutsOn] = useState(() => (typeof window === "undefined" ? true : readShortcutsEnabled()));
+  /** The keyboard accept waiting out its undo window; nothing is written for it yet. */
+  const [undoable, setUndoable] = useState<InboxItem | null>(null);
+  const undoableRef = useRef<{ item: InboxItem; timer: number } | null>(null);
+  /** Items a keyboard accept took out of the list: waiting to be written, or being written. A failed write puts them back. */
+  const [held, setHeld] = useState<ReadonlySet<string>>(() => new Set());
+  /** Writes run one after another, so a scheduled accept never races an earlier one. */
+  const writes = useRef<Promise<void>>(Promise.resolve());
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   /** Set when a key or action moved focus, so the next render moves the DOM focus too. */
   const focusPending = useRef(false);
@@ -74,7 +101,7 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   }, [locale]);
   useEffect(() => { void load(0, null); }, [load]);
 
-  const visible = useMemo(() => data?.items.filter((item) => !skipped.has(inboxItemKey(item))) ?? [], [data, skipped]);
+  const visible = useMemo(() => data?.items.filter((item) => !skipped.has(inboxItemKey(item)) && !held.has(inboxItemKey(item))) ?? [], [data, skipped, held]);
   const current = Math.min(focusIndex, Math.max(visible.length - 1, 0));
 
   useEffect(() => {
@@ -88,38 +115,105 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
     setFocusIndex(Math.max(0, Math.min(index, visible.length - 1)));
   };
 
-  /** Runs one write for an item; on success the item leaves the list and focus stays at its place, which is now the next item. */
-  const act = async (item: InboxItem, write: () => Promise<void>, done: string) => {
-    if (accepting) return;
+  const release = (key: string) => setHeld((prev) => {
+    if (!prev.has(key)) return prev;
+    const next = new Set(prev);
+    next.delete(key);
+    return next;
+  });
+
+  /**
+   * Runs one write for an item; on success the item leaves the list. A button
+   * or key write keeps focus at the item's place, which is now the next item;
+   * a scheduled accept (`scheduled`) leaves focus wherever the reviewer is now,
+   * and on failure puts its item back with the reason.
+   */
+  const act = (item: InboxItem, write: () => Promise<void>, done: string, scheduled = false) => {
+    if (accepting && !scheduled) return;
     const key = inboxItemKey(item);
-    setAccepting(key);
-    setNotice(null);
-    setGlossaryConflict(null);
-    try {
-      await write();
-      focusPending.current = true;
-      setData((prev) => prev && {
-        ...prev,
-        items: prev.items.filter((other) => inboxItemKey(other) !== key),
-        total: Math.max(prev.total - 1, 0),
-        counts: { ...prev.counts, [item.reason]: Math.max((prev.counts[item.reason] ?? 1) - 1, 0) },
-      });
-      setNotice({ tone: "success", message: done });
-    } catch (cause) {
-      const conflicts = glossaryConflictsOf(cause);
-      if (conflicts?.length) {
-        setGlossaryConflict({ key, conflicts });
-        return;
+    const run = async () => {
+      setAccepting(key);
+      setNotice(null);
+      setGlossaryConflict(null);
+      try {
+        await write();
+        if (!scheduled) focusPending.current = true;
+        setData((prev) => prev && {
+          ...prev,
+          items: prev.items.filter((other) => inboxItemKey(other) !== key),
+          total: Math.max(prev.total - 1, 0),
+          counts: { ...prev.counts, [item.reason]: Math.max((prev.counts[item.reason] ?? 1) - 1, 0) },
+        });
+        setNotice({ tone: "success", message: done });
+      } catch (cause) {
+        const conflicts = glossaryConflictsOf(cause);
+        if (conflicts?.length) {
+          setGlossaryConflict({ key, conflicts });
+          return;
+        }
+        setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change did not go through. Reload the inbox and review the latest revision." });
+      } finally {
+        release(key);
+        setAccepting(null);
       }
-      setNotice({ tone: "danger", message: cause instanceof Error ? cause.message : "The change did not go through. Reload the inbox and review the latest revision." });
-    } finally {
-      setAccepting(null);
-    }
+    };
+    writes.current = writes.current.then(run, run);
+    return writes.current;
   };
-  const accept = (item: InboxItem, glossaryExceptions: readonly string[] = []) => {
+  const accept = (item: InboxItem, glossaryExceptions: readonly string[] = [], scheduled = false) => {
     const target = item.accept;
     if (!target) return;
-    void act(item, () => acceptInboxItem(locale, target, glossaryExceptions), acceptedMessage(item));
+    void act(item, () => acceptInboxItem(locale, target, glossaryExceptions), acceptedMessage(item), scheduled);
+  };
+
+  /** Writes the accept waiting out its undo window now: when the window ends, when another accept is scheduled, or when the Inbox closes. */
+  const commitUndoable = () => {
+    const waiting = undoableRef.current;
+    if (!waiting) return;
+    window.clearTimeout(waiting.timer);
+    undoableRef.current = null;
+    setUndoable(null);
+    accept(waiting.item, [], true);
+  };
+  const commitRef = useRef(commitUndoable);
+  useEffect(() => {
+    commitRef.current = commitUndoable;
+  });
+  // Leaving the Inbox keeps a scheduled accept: the reviewer asked for it and did not undo.
+  useEffect(() => () => commitRef.current(), []);
+
+  /** A: the item leaves the list at once, and the write waits 10 seconds with Undo on screen. */
+  const scheduleAccept = (item: InboxItem) => {
+    if (!item.accept) return;
+    commitUndoable();
+    const key = inboxItemKey(item);
+    focusPending.current = true;
+    setHeld((prev) => new Set(prev).add(key));
+    setNotice(null);
+    setGlossaryConflict(null);
+    undoableRef.current = { item, timer: window.setTimeout(() => commitRef.current(), UNDO_WINDOW_MS) };
+    setUndoable(item);
+  };
+  const undoAccept = () => {
+    const waiting = undoableRef.current;
+    if (!waiting) return;
+    window.clearTimeout(waiting.timer);
+    undoableRef.current = null;
+    setUndoable(null);
+    const key = inboxItemKey(waiting.item);
+    release(key);
+    // Focus returns to the item the undo brought back.
+    const index = (data?.items ?? []).filter((other) => !skipped.has(inboxItemKey(other)) && (inboxItemKey(other) === key || !held.has(inboxItemKey(other)))).findIndex((other) => inboxItemKey(other) === key);
+    if (index >= 0) {
+      focusPending.current = true;
+      setFocusIndex(index);
+    }
+    setNotice({ tone: "neutral", message: `Undone. "${waiting.item.english}" was not accepted.` });
+  };
+
+  const toggleShortcuts = (on: boolean) => {
+    setShortcutsOn(on);
+    writeShortcutsEnabled(on);
   };
   const fineHere = (item: InboxItem) => {
     const exception = item.exception;
@@ -143,12 +237,13 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || isTyping(event.target)) return;
+    if (!shortcutsOn || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || isTyping(event.target)) return;
     const item = visible[current];
     const key = event.key.toLowerCase();
     if (key === "j") moveTo(current + 1);
     else if (key === "k") moveTo(current - 1);
-    else if (key === "a" && item) void accept(item);
+    else if (key === "a" && item?.accept && !event.repeat) scheduleAccept(item);
+    else if (key === "u" && undoable) undoAccept();
     else if (key === "e" && item) onOpen(item.href);
     else if (key === "f" && item?.exception) fineHere(item);
     else if (key === "s" && item) skip(item);
@@ -156,16 +251,43 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
     event.preventDefault();
   };
 
-  if (error) return <StateCard compact tone="danger" title="The inbox could not be loaded" description={error} actions={<Button variant="outline" size="sm" onClick={() => void load(offset, reason)}>Retry</Button>} />;
-  if (!data) return <StateCard compact loading title="Loading the inbox" />;
+  // Always mounted, before the first message, so every notice and the undo offer are announced.
+  const liveRegion = (
+    <div role="status" aria-live="polite" aria-label="Inbox messages" className="space-y-2 empty:hidden">
+      {undoable ? (
+        <EditorNotice
+          notice={{
+            tone: "info",
+            message: `Accepting "${undoable.english}" in 10 seconds.`,
+            actions: <Button type="button" variant="outline" size="sm" onClick={undoAccept}>Undo</Button>,
+          }}
+        />
+      ) : null}
+      {notice ? <EditorNotice notice={notice} /> : null}
+    </div>
+  );
+
+  if (error || !data) {
+    return (
+      <section aria-label="Review inbox" className="space-y-4">
+        {liveRegion}
+        {error ? (
+          <StateCard compact tone="danger" title="The inbox could not be loaded" description={error} actions={<Button variant="outline" size="sm" onClick={() => void load(offset, reason)}>Retry</Button>} />
+        ) : (
+          <StateCard compact loading title="Loading the inbox" />
+        )}
+      </section>
+    );
+  }
 
   const checked = data.checked.map((check) => INBOX_CHECK_LABEL[check]);
-  const skippedHere = data.items.length - visible.length;
+  const skippedHere = data.items.filter((item) => skipped.has(inboxItemKey(item))).length;
   const everything = Object.values(data.counts).reduce((sum, count) => sum + (count ?? 0), 0);
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- J/K/A/E/F/S shortcuts for the roving-focus list; every action also has a button.
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- J/K/A/U/E/F/S shortcuts for the roving-focus list; every action also has a button.
     <section aria-label="Review inbox" className="space-y-4" onKeyDown={onKeyDown}>
+      {liveRegion}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="theme-text-secondary text-sm" data-testid="inbox-summary">
           {data.total === 0 ? "No items" : `${data.total} ${data.total === 1 ? "item needs" : "items need"} a person`}
@@ -183,18 +305,28 @@ export function ReviewInbox({ locale, onOpen = openHref }: ReviewInboxProps) {
               ...data.checked.map((check) => ({ value: check, label: `${INBOX_REASON_LABEL[check]} (${data.counts[check] ?? 0})` })),
             ]}
           />
-          <span className="theme-text-faint text-xs">J / K move · A accept · E edit · F fine here · S skip</span>
           {skippedHere > 0 ? <Button type="button" variant="ghost" size="sm" onClick={showSkipped}>Show skipped</Button> : null}
           <Button type="button" variant="outline" size="sm" onClick={() => void load(offset, reason)}>Reload inbox</Button>
         </div>
       </div>
-      {notice ? <EditorNotice notice={notice} /> : null}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <EditorCheckbox
+          label="Single-key shortcuts"
+          checked={shortcutsOn}
+          onChange={(event) => toggleShortcuts(event.target.checked)}
+        />
+        {shortcutsOn ? (
+          <span className="theme-text-faint text-xs [@media(pointer:coarse)]:hidden">J / K move · A accept, with 10 seconds to undo · U undo · E edit · F fine here · S skip</span>
+        ) : (
+          <span className="theme-text-faint text-xs">Letter keys do nothing here; use the buttons.</span>
+        )}
+      </div>
 
       {data.total === 0 && reason ? (
         <StateCard compact tone="neutral" icon="lucide:inbox" title={`Nothing listed for "${INBOX_REASON_LABEL[reason]}"`} description={`Checked ${INBOX_CHECK_LABEL[reason]}.`} actions={<Button variant="outline" size="sm" onClick={() => void load(0, null)}>Show every reason</Button>} />
       ) : data.total === 0 ? (
         <StateCard compact tone="success" icon="lucide:check-check" title="Nothing needs a person right now" description={`Checked ${checked.join(", ")}.`} />
-      ) : visible.length === 0 ? (
+      ) : visible.length === 0 && held.size > 0 && skippedHere === 0 ? null : visible.length === 0 ? (
         <StateCard compact tone="neutral" icon="lucide:inbox" title="Everything on this page is skipped" description="Skips last for this browser session." actions={<Button variant="outline" size="sm" onClick={showSkipped}>Show skipped</Button>} />
       ) : (
         <ul aria-label="Items that need a person" className="space-y-2">
