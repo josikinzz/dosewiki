@@ -1,6 +1,7 @@
 "use client";
 
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
+import { useWriteFreeze } from "./writeFreeze";
 
 /** How a tool's primary action writes; the tab registry declares one per tool. */
 export type SaveModel = "record" | "batch" | "instant";
@@ -53,6 +54,17 @@ const READ_ONLY_COPY: SaveLineCopy = {
   tone: "neutral",
 };
 
+/**
+ * What every save line says once a write has come back refused by the write
+ * freeze: whatever the tool's model, nothing lands until writes resume.
+ */
+export const WRITE_FREEZE_COPY: SaveLineCopy = {
+  label: "Writes are paused.",
+  detail: "The last save was refused because the site is not accepting changes right now. Keep this tab open or copy your work out; it will save once writes resume.",
+  icon: "lucide:circle-pause",
+  tone: "warning",
+};
+
 export function saveLineCopy(model: SaveModel, destination: SaveDestination): SaveLineCopy {
   return destination === "proposal" ? PROPOSAL_COPY : destination === "read-only" ? READ_ONLY_COPY : SAVE_LINE_COPY[model];
 }
@@ -66,7 +78,10 @@ export function SaveLine({
   destination?: SaveDestination;
   className?: string;
 }) {
-  const copy = saveLineCopy(model, destination);
+  // A tool that draws its own line beside its primary action must not keep
+  // promising a live write while the freeze refuses every one.
+  const frozen = useWriteFreeze().frozen;
+  const copy = frozen ? WRITE_FREEZE_COPY : saveLineCopy(model, destination);
   return (
     <EditorStatusPill tone={copy.tone} icon={copy.icon} title={copy.detail} className={className}>
       {copy.label}

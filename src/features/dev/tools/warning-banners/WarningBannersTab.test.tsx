@@ -28,7 +28,7 @@ vi.mock("@iconify/react", () => ({
 }));
 
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import {
   expectRailMarksUnsaved,

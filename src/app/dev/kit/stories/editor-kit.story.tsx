@@ -12,6 +12,7 @@ import {
   DevShortcutsProvider,
   DiffSurface,
   EditorActionGroup,
+  EditorBackLink,
   EditorActionStatus,
   EditorCheckbox,
   EditorField,
@@ -44,7 +45,12 @@ import {
   TagToken,
   TriageShortcutHint,
   UnsavedWorkProvider,
+  WRITE_FREEZE_CODE,
+  WRITE_FREEZE_COPY,
+  clearWriteFreeze,
   isTextEntryTarget,
+  isWriteFreezeRefusal,
+  reportWriteFreeze,
   saveLineCopy,
   unresolvedConflictText,
   useConfirm,
@@ -55,6 +61,8 @@ import {
   useTriageShortcuts,
   useUnsavedWork,
   useUnsavedWorkRegistry,
+  useWriteFreeze,
+  useWriteFreezeObserver,
 } from "@/features/dev/components";
 
 import type { StoryDef } from "../registry/types";
@@ -521,11 +529,15 @@ const loadErrorStory: StoryDef = {
   name: "LoadErrorState",
   tier: "editor",
   status: "stable",
-  summary: "A failed load with its reason and a Try again button.",
+  summary: "A failed load: what failed, the reason in plain words, a Try again button, and who to tell.",
   source: "src/features/dev/components/LoadErrorState.tsx",
   importLine: IMPORT_LINE("LoadErrorState"),
   exports: ["LoadErrorState"],
-  examples: [{ label: "Default", background: "plain", full: true, render: () => <LoadErrorState message="The editing source could not be loaded." onRetry={() => undefined} /> }],
+  examples: [
+    { label: "Default", background: "plain", full: true, render: () => <LoadErrorState message="The editing source could not be loaded." onRetry={() => undefined} /> },
+    { label: "Named, with a technical message", background: "plain", full: true, render: () => <LoadErrorState what="pending invites" message="No answer from GET /api/dev/invites (502)." onRetry={() => undefined} /> },
+  ],
+  notes: ["Pass `what` so the title names what failed. A message carrying an /api/ path is tucked under Details behind a plain sentence."],
 };
 
 const saveLineStory: StoryDef = {
@@ -535,8 +547,8 @@ const saveLineStory: StoryDef = {
   status: "stable",
   summary: "States where a save goes, beside the primary action, from the tool's save model.",
   source: "src/features/dev/components/SaveLine.tsx",
-  importLine: IMPORT_LINE("SaveLine, SAVE_LINE_COPY, saveLineCopy"),
-  exports: ["SaveLine", "SAVE_LINE_COPY", "saveLineCopy"],
+  importLine: IMPORT_LINE("SaveLine, SAVE_LINE_COPY, WRITE_FREEZE_COPY, saveLineCopy"),
+  exports: ["SaveLine", "SAVE_LINE_COPY", "WRITE_FREEZE_COPY", "saveLineCopy"],
   examples: [
     {
       label: "Every model and destination",
@@ -548,10 +560,59 @@ const saveLineStory: StoryDef = {
           <SaveLine model="record" destination="proposal" />
           <SaveLine model="record" destination="read-only" />
           <p className="theme-text-faint text-xs">{saveLineCopy("batch", "live").detail}</p>
+          <p className="theme-text-faint text-xs">While writes are paused every line reads: {WRITE_FREEZE_COPY.label}</p>
         </div>
       ),
     },
   ],
+};
+
+const backLinkStory: StoryDef = {
+  id: "editor-back-link",
+  name: "EditorBackLink",
+  tier: "editor",
+  status: "stable",
+  summary: "The one way back from a developer utility route (UI kit, Theme lab) to the editor shell.",
+  source: "src/features/dev/components/EditorBackLink.tsx",
+  importLine: IMPORT_LINE("EditorBackLink"),
+  exports: ["EditorBackLink"],
+  examples: [{ label: "Default", render: () => <EditorBackLink /> }],
+};
+
+function WriteFreezeDemo() {
+  // The observer only watches this tab's own API writes; mounting it here is
+  // harmless on the kit page and shows the hook in use.
+  useWriteFreezeObserver();
+  const { frozen } = useWriteFreeze();
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <SaveLine model="instant" />
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" variant="outline" onClick={() => reportWriteFreeze()} disabled={frozen}>
+          Simulate a refused write
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => clearWriteFreeze()} disabled={!frozen}>
+          Simulate a write that lands
+        </Button>
+      </div>
+      <p className="theme-text-faint text-xs">
+        {`isWriteFreezeRefusal(503, { code: "${WRITE_FREEZE_CODE}" }) is ${String(isWriteFreezeRefusal(503, { code: WRITE_FREEZE_CODE }))}.`}
+      </p>
+    </div>
+  );
+}
+
+const writeFreezeStory: StoryDef = {
+  id: "editor-write-freeze",
+  name: "Write freeze signal",
+  tier: "editor",
+  status: "stable",
+  summary:
+    "How the editor learns writes are paused: the shell root mounts useWriteFreezeObserver, the first 503 DATA_WRITES_FROZEN refusal flips useWriteFreeze, and every SaveLine and the frame's write status switch to WRITE_FREEZE_COPY until a write lands.",
+  source: "src/features/dev/components/writeFreeze.ts",
+  importLine: IMPORT_LINE("useWriteFreeze, useWriteFreezeObserver, reportWriteFreeze, clearWriteFreeze, isWriteFreezeRefusal, WRITE_FREEZE_CODE"),
+  exports: ["useWriteFreeze", "useWriteFreezeObserver", "reportWriteFreeze", "clearWriteFreeze", "isWriteFreezeRefusal", "WRITE_FREEZE_CODE"],
+  examples: [{ label: "Refused, then landed", render: () => <WriteFreezeDemo /> }],
 };
 
 function MergeDemo() {
@@ -741,6 +802,8 @@ export const editorKitStories: StoryDef[] = [
   confirmStory,
   loadErrorStory,
   saveLineStory,
+  writeFreezeStory,
+  backLinkStory,
   mergeStory,
   unsavedWorkStory,
   shortcutsStory,

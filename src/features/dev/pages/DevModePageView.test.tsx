@@ -104,7 +104,7 @@ describe("DevModePageView", () => {
     await findByTestId("dev-tool");
 
     const line = getByText("Each save goes live right away.");
-    expect(line.closest("[data-badge-tone]")?.getAttribute("data-badge-tone")).toBe("yellow");
+    expect(line.closest("[data-tone]")?.getAttribute("data-tone")).toBe("warning");
   });
 
   it("names the commit step for a batch tool", async () => {

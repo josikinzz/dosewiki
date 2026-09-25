@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import {
   expectRailMarksUnsaved,

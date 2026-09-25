@@ -11,7 +11,7 @@ import {
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
 import { findDevTab } from "./devTabRegistry";
-import { DevToolSaveLine } from "./DevToolSaveLine";
+import { DevWriteStatus } from "./DevToolSaveLine";
 import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
 
 /**
@@ -116,7 +116,7 @@ type DevModePageViewProps = {
  * addressable so a deep link explains itself instead of bouncing; the tool's
  * chunk is never loaded and none of its reads start.
  */
-function DevToolLockedPanel({ label, reason }: { label: string; reason: string }) {
+function DevToolLockedPanel({ label, reason, onGoHome }: { label: string; reason: string; onGoHome?: () => void }) {
   return (
     <div className="mx-auto mt-10 max-w-xl">
       <StateCard
@@ -125,6 +125,7 @@ function DevToolLockedPanel({ label, reason }: { label: string; reason: string }
         align="center"
         title={reason}
         description={`${label} is closed to your role. Ask an admin if you need it.`}
+        actions={onGoHome ? <Button type="button" variant="outline" size="sm" onClick={onGoHome}>Go to Home</Button> : undefined}
       />
     </div>
   );
@@ -154,6 +155,11 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
   const activeDescriptor = findDevTab(controller.activeTab);
   const isWaitingOnLibrary =
     controller.isLibraryLoading && LIBRARY_DEPENDENT_TABS.has(controller.activeTab);
+  const isWaitingOnLayouts =
+    controller.activeTab === "index-layout" && controller.indexLayoutsReadiness.status !== "ready";
+  // The write status describes a save the editor can make now: never over a
+  // locked tool or a loading panel.
+  const toolReady = controller.activeTabLockReason === null && !isWaitingOnLibrary && !isWaitingOnLayouts;
 
   return (
     <main
@@ -178,9 +184,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         onLeave={controller.onLeave}
       />
 
+      <DevWriteStatus tab={activeDescriptor} canApprove={controller.canApprove} ready={toolReady} />
+
       {/* Keyed so a Cmd+K record remounts the open tool on the record it names. */}
       <div key={controller.toolMountKey} className={controller.contentWrapperClass}>
-        <DevToolSaveLine tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.canDraft ? (
           <StagedArticlesRecoveryNotice
             recovery={controller.stagedRecovery}
@@ -188,7 +195,11 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : null}
         {controller.activeTabLockReason !== null ? (
-          <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
+          <DevToolLockedPanel
+            label={activeDescriptor.label}
+            reason={controller.activeTabLockReason}
+            onGoHome={controller.activeTab === "home" ? undefined : () => controller.onTabChange("home")}
+          />
         ) : controller.activeTab === "index-layout"
           && controller.indexLayoutsReadiness.status !== "ready" ? (
           <IndexLayoutReadinessPanel

@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Notice } from "../components/Notice";
+import { useConfirm } from "../components/ConfirmDialog";
 import { formatCheckpointTime } from "../recovery/draftRecovery";
 import { MergeConflictChoices } from "../components/MergeConflictChoices";
 import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
@@ -26,6 +27,15 @@ export function StagedArticlesRecoveryNotice({
   showSaveTime: boolean;
 }) {
   const { offer, held } = recovery;
+  // Discarding deletes this browser's only copy of the edits, so it asks.
+  const { confirm, dialog } = useConfirm();
+  const confirmDiscard = (count: number, discard: () => void) => confirm({
+    title: `Discard ${articleCount(count)} of recovered edits?`,
+    description: "This browser's copy is deleted and cannot be restored.",
+    confirmLabel: "Discard",
+    destructive: true,
+    onConfirm: discard,
+  });
   if (offer) {
     const count = offer.draft.changes.length;
     return (
@@ -41,12 +51,13 @@ export function StagedArticlesRecoveryNotice({
                 <Button type="button" variant="accent" size="sm" disabled={recovery.restoring} aria-busy={recovery.restoring || undefined} onClick={() => void recovery.restore()}>
                   {recovery.restoring ? "Restoring…" : "Restore"}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" disabled={recovery.restoring} onClick={recovery.discardOffer}>
+                <Button type="button" variant="ghost" size="sm" disabled={recovery.restoring} onClick={() => confirmDiscard(count, recovery.discardOffer)}>
                   Discard
                 </Button>
               </span>
             )}
         />
+        {dialog}
       </section>
     );
   }
@@ -87,11 +98,12 @@ export function StagedArticlesRecoveryNotice({
                 </ul>
               </>
             )} actions={(
-              <Button type="button" variant="ghost" size="sm" onClick={recovery.dismissHeld}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => confirmDiscard(held.length, recovery.dismissHeld)}>
                 Discard the rest
               </Button>
             )}
         />
+        {dialog}
       </section>
     );
   }

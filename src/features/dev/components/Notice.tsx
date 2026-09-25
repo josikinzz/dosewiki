@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Icon, type IconName } from "@/components/common/Icon";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 
@@ -159,7 +160,7 @@ export function Notice({
           <button
             type="button"
             onClick={dismiss}
-            className="theme-focus-ring-tight -mr-0.5 ml-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100"
+            className={cn("theme-focus-ring-tight -mr-0.5 ml-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full opacity-70 transition-opacity hover:opacity-100", TOUCH_HALO)}
           >
             <Icon icon="lucide:x" size={12} />
             <span className="sr-only">Dismiss notice</span>
@@ -185,7 +186,7 @@ export function Notice({
       aria-busy={loading || undefined}
     >
       <Icon icon={glyph} size={16} className={loading ? "animate-spin" : undefined} />
-      <div className={cn("min-w-0", actions ? "pr-24" : undefined)}>
+      <div className="min-w-0">
         {title ? (
           <AlertTitle role={headingLevel ? "heading" : undefined} aria-level={headingLevel}>
             {title}
@@ -201,7 +202,7 @@ export function Notice({
               type="button"
               aria-label="Dismiss notice"
               onClick={dismiss}
-              className="theme-focus-ring-tight theme-text-muted text-xs font-medium underline-offset-2 hover:underline"
+              className={cn("theme-focus-ring-tight theme-text-muted inline-flex items-center text-xs font-medium underline-offset-2 hover:underline", TOUCH_HALO)}
             >
               Dismiss
             </button>

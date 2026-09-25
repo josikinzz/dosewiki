@@ -46,6 +46,12 @@ export type DevSaveModel = "record" | "batch" | "instant";
 type DevTabDescriptorOf<Id extends string> = {
   id: Id;
   label: string;
+  /**
+   * The tool's glyph, an Iconify name for `Icon`. The phone bar, the tool
+   * sheet and the Cmd+K palette draw it beside the label so a tool is
+   * recognised before it is read.
+   */
+  icon: string;
   group: DevToolGroup | "chrome";
   /** Route path segments, other than `id`, that resolve to this tab. */
   aliases: readonly string[];
@@ -108,6 +114,7 @@ const REGISTRY = [
   {
     id: "home",
     label: "Home",
+    icon: "lucide:house",
     group: "entry",
     aliases: [],
     // Each member's own work, by role: counts and cards that link to the exact
@@ -123,6 +130,7 @@ const REGISTRY = [
   {
     id: "inbox",
     label: "Inbox",
+    icon: "lucide:inbox",
     group: "entry",
     aliases: [],
     // Everything that waits on an admin, from every intake tool, in one list.
@@ -139,6 +147,7 @@ const REGISTRY = [
   {
     id: "articles",
     label: "Substances",
+    icon: "lucide:flask-conical",
     group: "content",
     aliases: ["generator", "gen"],
     keywords: ["articles", "drugs"],
@@ -152,6 +161,7 @@ const REGISTRY = [
   {
     id: "review",
     label: "Review",
+    icon: "lucide:list-checks",
     group: "content",
     aliases: [],
     role: "editor",
@@ -164,6 +174,7 @@ const REGISTRY = [
   {
     id: "citation-review",
     label: "Citations",
+    icon: "lucide:quote",
     group: "intake",
     aliases: ["citations"],
     keywords: ["references", "sources"],
@@ -177,6 +188,7 @@ const REGISTRY = [
   {
     id: "trip-report-submissions",
     label: "Trip reports",
+    icon: "lucide:notebook-pen",
     group: "intake",
     aliases: ["trip-reports"],
     role: "admin",
@@ -189,6 +201,7 @@ const REGISTRY = [
   {
     id: "article-feedback",
     label: "Feedback",
+    icon: "lucide:message-square-text",
     group: "intake",
     aliases: ["feedback"],
     role: "admin",
@@ -203,6 +216,7 @@ const REGISTRY = [
   {
     id: "tag-editor",
     label: "Tags",
+    icon: "lucide:tags",
     group: "content",
     aliases: ["tag"],
     role: "editor",
@@ -215,6 +229,7 @@ const REGISTRY = [
   {
     id: "molecule-editor",
     label: "Molecules",
+    icon: "lucide:hexagon",
     group: "content",
     aliases: ["molecules"],
     role: "admin",
@@ -227,6 +242,7 @@ const REGISTRY = [
   {
     id: "banners",
     label: "Banners",
+    icon: "lucide:triangle-alert",
     group: "content",
     // `/dev/warnings` is the wording an editor reaching for this from an
     // article is likely to type; the tool itself is named Banners per the
@@ -242,6 +258,7 @@ const REGISTRY = [
   {
     id: "replications",
     label: "Replications",
+    icon: "lucide:images",
     group: "content",
     aliases: ["replication-studio"],
     keywords: ["gallery", "images"],
@@ -255,6 +272,7 @@ const REGISTRY = [
   {
     id: "writing",
     label: "Writing",
+    icon: "lucide:pen-line",
     group: "site",
     aliases: [],
     keywords: ["blog", "effects"],
@@ -270,6 +288,7 @@ const REGISTRY = [
   {
     id: "copy-studio",
     label: "Copy",
+    icon: "lucide:type",
     group: "site",
     aliases: ["copy"],
     role: "editor",
@@ -282,6 +301,7 @@ const REGISTRY = [
   {
     id: "queue",
     label: "Change Review",
+    icon: "lucide:git-pull-request-arrow",
     group: "intake",
     aliases: ["proposals"],
     keywords: ["submissions"],
@@ -297,6 +317,7 @@ const REGISTRY = [
   {
     id: "contributors",
     label: "Contributors",
+    icon: "lucide:users",
     group: "site",
     aliases: ["contributor"],
     // The one people editor: a contributor opens it on their own record, so
@@ -313,6 +334,7 @@ const REGISTRY = [
   {
     id: "playlists",
     label: "Playlists",
+    icon: "lucide:list-video",
     group: "site",
     aliases: [],
     // A member's own replication playlists: the descriptor sits at the
@@ -327,6 +349,7 @@ const REGISTRY = [
   {
     id: "people",
     label: "People",
+    icon: "lucide:user-cog",
     group: "site",
     // Members folded in: `/dev/members` and `/dev/members/<email>` still open here.
     aliases: ["members"],
@@ -344,6 +367,7 @@ const REGISTRY = [
   {
     id: "glossary",
     label: "Glossary",
+    icon: "lucide:languages",
     group: "site",
     aliases: ["translation-glossary"],
     keywords: ["translation", "languages", "locales"],
@@ -353,6 +377,10 @@ const REGISTRY = [
     role: "translator",
     data: NO_DATA,
     saveModel: "instant",
+    // The workbench has two saves (Save draft keeps a rendering for another
+    // reviewer, Save and approve puts it in use), and its own header says so.
+    // One shell sentence about "instant" writes contradicted it.
+    saveLine: "none",
     layout: "shell",
     destination: SHELL,
     // Reader feedback on the renderings waits here, per language the reviewer holds.
@@ -361,6 +389,7 @@ const REGISTRY = [
   {
     id: "my-reports",
     label: "My reports",
+    icon: "lucide:book-open-text",
     group: "site",
     aliases: [],
     // A member's own published trip reports; ownership is checked per row in Postgres.
@@ -373,6 +402,7 @@ const REGISTRY = [
   {
     id: "index-layout",
     label: "Index layout",
+    icon: "lucide:layout-grid",
     group: "content",
     aliases: ["index"],
     role: "editor",
@@ -385,6 +415,7 @@ const REGISTRY = [
   {
     id: "change-log",
     label: "Change log",
+    icon: "lucide:history",
     group: "chrome",
     aliases: ["changelog"],
     role: "editor",

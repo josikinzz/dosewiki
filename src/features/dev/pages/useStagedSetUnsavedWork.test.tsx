@@ -2,7 +2,7 @@ import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import { expectRailMarksUnsaved, renderInDevShell } from "./devShellTestHarness";
 import { useStagedSetUnsavedWork } from "./useStagedSetUnsavedWork";

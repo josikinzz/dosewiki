@@ -35,7 +35,7 @@ export function useDevChromeEnvironment({
    * that reads badly when stretched, so it goes back to the 6xl column.
    */
   const contentWrapperClass = useMemo(
-    () => (findDevTab(activeTab).layout === "full-bleed" ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl"),
+    () => (findDevTab(activeTab).layout === "full-bleed" ? "mt-5 w-full" : "mx-auto mt-5 w-full max-w-6xl"),
     [activeTab],
   );
 

@@ -43,7 +43,7 @@ export function renderInDevShell(
       </DevShortcutsProvider>
     </UnsavedWorkProvider>,
   );
-  const nav = screen.getByRole("navigation", { name: "Dev mode tools" });
+  const nav = screen.getByRole("navigation", { name: "Editor tools" });
   return { onTabChange, onLeave, onOpenPath, nav };
 }
 

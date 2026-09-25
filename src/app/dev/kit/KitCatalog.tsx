@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { EditorBackLink } from "@/features/dev/components";
 import { useMemo, useState } from "react";
 
 import { AppearanceControls } from "@/app/_components/AppearanceControls";
@@ -145,9 +145,7 @@ export function KitCatalog() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-8 lg:flex-row lg:gap-10 lg:px-8">
         <aside className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:w-64 lg:shrink-0 lg:overflow-y-auto">
           <nav className="flex flex-col gap-5 text-sm">
-            <Link href="/dev" className="theme-back-link font-medium">
-              Back to dev tools
-            </Link>
+            <EditorBackLink />
             <a href="#which-one" className="font-medium text-[var(--theme-text-secondary)] hover:text-[var(--theme-accent-strong)]">
               Which one?
             </a>

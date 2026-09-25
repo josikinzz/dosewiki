@@ -127,6 +127,105 @@
     color: var(--theme-text-secondary);
   }
 
+  /* A tool's glyph in menus, the sheet and the palette: quiet until the row is current. */
+  .theme-dev-tool-glyph {
+    color: var(--theme-text-faint);
+  }
+
+  .theme-dev-rail-tab[data-state="active"] .theme-dev-tool-glyph,
+  [aria-selected="true"] > .theme-dev-tool-glyph,
+  .theme-dev-tool-glyph-active {
+    color: var(--theme-accent-strong);
+  }
+
+  /* The active tool's name beside its group menu label ("Site | Writing"). */
+  .theme-dev-rail-menu-current {
+    color: var(--theme-selected-control-text);
+  }
+
+  /* Unsaved work: the accent, so it reads as "yours, pending", never as an alarm. */
+  .theme-dev-unsaved-dot {
+    background: var(--theme-accent-strong);
+  }
+
+  /* Work waiting on this member. Same seeds as the portal count it grew from. */
+  .theme-dev-count-badge {
+    background: var(--theme-accent);
+    color: var(--theme-surface-deep);
+  }
+
+  /* A count whose latest refresh failed: the last known number, drawn hollow. */
+  .theme-dev-count-badge[data-stale] {
+    background: transparent;
+    color: var(--theme-text-muted);
+    box-shadow: inset 0 0 0 1px var(--theme-border-strong);
+  }
+
+  /* The member's initials on the account trigger and menu header. */
+  .theme-dev-avatar {
+    background: var(--theme-frosted-control-on-panel-hover-bg);
+    color: var(--theme-text-primary);
+    box-shadow: inset 0 0 0 1px var(--theme-frosted-control-on-panel-border);
+  }
+
+  /* The search trigger on the rail and at the top of the phone sheet reads as a field. */
+  .theme-dev-sheet-search,
+  .theme-dev-rail-search {
+    border-color: var(--theme-field-border);
+    background: var(--theme-field-surface);
+    color: var(--theme-text-muted);
+  }
+
+  @media (hover: hover) {
+    .theme-dev-sheet-search:hover,
+    .theme-dev-rail-search:hover {
+      color: var(--theme-text-primary);
+      border-color: var(--theme-frosted-control-hover-border);
+    }
+  }
+
+  .theme-dev-sheet-search:focus-visible,
+  .theme-dev-rail-search:focus-visible {
+    outline: 1px solid var(--theme-text-secondary);
+    outline-offset: 2px;
+  }
+
+  /* Keycaps in the palette footer, the account menu and the ? sheet. */
+  .theme-dev-kbd {
+    display: inline-flex;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-chip);
+    padding-inline: 0.3rem;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: var(--type-size-chip-label);
+    line-height: 1;
+    color: var(--theme-text-secondary);
+    box-shadow: inset 0 0 0 1px var(--theme-border-subtle), inset 0 -1px 0 var(--theme-border-subtle);
+  }
+
+  /* The write status strip under the rail: one sentence on where a save lands. */
+  .theme-dev-write-status {
+    color: var(--theme-text-muted);
+  }
+
+  .theme-dev-write-status[data-tone="warning"] .theme-dev-write-status-icon {
+    color: var(--theme-warning-text);
+  }
+
+  .theme-dev-write-status[data-tone="info"] .theme-dev-write-status-icon {
+    color: var(--theme-accent-strong);
+  }
+
+  /* Writes paused: the one frame state that must stop an editor before they type. */
+  .theme-dev-write-status[data-tone="frozen"] {
+    border-color: var(--theme-warning-border);
+    background: var(--theme-warning-bg);
+    color: var(--theme-warning-text);
+  }
+
   /*
      * Replication studio. The dev-only media triage surface: quiet muted panels
      * for rows and cards, a field tone for inputs, and deep media wells behind

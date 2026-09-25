@@ -1751,10 +1751,11 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
+/* Reduced motion drops the fade, not the wait: the hint still appears only
+   once loading has gone on long enough to need it. */
 @media (prefers-reduced-motion: reduce) {
   .theme-loading-stalled-label {
-    animation: none;
-    opacity: 1;
+    animation-duration: 1ms;
   }
 }
 

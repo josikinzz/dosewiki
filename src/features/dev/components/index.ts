@@ -115,10 +115,24 @@ export {
 } from "./LoadErrorState";
 
 export {
+  EditorBackLink,
+} from "./EditorBackLink";
+
+export {
   SAVE_LINE_COPY,
   SaveLine,
+  WRITE_FREEZE_COPY,
   saveLineCopy,
 } from "./SaveLine";
+
+export {
+  WRITE_FREEZE_CODE,
+  clearWriteFreeze,
+  isWriteFreezeRefusal,
+  reportWriteFreeze,
+  useWriteFreeze,
+  useWriteFreezeObserver,
+} from "./writeFreeze";
 export type { SaveDestination, SaveModel } from "./SaveLine";
 
 export {

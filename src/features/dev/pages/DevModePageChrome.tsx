@@ -6,11 +6,13 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "../components/ConfirmDialog";
 import { isBareCommandKey, isDialogOpen, useDevShortcutList } from "../components/devShortcuts";
 import { useUnsavedWorkRegistry } from "../components/unsavedWork";
 import { clearDraftRecovery } from "../recovery/draftRecovery";
 import { canDraft, getRoleDisplayName, getRoleFloorLockReason, type AppRole } from "@/lib/auth/roles";
-import { DevCommandPalette } from "./DevCommandPalette";
+import { DevAccountMenu, AccountAvatar } from "./DevAccountMenu";
+import { DevCommandPalette, usePaletteKeyLabel, type PaletteToolState } from "./DevCommandPalette";
 import type { PaletteRecord, PaletteTool } from "./devCommandPaletteModel";
 import type { DevModePrimaryTab } from "./devModePageUtils";
 import { DevShortcutSheet } from "./DevShortcutSheet";
@@ -22,7 +24,7 @@ import {
   type DevTabDescriptor,
   type DevToolGroup,
 } from "./devTabRegistry";
-import { DevUtilitiesMenu, devUtilitiesFor } from "./DevUtilitiesMenu";
+import { devUtilitiesFor } from "./devUtilities";
 import {
   INLINE_RAIL_TOTAL_LIMIT,
   RAIL_CLASS,
@@ -36,6 +38,7 @@ import {
   RailGroupMenu,
   RailInlineGroup,
   RailLockedMenu,
+  ToolGlyph,
 } from "./DevModeToolRail";
 import { DevToolSheet } from "./DevModeToolSheet";
 import type {
@@ -44,7 +47,7 @@ import type {
   LockedToolItem,
   ToolTabItem,
 } from "./DevModeToolTypes";
-import { useDevRailBadges } from "./useDevRailBadges";
+import { useDevRailBadgeReadings, useDevRailBadges } from "./useDevRailBadges";
 
 /**
  * Rail groups in display order, each holding its descriptors in registry
@@ -61,13 +64,14 @@ const TOOL_GROUPS: readonly { id: DevToolGroup; label: string; tabs: readonly De
 
 
 /**
- * The dev surface's own page title. The visible headings belong to the tools
+ * The editor's own page title. The visible headings belong to the tools
  * themselves; this one exists so the landmark structure and the document
  * outline always have a level-one anchor, and so screen-reader users hear
- * where they are before the rail.
+ * where they are before the rail. "Editor" is the one user-facing name for
+ * the surface ("Leave editor", "Everywhere in the editor").
  */
 function DevSurfaceTitle() {
-  return <h1 className="sr-only">Dev Tools</h1>;
+  return <h1 className="sr-only">Editor</h1>;
 }
 
 
@@ -83,7 +87,7 @@ export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string
     <StateCard
       loading
       compact
-      className="mt-16"
+      className="mt-10"
       title={label}
       footer={
         <span className="theme-loading-stalled-label block whitespace-nowrap">
@@ -148,6 +152,7 @@ export function DevModePageChrome({
   role,
   sessionStatus,
   userEmail,
+  userImage,
   userName,
   onPrimaryTabChange: requestPrimaryTabChange,
   onTabChange: requestTabChange,
@@ -157,8 +162,8 @@ export function DevModePageChrome({
   onLeave: requestLeave,
 }: DevModePageChromeProps) {
   // Every way out of the open tool asks the unsaved-work registry first: a
-  // rail switch drops the tool's own drafts, Leave and sign-out drop the
-  // shared draft too.
+  // rail switch drops the tool's own drafts, Leave, sign-out and a link out of
+  // the shell drop the shared draft too.
   const unsavedWork = useUnsavedWorkRegistry();
   const { confirmExit } = unsavedWork;
   const onTabChange = useCallback(
@@ -182,15 +187,34 @@ export function DevModePageChrome({
     [activePrimaryTab, confirmExit, requestPrimaryTabChange],
   );
   const onLeave = useCallback(() => confirmExit(requestLeave, "leave"), [confirmExit, requestLeave]);
-  // Signing out also clears this browser's draft recovery copies: the next
-  // person at this machine must not be offered them.
-  const onSignOut = useCallback(
-    () => confirmExit(() => {
-      clearDraftRecovery();
-      void signOut({ callbackUrl: "/sign-in" });
-    }, "leave"),
+  // Review and the utilities are routes of their own: a plain click leaves the
+  // shell only once the registry agrees, the way Leave does.
+  const onOpenHref = useCallback(
+    (href: string) => confirmExit(() => window.location.assign(href), "leave"),
     [confirmExit],
   );
+  // Signing out also clears this browser's draft recovery copies: the next
+  // person at this machine must not be offered them. With unsaved work the
+  // registry's own dialog asks; with none, a short confirm does, because the
+  // recovery copies go too and there is no undo.
+  const { confirm, dialog: confirmDialog } = useConfirm();
+  const hasUnsaved = unsavedWork.dirtyEntries.length > 0;
+  const onSignOut = useCallback(() => {
+    const signOutNow = () => {
+      clearDraftRecovery();
+      void signOut({ callbackUrl: "/sign-in" });
+    };
+    if (hasUnsaved) {
+      confirmExit(signOutNow, "leave");
+      return;
+    }
+    confirm({
+      title: "Sign out of the editor?",
+      description: "Draft recovery copies kept in this browser are cleared, so the next person here is not offered them.",
+      confirmLabel: "Sign out",
+      onConfirm: signOutNow,
+    });
+  }, [confirm, confirmExit, hasUnsaved]);
 
   // Cmd+K and `?`. What the palette opens goes through the same registry
   // question as a rail click: a tool or a record elsewhere drops the open
@@ -198,27 +222,32 @@ export function DevModePageChrome({
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const toolShortcuts = useDevShortcutList();
+  const paletteKey = usePaletteKeyLabel();
   const openTool = useCallback((tool: PaletteTool) => {
     setPaletteOpen(false);
     const { href } = tool;
     if (href) {
-      confirmExit(() => window.location.assign(href), "leave");
+      onOpenHref(href);
     } else {
       onTabChange(tool.tab);
     }
-  }, [confirmExit, onTabChange]);
+  }, [onOpenHref, onTabChange]);
   const openRecord = useCallback((record: PaletteRecord) => {
     setPaletteOpen(false);
     // A saved view can open outside the shell (Review), like its tool does.
     if (!record.href.startsWith("/dev")) {
-      confirmExit(() => window.location.assign(record.href), "leave");
+      onOpenHref(record.href);
       return;
     }
     confirmExit(() => {
       if (requestOpenPath) requestOpenPath(record.href);
       else window.location.assign(record.href);
     }, "tab");
-  }, [confirmExit, requestOpenPath]);
+  }, [confirmExit, onOpenHref, requestOpenPath]);
+  const showShortcuts = useCallback(() => {
+    setPaletteOpen(false);
+    setShortcutsOpen(true);
+  }, []);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing) return;
@@ -243,14 +272,26 @@ export function DevModePageChrome({
   const mayDraft = canDraft(role);
   // Each badge is only asked for by a role that may open its tab.
   const badgeCounts = useDevRailBadges(role, userEmail);
+  // A count whose latest refresh failed keeps its number but reads as stale.
+  // The Inbox sums every source, so any failed source makes it stale.
+  const readings = useDevRailBadgeReadings();
+  const staleBadges = new Set<string>();
+  for (const [badge, reading] of Object.entries(readings ?? {})) {
+    if (reading?.failed) {
+      staleBadges.add(badge);
+      staleBadges.add(INBOX_ROLLUP_BADGE);
+    }
+  }
   const toolGroups = TOOL_GROUPS.map((group) => ({
     ...group,
-    tabs: group.tabs.map(({ id, label, labelFor, role: floor, destination, badge }): ToolTabItem => ({
+    tabs: group.tabs.map(({ id, label, labelFor, icon, role: floor, destination, badge }): ToolTabItem => ({
       id,
       label: labelFor?.(role) ?? label,
+      icon,
       role: floor,
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
+      stale: (badge !== undefined && staleBadges.has(badge)) || undefined,
       rollsUpIntake: badge === INBOX_ROLLUP_BADGE || undefined,
       unsaved: unsavedWork.isDirty(id) || undefined,
     })),
@@ -264,7 +305,7 @@ export function DevModePageChrome({
     ? getRoleFloorLockReason(role, changeLogDescriptor.role)
     : null;
   const changeLogLockReason = pendingReason ?? changeLogRoleReason;
-  // A Change log the role cannot open joins the Locked menu, where its reason
+  // A Change log the role cannot open joins the Locked list, where its reason
   // is text, instead of sitting in the cluster as a dead button.
   const lockedTools: LockedToolItem[] = [
     ...roleGroups.flatMap((group) => group.locked),
@@ -273,6 +314,7 @@ export function DevModePageChrome({
       : [{
           id: changeLogDescriptor.id,
           label: changeLogDescriptor.label,
+          icon: changeLogDescriptor.icon,
           role: changeLogDescriptor.role,
           destination: changeLogDescriptor.destination,
           reason: changeLogRoleReason,
@@ -283,17 +325,39 @@ export function DevModePageChrome({
   const activeLabel = activePrimaryTab === "change-log"
     ? "Change log"
     : activeDescriptor.labelFor?.(role) ?? activeDescriptor.label;
-  const sessionDetail = mayDraft
-    ? "Signed in. You can edit articles."
-    : "Signed in. You can edit your own contributor record from the Contributors tab.";
+  const activeIcon = activePrimaryTab === "change-log" ? changeLogDescriptor.icon : activeDescriptor.icon;
+  // What this role may do, said in the account menu. A translator's work is
+  // the glossary, not a contributor record.
+  const ability = mayDraft
+    ? "You can edit articles."
+    : role === "translator"
+      ? "You can review and approve glossary renderings in your languages."
+      : "You can edit your own contributor record from the Contributors tab.";
+
+  // The phone bar has room for one count: the Inbox's when the role has it
+  // (it already sums every queue), else every visible count summed.
+  const enabledItems = roleGroups.flatMap((group) => group.enabled);
+  const inboxItem = enabledItems.find((item) => item.rollsUpIntake);
+  const attentionItems = inboxItem ? [inboxItem] : enabledItems;
+  const attention = attentionItems.reduce((sum, item) => sum + (item.badge ?? 0), 0) || undefined;
+  const attentionStale = attentionItems.some((item) => item.stale && item.badge) || undefined;
+  const unsavedAnywhere = hasUnsaved || undefined;
+
+  // The palette lists tools with the same glyphs, counts and marks as the rail.
+  const paletteToolState: Partial<Record<DevModeTab, PaletteToolState>> = {};
+  for (const group of roleGroups) {
+    for (const item of group.enabled) {
+      paletteToolState[item.id] = { icon: item.icon, group: group.label, badge: item.badge, stale: item.stale, unsaved: item.unsaved };
+    }
+  }
+  paletteToolState[changeLogDescriptor.id] = { icon: changeLogDescriptor.icon, group: "More" };
 
   // The strip only scrolls as far as it must: an active tab already in view
   // leaves the scroll position alone, one past an edge is brought in with a
   // little of its neighbour, so the row never jumps on every tab change. The
-  // first tab of a group brings its caption along, so the group is never
-  // shown headless. The reveal re-runs whenever badge counts arrive (they
-  // widen pills) and once more after fonts settle, so a deep-linked tool can
-  // never be stranded past the edge.
+  // reveal re-runs whenever badge counts arrive (they widen pills) and once
+  // more after fonts settle, so a deep-linked tool can never be stranded past
+  // the edge.
   const stripRef = useRef<HTMLElement | null>(null);
   const revealActive = useCallback(() => {
     const strip = stripRef.current;
@@ -301,9 +365,7 @@ export function DevModePageChrome({
     if (!strip || !active) {
       return;
     }
-    const group = active.parentElement;
-    const leadsGroup = group instanceof HTMLElement && group.querySelector("button, a") === active;
-    const start = (leadsGroup ? group.offsetLeft : active.offsetLeft) - RAIL_SCROLL_MARGIN_PX;
+    const start = active.offsetLeft - RAIL_SCROLL_MARGIN_PX;
     const end = active.offsetLeft + active.offsetWidth + RAIL_SCROLL_MARGIN_PX;
     if (start < strip.scrollLeft) {
       strip.scrollLeft = Math.max(0, start);
@@ -366,51 +428,74 @@ export function DevModePageChrome({
       strip.scrollLeft += direction * strip.clientWidth * RAIL_SCROLL_PAGE_RATIO;
     }
   };
+  // The pagers take room only while the strip overflows; a rail that fits
+  // starts its first tab at the edge. While it overflows both keep their slot,
+  // so the strip never shifts as one of them appears.
+  const overflowing = edges.start || edges.end;
 
-  const sessionControls =
+  const accountMenu = isSignedIn && sessionStatus !== "loading" ? (
+    <DevAccountMenu
+      userLabel={userLabel}
+      userEmail={userEmail}
+      userImage={userImage}
+      roleName={getRoleDisplayName(role)}
+      ability={ability}
+      utilities={utilities}
+      onShowShortcuts={showShortcuts}
+      onOpenHref={onOpenHref}
+      onSignOut={onSignOut}
+    />
+  ) : null;
+
+  const sessionPending = (
+    <span className="theme-text-muted flex items-center gap-1.5 px-2 text-xs">
+      <Icon icon="lucide:loader-2" size={14} className="theme-accent-emphasis animate-spin" />
+      <span className="sr-only">Loading authentication</span>
+    </span>
+  );
+
+  const signInButton = (
+    <Button
+      variant="accent"
+      size="sm"
+      className="shrink-0"
+      onClick={onSignIn}
+      title="Sign in before saving changes or using protected actions."
+    >
+      <Icon icon="lucide:log-in" size={14} />
+      Sign in
+    </Button>
+  );
+
+  // The phone sheet's pinned footer: who is signed in, and the way out of the
+  // session, as one labeled row instead of an unlabeled glyph.
+  const sheetSession =
     sessionStatus === "loading" ? (
-      <span className="theme-text-muted flex items-center gap-1.5 text-xs">
-        <Icon icon="lucide:loader-2" size={14} className="theme-accent-emphasis animate-spin" />
+      <span className="theme-text-muted flex min-h-11 items-center gap-2 text-sm">
+        <Icon icon="lucide:loader-2" size={16} className="theme-accent-emphasis animate-spin" />
+        <span>Checking your account</span>
         <span className="sr-only">Loading authentication</span>
       </span>
     ) : isSignedIn ? (
       <>
-        <span
-          title={sessionDetail}
-          className="theme-dev-rail-user flex min-w-0 flex-1 items-baseline gap-1.5 text-[0.75rem] font-semibold tracking-wide uppercase md:flex-none"
-        >
+        <AccountAvatar label={userLabel} image={userImage} className="h-9 w-9 text-sm" />
+        <span className="flex min-w-0 flex-1 flex-col">
           <span className="sr-only">Signed in as </span>
-          <span className="max-w-[10rem] truncate">{userLabel}</span>
-          <span className="theme-text-muted text-[0.625rem] font-medium normal-case tracking-normal">
-            {getRoleDisplayName(role)}
-          </span>
+          <span className="theme-text-primary truncate text-sm font-semibold">{userLabel}</span>
+          <span className="theme-text-muted text-xs">{getRoleDisplayName(role)}</span>
         </span>
-        <button
-          type="button"
-          title="Sign out"
-          aria-label="Sign out"
-          onClick={onSignOut}
-          className={RAIL_ICON_BUTTON_CLASS}
-        >
+        <Button type="button" variant="ghost" size="sm" onClick={onSignOut} className="shrink-0">
           <Icon icon="lucide:log-out" size={15} />
-        </button>
+          Sign out
+        </Button>
       </>
     ) : (
-      <Button
-        variant="accent"
-        size="xs"
-        className="h-7 rounded-md px-3"
-        onClick={onSignIn}
-        title="Sign in before saving changes or using protected actions."
-      >
-        <Icon icon="lucide:log-in" size={14} />
-        Sign in
-      </Button>
+      signInButton
     );
 
-  // A rail group renders inline when it is the Content head, or when the role
-  // leaves so few tools that the whole rail fits flat; larger groups become
-  // menus. Empty groups (every tool locked) disappear into the Locked menu.
+  // A rail group renders inline when it is the Start or Content head, or when
+  // the role leaves so few tools that the whole rail fits flat; larger groups
+  // become menus. Empty groups (every tool locked) disappear into Locked.
   const railGroups = roleGroups.filter((group) => group.enabled.length > 0);
   const enabledTotal = railGroups.reduce((sum, group) => sum + group.enabled.length, 0);
   const keepFlat = enabledTotal <= INLINE_RAIL_TOTAL_LIMIT;
@@ -420,16 +505,16 @@ export function DevModePageChrome({
   // group with it but counts nothing, so it does not stop the roll-up.
   const entryShown = railGroups.some((group) => group.enabled.some((tab) => tab.rollsUpIntake));
 
-  const paletteButton = (
+  const leaveButton = (compact: boolean) => (
     <button
       type="button"
-      title="Open any tool or record (Cmd+K)"
-      aria-label="Open any tool or record"
-      aria-keyshortcuts="Meta+K Control+K"
-      onClick={() => setPaletteOpen(true)}
-      className={RAIL_ICON_BUTTON_CLASS}
+      title="Leave editor"
+      aria-label="Leave editor"
+      onClick={onLeave}
+      className={compact ? RAIL_ICON_BUTTON_CLASS : `${RAIL_TAB_CLASS} px-2 2xl:px-2.5`}
     >
-      <Icon icon="lucide:search" size={15} />
+      <Icon icon="lucide:door-open" size={16} className="shrink-0" />
+      {compact ? null : <span aria-hidden className="hidden 2xl:inline">Leave</span>}
     </button>
   );
 
@@ -441,73 +526,85 @@ export function DevModePageChrome({
         onOpenChange={setPaletteOpen}
         role={pendingReason === null ? role : null}
         glossaryLocales={glossaryLocales}
+        currentTab={isToolsSection ? activeTab : changeLogDescriptor.id}
+        toolState={paletteToolState}
+        utilities={utilities}
         onOpenTool={openTool}
         onOpenRecord={openRecord}
+        onOpenHref={(href) => {
+          setPaletteOpen(false);
+          onOpenHref(href);
+        }}
+        onShowShortcuts={showShortcuts}
+        onLeave={() => {
+          setPaletteOpen(false);
+          onLeave();
+        }}
+        onSignOut={isSignedIn ? () => {
+          setPaletteOpen(false);
+          onSignOut();
+        } : undefined}
       />
       <DevShortcutSheet
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
         toolLabel={activeLabel}
         shortcuts={toolShortcuts}
+        paletteKey={paletteKey}
       />
+      {confirmDialog}
 
       {/* Phone: one bar, tools behind a sheet. */}
-      <div className="theme-dev-rail flex min-h-11 w-full items-center gap-1 rounded-lg border px-1.5 py-1 md:hidden">
-        <span
-          aria-hidden
-          className="theme-accent-emphasis flex h-7 w-7 shrink-0 items-center justify-center"
-          title="Dev Tools"
-        >
-          <Icon icon="lucide:wrench" size={16} className="text-current" />
-        </span>
+      <div className="theme-dev-rail flex min-h-12 w-full items-center gap-1 rounded-card border p-1 md:hidden">
         <DevToolSheet
           groups={roleGroups}
+          locked={lockedTools}
           activeTab={activeTab}
           isToolsSection={isToolsSection}
           onTabChange={onTabChange}
+          onOpenHref={onOpenHref}
           activePrimaryTab={activePrimaryTab}
           activeLabel={activeLabel}
+          activeIcon={activeIcon}
+          attention={attention}
+          attentionStale={attentionStale}
+          unsavedAnywhere={unsavedAnywhere}
           changeLogLockReason={changeLogLockReason}
           utilities={utilities}
           onPrimaryTabChange={onPrimaryTabChange}
+          onOpenPalette={() => setPaletteOpen(true)}
           onLeave={onLeave}
-          session={sessionControls}
+          session={sheetSession}
         />
-        {paletteButton}
         <button
           type="button"
-          title="Leave editor"
-          aria-label="Leave editor"
-          onClick={onLeave}
+          title={`Find a tool or record (${paletteKey})`}
+          aria-label="Open any tool or record"
+          aria-keyshortcuts="Meta+K Control+K"
+          onClick={() => setPaletteOpen(true)}
           className={RAIL_ICON_BUTTON_CLASS}
         >
-          <Icon icon="lucide:x" size={15} />
+          <Icon icon="lucide:search" size={16} />
         </button>
+        {leaveButton(true)}
       </div>
 
       {/* Tablet and up: the one-row rail. */}
       <div className={RAIL_CLASS}>
-        <span
-          aria-hidden
-          className="theme-accent-emphasis flex h-7 w-7 shrink-0 items-center justify-center"
-          title="Dev Tools"
-        >
-          <Icon icon="lucide:wrench" size={16} className="text-current" />
-        </span>
-
-        {/* Both pagers keep their slot so the strip never shifts when one appears. */}
-        <button
-          type="button"
-          aria-label="Show earlier tools"
-          disabled={!edges.start}
-          onClick={() => pageStrip(-1)}
-          className={`${RAIL_ICON_BUTTON_CLASS} ${edges.start ? "" : "invisible"}`}
-        >
-          <Icon icon="lucide:chevron-left" size={15} />
-        </button>
+        {overflowing ? (
+          <button
+            type="button"
+            aria-label="Show earlier tools"
+            disabled={!edges.start}
+            onClick={() => pageStrip(-1)}
+            className={`${RAIL_ICON_BUTTON_CLASS} ${edges.start ? "" : "invisible"}`}
+          >
+            <Icon icon="lucide:chevron-left" size={15} />
+          </button>
+        ) : null}
         <nav
           ref={stripRef}
-          aria-label="Dev mode tools"
+          aria-label="Editor tools"
           onScroll={syncEdges}
           data-scroll-start={edges.start ? "" : undefined}
           data-scroll-end={edges.end ? "" : undefined}
@@ -523,8 +620,8 @@ export function DevModePageChrome({
                 activeTab={activeTab}
                 isToolsSection={isToolsSection}
                 onTabChange={onTabChange}
+                onOpenHref={onOpenHref}
                 showDivider={index > 0}
-                showCaption={group.id !== "entry"}
               />
             ) : (
               <RailGroupMenu
@@ -534,43 +631,45 @@ export function DevModePageChrome({
                 activeTab={activeTab}
                 isToolsSection={isToolsSection}
                 onTabChange={onTabChange}
+                onOpenHref={onOpenHref}
                 showDivider={index > 0}
                 rollUpBadges={!entryShown}
               />
             );
           })}
-          {lockedTools.length > 0 ? <RailLockedMenu locked={lockedTools} /> : null}
+          {lockedTools.length > 0 ? <RailLockedMenu locked={lockedTools} showDivider={railGroups.length > 0} /> : null}
           {pendingReason !== null ? (
             <span role="status" className="theme-text-muted shrink-0 whitespace-nowrap px-2 text-xs">
               {pendingReason}
             </span>
           ) : null}
         </nav>
-        <button
-          type="button"
-          aria-label="Show more tools"
-          disabled={!edges.end}
-          onClick={() => pageStrip(1)}
-          className={`${RAIL_ICON_BUTTON_CLASS} ${edges.end ? "" : "invisible"}`}
-        >
-          <Icon icon="lucide:chevron-right" size={15} />
-        </button>
+        {overflowing ? (
+          <button
+            type="button"
+            aria-label="Show more tools"
+            disabled={!edges.end}
+            onClick={() => pageStrip(1)}
+            className={`${RAIL_ICON_BUTTON_CLASS} ${edges.end ? "" : "invisible"}`}
+          >
+            <Icon icon="lucide:chevron-right" size={15} />
+          </button>
+        ) : null}
 
         {changeLogRoleReason === null ? (
           <>
             <RailDivider />
-
-            <nav aria-label="Dev mode sections" className="flex shrink-0 items-center gap-0.5">
+            <nav aria-label="Editor sections" className="flex shrink-0 items-center gap-0.5">
               <button
                 type="button"
                 disabled={changeLogLockReason !== null}
-                aria-disabled={changeLogLockReason !== null ? "true" : undefined}
                 title={changeLogLockReason ?? undefined}
                 aria-current={activePrimaryTab === "change-log" ? "page" : undefined}
                 data-state={activePrimaryTab === "change-log" ? "active" : "inactive"}
                 onClick={() => onPrimaryTabChange("change-log")}
                 className={RAIL_TAB_CLASS}
               >
+                <ToolGlyph icon={changeLogDescriptor.icon} className="hidden 2xl:inline-block" />
                 Change log
               </button>
             </nav>
@@ -579,20 +678,22 @@ export function DevModePageChrome({
 
         <RailDivider />
 
-        <div className="flex min-w-0 items-center gap-1">
-          {paletteButton}
-          {utilities.length > 0 ? <DevUtilitiesMenu utilities={utilities} /> : null}
+        <div className="flex min-w-0 shrink-0 items-center gap-1">
           <button
             type="button"
-            title="Leave editor"
-            aria-label="Leave editor"
-            onClick={onLeave}
-            className={RAIL_ICON_BUTTON_CLASS}
+            title={`Find a tool or record (${paletteKey})`}
+            aria-label="Open any tool or record"
+            aria-keyshortcuts="Meta+K Control+K"
+            onClick={() => setPaletteOpen(true)}
+            className="theme-dev-rail-search flex h-8 shrink-0 items-center gap-2 rounded-control border px-2 text-sm transition-colors duration-200 motion-reduce:transition-none xl:px-2.5 2xl:w-40 [@media(pointer:coarse)]:min-h-11"
           >
-            <Icon icon="lucide:x" size={15} />
+            <Icon icon="lucide:search" size={15} className="shrink-0" />
+            <span aria-hidden className="hidden 2xl:inline">Find</span>
+            <kbd aria-hidden className="theme-dev-kbd ml-auto hidden xl:inline-flex">{paletteKey}</kbd>
           </button>
-          <RailDivider />
-          {sessionControls}
+          {sessionStatus === "loading" ? sessionPending : isSignedIn ? accountMenu : signInButton}
+          <RailDivider className="mx-0.5" />
+          {leaveButton(false)}
         </div>
       </div>
     </div>
