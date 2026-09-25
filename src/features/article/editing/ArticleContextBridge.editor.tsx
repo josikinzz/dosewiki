@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { buildArticleChemistryPresentation } from "@/data/builders/articleChemistryPresentation";
 import { Button } from "@/components/ui/button";
@@ -202,8 +203,16 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const primaryLabel = canPublish ? "Publish" : lifecycle.revisionOf ? "Submit proposal revision" : "Submit for review";
   const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
   const actionBlocked = operationLocked || changes.length === 0 || problems.length > 0;
+  const submitted = () => {
+    // The page now shows the published article; open forms must not keep
+    // offering the submitted values as fresh edits.
+    for (const draft of inlineDrafts.current.values()) draft.discard();
+    inlineDrafts.current.clear(); setInlineDirty(false);
+    setFormDirty(false); setFormEpoch((value) => value + 1);
+  };
   const performPrimary = () => attempt(async () => {
     await lifecycle.act(canPublish ? "publish" : "submit", summary);
+    if (!canPublish) submitted();
     // The write answered with the published article and the lifecycle has
     // already adopted it. Refreshing the route here would re-run the page
     // and re-drain the editor library, which reads as a reload of work the
@@ -228,6 +237,12 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); setDiscardOpen(false); closePanel(); router.refresh(); });
   }}>Retry previous operation</Button> : null;
+  const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
+  // Until the refreshed list names it, the proposal just submitted is pending;
+  // once review decides it, the chip gives way to the list's own status.
+  const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
+  const pendingChipId = lifecycle.submittedProposalId && (!submittedStatus || submittedStatus === "submitted") ? lifecycle.submittedProposalId : null;
+  const pendingLabel = pendingProposals === 1 ? "1 proposal pending on this article" : `${pendingProposals} proposals pending on this article`;
   const status = lifecycle.uncertain ? "Previous operation unconfirmed. Editing is paused until it is reconciled." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft…") : lifecycle.busy ? "Loading or saving…" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
   if (!active) return <>{children}</>;
   if (lifecycle.expired) return <>
@@ -247,6 +262,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         <div className="min-w-0 flex-1 basis-full sm:flex sm:basis-auto sm:items-center sm:gap-3">
           <p className="theme-text-primary shrink-0 text-sm font-semibold">Private preview</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
+          {(pendingChipId || pendingProposals > 0) && <p className="theme-text-muted flex shrink-0 flex-wrap items-center gap-2 text-xs">
+            {pendingChipId && <Link href="/dev/queue" className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
+            {pendingProposals > 0 && <span>{pendingLabel}</span>}
+          </p>}
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
           {lifecycle.ready ? <>
@@ -273,7 +292,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Refresh and reconcile the latest article before editing; your local copy remains here." : "Article writes are paused. Your edits remain here; no operation will resume automatically after sign-in."}</p>}
       {lifecycle.publication && <p data-testid="article-publication-notice" className="theme-text-primary px-1 py-2 text-sm">
         {lifecycle.publication.message}{" "}
-        <a href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</a>
+        <Link href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</Link>
       </p>}
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
@@ -304,7 +323,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           <p className="theme-text-muted text-sm">Written from the changed fields. Edit it if the change deserves more than the diff already says. Press Ctrl+Enter or Cmd+Enter to {canPublish ? "review and publish" : "submit for review"}.</p>
           <div className="flex flex-wrap gap-2">
             <Button disabled={actionBlocked} onClick={runPrimary}>{primaryLabel} ({countLabel})</Button>
-            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
+            {canPublish && <Button variant="outline" disabled={actionBlocked} onClick={() => { void attempt(async () => { await lifecycle.act("submit", summary); submitted(); setSummary(""); setSummaryEdited(false); setReview(false); }); }}>Submit for review instead</Button>}
           </div>
           <p className="theme-text-muted text-sm">Publishing changes the live article and its derived displays for all readers. Route and country identities are guarded against the loaded article revision. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged.</p>
           </>}

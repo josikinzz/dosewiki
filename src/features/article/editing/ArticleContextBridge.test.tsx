@@ -240,3 +240,36 @@ describe("publishing one change", () => {
   });
 });
 
+describe("submitting one change for review", () => {
+  const proposal = {
+    _id: "p7k2m9x4q1", proposerName: "Second", isAuthor: true, createdAt: "2026-09-24T00:00:00.000Z",
+    updatedAt: "2026-09-24T00:00:00.000Z", status: "submitted", targets: [{ kind: "article", key: "fixture" }],
+    summary: ownerSummary, commentCount: 0,
+  };
+
+  it("shows the published article again with the pending proposal and no second submit", async () => {
+    const user = userEvent.setup();
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(ownerSummary)))
+      .mockResolvedValueOnce(Response.json({
+        ok: true, proposalId: proposal._id, status: "submitted", changeId: "change-1",
+        baseHash: "public-revision", draftVersion: 2,
+      }))
+      .mockResolvedValue(Response.json({ ...snapshot(null), draftVersion: 2, proposals: [proposal] }));
+    vi.stubGlobal("fetch", request);
+    render(view({ ...state, role: "editor", email: "second@example.test" }));
+    await screen.findByText(ownerSummary);
+    await user.click(await screen.findByRole("button", { name: "Review changes and history" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Review article changes" })).getByRole("button", { name: /^Submit for review/ }));
+
+    const chip = await screen.findByRole("link", { name: /Proposal #p7k2m9 pending/ });
+    expect(chip.getAttribute("href")).toBe("/dev/queue");
+    // The page is what readers see, not the proposal: the proposal lives in review.
+    expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe("Public article");
+    expect(screen.queryByText(ownerSummary)).toBeNull();
+    // Nothing is left to submit until the editor makes a new edit.
+    expect(screen.queryByRole("button", { name: /Submit for review/ })).toBeNull();
+    await waitFor(() => expect(screen.getByText(/1 proposal pending on this article/)).toBeTruthy());
+    expect(request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  });
+});
