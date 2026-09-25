@@ -1,14 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 
 import type { StudioWorkspace } from "./ReplicationStudioWorkspaceNav";
 
@@ -16,6 +8,16 @@ export type PendingPlaylistLeave =
   | { kind: "workspace"; next: StudioWorkspace }
   | { kind: "review"; substanceSlug: string };
 
+/** Every in-tool discard asks the same way: keep editing, or throw the draft away. */
+function discardRequest(title: string, description: string, onConfirm: () => void): ConfirmRequest {
+  return { title, description, cancelLabel: "Keep editing", confirmLabel: "Discard changes", destructive: true, onConfirm };
+}
+
+/**
+ * The studio's own switch guards: moving between its workspaces or subjects
+ * inside the tool. Rail clicks, Leave and unload go through the shell's
+ * unsaved-work registry instead.
+ */
 export function ReplicationStudioLeaveDialogs({
   pendingPlaylistLeave,
   pendingShowcaseLeave,
@@ -37,82 +39,46 @@ export function ReplicationStudioLeaveDialogs({
   onCancelDraftDiscard: () => void;
   onConfirmDraftDiscard: () => void;
 }) {
+  // Confirm runs its action and then closes, so each cancel is a no-op once
+  // the confirm has already cleared its pending state.
   return (
     <>
-      <Dialog
-        open={pendingPlaylistLeave !== null}
-        onOpenChange={(open) => {
-          if (!open) onCancelPlaylistLeave();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Leave Playlists with unsaved changes?</DialogTitle>
-            <DialogDescription>
-              The open playlist has changes that were never saved. Leaving this workspace discards
-              them.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onCancelPlaylistLeave}>
-              Keep editing
-            </Button>
-            <Button type="button" variant="destructive" onClick={onConfirmPlaylistLeave}>
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={pendingShowcaseLeave !== null}
-        onOpenChange={(open) => {
-          if (!open) onCancelShowcaseLeave();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Leave the showcase with unsaved changes?</DialogTitle>
-            <DialogDescription>
-              This board has curation that was never saved. Leaving now throws it away; the article
-              keeps whatever is already stored.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onCancelShowcaseLeave}>
-              Keep editing
-            </Button>
-            <Button type="button" variant="destructive" onClick={onConfirmShowcaseLeave}>
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={pendingDraftDiscard}
-        onOpenChange={(open) => {
-          if (!open) onCancelDraftDiscard();
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Discard unsaved edits?</DialogTitle>
-            <DialogDescription>
-              The work open in the inspector has changes that were never saved. Moving on throws
-              them away; the live site keeps what is already stored.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={onCancelDraftDiscard}>
-              Keep editing
-            </Button>
-            <Button type="button" variant="destructive" onClick={onConfirmDraftDiscard}>
-              Discard changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        request={
+          pendingPlaylistLeave
+            ? discardRequest(
+                "Leave Playlists with unsaved changes?",
+                "The open playlist has changes that were never saved. Leaving this workspace discards them.",
+                onConfirmPlaylistLeave,
+              )
+            : null
+        }
+        onClose={onCancelPlaylistLeave}
+      />
+      <ConfirmDialog
+        request={
+          pendingShowcaseLeave
+            ? discardRequest(
+                "Leave the showcase with unsaved changes?",
+                "This board has curation that was never saved. Leaving now throws it away; the article keeps whatever is already stored.",
+                onConfirmShowcaseLeave,
+              )
+            : null
+        }
+        onClose={onCancelShowcaseLeave}
+      />
+      <ConfirmDialog
+        request={
+          pendingDraftDiscard
+            ? discardRequest(
+                "Discard unsaved edits?",
+                "The work open in the inspector has changes that were never saved. Moving on throws them away; the live site keeps what is already stored.",
+                onConfirmDraftDiscard,
+              )
+            : null
+        }
+        onClose={onCancelDraftDiscard}
+      />
     </>
   );
 }

@@ -13,6 +13,7 @@ import {
   EditorSelect,
   EditorStatusPill,
   useConfirm,
+  useUnsavedWork,
 } from "@/features/dev/components";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -450,6 +451,27 @@ export function ReplicationEditorDrawer({
     onDirtyChange?.(anyDirty);
   }, [anyDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+
+  // Both drafts report to the shell. Editorial saves go live on the public
+  // site, so the shell only discards; saving stays the inspector's own step.
+  useUnsavedWork({
+    id: "replications:inspector",
+    tab: "replications",
+    label: `Replications: ${single?.title ?? "open work"}`,
+    dirty,
+    publishesLive: true,
+    discard: () => {
+      if (single) setDraft(draftOf(single));
+    },
+  });
+  useUnsavedWork({
+    id: "replications:bulk",
+    tab: "replications",
+    label: `Replications: bulk edit of ${selected.length} works`,
+    dirty: bulkDirty,
+    publishesLive: true,
+    discard: resetBulk,
+  });
 
   const requestApplyBulk = () => {
     const targets = selected;

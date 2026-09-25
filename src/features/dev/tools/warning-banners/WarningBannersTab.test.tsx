@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { type UserEvent } from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -24,6 +24,14 @@ vi.mock("@iconify/react", () => ({
   loadIcon: () => Promise.resolve({}),
 }));
 
+vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+
+import {
+  expectRailMarksUnsaved,
+  renderInDevShell,
+  switchTabExpectingGuard,
+} from "../../pages/devShellTestHarness";
 import { WarningBannersTab } from "./WarningBannersTab";
 
 const PRESET_API = "/api/dev/warning-banner";
@@ -237,6 +245,40 @@ describe("WarningBannersTab presets", () => {
     await user.click(within(dialog).getByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(screen.getByLabelText("Headline")).toHaveValue("Second headline"));
     expect(writes).toHaveLength(0);
+  });
+
+  it("reports a dirty preset to the shell: a rail dot, and a guard on tab switch that never publishes", async () => {
+    const writes = stubApi();
+    const user = userEvent.setup();
+    const { nav, onTabChange } = renderInDevShell(<WarningBannersTab />, { tab: "banners" });
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.type(headline, "!");
+
+    expectRailMarksUnsaved(nav, "Banners");
+    const dialog = switchTabExpectingGuard(nav, onTabChange);
+    expect(within(dialog).getByText(`Banners: ${PRESET.headline}!`)).toBeTruthy();
+    expect(within(dialog).queryByRole("button", { name: "Save" })).toBeNull();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
+    expect(onTabChange).toHaveBeenCalledWith("articles");
+    expect(screen.getByLabelText("Headline")).toHaveValue(PRESET.headline);
+    expect(writes).toHaveLength(0);
+  });
+
+  it("leaves unload to the shell", async () => {
+    stubApi();
+    const add = vi.spyOn(window, "addEventListener");
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.type(headline, "!");
+
+    expect(add.mock.calls.filter(([type]) => type === "beforeunload")).toEqual([]);
+    add.mockRestore();
   });
 
   it("keeps scope changes on a new preset as a draft until it is published", async () => {

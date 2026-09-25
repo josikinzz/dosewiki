@@ -373,6 +373,28 @@ describe("ReplicationStudioTab", () => {
     expect(pushMock).toHaveBeenCalledWith("/dev/replications");
   });
 
+  it("asks before the Showcase view toggle drops unsaved curation", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab initialSubstanceSlug="lsd" />);
+    await screen.findByTestId("gallery-panel");
+
+    await user.click(screen.getByRole("button", { name: "make dirty" }));
+    const byReplication = screen.getByRole("button", { name: "By replication" });
+    expect(byReplication).toBeEnabled();
+    await user.click(byReplication);
+
+    expect(await screen.findByText("Leave the showcase with unsaved changes?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByTestId("gallery-panel")).toBeInTheDocument();
+    expect(byReplication).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(byReplication);
+    await user.click(await screen.findByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(screen.queryByTestId("gallery-panel")).not.toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "By replication" })).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("trades the rail for the inspector column between lg and xl", async () => {
     // The rail breakpoint matches, the three-column one does not: a laptop width.
     vi.stubGlobal("matchMedia", (query: string) => ({

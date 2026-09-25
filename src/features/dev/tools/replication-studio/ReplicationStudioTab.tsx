@@ -10,6 +10,8 @@ import {
   EditorPanel,
   EditorPanelBody,
   TagToken,
+  useConfirm,
+  useUnsavedWork,
 } from "@/features/dev/components";
 import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
 import { cn } from "@/lib/utils";
@@ -38,7 +40,10 @@ import {
   EMPTY_STUDIO_FACETS,
   type StudioGroupBy,
 } from "./replicationStudioModel";
-import { useReplicationStudioController } from "./useReplicationStudioController";
+import {
+  useReplicationStudioController,
+  type ShowcaseMode,
+} from "./useReplicationStudioController";
 
 /** Bottom breathing room under the frame: the dev shell's own `py-6`. */
 const FRAME_BOTTOM_GAP = 24;
@@ -194,6 +199,55 @@ export function ReplicationStudioTab({
     (drawerInColumn && (inspectorPinned || hasSelection)) || (railInColumn && hasSelection);
   const railColumn = railInColumn && (drawerInColumn || !hasSelection);
   const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
+  const { confirm, dialog: confirmDialog } = useConfirm();
+
+  // The inspector, bulk, playlist and showcase drafts register where they
+  // live; Featured and the Incoming tray live here. Both would go live, so
+  // the shell only discards them.
+  const featuredDirty =
+    featuredLoaded &&
+    (featuredOrder.length !== savedFeatured.length ||
+      featuredOrder.some((slug, index) => slug !== savedFeatured[index]));
+  useUnsavedWork({
+    id: "replications:featured",
+    tab: "replications",
+    label: "Replications: Featured order",
+    dirty: featuredDirty,
+    publishesLive: true,
+    discard: () => {
+      controller.setFeaturedOrder(savedFeatured);
+      controller.setFeaturedSaveState("idle");
+    },
+  });
+  useUnsavedWork({
+    id: "replications:incoming",
+    tab: "replications",
+    label: `Replications: ${incoming.incoming.length} ${incoming.incoming.length === 1 ? "file" : "files"} in the Incoming tray`,
+    dirty: incoming.incoming.length > 0,
+    publishesLive: true,
+    discard: incoming.clearIncoming,
+  });
+
+  /** The Showcase views each hold their own draft, so switching asks first. */
+  const requestShowcaseMode = (next: ShowcaseMode) => {
+    if (next === showcaseMode) return;
+    if (!galleryDirty) {
+      controller.setShowcaseMode(next);
+      return;
+    }
+    confirm({
+      title: "Leave the showcase with unsaved changes?",
+      description:
+        "This board has curation that was never saved. Switching views throws it away; the article keeps whatever is already stored.",
+      cancelLabel: "Keep editing",
+      confirmLabel: "Discard changes",
+      destructive: true,
+      onConfirm: () => {
+        controller.setGalleryDirty(false);
+        controller.setShowcaseMode(next);
+      },
+    });
+  };
 
   const requestWorkspace = (next: StudioWorkspace) => {
     if (activePanel === next) return;
@@ -543,10 +597,8 @@ export function ReplicationStudioTab({
                         size="sm"
                         variant={active ? "pillActive" : "quiet"}
                         aria-pressed={active}
-                        disabled={!active && galleryDirty}
-                        title={!active && galleryDirty ? "Save or discard your changes first" : undefined}
                         className={cn("rounded-full", !active && "theme-text-muted")}
-                        onClick={() => controller.setShowcaseMode(mode.value)}
+                        onClick={() => requestShowcaseMode(mode.value)}
                       >
                         <Icon icon={mode.icon} size={15} />
                         {mode.label}
@@ -619,6 +671,7 @@ export function ReplicationStudioTab({
         onCancelDraftDiscard={() => controller.setPendingDiscard(null)}
         onConfirmDraftDiscard={controller.confirmDiscard}
       />
+      {confirmDialog}
 
       <div
         aria-hidden={!incoming.dragging}

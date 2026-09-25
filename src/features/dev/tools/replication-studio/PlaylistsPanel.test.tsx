@@ -335,7 +335,7 @@ describe("PlaylistsPanel", () => {
     act(() => result.current.startNewPlaylist());
     expect(result.current.pendingTransition).not.toBeNull();
 
-    let pendingSave!: Promise<void>;
+    let pendingSave!: Promise<boolean>;
     act(() => {
       pendingSave = result.current.save();
     });

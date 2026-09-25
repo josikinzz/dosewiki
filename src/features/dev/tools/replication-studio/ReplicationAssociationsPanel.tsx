@@ -38,6 +38,7 @@ import {
   EditorStatusPill,
   EditorToolbar,
   TagToken,
+  useUnsavedWork,
   type ActionNoticeTone,
 } from "@/features/dev/components";
 import { isShowcaseEligible } from "@/data/substanceReplicationGallery";
@@ -463,6 +464,18 @@ export function ReplicationAssociationsPanel({
   }, [isDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
   const busy = saveState === "saving";
+  // Eligibility decides which live galleries may show the work, so the shell
+  // only discards.
+  useUnsavedWork({
+    id: "replications:showcase",
+    tab: "replications",
+    label: `Replications: ${row.title} drug associations`,
+    dirty: isDirty,
+    publishesLive: true,
+    discard: () => {
+      if (!busy) setDraft({ excluded: [...saved.excluded] });
+    },
+  });
 
   useEffect(() => {
     if (!placementReloadPending || isDirty) {

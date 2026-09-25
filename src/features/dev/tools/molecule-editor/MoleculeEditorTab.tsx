@@ -26,7 +26,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
-import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
+import { ConfirmDialog, useUnsavedWork, type ConfirmRequest } from "@/features/dev/components";
 import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
@@ -987,6 +987,18 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       : mode === "classes"
         ? selectedClass?.label ?? selected
         : null;
+  // The open depiction reports to the shell. A substance or class save is the
+  // live depiction, and even a template save waits on the chemistry checks
+  // here, so the shell only discards: the canvas reloads its baseline.
+  useUnsavedWork({
+    id: "molecule-editor",
+    label: `Molecules: ${publishName ?? selected ?? "open depiction"}`,
+    dirty,
+    publishesLive: mode !== "templates",
+    discard: () => {
+      if (!saving) loadSource(source, { force: true, boldBonds: boldBaseline });
+    },
+  });
   const chemistryChanged = guard != null && !guard.match;
   const chemistryConfirmed =
     !chemistryChanged || !publishName || matchesTypedName(confirmName, publishName);
