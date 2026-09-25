@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SubstanceArticle } from "@/schema";
 import { useDevModeSaveActions } from "./useDevModeSaveActions";
@@ -86,6 +86,40 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
   };
 }
 
+const originalLayout = {
+  version: 1,
+  categories: [
+    { key: "stimulants", label: "Stimulants", sections: [] },
+    { key: "depressants", label: "Depressants", sections: [] },
+  ],
+};
+const changedLayout = {
+  version: 1,
+  categories: [
+    { key: "stimulants", label: "Stimulants and entactogens", sections: [] },
+    { key: "depressants", label: "Sedatives", sections: [] },
+  ],
+};
+
+/** A working set with Tags edits and one changed index layout. */
+function createArgsWithLayout(): Parameters<typeof useDevModeSaveActions>[0] {
+  return {
+    ...createArgs(),
+    psychoactiveIndexManual: changedLayout,
+    getOriginalPsychoactiveIndexManual: () => originalLayout,
+    psychoactiveManualChangelog: {
+      markdown: "# Psychoactive Index Layout\n\n- \"label\": \"Stimulants\"\n+ \"label\": \"Stimulants and entactogens\"",
+      hasChanges: true,
+    },
+  };
+}
+
+async function commitAndConfirm(user: Pick<ReturnType<typeof userEvent.setup>, "click"> = userEvent.setup()) {
+  await user.click(screen.getByRole("button", { name: /commit to production/i }));
+  const sheet = await screen.findByRole("dialog");
+  await user.click(within(sheet).getByRole("button", { name: /^commit/i }));
+}
+
 function TestHarness({ args }: { args: Parameters<typeof useDevModeSaveActions>[0] }) {
   const actions = useDevModeSaveActions(args);
   return <>{actions.commitPanel}</>;
@@ -133,10 +167,98 @@ describe("useDevModeSaveActions", () => {
     expect(args.onAppendChangeLogEntry).not.toHaveBeenCalled();
   });
 
-  it("executes the production commit once the session is verified", async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("opens a scope sheet on Commit and writes nothing until the editor confirms", async () => {
+    render(<TestHarness args={createArgsWithLayout()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+
+    const sheet = await screen.findByRole("dialog");
+    expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
+    await userEvent.click(within(sheet).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("names every dataset the commit changes with its change count", async () => {
+    render(<TestHarness args={createArgsWithLayout()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+
+    const sheet = await screen.findByRole("dialog");
+    const tags = within(sheet).getByRole("listitem", { name: "Tags" });
+    expect(tags).toHaveTextContent("1 article");
+    const layout = within(sheet).getByRole("listitem", { name: "Index layout: Psychoactive class" });
+    expect(layout).toHaveTextContent("2 categories");
+    expect(within(sheet).queryByRole("listitem", { name: /chemical class/i })).toBeNull();
+    expect(within(sheet).queryByRole("listitem", { name: /mechanism of action/i })).toBeNull();
+  });
+
+  it("sends the change note with the commit once confirmed", async () => {
     render(<TestHarness args={createArgs()} />);
 
     await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+    const sheet = await screen.findByRole("dialog");
+    await userEvent.type(within(sheet).getByLabelText(/change note/i), "Fix LSD summary");
+    await userEvent.click(within(sheet).getByRole("button", { name: /^commit/i }));
+
+    await waitFor(() => expect(saveArticleMutateAsyncMock).toHaveBeenCalledTimes(1));
+    expect(saveArticleMutateAsyncMock.mock.calls[0][0].changelog.markdown).toBe(
+      "Note: Fix LSD summary\n\n# LSD\n\n+ Changed summary",
+    );
+  });
+
+  it("keeps a save error on screen after 15 seconds until the editor dismisses it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    saveArticleMutateAsyncMock.mockRejectedValue(new Error("The layout changed on the server."));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<TestHarness args={createArgs()} />);
+
+    await commitAndConfirm(user);
+    await screen.findByText("The layout changed on the server.");
+
+    act(() => {
+      vi.advanceTimersByTime(15_000);
+    });
+    expect(screen.getByText("The layout changed on the server.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /dismiss/i }));
+    expect(screen.queryByText("The layout changed on the server.")).toBeNull();
+  });
+
+  it("clears a success notice on its own", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<TestHarness args={createArgs()} />);
+
+    await commitAndConfirm(user);
+    await screen.findByText("Committed 1 article(s) to production as JOSIE.");
+
+    act(() => {
+      vi.advanceTimersByTime(15_000);
+    });
+    expect(screen.queryByText("Committed 1 article(s) to production as JOSIE.")).toBeNull();
+  });
+
+  it("logs nothing to console.info while it saves", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    render(<TestHarness args={createArgs()} />);
+
+    await commitAndConfirm();
+
+    await screen.findByText("Committed 1 article(s) to production as JOSIE.");
+    expect(info).not.toHaveBeenCalled();
+  });
+
+  it("executes the production commit once the session is verified", async () => {
+    render(<TestHarness args={createArgs()} />);
+
+    await commitAndConfirm();
 
     await waitFor(() => {
       expect(saveArticleMutateAsyncMock).toHaveBeenCalledTimes(1);
@@ -163,7 +285,7 @@ describe("useDevModeSaveActions", () => {
     });
     render(<TestHarness args={createArgs()} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+    await commitAndConfirm();
 
     await waitFor(() => {
       expect(screen.getByText("Committed 1 article(s) to production as JOSIE.")).toBeInTheDocument();
@@ -173,7 +295,7 @@ describe("useDevModeSaveActions", () => {
   it("refuses to save without a session and never calls the route", async () => {
     render(<TestHarness args={{ ...createArgs(), isSignedIn: false }} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+    await commitAndConfirm();
 
     await waitFor(() => {
       expect(screen.getByText("Sign in before continuing.")).toBeInTheDocument();
@@ -181,7 +303,7 @@ describe("useDevModeSaveActions", () => {
     expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
   });
 
-  it("names the proposal being rebased with its reason, and Discard hands back to the context", async () => {
+  it("names the returned proposal being revised with its reason, and Discard hands back to the context", async () => {
     const args = {
       ...createArgs(),
       canApprove: false,
@@ -190,7 +312,7 @@ describe("useDevModeSaveActions", () => {
     render(<TestHarness args={args} />);
 
     const banner = screen.getByTestId("commit-rebase-banner");
-    expect(banner).toHaveTextContent("Rebasing proposal #987654 - Article lsd changed");
+    expect(banner).toHaveTextContent("Revising returned proposal #987654: Article lsd changed");
     await userEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(args.onDiscardActiveProposal).toHaveBeenCalledTimes(1);
     expect(args.onClearActiveProposal).not.toHaveBeenCalled();
@@ -202,7 +324,7 @@ describe("useDevModeSaveActions", () => {
         args={{ ...createArgs(), activeProposal: { proposalId: "k57zyx987654", reason: null, summary: "Update LSD" } }}
       />,
     );
-    expect(screen.getByTestId("commit-rebase-banner")).toHaveTextContent(/^Rebasing proposal #987654$/);
+    expect(screen.getByTestId("commit-rebase-banner")).toHaveTextContent(/^Revising returned proposal #987654$/);
     unmount();
 
     render(<TestHarness args={createArgs()} />);

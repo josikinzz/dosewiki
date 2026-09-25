@@ -57,7 +57,6 @@ function buildController(
     activeTab,
     changeLog: {},
     commitPanel: null,
-    renderCommitPanel: () => null,
     tagEditorTabProps: {},
     sessionProfileKey: "EDITOR",
     contributorDirectory: { profiles: [], isLoading: false },

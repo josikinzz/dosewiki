@@ -449,6 +449,9 @@ export function TagEditorTab({
 
   return (
     <div className="mt-10 space-y-8">
+      {/* The commit panel sits first, as it does in Index layout. */}
+      {commitPanel}
+
       {/* Header Section */}
       <EditorSection
         icon="lucide:tags"
@@ -576,8 +579,6 @@ export function TagEditorTab({
           {state.notice?.source === "diff" ? <TagNotice notice={state.notice} /> : null}
         </EditorActionGroup>
       </EditorSection>
-
-      {commitPanel}
     </div>
   );
 }

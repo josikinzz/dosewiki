@@ -16,6 +16,7 @@ import {
   type ArticleRecord,
   type MarkdownChange,
 } from "./devModePageUtils";
+import { withChangeNote } from "./commitScope";
 import { resolveEditorArticleSlug, EMPTY_INDEX_CONFIG } from "../context/devModeUtils";
 import type { ProposalBaseline } from "../../../../lib/proposals/proposalBaseline";
 
@@ -46,6 +47,8 @@ export type DevSaveDraft = {
   changelog: {
     dataset: DatasetChangelogResult;
   };
+  /** The change note typed in the commit sheet; it leads the changelog entry. */
+  note?: string;
 };
 
 export type DevSaveDraftInput = {
@@ -173,7 +176,7 @@ export function createDataSaveAdapter({
       return { ok: true };
     },
     execute: async (draft, credentials) => {
-      const { payload } = buildDataCommandPayload(draft);
+      const payload = withChangeNote(buildDataCommandPayload(draft).payload, draft.note ?? "");
       for (const layout of payload.indexLayouts ?? []) {
         const original = draft.layouts.find((row) => row.type === layout.type)?.originalData;
         if (original === undefined) throw new Error("The layout baseline is unavailable. Your draft is preserved; reload the source.");

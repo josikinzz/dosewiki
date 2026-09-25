@@ -11,6 +11,7 @@ import { useSaveArticleMutation, useSubmitProposalMutation } from "@/hooks/useAp
 import type { SubstanceArticle } from "@/schema";
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import type { DevCommitRebase } from "../components/DevCommitCard";
+import { useConfirm } from "../components/ConfirmDialog";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
 import type { DevActiveProposal } from "../context/devModeTypes";
 import {
@@ -20,6 +21,8 @@ import {
   type ChangelogSources,
   type SaveOrchestratorEffect,
 } from "../save-orchestrator";
+import { buildCommitScope } from "./commitScope";
+import { CommitScopeSheet } from "./CommitScopeSheet";
 import { DevModeCommitPanel } from "./DevModeCommitPanel";
 import {
   buildDevSaveDraft,
@@ -61,12 +64,13 @@ type UseDevModeSaveActionsArgs = {
 };
 
 type UseDevModeSaveActionsResult = {
+  /** The one commit panel; Tags and Index layout both render it at the top. */
   commitPanel: ReactNode;
-  renderCommitPanel: (extraActionSlot?: ReactNode, description?: ReactNode) => ReactNode;
   clearSaveNotices: () => void;
 };
 
-const NOTICE_CLEAR_MS = { success: 5000, error: 10000 } as const;
+/** Successes clear on their own; errors stay until the editor dismisses them. */
+const SUCCESS_NOTICE_CLEAR_MS = 5000;
 
 /**
  * The commit control. The server-health pill only appears when it has
@@ -248,6 +252,8 @@ export function useDevModeSaveActions({
   );
 
   const clearTimerRef = useRef<number | null>(null);
+  // The note typed in the commit sheet, read once when the save runs.
+  const pendingNoteRef = useRef("");
 
   const scheduleNoticeAutoClear = useCallback(
     (clearAfterMs: number) => {
@@ -280,18 +286,14 @@ export function useDevModeSaveActions({
           });
 
       if (effect.kind === "verifyCredentials") {
-        console.info("[dev-save] effect:verify-start", { effectId: effect.id });
-
         const availability = adapter.validateAvailability(draft);
         if (availability.ok === false) {
           orchestrator.dispatch({ type: "validationFailed", message: availability.message });
-          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
           return;
         }
 
         if (!draft.hasPendingChanges) {
           orchestrator.dispatch({ type: "validationFailed", message: adapter.noChangesMessage });
-          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
           return;
         }
 
@@ -299,10 +301,6 @@ export function useDevModeSaveActions({
 
         try {
           const credentials = await verifySaveSession();
-          console.info("[dev-save] effect:credentials-verified", {
-            effectId: effect.id,
-            key: credentials.key,
-          });
           const saveEffect = orchestrator.dispatch({
             type: "credentialsVerified",
             credentials,
@@ -315,19 +313,11 @@ export function useDevModeSaveActions({
           const message = error instanceof Error ? error.message : "Credential verification failed.";
           console.error("[dev-save] effect:credentials-failed", { effectId: effect.id, message });
           orchestrator.dispatch({ type: "credentialsFailed", message });
-          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
         }
       } else if (effect.kind === "save") {
         try {
-          console.info("[dev-save] effect:save-start", { effectId: effect.id });
           const credentials = await verifySaveSession();
-          const result = await adapter.execute(draft, credentials);
-          console.info("[dev-save] effect:save-succeeded", {
-            effectId: effect.id,
-            savedItems: result.savedItems,
-            warningCount: result.warnings.length,
-            requestId: result.requestId ?? null,
-          });
+          const result = await adapter.execute({ ...draft, note: pendingNoteRef.current }, credentials);
 
           orchestrator.dispatch({ type: "saveSucceeded", result });
 
@@ -344,12 +334,11 @@ export function useDevModeSaveActions({
             onClearActiveProposal();
           }
 
-          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.success);
+          scheduleNoticeAutoClear(SUCCESS_NOTICE_CLEAR_MS);
         } catch (error) {
           const message = error instanceof Error ? error.message : "Save failed.";
           console.error("[dev-save] effect:save-failed", { effectId: effect.id, message });
           orchestrator.dispatch({ type: "saveFailed", message });
-          scheduleNoticeAutoClear(NOTICE_CLEAR_MS.error);
         }
       }
     },
@@ -369,13 +358,6 @@ export function useDevModeSaveActions({
     ],
   );
 
-  const handleCommit = useCallback(async () => {
-    const effect = orchestrator.dispatch({ type: "saveRequested" });
-    if (effect) {
-      await handleEffect(effect);
-    }
-  }, [handleEffect, orchestrator]);
-
   const clearSaveNotices = useCallback(() => {
     if (clearTimerRef.current !== null && typeof window !== "undefined") {
       window.clearTimeout(clearTimerRef.current);
@@ -384,6 +366,41 @@ export function useDevModeSaveActions({
 
     orchestrator.dispatch({ type: "clearNotice" });
   }, [orchestrator]);
+
+  const handleCommit = useCallback(async (note = "") => {
+    // A new attempt replaces whatever the last one left on screen.
+    clearSaveNotices();
+    pendingNoteRef.current = note;
+    const effect = orchestrator.dispatch({ type: "saveRequested" });
+    if (effect) {
+      await handleEffect(effect);
+    }
+  }, [clearSaveNotices, handleEffect, orchestrator]);
+
+  // A production commit opens the scope sheet first: every dataset the working
+  // set changes, with counts and diffs, then one confirm. Nothing is written
+  // until that confirm. A proposal goes to review, so it submits directly.
+  const { confirm, dialog: commitSheet } = useConfirm();
+  const requestCommit = useCallback(() => {
+    if (!canApprove) {
+      void handleCommit();
+      return;
+    }
+    const scope = buildCommitScope(draft);
+    const total = scope.reduce((sum, dataset) => sum + dataset.count, 0);
+    let note = "";
+    confirm({
+      title: "Commit to production?",
+      description:
+        scope.length === 1
+          ? "This dataset goes live together as soon as you commit."
+          : `These ${scope.length} datasets go live together as soon as you commit.`,
+      body: <CommitScopeSheet scope={scope} onNoteChange={(value) => { note = value; }} />,
+      confirmLabel: `Commit ${total} ${total === 1 ? "change" : "changes"}`,
+      wide: true,
+      onConfirm: () => handleCommit(note),
+    });
+  }, [canApprove, confirm, draft, handleCommit]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -411,14 +428,12 @@ export function useDevModeSaveActions({
         isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
         isCommitBlocked={isCommitBlocked}
-        onCommit={() => {
-          void handleCommit();
-        }}
+        onCommit={requestCommit}
       />
     ),
     [
       dataServerHealth,
-      handleCommit,
+      requestCommit,
       canDraft,
       canApprove,
       hasPendingChanges,
@@ -437,34 +452,20 @@ export function useDevModeSaveActions({
     [activeProposal, onDiscardActiveProposal],
   );
   const commitPanel = (
-    <DevModeCommitPanel notice={notice} destination={destination} actionSlot={commitButton} rebase={rebase} />
-  );
-
-  const renderCommitPanel = useCallback(
-    (extraActionSlot?: ReactNode, description?: ReactNode) => (
+    <>
       <DevModeCommitPanel
         notice={notice}
         destination={destination}
-        description={description}
+        actionSlot={commitButton}
         rebase={rebase}
-        actionSlot={
-          extraActionSlot ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {commitButton}
-              {extraActionSlot}
-            </div>
-          ) : (
-            commitButton
-          )
-        }
+        onDismissNotice={clearSaveNotices}
       />
-    ),
-    [commitButton, destination, notice, rebase],
+      {commitSheet}
+    </>
   );
 
   return {
     commitPanel,
-    renderCommitPanel,
     clearSaveNotices,
   };
 }

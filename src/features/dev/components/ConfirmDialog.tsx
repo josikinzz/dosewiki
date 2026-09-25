@@ -24,6 +24,8 @@ export interface ConfirmRequest {
   destructive?: boolean;
   /** Rows a bulk write touches; the first eight are listed, the rest counted. */
   affected?: string[];
+  /** Widens the dialog for a body that carries diffs. */
+  wide?: boolean;
   onConfirm: () => void | Promise<void>;
 }
 
@@ -70,7 +72,7 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
       }}
     >
       <DialogContent
-        className="max-w-md"
+        className={request?.wide ? "max-w-2xl" : "max-w-md"}
         showClose={false}
         onOpenAutoFocus={() => {
           returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;

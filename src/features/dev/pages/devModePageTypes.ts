@@ -51,9 +51,6 @@ export type DevModePageControllerState = {
   commitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["commitPanel"];
-  renderCommitPanel: ReturnType<
-    typeof import("./useDevModeSaveActions").useDevModeSaveActions
-  >["renderCommitPanel"];
   /** `/dev/articles/<slug>`: the substance the editor opens on. */
   articlesInitialSlug?: string;
   citationReviewInitialSlug?: string;

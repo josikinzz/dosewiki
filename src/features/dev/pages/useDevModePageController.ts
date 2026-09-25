@@ -117,7 +117,6 @@ export function useDevModePageController({
 
   const {
     commitPanel,
-    renderCommitPanel,
     clearSaveNotices,
   } = useDevModeSaveActions({
     articles,
@@ -200,7 +199,6 @@ export function useDevModePageController({
     activeTab,
     changeLog,
     commitPanel,
-    renderCommitPanel,
     articlesInitialSlug: initialArticleSlug,
     citationReviewInitialSlug: initialArticleSlug,
     moleculeEditorInitialSlug: initialArticleSlug,
