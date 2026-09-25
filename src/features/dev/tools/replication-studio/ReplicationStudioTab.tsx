@@ -309,6 +309,21 @@ export function ReplicationStudioTab({
     />
   );
 
+  // Upload and the drop target work on every workspace, so the tray that
+  // holds what they queue shows on every workspace too.
+  const incomingTray = (
+    <IncomingTray
+      items={incoming.incoming}
+      effects={effects}
+      artists={artists}
+      onPatch={incoming.patchIncoming}
+      onDiscard={incoming.discardIncoming}
+      onClear={incoming.clearIncoming}
+      onAdd={(item) => void incoming.addToLibrary(item)}
+      onAddAll={() => void incoming.addAllToLibrary()}
+    />
+  );
+
   const libraryToolbar = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {railColumn ? null : filtersPopover}
@@ -424,17 +439,7 @@ export function ReplicationStudioTab({
           <section aria-label="Library" className="flex min-h-0 min-w-0 flex-col gap-3">
             {libraryToolbar}
             {incoming.incoming.length > 0 ? (
-              <div className="max-h-[45%] shrink-0 overflow-y-auto">
-                <IncomingTray
-                  items={incoming.incoming}
-                  effects={effects}
-                  artists={artists}
-                  onPatch={incoming.patchIncoming}
-                  onDiscard={incoming.discardIncoming}
-                  onClear={incoming.clearIncoming}
-                  onAdd={(item) => void incoming.addToLibrary(item)}
-                />
-              </div>
+              <div className="max-h-[45%] shrink-0 overflow-y-auto">{incomingTray}</div>
             ) : null}
             <div className="min-h-0 flex-1">
               <ReplicationGrid
@@ -458,6 +463,7 @@ export function ReplicationStudioTab({
           {railInColumn ? <ReplicationFacetRail {...railProps} layout="sticky" /> : null}
 
           <div className="min-w-0 space-y-4">
+            {incomingTray}
             {railInColumn ? null : filtersPopover}
             {activeFilters}
 
@@ -612,7 +618,7 @@ export function ReplicationStudioTab({
             Drop images, videos, or MP3s
           </p>
           <p className="theme-text-muted text-sm">
-            They land in the Incoming tray before anything is written.
+            They wait in the Incoming tray. Publishing puts them live on the public site.
           </p>
         </div>
       </div>

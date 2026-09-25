@@ -468,7 +468,27 @@ export function useReplicationStudioController(initialSubstanceSlug?: string) {
     void applyBulk(selectedRows, { role: "figure" });
   }, [applyBulk, selectedRows]);
 
-  const incoming = useReplicationIncoming({ rows, loadCorpus, setFeedback, readError });
+  // A freshly published work becomes the selection once the reloaded corpus
+  // lists it; the grid scrolls its anchor into view. An open draft wins: the
+  // new work is not worth a discard prompt nobody asked for.
+  const [revealSlug, setRevealSlug] = useState<string | null>(null);
+  useEffect(() => {
+    if (!revealSlug) return;
+    const row = rows.find((entry) => entry.slug === revealSlug);
+    if (!row) return;
+    setRevealSlug(null);
+    if (editorDirty) return;
+    setSelection(new Set([row.id]));
+    setAnchor(row.id);
+  }, [editorDirty, revealSlug, rows]);
+
+  const incoming = useReplicationIncoming({
+    rows,
+    loadCorpus,
+    setFeedback,
+    readError,
+    onPublished: setRevealSlug,
+  });
 
   const featuredItems = useMemo<OrderablePanelItem[]>(() => {
     const bySlug = new Map(rows.map((row) => [row.slug, row]));

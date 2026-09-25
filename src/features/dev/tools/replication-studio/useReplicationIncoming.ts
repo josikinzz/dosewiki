@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ActionNoticeTone } from "@/features/dev/components";
 
-import type { IncomingFile } from "./IncomingTray";
+import { incomingReady, type IncomingFile } from "./IncomingTray";
 import {
   buildReplicationSlug,
   fileFormat,
@@ -23,6 +23,8 @@ type IncomingControllerOptions = {
   loadCorpus: () => Promise<void>;
   setFeedback: (feedback: Feedback | null) => void;
   readError: (response: Response, fallback: string) => Promise<string>;
+  /** Called with the new row's slug once it is live and the corpus reloaded. */
+  onPublished?: (slug: string) => void;
 };
 
 export function useReplicationIncoming({
@@ -30,6 +32,7 @@ export function useReplicationIncoming({
   loadCorpus,
   setFeedback,
   readError,
+  onPublished,
 }: IncomingControllerOptions) {
   const [incoming, setIncoming] = useState<IncomingFile[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -99,8 +102,13 @@ export function useReplicationIncoming({
     );
   }, []);
 
+  /**
+   * Publishes one item and resolves to its slug, or null when it failed.
+   * `takenSlugs` carries slugs published earlier in the same batch, which the
+   * loaded corpus does not list yet.
+   */
   const addToLibrary = useCallback(
-    async (item: IncomingFile) => {
+    async (item: IncomingFile, takenSlugs: readonly string[] = []): Promise<string | null> => {
       patchIncoming(item.id, { status: "uploading", error: undefined });
       try {
         const sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", await item.file.arrayBuffer()))]
@@ -115,7 +123,7 @@ export function useReplicationIncoming({
             status: "error",
             error: await readError(urlResponse, "Could not start the upload."),
           });
-          return;
+          return null;
         }
         const { uploadUrl, uploadHeaders, uploadToken } = (await urlResponse.json()) as {
           uploadUrl: string;
@@ -131,12 +139,12 @@ export function useReplicationIncoming({
         // The finish route verifies its bytes even when PUT returns 412.
         if (!uploadResponse.ok && uploadResponse.status !== 412) {
           patchIncoming(item.id, { status: "error", error: "R2 storage rejected the file." });
-          return;
+          return null;
         }
         const slug = buildReplicationSlug(
           item.title,
           item.artist,
-          rows.map((row) => row.slug),
+          [...rows.map((row) => row.slug), ...takenSlugs],
         );
         const createResponse = await fetch(CORPUS_API, {
           method: "POST",
@@ -159,20 +167,38 @@ export function useReplicationIncoming({
             status: "error",
             error: await readError(createResponse, "Could not create the row."),
           });
-          return;
+          return null;
         }
         discardIncoming(item.id);
-        setFeedback({ tone: "success", message: `Added ${slug} to the library.` });
+        setFeedback({ tone: "success", message: `Published ${slug}. It is live on the public site.` });
         await loadCorpus();
+        onPublished?.(slug);
+        return slug;
       } catch {
         patchIncoming(item.id, {
           status: "error",
           error: "Upload failed: the endpoint is unreachable.",
         });
+        return null;
       }
     },
-    [discardIncoming, loadCorpus, patchIncoming, readError, rows, setFeedback],
+    [discardIncoming, loadCorpus, onPublished, patchIncoming, readError, rows, setFeedback],
   );
+
+  /** Publishes every ready item in tray order, one at a time. */
+  const addAllToLibrary = useCallback(async () => {
+    const published: string[] = [];
+    for (const item of incoming.filter(incomingReady)) {
+      const slug = await addToLibrary(item, published);
+      if (slug) published.push(slug);
+    }
+    if (published.length > 1) {
+      setFeedback({
+        tone: "success",
+        message: `Published ${published.length} works. They are live on the public site.`,
+      });
+    }
+  }, [addToLibrary, incoming, setFeedback]);
 
   useEffect(() => {
     const carriesFiles = (event: DragEvent) =>
@@ -217,5 +243,6 @@ export function useReplicationIncoming({
     clearIncoming,
     patchIncoming,
     addToLibrary,
+    addAllToLibrary,
   };
 }
