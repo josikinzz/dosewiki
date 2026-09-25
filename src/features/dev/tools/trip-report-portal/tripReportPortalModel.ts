@@ -27,10 +27,11 @@ type TripReportSubmissionStatus =
   | "exported";
 
 /**
- * Submission states that are asking for an editor. The badge on the dev tab and
+ * Submission states that are waiting on an admin. The badge on the dev tab and
  * the "Needs review" bucket are the same question, so they read the same list.
+ * Accepted counts: it is not live until an admin publishes it.
  */
-export const NEEDS_REVIEW_SUBMISSION_STATUSES = ["submitted", "reviewing"] as const;
+export const NEEDS_REVIEW_SUBMISSION_STATUSES = ["submitted", "reviewing", "accepted"] as const;
 
 /** A name the byline picker can offer, and the key that attributes it. */
 export type PortalContributorOption = { key: string; displayName: string };
@@ -100,11 +101,12 @@ function statusKindOf(status: PortalRow["status"]): PortalStatusKind {
     return "published";
   }
 
-  if (isNeedsReviewStatus(status)) {
-    return "needs";
+  // Accepted waits in Needs review too, but reads as its own step: publish, not decide.
+  if (status === "accepted") {
+    return "accepted";
   }
 
-  return status === "accepted" ? "accepted" : "rejected";
+  return isNeedsReviewStatus(status) ? "needs" : "rejected";
 }
 
 /**
@@ -192,12 +194,13 @@ function isoDate(timestamp: number): string {
  * Buckets, not a status dropdown.
  *
  * Editors think in "what needs me" / "what's live" / "everything". The six
- * submission states still exist underneath: an accepted-but-unpromoted row and
- * a rejected one both fall outside the first two buckets and are only reachable
- * from "All", which is the honest place for them.
+ * submission states still exist underneath: an accepted-but-unpublished row
+ * still needs an admin to publish it, so it sits in Needs review; a rejected
+ * or spam row falls outside the first two buckets and is only reachable from
+ * "All", which is the honest place for it.
  */
 export function bucketOf(row: PortalRow): PortalBucket | "other" {
-  if (row.statusKind === "needs") {
+  if (row.statusKind === "needs" || row.statusKind === "accepted") {
     return "needs";
   }
 

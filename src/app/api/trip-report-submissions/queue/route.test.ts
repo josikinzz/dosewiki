@@ -92,7 +92,7 @@ describe("trip report submissions editor queue route", () => {
       new Request("https://dose.wiki/api/trip-report-submissions/queue?scope=needs-review"),
     );
 
-    expect(mocks.storeListByStatuses).toHaveBeenCalledWith({ statuses: ["submitted", "reviewing"] });
+    expect(mocks.storeListByStatuses).toHaveBeenCalledWith({ statuses: ["submitted", "reviewing", "accepted"] });
     expect(mocks.storeList).not.toHaveBeenCalled();
     expect(response.status).toBe(200);
     const payload = await response.json();

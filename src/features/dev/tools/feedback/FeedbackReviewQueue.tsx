@@ -432,7 +432,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         }
       }
       // Any transition can move the row in or out of the pending bucket the rail counts.
-      invalidateDevRailBadge("feedback");
+      invalidateDevRailBadge(adapter.source === "glossary" ? "glossary-feedback" : "feedback");
       // Reconcile counts and concurrent reviewer changes in the background,
       // keeping the list and the selection where they are.
       void loadQueue({ background: true });

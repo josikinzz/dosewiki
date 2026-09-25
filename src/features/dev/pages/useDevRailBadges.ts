@@ -11,11 +11,34 @@ export type DevRailBadge = NonNullable<DevTabDescriptor["badge"]>;
 /** Counts the rail shows right now, keyed by badge name; absent while unknown or zero. */
 export type DevRailBadgeCounts = Readonly<Partial<Record<DevRailBadge, number>>>;
 
-/** Where each badge's count comes from, and which field of the JSON answer holds it. */
-const BADGE_SOURCES: Record<DevRailBadge, { url: string; field: string }> = {
-  "trip-reports": { url: "/api/dev/trip-reports/needs-review-count", field: "count" },
-  feedback: { url: "/api/feedback/pending-count", field: "total" },
-  proposals: { url: "/api/dev/proposals/count", field: "submitted" },
+/**
+ * What one count endpoint answered: the badge total, plus the per-source split
+ * when the endpoint returns one (feedback answers `{ article, site, total }`).
+ */
+type BadgeReading = { count: number; parts?: Readonly<Record<string, number>> };
+
+type BadgeSource = { url: string; read: (payload: Record<string, unknown>) => BadgeReading | null };
+
+function numberField(name: string): BadgeSource["read"] {
+  return (payload) => {
+    const count = payload[name];
+    return typeof count === "number" ? { count } : null;
+  };
+}
+
+/** Where each badge's count comes from, and how to read its JSON answer. */
+const BADGE_SOURCES: Record<DevRailBadge, BadgeSource> = {
+  "trip-reports": { url: "/api/dev/trip-reports/needs-review-count", read: numberField("count") },
+  feedback: {
+    url: "/api/feedback/pending-count",
+    read: ({ article, site, total }) =>
+      typeof total === "number" && typeof article === "number" && typeof site === "number"
+        ? { count: total, parts: { article, site } }
+        : null,
+  },
+  proposals: { url: "/api/dev/proposals/count", read: numberField("submitted") },
+  citations: { url: "/api/citation-evidence/open-count", read: numberField("count") },
+  "glossary-feedback": { url: "/api/glossary-feedback/pending-count", read: numberField("total") },
 };
 
 const BADGES = Object.keys(BADGE_SOURCES) as DevRailBadge[];
@@ -28,17 +51,17 @@ const BADGE_FLOORS = Object.fromEntries(
 type BadgeEntry = {
   /** Last count the rail saw; null until the endpoint has answered once. */
   count: number | null;
+  /** The per-source split behind `count`, when the endpoint reports one. */
+  parts: Readonly<Record<string, number>> | null;
   /** Bumped by every invalidation; a mounted rail refetches when it changes. */
   generation: number;
 };
 
 type BadgeSnapshot = Readonly<Record<DevRailBadge, BadgeEntry>>;
 
-const INITIAL_SNAPSHOT: BadgeSnapshot = {
-  "trip-reports": { count: null, generation: 0 },
-  feedback: { count: null, generation: 0 },
-  proposals: { count: null, generation: 0 },
-};
+const INITIAL_SNAPSHOT = Object.fromEntries(
+  BADGES.map((badge) => [badge, { count: null, parts: null, generation: 0 }]),
+) as BadgeSnapshot;
 
 /**
  * Plain module store, read through `useSyncExternalStore`. Lives outside React
@@ -85,14 +108,15 @@ async function loadCount(badge: DevRailBadge, generation: number, owner: string)
       return;
     }
 
-    const payload = await response.json();
-    const count = payload[source.field];
+    const payload: unknown = await response.json();
+    const reading =
+      payload !== null && typeof payload === "object" ? source.read(payload as Record<string, unknown>) : null;
     // An invalidation raced this answer: the refetch it triggered wins.
-    if (typeof count !== "number" || activeOwner !== owner || snapshot[badge].generation !== generation) {
+    if (!reading || activeOwner !== owner || snapshot[badge].generation !== generation) {
       return;
     }
 
-    snapshot = { ...snapshot, [badge]: { count, generation } };
+    snapshot = { ...snapshot, [badge]: { count: reading.count, parts: reading.parts ?? null, generation } };
     emit();
   } catch {
     // A missing badge is the correct failure mode: the rail still works.
@@ -162,4 +186,14 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
     }
   }
   return counts;
+}
+
+/**
+ * The per-source split behind one badge, for a tool that shows it beside its
+ * own source filter. Null until the shell's rail has loaded that count, and
+ * for another account's cached answer.
+ */
+export function useDevRailBadgeParts(badge: DevRailBadge): Readonly<Record<string, number>> | null {
+  const current = useSyncExternalStore(subscribe, () => snapshot, () => INITIAL_SNAPSHOT);
+  return current[badge].parts;
 }

@@ -115,6 +115,13 @@ export const listByStatuses = query({
 });
 
 /**
+ * The portal's Needs review bucket: every row waiting on an admin, including
+ * accepted rows not yet published. Mirrors `NEEDS_REVIEW_SUBMISSION_STATUSES`
+ * in the portal model, which the rail badge count reads.
+ */
+const NEEDS_REVIEW_STATUSES = ["submitted", "reviewing", "accepted"] as const;
+
+/**
  * Compact portal index: every needs-review row plus the non-needs rows found
  * in the same newest-250 history window used by `list({ limit: 250 })`.
  */
@@ -131,7 +138,7 @@ export const listPortalSummaries = query({
       "editor",
     );
 
-    const needsReviewDocs = await collectByStatuses(ctx, ["submitted", "reviewing"]);
+    const needsReviewDocs = await collectByStatuses(ctx, [...NEEDS_REVIEW_STATUSES]);
     needsReviewDocs.sort((left, right) => right.created_at.localeCompare(left.created_at));
 
     const historyWindow = await ctx.db
@@ -143,7 +150,7 @@ export const listPortalSummaries = query({
     return {
       needsReview: needsReviewDocs.map(toPortalSubmissionSummary),
       history: historyWindow
-        .filter((row) => row.status !== "submitted" && row.status !== "reviewing")
+        .filter((row) => !(NEEDS_REVIEW_STATUSES as readonly string[]).includes(row.status))
         .map(toPortalSubmissionSummary),
     };
   },

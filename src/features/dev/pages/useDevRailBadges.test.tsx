@@ -16,6 +16,8 @@ function Badges({ role = "admin", email }: { role?: AppRole | null; email?: stri
       <span data-testid="trip-reports">{counts["trip-reports"] ?? "none"}</span>
       <span data-testid="feedback">{counts.feedback ?? "none"}</span>
       <span data-testid="proposals">{counts.proposals ?? "none"}</span>
+      <span data-testid="citations">{counts.citations ?? "none"}</span>
+      <span data-testid="glossary-feedback">{counts["glossary-feedback"] ?? "none"}</span>
     </>
   );
 }
@@ -23,15 +25,24 @@ function Badges({ role = "admin", email }: { role?: AppRole | null; email?: stri
 type Answer = number | "fail";
 
 /**
- * One answer queue per endpoint; the last answer repeats. Trip reports answer
- * `{ count }`, feedback answers `{ article, site, total }`, proposals answer
- * `{ submitted }`, and the rail reads the field each endpoint owns.
+ * One answer queue per endpoint; the last answer repeats. Trip reports and
+ * citations answer `{ count }`, feedback answers `{ article, site, total }`,
+ * glossary feedback answers `{ total }`, proposals answer `{ submitted }`, and
+ * the rail reads the field each endpoint owns.
  */
-function stubCounts(answers: { tripReports?: Answer[]; feedback?: Answer[]; proposals?: Answer[] }) {
+function stubCounts(answers: {
+  tripReports?: Answer[];
+  feedback?: Answer[];
+  proposals?: Answer[];
+  citations?: Answer[];
+  glossary?: Answer[];
+}) {
   const queues = {
     "/api/dev/trip-reports/needs-review-count": [...(answers.tripReports ?? [0])],
     "/api/feedback/pending-count": [...(answers.feedback ?? [0])],
     "/api/dev/proposals/count": [...(answers.proposals ?? [0])],
+    "/api/citation-evidence/open-count": [...(answers.citations ?? [0])],
+    "/api/glossary-feedback/pending-count": [...(answers.glossary ?? [0])],
   };
   vi.stubGlobal(
     "fetch",
@@ -47,6 +58,9 @@ function stubCounts(answers: { tripReports?: Answer[]; feedback?: Answer[]; prop
       }
       if (url === "/api/dev/proposals/count") {
         return Response.json({ ok: true, submitted: next });
+      }
+      if (url === "/api/glossary-feedback/pending-count") {
+        return Response.json({ ok: true, total: next });
       }
       return Response.json({ ok: true, count: next });
     }),
@@ -83,6 +97,24 @@ describe("useDevRailBadges", () => {
     await waitFor(() => expect(screen.getByTestId("feedback")).toHaveTextContent("7"));
   });
 
+  it("counts open citation articles and pending glossary feedback", async () => {
+    stubCounts({ citations: [6], glossary: [2] });
+    render(<Badges />);
+
+    await waitFor(() => expect(screen.getByTestId("citations")).toHaveTextContent("6"));
+    await waitFor(() => expect(screen.getByTestId("glossary-feedback")).toHaveTextContent("2"));
+    expect(fetch).toHaveBeenCalledWith("/api/citation-evidence/open-count");
+    expect(fetch).toHaveBeenCalledWith("/api/glossary-feedback/pending-count");
+  });
+
+  it("asks a translator only for the glossary feedback count", async () => {
+    stubCounts({ glossary: [3] });
+    render(<Badges role="translator" />);
+
+    await waitFor(() => expect(screen.getByTestId("glossary-feedback")).toHaveTextContent("3"));
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("refetches only the invalidated badge after a transition", async () => {
     stubCounts({ tripReports: [3, 2], feedback: [5, 4] });
     render(<Badges />);
@@ -95,7 +127,7 @@ describe("useDevRailBadges", () => {
 
     await waitFor(() => expect(screen.getByTestId("feedback")).toHaveTextContent("4"));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("3");
-    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch).toHaveBeenCalledTimes(6);
   });
 
   it("keeps the last counts across a remount and still refetches", async () => {
@@ -122,7 +154,7 @@ describe("useDevRailBadges", () => {
     expect(fetch).toHaveBeenCalledWith("/api/dev/proposals/count");
 
     rerender(<Badges role="admin" />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(6));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("none");
   });
 
@@ -135,14 +167,14 @@ describe("useDevRailBadges", () => {
       invalidateDevRailBadge("trip-reports");
     });
 
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(6));
     expect(screen.getByTestId("trip-reports")).toHaveTextContent("4");
   });
 
   it("refreshes proposals from another session when the window regains focus", async () => {
     stubCounts({ proposals: [0, 2] });
     render(<Badges />);
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(5));
     act(() => window.dispatchEvent(new Event("focus")));
     await waitFor(() => expect(screen.getByTestId("proposals")).toHaveTextContent("2"));
   });

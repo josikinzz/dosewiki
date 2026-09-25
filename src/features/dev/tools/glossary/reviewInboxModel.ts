@@ -6,6 +6,7 @@ import type { InboxAccept, InboxException, InboxItem, InboxReason, InboxResponse
 import { confirmTerms } from "./glossaryModel";
 import type { GlossaryRendering } from "@lib/translation/glossaryConflicts";
 import { TranslationRequestError, translationRequest } from "./TranslationHistory";
+import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 
 export const INBOX_ACCEPT_REASON = "Accepted from the Inbox";
 
@@ -47,6 +48,7 @@ export async function acceptInboxItem(locale: string, accept: InboxAccept, gloss
     case "feedback-resolve":
       // The existing feedback status mutation, as the Glossary view's reader feedback queue uses it.
       await translationRequest(`/api/glossary-feedback/${encodeURIComponent(accept.id)}/status`, { status: "resolved", note: "Resolved from the Inbox" });
+      invalidateDevRailBadge("glossary-feedback");
       return;
     case "suggestion-accept":
       // Saves the model's sentence as a Fluency draft; it never approves.

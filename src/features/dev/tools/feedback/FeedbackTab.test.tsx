@@ -199,6 +199,34 @@ describe("FeedbackTab", () => {
     await waitFor(() => expect(screen.getByTestId("badge")).toHaveTextContent("none"));
   });
 
+  it("shows each source's pending count in the source filter, from the rail's count", async () => {
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input), "https://dose.wiki");
+      if (url.pathname === "/api/feedback/pending-count") {
+        return Response.json({ ok: true, article: 3, site: 0, total: 3 });
+      }
+      if (url.pathname === "/api/article-feedback/queue") {
+        return queueResponse(input, [articleRow]);
+      }
+      return Response.json({ error: "unexpected" }, { status: 500 });
+    });
+
+    function Rail() {
+      useDevRailBadges("admin");
+      return null;
+    }
+
+    render(
+      <>
+        <Rail />
+        <FeedbackTab />
+      </>,
+    );
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Article 3" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "Site 0" })).toBeInTheDocument();
+  });
+
   it("asks before a source switch drops a typed note, and starts the site queue fresh after Discard", async () => {
     const user = userEvent.setup();
     render(<FeedbackTab />);
