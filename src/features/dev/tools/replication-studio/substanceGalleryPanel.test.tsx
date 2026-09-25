@@ -229,6 +229,16 @@ describe("SubstanceGalleryPanel", () => {
     expect(screen.getByText(/unknown reuse terms/i)).toBeInTheDocument();
   });
 
+  it("shows the article preview without a second disclosure around it", async () => {
+    stubFetch();
+    renderPanel();
+
+    await screen.findByText("Work 2");
+    // The preview carries its own Hide preview toggle; the panel adds none.
+    expect(screen.getByTestId("stage-preview")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /article preview/i })).not.toBeInTheDocument();
+  });
+
   it("reports dirtiness to the host and undoes a curation with the toolbar", async () => {
     const user = userEvent.setup();
     stubFetch();
@@ -350,9 +360,19 @@ describe("SubstanceGalleryPanel", () => {
     expect(screen.getByText(/Last saved 2026-08-02 by josie/i)).toBeInTheDocument();
   });
 
-  it("surfaces a 409 as a diff and resolves it either way", async () => {
+  it("surfaces a 409 as the works on each side, not column names, and resolves it either way", async () => {
     const user = userEvent.setup();
     let rejectNext = true;
+    const thumbed = {
+      ...DETAIL,
+      matches: DETAIL.matches.map((entry) => ({
+        ...entry,
+        replication: {
+          ...entry.replication,
+          thumbnail_url: `https://example.invalid/${entry.replication.slug}.jpg`,
+        },
+      })),
+    };
     const { posts } = stubFetch((body) => {
       if (rejectNext) {
         rejectNext = false;
@@ -381,17 +401,29 @@ describe("SubstanceGalleryPanel", () => {
           updated_by: "josie",
         },
       };
-    });
+    }, thumbed);
     renderPanel();
 
     await screen.findByText("Work 2");
     await user.click(screen.getByRole("button", { name: "Prioritize Work 2" }));
     await user.click(screen.getByRole("button", { name: /save gallery/i }));
 
-    await screen.findByText(/This gallery changed on the server/i);
-    // The server's pin is a removal line; the draft's is an addition line.
-    expect(screen.getByText(/^-\s*1 work-3$/)).toBeInTheDocument();
-    expect(screen.getByText(/^\+\s*2 work-2$/)).toBeInTheDocument();
+    const conflict = await screen.findByRole("region", { name: /This gallery changed on the server/i });
+    // Each side draws its priority order as the works themselves.
+    const server = within(conflict).getByRole("region", { name: "Saved on the server" });
+    const serverOrder = within(server).getByRole("list", { name: "Priority order" });
+    expect(within(serverOrder).getByRole("img", { name: "Work 3" })).toHaveAttribute(
+      "src",
+      "https://example.invalid/work-3.jpg",
+    );
+    expect(within(serverOrder).getByText("Work 3")).toBeInTheDocument();
+    const mine = within(conflict).getByRole("region", { name: "Your unsaved changes" });
+    const myOrder = within(mine).getByRole("list", { name: "Priority order" });
+    expect(within(myOrder).getAllByRole("img").map((image) => image.getAttribute("alt"))).toEqual([
+      "Work 1",
+      "Work 2",
+    ]);
+    expect(conflict).not.toHaveTextContent(/curated_slugs|removed_slugs|work-3/);
 
     await user.click(screen.getByRole("button", { name: /keep mine/i }));
     await waitFor(() => expect(posts).toHaveLength(2));

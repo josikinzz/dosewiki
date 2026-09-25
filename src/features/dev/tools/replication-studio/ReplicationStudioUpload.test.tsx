@@ -107,6 +107,8 @@ function dropFile(name = "Tunnel.png") {
 
 describe("Replication Studio upload tray", () => {
   beforeEach(() => {
+    // The Library keeps its view in the URL; each test starts from a clean one.
+    window.history.replaceState(null, "", "/dev/replications");
     vi.restoreAllMocks();
     URL.createObjectURL = vi.fn(() => "blob:preview");
     URL.revokeObjectURL = vi.fn();

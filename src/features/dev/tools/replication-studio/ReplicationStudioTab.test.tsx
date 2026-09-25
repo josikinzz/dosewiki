@@ -166,6 +166,8 @@ function stubFetch() {
 
 describe("ReplicationStudioTab", () => {
   beforeEach(() => {
+    // The Library keeps its view in the URL; each test starts from a clean one.
+    window.history.replaceState(null, "", "/dev/replications");
     vi.restoreAllMocks();
     pushMock.mockClear();
   });
@@ -189,6 +191,48 @@ describe("ReplicationStudioTab", () => {
 
     await waitFor(() => expect(screen.getByText("1 of 2 shown")).toBeInTheDocument());
     expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
+  });
+
+  it("restores a filtered, grouped Library from its link", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/dev/replications?artist=John+Tenniel&type=image&group=type&view=list&density=large&q=alice",
+    );
+    stubFetch();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Alice grown large");
+
+    expect(screen.getByText("1 of 2 shown")).toBeInTheDocument();
+    expect(screen.queryByText("Kaleidoscopic highway")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove filter Artist: John Tenniel" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove filter Type: image" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Search replications")).toHaveValue("alice");
+    expect(screen.getByRole("button", { name: "Group by type" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "List view" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("writes the Library view into the URL as it changes, so the link can be shared", async () => {
+    stubFetch();
+    const user = userEvent.setup();
+    render(<ReplicationStudioTab />);
+    await screen.findByText("Kaleidoscopic highway");
+
+    await user.click(screen.getByLabelText(/John Tenniel/));
+    await user.click(screen.getByRole("button", { name: "Group by nothing" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Artist" }));
+    await user.click(screen.getByRole("button", { name: "Small cards" }));
+
+    const params = new URLSearchParams(window.location.search);
+    expect(window.location.pathname).toBe("/dev/replications");
+    expect(params.getAll("artist")).toEqual(["John Tenniel"]);
+    expect(params.get("group")).toBe("artist");
+    expect(params.get("density")).toBe("compact");
+    // Defaults stay out of the link.
+    expect(params.has("view")).toBe(false);
+
+    await user.click(screen.getByRole("button", { name: "Clear all" }));
+    expect(new URLSearchParams(window.location.search).has("artist")).toBe(false);
   });
 
   it("saves a single edit with the snapshot it loaded as the compare-and-swap guard", async () => {

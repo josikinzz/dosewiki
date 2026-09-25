@@ -12,7 +12,6 @@ import {
   TagToken,
   useConfirm,
   useDevShortcuts,
-  useUnsavedWork,
 } from "@/features/dev/components";
 import { OrderingPanel } from "@/features/dev/tools/contributors/OrderingPanel";
 import { cn } from "@/lib/utils";
@@ -22,29 +21,20 @@ import { ApplyPlaylistToDrugsAction } from "./ApplyPlaylistToDrugsAction";
 import { KeyboardHints, REPLICATION_STUDIO_SHORTCUTS, ReplicationEditorDrawer } from "./ReplicationEditorDrawer";
 import { PlaylistsPanel } from "./PlaylistsPanel";
 import { ReplicationFacetRail } from "./ReplicationFacetRail";
-import {
-  ReplicationGrid,
-  type StudioGridDensity,
-  type StudioGridView,
-} from "./ReplicationGrid";
+import { ReplicationGrid, type StudioGridDensity } from "./ReplicationGrid";
 import { ReplicationPlacementWorkspace } from "./ReplicationPlacementWorkspace";
 import { SubstanceGalleryPanel } from "./SubstanceGalleryPanel";
-import {
-  ReplicationStudioLeaveDialogs,
-  type PendingPlaylistLeave,
-} from "./ReplicationStudioLeaveDialogs";
-import {
-  ReplicationStudioWorkspaceNav,
-  type StudioWorkspace,
-} from "./ReplicationStudioWorkspaceNav";
-import {
-  EMPTY_STUDIO_FACETS,
-  type StudioGroupBy,
-} from "./replicationStudioModel";
-import {
-  useReplicationStudioController,
-  type ShowcaseMode,
-} from "./useReplicationStudioController";
+import { ReplicationStudioLeaveDialogs } from "./ReplicationStudioLeaveDialogs";
+import { ReplicationStudioWorkspaceNav } from "./ReplicationStudioWorkspaceNav";
+import { readReplicationApiError } from "./replicationStudioApi";
+import type { StudioGroupBy } from "./replicationStudioModel";
+import { useFeaturedController } from "./useFeaturedController";
+import { useLibraryController, useLibraryKeys, useLibraryLayout } from "./useLibraryController";
+import { useReplicationCorpus } from "./useReplicationCorpus";
+import { useReplicationIncoming } from "./useReplicationIncoming";
+import { useReplicationSelection } from "./useReplicationSelection";
+import { useShowcaseController } from "./useShowcaseController";
+import { useStudioWorkspaces } from "./useStudioWorkspaces";
 
 /** Bottom breathing room under the frame: the dev shell's own `py-6`. */
 const FRAME_BOTTOM_GAP = 24;
@@ -140,144 +130,46 @@ function ToggleIcon({
 export function ReplicationStudioTab({
   initialSubstanceSlug,
 }: { initialSubstanceSlug?: string } = {}) {
-  const controller = useReplicationStudioController(initialSubstanceSlug);
+  // One controller per workspace, over one corpus and one shared selection.
+  const corpus = useReplicationCorpus();
   useDevShortcuts(REPLICATION_STUDIO_SHORTCUTS);
-  const {
-    load,
+  const { load, rows, effects, effectNames, artists, busy, feedback } = corpus;
+  const library = useLibraryController({ rows, effectNames });
+  const { query, group, visibleRows, filterCount } = library;
+  const selection = useReplicationSelection({
     rows,
-    effects,
-    query,
-    group,
-    facets,
-    selection,
-    anchor,
-    busy,
-    feedback,
-    activePanel,
-    featuredOrder,
-    savedFeatured,
-    featuredCurated,
-    featuredLoaded,
-    featuredSaveState,
-    pendingLeave,
-    filtersOpen,
-    railInColumn,
-    drawerInColumn,
-    searchRef,
-    gridRef,
-    effectNames,
-    artists,
-    visibleRows,
-    groups,
-    selectedRows,
-    featuredItems,
-    chips,
-    filterCount,
-    incoming,
-    pendingDiscard,
-    showcaseMode,
-    placementRow,
-    galleryDirty,
-  } = controller;
-  const [playlistDirty, setPlaylistDirty] = useState(false);
-  const [pendingPlaylistLeave, setPendingPlaylistLeave] = useState<PendingPlaylistLeave | null>(
-    null,
-  );
-  const [view, setView] = useState<StudioGridView>("grid");
-  const [density, setDensity] = useState<StudioGridDensity>("comfortable");
-  const [groupMenuOpen, setGroupMenuOpen] = useState(false);
-  // From xl the idle inspector can be pinned open (the grid never moves when
-  // a selection lands) or unpinned (the grid takes its space until a work is
-  // selected). Either way the grid box stays mounted, so selection and scroll
-  // position survive the column opening or closing.
-  const [inspectorPinned, setInspectorPinned] = useState(true);
-  const isLibrary = activePanel === null;
-  const hasSelection = selection.size > 0;
-  // From lg the inspector is a column. Between lg and xl there is room
-  // for two columns beside the grid, not three, so while something is
-  // selected the rail makes way (it folds into the toolbar's filter popover)
-  // and comes back when the selection clears. Under lg it is a sheet.
-  const inspectorColumn =
-    (drawerInColumn && (inspectorPinned || hasSelection)) || (railInColumn && hasSelection);
-  const railColumn = railInColumn && (drawerInColumn || !hasSelection);
-  const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
+    visibleIds: library.visibleIds,
+    setFeedback: corpus.setFeedback,
+  });
+  useLibraryKeys(library, selection);
+  const workspaces = useStudioWorkspaces({ initialSubstanceSlug, guardDraft: selection.guardDraft });
+  const activePanel = workspaces.active;
   const { confirm, dialog: confirmDialog } = useConfirm();
-
-  // The inspector, bulk, playlist and showcase drafts register where they
-  // live; Featured and the Incoming tray live here. Featured would go live, so
-  // the shell only discards it. The tray uploads unpublished, so nothing in it
-  // is live either way; the shell can only discard it, since each file still
-  // needs its own Upload.
-  const featuredDirty =
-    featuredLoaded &&
-    (featuredOrder.length !== savedFeatured.length ||
-      featuredOrder.some((slug, index) => slug !== savedFeatured[index]));
-  useUnsavedWork({
-    id: "replications:featured",
-    tab: "replications",
-    label: "Replications: Featured order",
-    dirty: featuredDirty,
-    publishesLive: true,
-    discard: () => {
-      controller.setFeaturedOrder(savedFeatured);
-      controller.setFeaturedSaveState("idle");
-    },
+  const showcase = useShowcaseController({ rows, workspaces, confirm });
+  const featured = useFeaturedController({
+    active: activePanel === "featured",
+    rows,
+    visibleRows,
+    setFeedback: corpus.setFeedback,
   });
-  useUnsavedWork({
-    id: "replications:incoming",
-    tab: "replications",
-    label: `Replications: ${incoming.incoming.length} ${incoming.incoming.length === 1 ? "file" : "files"} in the Incoming tray`,
-    dirty: incoming.incoming.length > 0,
-    publishesLive: false,
-    discard: incoming.clearIncoming,
+  const incoming = useReplicationIncoming({
+    rows,
+    loadCorpus: corpus.reload,
+    setFeedback: corpus.setFeedback,
+    readError: readReplicationApiError,
+    onUploaded: selection.reveal,
   });
+  const [groupMenuOpen, setGroupMenuOpen] = useState(false);
+  const isLibrary = activePanel === null;
+  const hasSelection = selection.selection.size > 0;
+  const layout = useLibraryLayout(hasSelection);
+  const { railInColumn, drawerInColumn, inspectorColumn, railColumn } = layout;
+  const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
 
-  /** The Showcase views each hold their own draft, so switching asks first. */
-  const requestShowcaseMode = (next: ShowcaseMode) => {
-    if (next === showcaseMode) return;
-    if (!galleryDirty) {
-      controller.setShowcaseMode(next);
-      return;
-    }
-    confirm({
-      title: "Leave the showcase with unsaved changes?",
-      description:
-        "This board has curation that was never saved. Switching views throws it away; the article keeps whatever is already stored.",
-      cancelLabel: "Keep editing",
-      confirmLabel: "Discard changes",
-      destructive: true,
-      onConfirm: () => {
-        controller.setGalleryDirty(false);
-        controller.setShowcaseMode(next);
-      },
-    });
-  };
-
-  const requestWorkspace = (next: StudioWorkspace) => {
-    if (activePanel === next) return;
-    if (activePanel === "substances") {
-      controller.requestLeaveSubstances(next === "playlists" || next === "featured" ? next : null);
-      return;
-    }
-    if (activePanel === "playlists" && playlistDirty) {
-      setPendingPlaylistLeave({ kind: "workspace", next });
-      return;
-    }
-    controller.guardDraft(() => {
-      setPlaylistDirty(false);
-      controller.setActivePanel(next);
-    });
-  };
-  const requestReviewGallery = (substanceSlug: string) => {
-    if (activePanel === "playlists" && playlistDirty) {
-      setPendingPlaylistLeave({ kind: "review", substanceSlug });
-      return;
-    }
-    controller.navigateToSubstance(substanceSlug);
-  };
-  const clearFilters = () => {
-    controller.setFacets(EMPTY_STUDIO_FACETS);
-    controller.setQuery("");
+  /** Leaves Showcases for the Library with `slug` selected there. */
+  const openInLibrary = (slug: string) => {
+    selection.inspectRow(slug);
+    workspaces.request(null);
   };
 
   if (load.status === "loading") {
@@ -293,7 +185,7 @@ export function ReplicationStudioTab({
       <EditorPanel variant="danger">
         <EditorPanelBody className="space-y-3">
           <p className="text-sm">{load.message}</p>
-          <Button type="button" onClick={() => void controller.loadCorpus()}>
+          <Button type="button" onClick={() => void corpus.reload()}>
             Try again
           </Button>
         </EditorPanelBody>
@@ -305,14 +197,14 @@ export function ReplicationStudioTab({
     rows,
     effectNames,
     query,
-    onQueryChange: controller.setQuery,
+    onQueryChange: library.setQuery,
     group,
-    facets,
-    onToggleFacet: controller.toggleFacet,
-    searchInputRef: searchRef,
+    facets: library.facets,
+    onToggleFacet: library.toggleFacet,
+    searchInputRef: library.searchRef,
   };
   const filtersPopover = (
-    <Popover open={filtersOpen} onOpenChange={controller.setFiltersOpen}>
+    <Popover open={library.filtersOpen} onOpenChange={library.setFiltersOpen}>
       <PopoverTrigger asChild>
         <Button type="button" variant="glass" size="sm" className="shrink-0">
           <Icon icon="lucide:sliders-horizontal" size={15} />
@@ -325,7 +217,7 @@ export function ReplicationStudioTab({
         className="w-[min(22rem,calc(100vw-2rem))] p-0"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
-          searchRef.current?.focus();
+          library.searchRef.current?.focus();
         }}
       >
         <ReplicationFacetRail {...railProps} layout="sheet" />
@@ -333,15 +225,15 @@ export function ReplicationStudioTab({
     </Popover>
   );
 
-  const activeFilters = chips.length > 0 || query.trim() ? (
+  const activeFilters = library.chips.length > 0 || query.trim() ? (
     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {chips.map((chip) => (
+      {library.chips.map((chip) => (
         <TagToken
           key={`${chip.kind}:${chip.key}`}
           variant="compact"
           label={chip.label}
           removeLabel={`Remove filter ${chip.label}`}
-          onRemove={() => controller.toggleFacet(chip.kind, chip.key)}
+          onRemove={() => library.toggleFacet(chip.kind, chip.key)}
         />
       ))}
       {query.trim() ? (
@@ -349,10 +241,10 @@ export function ReplicationStudioTab({
           variant="compact"
           label={`“${query.trim()}”`}
           removeLabel="Clear search"
-          onRemove={() => controller.setQuery("")}
+          onRemove={() => library.setQuery("")}
         />
       ) : null}
-      <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>
+      <Button type="button" variant="ghost" size="sm" onClick={library.clearFilters}>
         Clear all
       </Button>
     </div>
@@ -361,16 +253,16 @@ export function ReplicationStudioTab({
   const inspector = (placement: "column" | "sheet") => (
     <ReplicationEditorDrawer
       placement={placement}
-      selected={selectedRows}
+      selected={selection.selectedRows}
       effects={effects}
       artists={artists}
       busy={busy}
-      onSaveSingle={(row, draft) => void controller.saveSingle(row, draft)}
-      onApplyBulk={controller.applyBulk}
-      onPublish={controller.publishRows}
-      onDeselect={controller.clearSelection}
-      onDirtyChange={controller.setEditorDirty}
-      onOpenPlacement={(row) => controller.openPlacement(row.id)}
+      onSaveSingle={(row, draft) => void corpus.saveSingle(row, draft)}
+      onApplyBulk={corpus.applyBulk}
+      onPublish={corpus.publishRows}
+      onDeselect={selection.clearSelection}
+      onDirtyChange={selection.setEditorDirty}
+      onOpenPlacement={(row) => showcase.openPlacement(row.id)}
     />
   );
 
@@ -396,7 +288,7 @@ export function ReplicationStudioTab({
           confirmLabel: `Publish ${rows.length}`,
           affected: rows.map((row) => row.title || row.slug),
           onConfirm: async () => {
-            await controller.publishRows(rows);
+            await corpus.publishRows(rows);
           },
         })
       }
@@ -411,8 +303,8 @@ export function ReplicationStudioTab({
         {visibleRows.length === rows.length
           ? `${rows.length} works`
           : `${visibleRows.length} of ${rows.length} shown`}
-        {selection.size > 0 ? (
-          <span className="theme-accent-emphasis"> · {selection.size} selected</span>
+        {hasSelection ? (
+          <span className="theme-accent-emphasis"> · {selection.selection.size} selected</span>
         ) : null}
       </p>
       {activeFilters}
@@ -436,7 +328,7 @@ export function ReplicationStudioTab({
                   variant="listItem"
                   size="sm"
                   onClick={() => {
-                    controller.setGroup(option.value);
+                    library.setGroup(option.value);
                     setGroupMenuOpen(false);
                   }}
                 >
@@ -448,18 +340,18 @@ export function ReplicationStudioTab({
           </PopoverContent>
         </Popover>
         <ToggleGroup label="View">
-          <ToggleIcon label="Grid view" icon="lucide:layout-grid" pressed={view === "grid"} onClick={() => setView("grid")} />
-          <ToggleIcon label="List view" icon="lucide:list" pressed={view === "list"} onClick={() => setView("list")} />
+          <ToggleIcon label="Grid view" icon="lucide:layout-grid" pressed={library.view === "grid"} onClick={() => library.setView("grid")} />
+          <ToggleIcon label="List view" icon="lucide:list" pressed={library.view === "list"} onClick={() => library.setView("list")} />
         </ToggleGroup>
-        {view === "grid" ? (
+        {library.view === "grid" ? (
           <ToggleGroup label="Card size">
             {DENSITY_OPTIONS.map((option) => (
               <ToggleIcon
                 key={option.value}
                 label={option.label}
                 icon={option.icon}
-                pressed={density === option.value}
-                onClick={() => setDensity(option.value)}
+                pressed={library.density === option.value}
+                onClick={() => library.setDensity(option.value)}
               />
             ))}
           </ToggleGroup>
@@ -468,8 +360,8 @@ export function ReplicationStudioTab({
           <ToggleIcon
             label="Keep the inspector open"
             icon="lucide:panel-right"
-            pressed={inspectorPinned}
-            onClick={() => setInspectorPinned((pinned) => !pinned)}
+            pressed={layout.inspectorPinned}
+            onClick={layout.toggleInspectorPinned}
           />
         ) : null}
         {inspectorColumn && !hasSelection ? null : (
@@ -501,14 +393,14 @@ export function ReplicationStudioTab({
         effectCount={new Set(rows.map((row) => row.effect_slug).filter(Boolean)).size}
         busy={busy}
         fileInputRef={incoming.fileInputRef}
-        onRequestWorkspace={requestWorkspace}
-        onReload={() => void controller.loadCorpus()}
+        onRequestWorkspace={(next) => workspaces.request(next)}
+        onReload={() => void corpus.reload()}
         onUpload={() => incoming.fileInputRef.current?.click()}
         onFiles={incoming.addFiles}
       />
 
       {feedback ? (
-        <ActionNotice tone={feedback.tone} onDismiss={() => controller.setFeedback(null)}>
+        <ActionNotice tone={feedback.tone} onDismiss={() => corpus.setFeedback(null)}>
           {feedback.message}
         </ActionNotice>
       ) : null}
@@ -531,15 +423,15 @@ export function ReplicationStudioTab({
             ) : null}
             <div className="min-h-0 flex-1">
               <ReplicationGrid
-                ref={gridRef}
-                groups={groups}
-                selection={selection}
-                anchorId={anchor}
-                onCardActivate={controller.onCardActivate}
-                view={view}
-                density={density}
+                ref={library.gridRef}
+                groups={library.groups}
+                selection={selection.selection}
+                anchorId={selection.anchor}
+                onCardActivate={selection.onCardActivate}
+                view={library.view}
+                density={library.density}
                 hideEffect={group === "effect"}
-                onClearFilters={filterCount > 0 ? clearFilters : undefined}
+                onClearFilters={filterCount > 0 ? library.clearFilters : undefined}
               />
             </div>
           </section>
@@ -556,30 +448,24 @@ export function ReplicationStudioTab({
             {activeFilters}
 
             {activePanel === "featured" ? (
-              featuredLoaded ? (
+              featured.loaded ? (
                 <OrderingPanel
                   icon="lucide:star"
                   title="Featured on the Effect Index homepage"
                   description={
-                    (featuredCurated
+                    (featured.curated
                       ? "The carousel plays these replications in this order. "
                       : "Nothing is stored yet, so these are the checked-in defaults the homepage is running on right now; saving records them. ") +
                     "Everything below the divider is not featured, and follows the studio's current search and filters."
                   }
-                  items={featuredItems}
-                  order={featuredOrder}
-                  savedOrder={savedFeatured}
+                  items={featured.items}
+                  order={featured.order}
+                  savedOrder={featured.savedOrder}
                   emptyLabel="No replications match the current filters."
-                  saveState={featuredSaveState}
-                  onOrderChange={(next) => {
-                    controller.setFeaturedOrder(next);
-                    controller.setFeaturedSaveState("idle");
-                  }}
-                  onSave={() => void controller.saveFeatured()}
-                  onReset={() => {
-                    controller.setFeaturedOrder(savedFeatured);
-                    controller.setFeaturedSaveState("idle");
-                  }}
+                  saveState={featured.saveState}
+                  onOrderChange={featured.setOrder}
+                  onSave={() => void featured.save()}
+                  onReset={featured.reset}
                 />
               ) : (
                 <p className="theme-text-muted text-sm">Loading the featured selection…</p>
@@ -590,11 +476,11 @@ export function ReplicationStudioTab({
               <PlaylistsPanel
                 allRows={rows}
                 filteredRows={visibleRows}
-                onDirtyChange={setPlaylistDirty}
+                onDirtyChange={workspaces.setPlaylistDirty}
                 renderSavedPlaylistAction={(playlist) => (
                   <ApplyPlaylistToDrugsAction
                     playlist={playlist}
-                    onReviewGallery={requestReviewGallery}
+                    onReviewGallery={showcase.reviewArticle}
                   />
                 )}
               />
@@ -609,7 +495,7 @@ export function ReplicationStudioTab({
                       { value: "replication", label: "By replication", icon: "lucide:image" },
                     ] as const
                   ).map((mode) => {
-                    const active = showcaseMode === mode.value;
+                    const active = showcase.mode === mode.value;
                     return (
                       <Button
                         key={mode.value}
@@ -618,7 +504,7 @@ export function ReplicationStudioTab({
                         variant={active ? "pillActive" : "quiet"}
                         aria-pressed={active}
                         className={cn("rounded-full", !active && "theme-text-muted")}
-                        onClick={() => requestShowcaseMode(mode.value)}
+                        onClick={() => showcase.requestMode(mode.value)}
                       >
                         <Icon icon={mode.icon} size={15} />
                         {mode.label}
@@ -627,31 +513,28 @@ export function ReplicationStudioTab({
                   })}
                 </ToggleGroup>
 
-                {showcaseMode === "drug" ? (
+                {showcase.mode === "drug" ? (
                   <SubstanceGalleryPanel
                     substanceSlug={initialSubstanceSlug ?? null}
-                    onNavigateToSubstance={controller.navigateToSubstance}
+                    onNavigateToSubstance={showcase.openArticle}
                     corpusRows={rows}
                     visibleRows={visibleRows}
                     railNarrowed={filterCount > 0}
-                    onInspectRow={(slug) => {
-                      controller.inspectRow(slug);
-                      controller.requestLeaveSubstances(null);
-                    }}
-                    onOpenLibrary={() => controller.requestLeaveSubstances(null)}
-                    onDirtyChange={controller.setGalleryDirty}
+                    onInspectRow={openInLibrary}
+                    onOpenLibrary={() => workspaces.request(null)}
+                    onDirtyChange={workspaces.setShowcaseDirty}
                   />
                 ) : (
                   <ReplicationPlacementWorkspace
-                    row={placementRow}
+                    row={showcase.placementRow}
                     rows={visibleRows}
-                    onChooseRow={controller.setPlacementRowId}
+                    onChooseRow={showcase.choosePlacementRow}
                     onOpenInLibrary={(id) => {
                       const row = rows.find((entry) => entry.id === id);
-                      if (row) controller.inspectRow(row.slug);
-                      controller.requestLeaveSubstances(null);
+                      if (row) openInLibrary(row.slug);
+                      else workspaces.request(null);
                     }}
-                    onDirtyChange={controller.setGalleryDirty}
+                    onDirtyChange={workspaces.setShowcaseDirty}
                   />
                 )}
               </>
@@ -670,26 +553,10 @@ export function ReplicationStudioTab({
       ) : null}
 
       <ReplicationStudioLeaveDialogs
-        pendingPlaylistLeave={pendingPlaylistLeave}
-        pendingShowcaseLeave={pendingLeave}
-        onCancelPlaylistLeave={() => setPendingPlaylistLeave(null)}
-        onConfirmPlaylistLeave={() => {
-          const pending = pendingPlaylistLeave;
-          setPendingPlaylistLeave(null);
-          setPlaylistDirty(false);
-          if (pending?.kind === "review") {
-            controller.navigateToSubstance(pending.substanceSlug);
-          } else {
-            controller.setActivePanel(pending?.next ?? null);
-          }
-        }}
-        onCancelShowcaseLeave={() => controller.setPendingLeave(null)}
-        onConfirmShowcaseLeave={() => {
-          if (pendingLeave) controller.leaveSubstances(pendingLeave.next);
-        }}
-        pendingDraftDiscard={pendingDiscard !== null}
-        onCancelDraftDiscard={() => controller.setPendingDiscard(null)}
-        onConfirmDraftDiscard={controller.confirmDiscard}
+        {...workspaces.leaveDialogs}
+        pendingDraftDiscard={selection.pendingDiscard}
+        onCancelDraftDiscard={selection.cancelDiscard}
+        onConfirmDraftDiscard={selection.confirmDiscard}
       />
       {confirmDialog}
 

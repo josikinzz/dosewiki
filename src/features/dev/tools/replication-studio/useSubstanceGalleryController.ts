@@ -99,8 +99,6 @@ export function useSubstanceGalleryController({
   const [conflict, setConflict] = useState<GalleryConflict | null>(null);
   const [saveState, setSaveState] = useState<EditorActionStatusState | "idle">("idle");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [excludedOpen, setExcludedOpen] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(true);
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [focusSlug, setFocusSlug] = useState<string | null>(null);
   const [shelfFocusToken, setShelfFocusToken] = useState(0);
@@ -145,7 +143,6 @@ export function useSubstanceGalleryController({
     setSaveState("idle");
     setFeedback(null);
     setConflict(null);
-    setExcludedOpen(false);
     void (async () => {
       const result = await fetchGalleryDetail(substanceSlug);
       if (cancelled) return;
@@ -602,58 +599,61 @@ export function useSubstanceGalleryController({
 
 
   return {
-    candidates,
-    candidatesState,
-    retryCandidates,
+    /** The substance picker, and the switch that waits on a dirty board. */
+    picker: {
+      candidates,
+      state: candidatesState,
+      retry: retryCandidates,
+      select: handleSelectSubstance,
+      pendingSlug,
+      cancelSwitch: () => setPendingSlug(null),
+      discardAndSwitch,
+    },
     detailState,
     detail,
-    history,
+    retry,
     curation,
-    isDirty,
-    expectedUpdatedAt,
-    savedBy,
-    conflict,
-    saveState,
-    feedback,
-    excludedOpen,
-    previewOpen,
-    pendingSlug,
-    focusSlug,
-    shelfFocusToken,
-    announcement,
     matches,
     board,
     effectiveOrder,
     provenance,
     matchedSlugs,
     unknownRightsOnStage,
-    exclusionCount: curation.removed.length,
-    exclusionLimit: GALLERY_CURATION_SLUG_CAP,
-    overExclusionLimit: curation.removed.length > GALLERY_CURATION_SLUG_CAP,
-    undoable: canUndo(history),
-    redoable: canRedo(history),
+    save: {
+      state: saveState,
+      isDirty,
+      expectedUpdatedAt,
+      savedBy,
+      persist,
+      discard: handleDiscard,
+    },
+    conflict,
+    resolveConflict: { keepMine: handleKeepMine, takeTheirs: handleTakeTheirs },
+    feedback,
     setFeedback,
-    setExcludedOpen,
-    setPreviewOpen,
-    setPendingSlug,
-    clearFocus,
-    handleCurate,
-    handleUncurate,
-    handleApplyPlaylist,
-    handleExclude,
-    handleExcludeEverywhere,
-    handleRestore,
-    handleMove,
-    handleMoveToEdge,
-    handleDragEnd,
-    handleUndo,
-    handleRedo,
-    handleSelectSubstance,
-    persist,
-    handleKeepMine,
-    handleTakeTheirs,
-    handleDiscard,
-    retry,
-    discardAndSwitch,
+    exclusions: {
+      count: curation.removed.length,
+      limit: GALLERY_CURATION_SLUG_CAP,
+      over: curation.removed.length > GALLERY_CURATION_SLUG_CAP,
+    },
+    undo: {
+      canUndo: canUndo(history),
+      canRedo: canRedo(history),
+      undo: handleUndo,
+      redo: handleRedo,
+    },
+    /** Every change to the board; each one is a single undo step. */
+    edit: {
+      curate: handleCurate,
+      uncurate: handleUncurate,
+      applyPlaylist: handleApplyPlaylist,
+      exclude: handleExclude,
+      excludeEverywhere: handleExcludeEverywhere,
+      restore: handleRestore,
+      move: handleMove,
+      moveToEdge: handleMoveToEdge,
+      dragEnd: handleDragEnd,
+    },
+    focus: { slug: focusSlug, clear: clearFocus, shelfToken: shelfFocusToken, announcement },
   };
 }

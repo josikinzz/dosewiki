@@ -333,7 +333,7 @@ describe("PlaylistsPanel", () => {
     await waitFor(() => expect(result.current.draft?.key).toBe("alpha"));
     act(() => result.current.setDraftTitle("Alpha changed"));
     act(() => result.current.startNewPlaylist());
-    expect(result.current.pendingTransition).not.toBeNull();
+    expect(result.current.transition.pending).not.toBeNull();
 
     let pendingSave!: Promise<boolean>;
     act(() => {
@@ -348,7 +348,7 @@ describe("PlaylistsPanel", () => {
       result.current.closeDraft();
       result.current.openPlaylist(result.current.playlists[1]);
       result.current.startNewPlaylist();
-      result.current.discardPendingTransition();
+      result.current.transition.discard();
       void result.current.remove(result.current.playlists[0]);
     });
 
@@ -357,7 +357,7 @@ describe("PlaylistsPanel", () => {
       title: "Alpha changed",
       slugs: ["work-0", "work-1"],
     });
-    expect(result.current.pendingTransition).not.toBeNull();
+    expect(result.current.transition.pending).not.toBeNull();
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(0);
 
     await act(async () => {

@@ -70,6 +70,8 @@ async function selectFirstTwo(user: ReturnType<typeof userEvent.setup>) {
 
 describe("Replication Studio bulk edit", () => {
   beforeEach(() => {
+    // The Library keeps its view in the URL; each test starts from a clean one.
+    window.history.replaceState(null, "", "/dev/replications");
     vi.restoreAllMocks();
   });
 

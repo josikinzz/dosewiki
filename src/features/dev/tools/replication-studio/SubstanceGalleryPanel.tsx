@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { SkeletonPulse } from "@/components/layout/PublicFeedbackPrimitives";
@@ -10,7 +10,6 @@ import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   ActionNotice,
   ConfirmDialog,
-  DiffSurface,
   EditorActionStatus,
   EditorSection,
   EditorStatusPill,
@@ -21,43 +20,15 @@ import {
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 
 import { GalleryBoardList } from "./GalleryBoardList";
+import { GalleryConflictView, type ConflictWork } from "./GalleryConflictView";
 import { GalleryMatchIdentity } from "./GalleryMatchIdentity";
 import { GalleryLibraryAdd } from "./GalleryLibraryAdd";
 import { GalleryPicker } from "./GalleryPicker";
 import { ApplyPlaylistMenu } from "./ApplyPlaylistMenu";
 import { GalleryStagePreview } from "./GalleryStagePreview";
 import type { StudioRow } from "./replicationStudioModel";
-import type {
-  GalleryConflict,
-  GalleryCurationState,
-  GalleryMatch,
-} from "./substanceGalleryPortalModel";
+import type { GalleryMatch } from "./substanceGalleryPortalModel";
 import { useSubstanceGalleryController } from "./useSubstanceGalleryController";
-
-function conflictDiffText(conflict: GalleryConflict, mine: GalleryCurationState): string {
-  const lines: string[] = [];
-  const blocks = [
-    { label: "curated_slugs", theirs: conflict.curated_slugs, ours: mine.curated },
-    { label: "removed_slugs", theirs: conflict.removed_slugs, ours: mine.removed },
-  ];
-  for (const { label, theirs, ours } of blocks) {
-    lines.push(
-      `# ${label}: server, saved ${conflict.updated_at.slice(0, 19).replace("T", " ")} by ${
-        conflict.updated_by ?? "unknown"
-      }`,
-    );
-    if (theirs.length === 0) lines.push("  (empty)");
-    theirs.forEach((slug, index) => {
-      lines.push(`${ours[index] === slug ? " " : "-"}${String(index + 1).padStart(3)} ${slug}`);
-    });
-    lines.push(`# ${label}: your unsaved draft`);
-    if (ours.length === 0) lines.push("  (empty)");
-    ours.forEach((slug, index) => {
-      lines.push(`${theirs[index] === slug ? " " : "+"}${String(index + 1).padStart(3)} ${slug}`);
-    });
-  }
-  return lines.join("\n");
-}
 
 function BoardSkeleton() {
   return (
@@ -136,43 +107,42 @@ export function SubstanceGalleryPanel({
     onDirtyChange,
   });
   const {
-    candidates,
-    candidatesState,
+    picker,
     detailState,
     detail,
     curation,
-    isDirty,
-    expectedUpdatedAt,
-    savedBy,
+    save,
     conflict,
-    saveState,
     feedback,
-    excludedOpen,
-    previewOpen,
-    pendingSlug,
-    focusSlug,
-    announcement,
     matches,
     board,
     effectiveOrder,
     provenance,
     matchedSlugs,
     unknownRightsOnStage,
-    exclusionCount,
-    exclusionLimit,
-    overExclusionLimit,
-    shelfFocusToken,
-    undoable,
-    redoable,
+    exclusions,
+    undo,
+    edit,
+    focus,
   } = controller;
+  // The Excluded shelf starts closed on every substance.
+  const [excludedOpenFor, setExcludedOpenFor] = useState<string | null>(null);
+  const excludedOpen = excludedOpenFor !== null && excludedOpenFor === substanceSlug;
+  /** A slug as a work the conflict view can draw: the board's own rows first, then the corpus. */
+  const workOf = useMemo(() => {
+    const works = new Map<string, ConflictWork>();
+    for (const row of corpusRows) works.set(row.slug, row);
+    for (const match of matches) works.set(match.replication.slug, match.replication);
+    return (slug: string) => works.get(slug) ?? null;
+  }, [corpusRows, matches]);
   // A showcase save changes a live article gallery, so the shell only discards.
   useUnsavedWork({
     id: "replications:showcase",
     tab: "replications",
     label: `Replications: ${substanceSlug ?? "drug"} showcase`,
-    dirty: isDirty,
+    dirty: save.isDirty,
     publishesLive: true,
-    discard: controller.handleDiscard,
+    discard: save.discard,
   });
 
   /**
@@ -182,9 +152,9 @@ export function SubstanceGalleryPanel({
    */
   const shelfToggleRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    if (shelfFocusToken === 0) return;
+    if (focus.shelfToken === 0) return;
     shelfToggleRef.current?.focus({ preventScroll: true });
-  }, [shelfFocusToken]);
+  }, [focus.shelfToken]);
 
   return (
     <EditorSection
@@ -194,15 +164,15 @@ export function SubstanceGalleryPanel({
       description={`Exact-drug, permitted class, and final Visual Disconnection stills appear automatically. Stored curation controls priority, direct standalone associations, and per-article exclusions. The article shows the first ${SHOWCASE_WORK_CAP} works in the effective policy order.`}
     >
       <div aria-live="polite" className="sr-only">
-        {announcement}
+        {focus.announcement}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <GalleryPicker
-          candidates={candidates}
+          candidates={picker.candidates}
           currentSlug={substanceSlug}
-          onSelect={controller.handleSelectSubstance}
-          status={candidatesState.status}
+          onSelect={picker.select}
+          status={picker.state.status}
         />
         {detail ? (
           <>
@@ -219,8 +189,8 @@ export function SubstanceGalleryPanel({
         ) : null}
       </div>
 
-      {candidatesState.status === "error" ? (
-        <LoadErrorState message={candidatesState.message} onRetry={controller.retryCandidates} />
+      {picker.state.status === "error" ? (
+        <LoadErrorState message={picker.state.message} onRetry={picker.retry} />
       ) : null}
 
       {detail ? (
@@ -230,8 +200,8 @@ export function SubstanceGalleryPanel({
               type="button"
               variant="accent"
               size="sm"
-              disabled={!isDirty || saveState === "saving" || overExclusionLimit}
-              onClick={() => void controller.persist(curation, expectedUpdatedAt)}
+              disabled={!save.isDirty || save.state === "saving" || exclusions.over}
+              onClick={() => void save.persist(curation, save.expectedUpdatedAt)}
             >
               <Icon icon="lucide:save" size={15} />
               Save gallery
@@ -239,17 +209,17 @@ export function SubstanceGalleryPanel({
             <ApplyPlaylistMenu
               key={substanceSlug}
               corpusRows={corpusRows}
-              onApply={controller.handleApplyPlaylist}
+              onApply={edit.applyPlaylist}
             />
             <Button
               type="button"
               variant="glass"
               size="icon"
               className={`h-8 w-8 ${TOUCH_ICON}`}
-              disabled={!undoable}
+              disabled={!undo.canUndo}
               aria-label="Undo the last curation change"
               title="Undo (Cmd/Ctrl+Z)"
-              onClick={controller.handleUndo}
+              onClick={undo.undo}
             >
               <Icon icon="lucide:undo-2" size={15} />
             </Button>
@@ -258,10 +228,10 @@ export function SubstanceGalleryPanel({
               variant="glass"
               size="icon"
               className={`h-8 w-8 ${TOUCH_ICON}`}
-              disabled={!redoable}
+              disabled={!undo.canRedo}
               aria-label="Redo the last undone curation change"
               title="Redo (Cmd/Ctrl+Shift+Z)"
-              onClick={controller.handleRedo}
+              onClick={undo.redo}
             >
               <Icon icon="lucide:redo-2" size={15} />
             </Button>
@@ -269,15 +239,15 @@ export function SubstanceGalleryPanel({
               type="button"
               variant="secondary"
               size="sm"
-              disabled={!isDirty || saveState === "saving"}
-              onClick={controller.handleDiscard}
+              disabled={!save.isDirty || save.state === "saving"}
+              onClick={save.discard}
             >
               <Icon icon="lucide:rotate-ccw" size={15} />
               Discard changes
             </Button>
-            {expectedUpdatedAt ? (
+            {save.expectedUpdatedAt ? (
               <span className="theme-text-faint text-xs">
-                Last saved {expectedUpdatedAt.slice(0, 10)} by {savedBy ?? "unknown"}
+                Last saved {save.expectedUpdatedAt.slice(0, 10)} by {save.savedBy ?? "unknown"}
               </span>
             ) : (
               <span className="theme-text-faint text-xs">
@@ -285,19 +255,19 @@ export function SubstanceGalleryPanel({
               </span>
             )}
           </div>
-          {saveState === "idle" || saveState === "saved" ? (
-            <EditorStatusPill tone={isDirty ? "warning" : "neutral"}>
-              {isDirty ? "Unsaved changes" : "Gallery saved"}
+          {save.state === "idle" || save.state === "saved" ? (
+            <EditorStatusPill tone={save.isDirty ? "warning" : "neutral"}>
+              {save.isDirty ? "Unsaved changes" : "Gallery saved"}
             </EditorStatusPill>
           ) : (
-            <EditorActionStatus status={saveState} />
+            <EditorActionStatus status={save.state} />
           )}
         </EditorToolbar>
       ) : null}
 
-      {overExclusionLimit ? (
+      {exclusions.over ? (
         <ActionNotice tone="danger">
-          This gallery excludes {exclusionCount} works and the limit is {exclusionLimit}, so it will
+          This gallery excludes {exclusions.count} works and the limit is {exclusions.limit}, so it will
           not save. Restore some from the Excluded shelf, or use Exclude everywhere on the junk so it
           leaves every gallery at once instead of filling this one.
         </ActionNotice>
@@ -310,23 +280,23 @@ export function SubstanceGalleryPanel({
       ) : null}
 
       {conflict ? (
-        <DiffSurface
-          title="This gallery changed on the server"
-          diffText={conflictDiffText(conflict, curation)}
-          maxHeight="18rem"
+        <GalleryConflictView
+          conflict={conflict}
+          mine={curation}
+          workOf={workOf}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 variant="accent"
                 size="sm"
-                disabled={saveState === "saving"}
-                onClick={controller.handleKeepMine}
+                disabled={save.state === "saving"}
+                onClick={controller.resolveConflict.keepMine}
               >
                 <Icon icon="lucide:upload" size={14} />
                 Keep mine
               </Button>
-              <Button type="button" variant="secondary" size="sm" onClick={controller.handleTakeTheirs}>
+              <Button type="button" variant="secondary" size="sm" onClick={controller.resolveConflict.takeTheirs}>
                 <Icon icon="lucide:download" size={14} />
                 Take theirs
               </Button>
@@ -377,15 +347,15 @@ export function SubstanceGalleryPanel({
         <>
           <GalleryBoardList
             board={board}
-            onMove={controller.handleMove}
-            onMoveToEdge={controller.handleMoveToEdge}
-            onCurate={controller.handleCurate}
-            onUncurate={controller.handleUncurate}
-            onExclude={controller.handleExclude}
-            onExcludeEverywhere={controller.handleExcludeEverywhere}
-            onDragEnd={controller.handleDragEnd}
-            focusSlug={focusSlug}
-            onFocusHandled={controller.clearFocus}
+            onMove={edit.move}
+            onMoveToEdge={edit.moveToEdge}
+            onCurate={edit.curate}
+            onUncurate={edit.uncurate}
+            onExclude={edit.exclude}
+            onExcludeEverywhere={edit.excludeEverywhere}
+            onDragEnd={edit.dragEnd}
+            focusSlug={focus.slug}
+            onFocusHandled={focus.clear}
           />
 
           {board.excluded.length > 0 ? (
@@ -397,21 +367,21 @@ export function SubstanceGalleryPanel({
                   variant="ghost"
                   size="sm"
                   aria-expanded={excludedOpen}
-                  onClick={() => controller.setExcludedOpen((open) => !open)}
+                  onClick={() => setExcludedOpenFor(excludedOpen ? null : substanceSlug)}
                 >
                   <Icon icon={excludedOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
                   Excluded from this gallery ({board.excluded.length})
                 </Button>
                 <EditorStatusPill
                   tone={
-                    overExclusionLimit
+                    exclusions.over
                       ? "danger"
-                      : exclusionCount >= exclusionLimit * 0.8
+                      : exclusions.count >= exclusions.limit * 0.8
                         ? "warning"
                         : "neutral"
                   }
                 >
-                  {`${exclusionCount} of ${exclusionLimit} gallery exclusions used`}
+                  {`${exclusions.count} of ${exclusions.limit} gallery exclusions used`}
                 </EditorStatusPill>
               </div>
               {excludedOpen ? (
@@ -420,7 +390,7 @@ export function SubstanceGalleryPanel({
                     <ExcludedRow
                       key={match.replication.slug}
                       match={match}
-                      onRestore={controller.handleRestore}
+                      onRestore={edit.restore}
                     />
                   ))}
                 </ul>
@@ -428,19 +398,7 @@ export function SubstanceGalleryPanel({
             </div>
           ) : null}
 
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              aria-expanded={previewOpen}
-              onClick={() => controller.setPreviewOpen((open) => !open)}
-            >
-              <Icon icon={previewOpen ? "lucide:chevron-down" : "lucide:chevron-right"} size={14} />
-              Article preview: effective automatic and editorial order
-            </Button>
-            {previewOpen ? <GalleryStagePreview matches={effectiveOrder} /> : null}
-          </div>
+          <GalleryStagePreview matches={effectiveOrder} />
 
           <GalleryLibraryAdd
             rows={visibleRows}
@@ -448,7 +406,7 @@ export function SubstanceGalleryPanel({
             matchedSlugs={matchedSlugs}
             curatedSlugs={curation.curated}
             removedSlugs={curation.removed}
-            onCurate={controller.handleCurate}
+            onCurate={edit.curate}
             onInspectRow={onInspectRow}
             onOpenLibrary={onOpenLibrary}
           />
@@ -457,7 +415,7 @@ export function SubstanceGalleryPanel({
 
       <ConfirmDialog
         request={
-          pendingSlug !== null
+          picker.pendingSlug !== null
             ? {
                 title: "Discard unsaved curation?",
                 description:
@@ -465,11 +423,11 @@ export function SubstanceGalleryPanel({
                 cancelLabel: "Keep editing",
                 confirmLabel: "Discard and switch",
                 destructive: true,
-                onConfirm: controller.discardAndSwitch,
+                onConfirm: picker.discardAndSwitch,
               }
             : null
         }
-        onClose={() => controller.setPendingSlug(null)}
+        onClose={picker.cancelSwitch}
       />
     </EditorSection>
   );
