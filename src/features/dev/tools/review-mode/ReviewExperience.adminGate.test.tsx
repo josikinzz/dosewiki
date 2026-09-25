@@ -1,5 +1,5 @@
 /** Review ticks persist separately; editor inline edits are now private drafts. */
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import type { SubstanceArticle } from "@/schema";
@@ -103,7 +103,7 @@ beforeEach(() => {
 });
 
 describe("review workbench drafting capability", () => {
-  it("lets an editor arm local editing while the review tick still persists", async () => {
+  it("lets an editor arm local editing, but leaves review sign-off to admins", async () => {
     sessionState.current = {
       status: "authenticated",
       data: { user: { email: "editor@example.com", role: "editor" } },
@@ -119,13 +119,10 @@ describe("review workbench drafting capability", () => {
     await waitFor(() => expect(pill).toHaveAttribute("aria-pressed", "true"));
     expect(vi.mocked(fetch).mock.calls.some(([url, init]) => String(url).includes("article-lifecycle") && init?.method === "POST")).toBe(false);
 
+    // Completing a review is admin-only at the route, so R sends nothing.
     fireEvent.keyDown(window, { key: "r" });
-    await waitFor(() => {
-      const posted = vi
-        .mocked(fetch)
-        .mock.calls.some(([url]) => String(url).includes("editorial-review"));
-      expect(posted).toBe(true);
-    });
+    await act(async () => {});
+    expect(vi.mocked(fetch).mock.calls.some(([url]) => String(url).includes("editorial-review"))).toBe(false);
   });
 
   it("lets an admin arm inline editing with E", async () => {

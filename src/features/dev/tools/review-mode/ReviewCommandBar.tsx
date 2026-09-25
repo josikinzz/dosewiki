@@ -119,8 +119,16 @@ export function ReviewCommandBar({
     current,
     reviewedCount,
   } = queueState;
-  const { isTicking, tickError, lastTick, celebration, toggleReviewed, toggleFlagged } =
-    status;
+  const {
+    isTicking,
+    tickError,
+    lastTick,
+    celebration,
+    canSignOff,
+    currentHydrated,
+    toggleReviewed,
+    toggleFlagged,
+  } = status;
 
   /**
    * Publish the bar's live height so everything calibrated against it stays
@@ -249,9 +257,10 @@ export function ReviewCommandBar({
   const markReviewedControl = (
     <MarkReviewedControl
       isCurrentReviewed={isCurrentReviewed}
-      justTicked={lastTick?.slug === current?.slug}
-      hasCurrent={current !== null}
+      justTicked={lastTick?.status === "completed" && lastTick.slug === current?.slug}
+      hasCurrent={current !== null && currentHydrated}
       isTicking={isTicking}
+      canSignOff={canSignOff}
       toggleReviewed={toggleReviewed}
     />
   );
@@ -519,6 +528,13 @@ export function ReviewCommandBar({
           <Icon icon="lucide:pencil-line" size={11} className="mr-1 inline" />
           Inline editing is on: tapping article text edits it.
         </div>
+      ) : null}
+
+      {/* Said in text, not a tooltip: a disabled button alone reads as broken. */}
+      {!canSignOff ? (
+        <p className="theme-text-faint mx-auto max-w-[1500px] px-3 pb-1.5 text-right text-[11px] sm:px-5">
+          Only admins can sign off a review.
+        </p>
       ) : null}
 
       {tickError ? (

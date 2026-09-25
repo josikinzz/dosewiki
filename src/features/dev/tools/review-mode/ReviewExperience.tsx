@@ -10,10 +10,10 @@ import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
 import { EditorNotice, useDirtyGuard } from "@/features/dev/components";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
-import { canDraft, resolveSessionRole } from "@/lib/auth/roles";
+import { canApprove, canDraft, resolveSessionRole } from "@/lib/auth/roles";
 import type { SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
-import type { SubstanceEditorTabProps } from "../substance-editor/types";
+import type { ReviewStatus, SubstanceEditorTabProps } from "../substance-editor/types";
 import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
 import { ReviewArticleView } from "./ReviewArticleView";
 import { Kbd, ReviewToast } from "./ReviewBarChrome";
@@ -27,6 +27,25 @@ import {
   useReviewOverlays,
   useReviewStatusWrites,
 } from "./useReviewWrites";
+
+/**
+ * True when a key event starts inside a menu, list box, popover, or dialog.
+ * Those widgets own their keys (ArrowRight in the Open in menu, a letter in a
+ * menu's typeahead), whether or not they mark the event handled.
+ */
+function isWidgetTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element &&
+    target.closest('[role="menu"], [role="menubar"], [role="listbox"], [role="dialog"], [role="alertdialog"]') !== null
+  );
+}
+
+/** Past-tense toast copy for a status change, by the status it set. */
+const STATUS_CHANGE_COPY: Record<ReviewStatus, { lead: string; tail: string }> = {
+  completed: { lead: "Marked", tail: "reviewed" },
+  needed: { lead: "Marked", tail: "not reviewed" },
+  in_progress: { lead: "Flagged", tail: "as in progress" },
+};
 
 /** True when a key event originates inside a form control the user is typing in. */
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -79,6 +98,11 @@ export const ReviewExperience = memo(function ReviewExperience({
   const canEditArticle =
     session.status === "authenticated" &&
     canDraft(resolveSessionRole({ role: session.data?.user?.role }));
+  // Completing a review is admin-only at the route; nobody else gets a tick
+  // that can only fail.
+  const canSignOff =
+    session.status === "authenticated" &&
+    canApprove(resolveSessionRole({ role: session.data?.user?.role }));
 
   const settings = useReviewSettings({ initialSlug });
   const {
@@ -173,6 +197,8 @@ export const ReviewExperience = memo(function ReviewExperience({
     queueGroups,
     reviewedCount,
     setOverrides: overlays.setOverrides,
+    canSignOff,
+    currentHydrated: currentArticleHydrated,
   });
   const { lastTick, milestone, celebration, toggleReviewed, toggleFlagged, undoLastTick } =
     status;
@@ -243,7 +269,10 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (isTypingTarget(event.target)) return;
+      // A key something else already handled, or one aimed at a menu or
+      // popover, is not a workbench command.
+      if (event.defaultPrevented) return;
+      if (isTypingTarget(event.target) || isWidgetTarget(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
@@ -406,10 +435,11 @@ export const ReviewExperience = memo(function ReviewExperience({
         </ReviewToast>
       ) : lastTick ? (
         <ReviewToast tone="success">
-          <Icon icon="lucide:badge-check" size={16} />
+          <Icon icon={lastTick.status === "completed" ? "lucide:badge-check" : lastTick.status === "in_progress" ? "lucide:flag" : "lucide:rotate-ccw"} size={16} />
           <span>
-            Marked <span className="font-semibold">{lastTick.name}</span>{" "}
-            reviewed
+            {STATUS_CHANGE_COPY[lastTick.status].lead}{" "}
+            <span className="font-semibold">{lastTick.name}</span>{" "}
+            {STATUS_CHANGE_COPY[lastTick.status].tail}
           </span>
           <button
             type="button"
