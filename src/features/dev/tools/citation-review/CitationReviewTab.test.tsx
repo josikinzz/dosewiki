@@ -630,7 +630,7 @@ describe("CitationReviewTab guards and workspace", () => {
     });
     render(<CitationReviewTab actorEmail="ada@example.com" />);
 
-    expect(await screen.findByText("Nobody has claimed this article yet.")).toBeInTheDocument();
+    expect(await screen.findByText("Nobody is reviewing this yet.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Claim" }));
     await waitFor(() => expect(claimPosts).toEqual([{ action: "claim", source: "citations", id: "lsd" }]));
     expect(await screen.findByText(/You are reviewing this/)).toBeInTheDocument();

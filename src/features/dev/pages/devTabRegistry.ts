@@ -186,6 +186,9 @@ const REGISTRY = [
     // whole for its marker checks; the queue itself does not wait for it.
     data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveModel: "instant",
+    // Decisions write one row or article at a time and the dock says so, with
+    // the freeze line; no save sentence fits (as Feedback).
+    saveLine: "none",
     layout: "shell",
     destination: SHELL,
     badge: "citations",

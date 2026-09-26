@@ -496,11 +496,11 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   return (
     <div className="space-y-10">
       <EditorSection
-        icon="lucide:list-music"
+        icon="lucide:list-video"
         title="Playlists"
         description={description}
         actions={
-          <Button type="button" variant="accent" size="sm" disabled={busy} onClick={() => startNew()}>
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => startNew()}>
             <Icon icon="lucide:plus" size={14} />
             New playlist
           </Button>
@@ -513,7 +513,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
         ) : rows.length === 0 && !open ? (
           <div className="max-w-3xl space-y-3">
             {listNotice ? <Notice {...listNotice} dismiss={() => setListNotice(null)} /> : null}
-            <SectionNote icon="lucide:list-music">
+            <SectionNote icon="lucide:list-video">
               <span className="theme-text-secondary block font-medium">No playlists yet</span>
               <span className="block">Name one, then add works by searching for them. Saving publishes nothing.</span>
             </SectionNote>

@@ -464,7 +464,7 @@ export function ProposalReview({
           <EditorToolbar label="Revise submission" variant="split">
             <EditorActionGroup label="Revise submission">
               <Button type="button" variant="accent" size="sm" disabled={busy || !libraryReady} onClick={onLoadIntoEditor}>
-                {pending === "load" ? "Loading..." : loadLabel}
+                {pending === "load" ? "Loading" : loadLabel}
               </Button>
               <span className="theme-text-faint text-sm">
                 {libraryReady
@@ -507,17 +507,17 @@ export function ProposalReview({
               <EditorActionGroup label="Review decision">
                 {actions.approve ? (
                   <Button type="button" variant="success" disabled={busy || isAuthor || !proposal.diff.trim()} onClick={onApprove}>
-                    {pending === "approve" ? "Applying..." : "Approve and apply"}
+                    {pending === "approve" ? "Applying" : "Approve and apply"}
                   </Button>
                 ) : null}
                 {actions.reject ? (
                   <Button type="button" variant="destructive" disabled={busy || rejectNote.trim().length === 0} onClick={onReject}>
-                    {pending === "reject" ? "Rejecting..." : "Reject"}
+                    {pending === "reject" ? "Rejecting" : "Reject"}
                   </Button>
                 ) : null}
                 {actions.revert && allowRevert ? (
                   <Button type="button" variant="destructive" disabled={busy} onClick={onRevert}>
-                    {pending === "revert" ? "Reverting..." : "Revert"}
+                    {pending === "revert" ? "Reverting" : "Revert"}
                   </Button>
                 ) : null}
               </EditorActionGroup>

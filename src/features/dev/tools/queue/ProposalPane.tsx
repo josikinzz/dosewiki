@@ -464,7 +464,7 @@ function HoldLine({ hold, busy, pending, onClaim, onRelease }: ProposalPaneProps
   let action: { label: string; kind: "claim" | "release"; onClick: () => void } | null = null;
   switch (hold.kind) {
     case "open":
-      sentence = "Nobody has claimed this yet.";
+      sentence = "Nobody is reviewing this yet.";
       action = { label: "Claim", kind: "claim", onClick: onClaim };
       break;
     case "mine":

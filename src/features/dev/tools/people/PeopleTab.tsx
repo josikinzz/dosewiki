@@ -330,7 +330,7 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
   return (
     <div className="mt-6 space-y-6 md:mt-8">
       <EditorSection
-        icon="lucide:users"
+        icon="lucide:user-cog"
         title="People"
         description="Accounts, their public contributor profiles, and the invite codes that create them."
       >

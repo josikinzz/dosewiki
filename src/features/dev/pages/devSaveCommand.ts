@@ -162,7 +162,7 @@ export function createDataSaveAdapter({
 }): DevSaveCommandAdapter {
   return {
     noChangesMessage: "No changes to commit.",
-    verifiedMessage: (key) => `Committing to production as ${key}...`,
+    verifiedMessage: (key) => `Committing to production as ${key}`,
     validateAvailability: () => {
       if (serverHealth.status === "unhealthy" && !serverHealth.canSaveToPostgres) {
         return {
@@ -238,7 +238,7 @@ export function createProposalSaveAdapter({
 }): DevSaveCommandAdapter {
   return {
     noChangesMessage: "No changes to submit.",
-    verifiedMessage: (key) => `Submitting for review as ${key}...`,
+    verifiedMessage: (key) => `Submitting for review as ${key}`,
     validateAvailability: () => ({ ok: true }),
     execute: async (draft, credentials) => {
       const { payload } = buildDataCommandPayload(draft);

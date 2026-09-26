@@ -134,7 +134,7 @@ describe("Change Review decision dock", () => {
     const calls = stub([row], { cp_1: detailOf(row) });
     renderAdmin();
     await userEvent.click(await screen.findByRole("button", { name: /Update LSD/ }));
-    expect(await dock().findByText("Nobody has claimed this yet.")).toBeInTheDocument();
+    expect(await dock().findByText("Nobody is reviewing this yet.")).toBeInTheDocument();
     await userEvent.click(dock().getByRole("button", { name: "Claim" }));
     await waitFor(() =>
       expect(calls).toContainEqual({ url: CLAIMS, method: "POST", body: { action: "claim", source: "proposals", id: "cp_1" } }),
@@ -142,7 +142,7 @@ describe("Change Review decision dock", () => {
     expect(await dock().findByText(/You are reviewing this/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Update LSD/ })).toHaveTextContent("You are reviewing");
     await userEvent.click(dock().getByRole("button", { name: "Release" }));
-    expect(await dock().findByText("Nobody has claimed this yet.")).toBeInTheDocument();
+    expect(await dock().findByText("Nobody is reviewing this yet.")).toBeInTheDocument();
   });
 
   it("reads a refused write under the freeze as the freeze", async () => {

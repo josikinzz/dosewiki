@@ -586,7 +586,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId, acto
   return (
     <div className="space-y-6">
       <EditorSection
-        icon="lucide:git-pull-request"
+        icon="lucide:git-pull-request-arrow"
         title={canApprove ? "Change Review" : "My submissions"}
         description={canApprove
           ? "Editor proposals wait here until an admin publishes or rejects them; each is published in full or not at all."

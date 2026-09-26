@@ -146,10 +146,10 @@ function CommitButton({
         <Icon icon={canApprove ? "lucide:upload" : "lucide:send"} size={16} />
         {canApprove
           ? isSaving
-            ? "Committing..."
+            ? "Committing"
             : "Commit to production"
           : isSaving
-            ? "Submitting..."
+            ? "Submitting"
             : "Submit for review"}
       </Button>
     </div>
