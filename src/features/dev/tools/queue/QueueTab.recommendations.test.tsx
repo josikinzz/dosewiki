@@ -61,6 +61,12 @@ function renderAdminQueue() {
 
 const lane = () => within(screen.getByRole("list", { name: "Review recommendations" }));
 
+/** The lane is Change Review's second view; open it the way an admin does. */
+async function openLane() {
+  await userEvent.click(await screen.findByRole("tab", { name: /^Recommendations/ }));
+  await screen.findByRole("list", { name: "Review recommendations" });
+}
+
 describe("Review recommendations lane", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -69,7 +75,7 @@ describe("Review recommendations lane", () => {
   it("approves three recommendations with one confirm, each at its recommended revision", async () => {
     const calls = stubApi([...ready, stale]);
     renderAdminQueue();
-    await screen.findByRole("list", { name: "Review recommendations" });
+    await openLane();
 
     for (const title of ["Heroin", "Morphine", "Codeine"]) {
       await userEvent.click(lane().getByRole("checkbox", { name: `Approve ${title}` }));
@@ -80,6 +86,9 @@ describe("Review recommendations lane", () => {
     expect(dialog).toHaveTextContent("Mark 3 articles reviewed?");
     expect(dialog).toHaveTextContent("Heroin");
     expect(dialog).toHaveTextContent("Codeine");
+    // The recommender and their note stay in view at the moment of sign-off.
+    expect(dialog).toHaveTextContent("Recommended by editor@example.com");
+    expect(dialog).toHaveTextContent("Doses match the sources");
     await userEvent.click(within(dialog).getByRole("button", { name: "Approve 3" }));
 
     await waitFor(() => expect(screen.getByText("Marked 3 articles reviewed.")).toBeInTheDocument());
@@ -99,7 +108,7 @@ describe("Review recommendations lane", () => {
   it("shows a stale recommendation as stale and never lets it be approved", async () => {
     const calls = stubApi([ready[0], stale]);
     renderAdminQueue();
-    await screen.findByRole("list", { name: "Review recommendations" });
+    await openLane();
 
     const staleRow = within(screen.getByTestId("recommendation-fentanyl"));
     expect(staleRow.getByText("Stale")).toBeInTheDocument();
@@ -121,5 +130,6 @@ describe("Review recommendations lane", () => {
     render(<QueueTab canApprove={false} onLoadIntoEditor={vi.fn(async () => undefined)} />);
     await screen.findByText("My submissions");
     expect(screen.queryByText("Review recommendations")).toBeNull();
+    expect(screen.queryByRole("tab", { name: /Recommendations/ })).toBeNull();
   });
 });

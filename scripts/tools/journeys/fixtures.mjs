@@ -856,6 +856,185 @@ function seedProposal(row, role) {
   };
 }
 
+/**
+ * Change Review's history and waiting work beyond the seeded proposal: every
+ * status, an article proposal read field by field, one whose live article
+ * moved (so approving returns it), the viewer's own proposal (which they
+ * cannot approve), a returned one with its reason, copy and index layout
+ * targets, an older one with no verifiable comparison, and a discussion.
+ * `mine` marks proposals the viewer wrote; an editor sees only those.
+ */
+export function seedChangeReview(viewerName) {
+  const hour = 3_600_000;
+  const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
+  const hash = (label) => `fixturehash${label}`;
+  const target = (kind, key, moved = false) => ({
+    target: { kind, key, baseHash: hash(`${kind}${key}`) },
+    live: { kind, key, hash: moved ? hash(`${kind}${key}moved`) : hash(`${kind}${key}`) },
+  });
+  const proposal = ({ id, by, mine = false, hours, status, targets, summary, diff = "", ...rest }) => ({
+    _id: id,
+    proposerName: mine ? viewerName : by,
+    mine,
+    createdAt: at(hours),
+    updatedAt: at(rest.updatedHours ?? hours),
+    status,
+    targets: targets.map((entry) => entry.target),
+    liveHashes: targets.map((entry) => entry.live),
+    summary,
+    diff,
+    comparisonMode: rest.comparisonMode ?? (status === "applied" || status === "reverted" ? "applied" : "submitted"),
+    comments: rest.comments ?? [],
+    ...Object.fromEntries(Object.entries(rest).filter(([key]) => !["updatedHours", "comparisonMode", "comments"].includes(key))),
+  });
+  return [
+    proposal({
+      id: "fixture-prop-lsd1",
+      by: "Kayla",
+      hours: 9,
+      status: "submitted",
+      summary: "Cite the 2025 microdosing study",
+      targets: [target("article", "lsd")],
+      diff: "# article: lsd / dosage\n\n- moderate: 10-20 µg\n+ moderate: 15-25 µg\n",
+      articlePatches: [{
+        slug: "lsd",
+        changes: [
+          { path: "dosage.routes[oral].dose_ranges.moderate", before: { min: 10, max: 20, unit: "µg" }, after: { min: 15, max: 25, unit: "µg" } },
+          { path: "summary", before: "LSD is a classic psychedelic of the lysergamide class.", after: "LSD is a classic psychedelic of the lysergamide class. A 2025 study of repeated low doses found no change in mood scores." },
+        ],
+      }],
+      feedbackRef: { id: "fixture-af-2", section: "dosage" },
+      comments: [
+        { authorName: "Kayla", at: at(8), text: "The study is linked in the references. It covers 240 participants over six weeks." },
+        { authorName: "River", at: at(5), text: "Checked the dose table against the paper. The moderate range matches." },
+      ],
+    }),
+    proposal({
+      id: "fixture-prop-mesc1",
+      by: "River",
+      hours: 20,
+      status: "submitted",
+      summary: "Oral duration 10 to 12 hours",
+      targets: [target("article", "mescaline", true), target("indexLayout", "chemical")],
+      diff: "# article: mescaline / duration\n\n- total: 8-10 hours\n+ total: 10-12 hours\n\n# indexLayout: chemical / version\n\n- 4\n+ 5\n",
+      articlePatches: [{
+        slug: "mescaline",
+        changes: [{ path: "duration.routes[oral].total", before: { min: 8, max: 10, unit: "hours" }, after: { min: 10, max: 12, unit: "hours" } }],
+      }],
+      comments: [{ authorName: "River", at: at(19), text: "Three trip reports and the Shulgin entry agree on the longer range." }],
+    }),
+    proposal({
+      id: "fixture-prop-about1",
+      mine: true,
+      hours: 30,
+      status: "submitted",
+      summary: "Tighten the About introduction",
+      targets: [target("about", "about")],
+      diff: "# about: about / aboutMarkdown\n\n- dose.wiki is an open dataset of psychoactive substances, written by volunteers.\n+ dose.wiki is an open dataset of psychoactive substances.\n",
+    }),
+    proposal({
+      id: "fixture-prop-footer1",
+      by: "Mira",
+      hours: 52,
+      status: "submitted",
+      summary: "Footer tagline for the Effect Index",
+      targets: [target("copyBlock", "footer-tagline-effect-index")],
+      diff: "# copyBlock: footer-tagline-effect-index / text\n\n- The subjective effect index.\n+ An index of subjective effects, written over a decade.\n",
+    }),
+    proposal({
+      id: "fixture-prop-old1",
+      by: "Halcyon",
+      hours: 400,
+      status: "submitted",
+      summary: "Older caffeine wording",
+      targets: [target("article", "caffeine")],
+      comparisonMode: "unavailable",
+      comparisonNote: "This submission predates stored comparisons. Prepare a new submission from the current editor before approval.",
+    }),
+    proposal({
+      id: "fixture-prop-ket1",
+      mine: true,
+      hours: 70,
+      updatedHours: 26,
+      status: "changes_requested",
+      summary: "Ketamine interactions with alcohol",
+      targets: [target("article", "ketamine", true)],
+      diff: "# article: ketamine / interactions\n\n+ Alcohol: dangerous\n",
+      conflictReason: "Article ketamine changed after this proposal was submitted. Update it against the latest version and submit it again.",
+      reviewerName: "Lyrea",
+      reviewedAt: at(26),
+      reviewNotes: "Please keep the existing note on respiratory depression when you rebase this.",
+    }),
+    proposal({
+      id: "fixture-prop-dmt1",
+      by: "Kayla",
+      hours: 120,
+      status: "applied",
+      summary: "Retitle DMT onset",
+      targets: [target("article", "dmt")],
+      diff: "# article: dmt / duration\n\n- onset: 10-60 seconds\n+ onset: 15-60 seconds\n",
+      reviewerName: "Lyrea",
+      reviewedAt: at(100),
+      appliedAt: at(100),
+    }),
+    proposal({
+      id: "fixture-prop-caf1",
+      mine: true,
+      hours: 160,
+      status: "rejected",
+      summary: "Remove the caffeine history section",
+      targets: [target("article", "caffeine")],
+      diff: "# article: caffeine / history_culture\n\n- Coffee spread through the Ottoman Empire in the 16th century.\n",
+      reviewerName: "Lyrea",
+      reviewedAt: at(150),
+      reviewNotes: "The history section is sourced and readers use it. Shorten it instead of removing it.",
+    }),
+    proposal({
+      id: "fixture-prop-mdma0",
+      by: "River",
+      hours: 240,
+      status: "superseded",
+      summary: "MDMA redosing guidance",
+      targets: [target("article", "mdma")],
+      diff: "# article: mdma / dosage\n\n+ Redosing: half the first dose\n",
+    }),
+    proposal({
+      id: "fixture-prop-2cb1",
+      by: "Mira",
+      hours: 300,
+      status: "reverted",
+      summary: "2C-B threshold dose",
+      targets: [target("article", "2c-b")],
+      diff: "# article: 2c-b / dosage\n\n- threshold: 2-5 mg\n+ threshold: 3-5 mg\n",
+      reviewerName: "Lyrea",
+      reviewedAt: at(290),
+      appliedAt: at(290),
+      revertedAt: at(280),
+    }),
+  ];
+}
+
+/** Editors' "Recommended reviewed" records: two ready, one with a note, one stale. */
+export function seedRecommendations() {
+  const at = (hours) => new Date(FIXTURE_EPOCH - hours * 3_600_000).toISOString();
+  const row = (slug, title, by, hours, note, stale = false) => ({
+    slug,
+    title,
+    revision: `rev${slug.replace(/[^a-z0-9]/g, "")}1`,
+    recommended_by: by,
+    recommended_at: at(hours),
+    note,
+    publishedRevision: `rev${slug.replace(/[^a-z0-9]/g, "")}${stale ? 2 : 1}`,
+    stale,
+  });
+  return [
+    row("heroin", "Heroin", "kayla@local.dose.wiki", 6, "Checked every interaction against the TripSit chart."),
+    row("codeine", "Codeine", "river@local.dose.wiki", 30, ""),
+    row("nitrous", "Nitrous", "kayla@local.dose.wiki", 50, "Dose table rewritten from the two reviewed sources."),
+    row("fentanyl", "Fentanyl", "mira@local.dose.wiki", 90, "", true),
+  ];
+}
+
 function json(status, body) {
   return { status, json: body };
 }
@@ -881,7 +1060,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       { ...structuredClone(row), baseRevision: nextRevision(), creationTime: FIXTURE_EPOCH - index * 1000 },
     ]),
   );
-  const proposals = state === "empty" ? [] : [seedProposal(writing.get("field-notes"), role)];
+  // An editor sees only their own proposals; an admin sees everyone's.
+  const proposals = state === "empty" ? [] : [
+    seedProposal(writing.get("field-notes"), role),
+    ...seedChangeReview(fixtureSession(role).user.name).filter((row) => role === "admin" || row.mine),
+  ];
+  const recommendations = state === "empty" ? [] : seedRecommendations();
   const replications = buildReplicationFixture(state === "empty" ? 0 : replicationRows);
   const changelog = buildChangelogFixture(state === "empty" ? 0 : changelogRows);
   const inbox = state === "empty"
@@ -1277,8 +1461,79 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   }
 
   function proposalSummary(proposal) {
-    const { diff: _diff, comments, liveHashes: _liveHashes, payload: _payload, ...summary } = proposal;
-    return { ...summary, commentCount: comments.length };
+    const { diff: _diff, comments, liveHashes: _liveHashes, payload: _payload, articlePatches: _patches, comparisonMode: _mode, comparisonNote: _note, revertedAt: _reverted, mine, ...summary } = proposal;
+    return { ...summary, ...(mine === undefined ? {} : { isAuthor: mine }), commentCount: comments.length };
+  }
+
+  /** The viewer's own proposal: seeded rows say so with `mine`, submitted ones with `isAuthor`. */
+  const ownsProposal = (proposal) => proposal.mine ?? proposal.isAuthor;
+
+  /**
+   * The review routes: admin floor, the self-approval refusal, the status
+   * each decision allows, and approve's compare-and-swap (a moved target, or
+   * any target under `conflicted`, comes back as changes requested).
+   */
+  function reviewProposal(id, action, body) {
+    const proposal = proposals.find((row) => row._id === id);
+    if (action === "comment") {
+      if (!proposal) return json(404, { error: "That proposal does not exist or you cannot see it." });
+      const text = typeof body?.text === "string" ? body.text.trim() : "";
+      if (!text) return json(400, { error: "A comment needs some text." });
+      const comment = { authorName: fixture.session.user.name, at: tick(), text };
+      proposal.comments.push(comment);
+      return json(200, { ok: true, comment });
+    }
+    if (fixture.role !== "admin") return json(403, { error: "Admin access required.", code: "FORBIDDEN" });
+    if (!proposal) return json(404, { error: "That proposal does not exist or you cannot see it." });
+    const now = tick();
+    const reviewer = fixture.session.user.name;
+    if (action === "approve") {
+      if (proposal.status !== "submitted") return json(409, { error: "Only a waiting proposal can be approved." });
+      if (ownsProposal(proposal)) return json(409, { error: "Another admin must review and approve your proposal.", code: "PROPOSAL_SELF_APPROVAL" });
+      const moved = proposal.targets.find((entry) => {
+        const live = proposal.liveHashes.find((hash) => hash.kind === entry.kind && hash.key === entry.key);
+        return !live || live.hash !== entry.baseHash;
+      }) ?? (fixture.state === "conflicted" ? proposal.targets[0] : null);
+      if (moved) {
+        const conflictReason = `${moved.kind === "article" ? "Article" : "Item"} ${moved.key} changed after this proposal was submitted. Update it against the latest version and submit it again.`;
+        Object.assign(proposal, { status: "changes_requested", conflictReason, updatedAt: now });
+        return json(200, { ok: true, status: "changes_requested", conflictReason });
+      }
+      Object.assign(proposal, { status: "applied", appliedAt: now, reviewedAt: now, reviewerName: reviewer, comparisonMode: "applied", updatedAt: now });
+      return json(200, { ok: true, status: "applied", revalidatedPaths: [] });
+    }
+    if (action === "reject") {
+      const note = typeof body?.note === "string" ? body.note.trim() : "";
+      if (!note) return json(400, { error: "Rejecting a proposal needs a note for the editor." });
+      if (proposal.status !== "submitted" && proposal.status !== "changes_requested") return json(409, { error: "Only an open proposal can be rejected." });
+      Object.assign(proposal, { status: "rejected", reviewNotes: note, reviewedAt: now, reviewerName: reviewer, updatedAt: now });
+      return json(200, { ok: true, status: "rejected" });
+    }
+    if (action === "revert") {
+      if (proposal.status !== "applied") return json(409, { error: "Only a published proposal can be reverted." });
+      Object.assign(proposal, { status: "reverted", revertedAt: now, updatedAt: now });
+      return json(200, { ok: true, status: "reverted" });
+    }
+    return null;
+  }
+
+  /** `POST /api/dev/review-recommendations`: approves each at the revision it covered; stale or unknown ones come back. */
+  function approveRecommendations(body) {
+    if (fixture.role !== "admin") return json(403, { error: "Admin access required.", code: "FORBIDDEN" });
+    const items = Array.isArray(body?.items) ? body.items : [];
+    if (items.length === 0) return json(400, { error: "Choose between 1 and 100 recommendations to approve." });
+    const outcome = { approved: [], stale: [], missing: [] };
+    for (const item of items) {
+      const index = recommendations.findIndex((row) => row.slug === item?.slug);
+      const row = recommendations[index];
+      if (!row || row.revision !== item.revision) outcome.missing.push(String(item?.slug));
+      else if (row.stale || fixture.state === "conflicted") outcome.stale.push(row.slug);
+      else {
+        outcome.approved.push(row.slug);
+        recommendations.splice(index, 1);
+      }
+    }
+    return json(200, { ok: true, ...outcome });
   }
 
   function submitProposal(body) {
@@ -1312,8 +1567,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   function proposalDetail(id) {
     const proposal = proposals.find((row) => row._id === id);
     if (!proposal) return json(404, { error: "That proposal does not exist or you cannot see it." });
-    const { payload: _payload, ...detail } = proposal;
-    return json(200, { proposal: structuredClone(detail) });
+    const { payload: _payload, mine, ...detail } = proposal;
+    return json(200, { proposal: structuredClone({ ...detail, ...(mine === undefined ? {} : { isAuthor: mine }) }) });
   }
 
   /** One page of invite history, newest first; the cursor is the index the next page starts at. */
@@ -1565,7 +1820,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (pathname === "/api/feedback/pending-count") return json(200, { ok: true, article: 0, site: 0, total: 0 });
       if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: 0 });
       if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: 0 });
-      if (pathname === "/api/dev/review-recommendations") return json(200, { recommendations: [] });
       if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(INDEX_LAYOUTS_SEED));
       // The commit button's server check: ready, so a commit is not held back.
       if (pathname === "/api/editor-config-health") return json(200, { canSaveToPostgres: true, issues: [], checkedAt: new Date(FIXTURE_EPOCH).toISOString() });
@@ -1589,11 +1843,20 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
 
     if (pathname === "/api/dev/proposals") {
-      if (upper === "GET") return toolRead(() => json(200, { proposals: proposals.map(proposalSummary) }));
+      if (upper === "GET") {
+        const status = params.get("status");
+        return toolRead(() => json(200, { proposals: proposals.filter((row) => !status || row.status === status).map(proposalSummary) }));
+      }
       if (upper === "POST") return toolWrite(() => submitProposal(body ?? {}));
     }
     const proposalMatch = /^\/api\/dev\/proposals\/([^/]+)$/.exec(pathname);
     if (proposalMatch && upper === "GET") return toolRead(() => proposalDetail(decodeURIComponent(proposalMatch[1])));
+    const reviewMatch = /^\/api\/dev\/proposals\/([^/]+)\/(approve|reject|revert|comment)$/.exec(pathname);
+    if (reviewMatch && upper === "POST") return toolWrite(() => reviewProposal(decodeURIComponent(reviewMatch[1]), reviewMatch[2], body));
+    if (pathname === "/api/dev/review-recommendations") {
+      if (upper === "GET") return toolRead(() => fixture.role === "admin" ? json(200, { ok: true, recommendations: structuredClone(recommendations) }) : json(403, { error: "Admin access required." }));
+      if (upper === "POST") return toolWrite(() => approveRecommendations(body));
+    }
 
     // Home: the member's own drafts and proposals, invites, language inboxes, own profile.
     if (pathname === "/api/dev/my-work" && upper === "GET") {
@@ -1602,7 +1865,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         drafts: [...writing.values()]
           .filter((row) => row.status === "draft")
           .map((row) => ({ slug: row.slug, title: row.title, updatedAt: new Date(row.creationTime).toISOString() })),
-        proposals: proposals.filter((row) => row.isAuthor && (row.status === "submitted" || row.status === "changes_requested")).map(proposalSummary),
+        proposals: proposals.filter((row) => ownsProposal(row) && (row.status === "submitted" || row.status === "changes_requested")).map(proposalSummary),
       }));
     }
     if (pathname === "/api/dev/invites" && upper === "GET") {

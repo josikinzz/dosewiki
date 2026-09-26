@@ -233,6 +233,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             canApprove={controller.canApprove}
             onLoadIntoEditor={controller.onLoadProposal}
             initialProposalId={controller.queueInitialId}
+            actorEmail={controller.userEmail ?? null}
           />
         ) : controller.activeTab === "home" ? (
           <HomeTab role={controller.role} profileKey={controller.sessionProfileKey} />

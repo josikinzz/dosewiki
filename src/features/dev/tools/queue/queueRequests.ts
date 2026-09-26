@@ -7,19 +7,21 @@
 import type {
   ApproveOutcome,
   ProposalComment,
+  ProposalClaim,
   ProposalDetail,
   ProposalStatus,
   ProposalSummary,
   RecommendationApproval,
   ReviewRecommendationRow,
 } from "./queueModel";
+import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreeze";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
 const BASE_PATH = "/api/dev/proposals";
 
 /** A refused request, with its HTTP status so a caller can tell "gone" from "failed". */
 export class QueueRequestError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(message: string, readonly status: number, readonly frozen = false) {
     super(message);
     this.name = "QueueRequestError";
   }
@@ -29,6 +31,14 @@ export class QueueRequestError extends Error {
 export function isMissingRecord(error: unknown): boolean {
   return error instanceof QueueRequestError && (error.status === 404 || error.status === 403);
 }
+
+/** The server's write freeze (`DATA_WRITES_FROZEN`): a 503, or a message that names it. */
+export function isWriteFreezeError(error: unknown): boolean {
+  if (error instanceof QueueRequestError && error.frozen) return true;
+  return error instanceof Error && /DATA_WRITES_FROZEN|writes are (?:frozen|paused)/i.test(error.message);
+}
+
+export const QUEUE_FREEZE_COPY = "Writes are paused, so that was not saved. Try again once they resume.";
 
 export async function fetchProposals(status?: ProposalStatus): Promise<ProposalSummary[]> {
   const suffix = status ? `?status=${encodeURIComponent(status)}` : "";
@@ -112,6 +122,48 @@ export async function approveReviewRecommendations(
   return { approved, stale, missing };
 }
 
+const CLAIMS_PATH = "/api/dev/inbox/claims";
+
+/**
+ * Who holds each waiting proposal, from the Inbox's claim table (admin only),
+ * keyed by proposal id. Claims are advisory: they tell admins who is already
+ * reviewing, and never gate a decision.
+ */
+export async function fetchProposalClaims(): Promise<Map<string, ProposalClaim>> {
+  const payload = await requestJson(CLAIMS_PATH, undefined, {
+    network: "Network error while loading who is reviewing what.",
+    failure: "Unable to load who is reviewing what.",
+  });
+  if (!Array.isArray(payload.claims)) {
+    throw new Error("The server did not return the claims.");
+  }
+  const claims = new Map<string, ProposalClaim>();
+  for (const entry of payload.claims as Array<Record<string, unknown>>) {
+    if (entry?.source !== "proposals" || typeof entry.item_id !== "string" || typeof entry.claimed_by !== "string") continue;
+    claims.set(entry.item_id, {
+      claimed_by: entry.claimed_by,
+      claimed_at: typeof entry.claimed_at === "string" ? entry.claimed_at : null,
+      expired: entry.expired === true,
+    });
+  }
+  return claims;
+}
+
+/** Claims or releases a waiting proposal through the same route the Inbox uses. */
+export async function writeProposalClaim(id: string, action: "claim" | "release"): Promise<ProposalClaim | null> {
+  const payload = await requestJson(
+    CLAIMS_PATH,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, source: "proposals", id }) },
+    { network: "Network error while updating the claim.", failure: action === "claim" ? "Unable to claim that proposal." : "Unable to release that proposal." },
+  );
+  if (action === "release") return null;
+  const claim = payload.claim as Record<string, unknown> | undefined;
+  if (!claim || typeof claim.claimed_by !== "string") {
+    throw new Error("The server did not confirm the claim. Refresh to check who holds this proposal.");
+  }
+  return { claimed_by: claim.claimed_by, claimed_at: typeof claim.claimed_at === "string" ? claim.claimed_at : null, expired: false };
+}
+
 async function postJson(
   id: string,
   action: string,
@@ -137,6 +189,6 @@ function requestJson(
   return devFetch(url, {
     ...init,
     messages: { ...messages, unreadable: "The server returned an unreadable response. Refresh to check the latest status." },
-    onError: (status, _payload, message) => new QueueRequestError(message, status),
+    onError: (status, payload, message) => new QueueRequestError(message, status, isWriteFreezeRefusal(status, payload)),
   });
 }

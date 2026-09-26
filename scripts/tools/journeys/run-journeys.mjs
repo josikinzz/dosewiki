@@ -317,7 +317,8 @@ const JOURNEYS = {
     const row = page.getByRole("button", { name: /Update blog post “Launch post revised”/ });
     await session.press(row, "Enter");
     await eventually(async () => assert.equal(await row.getAttribute("aria-pressed"), "true", "the chosen submission is selected"));
-    await page.getByRole("heading", { name: "Submission details" }).waitFor();
+    // The pane names the open proposal in its heading.
+    await page.getByRole("heading", { name: /Update blog post “Launch post revised”/ }).waitFor();
     const opened = await session.lastRequest("GET", `/api/dev/proposals/${proposalId}`);
     assert.equal(opened.status, 200);
 
@@ -329,7 +330,7 @@ const JOURNEYS = {
       await reviewer.open(`/dev/queue/${proposalId}`);
       const reopened = reviewer.page.getByRole("button", { name: /Update blog post “Launch post revised”/ });
       await eventually(async () => assert.equal(await reopened.getAttribute("aria-pressed"), "true", "the linked submission is selected after a fresh load"));
-      await reviewer.page.getByRole("heading", { name: "Review", exact: true }).waitFor();
+      await reviewer.page.getByRole("heading", { name: /Update blog post “Launch post revised”/ }).waitFor();
       await reviewer.visible(reviewer.page.getByRole("button", { name: /Approve/ })).waitFor({ timeout: STEP_TIMEOUT });
       const reread = await session.lastRequest("GET", `/api/dev/proposals/${proposalId}`, { count: 2 });
       assert.equal(reread.status, 200);
@@ -388,7 +389,7 @@ const JOURNEYS = {
 const STATE_EXPECTATIONS = {
   loaded: { writing: /Field notes/, queue: /Update article “Field notes”/ },
   empty: { writing: /Nothing written here yet\./, queue: /No submissions to review\./ },
-  failed: { writing: /The fixture server could not load this/, queue: /Submissions could not be refreshed/ },
+  failed: { writing: /The fixture server could not load this/, queue: /Could not load proposals/ },
   "session-expired": { writing: /Authentication required\./, queue: /Authentication required\./ },
   frozen: { writing: /Field notes/, queue: /Update article “Field notes”/, save: 503, message: /Writes are paused, so your changes were not published\./ },
   conflicted: { writing: /Field notes/, queue: /Update article “Field notes”/, save: 409, message: /Someone saved this article after you loaded it\./ },

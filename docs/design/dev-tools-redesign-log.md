@@ -506,6 +506,38 @@ builds a new shared primitive, add it to **Conventions** and log it under
   (pins it, scrolls the pane in). `useScrollToDetail` keys on the picked id, so
   the automatic row never scrolls a phone.
 
+- **An authority decision says what it will do before the click.** The dock
+  shows the one reason a decision is off (your own proposal, no verifiable
+  comparison, a missing rejection note with "Write the note") and, when the
+  live content moved, what approving will do instead ("Approving will return
+  it for revision instead of publishing"). The buttons keep their tested labels;
+  keys go through the same guards as the buttons and still open the confirm
+  (`approveBlocker`, `describeDrift` in `queue/queueModel.ts`).
+- **A required note lives in the body, its decision in the dock.** A decision
+  that needs words (Reject) stays off until the note has text, says so under
+  the dock's buttons, and `n` or "Write the note" focuses the field at the end
+  of the pane; `r` with an empty note focuses it instead of asking.
+- **Claim-table queues read the Inbox's claims.** A tool whose items the Inbox
+  claims through `/api/dev/inbox/claims` (proposals, citations,
+  recommendations) reads the same list and draws the hold line (Claim, Release,
+  "Claimed by X"), names the holder on rows, and treats a failed claims read as
+  unknown. Claims stay advisory: they never disable a decision.
+  `fetchProposalClaims`, `writeProposalClaim`, `proposalHoldOf` are the
+  reference.
+- **A result offers the next item, it does not move you.** After a decision
+  goes through, the dock's notice keeps the pane on the decided item and
+  offers "Next waiting: <summary>" (never after a refusal).
+- **Bulk sign-off keeps who asked and why in the confirm.** A confirm over
+  several recommendations lists each title with its recommender and note in
+  `body`, not bare titles in `affected`.
+- **A shared review body splits into parts.** When a component renders both in
+  a tool pane and inline elsewhere (`ProposalReview` on the article page),
+  export its sections (`ProposalFacts`, `ProposalFeedback`, `ProposalTargets`,
+  `ProposalChanges`, `ProposalDiscussion`, `ProposalOtherEditors`,
+  `ProposalNextStep`, `ProposalTime`) and keep the composite for the other
+  consumer, with flags for what the pane header already says (`showStatus`,
+  `showProposer`, `showDrift`).
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1581,3 +1613,98 @@ Deferred, with reasons:
 - Importance order treating spam as low: the server's order.
 - Take over for feedback claims: the Inbox offers it only for claim-table
   sources.
+
+### Pass 14: Change Review (`/dev/queue`)
+
+Commit: see `git log --grep "Dev tools redesign: Change Review"`.
+Screenshots: `tmp/redesign/change-review/before/` and
+`tmp/redesign/change-review/after/` (admin loaded dark and light; every status
+selected: waiting with an article patch and discussion, drifted, own, copy
+block, unavailable comparison, returned, published, rejected, superseded,
+reverted, claimed by another admin; approve, drifted approve, reject and
+revert dialogs; rejection note typed; approved, returned, rejected, reverted;
+comment typed and posted; claimed; frozen and conflicted approve; My pending;
+search and no match; recommendations, ticked, confirm, approved, stale,
+frozen, task link and missing link; deep link, deep link in My pending,
+missing deep link; empty; failed; loading; detail failed; stale rail count;
+editor loaded, returned, waiting, rejected, empty; editor_translator;
+contributor and translator locked; desktop and phone), captured by
+`tmp/redesign/change-review/capture.mjs`. Critique in
+`tmp/redesign/change-review/critique.md` (20/40 before), inventory with the
+item-by-item check in `tmp/redesign/change-review/inventory.md`, detector
+evidence in `tmp/redesign/change-review/detector/` (static scan clean before
+and after).
+
+Main changes:
+
+- P0 fixes: Approve was enabled on a proposal with no verifiable comparison
+  while the copy said to prepare a new one first; it is now off with the
+  reason (the server rule is unchanged, the tool is stricter). On phones the
+  review sat below the recommendations lane and every row, and picking a row
+  showed nothing; it is now master/detail with Back to list and a pager.
+- Layout: the triage workspace. Admins get two kept-mounted views,
+  Proposals and Recommendations (`EditorNavTabs` with counts, `#recommendations`,
+  a `?recommendation=` link opens it). `ProposalListColumn.tsx`: "Proposals"
+  meta heading, count line, Refresh, All / My pending, search with the `/` cap,
+  groups (Awaiting review, Needs revision, then History: Published, Closed
+  capped at five) of link-row buttons (summary with matches marked, proposer
+  or "You", relative age, targets in words, comment count, holder; status
+  pills only in the mixed Closed group), skeletons, empty, "All clear",
+  filtered-empty with Show everything and Clear the search, key hint.
+  `ProposalPane.tsx`: summary as the heading, "By X" or "Your proposal",
+  "Waiting since", status pill, Copy link, pager (j/k), Back to list below
+  `lg`, the hidden-by-list line; body: next step, review feedback, facts,
+  Content affected, What changed, other editors, "Revise it yourself" (admin
+  Load into editor), Discussion, Rejection note; dock: result with "Next
+  waiting", pending line, freeze line, hold line (Claim / Release), Approve
+  and apply (accent, `a`), Reject (outline, `r`), Revert, the proposer's Load
+  into editor (accent), and each reason.
+- Recommendations: a panel with Refresh, what approving does, "Ready to
+  approve" and "Changed since recommended" groups, display names, relative
+  times, notes as quotes, "Open in Review" on ready rows, a sticky dock (result,
+  freeze line, Approve selected, Select all ready, "2 of 3 selected"); the
+  confirm lists each title with its recommender and note.
+- Confirm wording kept (test-guarded); the approve confirm now leads with the
+  summary and proposer and heads its list "Publishes N items".
+- Freeze: a refused write (503 with `DATA_WRITES_FROZEN`, now carried on
+  `QueueRequestError.frozen`) reads "Writes are paused, so that was not
+  saved."; buttons stay enabled.
+- Keys: `j / k`, `a` (approve, asks first), `r` (reject, asks first, or
+  focuses the empty note), `n` (the note, or the comment for editors), `/`,
+  Cmd/Ctrl+Enter posts a comment; all in the `?` sheet.
+- Model and requests: `TARGET_KIND_LABELS` (one copy), `describeTargets`,
+  `isOpenProposal`, `describeQueueCount`, `proposalMatches`, `nextStepFor`,
+  `approveBlocker`, `describeDrift`, `proposalHoldOf`, `QUEUE_HISTORY_CAP`;
+  `fetchProposalClaims`, `writeProposalClaim`, `isWriteFreezeError`,
+  `QUEUE_FREEZE_COPY`. `QueueTab` takes `actorEmail` (the shell passes
+  `userEmail`).
+- Shared, backward compatible: `ProposalReview` is now composed from exported
+  parts; the article page's `ArticleProposalReview` keeps its props and inline
+  decisions (facts now use meta labels and relative times, the feedback
+  reference is a link).
+- Journeys fixtures: `seedChangeReview` (ten proposals over every status, an
+  article patch with discussion, a moved target, the viewer's own, a returned
+  one, copy and About targets, an unavailable comparison), `seedRecommendations`
+  (three ready, one stale), the approve (admin floor, self-approval refusal,
+  compare-and-swap, `conflicted`), reject (note required), revert and comment
+  routes, `?status=` on the list, and the recommendations GET and POST
+  (revision check, stale, missing); with a unit test. An editor sees only
+  their own proposals. The Inbox and Home now list more proposals and
+  recommendations. `run-journeys.mjs` waits on the pane heading and the new
+  failure title.
+
+Deferred, with reasons:
+
+- A direct "Request changes" (return without approving): no route; a return
+  happens only when approve finds the live content moved.
+- Take over another admin's claim here: the Inbox owns take over and its
+  confirm; this tool shows the holder and never blocks on it.
+- Renaming "Apply to production" and "Approve and apply" to one verb: the
+  labels are test-guarded and used by the journeys; the dock and confirm now
+  say what happens instead.
+- The heading order inside `ArticleChangeDiff` (its h3 under the pane's h4):
+  shared and test-guarded; the article page renders it too.
+- Display titles instead of slugs for targets and a field list in the approve
+  confirm: the proposal summary rows carry keys only.
+- A reviewer attestation recorded with an approval: needs a server field.
+

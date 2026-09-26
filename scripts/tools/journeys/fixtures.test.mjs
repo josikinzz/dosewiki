@@ -87,7 +87,7 @@ describe("journey fixtures", () => {
     assert.equal(fixtureSession("editor").user.glossaryLocales, undefined);
     const work = get(loaded, "/api/dev/my-work").json;
     assert.deepEqual(work.drafts.map((draft) => draft.slug), ["launch-post", "dosage-tables-explained"]);
-    assert.deepEqual(work.proposals.map((proposal) => proposal._id), ["journeyseed000001"]);
+    assert.deepEqual(work.proposals.map((proposal) => proposal._id), ["journeyseed000001", "fixture-prop-about1", "fixture-prop-ket1"]);
     assert.equal(get(loaded, "/api/dev/translation-inbox", "?locale=de").json.total, 7);
     assert.equal(get(loaded, "/api/dev/invites").json.invites.filter((invite) => invite.status === "active").length, 2);
     assert.equal(get(loaded, "/api/dev/contributor-profile", "?key=ME").json.profile.key, "ME");
@@ -162,8 +162,9 @@ describe("journey fixtures", () => {
     const id = submitted.json.proposalId;
 
     const list = get(fixture, "/api/dev/proposals").json.proposals;
-    // Newest first, above the one seeded proposal.
-    assert.deepEqual(list.map((row) => row._id), [id, "journeyseed000001"]);
+    // Newest first, above the seeded proposals (an editor sees only their own).
+    assert.deepEqual(list.map((row) => row._id), [id, "journeyseed000001", "fixture-prop-about1", "fixture-prop-ket1", "fixture-prop-caf1"]);
+    assert.ok(list.every((row) => row.isAuthor));
     assert.equal(list[0]._id, id);
     assert.equal(list[0].commentCount, 0);
     assert.equal("payload" in list[0], false);
@@ -171,8 +172,44 @@ describe("journey fixtures", () => {
     const detail = get(fixture, `/api/dev/proposals/${id}`).json.proposal;
     assert.equal(detail.summary, "Update blog post “Launch post two”");
     assert.deepEqual(detail.targets, [{ kind: "writing", key: "launch-post", baseHash: row.baseRevision }]);
-    assert.equal(get(fixture, "/api/dev/proposals/count").json.submitted, 2);
+    assert.equal(get(fixture, "/api/dev/proposals/count").json.submitted, 3);
     assert.equal(get(fixture, "/api/dev/proposals/missing").status, 404);
+  });
+
+  it("answers Change Review's decisions the way the review routes do", () => {
+    const admin = createJourneyFixture({ role: "admin" });
+    const list = get(admin, "/api/dev/proposals").json.proposals;
+    assert.deepEqual([...new Set(list.map((row) => row.status))].sort(), ["applied", "changes_requested", "rejected", "reverted", "submitted", "superseded"]);
+    assert.equal(get(admin, "/api/dev/proposals", "?status=submitted").json.proposals.every((row) => row.status === "submitted"), true);
+    assert.equal(list.find((row) => row._id === "fixture-prop-about1").isAuthor, true);
+    assert.equal("mine" in list[1], false);
+
+    // A clean target publishes; a moved one comes back as changes requested; your own is refused.
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-lsd1/approve", {}).json.status, "applied");
+    const returned = post(admin, "/api/dev/proposals/fixture-prop-mesc1/approve", {});
+    assert.equal(returned.json.status, "changes_requested");
+    assert.match(returned.json.conflictReason, /mescaline changed/);
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-about1/approve", {}).status, 409);
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-footer1/reject", { note: " " }).status, 400);
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-footer1/reject", { note: "Too long." }).json.status, "rejected");
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-dmt1/revert", {}).json.status, "reverted");
+    assert.equal(post(admin, "/api/dev/proposals/fixture-prop-lsd1/comment", { text: "Live now." }).json.comment.text, "Live now.");
+    assert.equal(get(admin, "/api/dev/proposals/fixture-prop-lsd1").json.proposal.comments.length, 3);
+
+    const editor = createJourneyFixture({ role: "editor" });
+    assert.equal(post(editor, "/api/dev/proposals/fixture-prop-ket1/reject", { note: "x" }).status, 403);
+    assert.equal(get(editor, "/api/dev/review-recommendations").status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/proposals/fixture-prop-lsd1/approve", {}).status, 503);
+    assert.equal(post(createJourneyFixture({ state: "conflicted" }), "/api/dev/proposals/fixture-prop-lsd1/approve", {}).json.status, "changes_requested");
+
+    const recommendations = get(admin, "/api/dev/review-recommendations").json.recommendations;
+    assert.deepEqual(recommendations.map((row) => row.stale), [false, false, false, true]);
+    const outcome = post(admin, "/api/dev/review-recommendations", {
+      items: [{ slug: "heroin", revision: "revheroin1" }, { slug: "fentanyl", revision: "revfentanyl1" }, { slug: "codeine", revision: "old" }],
+    }).json;
+    assert.deepEqual([outcome.approved, outcome.stale, outcome.missing], [["heroin"], ["fentanyl"], ["codeine"]]);
+    assert.equal(get(admin, "/api/dev/review-recommendations").json.recommendations.length, 3);
+    assert.deepEqual(admin.unhandled, []);
   });
 
   it("hands the same records to another person", () => {
