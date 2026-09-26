@@ -453,9 +453,9 @@ function EntryGroup({
   if (entries.length === 0) return null;
   return (
     <div className="space-y-1.5">
-      <p className="type-meta-label theme-text-muted">
-        {label}
-        <span className="theme-text-faint ml-2 tabular-nums">{entries.length}</span>
+      <p className="flex items-center justify-between gap-3">
+        <span className="type-meta-label theme-text-muted">{label}</span>
+        <span className="theme-text-faint text-xs tabular-nums">{entries.length}</span>
       </p>
       <ul className={LINK_LIST_CLASS} aria-label={`${label}, ${entries.length}`}>
         {entries.map((entry) => {

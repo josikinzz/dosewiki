@@ -218,9 +218,9 @@ function ProposalGroup({
 
   return (
     <section aria-label={group.label} data-testid={`queue-group-${group.id}`} className="space-y-1">
-      <h4 className="theme-text-secondary flex items-center justify-between gap-3 text-sm font-semibold">
-        <span>{group.label}</span>
-        <span className="theme-text-muted font-normal tabular-nums" data-testid={`queue-group-${group.id}-count`}>
+      <h4 className="flex items-center justify-between gap-3">
+        <span className="type-meta-label theme-text-muted">{group.label}</span>
+        <span className="theme-text-faint text-xs font-normal tabular-nums" data-testid={`queue-group-${group.id}-count`}>
           {group.rows.length}
         </span>
       </h4>

@@ -197,8 +197,9 @@ export const MoleculeListColumn = forwardRef<HTMLElement, MoleculeListColumnProp
           {groups.map((group) => (
             <div key={group.key || "all"} className="pb-2">
               {group.heading ? (
-                <p className="type-meta-label theme-text-faint pb-1 pt-2">
-                  {group.heading}
+                <p className="flex items-center justify-between gap-3 pb-1 pt-2">
+                  <span className="type-meta-label theme-text-muted">{group.heading}</span>
+                  <span className="theme-text-faint text-xs tabular-nums">{group.items.length}</span>
                 </p>
               ) : null}
               <ul className={LINK_LIST_CLASS}>
