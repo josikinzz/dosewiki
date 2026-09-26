@@ -1067,16 +1067,77 @@ export const TAG_ARTICLES_SEED = Object.freeze([
 })));
 
 /**
- * The three index layouts the editor library is built with
- * (`/api/dev/index-layout?type=all`): one category each, so the library can
- * be built. Index layout itself reads each type on its own; that read is not
- * answered here.
+ * The three index layouts (`/api/dev/index-layout?type=all`), which the
+ * editor library is built with and Index layout edits. Psychoactive reads
+ * like the public index: sectioned categories (Common first, Other last, a
+ * top-level list shown as General beside named sections), a slug no article
+ * answers ("dmt", drawn as Missing), a direct-URL-only article placed
+ * ("25i-nbome", drawn as Hidden), a category with nothing in it (dropped by
+ * the site), and two public substances left out (DXM, Nicotine) plus a
+ * direct-URL-only one (Phenibut) for the unplaced tray. Chemical leaves most
+ * of the corpus unplaced. Mechanism's category carries no `sections` key at
+ * all, the shape a hand-written layout can take.
  */
 export const INDEX_LAYOUTS_SEED = Object.freeze([
-  { type: "psychoactive", version: 1, revision: 1, categories: [{ key: "psychedelics", label: "Psychedelics", iconKey: "psychedelic", drugs: ["lsd", "psilocybin", "mescaline"] }] },
-  { type: "chemical", version: 1, revision: 1, categories: [{ key: "phenethylamines", label: "Phenethylamines", iconKey: "chemical", drugs: ["mescaline", "2c-b"] }] },
-  { type: "mechanism", version: 1, revision: 1, categories: [{ key: "serotonergic", label: "Serotonergic", iconKey: "mechanism", drugs: ["lsd", "psilocybin"] }] },
+  {
+    type: "psychoactive",
+    version: 1,
+    revision: 4,
+    categories: [
+      {
+        key: "psychedelic", label: "Psychedelic", iconKey: "psychedelic", drugs: [],
+        sections: [
+          { key: "common", label: "Common", drugs: ["lsd", "psilocybin", "mescaline"] },
+          { key: "phenethylamines", label: "Phenethylamines", drugs: ["mescaline", "2c-b", "25i-nbome"] },
+          { key: "tryptamines", label: "Tryptamines", drugs: ["psilocybin", "dmt"] },
+          { key: "lysergamides", label: "Lysergamides", drugs: ["lsd"] },
+        ],
+      },
+      { key: "dissociative", label: "Dissociative", iconKey: "dissociative", drugs: ["ketamine"], sections: [] },
+      { key: "hallucinogen", label: "A-typical hallucinogen", iconKey: "hallucinogen", drugs: ["salvinorin-a"], sections: [] },
+      { key: "entactogen", label: "Entactogen", iconKey: "entactogen", drugs: ["mdma"], sections: [] },
+      {
+        key: "stimulant", label: "Stimulant", iconKey: "stimulant", drugs: [],
+        sections: [
+          { key: "common", label: "Common", drugs: ["caffeine", "cocaine"] },
+          { key: "eugeroics", label: "Eugeroics", drugs: ["modafinil"] },
+        ],
+      },
+      { key: "nootropic", label: "Nootropic", iconKey: "nootropic", drugs: [], sections: [] },
+      {
+        key: "gabaergic", label: "Sedative-hypnotics", iconKey: "depressant", drugs: ["alcohol"],
+        sections: [
+          { key: "benzodiazepines", label: "Benzodiazepines", drugs: ["alprazolam", "diazepam"] },
+          { key: "z-drugs", label: "Z-drugs", drugs: ["zolpidem"] },
+          { key: "other", label: "Other", drugs: ["ghb"] },
+        ],
+      },
+      { key: "opioid", label: "Opioid", iconKey: "opioid", drugs: ["fentanyl", "heroin", "morphine"], sections: [] },
+    ],
+  },
+  {
+    type: "chemical",
+    version: 1,
+    revision: 2,
+    categories: [
+      { key: "phenethylamines", label: "Phenethylamines", iconKey: "phenethylamine", drugs: ["mescaline", "2c-b", "25i-nbome"], sections: [] },
+      { key: "tryptamines", label: "Tryptamines", iconKey: "tryptamine", drugs: ["psilocybin"], sections: [] },
+      { key: "benzodiazepines", label: "Benzodiazepines", iconKey: "benzodiazepine", drugs: ["alprazolam", "diazepam"], sections: [] },
+      { key: "morphinans", label: "Morphinans", iconKey: "morphinan", drugs: ["heroin", "morphine", "dxm"], sections: [] },
+    ],
+  },
+  { type: "mechanism", version: 1, revision: 1, categories: [{ key: "serotonergic", label: "Serotonergic", iconKey: "mechanism", drugs: ["lsd", "psilocybin", "mescaline"] }] },
 ]);
+
+/**
+ * Listing priority per slug for the library list; everything else is
+ * "normal". Low and hide-for-now articles are direct-URL-only, so Index
+ * layout draws them as Hidden and keeps them out of the public tray.
+ */
+export const LIBRARY_PRIORITY_SEED = Object.freeze({ "25i-nbome": "hide_for_now", phenibut: "low" });
+
+/** What another admin publishes to the psychoactive layout under `conflicted`. */
+const INDEX_LAYOUT_CONCURRENT_SLUG = "nicotine";
 
 /** What someone else saved on an article while the editor's copy of it sat in the browser (the `conflicted` state). */
 const TAG_ARTICLE_CONCURRENT_CATEGORY = "Reviewed by the fixture";
@@ -1460,6 +1521,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     rows: new Map((state === "empty" ? [] : TAG_ARTICLES_SEED).map((row) => [row.slug, structuredClone(row)])),
     articleReads: new Map(),
     saves: 0,
+    /** The stored index layouts; a commit replaces them after the route's revision check. */
+    layouts: structuredClone(INDEX_LAYOUTS_SEED),
   };
 
   const fixture = {
@@ -2188,6 +2251,29 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   /** `POST /api/save-article`: the admin floor, then the saved articles' tag fields land in the corpus. */
   function saveLibraryArticles(body) {
     if (fixture.role !== "admin") return json(403, { error: "Editor access required for Postgres writes.", code: "data_editor_access_required" });
+    const layouts = Array.isArray(body.indexLayouts) ? body.indexLayouts : [];
+    // Under `conflicted`, another admin publishes the psychoactive layout just
+    // before this commit lands, so its revision check refuses it.
+    if (fixture.state === "conflicted" && layouts.length && !contested.has("index-layout")) {
+      contested.add("index-layout");
+      const stored = library.layouts.find((row) => row.type === "psychoactive");
+      const stimulant = stored.categories.find((category) => category.key === "stimulant");
+      stimulant.sections[0].drugs.push(INDEX_LAYOUT_CONCURRENT_SLUG);
+      stored.revision += 1;
+    }
+    for (const layout of layouts) {
+      const stored = library.layouts.find((row) => row.type === layout?.type);
+      if (!stored) return json(400, { error: "A supported layout and its loaded baseline are required." });
+      if (layout.expectedRevision !== stored.revision) {
+        return json(409, { error: "Published content changed since you opened this editor. Your draft is preserved. Reload the latest source and reconcile before publishing.", code: "EDIT_CONFLICT" });
+      }
+    }
+    const savedLayouts = layouts.map((layout) => {
+      const stored = library.layouts.find((row) => row.type === layout.type);
+      stored.categories = structuredClone(layout.categories);
+      stored.revision += 1;
+      return `${layout.type} index layout`;
+    });
     const articles = Array.isArray(body.articles) ? body.articles : [];
     for (const article of articles) {
       const slug = typeof article?.slug === "string" && article.slug
@@ -2202,7 +2288,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, {
       success: true,
       requestId: `journey-save-${String(++library.saves).padStart(4, "0")}`,
-      savedItems: articles.length ? [`${articles.length} article(s)`] : [],
+      savedItems: [...(articles.length ? [`${articles.length} article(s)`] : []), ...savedLayouts],
       submittedBy: fixture.session.user.email,
       warnings: [],
     });
@@ -2226,7 +2312,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (pathname === "/api/feedback/pending-count") return json(200, { ok: true, article: 0, site: 0, total: 0 });
       if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: 0 });
       if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: 0 });
-      if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(INDEX_LAYOUTS_SEED));
+      if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(library.layouts));
       // The commit button's server check: ready, so a commit is not held back.
       if (pathname === "/api/editor-config-health") return json(200, { canSaveToPostgres: true, issues: [], checkedAt: new Date(FIXTURE_EPOCH).toISOString() });
     }
@@ -2615,7 +2701,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (slug) return toolRead(() => readLibraryArticle(slug));
       if (scope === "tag-registry") return toolRead(() => json(200, { ok: true, scope: "tag-registry", entries: [...library.rows.values()].map((row) => structuredClone(row)) }));
       if (scope && scope !== "list") return json(400, { error: `Unsupported editor library scope: ${scope}.` });
-      return json(200, { ok: true, scope: "list", articles: [...library.rows.values()].map((row) => ({ ...structuredClone(row), priority: "normal", reference_count: 0 })) });
+      return json(200, { ok: true, scope: "list", articles: [...library.rows.values()].map((row) => ({ ...structuredClone(row), priority: LIBRARY_PRIORITY_SEED[row.slug] ?? "normal", reference_count: 0 })) });
     }
     if (pathname === "/api/save-article" && upper === "POST") return toolWrite(() => saveLibraryArticles(body ?? {}));
 

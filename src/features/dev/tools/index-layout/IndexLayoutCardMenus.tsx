@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -20,25 +20,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import type { SearchablePickerOption } from "@/features/dev/components";
-import { getCategoryIcon } from "@/data/config/categoryIcons";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
+import { EditorField, type SearchablePickerOption } from "@/features/dev/components";
+import { CATEGORY_ICON_KEYS, getCategoryIcon } from "@/data/config/categoryIcons";
+import { cn } from "@/lib/utils";
 
 import type { BoardCategory, BoardDestination, BoardSection } from "./boardModel";
 import type { LayoutSlot, MoveDirection } from "./layoutOps";
+import type { LayoutMoveRequest } from "./LayoutMoveDialog";
+import type { RowPlace } from "./LayoutDrugRow";
 
 /**
- * One 28px trigger, invisible until the card is hovered or holds focus. A
- * reader's panel and an editor's panel are the same object at rest, and a
- * single track costs the title far less width than a strip of icons.
+ * One 28px trigger (44px halo on touch), quiet at rest and full strength on
+ * hover, focus or while open. Always drawn: it is the only way into a
+ * category's or section's operations, so it never hides.
  */
-const HANDLE_CLASS =
-  "h-7 w-7 shrink-0 rounded-lg p-0 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 data-[state=open]:opacity-100 [@media(pointer:coarse)]:opacity-100";
+const HANDLE_CLASS = cn(
+  "theme-text-faint h-7 w-7 shrink-0 rounded-control p-0 transition-colors hover:text-dose-text group-hover:text-dose-text data-[state=open]:text-dose-text",
+  TOUCH_HALO,
+);
 
 export interface BoardActions {
   destinations: readonly BoardDestination[];
   /** Substances not yet placed anywhere in this dataset, for the add rows. */
   addOptions: readonly SearchablePickerOption[];
+  /** "Psychedelic, Common" for a list; the board names rows and moves with it. */
+  listName: (slot: LayoutSlot) => string;
   onBump: (slot: LayoutSlot, slug: string, direction: MoveDirection) => void;
+  /** Move to the top or the end of its own list. */
+  onPlace?: (slot: LayoutSlot, slug: string, place: RowPlace) => void;
+  /** Opens the list picker (the phone's way to do what a drag does). */
+  onRequestMove: (request: LayoutMoveRequest) => void;
   onMove: (from: LayoutSlot, slug: string, to: LayoutSlot) => void;
   onRemoveSlug: (slot: LayoutSlot, slug: string) => void;
   onAddSlug: (slot: LayoutSlot, slug: string) => void;
@@ -55,6 +67,8 @@ export interface BoardActions {
   onRemoveSection: (categoryKey: string, sectionKey: string) => void;
   onUpdateCategory: (categoryKey: string, patch: { label?: string; iconKey?: string }) => void;
   onRemoveCategory: (categoryKey: string) => void;
+  /** True for a row this session's working changes put where it is (moved, added or reordered). */
+  isChanged?: (slot: LayoutSlot, slug: string) => boolean;
 }
 
 /** Name a section, or rename one. */
@@ -78,6 +92,9 @@ function NameDialog({
   onSubmit: (value: string) => void;
 }) {
   const [value, setValue] = useState(initial);
+  const fieldId = useId();
+  const unchanged = value.trim() === initial.trim() && initial.trim() !== "";
+  const reason = !value.trim() ? "Type a name first." : unchanged ? "That is its name already." : null;
 
   return (
     <Dialog
@@ -91,8 +108,8 @@ function NameDialog({
         <form
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            if (!value.trim()) return;
-            onSubmit(value);
+            if (reason) return;
+            onSubmit(value.trim());
             onOpenChange(false);
           }}
         >
@@ -100,22 +117,16 @@ function NameDialog({
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-1 py-4">
-            <label className="theme-text-faint block text-[11px] uppercase tracking-[0.18em]" htmlFor="layout-name">
-              {fieldLabel}
-            </label>
-            <Input
-              id="layout-name"
-              value={value}
-              onChange={(event) => setValue(event.target.value)}
-              inputSize="sm"
-            />
+          <div className="py-4">
+            <EditorField label={fieldLabel} htmlFor={fieldId} description={reason && value ? reason : undefined}>
+              <Input id={fieldId} value={value} onChange={(event) => setValue(event.target.value)} inputSize="sm" autoComplete="off" />
+            </EditorField>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="accent" size="sm" disabled={!value.trim()}>
+            <Button type="submit" variant="accent" size="sm" disabled={reason !== null}>
               {submitLabel}
             </Button>
           </DialogFooter>
@@ -139,7 +150,10 @@ function CategoryIdentityDialog({
 }) {
   const [label, setLabel] = useState(category.label);
   const [iconKey, setIconKey] = useState(category.iconKey);
+  const labelId = useId();
+  const iconId = useId();
   const preview: IconName = getCategoryIcon(iconKey || category.key);
+  const unchanged = label.trim() === category.label && iconKey.trim() === category.iconKey;
 
   return (
     <Dialog
@@ -156,58 +170,50 @@ function CategoryIdentityDialog({
         <form
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            if (!label.trim()) return;
-            onSubmit({ label, iconKey });
+            if (!label.trim() || unchanged) return;
+            onSubmit({ label: label.trim(), iconKey: iconKey.trim() });
             onOpenChange(false);
           }}
         >
           <DialogHeader>
-            <DialogTitle>Category name and icon</DialogTitle>
+            <DialogTitle>{`${category.label}: name and icon`}</DialogTitle>
             <DialogDescription>Both show on the public index exactly as entered here.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="space-y-1">
-              <label
-                className="theme-text-faint block text-[11px] uppercase tracking-[0.18em]"
-                htmlFor="layout-category-label"
-              >
-                Name
-              </label>
-              <Input
-                id="layout-category-label"
-                value={label}
-                onChange={(event) => setLabel(event.target.value)}
-                inputSize="sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <label
-                className="theme-text-faint block text-[11px] uppercase tracking-[0.18em]"
-                htmlFor="layout-category-icon"
-              >
-                Icon key
-              </label>
+            <EditorField label="Name" htmlFor={labelId} description={!label.trim() ? "Type a name first." : undefined}>
+              <Input id={labelId} value={label} onChange={(event) => setLabel(event.target.value)} inputSize="sm" autoComplete="off" />
+            </EditorField>
+            <EditorField
+              label="Icon"
+              htmlFor={iconId}
+              description="A class name from the icon map (psychedelic) or any Iconify name (lucide:zap). Empty follows the category."
+            >
               <div className="flex items-center gap-2">
-                <span className="theme-index-card-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-dose-ring">
-                  <Icon icon={preview} size={20} className="theme-index-card-icon-glyph" />
+                <span className="theme-index-card-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-control ring-1 ring-dose-ring">
+                  <Icon icon={preview} size={22} className="theme-index-card-icon-glyph" />
+                  <span className="sr-only">Preview of the icon</span>
                 </span>
                 <Input
-                  id="layout-category-icon"
+                  id={iconId}
                   value={iconKey}
                   onChange={(event) => setIconKey(event.target.value)}
                   inputSize="sm"
-                  placeholder="psychedelic or lucide:zap"
+                  autoComplete="off"
+                  spellCheck={false}
+                  list={`${iconId}-keys`}
                 />
+                <datalist id={`${iconId}-keys`}>
+                  {CATEGORY_ICON_KEYS.map((key) => <option key={key} value={key} />)}
+                </datalist>
               </div>
-              <p className="theme-text-faint text-xs">A class name from the icon map, or any iconify name.</p>
-            </div>
+            </EditorField>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="accent" size="sm" disabled={!label.trim()}>
-              Save
+            <Button type="submit" variant="accent" size="sm" disabled={!label.trim() || unchanged}>
+              Save name and icon
             </Button>
           </DialogFooter>
         </form>
@@ -231,10 +237,14 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
             className={HANDLE_CLASS}
             aria-label={`Edit the ${category.label} category`}
           >
-            <Icon icon="lucide:ellipsis" size={15} />
+            <Icon icon="lucide:pencil-line" size={15} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[13rem]">
+        <DropdownMenuContent align="end" className="w-[min(16rem,calc(100vw-2rem))]">
+          <div className="px-2 theme-text-primary py-2 text-sm font-medium">
+            {category.label}
+          </div>
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={(event) => {
               event.preventDefault();
@@ -253,10 +263,12 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
             <Icon icon="lucide:plus" size={14} className="mr-2" />
             Add a section
           </DropdownMenuItem>
-          {actions.onSortCategory && <DropdownMenuItem onSelect={() => actions.onSortCategory?.(category.key)}>
-            <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
-            Sort every list A to Z
-          </DropdownMenuItem>}
+          {actions.onSortCategory ? (
+            <DropdownMenuItem onSelect={() => actions.onSortCategory?.(category.key)}>
+              <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
+              Sort every list A to Z
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-dose-danger focus:text-dose-danger"
@@ -277,7 +289,7 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
         open={dialog === "section"}
         onOpenChange={(open) => setDialog(open ? "section" : null)}
         title={`New section in ${category.label}`}
-        description="Sections group a category's substances under their own heading."
+        description="A section groups some of the category's substances under their own heading. It starts empty."
         fieldLabel="Section name"
         initial=""
         submitLabel="Add section"
@@ -287,6 +299,11 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
   );
 }
 
+/** A disabled menu entry keeps its reason in sight, not in a hover title. */
+function MenuReason({ children }: { children: string }) {
+  return <span className="theme-text-faint mt-0.5 block text-xs font-normal">{children}</span>;
+}
+
 /**
  * Everything you can do to one section. Common and Other are pinned by the
  * page's own ordering rule, so their move entries carry the reason instead of
@@ -294,12 +311,14 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
  */
 export function SectionMenu({
   categoryKey,
+  categoryLabel,
   section,
   previous,
   next,
   actions,
 }: {
   categoryKey: string;
+  categoryLabel?: string;
   section: BoardSection;
   previous: BoardSection | null;
   next: BoardSection | null;
@@ -312,10 +331,10 @@ export function SectionMenu({
   const canDown = editable && next !== null && next.slot.sectionKey !== null && next.rank === section.rank;
   const pinNote =
     section.rank === 0
-      ? "Common leads its category on the site"
+      ? "Common leads its category on the site."
       : section.rank === 2
-        ? "Other closes its category on the site"
-        : "Already at the end of its run";
+        ? "Other closes its category on the site."
+        : "Already at the end of its run.";
   const name = section.label ?? "list";
 
   return (
@@ -329,29 +348,41 @@ export function SectionMenu({
             className={HANDLE_CLASS}
             aria-label={`Edit the ${name} section`}
           >
-            <Icon icon="lucide:ellipsis" size={15} />
+            <Icon icon="lucide:pencil-line" size={15} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[13rem]">
+        <DropdownMenuContent align="end" className="w-[min(16rem,calc(100vw-2rem))]">
+          <div className="px-2 space-y-0.5 py-2 font-normal">
+            <span className="theme-text-primary block text-sm font-medium">{section.label ?? categoryLabel ?? "This list"}</span>
+            {categoryLabel && section.label ? <span className="theme-text-muted block text-xs">{`In ${categoryLabel}`}</span> : null}
+            {section.isGeneral ? (
+              <span className="theme-text-muted block text-xs">The category&apos;s own list. It can be sorted, not renamed or removed.</span>
+            ) : null}
+          </div>
+          <DropdownMenuSeparator />
           {editable ? (
             <>
               <DropdownMenuItem
                 disabled={!canUp}
-                title={canUp ? undefined : pinNote}
                 onSelect={() =>
                   previous && actions.onPlaceSection(categoryKey, sectionKey, previous.slot.sectionKey!, "before")
                 }
               >
-                <Icon icon="lucide:chevron-up" size={14} className="mr-2" />
-                Move up
+                <Icon icon="lucide:chevron-up" size={14} className="mr-2 self-start mt-0.5" />
+                <span>
+                  Move up
+                  {canUp ? null : <MenuReason>{pinNote}</MenuReason>}
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={!canDown}
-                title={canDown ? undefined : pinNote}
                 onSelect={() => next && actions.onPlaceSection(categoryKey, sectionKey, next.slot.sectionKey!, "after")}
               >
-                <Icon icon="lucide:chevron-down" size={14} className="mr-2" />
-                Move down
+                <Icon icon="lucide:chevron-down" size={14} className="mr-2 self-start mt-0.5" />
+                <span>
+                  Move down
+                  {canDown ? null : <MenuReason>{pinNote}</MenuReason>}
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(event) => {
@@ -364,10 +395,12 @@ export function SectionMenu({
               </DropdownMenuItem>
             </>
           ) : null}
-          {actions.onSortSlot && <DropdownMenuItem onSelect={() => actions.onSortSlot?.(section.slot)}>
-            <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
-            Sort A to Z
-          </DropdownMenuItem>}
+          {actions.onSortSlot ? (
+            <DropdownMenuItem onSelect={() => actions.onSortSlot?.(section.slot)}>
+              <Icon icon="lucide:arrow-down-a-z" size={14} className="mr-2" />
+              Sort A to Z
+            </DropdownMenuItem>
+          ) : null}
           {editable ? (
             <>
               <DropdownMenuSeparator />
@@ -390,7 +423,7 @@ export function SectionMenu({
           description="The heading readers see above this group."
           fieldLabel="Section name"
           initial={section.label ?? ""}
-          submitLabel="Rename"
+          submitLabel="Rename section"
           onSubmit={(value) => actions.onRenameSection(categoryKey, sectionKey, value)}
         />
       ) : null}

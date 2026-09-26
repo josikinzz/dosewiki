@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { DevCommitControls } from "@/features/dev/pages/useDevModeSaveActions";
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import type {
   ManualCategoryDefinition,
@@ -9,9 +10,17 @@ import type {
 export type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig };
 
 export interface IndexLayoutTabProps {
+  /** The shell's commit card, drawn only when `commit` is not given (a bare mount). */
   commitPanel?: ReactNode;
-  /** Fine-pointer only: the action toolbar sticks to the top of the board. */
-  enableStickyPanels: boolean;
+  /** The commit in parts, for the tool's own Working changes panel. */
+  commit?: DevCommitControls;
+  /** Every working change as one diff (every tool), for the folded diff. */
+  datasetMarkdown?: string;
+  hasDatasetChanges?: boolean;
+  onCopyDatasetMarkdown?: () => Promise<void>;
+  onDownloadDatasetMarkdown?: () => void;
+  /** Kept for the shell's call; the tool's dock sticks at every pointer now. */
+  enableStickyPanels?: boolean;
 }
 
 export type SubstanceOption = {
@@ -34,4 +43,10 @@ export const slugIssueLabels: Record<SlugIssue, string> = {
 export const slugIssueTones: Record<SlugIssue, EditorStatusPillTone> = {
   missing: "danger",
   hidden: "warning",
+};
+
+/** What each issue means for a reader, said in the row's menu. */
+export const slugIssueNotes: Record<SlugIssue, string> = {
+  missing: "No article answers this slug, so the site leaves it out.",
+  hidden: "Hidden or direct-link only, so readers do not see it here.",
 };

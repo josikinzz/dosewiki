@@ -435,8 +435,13 @@ builds a new shared primitive, add it to **Conventions** and log it under
   batch sentence, and it renders `commitControls.dialog`. The editing pane's
   dock says how much waits ("2 articles in your working changes, not live
   yet") with "Review and commit", which scrolls to the panel and focuses its
-  heading. `WorkingChangesPanel` (`src/features/dev/tags/`) is the reference;
-  Index layout still renders `commitPanel`.
+  heading. The frame is shared: `DevWorkingChangesPanel`
+  (`src/features/dev/pages/DevWorkingChangesPanel.tsx`) takes the controls, a
+  pending and an idle sentence, the tool's change list, an optional
+  `describeFailure` (reword a refusal the tool understands and offer its way
+  forward) and the diff parts. Tags (`WorkingChangesPanel`) and Index layout
+  compose it; nothing in the shell renders `commitPanel` any more except as a
+  fallback for a bare mount.
 - **Commit confirms speak the tool's terms.** `requestCommit(lead)` puts a node
   at the top of the commit sheet (`CommitScopeSheet` `lead`); Tags passes its
   tag changes ("Benzos, renamed from “Benzodiazepines”, on 2 articles"). With
@@ -598,6 +603,45 @@ builds a new shared primitive, add it to **Conventions** and log it under
   starts the library drain for every tab `tabNeedsLibrary` names (blocking
   `library` and `library-deferred`), not a hard-coded list; a tool that needs
   article titles or whole articles says `library-deferred`.
+
+- **A board edits by menu as well as by drag.** A drag-and-drop editor gives
+  every drag a menu path that works on a phone: each row's "More actions for
+  <name>" menu opens with the row's name and place ("2 of 3 in Psychedelic,
+  Common") and holds Move up, Move down, Move to the top, Move to the end,
+  "Move to another list" and Remove. Up and down arrows show on fine pointers
+  only (on hover or focus); touch gets the grip and the menu with 44px halos.
+  Sensors are `MouseSensor` (4px), `TouchSensor` (hold 180ms, 8px tolerance,
+  so a swipe still scrolls) and `KeyboardSensor`, with announcements that
+  name the substance and the list, never an id. Reference:
+  `src/features/dev/tools/index-layout/LayoutDrugRow.tsx`, `IndexLayoutBoard.tsx`.
+- **Pick a destination from a list, not a submenu.** A move to one of many
+  places is a dialog with a filter, destinations grouped under meta-label
+  headings as link rows, the current place "Here now" and places that already
+  hold it "Already here" (both off). Radix submenus open off the side of a
+  390px screen. Focus goes to the moved row afterwards (`onCloseAutoFocus`
+  plus a `data-row` lookup). Reference: `LayoutMoveDialog.tsx`.
+- **Undo steps have names.** A tool with its own undo trail records a label
+  per step ("Moved LSD to Dissociative"), shows the last one in a polite line
+  in its dock ("Undid: moved LSD to Dissociative."), puts it in the Undo
+  button's title, and forgets the trail after a commit or submission (the
+  draft is the new starting point). `useLayoutHistory` (`edit(transform,
+  label)` returns whether anything changed; `undoLabel`, `redoLabel`,
+  `forgetAll`).
+- **A board carries a history dock.** An editing surface with no single
+  record keeps Undo, Redo (key caps on fine pointers), the last change and
+  "Review and commit" (scrolls to Working changes, focuses its heading) in one
+  `sticky bottom-0` region labelled "History", the decision dock recipe. It
+  replaces a sticky top toolbar, so phones get Undo in the thumb zone.
+- **A reader's tab strip folds to a select on phones.** When a tool mirrors a
+  public strip that wraps to many rows below `md`, it shows the strip from `md`
+  and one labelled `EditorSelect` below.
+- **Find it on the board.** A large editable surface gets one search ("Find a
+  substance on the board", `/`) that lists where each match lives and focuses
+  the row on a pick (switching to a view that shows it), or opens the list
+  picker for one outside the board.
+- **Hidden things say so where they are offered.** A picker that can stage a
+  hidden record for release marks it ("Hidden on the site" in the option hint);
+  a row's menu explains its issue pill in words.
 
 ## Passes
 
@@ -2004,3 +2048,128 @@ Deferred, with reasons:
 - Article titles in the Inbox's citation rows: its adapter has no corpus; the
   Inbox pass owns that surface.
 
+
+### Pass 17: Index layout (`/dev/index-layout`)
+
+Commit: see `git log --grep "Dev tools redesign: Index layout"`.
+Screenshots: `tmp/redesign/index-layout/before/` and
+`tmp/redesign/index-layout/after/` (admin loaded dark and light, full page;
+editor, editor_translator, translator and contributor; layouts loading and
+failed; empty; library loading; Chemical; Mechanism; Hallucinogens and
+Psychedelic views; hover; row menu and Move to; category and section menus;
+name and icon, add section, rename, remove category, remove section dialogs;
+new category; add picker; dragging; touch drag (`_touch-mid.png` mid-gesture);
+dirty; undone; redone; revert confirm; tray, hidden, place; finder and a pick;
+keys sheet; focus after a removal; commit confirm, committed, frozen,
+conflict; editor submitted; server check blocking; desktop and phone), captured
+by `tmp/redesign/index-layout/capture.mjs`. Critique in
+`tmp/redesign/index-layout/critique.md` (19/40 before; design review in
+`assessment-a.md`), inventory with the item-by-item check in
+`tmp/redesign/index-layout/inventory.md`, detector evidence in
+`tmp/redesign/index-layout/detector/` (static scan clean before and after; the
+in-page detector is blocked by the page CSP).
+
+Main changes:
+
+- P0 fixes: a dataset whose category had no `sections` key (Mechanism in the
+  fixtures, a shape the public loader accepts) crashed the whole editor to the
+  route error page; `normalizeManual` (`layoutModel.ts`) reads missing lists as
+  empty at the board, the tool and the contextual editor, and an edit through a
+  normalized copy hands the stored manual back on a no-op so the trail never
+  records nothing. On phones the Radix "Move to" / "Place in" submenus opened
+  off the left edge, the only way to move a row between lists without a long
+  touch drag; they are now `LayoutMoveDialog`, a filtered list picker.
+- Working changes: the tool leaves the shell's `commitPanel` for
+  `commitControls` through the new shared `DevWorkingChangesPanel` (Tags' panel
+  now composes it too). It says which layouts changed, lists the changes in
+  words per dataset (`describeLayoutChanges`: moved from and to, placed, taken
+  out of the index, added to a second list, categories and sections added,
+  removed, renamed, reordered, icon changed; capped at five with Show all),
+  passes the same lines to `requestCommit(lead)`, rewords a revision conflict
+  ("Someone published a newer index layout after you started, so nothing was
+  committed.") with "Load the latest layout" behind a destructive confirm
+  (refetches the layouts and resets the changed datasets; other tools' changes
+  stay), and reads a failure under the freeze as the freeze. Cmd+S commits
+  (asks first) or submits. After a commit or a submission the undo trail is
+  forgotten, and a submitted dataset says "Submitted for review; not live
+  until an admin applies it." instead of "Same as the live index".
+- Layout: an "Index layout" section with a one-sentence description; the
+  datasets as a three-column choice (icon and full name from `sm`, short name on
+  phones, category count, unsaved dot with ", uncommitted changes"); New
+  category and Revert layout beside it; one dataset line (categories,
+  substances placed, public substances left out, then Changed / Same as the
+  live index / Submitted); "Find a substance on the board" (`/`, matches with
+  where they live, a pick focuses the row or opens the list picker for one
+  outside the index); the public tab strip from `md` and a "Tab of the public
+  index" select below; the board with the unplaced tray as a sticky right
+  column from `xl` (a folded disclosure with its count above the board below
+  `xl`); a sticky History dock (Undo and Redo with caps, the last change in
+  words, "Review and commit").
+- Rows (`LayoutDrugRow`): the grip names the list and position and has a 44px
+  halo; arrows only on fine pointers; the menu opens with the name and place,
+  explains a Missing or Hidden pill, and holds Move up, Move down, Move to the
+  top, Move to the end, Move to another list and Remove from this list. Names
+  wrap instead of truncating, pills ride inline after the name, rows the
+  working changes put there carry an unsaved dot with ", changed". Tray rows
+  have a Place button. Focus goes to the moved row after the list picker and
+  to the next row after a removal.
+- Card and section menus: a pencil trigger (the card's collapse indicator is
+  the only ellipsis now), always drawn, 44px halo; a header with the name; a
+  disabled Move up or down says why under it; dialogs use `EditorField`, turn
+  off Save while nothing changed, and the icon field suggests every key in the
+  icon map (`CATEGORY_ICON_KEYS`, new export in
+  `src/data/config/categoryIcons.ts`).
+- Drag: `MouseSensor` (4px), `TouchSensor` (hold 180ms, 8px) and
+  `KeyboardSensor`, announcements naming the substance and the list, and screen
+  reader instructions.
+- History: `useLayoutHistory` steps carry labels; `edit` returns whether
+  anything changed; `undoLabel`, `redoLabel`, `forgetAll`; every operation is
+  named ("Moved LSD to Dissociative", "Undid: ...") in the dock's live line.
+- Confirms: copy unchanged (test-guarded); `affectedLabel` "Holds N
+  substances" and "Moves N substances to X".
+- Readiness (the shell's `IndexLayoutReadinessPanel`): `LoadErrorState`
+  "Could not load the index layouts" with Try again; the loading label is
+  "Loading the index layouts".
+- Contextual editors: the public `/substances` layout editor uses the list
+  picker, the normalized board, `CopyIndexRefusal` (freeze: "Writes are paused,
+  so your changes were not published."; conflict: "Someone published this
+  layout after you opened it" with "Load the latest version" behind a
+  destructive confirm, which refetches and restarts the draft keyed on the
+  revision), notices instead of bare paragraphs, and no trailing ellipses. The
+  index item editor says "Display name" and reads a 503 freeze as a definite
+  refusal with the freeze sentence.
+- Shared, backward compatible: `DevWorkingChangesPanel` (new, with a test);
+  `DevCommitCard` loses its "Live site" / "Review queue" eyebrow (the kicker
+  ban; the title already says where the draft goes); the controller returns
+  `indexLayoutTabProps` beside `tagEditorTabProps`; `CATEGORY_ICON_KEYS`.
+- Journeys fixtures: `INDEX_LAYOUTS_SEED` is now a realistic psychoactive
+  layout (sections with Common and Other, a General list beside sections, a
+  missing slug, a direct-URL-only article placed, an empty category, two public
+  substances and one hidden left out), a sparse chemical layout and a mechanism
+  category with no `sections` key; `LIBRARY_PRIORITY_SEED` makes two articles
+  direct-URL-only; the layouts are stored per fixture, `POST /api/save-article`
+  applies `indexLayouts` with the route's revision check, and under
+  `conflicted` another admin publishes the psychoactive layout first so the
+  commit is refused with `EDIT_CONFLICT`. Corpus tools now see these layouts.
+
+Deferred, with reasons:
+
+- Staging the `/substances` contextual layout editor into the shell's working
+  set instead of publishing on its own: changes that editor's save model; it now
+  recovers from conflicts and the freeze instead.
+- Warning before a commit that a layout moved on (the document session's
+  `refreshConflict` is not exposed per manual): the refusal is caught on commit
+  with its way forward.
+- Reordering categories and dragging sections: category placement on the All
+  tab is the page's column table in code; the new-category popover says where a
+  card lands, and sections move by menu with their pin rule said.
+- An empty layout (zero categories) from the server reads as a failed load: the
+  shared `useIndexLayouts` parse rejects it; the tool's own empty board (with
+  "Add a category") shows when a draft is emptied.
+- Card titles still break inside long words in narrow columns ("Sedative-
+  hypnotics"): the shared public `IndexCard` title; the edit trigger is one
+  28px control now.
+- The commit sheet's scope row ("2 categories", "Commit 2 changes") and the
+  success sentence with the submitter: the shared save orchestrator, as the
+  Tags pass recorded.
+- Multi-select moves: a new batch operation over the layout ops.

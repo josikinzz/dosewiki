@@ -56,6 +56,7 @@ export function useLayoutConfirms({
         confirmLabel: "Remove category",
         destructive: true,
         affected,
+        affectedLabel: `Holds ${countNoun(affected.length, "substance")}`,
         onConfirm: () => removeCategory(categoryKey),
       });
     },
@@ -88,6 +89,7 @@ export function useLayoutConfirms({
         confirmLabel: "Remove section, keep substances",
         destructive: true,
         affected,
+        affectedLabel: `Moves ${countNoun(affected.length, "substance")} to ${categoryLabel}`,
         onConfirm: () => removeSection(categoryKey, sectionKey, true),
       });
     },

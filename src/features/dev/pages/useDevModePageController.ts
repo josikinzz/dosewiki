@@ -162,7 +162,7 @@ export function useDevModePageController({
     clearSaveNoticesRef.current = clearSaveNotices;
   }, [clearSaveNotices]);
 
-  const { tagEditorTabProps } = useDevSupportTabsController({
+  const { tagEditorTabProps, indexLayoutTabProps } = useDevSupportTabsController({
     commitPanel,
     commitControls,
     combinedChangelogMarkdown: changelogState.combinedChangelogMarkdown,
@@ -239,6 +239,7 @@ export function useDevModePageController({
     feedbackInitialId: initialArticleSlug,
     initialFilter,
     tagEditorTabProps,
+    indexLayoutTabProps,
     contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,

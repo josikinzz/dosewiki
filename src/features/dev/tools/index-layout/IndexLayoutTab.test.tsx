@@ -31,6 +31,7 @@ vi.mock("../../context/DevModeContext", () => ({
     getOriginalPsychoactiveIndexManual: getOriginal,
     getOriginalChemicalIndexManual: getOriginal,
     getOriginalMechanismIndexManual: getOriginal,
+    retryIndexLayouts: vi.fn(),
   }),
 }));
 
@@ -53,8 +54,8 @@ describe("IndexLayoutTab", () => {
 
     const switcher = screen.getByRole("group", { name: "Index dataset" });
     expect(within(switcher).getByRole("button", { name: /Psychoactive class/ })).toHaveAttribute("aria-pressed", "true");
-    expect(within(switcher).getByRole("button", { name: /Chemical class/ })).toHaveTextContent("Uncommitted");
-    expect(within(switcher).getByRole("button", { name: /Psychoactive class/ })).not.toHaveTextContent("Uncommitted");
-    expect(within(switcher).getByRole("button", { name: /Mechanism of action/ })).not.toHaveTextContent("Uncommitted");
+    expect(within(switcher).getByRole("button", { name: /Chemical class/ })).toHaveAccessibleName(/uncommitted changes/);
+    expect(within(switcher).getByRole("button", { name: /Psychoactive class/ })).not.toHaveAccessibleName(/uncommitted/);
+    expect(within(switcher).getByRole("button", { name: /Mechanism of action/ })).not.toHaveAccessibleName(/uncommitted/);
   });
 });

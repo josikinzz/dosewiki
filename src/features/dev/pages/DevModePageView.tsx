@@ -11,6 +11,7 @@ import {
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
 import { findDevTab } from "./devTabRegistry";
+import { LoadErrorState } from "../components";
 import { DevWriteStatus } from "./DevToolSaveLine";
 import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
 
@@ -139,16 +140,16 @@ function IndexLayoutReadinessPanel({
 }) {
   if (readiness.status === "error") {
     return (
-      <StateCard
-        compact
-        tone="danger"
-        title="Unable to load editor layouts"
-        description={readiness.error}
-        actions={<Button variant="secondary" onClick={onRetry}>Retry loading editor layouts</Button>}
-      />
+      <div className="mx-auto mt-10 max-w-xl">
+        <LoadErrorState
+          what="the index layouts"
+          message={`${readiness.error ?? "The server did not send them."} Nothing can be arranged until they load.`}
+          onRetry={onRetry}
+        />
+      </div>
     );
   }
-  return <DevToolLoadingPanel label="Loading editor layouts" />;
+  return <DevToolLoadingPanel label="Loading the index layouts" />;
 }
 
 export function DevModePageView({ controller }: DevModePageViewProps) {
@@ -215,7 +216,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
-            enableStickyPanels={controller.enableStickyPanels}
+            {...controller.indexLayoutTabProps}
             commitPanel={controller.commitPanel}
           />
         ) : controller.activeTab === "writing" ? (

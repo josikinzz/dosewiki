@@ -4,7 +4,7 @@ import type { DevCommitControls } from "./useDevModeSaveActions";
 
 type UseDevSupportTabsControllerArgs = {
   commitPanel: ReactNode;
-  /** The commit in parts; Tags draws its own working-changes panel from them. */
+  /** The commit in parts; Tags and Index layout draw their own working-changes panel from them. */
   commitControls?: DevCommitControls;
   combinedChangelogMarkdown: string;
   hasPendingChanges: boolean;
@@ -53,7 +53,28 @@ export function useDevSupportTabsController({
     ],
   );
 
+  // Index layout draws the same Working changes panel from the same parts.
+  const indexLayoutTabProps = useMemo(
+    () => ({
+      commitPanel,
+      commit: commitControls,
+      datasetMarkdown: combinedChangelogMarkdown,
+      hasDatasetChanges: hasPendingChanges,
+      onCopyDatasetMarkdown: copyDatasetMarkdownForTagEditor,
+      onDownloadDatasetMarkdown: downloadDatasetMarkdownForTagEditor,
+    }),
+    [
+      combinedChangelogMarkdown,
+      commitControls,
+      commitPanel,
+      copyDatasetMarkdownForTagEditor,
+      downloadDatasetMarkdownForTagEditor,
+      hasPendingChanges,
+    ],
+  );
+
   return {
     tagEditorTabProps,
+    indexLayoutTabProps,
   };
 }

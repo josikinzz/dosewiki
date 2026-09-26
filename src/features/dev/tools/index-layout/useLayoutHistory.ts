@@ -7,19 +7,29 @@ import type { ManualDatasetKey, ManualIndexConfig } from "./types";
  */
 const HISTORY_LIMIT = 40;
 
-type Trail = { past: readonly ManualIndexConfig[]; future: readonly ManualIndexConfig[] };
+/** One step: the manual it replaced and, when the caller named it, what the step did ("Moved LSD to Dissociative"). */
+type Step = { manual: ManualIndexConfig; label: string | null };
+type Trail = { past: readonly Step[]; future: readonly Step[] };
 
 const EMPTY_TRAIL: Trail = { past: [], future: [] };
 
 export type LayoutHistory = {
   canUndo: boolean;
   canRedo: boolean;
-  /** Apply an edit to the active dataset and record what it replaced. */
-  edit: (transform: (manual: ManualIndexConfig) => ManualIndexConfig) => void;
-  undo: () => void;
-  redo: () => void;
+  /** What Undo would take back, in words, when the step was named. */
+  undoLabel: string | null;
+  /** What Redo would put back, in words, when the step was named. */
+  redoLabel: string | null;
+  /** Apply an edit to the active dataset and record what it replaced; `label` names the step for Undo and announcements. Returns whether anything changed. */
+  edit: (transform: (manual: ManualIndexConfig) => ManualIndexConfig, label?: string) => boolean;
+  /** Takes back the last step; returns its label (or null when unnamed or nothing to undo). */
+  undo: () => string | null;
+  /** Puts back the last undone step; returns its label. */
+  redo: () => string | null;
   /** Forget the trail: the draft was replaced wholesale, so its steps no longer apply. */
   forget: () => void;
+  /** Forget every dataset's trail: a commit made the drafts the new starting point. */
+  forgetAll: () => void;
 };
 
 /**
@@ -41,20 +51,21 @@ export function useLayoutHistory({
   const trail = trails[dataset] ?? EMPTY_TRAIL;
 
   const edit = useCallback(
-    (transform: (previous: ManualIndexConfig) => ManualIndexConfig) => {
+    (transform: (previous: ManualIndexConfig) => ManualIndexConfig, label?: string) => {
       const next = transform(manual);
       if (next === manual) {
-        return;
+        return false;
       }
 
       setTrails((previous) => {
         const current = previous[dataset] ?? EMPTY_TRAIL;
         return {
           ...previous,
-          [dataset]: { past: [...current.past, manual].slice(-HISTORY_LIMIT), future: [] },
+          [dataset]: { past: [...current.past, { manual, label: label ?? null }].slice(-HISTORY_LIMIT), future: [] },
         };
       });
       replace(next);
+      return true;
     },
     [dataset, manual, replace],
   );
@@ -63,36 +74,55 @@ export function useLayoutHistory({
     const current = trails[dataset] ?? EMPTY_TRAIL;
     const previous = current.past[current.past.length - 1];
     if (!previous) {
-      return;
+      return null;
     }
 
     setTrails((all) => ({
       ...all,
-      [dataset]: { past: current.past.slice(0, -1), future: [manual, ...current.future] },
+      [dataset]: { past: current.past.slice(0, -1), future: [{ manual, label: previous.label }, ...current.future] },
     }));
-    replace(previous);
+    replace(previous.manual);
+    return previous.label;
   }, [dataset, manual, replace, trails]);
 
   const redo = useCallback(() => {
     const current = trails[dataset] ?? EMPTY_TRAIL;
     const next = current.future[0];
     if (!next) {
-      return;
+      return null;
     }
 
     setTrails((all) => ({
       ...all,
-      [dataset]: { past: [...current.past, manual].slice(-HISTORY_LIMIT), future: current.future.slice(1) },
+      [dataset]: { past: [...current.past, { manual, label: next.label }].slice(-HISTORY_LIMIT), future: current.future.slice(1) },
     }));
-    replace(next);
+    replace(next.manual);
+    return next.label;
   }, [dataset, manual, replace, trails]);
 
   const forget = useCallback(() => {
     setTrails((all) => ({ ...all, [dataset]: EMPTY_TRAIL }));
   }, [dataset]);
 
+  const forgetAll = useCallback(() => {
+    setTrails({});
+  }, []);
+
+  const undoLabel = trail.past[trail.past.length - 1]?.label ?? null;
+  const redoLabel = trail.future[0]?.label ?? null;
+
   return useMemo(
-    () => ({ canUndo: trail.past.length > 0, canRedo: trail.future.length > 0, edit, undo, redo, forget }),
-    [edit, forget, redo, trail.future.length, trail.past.length, undo],
+    () => ({
+      canUndo: trail.past.length > 0,
+      canRedo: trail.future.length > 0,
+      undoLabel,
+      redoLabel,
+      edit,
+      undo,
+      redo,
+      forget,
+      forgetAll,
+    }),
+    [edit, forget, forgetAll, redo, redoLabel, trail.future.length, trail.past.length, undo, undoLabel],
   );
 }

@@ -98,6 +98,8 @@ export type DevModePageControllerState = {
    */
   initialFilter?: string;
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];
+  /** Index layout's Working changes panel parts (the same commit, diff and copy as Tags). */
+  indexLayoutTabProps?: ReturnType<typeof useDevSupportTabsController>["indexLayoutTabProps"];
   /**
    * The signed-in user's own contributor key, for the Contributors tab's
    * "Just me" scope: the canonical owned key once the server resolves it,

@@ -62,6 +62,9 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
   mechanism: "lucide:cog",
 };
 
+/** Every key the icon map knows, for an editor's icon suggestions. */
+export const CATEGORY_ICON_KEYS: readonly string[] = Object.keys(CATEGORY_ICON_MAP);
+
 export function getCategoryIcon(key: string): IconName {
   const trimmedKey = key.trim();
 
