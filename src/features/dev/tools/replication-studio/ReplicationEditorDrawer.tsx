@@ -802,7 +802,7 @@ export function ReplicationEditorDrawer({
             disabled={busy || !dirty || Boolean(sourceError(draft.source_url))}
             onClick={() => onSaveSingle(single, draft)}
           >
-            {busy ? "Saving…" : "Save"}
+            {busy ? "Saving" : "Save"}
           </Button>
           <Button type="button" variant="ghost" size="sm" disabled={busy || !dirty} onClick={() => setDraft(draftOf(single))}>
             Revert

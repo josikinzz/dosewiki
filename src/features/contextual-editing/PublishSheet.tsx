@@ -38,7 +38,7 @@ export function PublicationReceiptChips({ receipt }: { receipt: PublicationRecei
     <span className={chip}>Editor host: saved</span>
     <span className={chip} role="status">{PUBLIC_LABELS[receipt.public]}</span>
     <span className={chip}>{TRANSLATION_LABELS[receipt.translations]}</span>
-    {receipt.checking ? <span className="theme-text-muted">Checking delivery…</span> : null}
+    {receipt.checking ? <span className="theme-text-muted">Checking delivery</span> : null}
     {receipt.stopped ? <span className="theme-text-muted">Stopped checking. Reload later to see whether the public site has the change.</span> : null}
   </div>;
 }
@@ -153,7 +153,7 @@ export function PublishSheet({
     <section className="space-y-1">
       <h4 className="theme-text-primary text-sm font-semibold">Affected pages</h4>
       {targets.length ? <ul className="theme-text-secondary max-h-40 space-y-0.5 overflow-y-auto text-sm">{targets.map((target) => <li key={target}>{target}</li>)}</ul>
-        : <p className="theme-text-muted text-sm">Loading the affected pages…</p>}
+        : <p className="theme-text-muted text-sm">Loading the affected pages</p>}
     </section>
     {note ? <div className="space-y-2">
       <label htmlFor={noteId} className="theme-text-primary block space-y-2 text-sm">Change note<Input id={noteId} value={note.value} onChange={(event) => note.onChange(event.target.value)} onKeyDown={(event) => {

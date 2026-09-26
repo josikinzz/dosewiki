@@ -55,7 +55,7 @@ export function StagedArticlesRecoveryNotice({
             )} actions={(
               <span className="flex gap-2">
                 <Button type="button" variant="accent" size="sm" disabled={recovery.restoring} aria-busy={recovery.restoring || undefined} onClick={() => void recovery.restore()}>
-                  {recovery.restoring ? "Restoring…" : "Restore"}
+                  {recovery.restoring ? "Restoring" : "Restore"}
                 </Button>
                 <Button type="button" variant="ghost" size="sm" disabled={recovery.restoring} onClick={() => confirmDiscard(count, recovery.discardOffer)}>
                   Discard

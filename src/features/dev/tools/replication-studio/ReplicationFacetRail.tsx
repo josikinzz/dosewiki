@@ -95,7 +95,7 @@ function FacetSection({
               type="search"
               inputSize="sm"
               aria-label={`Filter ${title.toLowerCase()} list`}
-              placeholder={`Filter ${entries.length} ${title.toLowerCase()}s…`}
+              placeholder={`Filter ${entries.length} ${title.toLowerCase()}s`}
               autoComplete="off"
               value={needle}
               onChange={(event) => setNeedle(event.target.value)}
@@ -184,7 +184,7 @@ export function ReplicationFacetRail({
             type="search"
             inputSize="sm"
             aria-label="Search replications"
-            placeholder="Title, artist, slug…"
+            placeholder="Title, artist, slug"
             autoComplete="off"
             className="pl-9 pr-8"
             value={query}

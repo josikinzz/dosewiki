@@ -407,8 +407,8 @@ export function ReviewSubstancePicker({
             onValueChange={setQuery}
             placeholder={
               grouped
-                ? "Search by name, slug or class…"
-                : "Search by name or slug…"
+                ? "Search by name, slug or class"
+                : "Search by name or slug"
             }
           />
           {grouped && !needle ? (

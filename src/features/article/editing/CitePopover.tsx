@@ -163,7 +163,7 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
           onKeyDown={onQueryKeyDown}
         />
         {detection && <Button type="button" className="w-full" disabled={busy} onClick={() => { void addPasted(); }}>
-          {busy ? "Adding…" : `Add ${detection.label} and cite it here`}
+          {busy ? "Adding" : `Add ${detection.label} and cite it here`}
         </Button>}
         {matches.length > 0 && <div className="space-y-1">
           <p className="theme-text-muted text-xs">Already cited on this article</p>

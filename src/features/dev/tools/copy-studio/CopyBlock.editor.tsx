@@ -25,7 +25,7 @@ export default function CopyBlock({ copyKey, children }: { copyKey: string; chil
 function CopySession({ copyKey, close }: { copyKey: string; close: () => void }) {
   const source = useCopyIndexSource<{ document: CopyBlockRow | null; revision: number }>(`/api/dev/copy-block?key=${encodeURIComponent(copyKey)}`);
   const live = source.data;
-  return live === undefined ? <ContextualEditorPanel title="Loading copy" open onOpenChange={close}>{source.error ? <><p role="alert">{source.error}</p><Button onClick={source.reload}>Retry loading</Button></> : <p role="status">Loading this block…</p>}</ContextualEditorPanel> : <CopyBody copyKey={copyKey} initial={live.document} initialRevision={live.revision} close={close} />;
+  return live === undefined ? <ContextualEditorPanel title="Loading copy" open onOpenChange={close}>{source.error ? <><p role="alert">{source.error}</p><Button onClick={source.reload}>Retry loading</Button></> : <p role="status">Loading this block</p>}</ContextualEditorPanel> : <CopyBody copyKey={copyKey} initial={live.document} initialRevision={live.revision} close={close} />;
 }
 function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: string; initial: CopyBlockRow | null; initialRevision: number; close: () => void }) {
   const [baseline, setBaseline] = useState(initial);
@@ -76,7 +76,7 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
       {notice && <p role="status">{notice}</p>}
       {proposalId && <Notice {...proposalSubmittedNotice(block.label, proposalId)} />}
       {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before closing.</p>}
-      <div className="flex flex-wrap gap-2"><Button disabled={!dirty || saving} onClick={() => canApprove ? confirm({ title: `Publish “${block?.label ?? copyKey}”?`, description: `Every public page that reads ${copyKey} changes at once, not only this one. There is no draft step.`, confirmLabel: "Publish copy", onConfirm: publish }) : void publish()}>{saving ? (canApprove ? "Publishing…" : "Submitting…") : canApprove ? "Publish copy" : "Submit for review"}</Button><Button variant="secondary" disabled={saving} onClick={requestClose}>Cancel</Button></div>
+      <div className="flex flex-wrap gap-2"><Button disabled={!dirty || saving} onClick={() => canApprove ? confirm({ title: `Publish “${block?.label ?? copyKey}”?`, description: `Every public page that reads ${copyKey} changes at once, not only this one. There is no draft step.`, confirmLabel: "Publish copy", onConfirm: publish }) : void publish()}>{saving ? (canApprove ? "Publishing" : "Submitting") : canApprove ? "Publish copy" : "Submit for review"}</Button><Button variant="secondary" disabled={saving} onClick={requestClose}>Cancel</Button></div>
     </div> : <p>No supported block exists for this key.</p>}{dialog}
   </ContextualEditorPanel>;
 }

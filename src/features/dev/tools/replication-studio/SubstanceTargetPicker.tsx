@@ -122,7 +122,7 @@ export function SubstanceTargetPicker({
               className={busy || loaded.status === "loading" ? "animate-spin" : undefined}
             />
             {busy
-              ? "Applying…"
+              ? "Applying"
               : `Choose drugs${selectedSlugs.length > 0 ? ` (${selectedSlugs.length})` : ""}`}
           </Button>
         </PopoverTrigger>
@@ -131,14 +131,14 @@ export function SubstanceTargetPicker({
             <CommandInput
               value={query}
               onValueChange={setQuery}
-              placeholder="Search every drug by name or slug…"
+              placeholder="Search every drug by name or slug"
               disabled={disabled || busy}
             />
             <CommandList className="max-h-[min(24rem,60vh)]">
               {visible.length === 0 ? (
                 <p className="theme-text-muted px-3 py-6 text-center text-sm">
                   {loaded.status === "loading"
-                    ? "Loading every drug…"
+                    ? "Loading every drug"
                     : loaded.status === "error"
                       ? loaded.message
                       : "No drugs found"}

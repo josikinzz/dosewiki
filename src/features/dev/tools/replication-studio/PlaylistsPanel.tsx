@@ -166,7 +166,7 @@ export function PlaylistsPanel({
         </div>
 
         {!loaded ? (
-          <p className="theme-text-muted py-3 text-sm">Loading playlists…</p>
+          <p className="theme-text-muted py-3 text-sm">Loading playlists</p>
         ) : playlists.length === 0 ? (
           <EmptyStateSurface padding="sm" radius="lg" className="space-y-1 text-sm">
             <p className="theme-text-primary font-medium">No saved playlists yet.</p>

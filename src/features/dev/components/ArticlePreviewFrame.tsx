@@ -415,7 +415,7 @@ export function ArticlePreviewFrame({
   ) : (
     <main ref={fallbackRef} className={`theme-page-shell space-y-4 p-6${compact ? "" : " min-h-screen"}`}>
       {load.status === "loading" ? (
-        <p className="theme-text-faint text-sm">{`Loading ${title}…`}</p>
+        <p className="theme-text-faint text-sm">{`Loading ${title}`}</p>
       ) : null}
       <SubstanceWarningBanners banners={warningBanners ?? []} iconSize={iconSize} />
     </main>

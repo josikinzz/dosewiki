@@ -89,7 +89,7 @@ export function ArticleProposalReview({ proposals, slug, canApprove, blocked, on
       <span className="min-w-0 flex-1 basis-48">{item.summary || item.proposerName}</span>
       <EditorStatusPill tone={STATUS_PILL_TONE[item.status]}>{STATUS_LABELS[item.status]}</EditorStatusPill>
     </Button>)}</div>
-    {loading && <p role="status" className="theme-text-muted text-sm">Loading proposal…</p>}
+    {loading && <p role="status" className="theme-text-muted text-sm">Loading proposal</p>}
     {blocked && <p className="theme-text-muted text-sm">Save or discard local article edits before reviewing a proposal decision or loading a revision.</p>}
     {error && <p role="alert" className="theme-text-primary text-sm">{error}</p>}
     {notice && <p role="status" className="theme-text-primary text-sm">{notice}</p>}

@@ -230,7 +230,7 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
                         aria-busy={savingId === entry.id || undefined}
                         onClick={() => void saveOne(pending, entry.id)}
                       >
-                        {savingId === entry.id ? "Saving…" : entry.saveLabel ?? "Save"}
+                        {savingId === entry.id ? "Saving" : entry.saveLabel ?? "Save"}
                       </Button>
                     ) : null}
                   </span>

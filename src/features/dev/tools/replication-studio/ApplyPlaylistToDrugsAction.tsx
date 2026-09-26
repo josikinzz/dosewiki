@@ -189,7 +189,7 @@ export function ApplyPlaylistToDrugsAction({
                     size={14}
                     className={busy ? "animate-spin" : undefined}
                   />
-                  {busy ? "Applying…" : `Apply to ${selectedSlugs.length || "selected"}`}
+                  {busy ? "Applying" : `Apply to ${selectedSlugs.length || "selected"}`}
                 </Button>
               </>
             ) : (

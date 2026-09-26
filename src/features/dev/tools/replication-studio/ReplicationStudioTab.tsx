@@ -178,7 +178,7 @@ export function ReplicationStudioTab({
   if (load.status === "loading") {
     return (
       <EditorPanel variant="empty" className="p-8 text-center text-sm">
-        Loading the replication corpus…
+        Loading the replication corpus
       </EditorPanel>
     );
   }
@@ -471,7 +471,7 @@ export function ReplicationStudioTab({
                   onReset={featured.reset}
                 />
               ) : (
-                <p className="theme-text-muted text-sm">Loading the featured selection…</p>
+                <p className="theme-text-muted text-sm">Loading the featured selection</p>
               )
             ) : null}
 

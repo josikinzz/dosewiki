@@ -121,7 +121,7 @@ export function BannerIconField({ value, onChange, onValidityChange }: BannerIco
       description="Any Iconify id, resolved for real before it can be saved."
       counter={
         resolution === "checking"
-          ? "checking…"
+          ? "checking"
           : resolution === "valid"
             ? "resolved"
             : `${trimmed.length}/${WARNING_BANNER_LIMITS.iconMaxLength}`

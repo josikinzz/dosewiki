@@ -152,7 +152,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
                   ) : (
                     <span className="inline-flex items-center gap-2">
                       <Icon icon="lucide:loader-2" size={15} className="animate-spin" />
-                      Loading molecule…
+                      Loading molecule
                     </span>
                   )}
                 </div>
@@ -245,7 +245,7 @@ function GuardRow({
 }) {
   const mismatch = guard != null && !guard.match;
   let pill = (
-    <EditorStatusPill tone="neutral">{active ? "checking…" : "no molecule"}</EditorStatusPill>
+    <EditorStatusPill tone="neutral">{active ? "checking" : "no molecule"}</EditorStatusPill>
   );
   if (active && !hasReference) {
     pill = <EditorStatusPill tone="neutral">no reference SMILES</EditorStatusPill>;
@@ -302,7 +302,7 @@ function PreviewBox({
           </span>
         ) : (
           <span className="theme-text-faint text-center text-[11px] leading-tight">
-            {!ready ? "Loading…" : "Rendering…"}
+            {!ready ? "Loading" : "Rendering"}
           </span>
         )}
       </div>

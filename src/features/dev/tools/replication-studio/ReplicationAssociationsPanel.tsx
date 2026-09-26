@@ -298,7 +298,7 @@ function DirectPlacementEditor({
             const title =
               result?.substanceTitle
               ?? (preview?.status === "ready" ? preview.preflight.substanceTitle : substanceSlug);
-            let state = "Checking…";
+            let state = "Checking";
             if (result) {
               state =
                 result.status === "conflict"
@@ -350,7 +350,7 @@ function DirectPlacementEditor({
           }
           onClick={() => void apply()}
         >
-          {busy ? "Adding…" : "Add to selected drugs"}
+          {busy ? "Adding" : "Add to selected drugs"}
         </Button>
         <span className="theme-text-faint text-xs">Nothing is written until you add.</span>
       </div>
