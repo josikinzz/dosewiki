@@ -579,7 +579,7 @@ export function TagEditorTab({
 
   if (registryFetch.status === "error") {
     return (
-      <div className="mt-6 space-y-8 md:mt-8">
+      <div className="space-y-8">
         {workingChanges}
         {intro}
         <LoadErrorState
@@ -596,7 +596,7 @@ export function TagEditorTab({
 
   if (registryFetch.status !== "ready") {
     return (
-      <div className="mt-6 space-y-8 md:mt-8">
+      <div className="space-y-8">
         {workingChanges}
         {intro}
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(19rem,23rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
@@ -621,7 +621,7 @@ export function TagEditorTab({
   const carried = state.notice && state.notice.source !== "diff" ? state.notice : null;
 
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
+    <div className="space-y-8">
       {workingChanges}
 
       <EditorSection

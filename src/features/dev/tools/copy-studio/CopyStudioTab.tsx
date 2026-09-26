@@ -600,7 +600,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       : `${groupBlocks.length} in ${resolvedGroup}`;
 
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
+    <div className="space-y-8">
       <EditorSection
         icon="lucide:type"
         title="Copy"

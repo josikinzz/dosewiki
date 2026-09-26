@@ -415,12 +415,13 @@ describe("DevModePageChrome phone sheet", () => {
     return { ...utils, onTabChange, onPrimaryTabChange, onLeave };
   }
 
-  it("names the current tool on the bar and uses the shared disclosure cue", () => {
+  it("names the current tool on the bar and uses the menu chevron, as the rail's group menus do", () => {
     const { getByRole, queryByRole } = renderPhone();
     expect(queryByRole("dialog")).toBeNull();
 
     const trigger = getByRole("button", { name: "Tools menu, current tool Tags" });
-    expect(trigger.querySelector("[data-expand-indicator]")).not.toBeNull();
+    expect(trigger.querySelector('[data-icon="lucide:chevron-down"]')).not.toBeNull();
+    expect(trigger.querySelector("[data-expand-indicator]")).toBeNull();
   });
 
   it("opens with a header, scrolling groups, and a sticky footer with the way out", () => {

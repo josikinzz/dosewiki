@@ -204,7 +204,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   ) : null;
 
   return (
-    <div className="mx-auto mt-6 w-full max-w-[100rem] md:mt-8">
+    <div className="mx-auto w-full max-w-[100rem]">
       {dirtyGuard.dialog}
       <EditorSection
         icon="lucide:flask-conical"

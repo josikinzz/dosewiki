@@ -756,7 +756,7 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
   const paneOnPhone = pickedSlug !== null && pickedSlug === selectedSlug;
 
   return (
-    <div className="mt-6 space-y-6">
+    <div className="space-y-6">
       <EditorSection
         icon="lucide:quote"
         title="Citations"

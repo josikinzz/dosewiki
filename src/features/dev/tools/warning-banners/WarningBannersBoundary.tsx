@@ -57,8 +57,8 @@ export class WarningBannersBoundary extends Component<
     // Try again clears the boundary, which re-renders the studio and so
     // re-reads the display setting.
     return (
-      <div className="mt-6 md:mt-8">
-        <EditorSection icon="lucide:triangle-alert" title="Banner Studio">
+      <div>
+        <EditorSection icon="lucide:triangle-alert" title="Banners">
           <div className="max-w-3xl space-y-3">
             <LoadErrorState
               what="the banner display settings"

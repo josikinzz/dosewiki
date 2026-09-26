@@ -140,10 +140,10 @@ export function WarningBannersStudioView({
   coverageProps,
 }: WarningBannersStudioViewProps) {
   return (
-    <div className="mt-6 md:mt-8">
+    <div>
       <EditorSection
         icon="lucide:triangle-alert"
-        title="Banner Studio"
+        title="Banners"
         description="Warnings at the top of substance articles. A preset shows on the substances you list, or on every article when you choose that; never by classification."
       >
         <CoverageReadout coverage={coverage} capped={capped} targetCount={targets.length} />
@@ -157,7 +157,7 @@ export function WarningBannersStudioView({
         ) : null}
 
         <EditorNavTabs
-          label="Banner Studio views"
+          label="Banners views"
           value={view}
           onChange={(next) => onViewChange(next === "coverage" ? "coverage" : "presets")}
           options={[

@@ -328,7 +328,7 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
   const searching = search.trim().length > 0;
 
   return (
-    <div className="mt-6 space-y-6 md:mt-8">
+    <div className="space-y-6">
       <EditorSection
         icon="lucide:user-cog"
         title="People"

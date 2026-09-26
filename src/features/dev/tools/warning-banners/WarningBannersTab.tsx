@@ -798,8 +798,8 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
 
   if (rows === undefined) {
     return (
-      <div className="mt-6 md:mt-8">
-        <EditorSection icon="lucide:triangle-alert" title="Banner Studio">
+      <div>
+        <EditorSection icon="lucide:triangle-alert" title="Banners">
           {rowsError ? (
             <LoadErrorState
               what="the banner presets"

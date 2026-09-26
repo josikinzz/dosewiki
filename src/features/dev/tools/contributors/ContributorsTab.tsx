@@ -218,7 +218,7 @@ export function ContributorsTab({
   );
 
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
+    <div className="space-y-8">
       {dirtyGuardDialog}
       <EditorSection
         icon="lucide:users"

@@ -220,37 +220,35 @@ export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: De
   );
 
   return (
-    <div className="mt-8 grid w-full gap-6 lg:mt-10 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
-      <aside aria-label="Filter saves" className={cn("min-w-0 lg:self-start", filtersCardClassName)}>
-        <ChangeLogFilters controller={controller} searchRef={searchRef} nameFor={nameFor} searchKey={shellListens} />
-      </aside>
-
-      <div className="min-w-0 space-y-5">
-        {notice ? (
-          <Notice
-            tone={notice.type === "error" ? "danger" : notice.type === "pending" ? "loading" : "success"}
-            message={notice.message}
-            dismiss={notice.type === "pending" ? undefined : clearNotice}
+    <EditorSection
+      className="min-w-0"
+      icon="lucide:history"
+      title="Change log"
+      description={summary}
+      actions={
+        shownEntries.length > 0 && !firstPageLoading ? (
+          <ExpandButton
+            variant="floating"
+            isExpanded={anyVisibleExpanded}
+            onToggle={toggleAllVisible}
+            label={anyVisibleExpanded ? "Close all" : "Open all"}
+            ariaLabel={anyVisibleExpanded ? "Collapse every diff" : "Expand every diff"}
           />
-        ) : null}
-
-        <EditorSection
-          className="min-w-0"
-          icon="lucide:history"
-          title="Saves"
-          description={summary}
-          actions={
-            shownEntries.length > 0 && !firstPageLoading ? (
-              <ExpandButton
-                variant="floating"
-                isExpanded={anyVisibleExpanded}
-                onToggle={toggleAllVisible}
-                label={anyVisibleExpanded ? "Close all" : "Open all"}
-                ariaLabel={anyVisibleExpanded ? "Collapse every diff" : "Expand every diff"}
-              />
-            ) : undefined
-          }
-        >
+        ) : undefined
+      }
+    >
+      {notice ? (
+        <Notice
+          tone={notice.type === "error" ? "danger" : notice.type === "pending" ? "loading" : "success"}
+          message={notice.message}
+          dismiss={notice.type === "pending" ? undefined : clearNotice}
+        />
+      ) : null}
+      <div className="grid w-full gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
+        <aside aria-label="Filter saves" className={cn("min-w-0 lg:self-start", filtersCardClassName)}>
+          <ChangeLogFilters controller={controller} searchRef={searchRef} nameFor={nameFor} searchKey={shellListens} />
+        </aside>
+        <div className="min-w-0 space-y-5">
           {activeFilterCount > 0 ? (
             <div role="group" aria-label={`Active filters, ${activeFilterCount}`} className="flex flex-wrap items-center gap-2">
               {articleTitle ? (
@@ -441,8 +439,8 @@ export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: De
               </div>
             </div>
           )}
-        </EditorSection>
+        </div>
       </div>
-    </div>
+    </EditorSection>
   );
 }

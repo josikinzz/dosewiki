@@ -354,7 +354,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   };
 
   return (
-    <div className="mx-auto mt-6 w-full max-w-[100rem] md:mt-8">
+    <div className="mx-auto w-full max-w-[100rem]">
       <EditorSection
         icon="lucide:hexagon"
         title="Molecules"

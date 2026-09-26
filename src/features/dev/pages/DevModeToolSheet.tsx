@@ -13,6 +13,7 @@ import {
   RAIL_GROUP_CAPTION_CLASS as GROUP_CAPTION_CLASS,
   RAIL_ICON_BUTTON_CLASS as ICON_BUTTON_CLASS,
   LockedToolList,
+  MenuChevron,
   SpokenLabel,
   ToolGlyph,
   countBadgeSuffix,
@@ -142,8 +143,11 @@ export function DevToolSheet({
           {/* One text run for the name, so it reads "Tools menu, current tool Tags, 3 awaiting review". */}
           <span className="sr-only">{`Tools menu, current tool ${activeLabel}${unsavedAnywhere ? ", unsaved changes" : ""}${attention ? countBadgeSuffix(attention, undefined, attentionStale, attentionAtLeast) : ""}`}</span>
           <span aria-hidden className="min-w-0 truncate">{activeLabel}</span>
-          <ToolMarks unsaved={unsavedAnywhere} badge={attention} stale={attentionStale} atLeast={attentionAtLeast} />
-          <ExpandIndicator isExpanded={open} variant="inline" className="theme-text-muted ml-auto shrink-0" />
+          {/* The count and dot belong to the menu (every tool), so they ride with its chevron, not the tool's name. */}
+          <span className="ml-auto flex shrink-0 items-center gap-2">
+            <ToolMarks unsaved={unsavedAnywhere} badge={attention} stale={attentionStale} atLeast={attentionAtLeast} />
+            <MenuChevron open={open} />
+          </span>
         </button>
       </DialogPrimitive.Trigger>
       <DialogPortal>
