@@ -378,14 +378,15 @@ builds a new shared primitive, add it to **Conventions** and log it under
   `aria-invalid`, and the dock's blocker names the row ("Link 2: ..."). Pure
   rules live in the tool's model (`profileEditModel.ts`).
 
-- **Rows in a windowed `EditorList` share one fixed height.** The list sizes
-  its window from the first measured row and keeps the selected row in view;
-  rows of different heights (one with a pill, one without) make those two
-  fight, and a selection near the bottom of the box loops until React stops
-  it ("Maximum update depth exceeded"). Pin the row (`h-[3.75rem]
-  overflow-hidden` on `EditorListRow`) and pass the matching
-  `estimateRowHeight` (row plus the option's 4px gap). `CopyBlockRowView`
-  is the reference.
+- **Rows in a windowed `EditorList` may differ in height.** The list measures
+  each mounted row, keeps its height by key and positions rows by prefix sums,
+  and a selection's reveal corrects itself a bounded number of times as rows get
+  measured (Pass 22; the old shared pitch taken from one row flipped as the
+  window moved and could loop until React stopped it). Pass an
+  `estimateRowHeight` close to the typical row plus the option's 4px gap. A
+  list whose rows would jitter by a few pixels (a pill on some rows) may still
+  pin them for rhythm (`h-[3.75rem] overflow-hidden` on `EditorListRow`, as
+  Copy and Substances do), but it is a visual choice, not a workaround.
 - **Sections in a narrow list column** are a three-column grid of
   `pillActive`/`ghostPill` buttons (label over count) in the segmented capsule
   (`SectionChoices` in `CopyStudioTab`, after People's `ViewChoices`), and a
