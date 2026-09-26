@@ -2150,6 +2150,21 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
+/* An accent action that cannot run steps down to the outline recipe: at half
+     opacity the magenta fill still reads as live on the light canvas. The
+     declarations are !important because the unlayered visual-style sheets
+     (pro-theme.css, fun-flat-glow.css) restate the fill and bloom, and an
+     important layered declaration is the one thing that outranks them. */
+.theme-cta-accent:disabled,
+.theme-cta-accent[aria-disabled="true"] {
+  color: var(--theme-text-secondary) !important;
+  background: transparent !important;
+  border-color: var(--theme-border-subtle) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .theme-cta-accent {
     transition: none;

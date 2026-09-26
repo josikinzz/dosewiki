@@ -26,6 +26,21 @@ export const buttonStory: StoryDef = {
       ),
     },
     {
+      label: "Disabled",
+      note: "An accent action that cannot run steps down to the outline recipe in every scheme and style, so it never reads as live. Say why it is off next to it.",
+      render: () => (
+        <>
+          <Button variant="accent" disabled>
+            Publish
+          </Button>
+          <Button variant="outline" disabled>
+            Discard edits
+          </Button>
+          <Button variant="accent">Publish</Button>
+        </>
+      ),
+    },
+    {
       label: "Quiet",
       render: () => (
         <>
