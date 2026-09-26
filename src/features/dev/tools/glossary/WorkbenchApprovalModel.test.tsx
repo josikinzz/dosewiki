@@ -118,12 +118,12 @@ describe("translation workbench for a translator", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("opens on the Inbox, first in the nav", async () => {
+  it("opens on Waiting, first in the nav", async () => {
     const { reads } = stubWorkbench();
     render(<GlossaryTab viewerRole="translator" />);
-    await waitFor(() => expect(view("Inbox")).toHaveAttribute("aria-selected", "true"));
+    await waitFor(() => expect(view("Waiting")).toHaveAttribute("aria-selected", "true"));
     const names = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab").map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim());
-    expect(names[0]).toBe("Inbox");
+    expect(names[0]).toBe("Waiting");
     await waitFor(() => expect(reads.some((read) => read.startsWith("/api/dev/translation-inbox"))).toBe(true));
   });
 
@@ -191,7 +191,7 @@ describe("translation workbench for a translator", () => {
     stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="admin" />);
-    await screen.findByRole("region", { name: "Review inbox" });
+    await screen.findByRole("region", { name: "Waiting for review" });
     // Each view's own content has loaded before its text is read; hidden views stay mounted, so they are read too.
     const loaded: [string, () => Promise<unknown>][] = [
       ["Terms", () => screen.findByTestId("glossary-summary")],

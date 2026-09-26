@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Glossary, the translation workbench: `/dev/glossary`, opening on the Inbox, which lists
+ * Glossary, the translation workbench: `/dev/glossary`, opening on Waiting, which lists
  * what needs a person. Terms and Interface text share one search. Articles
  * opens on the articles needing review and holds the article reader, per-page
  * coverage, recorded changes, reader feedback and, for admins, the runs with
@@ -137,7 +137,7 @@ type WorkbenchSection = WordsList | Exclude<WorkbenchView, "words">;
 
 /** Inbox first: it is where the workbench opens, with everything waiting for a person. */
 const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
-  { value: "inbox", label: "Inbox" },
+  { value: "inbox", label: "Waiting" },
   { value: "terms", label: "Terms" },
   { value: "labels", label: "Interface text" },
   { value: "pages", label: "Articles" },
@@ -829,7 +829,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               <p className="theme-text-muted flex flex-wrap items-center gap-x-2 text-sm">
                 <Icon icon="lucide:inbox" size={14} className="shrink-0" />
                 Opened from the Inbox.
-                <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => openSection("inbox")}>Back to the Inbox</Button>
+                <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => openSection("inbox")}>Back to Waiting</Button>
               </p>
             ) : null}
             {/* Operational counts for the views that deal in stored translations; Terms keeps them out of the terminology work. */}
@@ -845,7 +845,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       {data ? (
         <>
           {visitedViews.inbox ? (
-            <div id="glossary-view-inbox" role="tabpanel" aria-label="Inbox" hidden={view !== "inbox"}>
+            <div id="glossary-view-inbox" role="tabpanel" aria-label="Waiting" hidden={view !== "inbox"}>
               <ReviewInbox key={data.locale} locale={data.locale} onOpen={openInboxLink} onTotalChange={setInboxTotal} active={view === "inbox"} />
             </div>
           ) : null}

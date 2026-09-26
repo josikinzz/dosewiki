@@ -98,7 +98,7 @@ const openHref = (href: string) => window.location.assign(href);
 
 /** The Inbox's single keys, for the shell's `?` sheet; listed only while they are on. */
 const REVIEW_INBOX_SHORTCUTS: readonly DevShortcut[] = [
-  { keys: "j / k", label: "Next and previous item in the Inbox" },
+  { keys: "j / k", label: "Next and previous waiting item" },
   { keys: "a", label: "Accept, with 10 seconds to undo" },
   { keys: "u", label: "Undo the accept" },
   { keys: "e", label: "Edit the item" },
@@ -148,7 +148,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
       setReason(only);
       setFocusIndex(0);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to load the inbox.");
+      setError(cause instanceof Error ? cause.message : "Unable to load the waiting list.");
     } finally {
       setLoading(false);
     }
@@ -209,7 +209,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
           setGlossaryConflict({ key, conflicts });
           return;
         }
-        const refusal = describeWriteRefusal(cause, "The change did not go through. Reload the inbox and review the latest revision.");
+        const refusal = describeWriteRefusal(cause, "The change did not go through. Reload the waiting list and review the latest revision.");
         setNotice({ tone: "danger", message: refusal.message });
       } finally {
         release(key);
@@ -326,7 +326,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
 
   // Always mounted, before the first message, so every notice and the undo offer are announced; it sits in the dock.
   const liveRegion = (
-    <div role="status" aria-live="polite" aria-label="Inbox messages" className="space-y-2 empty:hidden">
+    <div role="status" aria-live="polite" aria-label="Waiting messages" className="space-y-2 empty:hidden">
       {undoable ? (
         <Notice
           tone="info" placement="inline" message={`Accepting "${undoable.english}" in 10 seconds.`} actions={<Button type="button" variant="outline" size="sm" aria-keyshortcuts="u" onClick={undoAccept}>Undo<KeyCap>u</KeyCap></Button>}
@@ -338,9 +338,9 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
 
   let paneBody: ReactNode;
   if (error) {
-    paneBody = <div className="p-4 sm:p-5"><LoadErrorState what="the inbox" message={error} onRetry={() => void load(offset, reason)} busy={loading} /></div>;
+    paneBody = <div className="p-4 sm:p-5"><LoadErrorState what="the waiting list" message={error} onRetry={() => void load(offset, reason)} busy={loading} /></div>;
   } else if (!data) {
-    paneBody = <div className="p-4 sm:p-5"><RowSkeletons rows={2} label="the inbox" /></div>;
+    paneBody = <div className="p-4 sm:p-5"><RowSkeletons rows={2} label="the waiting list" /></div>;
   } else if (allClear) {
     paneBody = (
       <div className="space-y-3 px-4 py-6 sm:px-5">
@@ -370,7 +370,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
 
   return (
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- J/K/A/U/E/F/S shortcuts for the roving-focus list; every action also has a button.
-    <section aria-label="Review inbox" className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(19rem,24rem)_minmax(0,1fr)] lg:items-start xl:gap-8" onKeyDown={onKeyDown}>
+    <section aria-label="Waiting for review" className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(19rem,24rem)_minmax(0,1fr)] lg:items-start xl:gap-8" onKeyDown={onKeyDown}>
       <section ref={listRef} aria-labelledby={`inbox-list-${locale}`} className="scroll-mt-24 space-y-3 lg:sticky lg:top-24">
         <div className="flex items-center justify-between gap-3">
           <h3 id={`inbox-list-${locale}`} className="type-meta-label theme-text-muted">Waiting</h3>
@@ -405,7 +405,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
           </div>
         ) : null}
 
-        {!data && !error ? <RowSkeletons rows={5} label="the inbox" /> : null}
+        {!data && !error ? <RowSkeletons rows={5} label="the waiting list" /> : null}
         {data && data.total === 0 && reason ? (
           <StateCard compact tone="neutral" icon="lucide:inbox" title={`Nothing listed for "${INBOX_REASON_LABEL[reason]}"`} description={`Checked ${INBOX_CHECK_LABEL[reason]}.`} actions={<Button variant="outline" size="sm" onClick={() => void load(0, null)}>Show every reason</Button>} />
         ) : data && data.total === 0 ? (
@@ -443,7 +443,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
         ) : null}
 
         {data && data.total > INBOX_PAGE_SIZE ? (
-          <nav className="flex flex-wrap items-center gap-2" aria-label="Inbox pages">
+          <nav className="flex flex-wrap items-center gap-2" aria-label="Waiting pages">
             <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => void load(offset - INBOX_PAGE_SIZE, reason)}>Previous items</Button>
             <Button variant="outline" size="sm" disabled={offset + INBOX_PAGE_SIZE >= data.total} onClick={() => void load(offset + INBOX_PAGE_SIZE, reason)}>Next items</Button>
           </nav>

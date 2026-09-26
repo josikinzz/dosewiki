@@ -2893,3 +2893,14 @@ Considered and kept, with reasons:
   security-policy change, so it is left for the owner: update
   `THEME_BOOTSTRAP_CSP_HASHES.dosewiki` to the hash the test prints.
 
+
+### After the run: release fixes
+
+- The Glossary's first view is named **Waiting**, not "Inbox", so it no longer
+  shares a name with the rail's Inbox tool. Links and code keep the value
+  `inbox` (`translationView=inbox` still opens it), and the stored history
+  notes "Accepted from the Inbox" and "Resolved from the Inbox" are unchanged
+  so new history reads like old history.
+- `THEME_BOOTSTRAP_CSP_HASHES.dosewiki` in `lib/next/cspObservationPolicy.ts`
+  now pins the hash of the theme startup script as `main` ships it (the script
+  changed in `6ad8f162f` without its hash).

@@ -152,7 +152,7 @@ describe("GlossaryTab", () => {
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     await screen.findByRole("textbox", { name: "Translation for anxiety" });
-    await user.click(viewButton("Inbox"));
+    await user.click(viewButton("Waiting"));
     expect(new URLSearchParams(window.location.search).get("translationView")).toBe("inbox");
   });
 
@@ -514,7 +514,7 @@ describe("GlossaryTab", () => {
     api.holdNextWrite();
     await user.click(rowFor("anxiety").getByRole("button", { name: "Approve" }));
     await waitFor(() => expect(api.calls).toHaveLength(1));
-    expect(viewButton("Inbox")).toBeEnabled();
+    expect(viewButton("Waiting")).toBeEnabled();
     expect(viewButton("Interface text")).toBeEnabled();
     api.release();
     await screen.findByText('Approved "anxiety".');
@@ -682,7 +682,7 @@ describe("GlossaryTab", () => {
     expect(dirty.defaultPrevented).toBe(true);
   });
 
-  it("opens an Inbox item's Edit in place, keeping unsaved wording in other rows", async () => {
+  it("opens a waiting item's Edit in place, keeping unsaved wording in other rows", async () => {
     stubGlossaryApi([row("anxiety", "draft"), row("euphoria", "draft")]);
     const base = vi.mocked(fetch).getMockImplementation()!;
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => new URL(String(input), "https://dev.dose.wiki").pathname === "/api/dev/translation-inbox"
@@ -693,7 +693,7 @@ describe("GlossaryTab", () => {
     const input = await screen.findByRole("textbox", { name: "Translation for anxiety" });
     await user.clear(input);
     await user.type(input, "Kept correction");
-    await user.click(viewButton("Inbox"));
+    await user.click(viewButton("Waiting"));
     await user.click(await screen.findByRole("link", { name: "Edit" }));
     expect(viewButton("Terms")).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("searchbox", { name: "Search words" })).toHaveValue("euphoria");
@@ -730,16 +730,16 @@ describe("workbench views", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("opens on the Inbox without fetching the usage corpus, and Terms opens on category choices", async () => {
+  it("opens on Waiting without fetching the usage corpus, and Terms opens on category choices", async () => {
     stubGlossaryApi([row("anxiety", "draft")]);
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     await screen.findByTestId("glossary-summary");
     const views = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab");
     // Each tab's name leads with the view; a count may follow it.
-    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Inbox", "Terms", "Interface text", "Articles", "Style guide"]);
-    expect(viewButton("Inbox")).toHaveAttribute("aria-selected", "true");
-    expect(await screen.findByRole("region", { name: "Review inbox" })).toBeVisible();
+    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Waiting", "Terms", "Interface text", "Articles", "Style guide"]);
+    expect(viewButton("Waiting")).toHaveAttribute("aria-selected", "true");
+    expect(await screen.findByRole("region", { name: "Waiting for review" })).toBeVisible();
     const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
     expect(requests.some((url) => url.includes("includeUsage=0"))).toBe(true);
     await user.click(viewButton("Terms"));
@@ -789,9 +789,9 @@ describe("workbench views", () => {
     for (const state of ["Machine", "Draft (unreviewed)", "Live, never checked", "Human approved", "Source changed", "Re-check"]) expect(legend.getByText(state)).toBeInTheDocument();
   });
 
-  type Expectation = { view: "Inbox" | "Terms" | "Interface text" | "Style guide" | "Articles"; region: string; search?: string };
+  type Expectation = { view: "Waiting" | "Terms" | "Interface text" | "Style guide" | "Articles"; region: string; search?: string };
   const cases: [string, Expectation][] = [
-    ["translationView=inbox", { view: "Inbox", region: "Review inbox" }],
+    ["translationView=inbox", { view: "Waiting", region: "Waiting for review" }],
     ["translationView=glossary&translationTerm=anxiety", { view: "Terms", region: "Glossary terms", search: "anxiety" }],
     ["translationView=labels&translationLabel=appearance.light", { view: "Interface text", region: "UI labels", search: "appearance.light" }],
     ["translationView=coverage", { view: "Articles", region: "Translation coverage" }],

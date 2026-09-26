@@ -4,26 +4,26 @@ The `/dev/glossary` workbench separates terminology review, exact UI wording,
 source coverage, and publication evidence. Its locale capability is independent
 of the editor role. Every read and write checks the assigned locale on the server.
 
-## Layout: Terms, Interface text, Articles, Inbox, Style guide
+## Layout: Terms, Interface text, Articles, Waiting, Style guide
 
 One tab strip, **Workbench view**, sits under a labeled **Language** picker
 that names each language in its own script (for example "Deutsch (German)");
 a Translator with one assigned language sees it as a fact rather than a
 picker. Its five tabs map onto three internal views: **Terms**, **Interface
 text**, and **Style guide** are the Words view's lists (`terms`, `labels`,
-`style`), **Articles** is the Pages view, and **Inbox** is the Inbox view.
-Tabs carry counts when they are known (items waiting in the Inbox, terms and
+`style`), **Articles** is the Pages view, and **Waiting** is the Inbox view (`inbox` in links and code).
+Tabs carry counts when they are known (items in Waiting, terms and
 interface text still needing a person), and every view stays mounted once
 opened, so switching never drops typed work.
 
-The workbench opens on the Inbox. Terms opens with its categories closed and
+The workbench opens on Waiting. Terms opens with its categories closed and
 all review states included.
 
-- **Inbox** is a triage workspace: the items that need a person on the left,
+- **Waiting** is a triage workspace: the items that need a person on the left,
   the item under review on the right with its English, the wording readers
   see, and what the check found, and a decision dock with **Accept**, **Fine
   here**, **Edit** and **Skip** (key caps on each). See
-  [Review Inbox](#review-inbox). When nothing waits it says **All clear** and
+  [Waiting](#waiting). When nothing waits it says **All clear** and
   folds away what it checked.
 - **Terms** starts with the language's review progress: how many terms are
   approved, unreviewed, and live but never checked, with one bar. **Continue
@@ -55,7 +55,7 @@ all review states included.
 - **Style guide** holds the locale's style guide, with its save actions in a
   dock and its history beside it.
 
-Articles and Inbox show a status line with stored translation counts and run
+Articles and Waiting show a status line with stored translation counts and run
 progress. Terms keeps those operational counts out of the terminology workflow.
 The header says how the two saves differ in one line (the tool's own save
 sentence), which the write freeze replaces with "Writes are paused." A refused
@@ -75,7 +75,7 @@ Review history sits in a drawer on each item: **History** on a glossary row, a
 UI label, and an open article paragraph.
 
 Glossary wording survives search, category changes, and view changes within
-the open workbench, including an Inbox **Edit**, which opens its place in the
+the open workbench, including an **Edit** from Waiting, which opens its place in the
 workbench without reloading the page. Unsaved wording retains its original
 revision for conflict detection. It does not survive a browser reload, so
 leaving or reloading the page with unsaved term or interface text wording asks
@@ -107,7 +107,7 @@ or Older import). Reviewer names stay in History. The review states are **Unrevi
 (a saved draft, "Draft (unreviewed)" in the legend), **Live, never checked**,
 and **Approved**, and every count uses those words. Languages are named in
 their own script with the English name beside it. Model, run, prompt, and
-revision numbers stay out of the Inbox and the article editor; hovering the
+revision numbers stay out of Waiting and the article editor; hovering the
 Machine label shows them.
 
 Every field and passage in the language under review carries that language's
@@ -146,7 +146,7 @@ needs one of four reason chips, **Fluency**, **Terminology**, **Accuracy**, or
 `{ kind, note }` (kind `fluency`, `terminology`, `accuracy`, or `local`) in the
 `reason` column as a versioned JSON object. Rows written before this change hold
 free text and read as `{ kind: "unspecified", note }`. A plain-text reason from
-an older caller, such as Inbox Accept or batch label approval, is still accepted
+an older caller, such as Accept in Waiting or batch label approval, is still accepted
 and stored as plain text. Above the open glossary
 category, "Approvals here are recorded as **Terminology** changes" sets the
 reason kind (Terminology by default) recorded with every Approve and Confirm
@@ -198,9 +198,9 @@ dialog first. A category header reads, for
 example, "3 drafts, 2 never checked"; its **Approve all** approves the drafts
 only, and its **Confirm all** confirms the never-checked rows only.
 
-### Review Inbox
+### Waiting
 
-The **Inbox** view lists, in one place, everything in the locale that needs a
+The **Waiting** view lists, in one place, everything in the locale that needs a
 person. This first slice checks three things: glossary rows that are live but
 never checked, UI labels whose English or context changed after a human
 approved them, and article sentences whose approval went stale (own English
@@ -220,12 +220,12 @@ move, A accepts, E edits, F marks a finding fine here, S skips.
 returns one page of 50 items, the total, and the count per reason; `reason`
 narrows the list to one reason (the view's reason filter). It is read-only and
 has the same Translator access and locale assignment checks as the rest of the
-workbench. The inbox is a read model over the review tables and stored
+workbench. Waiting is a read model over the review tables and stored
 segments; it adds no approval path.
 
 #### What the checks found
 
-The Inbox also lists findings from automated checks and readers, in this
+Waiting also lists findings from automated checks and readers, in this
 order within the whole list:
 
 1. **Rejected, readers see English** (first): the validator refused every
@@ -285,7 +285,7 @@ Suggestions are stored as drafts in `translationReviewEntries` under scope
 `model-suggestion`, each carrying the model, run id, prompt version, and the
 token use of its request; the `run:<slug>` entry's history records every run's
 summary. They are listed as **Model fluency suggestion** after the QA
-findings. A suggestion expires, and leaves the Inbox, when the sentence's
+findings. A suggestion expires, and leaves Waiting, when the sentence's
 English or the wording readers see changes. **Accept as draft**
 (`POST /api/dev/translation-inbox/suggestion`, Translator and up) saves the
 suggested sentence as a narrative draft with reason `{ kind: "fluency" }` and
@@ -532,7 +532,7 @@ original. Drafts never render. The English page is unchanged, and no prompt,
 glossary, or other locale reads this scope. A section counts as present by the
 same rule as the public table of contents. When a section leaves the English
 article its note is orphaned: it stops rendering, the reader shows it without an
-editor, and the Inbox lists it as "Note's section removed" with Edit only. If
+editor, and Waiting lists it as "Note's section removed" with Edit only. If
 the section returns, the note shows again. There is no delete action yet.
 
 ### Style guide
