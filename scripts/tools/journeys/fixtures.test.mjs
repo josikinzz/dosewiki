@@ -638,6 +638,13 @@ describe("journey fixtures", () => {
     // A whole article for the seeded four, the thin row for the rest.
     assert.ok(get(admin, "/api/dev/editor-library", "?slug=lsd").json.article.dosage.routes.length > 0);
     assert.equal(get(admin, "/api/dev/editor-library", "?slug=caffeine").json.article.dosage, undefined);
+    // Every other row answers whole, its own identity and tags over empty sections, so previews draw.
+    const diazepam = get(admin, "/api/dev/editor-library", "?slug=diazepam").json.article;
+    assert.equal(diazepam.title, "Diazepam");
+    assert.deepEqual(diazepam.dosage.routes, []);
+    assert.deepEqual(diazepam.classification.chemical_class, ["Benzodiazepines"]);
+    assert.equal(diazepam.pharmacology.binding_sites.length, 1);
+    assert.equal(diazepam.pharmacology.pharmacodynamics, "");
     const lsd = lifecycle(admin, "lsd").json;
     assert.equal(lsd.draft, null);
     assert.equal(lsd.history.length, 2);

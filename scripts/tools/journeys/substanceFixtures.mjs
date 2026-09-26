@@ -4,10 +4,17 @@
  * the private article lifecycle (`/api/dev/article-lifecycle`) the in-page
  * editor loads, saves drafts to, submits and publishes through.
  *
- * Four articles are whole (LSD, MDMA, Ketamine and Alcohol, taken once from
- * the archived public snapshot `public/SubstanceIndex.json` into
- * `substanceArticlesSeed.json`); every other library row stays the thin
- * projection the corpus tools read, so opening one exercises the tool's
+ * Four articles are whole with real content (LSD, MDMA, Ketamine and Alcohol,
+ * taken once from the archived public snapshot `public/SubstanceIndex.json`
+ * into `substanceArticlesSeed.json`). Every other library row answers as a
+ * whole article with its own identity and tags over empty sections
+ * (`emptyArticleSeed.json`, a copy of the schema's `createEmptyArticle()`
+ * that `src/data/schema/journeysEmptyArticleSeed.test.ts` keeps in step;
+ * refresh it with `node -e "import('./src/data/schema/defaults.generated.ts').then((m) =>
+ * require('fs').writeFileSync('scripts/tools/journeys/emptyArticleSeed.json',
+ * JSON.stringify(m.createEmptyArticle(), null, 2) + '\n'))"`), so article previews in Banners,
+ * Molecules and Replication Studio draw the page. Caffeine alone stays the
+ * thin projection the corpus tools read, so opening it exercises the tools'
  * "cannot draw this article" state.
  *
  * `createSubstanceRoutes` keeps its own small store per fixture and holds the
@@ -26,17 +33,36 @@
  *
  * Pure module: no Playwright and no Node imports beyond the JSON seed.
  */
+import EMPTY_ARTICLE from "./emptyArticleSeed.json" with { type: "json" };
 import SUBSTANCE_ARTICLES from "./substanceArticlesSeed.json" with { type: "json" };
 
 export const WHOLE_ARTICLE_SLUGS = Object.freeze(Object.keys(SUBSTANCE_ARTICLES));
+
+/** The one library row kept thin on purpose: the renderer cannot draw it. */
+export const UNDRAWABLE_ARTICLE_SLUGS = Object.freeze(["caffeine"]);
+
+const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
+/** `overlay` over `base`, merging nested plain objects so a row's partial section keeps the rest. */
+function mergeOver(base, overlay) {
+  const merged = structuredClone(base);
+  for (const [key, value] of Object.entries(overlay)) {
+    merged[key] = isPlainObject(value) && isPlainObject(merged[key]) ? mergeOver(merged[key], value) : structuredClone(value);
+  }
+  return merged;
+}
 
 /** The line another admin publishes under `conflicted`. */
 export const CONCURRENT_SUMMARY_SUFFIX = " Edited by another admin while you were working.";
 
 /** A whole article for `slug` with the library row's identity and tags on top, or null. */
 export function wholeArticle(row) {
-  const seed = SUBSTANCE_ARTICLES[row?.slug];
-  if (!seed) return null;
+  if (!row?.slug || UNDRAWABLE_ARTICLE_SLUGS.includes(row.slug)) return null;
+  const seed = SUBSTANCE_ARTICLES[row.slug];
+  if (!seed) {
+    // Identity and tags over empty sections: a real article with nothing written yet.
+    return mergeOver(EMPTY_ARTICLE, { ...row, editorial_review: row.editorial_review ?? { status: "needed", notes: "" } });
+  }
   return {
     ...structuredClone(seed),
     ...structuredClone(row),
