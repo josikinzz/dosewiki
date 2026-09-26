@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 
 import { Icon } from "@/components/common/Icon";
 import { Button, Surface } from "@/components/ui";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,7 +22,7 @@ const MoleculeQuickEditor = dynamic(
     loading: () => (
       <div className="theme-text-faint flex min-h-[18rem] items-center justify-center gap-2 text-sm">
         <Icon icon="lucide:loader-2" size={16} className="animate-spin" />
-        Loading the molecule editor…
+        Loading the molecule editor
       </div>
     ),
   },
@@ -71,18 +72,18 @@ export function ReviewMoleculePanel({
             />
             <h2
               id={headingId}
-              className="theme-text-primary font-display min-w-0 truncate text-sm font-semibold leading-none"
+              className="theme-text-primary min-w-0 truncate text-sm font-semibold"
             >
               Molecule depiction: {name}
             </h2>
-            <p className="theme-text-faint min-w-0 text-[11px] leading-tight">
+            <p className="theme-text-muted min-w-0 text-xs">
               Saves publish straight to the live article, with no commit step.
             </p>
           </div>
           <Button
             variant="iconClose"
             size="auto"
-            className="shrink-0"
+            className={cn("shrink-0", TOUCH_ICON)}
             onClick={onClose}
             title="Close the molecule panel (M)"
             aria-label="Close the molecule panel"

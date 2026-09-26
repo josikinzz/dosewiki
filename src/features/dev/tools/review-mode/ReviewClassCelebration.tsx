@@ -213,9 +213,9 @@ export function ReviewClassCelebration({
       {showCard ? (
         <div
           role="status"
-          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-4"
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-44 sm:pb-36"
         >
-          <div className="theme-review-celebration-card rounded-3xl border px-8 py-7 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-2">
+          <div className="theme-review-celebration-card rounded-panel border px-8 py-7 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-90 motion-safe:slide-in-from-bottom-2">
             <div className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center">
               <span
                 aria-hidden
@@ -229,10 +229,9 @@ export function ReviewClassCelebration({
                 />
               </span>
             </div>
-            <p className="font-display text-xl font-bold">{label} complete!</p>
+            <p className="font-display text-xl font-bold">{label} complete</p>
             <p className="theme-text-secondary mt-1 text-sm">
-              All {total.toLocaleString()} articles reviewed; the whole class is
-              green.
+              {total === 1 ? "Its one article is reviewed." : `All ${total.toLocaleString()} articles in the class are reviewed.`}
             </p>
           </div>
         </div>

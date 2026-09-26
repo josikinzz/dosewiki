@@ -522,17 +522,35 @@
     background-color: var(--theme-review-progress-track-bg);
   }
 
-  .theme-review-toast-success,
   .theme-review-complete-badge {
     border-color: var(--theme-success-border);
     background-color: var(--theme-success-bg);
     color: var(--theme-success-text);
   }
 
-  .theme-review-toast-neutral {
-    border-color: var(--theme-frosted-control-hover-border);
+  /* The review dock: the decision dock recipe pinned to the bottom of the
+       screen under the article, on the bar's own material so the two frame
+       the reading area as one workbench. */
+  .theme-review-dock {
+    border-color: var(--theme-border-subtle);
+    background: var(--theme-frosted-control-on-panel-bg);
+    box-shadow: 0 -8px 24px -18px color-mix(in srgb, var(--theme-body-bg) 80%, transparent);
+  }
+
+  /* Notes and flags open inside the dock, one step raised from it. */
+  .theme-review-drawer {
+    border-color: var(--theme-border-subtle);
+    background: var(--editor-panel-bg);
+  }
+
+  .theme-review-stale-notice {
+    border-color: var(--theme-border-subtle);
+    background: var(--editor-panel-bg);
+  }
+
+  .theme-review-count {
     background: var(--theme-frosted-control-bg);
-    color: var(--theme-text-primary);
+    color: var(--theme-text-secondary);
   }
 
   /* The bar's own background is a fully opaque gradient in both themes, so it

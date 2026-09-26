@@ -174,7 +174,7 @@ describe("review workbench per-slug hydration", () => {
     expect(view.container.textContent).toContain("0 of 3 reviewed");
 
     requestArticleMock.mockClear();
-    fireEvent.click(view.getByRole("button", { name: "Retry" }));
+    fireEvent.click(view.getByRole("button", { name: "Try again" }));
     expect(requestArticleMock).toHaveBeenCalledWith("morphine");
   });
 

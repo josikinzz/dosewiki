@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,6 @@ import {
   type ProgressFlourish,
 } from "./ReviewBarChrome";
 import type { ReviewQueueGroup } from "./reviewQueue";
-import { NOTES_PANEL_ID } from "./ReviewNotesPanel";
 import { ReviewTrophyShelf } from "./ReviewTrophyShelf";
 
 interface ReviewOverflowSheetProps {
@@ -33,209 +32,167 @@ interface ReviewOverflowSheetProps {
   total: number;
   progressFlourish: ProgressFlourish | null;
   hasCurrent: boolean;
-  isCurrentFlagged: boolean;
-  isTicking: boolean;
-  toggleFlagged: () => void;
-  notesPanelOpen: boolean;
-  toggleNotesPanel: () => void;
   /** The Webpage / Editor tabs; `onAfterChange` closes the sheet. */
   renderViewTabs: (onAfterChange: () => void) => ReactNode;
   moleculePanelOpen: boolean;
   citationPanelOpen: boolean;
   toggleMoleculePanel: () => void;
   toggleCitationPanel: () => void;
+  inlineEditActive: boolean;
+  inlineEditReason: string | null;
+  toggleInlineEdit: () => void;
   openElsewhereItems: ReactNode;
   queueGroups: ReviewQueueGroup[];
   settingsPanel: ReactNode;
   settingsChanged: boolean;
+  onLeave: (event: MouseEvent<HTMLAnchorElement>) => void;
+  /** Editors recommend instead of signing off; the help says so. */
+  recommend?: boolean;
+}
+
+function SheetSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="space-y-2.5 border-t border-dose-divider pt-4 first:border-t-0 first:pt-0">
+      <h2 className="type-meta-label theme-text-muted">{title}</h2>
+      {children}
+    </section>
+  );
 }
 
 /**
- * The home for whatever the current bar tier drops, gone entirely at `xl`
- * where the bar shows everything. Sections hide themselves once their control
- * is back in the bar, so the sheet never duplicates visible chrome. Popover
- * rather than a new Sheet primitive: the kit has no sheet, and one more shared
- * component would need a catalog entry to earn its keep.
+ * Everything the bar drops below `lg`: progress, the view, the three tools,
+ * Open in, queue settings, trophies, help, and the way back to the editor.
+ * The decisions are not here; they live in the review dock. A popover rather
+ * than a new Sheet primitive: the kit has no sheet.
  */
 export function ReviewOverflowSheet({
   reviewedCount,
   total,
   progressFlourish,
   hasCurrent,
-  isCurrentFlagged,
-  isTicking,
-  toggleFlagged,
-  notesPanelOpen,
-  toggleNotesPanel,
   renderViewTabs,
   moleculePanelOpen,
   citationPanelOpen,
   toggleMoleculePanel,
   toggleCitationPanel,
+  inlineEditActive,
+  inlineEditReason,
+  toggleInlineEdit,
   openElsewhereItems,
   queueGroups,
   settingsPanel,
   settingsChanged,
+  onLeave,
+  recommend = false,
 }: ReviewOverflowSheetProps) {
-  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const row = cn("w-full justify-start gap-2", TOUCH_PILL);
 
   return (
-    <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="iconGhost"
           size="auto"
-          className={cn(
-            "relative ml-auto shrink-0 lg:ml-0 2xl:hidden",
-            TOUCH_ICON,
-          )}
+          className={cn("relative shrink-0 lg:hidden", TOUCH_ICON)}
           aria-label="More review controls"
         >
           <Icon icon="lucide:ellipsis" size={18} />
           {settingsChanged ? (
-            <span
-              aria-hidden
-              className="theme-review-settings-dot absolute right-1 top-1 h-1.5 w-1.5 rounded-full"
-            />
+            <>
+              <span aria-hidden className="theme-review-settings-dot absolute right-1 top-1 h-1.5 w-1.5 rounded-full" />
+              <span className="sr-only">, queue settings are off their defaults</span>
+            </>
           ) : null}
         </Button>
       </PopoverTrigger>
-      {/* Near-full-bleed below `sm` — the sheet is the phone's whole
-          control surface, so a desktop-tuned cap wastes the width it
-          needs most. Collision padding keeps the edges symmetric once
-          the panel is wider than its end-aligned anchor allows. */}
+      {/* Near-full-bleed below `sm`: on a phone this is the whole tool surface. */}
       <PopoverContent
         align="end"
         collisionPadding={8}
-        className="w-[calc(100vw-1rem)] max-h-[70dvh] space-y-4 overflow-y-auto sm:w-[21rem]"
+        className="max-h-[75dvh] w-[calc(100vw-1rem)] space-y-4 overflow-y-auto sm:w-[22rem]"
       >
-        <ProgressStrip
-          reviewed={reviewedCount}
-          total={total}
-          flourish={progressFlourish}
-        />
+        <ProgressStrip reviewed={reviewedCount} total={total} flourish={progressFlourish} />
 
-        <Button
-          variant={isCurrentFlagged ? "iconWarning" : "pill"}
-          size="pill"
-          className={cn(
-            "w-full justify-start rounded-full gap-2 md:hidden",
-            TOUCH_PILL,
-          )}
-          onClick={toggleFlagged}
-          disabled={!hasCurrent || isTicking}
-          aria-pressed={isCurrentFlagged}
-          aria-label="Hold"
-        >
-          <Icon icon="lucide:hand" size={15} />
-          {isCurrentFlagged ? "On hold: tap to release" : "Hold"}
-        </Button>
+        <SheetSection title="View">
+          {renderViewTabs(() => setOpen(false))}
+        </SheetSection>
 
-        <Button
-          variant={notesPanelOpen ? "pillActive" : "pill"}
-          size="pill"
-          className={cn(
-            "w-full justify-start rounded-full gap-2 md:hidden",
-            TOUCH_PILL,
-          )}
-          onClick={() => {
-            toggleNotesPanel();
-            setOverflowOpen(false);
-          }}
-          disabled={!hasCurrent}
-          aria-expanded={notesPanelOpen}
-          aria-controls={NOTES_PANEL_ID}
-        >
-          <Icon icon="lucide:notebook-pen" size={15} />
-          Notes and flags
-        </Button>
-
-        {/* border-dose-divider, NOT .theme-divider: that utility also
-            paints background-color (it styles elements that ARE a 1px
-            line), which turned these section wrappers into cards inside
-            the popover card. Hairline separators only. */}
-        <div className="space-y-3 border-t border-dose-divider pt-4">
-          {/* Tabs and the panel pills rejoin the bar at `lg`; open-in
-              below stays here until `2xl`. */}
-          <div className="space-y-3 lg:hidden">
-            {renderViewTabs(() => setOverflowOpen(false))}
+        <SheetSection title="Tools">
+          <div className="grid gap-2">
             <Button
-              variant={moleculePanelOpen ? "pillActive" : "pill"}
-              size="pill"
-              className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+              variant={moleculePanelOpen ? "pillActive" : "outline"}
+              className={row}
               onClick={() => {
-                setOverflowOpen(false);
+                setOpen(false);
                 toggleMoleculePanel();
               }}
               disabled={!hasCurrent}
               aria-expanded={moleculePanelOpen}
               aria-controls={MOLECULE_PANEL_ID}
             >
-              <Icon icon="lucide:hexagon" size={14} />
-              {moleculePanelOpen
-                ? "Hide the molecule editor"
-                : "Edit the molecule depiction"}
+              <Icon icon="lucide:hexagon" size={15} />
+              {moleculePanelOpen ? "Hide the molecule editor" : "Edit the molecule depiction"}
             </Button>
             <Button
-              variant={citationPanelOpen ? "pillActive" : "pill"}
-              size="pill"
-              className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
+              variant={citationPanelOpen ? "pillActive" : "outline"}
+              className={row}
               onClick={() => {
-                setOverflowOpen(false);
+                setOpen(false);
                 toggleCitationPanel();
               }}
               disabled={!hasCurrent}
               aria-expanded={citationPanelOpen}
               aria-controls={CITATION_PANEL_ID}
             >
-              <Icon icon="lucide:book-marked" size={14} />
-              {citationPanelOpen
-                ? "Hide the citation palette"
-                : "Sources and citation markers"}
+              <Icon icon="lucide:book-marked" size={15} />
+              {citationPanelOpen ? "Hide the citation palette" : "Sources and citation markers"}
             </Button>
+            <Button
+              variant={inlineEditActive ? "iconWarning" : "outline"}
+              className={row}
+              onClick={() => {
+                setOpen(false);
+                toggleInlineEdit();
+              }}
+              disabled={!hasCurrent || inlineEditReason !== null}
+              aria-pressed={inlineEditActive}
+            >
+              <Icon icon="lucide:pencil-line" size={15} />
+              {inlineEditActive ? "Inline editing is on" : "Edit text in place"}
+            </Button>
+            {inlineEditReason ? <p className="theme-text-faint text-xs">{inlineEditReason}.</p> : null}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className={row} aria-label="Open this article in another tool">
+                  <Icon icon="lucide:external-link" size={15} />
+                  Open this article in
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">{openElsewhereItems}</DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="pill"
-                size="pill"
-                className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
-              >
-                <Icon icon="lucide:external-link" size={15} />
-                Open this article in…
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {openElsewhereItems}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        </SheetSection>
 
-        <div className="border-t border-dose-divider pt-4">
-          {/* Collapsed by default: the trophies are delight, not a
-              control, and open they cost a third of the sheet. */}
+        <SheetSection title="Queue settings">{settingsPanel}</SheetSection>
+
+        <section className="border-t border-dose-divider pt-4">
+          {/* Folded: the trophies are delight, not a control. */}
           <ReviewTrophyShelf groups={queueGroups} collapsible />
-        </div>
-        <div className="border-t border-dose-divider pt-4">{settingsPanel}</div>
-        <div className="border-t border-dose-divider pt-4">
-          <ReviewHelpPanel />
-        </div>
-        {/* The phone row spends the dev-tools slot on ←/→, so the way
-            out of the workbench lives here. Last on purpose: it is the
-            only item that leaves the page. */}
-        <div className="border-t border-dose-divider pt-4 sm:hidden">
-          <Button
-            asChild
-            variant="pill"
-            size="pill"
-            className={cn("w-full justify-start rounded-full gap-2", TOUCH_PILL)}
-          >
-            <Link href="/dev">
+        </section>
+
+        <section className="border-t border-dose-divider pt-4">
+          <ReviewHelpPanel recommend={recommend} />
+        </section>
+
+        <section className="border-t border-dose-divider pt-4 sm:hidden">
+          <Button asChild variant="outline" className={row}>
+            <Link href="/dev" onClick={onLeave}>
               <Icon icon="lucide:arrow-left-to-line" size={15} />
-              Back to Dev Tools
+              Leave review
             </Link>
           </Button>
-        </div>
+        </section>
       </PopoverContent>
     </Popover>
   );

@@ -18,6 +18,8 @@ export interface ReviewCelebration {
   iconKey?: string;
   /** How many articles the completed bucket holds. */
   total: number;
+  /** Section level only: the category the section sits in, so "Common" reads as "Stimulant, Common". */
+  groupLabel?: string;
 }
 
 /**
@@ -57,7 +59,7 @@ export function resolveReviewCelebration(
     }
 
     if (section && section.entries.every(done)) {
-      return { level: "section", label: section.label, total: section.entries.length };
+      return { level: "section", label: section.label, total: section.entries.length, groupLabel: group.label };
     }
 
     // A slug lives in exactly one bucket (first placement wins upstream), so

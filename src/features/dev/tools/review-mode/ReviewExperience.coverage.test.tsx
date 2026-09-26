@@ -98,13 +98,13 @@ describe("review queue coverage", () => {
     );
   });
 
-  it("shows progress as visible text in the bar at a 1280px viewport", async () => {
+  it("shows progress as visible text in the review dock at a 1280px viewport", async () => {
     render(<ReviewExperience initialSlug="heroin" />);
     await waitFor(() => expect(screen.getAllByTestId("article-layout").length).toBeGreaterThan(0));
 
-    const bar = screen.getByRole("banner", { name: "Review controls" });
+    const dock = screen.getByRole("region", { name: "Review" });
     const progress = screen.getByTestId("review-progress-text");
-    expect(bar).toContainElement(progress);
+    expect(dock).toContainElement(progress);
     expect(progress).toHaveTextContent("0 of 3 reviewed");
     expect(progress.className).not.toMatch(/\b(sr-only|hidden)\b/);
   });

@@ -1,8 +1,9 @@
 "use client";
 
-import { Icon } from "@/components/common/Icon";
+import type { ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
-import { EditorSelect } from "@/features/dev/components";
+import { EditorCheckbox, EditorField, EditorSelect, TagToken } from "@/features/dev/components";
 import {
   REVIEW_QUEUE_ORDER_OPTIONS,
   type ReviewQueueOrder,
@@ -25,10 +26,26 @@ interface ReviewQueueSettingsPanelProps {
   flagGroupBy: ReviewSettings["flagGroupBy"];
   availableFlagLabels: string[];
   updateSettings: (patch: Partial<ReviewSettings>) => void;
+  /** Whether any setting is off its default; offers the reset. */
+  settingsChanged?: boolean;
+  resetSettings?: () => void;
+}
+
+const CHECKBOX_ROW = "[@media(pointer:coarse)]:min-h-11 [@media(pointer:coarse)]:items-center";
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <fieldset className="min-w-0 space-y-3">
+      <legend className="type-meta-label theme-text-muted mb-2">{title}</legend>
+      {children}
+    </fieldset>
+  );
 }
 
 /**
- * Queue settings shared by the desktop gear popover and mobile overflow sheet.
+ * Queue settings, shared by the bar's popover and the More sheet: what the
+ * arrows walk and in what order, the flag filters, and how the article reads.
+ * Every choice is kept in this browser and the filters ride in the address.
  */
 export function ReviewQueueSettingsPanel({
   order,
@@ -45,214 +62,151 @@ export function ReviewQueueSettingsPanel({
   flagGroupBy,
   availableFlagLabels,
   updateSettings,
+  settingsChanged = false,
+  resetSettings,
 }: ReviewQueueSettingsPanelProps) {
+  const unusedLabels = availableFlagLabels.filter((value) => !flagLabels.includes(value));
   return (
-    <div className="space-y-4">
-      <label
-        htmlFor="review-queue-order"
-        className="theme-text-faint block space-y-1.5 text-xs"
-      >
-        <span className="font-semibold uppercase tracking-[0.12em]">
-          Queue order
-        </span>
-        <EditorSelect
-          id="review-queue-order"
-          selectSize="sm"
-          value={order}
-          onChange={(event) =>
-            updateSettings({ order: event.target.value as ReviewQueueOrder })
+    <div className="space-y-5">
+      {settingsChanged && resetSettings ? (
+        <div className="flex items-center justify-between gap-3">
+          <p className="theme-text-muted text-xs">Some settings are off their defaults.</p>
+          <Button type="button" variant="link" size="quiet" className="h-auto p-0" onClick={resetSettings}>
+            Reset to defaults
+          </Button>
+        </div>
+      ) : null}
+
+      <Group title="Queue">
+        <EditorField
+          label="Order"
+          htmlFor="review-queue-order"
+          tone={order === "sources" && statsState === "fallback" ? "warning" : "default"}
+          description={
+            order === "sources" && statsState === "fallback"
+              ? "Source stats did not load, so the queue orders by bibliography size instead."
+              : undefined
           }
-          options={REVIEW_QUEUE_ORDER_OPTIONS.map((option) => ({
-            value: option.value,
-            label: option.label,
-          }))}
-        />
-        {order === "sources" && statsState === "fallback" ? (
-          <span className="theme-warning-text block text-[11px]">
-            Source stats unavailable; ordering by bibliography size instead.
-          </span>
-        ) : null}
-      </label>
-      {/* Advisory Review Flag filters: narrow or group the picker by flag. */}
-      <div className="theme-text-faint space-y-1.5 text-xs">
-        <label
-          htmlFor="review-flag-label"
-          className="block font-semibold uppercase tracking-[0.12em]"
         >
-          Flag label
-        </label>
-        <EditorSelect
-          id="review-flag-label"
-          value=""
-          onChange={(event) =>
-            event.target.value &&
-            updateSettings({
-              flagLabels: [
-                ...new Set([...flagLabels, event.target.value]),
-              ],
-            })
-          }
-          options={[
-            {
-              value: "",
-              label: flagLabels.length
-                ? "Add another label"
-                : "All labels",
-            },
-            ...availableFlagLabels
-              .filter((value) => !flagLabels.includes(value))
-              .map((value) => ({ value, label: value })),
-          ]}
+          <EditorSelect
+            id="review-queue-order"
+            selectSize="sm"
+            value={order}
+            onChange={(event) => updateSettings({ order: event.target.value as ReviewQueueOrder })}
+            options={REVIEW_QUEUE_ORDER_OPTIONS.map((option) => ({ value: option.value, label: option.label }))}
+          />
+        </EditorField>
+        <EditorCheckbox
+          containerClassName={CHECKBOX_ROW}
+          checked={unreviewedOnly}
+          onChange={(event) => updateSettings({ unreviewedOnly: event.target.checked })}
+          label="Show unreviewed articles only"
+          description="The arrows skip reviewed articles. The article list still shows them."
         />
+        <EditorCheckbox
+          containerClassName={CHECKBOX_ROW}
+          checked={changedSinceReview}
+          onChange={(event) => updateSettings({ changedSinceReview: event.target.checked })}
+          label={`Changed since review only (${changedSinceReviewCount})`}
+          description="Articles published after their sign-off. Open one to see what changed."
+        />
+        <EditorCheckbox
+          containerClassName={CHECKBOX_ROW}
+          checked={groupByCategory}
+          onChange={(event) => updateSettings({ groupByCategory: event.target.checked })}
+          label="Group the article list by category"
+          description="Psychoactive classes and their chemical-class sections, as the index arranges them. The arrows keep the queue order."
+        />
+      </Group>
+
+      <Group title="Flags">
+        <EditorField label="Flag label" htmlFor="review-flag-label">
+          <EditorSelect
+            id="review-flag-label"
+            selectSize="sm"
+            value=""
+            disabled={unusedLabels.length === 0}
+            onChange={(event) =>
+              event.target.value &&
+              updateSettings({ flagLabels: [...new Set([...flagLabels, event.target.value])] })
+            }
+            options={[
+              {
+                value: "",
+                label: unusedLabels.length === 0
+                  ? flagLabels.length ? "Every label is chosen" : "No flags yet"
+                  : flagLabels.length ? "Add another label" : "All labels",
+              },
+              ...unusedLabels.map((value) => ({ value, label: value })),
+            ]}
+          />
+        </EditorField>
         {flagLabels.length ? (
-          <div className="flex flex-wrap gap-1.5">
+          <div role="group" aria-label={`Flag labels shown, ${flagLabels.length}`} className="flex flex-wrap gap-1.5">
             {flagLabels.map((value) => (
-              <Button
+              <TagToken
                 key={value}
-                type="button"
-                variant="chip"
-                size="chip"
-                onClick={() =>
-                  updateSettings({
-                    flagLabels: flagLabels.filter(
-                      (label) => label !== value,
-                    ),
-                  })
-                }
-              >
-                {value}
-                <Icon icon="lucide:x" size={12} />
-              </Button>
+                variant="compact"
+                label={value}
+                onRemove={() => updateSettings({ flagLabels: flagLabels.filter((label) => label !== value) })}
+                removeLabel={`Stop filtering by ${value}`}
+              />
             ))}
           </div>
         ) : null}
-      </div>
-      <label
-        htmlFor="review-flag-severity"
-        className="theme-text-faint block space-y-1.5 text-xs"
-      >
-        <span className="font-semibold uppercase tracking-[0.12em]">
-          Flag severity
-        </span>
-        <EditorSelect
-          id="review-flag-severity"
-          value={flagSeverity ?? ""}
-          onChange={(event) =>
-            updateSettings({
-              flagSeverity: (event.target.value ||
-                null) as ReviewSettings["flagSeverity"],
-            })
+        <div className="grid grid-cols-2 gap-3">
+          <EditorField label="Severity" htmlFor="review-flag-severity">
+            <EditorSelect
+              id="review-flag-severity"
+              selectSize="sm"
+              value={flagSeverity ?? ""}
+              onChange={(event) =>
+                updateSettings({ flagSeverity: (event.target.value || null) as ReviewSettings["flagSeverity"] })
+              }
+              options={[
+                { value: "", label: "All severities" },
+                { value: "major", label: "Major" },
+                { value: "minor", label: "Minor" },
+                { value: "note", label: "Note" },
+              ]}
+            />
+          </EditorField>
+          <EditorField label="Group flags by" htmlFor="review-flag-group">
+            <EditorSelect
+              id="review-flag-group"
+              selectSize="sm"
+              value={flagGroupBy}
+              onChange={(event) => updateSettings({ flagGroupBy: event.target.value as ReviewSettings["flagGroupBy"] })}
+              options={[
+                { value: "none", label: "No grouping" },
+                { value: "severity", label: "Severity" },
+                { value: "label", label: "Label" },
+              ]}
+            />
+          </EditorField>
+        </div>
+      </Group>
+
+      <Group title="Reading">
+        <EditorCheckbox
+          containerClassName={CHECKBOX_ROW}
+          checked={inlineEdit}
+          onChange={(event) => updateSettings({ inlineEdit: event.target.checked })}
+          label="Edit text inline on the page"
+          description={
+            viewMode === "webpage"
+              ? "Click a highlighted value in the Webpage view to edit it in place. The bar says when it is on."
+              : "Applies to the Webpage view."
           }
-          options={[
-            { value: "", label: "All severities" },
-            { value: "major", label: "Major" },
-            { value: "minor", label: "Minor" },
-            { value: "note", label: "Note" },
-          ]}
         />
-      </label>
-      <label
-        htmlFor="review-flag-group"
-        className="theme-text-faint block space-y-1.5 text-xs"
-      >
-        <span className="font-semibold uppercase tracking-[0.12em]">
-          Group flags by
-        </span>
-        <EditorSelect
-          id="review-flag-group"
-          value={flagGroupBy}
-          onChange={(event) =>
-            updateSettings({
-              flagGroupBy: event.target
-                .value as ReviewSettings["flagGroupBy"],
-            })
-          }
-          options={[
-            { value: "none", label: "Category / flat" },
-            { value: "severity", label: "Severity" },
-            { value: "label", label: "Label" },
-          ]}
+        <EditorCheckbox
+          containerClassName={CHECKBOX_ROW}
+          checked={articleLinks}
+          onChange={(event) => updateSettings({ articleLinks: event.target.checked })}
+          label="Links in the article navigate"
+          description="Off by default so a stray tap cannot take you to another page mid-review. Contents jumps always work."
         />
-      </label>
-      <div className="space-y-1.5">
-        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
-          <input
-            type="checkbox"
-            checked={groupByCategory}
-            onChange={(event) =>
-              updateSettings({ groupByCategory: event.target.checked })
-            }
-            className="accent-dose-accent-strong"
-          />
-          Group the article list by category
-        </label>
-        <span className="theme-text-faint block text-[11px] leading-tight">
-          Psychoactive classes and their chemical-class subsections, as the index
-          page arranges them. Affects the jump-to list only, not ← / → order.
-        </span>
-      </div>
-      <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
-        <input
-          type="checkbox"
-          checked={unreviewedOnly}
-          onChange={(event) =>
-            updateSettings({ unreviewedOnly: event.target.checked })
-          }
-          className="accent-dose-accent-strong"
-        />
-        Show unreviewed articles only
-      </label>
-      <div className="space-y-1.5">
-        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
-          <input
-            type="checkbox"
-            checked={changedSinceReview}
-            onChange={(event) =>
-              updateSettings({ changedSinceReview: event.target.checked })
-            }
-            className="accent-dose-accent-strong"
-          />
-          Changed since review only ({changedSinceReviewCount})
-        </label>
-        <span className="theme-text-faint block text-[11px] leading-tight">
-          Articles published after their sign-off. Open one to see what changed.
-        </span>
-      </div>
-      <div className="space-y-1.5">
-        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
-          <input
-            type="checkbox"
-            checked={inlineEdit}
-            onChange={(event) =>
-              updateSettings({ inlineEdit: event.target.checked })
-            }
-            className="accent-dose-accent-strong"
-          />
-          Edit text inline on the page
-        </label>
-        <span className="theme-text-faint block text-[11px] leading-tight">
-          {viewMode === "webpage"
-            ? "Click any highlighted value in the Webpage view to edit it in place. While it is on, the bar says so."
-            : "Applies to the Webpage view."}
-        </span>
-      </div>
-      <div className="space-y-1.5">
-        <label className="theme-text-faint flex cursor-pointer items-center gap-2 text-xs [@media(pointer:coarse)]:min-h-11">
-          <input
-            type="checkbox"
-            checked={articleLinks}
-            onChange={(event) =>
-              updateSettings({ articleLinks: event.target.checked })
-            }
-            className="accent-dose-accent-strong"
-          />
-          Links in the article navigate
-        </label>
-        <span className="theme-text-faint block text-[11px] leading-tight">
-          Off by default so a stray tap can&rsquo;t yank you to another page
-          mid-review. Table-of-contents jumps always work.
-        </span>
-      </div>
+      </Group>
     </div>
   );
 }

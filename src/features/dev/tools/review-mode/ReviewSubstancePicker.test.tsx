@@ -120,6 +120,6 @@ describe("ReviewSubstancePicker (grouped)", () => {
     await openPicker(user);
 
     await user.type(screen.getByRole("combobox", { name: "" }), "zzzz");
-    expect(screen.getByText("No articles found")).toBeTruthy();
+    expect(screen.getByText(/No article matches/)).toBeTruthy();
   });
 });

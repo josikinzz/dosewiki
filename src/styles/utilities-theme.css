@@ -4555,8 +4555,10 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 
 /* Editor-kit semantic classes. They live in the token layer so dev tool
    components never name a theme variable directly (theme:tokens:check). */
+/* Changed since review reads as information, never as the accent that
+   marks the current choice and the tick. */
 .theme-review-status-stale {
-  background-color: var(--theme-accent-strong);
+  background-color: var(--theme-semantic-info-badge-text);
 }
 
 .theme-list-tick {

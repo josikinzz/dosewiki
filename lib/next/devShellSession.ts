@@ -21,7 +21,7 @@ export type DevShellSession = {
  * `lib/auth/devScreenshotViewer.ts`) gets a synthetic, presentation-only
  * session so the rail renders every tab unlocked.
  *
- * Only `/dev` layouts and pages call this. API routes and server actions keep
+ * Only `/dev` and `/review` layouts and pages call this. API routes and server actions keep
  * reading the real session through `requireRoleSession`, so the synthetic role
  * never authorizes a read or a write.
  */

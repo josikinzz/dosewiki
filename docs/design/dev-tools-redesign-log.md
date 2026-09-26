@@ -747,6 +747,45 @@ builds a new shared primitive, add it to **Conventions** and log it under
   waiting corpus tool shows `LoadErrorState` "Could not load the articles"
   with Try again instead of loading forever.
 
+- **A read-and-tick workbench keeps the article whole and docks the verdict.**
+  A surface whose job is reading a public page and signing it off (Review)
+  does not become a list plus pane: the article keeps its full width and its
+  own contents rail, the queue is the picker behind the article name, and the
+  decisions live in one review dock pinned to the bottom of the screen
+  (`ReviewDock`, `src/features/dev/tools/review-mode/ReviewDock.tsx`,
+  `role="region"` "Review"). The dock holds, top to bottom: a drawer that
+  opens inside it (notes and flags, so writing never scrolls the reader away
+  from the passage), the result of the last write with Undo and "Next
+  waiting", the freeze line, then one row: the state pill, the sign-off
+  credit, progress, the role or blocked-tick sentence, and the decisions
+  (Hold, Notes and flags, the verdict) labelled at every width. The top bar
+  keeps only where you are and how to move (leave, previous, picker, next,
+  "N of M") and the tools.
+- **A decision that cannot run says why in the dock.** The verdict is off
+  while the body loads, when it failed, or when the article could not be
+  drawn, and the dock's sentence names which; a drawing failure is reported
+  up from the article's own error boundary (`DrawFailure`), so the key and the
+  button refuse together.
+- **Results carry what they finished.** A tick that completes a section or a
+  class keeps its Undo; the completion becomes the result's title
+  ("Stimulant, Common complete, all 3 reviewed."). A section names its class
+  (`ReviewCelebration.groupLabel`).
+- **A diff of prose marks its words.** `ArticleChangeDiff` marks removed and
+  added words (`diffWords`, `ins`/`del` on the editor code-line tokens, with
+  sr-only "added:" / "removed:"), so no reader compares two paragraphs by eye.
+  Every consumer (Review, Change Review, Substances' review sheet) gets it.
+- **Filters that change what the arrows walk show as chips.** When a queue
+  filter is on, a group under the bar says "Queue filtered: N of M shown" with
+  one removable `TagToken` per filter and Clear all; the settings dot also
+  speaks.
+- **A tool outside the /dev shell watches its own writes.** A route that
+  renders editor tooling without the shell mounts `useWriteFreezeObserver` in
+  its route client (never inside a component a test renders with a mocked
+  `fetch`), and its surfaces read `useWriteFreeze()`.
+- **The screenshot viewer covers `/review`.** Its layout and page read
+  `getDevShellSession()`, the `/dev` gate (loopback, `next dev`, opt-in, write
+  freeze); API routes keep their own checks.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -2607,3 +2646,101 @@ Deferred, with reasons:
   (as earlier passes).
 - `library-failed` before looked like idle because the fixture answered the
   library in every state; the capture now fails that read itself.
+
+### Pass 21: Review (`/review`, `/review/<slug>`)
+
+Commit: see `git log --grep "Dev tools redesign: Review"`.
+Screenshots: `tmp/redesign/review/before/` and `tmp/redesign/review/after/`
+(landing dark and light, full page; changed since review and its diff; reviewed;
+on hold; notes, typed, added, a kept draft; ticked, undone, Next waiting; held;
+class and section celebrations; finished and all reviewed; picker, search, no
+match, `/`; More sheet and its settings; settings; help; the changed filter and
+active filter chips; Editor view; inline editing; molecule; citations; editor
+role (recommend, recommended, pending, stale recommendation) and
+editor_translator; loading, article loading, article failed, an article that
+cannot be drawn, library failed, empty; frozen tick and flag; refused tick
+(expired session); publish conflict and frozen publish through the bar
+chrome; a section form; the review sheet; the draft guard; desktop and phone),
+captured by `tmp/redesign/review/capture.mjs`. Critique in
+`tmp/redesign/review/critique.md` (22/40 before; design review in
+`assessment-a.md`, 47 findings), inventory with the item-by-item check in
+`tmp/redesign/review/inventory.md`, detector evidence in
+`tmp/redesign/review/detector/` (clean before and after; the in-page detector
+could not be injected).
+
+Main changes:
+
+- P0 fixes: an article the renderer could not draw dropped the whole workbench
+  to the route error page; it now fails inside the article area
+  (`ReviewArticleView` error boundary, "X could not be drawn" with Try again,
+  Next article and Open in Substances) and the tick is off with the reason
+  (stricter than before: an article nobody could read cannot be signed off).
+  The bar chrome of `ArticleContextBridge` got the same net, so a draft that
+  cannot draw keeps the editing bar. The changed-since-review diff showed two
+  whole paragraphs unmarked; it now counts the changes, leads with a warning
+  block of the dose, duration and interaction changes (`safetyChanges`), and
+  marks changed words.
+- The review dock (see Conventions): Hold (H), Notes and flags (F, with the
+  flag count and an unsaved-draft dot), and the verdict (Mark as reviewed,
+  Reviewed with "Mark not reviewed", Recommend as reviewed, Recommended,
+  Recommend again) moved out of the bar, labelled at every width; the phone
+  thumb zone now holds them. Results moved from a floating toast into the
+  dock: "Marked X reviewed." with Undo (U) for 30 seconds (was 8), the
+  completion as its title, and "Next waiting: <name>" (N). A refused write
+  reads in the dock (`describeReviewRefusal` in `reviewDockModel.ts`: the
+  freeze sentence, a lapsed sign-in with "Sign in in a new tab", the admin
+  floor), and the freeze line stays while writes are paused.
+- Bar: "Leave review" (through the draft guard), the pager as outline icon
+  buttons with `aria-keyshortcuts` (← / k, → / j), the picker, "N of M" (and
+  "shown" when filtered); from `lg` the view tabs, Molecule, Citation, Inline
+  editing (labels and caps from `xl`), Open in, Queue settings (spoken dot),
+  Class trophies and help; the More sheet holds them below `lg` in View, Tools
+  and Queue settings sections. Active filters show as chips under the bar.
+- Picker: matches highlighted in names and buckets, sentence-case state pills
+  toned by state, spoken bucket counts, "No article matches X" with Clear the
+  search, `/` opens it, the trigger names the state.
+- Notes and flags: `EditorField` labels, the note grows with its words, the
+  flag list is an open list with sentence-case severity pills, section and
+  "Added by", a live "Added" line, pending labels, refusals in the tool's
+  words, drafts kept per article when the panel closes or the reviewer moves
+  on, focus back to the Notes button on close.
+- Settings: `EditorField` and `EditorCheckbox` in Queue, Flags and Reading
+  groups, flag labels as removable chips, "Reset to defaults".
+- States: the stale notice stacks on phones and says when it was signed off;
+  the stale dot uses the info tone, not the accent; an article-shaped skeleton
+  while one body loads; `LoadErrorState` for a failed body (with Next
+  article), a failed queue and a missing category layout (with a way out); an
+  empty queue points to Substances; the finished state says what a sign-off
+  means; the class card sits above the dock, not over the text.
+- Keys: N and `/` and H added; ← / → also k / j; the help lists keys as real
+  text in `theme-dev-kbd` caps.
+- Shared, backward compatible: `ArticleChangeDiff` word marks;
+  `ArticleContextBridge` bar chrome gains the draw boundary and keeps a refused
+  publish (freeze, conflict with Load the latest version) in the bar once the
+  review sheet closes; `.theme-review-status-stale` uses the info tone;
+  `devShellSession` serves `/review` too.
+- Journeys fixtures: `scripts/tools/journeys/reviewFixtures.mjs`
+  (`seedReviewRecords`, `createReviewRoutes`: the category layout, published
+  revisions, the signed-versus-current article for LSD, source stats, the
+  editorial review writes with the editor floor, the admin floor for a
+  sign-off, the flag word rule, recommendations and the freeze;
+  `setStatus`, `completeAll`, `completeAllBut` for scenarios). Library rows
+  carry `editorial_review`, so the Substances list now shows real review
+  states (LSD reads Changed since review, Ketamine Reviewed). With a unit test.
+
+Deferred, with reasons:
+
+- Display names for reviewers and flag authors: no directory maps member
+  emails to names (as earlier passes).
+- A read gate before re-signing a stale article (open the diff first): stricter
+  than today, and the tested R-on-stale sign-off would change; left as a
+  product question.
+- Disabling the verdict while writes are frozen: the Inbox decision (buttons
+  stay enabled so the next write can clear the freeze); the dock says it.
+- A per-article free note separate from flags: the route stores notes only
+  inside a flag; drafts are kept and the field says so instead.
+- The molecule quick editor's internals (renderer state, mono slug): Molecules
+  owns `MoleculeQuickEditor`.
+- Opening the stale diff by default: the tested load-on-demand stays; the
+  notice leads with what to do.
+

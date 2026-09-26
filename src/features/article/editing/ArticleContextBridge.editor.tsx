@@ -600,10 +600,31 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         {receipt.receipt && <PublicationReceiptChips receipt={receipt.receipt} />}
       </div>}
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
+      {/* A refused publish or save (the freeze, a conflict) stays in the bar once the review sheet closes, with its way forward. */}
+      {lifecycle.failure && !review && !section ? <div className="px-1 py-2"><Notice
+        tone={lifecycle.failure.kind === "refused" ? "danger" : "warning"}
+        message={<span className="whitespace-pre-wrap">{describeLifecycleFailure(lifecycle.failure)}</span>}
+        actions={lifecycle.failure.kind === "conflict" ? <Button type="button" variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Load the latest version</Button> : undefined}
+        dismiss={lifecycle.clearFailure}
+        className="text-sm"
+      /></div> : null}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
-      {(localError || lifecycle.error) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
+      {/* A classified refusal already speaks above in its own words; the raw server sentence stays for anything else. */}
+      {(localError || lifecycle.error) && !(lifecycle.failure && !localError) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
     </>}>
-    {articleView}
+    {/* The bar chrome keeps the same net as the dock: a draft the renderer cannot draw keeps the bar and the draft. */}
+    <ErrorBoundary
+      name="article-editor-preview"
+      resetKeys={[lifecycle.article]}
+      fallback={({ reset }) => <div role="alert" className="mx-auto max-w-3xl py-8"><Notice
+        tone="danger"
+        title="This article could not be drawn"
+        message="Something in it stops the page from rendering. Your edits and draft are untouched: open a section to fix it, or try drawing it again."
+        actions={<Button type="button" variant="outline" size="sm" onClick={reset}>Try again</Button>}
+      /></div>}
+    >
+      {articleView}
+    </ErrorBoundary>
     </StickyArticleEditorLayout>}
     <ContextualEditorPanel title={section ? `Edit ${ARTICLE_SECTION_LABELS[section].toLowerCase()}` : "Review article changes"} open={!!section || review} onOpenChange={(open) => {
       if (open) return;

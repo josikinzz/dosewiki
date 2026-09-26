@@ -673,4 +673,45 @@ describe("journey fixtures", () => {
     assert.equal(write(frozen, { action: "saveDraft", slug: "lsd", baseHash: held.baseHash, article: changed }).json.code, "DATA_WRITES_FROZEN");
     assert.equal(lifecycle(createJourneyFixture({ role: "contributor" }), "lsd").status, 403);
   });
+
+  it("answers the review workbench: review records, revisions, the stale diff, the tick, recommendations and flags", () => {
+    const admin = createJourneyFixture();
+    const layout = get(admin, "/api/editor/category-layout").json;
+    assert.ok(layout.categories.some((category) => category.key === "entactogen"));
+    const rows = new Map(get(admin, "/api/dev/editor-library").json.articles.map((row) => [row.slug, row]));
+    assert.equal(rows.get("lsd").editorial_review.status, "completed");
+    assert.equal(rows.get("mdma").editorial_review.flags.length, 2);
+    assert.equal(rows.get("alcohol").editorial_review.status, "in_progress");
+    assert.equal(get(admin, "/api/dev/editor-library", "?slug=lsd").json.article.editorial_review.status, "completed");
+
+    const revisions = get(admin, "/api/dev/review-revisions").json.revisions;
+    assert.notEqual(revisions.lsd, rows.get("lsd").editorial_review.reviewed_revision);
+    assert.equal(revisions.ketamine, rows.get("ketamine").editorial_review.reviewed_revision);
+    const changes = get(admin, "/api/dev/review-revisions", "?slug=lsd&since=revlsd1").json;
+    assert.notEqual(changes.signed.summary, changes.current.summary);
+    assert.equal(get(admin, "/api/dev/review-revisions", "?slug=lsd&since=nothing").status, 404);
+    assert.ok(get(admin, "/api/dev/article-source-stats").json.stats.length > 0);
+
+    const ticked = post(admin, "/api/dev/editorial-review", { slug: "mdma", status: "completed", revision: revisions.mdma });
+    assert.equal(ticked.json.editorial_review.reviewed_revision, revisions.mdma);
+    assert.equal(post(admin, "/api/dev/editorial-review", { slug: "mdma", status: "needed" }).json.editorial_review.status, "needed");
+    const added = post(admin, "/api/dev/editorial-review", { slug: "mdma", action: "add-flag", flag: { label: "formatting", severity: "note", note: "" } });
+    assert.equal(added.json.flags.length, 3);
+    assert.equal(post(admin, "/api/dev/editorial-review", { slug: "mdma", action: "add-flag", flag: { label: "one two three four", severity: "note", note: "" } }).status, 400);
+    const flag = added.json.flags[2];
+    assert.equal(post(admin, "/api/dev/editorial-review", { slug: "mdma", action: "delete-flag", identity: { created_at: flag.created_at, label: flag.label, source: flag.source } }).json.flags.length, 2);
+
+    const editor = createJourneyFixture({ role: "editor" });
+    assert.equal(post(editor, "/api/dev/editorial-review", { slug: "mdma", status: "completed" }).status, 403);
+    const recommended = post(editor, "/api/dev/editorial-review", { slug: "mdma", action: "recommend", note: "Doses match" });
+    assert.equal(recommended.json.editorial_review.recommendation.note, "Doses match");
+    assert.equal(recommended.json.editorial_review.status, "needed");
+
+    const frozen = createJourneyFixture({ state: "frozen" });
+    assert.equal(post(frozen, "/api/dev/editorial-review", { slug: "mdma", status: "completed" }).json.code, "DATA_WRITES_FROZEN");
+    assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/dev/review-revisions").status, 500);
+
+    admin.reviews.completeAll();
+    assert.ok(get(admin, "/api/dev/editor-library").json.articles.every((row) => row.editorial_review.status === "completed"));
+  });
 });

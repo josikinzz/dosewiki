@@ -1,3 +1,4 @@
+import { diffWords } from "diff";
 import { formatDose } from "@/features/article/components/sections/dosageDurationModel";
 import {
   articleFieldChanges,
@@ -45,11 +46,25 @@ function ChangeRow({ change }: { change: ArticleFieldChange }) {
       <span className="theme-text-muted">{before}</span> to <span>{after}</span>
     </p>;
   }
+  // Long prose marks the words that changed, so a reader never compares two
+  // paragraphs by eye: removed words in Before, added words in After.
+  const parts = typeof change.before === "string" && typeof change.after === "string" ? diffWords(before, after) : null;
+  const marked = (side: "before" | "after") => parts
+    ? parts.map((part, index) => {
+      if (side === "before" ? part.added : part.removed) return null;
+      if (part.added || part.removed) {
+        return part.added
+          ? <ins key={index} className="rounded-chip bg-[var(--editor-code-line-add-bg)] text-[var(--editor-code-line-add-text)] no-underline"><span className="sr-only">added: </span>{part.value}</ins>
+          : <del key={index} className="rounded-chip bg-[var(--editor-code-line-remove-bg)] text-[var(--editor-code-line-remove-text)]"><span className="sr-only">removed: </span>{part.value}</del>;
+      }
+      return <span key={index}>{part.value}</span>;
+    })
+    : side === "before" ? before : after;
   return <div className="min-w-0 space-y-2" data-testid="article-change">
     {place && <p className="theme-text-primary text-sm font-medium">{place}</p>}
     <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      <div className="min-w-0"><h4 className="theme-text-muted text-sm">Before</h4><p className="theme-text-primary whitespace-pre-wrap text-sm">{before}</p></div>
-      <div className="min-w-0"><h4 className="theme-text-muted text-sm">After</h4><p className="theme-text-primary whitespace-pre-wrap text-sm">{after}</p></div>
+      <div className="min-w-0"><h4 className="theme-text-muted text-sm">Before</h4><p className="theme-text-primary whitespace-pre-wrap text-sm">{marked("before")}</p></div>
+      <div className="min-w-0"><h4 className="theme-text-muted text-sm">After</h4><p className="theme-text-primary whitespace-pre-wrap text-sm">{marked("after")}</p></div>
     </div>
   </div>;
 }

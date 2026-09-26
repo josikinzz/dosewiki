@@ -23,6 +23,7 @@
 import { createTranslationRoutes } from "./translationFixtures.mjs";
 import { createMoleculeRoutes } from "./moleculeFixtures.mjs";
 import { createSubstanceRoutes, wholeArticle } from "./substanceFixtures.mjs";
+import { createReviewRoutes, seedReviewRecords } from "./reviewFixtures.mjs";
 
 /** Roles the synthetic session can carry; mirrors `APP_ROLES` in `src/lib/auth/roles.ts`, minus `viewer`, which cannot open `/dev`. */
 export const JOURNEY_ROLES = Object.freeze(["admin", "editor_translator", "editor", "translator", "contributor"]);
@@ -1524,7 +1525,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
    * else save an article after the editor's first read of it.
    */
   const library = {
-    rows: new Map((state === "empty" ? [] : TAG_ARTICLES_SEED).map((row) => [row.slug, structuredClone(row)])),
+    // Each row carries its human review record (`reviewFixtures.mjs`), as the library projection does.
+    rows: new Map((state === "empty" ? [] : TAG_ARTICLES_SEED).map((row) => {
+      const review = seedReviewRecords({ epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN })[row.slug];
+      return [row.slug, { ...structuredClone(row), editorial_review: review ? structuredClone(review) : { status: "needed", notes: "" } }];
+    })),
     articleReads: new Map(),
     saves: 0,
     /** The stored index layouts; a commit replaces them after the route's revision check. */
@@ -1601,6 +1606,15 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     proposals,
     proposalSummary: (proposal) => proposalSummary(proposal),
   });
+
+  /** The review workbench's records and writes (`reviewFixtures.mjs`). */
+  const reviews = createReviewRoutes({
+    fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH,
+    rows: () => library.rows,
+    layouts: () => library.layouts,
+    wholeArticle,
+  });
+  fixture.reviews = reviews;
 
   function writingList() {
     return [...writing.values()].map(({ slug, title, kind, status, creationTime, publicationDate, teaser, tags }) => ({
@@ -2729,6 +2743,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (scope && scope !== "list") return json(400, { error: `Unsupported editor library scope: ${scope}.` });
       return json(200, { ok: true, scope: "list", articles: [...library.rows.values()].map((row) => ({ ...structuredClone(row), priority: LIBRARY_PRIORITY_SEED[row.slug] ?? "normal", reference_count: 0 })) });
     }
+    const reviewAnswer = reviews.route({ upper, pathname, params, body });
+    if (reviewAnswer) return reviewAnswer;
     const substanceAnswer = substances.route({ upper, pathname, params, body });
     if (substanceAnswer) return substanceAnswer;
     if (pathname === "/api/save-article" && upper === "POST") return toolWrite(() => saveLibraryArticles(body ?? {}));

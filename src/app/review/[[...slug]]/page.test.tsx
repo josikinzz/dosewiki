@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ALIGNED = {
   status: "aligned" as const,
@@ -14,11 +14,16 @@ const SPLIT = {
   summary: "split",
 };
 
-const { getEditorTargetAlignmentMock, getServerSessionMock } =
+const { getEditorTargetAlignmentMock, getServerSessionMock, requestHeaders } =
   vi.hoisted(() => ({
     getEditorTargetAlignmentMock: vi.fn(),
     getServerSessionMock: vi.fn(),
+    requestHeaders: { current: new Headers({ host: "127.0.0.1:3100" }) },
   }));
+
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => requestHeaders.current),
+}));
 
 vi.mock("next-auth", () => ({
   getServerSession: getServerSessionMock,
@@ -43,7 +48,7 @@ vi.mock("@server/next/statusRedirectPolicy", () => ({
     dev: "/dev",
   },
   buildNoIndexPageMetadata: vi.fn(() => ({})),
-  getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type })),
+  getProtectedRouteRedirectTarget: vi.fn((decision) => ({ type: decision.type, href: `/${decision.type}` })),
 }));
 
 vi.mock("../_components/ReviewRouteClient", () => ({
@@ -81,4 +86,41 @@ describe("ReviewPage Postgres target alignment gate", () => {
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "review workbench" });
   });
 
+
+  describe("local screenshot viewer", () => {
+    const VIEWER_ENV = ["NODE_ENV", "DEV_SCREENSHOT_VIEWER", "DATA_WRITES_FROZEN"] as const;
+    let previous: Record<string, string | undefined> = {};
+
+    beforeEach(() => {
+      previous = Object.fromEntries(VIEWER_ENV.map((key) => [key, process.env[key]]));
+      vi.stubEnv("NODE_ENV", "development");
+      vi.stubEnv("DEV_SCREENSHOT_VIEWER", "1");
+      vi.stubEnv("DATA_WRITES_FROZEN", "1");
+      requestHeaders.current = new Headers({ host: "127.0.0.1:3100" });
+      getServerSessionMock.mockResolvedValue(null);
+    });
+
+    afterEach(() => {
+      for (const key of VIEWER_ENV) vi.stubEnv(key, previous[key]);
+    });
+
+    it("renders the workbench without a session under the same gate as /dev", async () => {
+      const element = await ReviewPage({ params: Promise.resolve({ slug: ["lsd"] }) });
+      expect(element.type).toBe(ReviewRouteClient);
+    });
+
+    it.each([
+      ["NODE_ENV is production", { NODE_ENV: "production" }],
+      ["the opt-in is unset", { DEV_SCREENSHOT_VIEWER: undefined }],
+      ["the write freeze is off", { DATA_WRITES_FROZEN: undefined }],
+    ])("sends a visitor without a session to sign in when %s", async (_label, overrides) => {
+      for (const [key, value] of Object.entries(overrides)) vi.stubEnv(key, value);
+      await expect(ReviewPage({ params: Promise.resolve({ slug: ["lsd"] }) })).rejects.toThrow("redirect:/sign-in");
+    });
+
+    it("sends a visitor without a session to sign in from a non-loopback host", async () => {
+      requestHeaders.current = new Headers({ host: "dev.dose.wiki" });
+      await expect(ReviewPage({ params: Promise.resolve({ slug: ["lsd"] }) })).rejects.toThrow("redirect:/sign-in");
+    });
+  });
 });

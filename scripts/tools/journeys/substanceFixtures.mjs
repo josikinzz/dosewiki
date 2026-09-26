@@ -40,7 +40,8 @@ export function wholeArticle(row) {
   return {
     ...structuredClone(seed),
     ...structuredClone(row),
-    editorial_review: { status: row.slug === "lsd" ? "in_progress" : "needed" },
+    // The row's review record when it has one (`reviewFixtures.mjs`).
+    editorial_review: structuredClone(row.editorial_review ?? { status: row.slug === "lsd" ? "in_progress" : "needed" }),
   };
 }
 
