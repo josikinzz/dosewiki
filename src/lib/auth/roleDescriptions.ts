@@ -32,7 +32,7 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
     summary: "Has both Editor and Translator permissions, with translation work limited to the languages an admin has approved.",
     can: [
       "Draft article and site-copy changes for admin review.",
-      "Work in the Translation workbench for approved languages: edit and approve glossary terms, interface text, article paragraphs, and the style guide, including their own edits.",
+      "Work in the Glossary, the translation workbench, for approved languages: edit and approve glossary terms, interface text, article paragraphs, and the style guide, including their own edits.",
       "Edit their own profile, playlists, and trip reports.",
     ],
     cannot: ["Publish article proposals directly.", "Manage members.", "Translate a language an admin has not approved.", "Start or queue machine translation runs."],
@@ -52,14 +52,14 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
       "Delete anything outright. Removing a playlist they own hides it everywhere, and the server keeps an archived copy.",
       "See the member list or mint invites.",
       "Open the global change review queue or read another editor's submissions.",
-      "Use the Translation workbench without a separately assigned Translator role and approved languages.",
+      "Use the Glossary (the translation workbench) without a separately assigned Translator role and approved languages.",
     ],
   },
   translator: {
     role: "translator",
-    summary: "Reviews how the site reads in a language, in the Translation workbench. Translates the taxonomy, never changes it.",
+    summary: "Reviews how the site reads in a language, in the Glossary. Translates the taxonomy, never changes it.",
     can: [
-      "Start in the workbench Inbox, which lists what needs a person in their languages.",
+      "Start in the Glossary's Inbox, which lists what needs a person in their languages.",
       "Edit and approve glossary terms, interface text, article paragraphs, translator's notes, and the style guide, including their own edits, only in languages an admin has approved.",
       "Export and import glossary sheets for those approved languages.",
       "Edit their own profile.",

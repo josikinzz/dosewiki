@@ -23,6 +23,13 @@ describe("matchPalette", () => {
     expect(paletteToolsFor(null)).toEqual([]);
   });
 
+  it("finds the Glossary by the translation words a translator would type", () => {
+    for (const query of ["translation", "translations", "i18n", "workbench"]) {
+      const { tools } = matchPalette(query, paletteToolsFor("translator"), RECORDS);
+      expect(tools.map((tool) => tool.tab), query).toContain("glossary");
+    }
+  });
+
   it("puts the named tool first", () => {
     const { tools } = matchPalette("people", paletteToolsFor("admin"), RECORDS);
     expect(tools[0].tab).toBe("people");

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Translation workbench: `/dev/glossary`, opening on the Inbox, which lists
+ * Glossary, the translation workbench: `/dev/glossary`, opening on the Inbox, which lists
  * what needs a person. Terms and Interface text share one search. Articles
  * opens on the articles needing review and holds the article reader, per-page
  * coverage, recorded changes, reader feedback and, for admins, the runs with
@@ -775,8 +775,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     <div className="space-y-6">
       <EditorSection
         icon="lucide:languages"
-        title="Translation workbench"
-        description="Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
+        title="Glossary"
+        description="The translation workbench. Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
         actions={<SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} />}
         // Above the workspaces, so the legend's popover is not covered by a sticky pane.
         className="relative z-20"

@@ -398,7 +398,9 @@ const REGISTRY = [
     icon: "lucide:languages",
     group: "site",
     aliases: ["translation-glossary"],
-    keywords: ["translation", "languages", "locales"],
+    // The tool's heading and docs call it the Glossary; the palette still finds
+    // it by the job (the translation workbench).
+    keywords: ["translation", "translations", "i18n", "workbench", "languages", "locales"],
     // The locale mirrors' term list. Approving a rendering changes every prompt
     // but spends nothing, so translators own it; the paid actions (drafting,
     // retranslating, the main run) stay admin inside the tab and their routes.
