@@ -208,5 +208,10 @@ describe("ArticlePreviewFrame", () => {
     );
     await waitFor(() => expect(screen.getByText(/could not be loaded/)).toBeInTheDocument());
     expect(frameBody(frameOf(/Article preview/)).getByText("Saved danger banner")).toBeInTheDocument();
+    // With no article to draw, the frame shrinks to what it shows rather than
+    // keeping an article's 760px of empty page.
+    const frame = frameOf(/Article preview/);
+    expect(Number.parseFloat(frame.style.height)).toBeLessThan(760);
+    expect(Number.parseFloat((frame.parentElement as HTMLElement).style.height)).toBeLessThan(760);
   });
 });
