@@ -19,6 +19,8 @@ export type ReviewFilter = "any" | ReviewState;
 /** Every review state an article can carry, `stale` included (an article whose content moved since sign-off). */
 export const REVIEW_STATUS_META: Record<ReviewState, { label: string; tone: EditorStatusPillTone }> = {
   ...BASE_REVIEW_STATUS_META,
+  // Most articles wait for review; a row of red pills would read as an alarm on every one.
+  needed: { ...BASE_REVIEW_STATUS_META.needed, tone: "neutral" },
   stale: { label: REVIEW_STATUS_NAMES.stale, tone: "warning" },
 };
 export const REVIEW_STATES = ["needed", "in_progress", "completed", "stale"] as const satisfies readonly ReviewState[];

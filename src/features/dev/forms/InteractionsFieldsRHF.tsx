@@ -13,18 +13,6 @@ export function InteractionsFieldsRHF({ embedded = false }: { embedded?: boolean
   const overlaps = embedded ? interactionOverlaps(interactions) : [];
   return (
     <section className="space-y-4">
-      {overlaps.length > 0 ? (
-        <ul role="status" className="space-y-1.5">
-          {overlaps.map((overlap) => (
-            <li key={overlap.name} className="theme-warning-text flex items-start gap-2 text-sm">
-              <Icon icon="lucide:triangle-alert" size={15} className="mt-0.5 shrink-0" aria-hidden />
-              <span>
-                {overlap.label} is listed under {overlap.tiers.map((tier) => INTERACTION_TIER_LABELS[tier]).join(" and ")}. Keep it in the one tier that fits.
-              </span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
       <CollapsibleEditorCard
         density="compact"
         pairedIndicator={embedded}
@@ -99,6 +87,18 @@ export function InteractionsFieldsRHF({ embedded = false }: { embedded?: boolean
           helperText={helperText}
         />
       </CollapsibleEditorCard>
+      {overlaps.length > 0 ? (
+        <ul role="status" className="space-y-1.5">
+          {overlaps.map((overlap) => (
+            <li key={overlap.name} className="theme-warning-text flex items-start gap-2 text-sm">
+              <Icon icon="lucide:triangle-alert" size={15} className="mt-0.5 shrink-0" aria-hidden />
+              <span>
+                {overlap.label} is listed under {overlap.tiers.map((tier) => INTERACTION_TIER_LABELS[tier]).join(" and ")}. Keep it in the one tier that fits.
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

@@ -270,7 +270,12 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
               <EditorPanel className="overflow-visible">
                 {header}
                 <div className="px-4 py-5 sm:px-5">
-                  <LoadErrorState what="this article" message="The full article could not be loaded." onRetry={() => requestArticle(selected)} />
+                  <LoadErrorState
+                    what="this article"
+                    message="The full article could not be loaded."
+                    onRetry={() => requestArticle(selected)}
+                    secondary={<a href={`/sign-in?callbackUrl=${encodeURIComponent(`/dev/articles/${selected}`)}`} target="_blank" rel="noreferrer" className="theme-accent-underline text-sm text-dose-accent-strong underline-offset-4 hover:underline">If your session ended, sign in again in a new tab</a>}
+                  />
                 </div>
               </EditorPanel>
             ) : selected && selectedRow ? (

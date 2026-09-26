@@ -44,6 +44,7 @@ import { ButtonKeyCap, DockBlocker, DraftStatePhrase, SaveDock, SessionLine, Ses
 import { countChanges, describeChangedSections, describeDraftState, describeLifecycleFailure, PENDING_WORDS, safetyChanges } from "./articleSessionModel";
 import { ARTICLE_EDITOR_SECTIONS, articleSectionForPath } from "./articleSections";
 import { articleDoseWarnings } from "@/features/dev/forms/doseRouteChecks";
+import { INTERACTION_TIER_LABELS, interactionOverlaps } from "@/features/dev/forms/interactionChecks";
 
 export type ArticleContextBridgeProps = {
   slug?: string; article: SubstanceArticle; children: ReactNode;
@@ -391,7 +392,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {/* Cancel takes the same path as Escape: it asks while anything is unsaved. */}
       <Button variant="ghost" size="sm" disabled={operationLocked} onClick={() => leaveGuard.guard(closePanel)}>Cancel</Button>
     </EditorToolbar>
-    <p className="theme-text-faint text-xs">Apply to preview shows the change in the article here. Nothing leaves this browser until you save a draft{canPublish ? ", submit or publish" : " or submit"}.</p>
+    <p className="theme-text-faint text-xs max-sm:hidden">Apply to preview shows the change in the article here. Nothing leaves this browser until you save a draft{canPublish ? ", submit or publish" : " or submit"}.</p>
   </div>;
 
   // The one result the dock shows, most urgent first.
@@ -468,7 +469,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       <Button type="button" variant="ghost" size="sm" className="max-sm:hidden" disabled={operationLocked || !localDirty} onClick={requestDiscardLocal}>Discard edits</Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" className={`ms-auto ${TOUCH_ICON}`} aria-label="Editing options" title="Editing options"><Icon icon="lucide:ellipsis" size={16} /></Button>
+          <Button type="button" variant="ghost" size="icon" className={`sm:ms-auto ${TOUCH_ICON}`} aria-label="Editing options" title="Editing options"><Icon icon="lucide:ellipsis" size={16} /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" collisionPadding={16} className="w-72 max-w-[calc(100vw-2rem)]">
           <p className="theme-text-primary px-2 py-2 text-sm">{status}</p>
@@ -486,6 +487,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     state={<DraftStatePhrase text={draftState.text} unsaved={draftState.unsaved} />}
     saveLine={<SaveLine model="record" destination={canPublish ? "live" : "proposal"} />}
   />;
+  // The strip names the proposal just submitted on its own line; this line counts the rest.
+  const otherPending = lifecycle.proposals.filter((proposal) => proposal.status === "submitted" && proposal._id !== pendingChipId).length;
   const dockStrip = <SessionStrip>
     {lifecycle.hasDraft ? <SessionLine key="draft" icon="lucide:file-pen-line" tone="accent">
       You are looking at your private draft{lifecycle.draftSavedAt ? <>, saved <RelativeDay iso={lifecycle.draftSavedAt} /></> : null}. Readers still see the published article.
@@ -498,8 +501,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {pendingChipId ? <SessionLine key="mine" icon="lucide:send" actions={<SessionLink href={`/dev/queue/${encodeURIComponent(pendingChipId)}`}>Open in Change Review</SessionLink>}>
       Your proposal #{pendingChipId.slice(0, 6)} is waiting for review.
     </SessionLine> : null}
-    {pendingProposals > 0 ? <SessionLine key="pending" icon="lucide:inbox" tone="warning" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>See them</Button>}>
-      {pendingProposals === 1 ? "1 proposal on this article is waiting for review." : `${pendingProposals} proposals on this article are waiting for review.`}{canPublish ? " Publishing over it may make it stale." : ""}
+    {otherPending > 0 ? <SessionLine key="pending" icon="lucide:inbox" tone="warning" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>See them</Button>}>
+      {otherPending === 1 ? `1 ${pendingChipId ? "other " : ""}proposal on this article is waiting for review.` : `${otherPending} ${pendingChipId ? "other " : ""}proposals on this article are waiting for review.`}{canPublish ? " Publishing over it may make it stale." : ""}
     </SessionLine> : null}
     {lifecycle.feedbackRef ? <SessionLine key="feedback" icon="lucide:message-square-text" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>}>
       <span data-feedback-correction>Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
@@ -507,7 +510,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {returnTo ? <SessionLine key="back" icon="lucide:arrow-left" actions={<SessionLink href={returnTo}>Back to feedback</SessionLink>}>You opened this from reader feedback.</SessionLine> : null}
   </SessionStrip>;
   const safety = safetyChanges(changes);
-  const doseWarnings = safety.length > 0 ? articleDoseWarnings(lifecycle.article, lifecycle.published) : [];
+  const interactionsChanged = safety.some((change) => change.path.startsWith("interactions"));
+  const doseWarnings = safety.length > 0 ? [
+    ...articleDoseWarnings(lifecycle.article, lifecycle.published),
+    ...(interactionsChanged ? interactionOverlaps(lifecycle.article.interactions).map((overlap) => `Interactions: ${overlap.label} is listed under ${overlap.tiers.map((tier) => INTERACTION_TIER_LABELS[tier]).join(" and ")}.`) : []),
+  ] : [];
   const warningList = doseWarnings.length > 0 ? <ul className="mt-2 list-disc space-y-1 ps-5">{doseWarnings.map((line) => <li key={line}>{line}</li>)}</ul> : null;
   const safetyLead = safety.length > 0 ? <Notice
     tone="warning"
@@ -631,7 +638,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             disabled={operationLocked}
             busy={lifecycle.busy}
             description={`${canPublish
-              ? "Publishing changes the live article and its derived displays for all readers. It is refused if someone else published this article after you loaded it. Classification changes affect this substance's index memberships; shared taxonomies and other articles remain unchanged."
+              ? "Publishing changes the live article for every reader. It is refused if someone else published this article after you opened it. A classification change also moves this substance in the index; other articles stay as they are."
               : "Submitting sends this change to an admin for review. The published article stays unchanged until it is approved."}${lifecycle.feedbackRef
               ? ` The change is linked to reader feedback #${lifecycle.feedbackRef.id.slice(-6)} by its id only; the reader's contact details stay private.`
               : ""}`}

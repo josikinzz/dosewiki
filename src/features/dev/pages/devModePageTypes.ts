@@ -15,6 +15,9 @@ export type DevModePageProps = {
   initialProfileKey?: string;
   /** True while the editor corpus is still draining behind the shell. */
   isLibraryLoading?: boolean;
+  /** Why the corpus could not load, when it failed; the waiting tools show it with Try again. */
+  libraryError?: string | null;
+  onRetryLibrary?: () => void;
   onTabChange: (tab: DevModeTab) => void;
   /**
    * Opens an App Path inside the shell (a Cmd+K record). The route client
@@ -55,6 +58,8 @@ export type DevModePageControllerState = {
   glossaryLocales?: readonly string[];
   articlesLength: number;
   isLibraryLoading: boolean;
+  libraryError: string | null;
+  retryLibrary: () => void;
   indexLayoutsReadiness: DevIndexLayoutsReadiness;
   retryIndexLayouts: () => void;
   activeTab: DevModeTab;

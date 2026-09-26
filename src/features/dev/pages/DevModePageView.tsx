@@ -207,6 +207,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             readiness={controller.indexLayoutsReadiness}
             onRetry={controller.retryIndexLayouts}
           />
+        ) : isWaitingOnLibrary && controller.libraryError ? (
+          <LoadErrorState what="the articles" message={controller.libraryError} onRetry={controller.retryLibrary} />
         ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (

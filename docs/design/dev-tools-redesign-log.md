@@ -694,6 +694,59 @@ builds a new shared primitive, add it to **Conventions** and log it under
   with a fallback that says the unsaved work is untouched and offers Try again,
   so a page that cannot render never drops the editor.
 
+- **An editing layer shared with the public page takes its tool chrome by
+  prop.** `ArticleContextBridge` (`.editor.tsx`, replaced by a pass-through in
+  the public build) draws the full-width editing bar by default (public page,
+  Review) and, with `chrome="dock"`, the tool's pane: a `header` slot, a
+  session strip over the article (`SessionStrip`/`SessionLine`), the article in
+  its own error boundary, and a save dock (`SaveDock`, `DockBlocker`,
+  `DraftStatePhrase`, `ButtonKeyCap` in
+  `src/features/article/editing/ArticleWorkbenchChrome.tsx`). New optional
+  props on shared editor-only primitives stay opt-in, so the public page's
+  editor keeps its layout; the public build never reaches any of these modules
+  (`scripts/build/public-editor-boundary.mjs`).
+- **Safety-critical values show what readers see now.** A section form
+  editing doses or durations reads the live article through
+  `PublishedArticleProvider` (`src/features/dev/forms/PublishedArticleContext.tsx`,
+  fed by `ArticleSectionForm published`) and writes "Live: 50-150 ug" with the
+  unsaved dot under every changed value, matching routes by name, not index.
+- **Checks that advise, beside the group they read.** Dose and duration
+  warnings run on the committed values (fields commit on blur) and sit under
+  their group in a polite live region: the unit each tier uses and which tier
+  broke the one-unit rule, a tier out of order, a tier reaching past the next
+  one's start (touching tiers are the house style), a change more than double
+  or less than half of the live value, a stage longer than the total, a
+  duration without a time unit (`doseRouteChecks.ts`). Interaction tiers warn
+  when one substance sits in two of them (`interactionChecks.ts`). The server
+  validation still decides; these never block.
+- **The confirm of a safety-critical publish is the safety diff.**
+  `PublishSheet` takes `lead` (a warning `Notice` at the top of the sheet
+  naming the dose, duration and interaction changes), `confirmBody` (the
+  changed sections in words, every such change before and after through
+  `ArticleChangeDiff changes`, and "Still to check" with the warnings),
+  `confirmAffectedLabel`, `confirmDestructive` (while warnings stand) and
+  `result` (a refusal lands under the Publish button that was pressed). All
+  optional; the Publish confirm keeps its test-guarded title and button.
+- **A write refused by the freeze is definite.** `useArticleLifecycle` reads
+  a 503 `DATA_WRITES_FROZEN` (and every 4xx) as a refusal that wrote nothing,
+  clears the held request and exposes `failure` (`frozen`, `conflict`,
+  `refused`, with the action), so no Retry of an impossible write locks
+  editing; a lost or 5xx answer stays unconfirmed with Retry
+  (`classifyLifecycleFailure`, `describeLifecycleFailure` in
+  `articleSessionModel.ts`).
+- **A long form in a panel pins its actions.** `ContextualEditorPanel` takes an
+  optional `footer` (rendered under the scrolling body) and `onKeyDown` (keys
+  the panel handles before it stops propagation). Section forms put Apply to
+  preview (accent), Review, Save draft (Cmd+S) and Cancel there, with the
+  validation list above them.
+- **Guard dialogs wrap their buttons** (`useDirtyGuard`'s footer wraps and its
+  buttons grow), so "Save draft and continue" is never clipped.
+- **A tool whose corpus failed to load says so.** `NextDevRouteClient` passes
+  the library's error to the shell (`libraryError`, `onRetryLibrary` on
+  `DevModePageProps`; `libraryError`, `retryLibrary` on the controller), and a
+  waiting corpus tool shows `LoadErrorState` "Could not load the articles"
+  with Try again instead of loading forever.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -2431,3 +2484,126 @@ Deferred, with reasons:
   library article carries only the fields the corpus tools read, and
   `ArticleLayout` needs `routes`; a real article renders. Giving the fixture a
   whole article would move every corpus tool's baselines.
+
+### Pass 20: Substances (`/dev/articles`, aliases `generator`, `gen`)
+
+Commit: see `git log --grep "Dev tools redesign: Substances"`.
+Screenshots: `tmp/redesign/substances/before/` and
+`tmp/redesign/substances/after/` (admin idle dark and light; translator and
+contributor locked; empty; library failed; search and no match; All; LSD open
+dark and light, full page; editor on LSD; MDMA with a saved private draft;
+Ketamine with the editor's returned proposal; loading; article failed;
+Caffeine, which cannot be drawn; unknown deep link; session expired; dosage
+panel, bottom, invalid, unit mismatch, changed, warnings; remove route;
+interactions and a substance in two tiers; legality; close guard; inline field;
+dirty and dirty at the bottom; switch guard; rail guard; discard confirm;
+sections menu; review as admin and editor; publish confirm; published;
+submitted; saved draft; conflict and the merge; frozen publish and frozen draft;
+history; options menu; desktop and phone), captured by
+`tmp/redesign/substances/capture.mjs`. Critique in
+`tmp/redesign/substances/critique.md` (16/40 before), inventory with the
+item-by-item check in `tmp/redesign/substances/inventory.md`, detector
+evidence in `tmp/redesign/substances/detector/` (clean before and after).
+
+Main changes:
+
+- P0 fixes: a rail switch, Leave or sign-out dropped unsaved article edits
+  silently (the tab never reported to the unsaved-work registry; it now does,
+  with Save draft as the save, and the rail shows the unsaved dot). An article
+  the renderer could not draw dropped the whole editor to the route error page;
+  the article now sits in its own error boundary inside the pane and the dock
+  and draft stay. The publish confirm did not show the doses it published; it
+  now lists the changed sections, every dose, duration and interaction change
+  before and after, and the warnings still standing (and turns destructive
+  while they do).
+- P1 fixes: a write-freeze refusal read as "Your last change was not
+  confirmed" and paused editing behind a Retry that could not succeed; the
+  lifecycle now reads the 503 as a definite refusal and the dock says "Writes
+  are paused, so your changes were not published. Your edits stay here." A 409
+  now says someone published after you opened it and offers "Load the latest
+  version" (the merge panel) where Publish was pressed. Remove route asks,
+  naming the route and the tiers that go with it. Guard dialogs no longer clip
+  "Save draft and continue".
+- Layout: the editor workspace, `layout: "full-bleed"` capped at
+  `max-w-[100rem]`, `saveLine: "in-tool"`. `SubstanceListColumn.tsx`
+  (sticky from `lg`): "Articles" meta heading and count line, Listed / Your
+  work / All as a three-column choice with counts (All replaces "Include
+  URL-only"; a deep link to an address-only article opens on All), search with
+  `/` and Escape, Review state (with Changed since review) and Order selects,
+  the windowed listbox with fixed 60px rows (name, address, review pill with
+  "Not reviewed" neutral, "Your draft", "Proposal waiting", "Changes
+  requested", "Address only", "Editing" and the unsaved dot), the hidden-by-
+  filter line, no-match with Clear the search and Show everything, the unknown
+  deep link line, key hint. Marks come from `/api/dev/my-work`
+  (`workBySlug`); a failed read says so with Try again.
+- Pane: header (name as the heading with sr-only "Editing", review pill, View
+  live in a new tab, the address, corner Close, Back to list below `lg`), the
+  session strip (your private draft with its relative save time, "This page
+  shows your edits", a revision of a proposal, your proposal waiting with Open
+  in Change Review, other proposals waiting with See them, the reader-feedback
+  correction with Detach and Back to feedback), the article, and the save dock
+  (result, pending line, blocker, Review N changes, Save draft with the Cmd+S
+  cap, Edit a section with Changed and Needs a fix marks, Discard edits (in the
+  menu on phones), Editing options, the draft state phrase, `SaveLine`). Idle,
+  loading (skeletons) and failed (with a sign-in link) panes.
+- Section panel: a pinned footer (Apply to preview, which was the unlabelled
+  eye "Preview locally", then Review, Save draft with Cmd+S, Cancel), the
+  validation issues as a list above it, the article named in the description.
+- Dosage form: sentence-case labels, fieldsets "Dose ranges" and "Duration",
+  the route's unit line, warnings for mixed units (which tiers use which),
+  out-of-order and overlapping tiers, a change of more than double or less than
+  half, a stage longer than the total and a duration without a time unit,
+  "Live: 50-150 ug" under each changed value, a new route marked as not live,
+  Add route focuses the new route. Interactions: the three tiers open in the
+  tool with their severity colours and a warning for a substance listed in two
+  tiers; the review sheet repeats it.
+- Review sheet: a safety lead naming the dose, duration and interaction changes
+  and their warnings, a shorter scope sentence, refusals under Publish, key hint
+  hidden on touch; history reads summary first with "You" and a relative time.
+- Keys: `/` and Cmd+S (Save draft, from the pane and inside a section panel),
+  both in the `?` sheet.
+- Shared, backward compatible: see Conventions (`ArticleContextBridge`
+  `chrome`, `header`, `onWorkChange`; `ArticleWorkbenchChrome.tsx`;
+  `PublishSheet` `lead`, `confirmBody`, `confirmAffectedLabel`,
+  `confirmDestructive`, `result`; `ContextualEditorPanel` `footer`,
+  `onKeyDown`; `ArticleSectionForm` `published`; `PublishedArticleProvider`;
+  `CollapsibleEditorCard` `iconClassName`; `useDirtyGuard` wrapping footer;
+  `useArticleLifecycle` `failure`, `clearFailure`, `pendingAction`,
+  `draftSavedAt`; `ARTICLE_EDITOR_SECTIONS`; the shell's `libraryError`).
+  The public page's contextual editor and Review keep the bar chrome; the
+  section footer, the safety lead and confirm, and the freeze reading reach
+  them too. No public module changed: every edited file is `.editor.tsx`,
+  under `src/features/dev/`, `src/features/contextual-editing/`, or
+  `src/features/article/editing/` outside `index.ts` and
+  `ArticleEditContext.tsx`, which `public-editor-boundary.mjs` keeps out of the
+  public build; `ArticleLayout` and the section components are untouched.
+- Journeys fixtures: `scripts/tools/journeys/substanceFixtures.mjs` with
+  `substanceArticlesSeed.json` (LSD, MDMA, Ketamine and Alcohol whole, from the
+  archived public snapshot); the editor library's per-slug read answers them
+  whole (so other tools' article previews now draw these four); the article
+  lifecycle GET and POST (editor floor, admin floor for publish and restore, the
+  summary rule, "No article content changed", draft version and base revision
+  checks, a concurrent publish under `conflicted` just before the first publish
+  or submit, the freeze); MDMA seeded with a saved draft, LSD with two
+  revisions; submissions join the shared proposal list; `/api/dev/my-work`
+  lists article drafts first. With a unit test.
+
+Deferred, with reasons:
+
+- A required source or reason for dose changes, and a second admin for
+  safety-critical sections: server rules and a product decision.
+- The empty corpus still reads as "Loading articles": the controller treats a
+  drained-to-nothing corpus as loading on purpose (`useDevModePageController`);
+  a failed corpus now shows its error.
+- Threshold shows "10+ ug" in the form and "~10 ug" on the page: the shared
+  range transformer's round trip is test-guarded; the form's "Live:" line uses
+  the page's threshold wording.
+- Dashed resting outlines on every inline value: the shared `EditableValue`
+  affordance contract, also used by the public page's editor.
+- Publication receipt wording ("editor host", "Translations: not reported"):
+  `publicationNotice.ts` and the receipt chips are shared with the public
+  page's editor and test-guarded.
+- Display names in history and proposals: no directory for external emails
+  (as earlier passes).
+- `library-failed` before looked like idle because the fixture answered the
+  library in every state; the capture now fails that read itself.

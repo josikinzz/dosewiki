@@ -108,7 +108,7 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, onOpenP
   // Citations) start the drain; the deferred ones render without waiting.
   // Change Review waits until "Load into editor" is actually used.
   const needsLibrary = useLibraryLatch(tabNeedsLibrary(routeState.tab));
-  const { library, isLoading: isLoadingLibrary, requestLibrary } = useLazyLibrary(needsLibrary);
+  const { library, isLoading: isLoadingLibrary, requestLibrary, error: libraryError } = useLazyLibrary(needsLibrary);
 
   // Nothing gates the shell. The tab rail paints on the first client render;
   // the corpus drain lands behind it, and the tools that need it show their
@@ -122,6 +122,8 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, onOpenP
           initialFilter={routeState.filter}
           initialProfileKey={initialProfileKey}
           isLibraryLoading={isLoadingLibrary || !library}
+          libraryError={library ? null : libraryError ?? null}
+          onRetryLibrary={() => { void requestLibrary().catch(() => {}); }}
           onTabChange={onTabChange}
           onOpenPath={onOpenPath}
           toolMountKey={toolMountKey}
