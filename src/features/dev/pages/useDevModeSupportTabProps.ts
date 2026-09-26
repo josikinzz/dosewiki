@@ -1,13 +1,18 @@
 import { useCallback, useMemo, type ReactNode } from "react";
 
+import type { DevCommitControls } from "./useDevModeSaveActions";
+
 type UseDevSupportTabsControllerArgs = {
   commitPanel: ReactNode;
+  /** The commit in parts; Tags draws its own working-changes panel from them. */
+  commitControls?: DevCommitControls;
   combinedChangelogMarkdown: string;
   hasPendingChanges: boolean;
 };
 
 export function useDevSupportTabsController({
   commitPanel,
+  commitControls,
   combinedChangelogMarkdown,
   hasPendingChanges,
 }: UseDevSupportTabsControllerArgs) {
@@ -32,6 +37,7 @@ export function useDevSupportTabsController({
   const tagEditorTabProps = useMemo(
     () => ({
       commitPanel,
+      commit: commitControls,
       datasetMarkdown: combinedChangelogMarkdown,
       hasDatasetChanges: hasPendingChanges,
       onCopyDatasetMarkdown: copyDatasetMarkdownForTagEditor,
@@ -39,6 +45,7 @@ export function useDevSupportTabsController({
     }),
     [
       combinedChangelogMarkdown,
+      commitControls,
       commitPanel,
       copyDatasetMarkdownForTagEditor,
       downloadDatasetMarkdownForTagEditor,

@@ -9,6 +9,12 @@ import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
 import { mergePlaceWords } from "@/features/article/editing/ArticleMergeReview";
 import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
 
+/** Top-level article keys in words, for the held rows ("index_categories" reads "index categories"). */
+function fieldWords(keys: readonly string[]): string {
+  if (keys.length === 0) return "no fields";
+  return keys.map((key) => key.replace(/_/g, " ")).join(", ");
+}
+
 function articleCount(count: number): string {
   return `${count} ${count === 1 ? "article" : "articles"}`;
 }
@@ -75,8 +81,8 @@ export function StagedArticlesRecoveryNotice({
                   {held.map(({ change, current, merge, choices }) => (
                     <li key={change.slug} className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate">
-                          {`${change.slug}: ${Object.keys(change.set).concat(change.unset).join(", ") || "no fields"}`}
+                        <span className="min-w-0 flex-1">
+                          {`${current?.title?.trim() || change.slug}: ${fieldWords(Object.keys(change.set).concat(change.unset))}`}
                         </span>
                         {current ? (
                           <Button type="button" variant="outline" size="sm" disabled={!!merge && merge.unresolved.length > 0} aria-label={`Apply my edits to ${change.slug}`} onClick={() => recovery.applyHeld(change.slug)}>

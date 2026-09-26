@@ -423,6 +423,51 @@ builds a new shared primitive, add it to **Conventions** and log it under
   shows a record (About when nothing else is picked), so the pane header keeps
   Back to list below `lg` and drops the corner Close.
 
+- **A batch tool owns one Working changes panel.** A tool whose edits collect
+  for one commit (Tags) draws its own panel from `commitControls`
+  (`DevCommitControls`, returned by `useDevModeSaveActions` beside the
+  unchanged `commitPanel`): the state in one sentence ("2 articles changed, not
+  live yet"), the accent commit button in the section's actions with the Cmd+S
+  cap (outline while off), the server check, why a commit waits, the rebase
+  banner, the last result kept as a receipt until dismissed (the hook clears
+  successes after five seconds), what changed in the tool's own terms, and the
+  full diff folded shut with Copy and Download. It never repeats the frame's
+  batch sentence, and it renders `commitControls.dialog`. The editing pane's
+  dock says how much waits ("2 articles in your working changes, not live
+  yet") with "Review and commit", which scrolls to the panel and focuses its
+  heading. `WorkingChangesPanel` (`src/features/dev/tags/`) is the reference;
+  Index layout still renders `commitPanel`.
+- **Commit confirms speak the tool's terms.** `requestCommit(lead)` puts a node
+  at the top of the commit sheet (`CommitScopeSheet` `lead`); Tags passes its
+  tag changes ("Benzos, renamed from “Benzodiazepines”, on 2 articles"). With
+  only articles in scope the button says "Commit changes to 2 articles".
+- **Say what an action will do before it runs.** When a write's effect depends
+  on what already exists (a rename onto a label that exists is a merge), a live
+  line under the field says so with the combined count and the button takes the
+  outcome's name ("Merge into “Benzodiazepine”"). Likely duplicates are offered
+  as one-tap actions that fill the field. A button whose input would be
+  refused (an empty or unchanged label) is off, with the reason in that line.
+- **A result stays with the record it changed.** When a write removes the
+  open record and the list falls back to another, the pane stays on the
+  removed record (struck through, its result and Undo in the dock) until the
+  editor picks something else.
+- **Several kinds of change to one record are kept-mounted views.** An
+  `EditorNavTabs` strip ("Rename or merge", "Move", "Remove") over
+  `role="tabpanel"` panels hidden with `hidden`; one result slot in the pane
+  dock serves them all. A removal is a view whose button opens a destructive
+  `ConfirmDialog` naming the record and listing the affected rows
+  (`affected`, `affectedLabel`), not an always-open red zone with a checkbox.
+- **Four filter views in a narrow column** are a two-by-two grid of
+  `pillActive`/`ghostPill` buttons (label over count, `aria-pressed`) in the
+  segmented capsule (`TagListColumn`). A search with no match in the current
+  view offers the views that do match ("Found in Chemical class (1)").
+- **A pane says when the list's filter hides it** ("Your search hides this tag
+  from the list" with "Clear the search"), so actions never run on something
+  the list no longer shows without saying so.
+- **A pending state inside a dock is a quiet live line** (spinner and words in a
+  `p aria-live`), not a second `Notice`, so the result that follows replaces it
+  without two status regions.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1312,3 +1357,102 @@ Deferred, with reasons:
   tool; the contextual About panel owns it and its layout was out of scope.
 - A Close in the pane: see the convention above.
 
+### Pass 12: Tags (`/dev/tag-editor`)
+
+Commit: see `git log --grep "Dev tools redesign: Tags"`.
+Screenshots: `tmp/redesign/tags/before/` and `tmp/redesign/tags/after/`
+(admin loaded dark and light, full page; editor, editor_translator, translator
+and contributor; empty; failed; loading; library loading; field switch;
+search and no match; picked; rename typed, empty and unchanged; renamed, full
+and bottom; merge typed and merged; move filled, moved, copied; remove confirm
+and removed; undone; commit confirm; committed; commit under the freeze;
+editor submitted; server check blocking; copy diff; reload failed; rewrite
+failed; recovery offer and held edits after a conflict; desktop and phone),
+captured by `tmp/redesign/tags/capture.mjs`. Critique in
+`tmp/redesign/tags/critique.md` (16/40 before), inventory with the
+item-by-item check in `tmp/redesign/tags/inventory.md`, detector evidence in
+`tmp/redesign/tags/detector/` (static scan clean; the in-page detector is
+blocked by the page CSP).
+
+Main changes:
+
+- P0 fixes: a move added the destination label to every article in the corpus
+  (`applyMove` in `src/utils/data/tagRegistry.mutations.ts` never checked that
+  the article carried the tag; moving a 2-article tag reported "in 22
+  articles"); now only carriers move, with a test. A rename onto an existing
+  label merged two tags without a word; it is now named before it runs. A
+  removal's result and Undo rendered inside the next tag's danger zone; the
+  pane now stays on the removed tag. The commit confirm said only "Tags, 2
+  articles"; it now lists the tag changes.
+- Layout: a Working changes panel first (see Conventions), then the Tags
+  section as an editor workspace. List column (sticky from `lg`): "By field"
+  heading, "56 in use" and a Reload icon button (failure inline with Try
+  again), the four fields as a two-by-two choice with counts, search with the
+  `/` cap and Escape, a count line, the windowed listbox with fixed 44px rows
+  (label with matches marked, "Changed" with the unsaved dot for tags the
+  working changes moved, article count), "Found in" other fields and "Clear
+  the search" when nothing matches, a key hint. `TagPane.tsx` on the right:
+  field as a meta label, the tag as the heading (sr-only "Tag: "), "On N
+  articles", a changed pill, the search-hidden line, Back to list below `lg`
+  (no Close: a tag is always open); Articles as link rows to the public page
+  (new tab), capped at five with Show all; "Looks like the same tag" with
+  one-tap "Merge into “X”"; "Change it everywhere" with the Rename or merge /
+  Move / Remove views; and a sticky dock (the result with Undo, a pending line,
+  what waits, Review and commit).
+- Rename: no-op labels are off with the reason; a case-only change, a rename
+  and a merge each say what happens; the button becomes "Merge into “X”".
+  Move: a native `EditorSelect` of the other fields, "Label there (optional)",
+  "Keep it in <field> too", a sentence naming the outcome and any collision,
+  "Move to <field> in N articles" / "Copy to ...". Remove: a destructive
+  confirm listing the articles (the machine's confirmation flag is set by the
+  confirm, so its guard still holds). Pending buttons say "Renaming",
+  "Merging", "Moving", "Copying", "Removing".
+- Working changes: tag changes read as renamed, merged in, new, removed or on
+  a different count (`tagChanges`, `describeTagChange`), capped at five; the
+  full diff folds shut with Copy diff and Download .diff; a proposal receipt
+  with "Open in Change Review" stays until dismissed; a failed commit under the
+  freeze reads "Writes are paused, so your changes were not committed. They
+  stay in your working changes."; a server that cannot write says why under
+  the button.
+- Keys: `/` (search) and Cmd+S (commit; an admin's commit still asks first, an
+  editor's proposal goes straight out as the button does), both in the `?`
+  sheet.
+- Loading is a workspace skeleton; a failed read is `LoadErrorState` with
+  `what="tags"`; an empty corpus points to Substances.
+- Copy: "Tags" (not "Tag Editor"), sentence-case field labels
+  (`TAG_FIELD_LABELS`), no eyebrow, no uppercase labels, no section stagger.
+- New modules: `TagListColumn.tsx`, `TagPane.tsx` (with `TagDock`),
+  `WorkingChangesPanel.tsx` (with `TagChangeLead`), `TagFeedback.tsx`,
+  `tagEditorModel.ts` (`checkRename`, `existingTagFor`, `similarTags`,
+  `unionArticleCount`, `tagChanges`, `describeTagChange`,
+  `matchesInOtherFields`) with tests. `TagListPanel`, `TagDetailPanel` and
+  `TagMutationForms` are gone. The state machine is unchanged; its integration
+  tests gained merge wording and the remove confirm (cancel removes nothing).
+- Shared, backward compatible: `useDevModeSaveActions` returns
+  `commitControls` (and `requestCommit` takes an optional `lead`);
+  `CommitScopeSheet` `lead`; the commit confirm's description and single-unit
+  button; `EditorServerHealthIndicator` says "Check again" in sentence case
+  (was an uppercase chip "Retry"); `StagedArticlesRecoveryNotice` held rows
+  name the article title and fields in words; `TAG_FIELD_LABELS` in sentence
+  case.
+- Journeys fixtures: `TAG_ARTICLES_SEED` (22 substances with near-duplicate
+  labels) behind `/api/dev/editor-library` (list, `scope=tag-registry`,
+  `slug=`), `INDEX_LAYOUTS_SEED` for `/api/dev/index-layout?type=all` (the
+  library could not build without it, so every corpus tool now has a corpus),
+  `/api/editor-config-health`, and `POST /api/save-article` (admin floor,
+  freeze, tag fields land in the store); under `conflicted` an article changes
+  after its first whole read, so a restore holds edits aside. With a unit test.
+
+Deferred, with reasons:
+
+- Multi-level undo (every operation revertible until commit) and multi-select
+  merge: both change the state machine's transitions or add a mutation type.
+- Rewording the commit success ("Committed 2 article(s) to production as ..."):
+  the shared save orchestrator builds it and its tests guard it.
+- Hiding the frame's write line while Tags loads its own registry: the shell's
+  readiness knows only the library.
+- `DevCommitCard` still carries the "Live site" eyebrow and repeats the
+  frame's sentence; Index layout renders it, so that pass should move to
+  `commitControls` too.
+- Success notices quote tags with straight quotes: they are the state
+  machine's record strings, which its tests assert.

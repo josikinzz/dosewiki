@@ -131,6 +131,7 @@ export function useDevModePageController({
 
   const {
     commitPanel,
+    commitControls,
     clearSaveNotices,
   } = useDevModeSaveActions({
     articles,
@@ -163,6 +164,7 @@ export function useDevModePageController({
 
   const { tagEditorTabProps } = useDevSupportTabsController({
     commitPanel,
+    commitControls,
     combinedChangelogMarkdown: changelogState.combinedChangelogMarkdown,
     hasPendingChanges: changelogState.hasPendingChanges,
   });

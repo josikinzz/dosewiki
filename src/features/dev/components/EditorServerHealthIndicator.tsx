@@ -71,12 +71,11 @@ export function EditorServerHealthIndicator({ health, onRefresh }: EditorServerH
         <Button
           type="button"
           variant="ghostPill"
-          size="chipXs"
-          className="px-2.5 py-1"
+          size="xs"
           onClick={onRefresh}
           disabled={health.isRefreshing}
         >
-          Retry
+          Check again
         </Button>
       )}
     </div>

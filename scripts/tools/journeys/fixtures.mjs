@@ -572,6 +572,63 @@ export const COPY_BLOCKS_SEED = Object.freeze([
   { key: "launch-week-note", kind: "markdown", label: "Launch week note", group: "Launch", hoursAgo: 900, body: "Thanks for visiting during **launch week**. Tell us what [reads badly](/about#contact)." },
 ].map((row) => Object.freeze({ ...row, ...(row.items ? { items: Object.freeze(row.items) } : {}) })));
 
+/**
+ * The substance corpus the editor library and Tags read
+ * (`/api/dev/editor-library`): identity plus the four tag fields, with the
+ * mechanism tags carried as binding sites the way the projection sends them.
+ * The labels are what an editor meets: a tag used once, one used everywhere,
+ * near-duplicates that a rename merges ("Stimulant" and "Stimulants",
+ * "Benzodiazepine" and "Benzodiazepines"), a label with different spacing,
+ * and one long mechanism label.
+ */
+export const TAG_ARTICLES_SEED = Object.freeze([
+  ["alcohol", "Alcohol", ["Depressants"], ["Alcohol"], ["Depressant"], ["GABA-A receptor positive allosteric modulator", "NMDA receptor antagonist"]],
+  ["alprazolam", "Alprazolam", ["Depressants", "Benzodiazepines"], ["Benzodiazepine"], ["Depressant", "Anxiolytic"], ["GABA-A receptor positive allosteric modulator"]],
+  ["caffeine", "Caffeine", ["Stimulants"], ["Xanthine"], ["Stimulant"], ["Adenosine receptor antagonist"]],
+  ["cocaine", "Cocaine", ["Stimulants"], ["Tropane"], ["Stimulants"], ["Serotonin-norepinephrine-dopamine reuptake inhibitor"]],
+  ["diazepam", "Diazepam", ["Depressants", "Benzodiazepines"], ["Benzodiazepines"], ["Depressant", "Anxiolytic"], ["GABA-A receptor positive allosteric modulator"]],
+  ["dxm", "DXM", ["Dissociatives"], ["Morphinan"], ["Dissociative"], ["NMDA receptor antagonist", "Sigma-1 receptor agonist"]],
+  ["fentanyl", "Fentanyl", ["Opioids", "Depressants"], ["Anilidopiperidine"], ["Opioid"], ["Mu-opioid receptor agonist"]],
+  ["ghb", "GHB", ["Depressants"], ["Hydroxy acid"], ["Depressant"], ["GABA-B receptor agonist"]],
+  ["heroin", "Heroin", ["Opioids", "Depressants"], ["Morphinan"], ["Opioid"], ["Mu-opioid receptor agonist"]],
+  ["ketamine", "Ketamine", ["Dissociatives"], ["Arylcyclohexylamine"], ["Dissociative"], ["NMDA receptor antagonist"]],
+  ["lsd", "LSD", ["Psychedelics"], ["Lysergamide"], ["Psychedelic"], ["5-HT2A receptor agonist", "Dopamine D2 receptor agonist"]],
+  ["mdma", "MDMA", ["Entactogens", "Stimulants"], ["Amphetamine"], ["Entactogen", "Stimulant"], ["Serotonin releasing agent", "Serotonin-norepinephrine-dopamine reuptake inhibitor"]],
+  ["mescaline", "Mescaline", ["Psychedelics"], ["Phenethylamine"], ["Psychedelic"], ["5-HT2A receptor agonist"]],
+  ["modafinil", "Modafinil", ["Stimulants", "Nootropics"], ["Benzhydryl"], ["Eugeroic"], ["Dopamine reuptake inhibitor"]],
+  ["morphine", "Morphine", ["Opioids", "Depressants"], ["Morphinan"], ["Opioid"], ["Mu-opioid receptor agonist"]],
+  ["phenibut", "Phenibut", ["Depressants", "Nootropics"], ["Gabapentinoid"], ["Depressant"], ["GABA-B receptor agonist"]],
+  ["psilocybin", "Psilocybin", ["Psychedelics"], ["Tryptamine"], ["Psychedelic"], ["5-HT2A receptor agonist"]],
+  ["2c-b", "2C-B", ["Psychedelics", "Research chemicals"], ["Phenethylamine"], ["Psychedelic", "Entactogen"], ["5-HT2A receptor agonist"]],
+  ["25i-nbome", "25I-NBOMe", ["Psychedelics", "Research chemicals"], ["Phenethylamine", "N-Benzylphenethylamine"], ["Psychedelic"], ["5-HT2A receptor agonist"]],
+  ["zolpidem", "Zolpidem", ["Depressants", "Hypnotics"], ["Imidazopyridine"], ["Hypnotic", "Sedative"], ["GABA-A receptor positive allosteric modulator at the benzodiazepine binding site of alpha-1 containing receptors"]],
+  ["salvinorin-a", "Salvinorin A", ["Deliriants and others"], ["Terpenoid"], ["Hallucinogen"], ["Kappa-opioid receptor agonist"]],
+  ["nicotine", "Nicotine", ["Stimulants"], ["Pyridine alkaloid"], ["Stimulant"], ["Nicotinic acetylcholine receptor agonist"]],
+].map(([slug, title, indexCategories, chemical, psychoactive, mechanisms], index) => Object.freeze({
+  id: 700 + index,
+  slug,
+  title,
+  identification: Object.freeze({ common_name: title }),
+  index_categories: Object.freeze(indexCategories),
+  classification: Object.freeze({ chemical_class: Object.freeze(chemical), psychoactive_class: Object.freeze(psychoactive) }),
+  pharmacology: Object.freeze({ binding_sites: Object.freeze(mechanisms.map((tag) => Object.freeze({ target: tag.split(" receptor")[0], tag }))) }),
+})));
+
+/**
+ * The three index layouts the editor library is built with
+ * (`/api/dev/index-layout?type=all`): one category each, so the library can
+ * be built. Index layout itself reads each type on its own; that read is not
+ * answered here.
+ */
+export const INDEX_LAYOUTS_SEED = Object.freeze([
+  { type: "psychoactive", version: 1, revision: 1, categories: [{ key: "psychedelics", label: "Psychedelics", iconKey: "psychedelic", drugs: ["lsd", "psilocybin", "mescaline"] }] },
+  { type: "chemical", version: 1, revision: 1, categories: [{ key: "phenethylamines", label: "Phenethylamines", iconKey: "chemical", drugs: ["mescaline", "2c-b"] }] },
+  { type: "mechanism", version: 1, revision: 1, categories: [{ key: "serotonergic", label: "Serotonergic", iconKey: "mechanism", drugs: ["lsd", "psilocybin"] }] },
+]);
+
+/** What someone else saved on an article while the editor's copy of it sat in the browser (the `conflicted` state). */
+const TAG_ARTICLE_CONCURRENT_CATEGORY = "Reviewed by the fixture";
+
 function titleCase(slug) {
   return slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 }
@@ -752,6 +809,17 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     profiles: new Map(),
     /** Profiles a merge or delete removed from the directory. */
     removedProfiles: new Set(),
+  };
+
+  /**
+   * The substance corpus (editor library and Tags), keyed by slug, plus how
+   * many times each article was read whole, so `conflicted` can have someone
+   * else save an article after the editor's first read of it.
+   */
+  const library = {
+    rows: new Map((state === "empty" ? [] : TAG_ARTICLES_SEED).map((row) => [row.slug, structuredClone(row)])),
+    articleReads: new Map(),
+    saves: 0,
   };
 
   const fixture = {
@@ -1301,6 +1369,48 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true });
   }
 
+  /**
+   * `GET /api/dev/editor-library?slug=`: one whole article. Under
+   * `conflicted`, someone else saves the article right after the editor's
+   * first whole read of it, so a later read (a restore after a reload) finds
+   * a newer version than the one the editor's copy was made against.
+   */
+  function readLibraryArticle(slug) {
+    const row = library.rows.get(slug);
+    if (!row) return json(404, { error: `No substance article is stored at ${slug}.` });
+    const reads = (library.articleReads.get(slug) ?? 0) + 1;
+    library.articleReads.set(slug, reads);
+    const answer = json(200, { ok: true, scope: "article", article: structuredClone(row) });
+    if (fixture.state === "conflicted" && reads === 1 && !contested.has(`article:${slug}`)) {
+      contested.add(`article:${slug}`);
+      row.index_categories = [...row.index_categories, TAG_ARTICLE_CONCURRENT_CATEGORY];
+    }
+    return answer;
+  }
+
+  /** `POST /api/save-article`: the admin floor, then the saved articles' tag fields land in the corpus. */
+  function saveLibraryArticles(body) {
+    if (fixture.role !== "admin") return json(403, { error: "Editor access required for Postgres writes.", code: "data_editor_access_required" });
+    const articles = Array.isArray(body.articles) ? body.articles : [];
+    for (const article of articles) {
+      const slug = typeof article?.slug === "string" && article.slug
+        ? article.slug
+        : [...library.rows.values()].find((row) => row.id === article?.id)?.slug;
+      const row = slug ? library.rows.get(slug) : null;
+      if (!row) continue;
+      if (Array.isArray(article.index_categories)) row.index_categories = [...article.index_categories];
+      if (article.classification) row.classification = structuredClone(article.classification);
+      if (Array.isArray(article.pharmacology?.binding_sites)) row.pharmacology = { binding_sites: structuredClone(article.pharmacology.binding_sites) };
+    }
+    return json(200, {
+      success: true,
+      requestId: `journey-save-${String(++library.saves).padStart(4, "0")}`,
+      savedItems: articles.length ? [`${articles.length} article(s)`] : [],
+      submittedBy: fixture.session.user.email,
+      warnings: [],
+    });
+  }
+
   function route({ method, pathname, search = "", body }) {
     const params = new URLSearchParams(search);
     const upper = method.toUpperCase();
@@ -1320,6 +1430,9 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: 0 });
       if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: 0 });
       if (pathname === "/api/dev/review-recommendations") return json(200, { recommendations: [] });
+      if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(INDEX_LAYOUTS_SEED));
+      // The commit button's server check: ready, so a commit is not held back.
+      if (pathname === "/api/editor-config-health") return json(200, { canSaveToPostgres: true, issues: [], checkedAt: new Date(FIXTURE_EPOCH).toISOString() });
     }
 
     if (pathname === "/api/dev/writing-article") {
@@ -1589,6 +1702,18 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         links: structuredClone(people.links),
       }));
     }
+    // The editor library (shell-wide, answers in every state so other tools keep their corpus),
+    // the Tags projection and one whole article (tool reads, so `failed` fails them).
+    if (pathname === "/api/dev/editor-library" && upper === "GET") {
+      const scope = params.get("scope");
+      const slug = params.get("slug");
+      if (slug) return toolRead(() => readLibraryArticle(slug));
+      if (scope === "tag-registry") return toolRead(() => json(200, { ok: true, scope: "tag-registry", entries: [...library.rows.values()].map((row) => structuredClone(row)) }));
+      if (scope && scope !== "list") return json(400, { error: `Unsupported editor library scope: ${scope}.` });
+      return json(200, { ok: true, scope: "list", articles: [...library.rows.values()].map((row) => ({ ...structuredClone(row), priority: "normal", reference_count: 0 })) });
+    }
+    if (pathname === "/api/save-article" && upper === "POST") return toolWrite(() => saveLibraryArticles(body ?? {}));
+
     const memberAction = /^\/api\/dev\/members\/(role|ban|unban|reset)$/.exec(pathname);
     if (memberAction && upper === "POST") return toolWrite(() => memberWrite(memberAction[1], body ?? {}));
 

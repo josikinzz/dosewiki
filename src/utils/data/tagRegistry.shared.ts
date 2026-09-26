@@ -100,10 +100,10 @@ export const TAG_FIELDS: TagField[] = [
 ];
 
 export const TAG_FIELD_LABELS: Record<TagField, string> = {
-  index_categories: "Index Categories",
-  chemical_class: "Chemical Class",
-  psychoactive_class: "Psychoactive Class",
-  mechanism_of_action: "Mechanism of Action",
+  index_categories: "Index categories",
+  chemical_class: "Chemical class",
+  psychoactive_class: "Psychoactive class",
+  mechanism_of_action: "Mechanism of action",
 };
 
 type FieldConfig = {

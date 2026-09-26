@@ -11,6 +11,7 @@ import {
   createJourneyFixture,
   fixtureRevision,
   fixtureSession,
+  TAG_ARTICLES_SEED,
 } from "./fixtures.mjs";
 import { assertLoopbackBase } from "./browserFixtures.mjs";
 
@@ -373,6 +374,39 @@ describe("journey fixtures", () => {
     const after = get(conflicted, "/api/dev/copy-block", "?key=about-reuse-notice").json;
     assert.equal(post(conflicted, "/api/dev/copy-block", { ...draft, expected: after.document, expectedRevision: after.revision }).status, 200);
     assert.deepEqual(get(createJourneyFixture({ state: "empty" }), "/api/editor/copy-blocks").json, []);
+  });
+
+  it("serves the editor library, the Tags projection and one article, and takes the admin's commit", () => {
+    const fixture = createJourneyFixture();
+    const list = get(fixture, "/api/dev/editor-library").json;
+    assert.equal(list.scope, "list");
+    assert.equal(list.articles.length, TAG_ARTICLES_SEED.length);
+    const registry = get(fixture, "/api/dev/editor-library", "?scope=tag-registry").json;
+    assert.deepEqual(registry.entries.map((row) => row.slug), TAG_ARTICLES_SEED.map((row) => row.slug));
+    assert.equal(get(fixture, "/api/dev/editor-library", "?scope=full").status, 400);
+    assert.equal(get(fixture, "/api/dev/editor-library", "?slug=lsd").json.article.title, "LSD");
+    assert.equal(get(fixture, "/api/dev/editor-library", "?slug=nothing").status, 404);
+    assert.deepEqual(get(fixture, "/api/dev/index-layout", "?type=all").json.map((row) => row.type), ["psychoactive", "chemical", "mechanism"]);
+    assert.equal(get(fixture, "/api/editor-config-health").json.canSaveToPostgres, true);
+
+    const lsd = { ...get(fixture, "/api/dev/editor-library", "?slug=lsd").json.article, index_categories: ["Classic psychedelics"] };
+    const saved = post(fixture, "/api/save-article", { articles: [lsd] });
+    assert.equal(saved.status, 200);
+    assert.deepEqual(get(fixture, "/api/dev/editor-library", "?slug=lsd").json.article.index_categories, ["Classic psychedelics"]);
+    assert.equal(post(createJourneyFixture({ role: "editor" }), "/api/save-article", { articles: [lsd] }).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/save-article", { articles: [lsd] }).status, 503);
+
+    // The list stays up when tool reads fail, so other tools keep their corpus.
+    const failed = createJourneyFixture({ state: "failed" });
+    assert.equal(get(failed, "/api/dev/editor-library").status, 200);
+    assert.equal(get(failed, "/api/dev/editor-library", "?scope=tag-registry").status, 500);
+    assert.equal(get(createJourneyFixture({ state: "empty" }), "/api/dev/editor-library", "?scope=tag-registry").json.entries.length, 0);
+
+    // Someone else saves an article right after the editor's first whole read of it.
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const first = get(conflicted, "/api/dev/editor-library", "?slug=diazepam").json.article.index_categories;
+    const second = get(conflicted, "/api/dev/editor-library", "?slug=diazepam").json.article.index_categories;
+    assert.equal(second.length, first.length + 1);
   });
 
   it("only accepts a loopback origin", () => {
