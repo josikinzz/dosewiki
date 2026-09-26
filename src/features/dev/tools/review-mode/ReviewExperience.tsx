@@ -263,25 +263,34 @@ export const ReviewExperience = memo(function ReviewExperience({
     });
   }, [canRecommend, confirmRecommend, current, currentReadable, currentRecommendation, isTicking, recommendReviewed]);
   // The re-sign-off gate: on a changed article the first press opens what
-  // changed since the last review, and only a press after that signs it off
-  // (the same request and revision as a one-step sign-off). Keyed by slug, so
-  // moving on resets it; other articles sign off in one step.
+  // changed since the last review, and only a press after that acts: an
+  // admin's signs it off (the same request and revision as a one-step
+  // sign-off), an editor's opens the recommend confirm. Keyed by slug, so
+  // moving on resets it; other articles take one step.
   const [changesSeenSlug, setChangesSeenSlug] = useState<string | null>(null);
   const [changesOpenSignal, setChangesOpenSignal] = useState(0);
-  const staleGateClosed =
-    canSignOff && current !== null && current.status === "stale" && Boolean(current.reviewedRevision) && changesSeenSlug !== current.slug;
+  const staleGateApplies =
+    (canSignOff || canRecommend) && current !== null && current.status === "stale" && Boolean(current.reviewedRevision);
+  const staleGateClosed = staleGateApplies && changesSeenSlug !== current?.slug;
+  const staleChangesShown = staleGateApplies && changesSeenSlug === current?.slug;
+  // A recommendation already waiting on this version has nothing to gate.
+  const recommendationWaiting = Boolean(currentRecommendation && !currentRecommendation.stale);
   const markChangesSeen = useCallback(() => {
     setChangesSeenSlug(currentSlugRef.current);
   }, [currentSlugRef]);
+  const openChangesFirst = useCallback(() => {
+    if (!currentReadable || isTicking) return;
+    setChangesOpenSignal((value) => value + 1);
+  }, [currentReadable, isTicking]);
   const signOff = useCallback(() => {
-    if (staleGateClosed) {
-      if (!currentReadable || isTicking) return;
-      setChangesOpenSignal((value) => value + 1);
-      return;
-    }
+    if (staleGateClosed) return openChangesFirst();
     toggleReviewed();
-  }, [currentReadable, isTicking, staleGateClosed, toggleReviewed]);
-  const pressReviewed = canSignOff ? signOff : requestRecommendation;
+  }, [openChangesFirst, staleGateClosed, toggleReviewed]);
+  const recommend = useCallback(() => {
+    if (staleGateClosed && !recommendationWaiting) return openChangesFirst();
+    requestRecommendation();
+  }, [openChangesFirst, recommendationWaiting, requestRecommendation, staleGateClosed]);
+  const pressReviewed = canSignOff ? signOff : recommend;
 
   const [articleDirty, setArticleDirty] = useState(false);
   const [operationLocked, setOperationLocked] = useState(false);
@@ -511,10 +520,12 @@ export const ReviewExperience = memo(function ReviewExperience({
         ? "The article did not load, so it cannot be marked reviewed yet."
         : !currentArticleHydrated
           ? "Marking reviewed waits until the article has loaded."
-          : canSignOff && current.status === "stale" && changesSeenSlug === current.slug
+          : staleChangesShown && !(canRecommend && recommendationWaiting)
             ? "Changes since the last review are shown above."
-            : staleGateClosed
-              ? "It changed since its last review, so Mark as reviewed first opens the changes."
+            : staleGateClosed && !(canRecommend && recommendationWaiting)
+              ? `It changed since its last review, so ${
+                  canSignOff ? "Mark as reviewed" : recommendationState === "stale" ? "Recommend again" : "Recommend as reviewed"
+                } first opens the changes.`
               : null;
   const roleSentence = describeReviewRole({ canSignOff, canRecommend, recommendation: recommendationState });
   const roleLine = roleSentence || tickReason || (isHeld && flagCount === 0) ? (
@@ -637,7 +648,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         isTicking={isTicking}
         canSignOff={canSignOff}
         recommendation={recommendationState}
-        confirm={canSignOff && current.status === "stale" && changesSeenSlug === current.slug}
+        confirm={canSignOff && staleChangesShown}
         toggleReviewed={pressReviewed}
       />
     </>
