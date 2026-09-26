@@ -804,6 +804,36 @@ builds a new shared primitive, add it to **Conventions** and log it under
   `getDevShellSession()`, the `/dev` gate (loopback, `next dev`, opt-in, write
   freeze); API routes keep their own checks.
 
+- **A tool's heading names the rail's tool and starts where the shell puts
+  it.** The first `EditorSection` title is the registry label ("Banners",
+  "Glossary", "Change log"; a subtitle may describe the job, "The translation
+  workbench."), its icon is the registry glyph, and the tool adds no top
+  margin of its own over the shell's `mt-5`. The heading comes first; filters
+  and lists sit inside it (Change log).
+- **One wording for shared lines.** The key line under a list reads the
+  triage form: the leading keys ("j k move" or "↑ ↓ move", then the tool's
+  own such as "/ search", "a accept"), ending in "? every key"
+  (`TriageShortcutHint` takes the leading keys as children). A list refresh
+  says Refresh ("Refresh tags", "Refreshing"), never Reload. An unclaimed
+  hold line says "Nobody is reviewing this yet." Pending labels and loading
+  lines never end in an ellipsis ("Saving", "Loading playlists").
+- **List group headings** inside a column are the `type-meta-label` name on
+  the left and a quiet `text-xs tabular-nums` count on the right, the list
+  header's recipe (Writing, Change Review, Molecules).
+- **Idle panes** in an editor or triage workspace are `EditorPanel
+  variant="subtle"` (or the pane's own padding) with an icon heading that
+  says what opens there and one sentence; where the tool states its save
+  model in the tool, the idle pane carries the same `SaveLine`, which also
+  turns into the freeze sentence (Substances, Trip reports).
+- **A disabled accent action steps down to the outline recipe** in every
+  scheme and style (`.theme-cta-accent:disabled`), so no tool has to swap the
+  variant by hand to stop an off button reading as live.
+- **A surface that only improves with the corpus reads it without
+  requiring it.** `useLibraryIfPresent()` (`SubstanceIndexProvider`) returns
+  the library or null; the Inbox names citation rows by title once the
+  corpus lands (its registry entry says `library-deferred`) and keeps the
+  slug until then.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -2766,4 +2796,100 @@ press twice; new tests cover the first press opening the diff and writing
 nothing, the second writing the same request, changes opened by hand, one step
 for an article that is not stale, and the reset on navigation. Screenshots
 `gate-open-*` and `gate-signed-*` in `tmp/redesign/review/after/`.
+
+### Pass 22: Cleanup (shared issues, cross-tool sweep, verification)
+
+Commit: see `git log --grep "Dev tools redesign: Cleanup"`.
+Screenshots: `tmp/redesign/sweep/before/` and `tmp/redesign/sweep/after/`
+(every registry tool at 1440 and at 390 touch, admin, dark, plus a full-page
+desktop shot, and `/review` landing and a stale article through
+`tmp/redesign/review/capture.mjs`), captured by
+`tmp/redesign/sweep/capture.mjs`. Probes used for the shared fixes are the
+`tmp/redesign/sweep/probe-*.mjs` scripts.
+
+Shared issues the earlier passes deferred:
+
+- The dev overlay's "1 Issue" on every `/dev` page was a real hydration
+  mismatch: the root layout rendered the zod jitless bootstrap through
+  `next/script` `beforeInteractive`, which stamps the per-request `/dev` CSP
+  nonce on the server render only. It is now a raw head script (allowed by
+  its pinned sha256 on `/dev` and by `'unsafe-inline'` publicly), guarded by
+  `src/app/layout.scripts.test.ts`.
+- `EditorList` windows rows of different heights: per-row measurement kept
+  by key, prefix-sum offsets, a `ResizeObserver` for later size changes, and
+  a bounded reveal of the selected row (see Conventions). Copy keeps its
+  fixed pitch as a rhythm choice. Its ticks own a 44px column on coarse
+  pointers, and while a row is selected the focus cue is that row's border
+  (`theme-dev-listbox`, `theme-dev-list-row`), not a second ring on the box.
+- A disabled accent `Button` no longer reads as live in light mode (shared
+  `.theme-cta-accent` disabled state; kit example).
+- `buildTextChangelog` compares text ending in exactly one newline, so an
+  inserted paragraph shows no blank removed line, and keeps trailing spaces.
+- Glossary: the heading is "Glossary" with "The translation workbench." in
+  its description; the role guide names the Glossary; palette keywords add
+  translations, i18n and workbench.
+- `theme:classes:check` passes: four unused classes removed.
+- Editors' "Recommend as reviewed" on a changed-since-review article takes
+  the admin's diff-first gate (see Conventions).
+- The rail and Home agree on a partial Inbox count ("13+" / "At least 13";
+  `CountBadge` `atLeast`).
+- `ArticlePreviewFrame` shrinks to its fallback when there is no article;
+  its toggles already had 44px hit areas through the segmented control's
+  halo.
+- Fixture articles draw: every library row but Caffeine (the deliberate
+  "cannot draw" row) answers whole over `emptyArticleSeed.json`, a copy of
+  `createEmptyArticle()` guarded by a vitest test. Fixture rail counts now
+  come from the same seeds as the queues.
+- `/dev/kit` shows `EditorStatusPill inline`, `ConfirmDialog` with
+  `affectedLabel` and a refused body, `EditorList` with ticks and mixed
+  heights, `DevWorkingChangesPanel` and the count badges (new
+  `editor-shell.story.tsx`).
+- `AboutCopyEditors` keeps only the public panel's layout.
+- Inbox citation rows show article titles once the corpus lands.
+
+Sweep drift fixed (early passes brought up to the latest conventions):
+
+- Headings: per-tool top margins removed (the heading lands at one height),
+  Banners and Change log headings name the rail's tool, Change log opens with
+  its heading, People / Playlists / Change Review headings use the registry
+  glyph.
+- Wording: one hold-line sentence, Refresh everywhere, one key-line form, no
+  trailing ellipses (Replication Studio, shared editor surfaces, Change
+  Review's pending labels, the commit progress line).
+- Replication Studio: playlist conflicts offer "Load the latest version"
+  behind a destructive confirm; the search cap and key hints use
+  `theme-dev-kbd`; counts use the body face; hand-rolled uppercase labels
+  use `type-meta-label` or sentence case (also the molecule quick editor,
+  form helpers, `CodeSurface` titles and `EditorTable` headers).
+- Hierarchy: Playlists' New playlist is outline; Citations drops the frame's
+  save strip (`saveLine: "none"`, as Feedback); list group headings share
+  one recipe; Trip reports' and the Glossary's idle panes follow the
+  workspace recipe; the phone tool switcher uses `MenuChevron` with the count
+  at its trailing edge.
+- Drag shadows in `PlaylistWorks` and `OrderingPanel` use the elevation
+  token (the policy test failed on `shadow-lg`).
+
+Considered and kept, with reasons:
+
+- Trip reports stays full-bleed (`max-w-[100rem]`): its report pane is an
+  editing surface as wide as Writing's; the pass chose it.
+- Tags and Index layout keep Working changes above the tool's section: the
+  Tags pass made the pending commit the first thing on screen, and "Review
+  and commit" scrolls to it.
+- Banners keeps the frame's instant save strip: its per-substance switches
+  write at once, and the shell test that guards the strip uses Banners.
+- The Glossary keeps its `SaveLine` in the heading's actions: it spans four
+  views, and no single dock owns every save.
+- List column widths still differ per tool (from 17-20rem to 22-28rem):
+  each pass sized its column to its rows; one width is a design decision.
+- Citations' filter grid has no counts: only the open filter's count is
+  known client-side.
+- The Glossary's "Inbox" view shares its name with the rail's Inbox: a
+  vocabulary decision for the owner (as "Change Review" versus "Review").
+- `lib/next/cspObservationPolicy.ts` pins a theme-bootstrap hash that no
+  longer matches the script (`main` commit 6ad8f162f changed the bootstrap
+  without the hash), so on `/dev` the pre-paint theme bootstrap is refused
+  by the CSP and three policy tests fail. It predates this branch and is a
+  security-policy change, so it is left for the owner: update
+  `THEME_BOOTSTRAP_CSP_HASHES.dosewiki` to the hash the test prints.
 
