@@ -454,7 +454,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
             <EditorCheckbox label="Single-key shortcuts" checked={shortcutsOn} onChange={(event) => toggleShortcuts(event.target.checked)} />
             {shortcutsOn ? (
               <p className="theme-text-faint text-xs [@media(pointer:coarse)]:hidden">
-                <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> move, the dock shows each decision&apos;s key, <kbd className="theme-dev-kbd">?</kbd> lists them all.
+                <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> move, <kbd className="theme-dev-kbd">a</kbd> accept, <kbd className="theme-dev-kbd">?</kbd> every key
               </p>
             ) : (
               <p className="theme-text-faint text-xs">Letter keys do nothing here; use the buttons.</p>

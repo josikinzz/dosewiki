@@ -428,8 +428,8 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
               ) : null}
               {known ? (
                 <p className="theme-text-faint hidden text-xs [@media(pointer:fine)]:block">
-                  <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> next and previous,{" "}
-                  <kbd className="theme-dev-kbd">/</kbd> search
+                  <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> move,{" "}
+                  <kbd className="theme-dev-kbd">/</kbd> search, <kbd className="theme-dev-kbd">?</kbd> every key
                 </p>
               ) : null}
             </section>

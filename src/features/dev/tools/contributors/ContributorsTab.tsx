@@ -319,12 +319,13 @@ export function ContributorsTab({
               ) : null}
               {!directoryLoading && visibleProfiles.length > 0 ? (
                 <p className="theme-text-faint hidden text-xs [@media(pointer:fine)]:block">
-                  <kbd className="theme-dev-kbd">↑</kbd> <kbd className="theme-dev-kbd">↓</kbd> move through the list
+                  <kbd className="theme-dev-kbd">↑</kbd> <kbd className="theme-dev-kbd">↓</kbd> move
                   {scope === "all" ? (
                     <>
                       , <kbd className="theme-dev-kbd">/</kbd> search
                     </>
                   ) : null}
+                  , <kbd className="theme-dev-kbd">?</kbd> every key
                 </p>
               ) : null}
             </section>

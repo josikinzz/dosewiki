@@ -568,7 +568,9 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
               </Button>
             </p>
           ) : null}
-          <TriageShortcutHint />
+          <TriageShortcutHint>
+            <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> move, <kbd className="theme-dev-kbd">u</kbd> undo
+          </TriageShortcutHint>
         </section>
 
         <section

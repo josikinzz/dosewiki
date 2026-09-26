@@ -223,8 +223,8 @@ export function SubstanceListColumn({
 
       {rows.length > 0 ? (
         <p className="theme-text-faint hidden text-xs [@media(pointer:fine)]:block">
-          <kbd className="theme-dev-kbd">↑</kbd> <kbd className="theme-dev-kbd">↓</kbd> move through the list,{" "}
-          <kbd className="theme-dev-kbd">/</kbd> search
+          <kbd className="theme-dev-kbd">↑</kbd> <kbd className="theme-dev-kbd">↓</kbd> move,{" "}
+          <kbd className="theme-dev-kbd">/</kbd> search, <kbd className="theme-dev-kbd">?</kbd> every key
         </p>
       ) : null}
     </div>

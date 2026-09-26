@@ -237,7 +237,7 @@ export function CitationQueuePanel({
       )}
 
       <p className="theme-text-faint hidden text-xs [@media(pointer:fine)]:block">
-        <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> article,{" "}
+        <kbd className="theme-dev-kbd">j</kbd> <kbd className="theme-dev-kbd">k</kbd> move,{" "}
         <kbd className="theme-dev-kbd">o</kbd> next unread row, <kbd className="theme-dev-kbd">a</kbd> approve,{" "}
         <kbd className="theme-dev-kbd">r</kbd> reject, <kbd className="theme-dev-kbd">?</kbd> every key
       </p>
