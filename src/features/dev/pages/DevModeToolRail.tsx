@@ -54,8 +54,8 @@ export function RailDivider({ className }: { className?: string }) {
 }
 
 /** The words a count badge adds to its control's accessible name. */
-export function countBadgeSuffix(count: number, label = "awaiting review", stale = false) {
-  return `, ${count} ${label}${stale ? ", may be out of date" : ""}`;
+export function countBadgeSuffix(count: number, label = "awaiting review", stale = false, atLeast = false) {
+  return `, ${atLeast ? "at least " : ""}${count} ${label}${stale ? ", may be out of date" : ""}`;
 }
 
 /**
@@ -64,13 +64,32 @@ export function countBadgeSuffix(count: number, label = "awaiting review", stale
  * `announce={false}` when the control already carries `countBadgeSuffix` in
  * its label text (see `ToolLabel`).
  */
-export function CountBadge({ count, label = "awaiting review", announce = true, stale = false }: { count: number; label?: string; announce?: boolean; stale?: boolean }) {
+export function CountBadge({
+  count,
+  label = "awaiting review",
+  announce = true,
+  stale = false,
+  atLeast = false,
+}: {
+  count: number;
+  label?: string;
+  announce?: boolean;
+  stale?: boolean;
+  /** A sum with a part that never loaded is a floor: drawn "13+" and said "at least 13", as Home says it. */
+  atLeast?: boolean;
+}) {
+  const counted = `${atLeast ? "At least " : ""}${count} ${label}${stale ? " when last checked" : ""}`;
+  const title =
+    atLeast || stale
+      ? [`${counted}.`, atLeast ? "One of the counts did not load." : null, stale ? "The latest refresh failed." : null].filter(Boolean).join(" ")
+      : counted;
   return (
     <>
-      <span aria-hidden data-stale={stale ? "" : undefined} title={stale ? `${count} ${label} when last checked. The latest refresh failed.` : `${count} ${label}`} className="theme-dev-count-badge inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold leading-none tabular-nums">
+      <span aria-hidden data-stale={stale ? "" : undefined} title={title} className="theme-dev-count-badge inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-semibold leading-none tabular-nums">
         {count}
+        {atLeast ? "+" : null}
       </span>
-      {announce ? <span className="sr-only">{countBadgeSuffix(count, label, stale)}</span> : null}
+      {announce ? <span className="sr-only">{countBadgeSuffix(count, label, stale, atLeast)}</span> : null}
     </>
   );
 }
@@ -113,17 +132,17 @@ export function SpokenLabel({ visible, spoken, className }: { visible: string; s
  * reads "Inbox, 3 awaiting review" with no stray gap. Draw the dot and badge
  * after it with `ToolMarks`, which stay silent.
  */
-export function ToolLabel({ label, unsaved, badge, stale, className }: { label: string; unsaved?: boolean; badge?: number; stale?: boolean; className?: string }) {
-  const suffix = `${unsaved ? ", unsaved changes" : ""}${badge ? countBadgeSuffix(badge, undefined, stale) : ""}`;
+export function ToolLabel({ label, unsaved, badge, stale, atLeast, className }: { label: string; unsaved?: boolean; badge?: number; stale?: boolean; atLeast?: boolean; className?: string }) {
+  const suffix = `${unsaved ? ", unsaved changes" : ""}${badge ? countBadgeSuffix(badge, undefined, stale, atLeast) : ""}`;
   return <SpokenLabel visible={label} spoken={`${label}${suffix}`} className={className} />;
 }
 
 /** The dot and badge that follow a `ToolLabel`, silent because the label already speaks them. */
-export function ToolMarks({ unsaved, badge, stale, pushBadge = false }: { unsaved?: boolean; badge?: number; stale?: boolean; pushBadge?: boolean }) {
+export function ToolMarks({ unsaved, badge, stale, atLeast, pushBadge = false }: { unsaved?: boolean; badge?: number; stale?: boolean; atLeast?: boolean; pushBadge?: boolean }) {
   return (
     <>
       {unsaved ? <UnsavedDot announce={false} /> : null}
-      {badge ? <span className={cn("inline-flex", pushBadge && "ml-auto")}><CountBadge count={badge} announce={false} stale={stale} /></span> : null}
+      {badge ? <span className={cn("inline-flex", pushBadge && "ml-auto")}><CountBadge count={badge} announce={false} stale={stale} atLeast={atLeast} /></span> : null}
     </>
   );
 }
@@ -166,16 +185,16 @@ function RailPill({ item, isActive, onTabChange, onOpenHref }: { item: ToolTabIt
   if (item.destination.kind === "external") {
     return (
       <a {...guardedLinkProps(item.destination.href, onOpenHref)} title={`Opens ${item.label} full screen`} className={RAIL_TAB_CLASS}>
-        <ToolLabel label={item.label} badge={item.badge} stale={item.stale} />
+        <ToolLabel label={item.label} badge={item.badge} stale={item.stale} atLeast={item.atLeast} />
         <ExternalGlyph />
-        <ToolMarks badge={item.badge} stale={item.stale} />
+        <ToolMarks badge={item.badge} stale={item.stale} atLeast={item.atLeast} />
       </a>
     );
   }
   return (
     <button type="button" disabled={item.pending !== undefined} title={item.pending} aria-current={isActive ? "page" : undefined} data-state={isActive ? "active" : "inactive"} onClick={() => onTabChange(item.id)} className={RAIL_TAB_CLASS}>
-      <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} />
-      <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} />
+      <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} />
+      <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} />
     </button>
   );
 }
@@ -202,6 +221,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
   const pending = tabs.find((tab) => tab.pending)?.pending;
   const unsaved = tabs.some((tab) => tab.unsaved);
   const stale = badgeTotal > 0 && tabs.some((tab) => tab.stale && tab.badge);
+  const atLeast = badgeTotal > 0 && tabs.some((tab) => tab.atLeast && tab.badge);
   return (
     <div role="group" aria-label={label} className="flex shrink-0 items-center">
       {showDivider ? <RailDivider /> : null}
@@ -210,7 +230,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
           <button type="button" disabled={pending !== undefined} title={pending} data-active={activeItem ? "" : undefined} className={RAIL_TAB_CLASS}>
             <SpokenLabel
               visible={label}
-              spoken={`${label}${activeItem ? `, current tool ${activeItem.label}` : ""}${unsaved ? ", unsaved changes" : ""}${badgeTotal ? countBadgeSuffix(badgeTotal, undefined, stale) : ""}`}
+              spoken={`${label}${activeItem ? `, current tool ${activeItem.label}` : ""}${unsaved ? ", unsaved changes" : ""}${badgeTotal ? countBadgeSuffix(badgeTotal, undefined, stale, atLeast) : ""}`}
             />
             {activeItem ? (
               <span aria-hidden className="theme-dev-rail-menu-current inline-flex items-center gap-1.5 font-semibold">
@@ -218,7 +238,7 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
                 {activeItem.label}
               </span>
             ) : null}
-            <ToolMarks unsaved={unsaved} badge={badgeTotal || undefined} stale={stale} />
+            <ToolMarks unsaved={unsaved} badge={badgeTotal || undefined} stale={stale} atLeast={atLeast} />
             <MenuChevron open={open} />
           </button>
         </DropdownMenuTrigger>
@@ -227,13 +247,13 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
           {tabs.map((item) => {
             const itemActive = isToolsSection && activeTab === item.id;
             if (item.destination.kind === "external") {
-              return <DropdownMenuItem key={item.id} asChild className={MENU_ROW_CLASS}><a {...guardedLinkProps(item.destination.href, onOpenHref)}><ToolGlyph icon={item.icon} /><ToolLabel label={item.label} badge={item.badge} stale={item.stale} /><ExternalGlyph /><ToolMarks badge={item.badge} stale={item.stale} pushBadge /></a></DropdownMenuItem>;
+              return <DropdownMenuItem key={item.id} asChild className={MENU_ROW_CLASS}><a {...guardedLinkProps(item.destination.href, onOpenHref)}><ToolGlyph icon={item.icon} /><ToolLabel label={item.label} badge={item.badge} stale={item.stale} atLeast={item.atLeast} /><ExternalGlyph /><ToolMarks badge={item.badge} stale={item.stale} atLeast={item.atLeast} pushBadge /></a></DropdownMenuItem>;
             }
             return (
               <DropdownMenuItem key={item.id} aria-current={itemActive ? "page" : undefined} disabled={item.pending !== undefined} data-state={itemActive ? "active" : "inactive"} onSelect={() => onTabChange(item.id)} className={MENU_ROW_CLASS}>
                 <ToolGlyph icon={item.icon} />
-                <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} />
-                <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} pushBadge />
+                <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} />
+                <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} pushBadge />
               </DropdownMenuItem>
             );
           })}

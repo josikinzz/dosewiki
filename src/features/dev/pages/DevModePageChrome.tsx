@@ -273,11 +273,17 @@ export function DevModePageChrome({
   // Each badge is only asked for by a role that may open its tab.
   const badgeCounts = useDevRailBadges(role, userEmail);
   // A count whose latest refresh failed keeps its number but reads as stale.
-  // The Inbox sums every source, so any failed source makes it stale.
+  // The Inbox sums every source: a stale source makes it stale, and a source
+  // that never loaded makes its sum a floor, which Home says as "At least 13"
+  // and the rail draws as "13+" (`sumHomeCounts` reads the same readings).
   const readings = useDevRailBadgeReadings();
   const staleBadges = new Set<string>();
+  let inboxFloor = false;
   for (const [badge, reading] of Object.entries(readings ?? {})) {
-    if (reading?.failed) {
+    if (!reading?.failed) continue;
+    if (reading.count === null) {
+      inboxFloor = true;
+    } else {
       staleBadges.add(badge);
       staleBadges.add(INBOX_ROLLUP_BADGE);
     }
@@ -292,6 +298,7 @@ export function DevModePageChrome({
       destination,
       badge: badge === undefined ? undefined : badgeCounts[badge],
       stale: (badge !== undefined && staleBadges.has(badge)) || undefined,
+      atLeast: (badge === INBOX_ROLLUP_BADGE && inboxFloor) || undefined,
       rollsUpIntake: badge === INBOX_ROLLUP_BADGE || undefined,
       unsaved: unsavedWork.isDirty(id) || undefined,
     })),
@@ -341,13 +348,14 @@ export function DevModePageChrome({
   const attentionItems = inboxItem ? [inboxItem] : enabledItems;
   const attention = attentionItems.reduce((sum, item) => sum + (item.badge ?? 0), 0) || undefined;
   const attentionStale = attentionItems.some((item) => item.stale && item.badge) || undefined;
+  const attentionAtLeast = attentionItems.some((item) => item.atLeast && item.badge) || undefined;
   const unsavedAnywhere = hasUnsaved || undefined;
 
   // The palette lists tools with the same glyphs, counts and marks as the rail.
   const paletteToolState: Partial<Record<DevModeTab, PaletteToolState>> = {};
   for (const group of roleGroups) {
     for (const item of group.enabled) {
-      paletteToolState[item.id] = { icon: item.icon, group: group.label, badge: item.badge, stale: item.stale, unsaved: item.unsaved };
+      paletteToolState[item.id] = { icon: item.icon, group: group.label, badge: item.badge, stale: item.stale, atLeast: item.atLeast, unsaved: item.unsaved };
     }
   }
   paletteToolState[changeLogDescriptor.id] = { icon: changeLogDescriptor.icon, group: "More" };
@@ -568,6 +576,7 @@ export function DevModePageChrome({
           activeIcon={activeIcon}
           attention={attention}
           attentionStale={attentionStale}
+          attentionAtLeast={attentionAtLeast}
           unsavedAnywhere={unsavedAnywhere}
           changeLogLockReason={changeLogLockReason}
           utilities={utilities}

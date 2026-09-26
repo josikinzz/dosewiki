@@ -8,6 +8,8 @@ export type ToolTabItem = Pick<DevTabDescriptor, "id" | "label" | "icon" | "role
   badge?: number;
   /** The badge's latest refresh failed: `badge` is the last known count. */
   stale?: boolean;
+  /** The badge sums counts and one never loaded: `badge` is a floor ("13+", "at least 13"). */
+  atLeast?: boolean;
   /** This tab's badge sums every intake count (the Inbox), so group menus stop rolling theirs up. */
   rollsUpIntake?: boolean;
   /** A registered entry for this tab holds unsaved work. */
@@ -45,6 +47,8 @@ export type DevModeToolSheetProps = DevModeToolNavigationProps & {
   attention?: number;
   /** The attention count's latest refresh failed. */
   attentionStale?: boolean;
+  /** That count is a floor: a part of it never loaded. */
+  attentionAtLeast?: boolean;
   /** Some tool holds unsaved work. */
   unsavedAnywhere?: boolean;
   changeLogLockReason: string | null;

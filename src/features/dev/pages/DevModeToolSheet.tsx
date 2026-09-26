@@ -58,9 +58,9 @@ function SheetToolGroups({ groups, activeTab, isToolsSection, activeRowRef, onTa
                 return (
                   <a key={item.id} {...guardedLinkProps(item.destination.href, onOpenHref)} title={`Opens ${item.label} full screen`} className={SHEET_TILE_CLASS}>
                     <ToolGlyph icon={item.icon} />
-                    <ToolLabel label={item.label} badge={item.badge} stale={item.stale} className="min-w-0 leading-tight" />
+                    <ToolLabel label={item.label} badge={item.badge} stale={item.stale} atLeast={item.atLeast} className="min-w-0 leading-tight" />
                     <Icon icon="lucide:arrow-up-right" size={13} className="theme-text-faint shrink-0" />
-                    <ToolMarks badge={item.badge} stale={item.stale} pushBadge />
+                    <ToolMarks badge={item.badge} stale={item.stale} atLeast={item.atLeast} pushBadge />
                   </a>
                 );
               }
@@ -68,8 +68,8 @@ function SheetToolGroups({ groups, activeTab, isToolsSection, activeRowRef, onTa
               return (
                 <button key={item.id} ref={isActive ? (activeRowRef as RefObject<HTMLButtonElement>) : undefined} type="button" disabled={pending !== null} aria-disabled={pending !== null ? "true" : undefined} title={pending ?? undefined} aria-current={isActive ? "page" : undefined} data-state={isActive ? "active" : "inactive"} onClick={() => onTabChange(item.id)} className={SHEET_TILE_CLASS}>
                   <ToolGlyph icon={item.icon} />
-                  <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} className="min-w-0 leading-tight" />
-                  <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} pushBadge />
+                  <ToolLabel label={item.label} unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} className="min-w-0 leading-tight" />
+                  <ToolMarks unsaved={item.unsaved} badge={item.badge} stale={item.stale} atLeast={item.atLeast} pushBadge />
                 </button>
               );
             })}
@@ -114,6 +114,7 @@ export function DevToolSheet({
   activeIcon,
   attention,
   attentionStale,
+  attentionAtLeast,
   unsavedAnywhere,
   changeLogLockReason,
   utilities,
@@ -139,9 +140,9 @@ export function DevToolSheet({
         <button type="button" className="theme-dev-rail-tab flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-control px-2.5 text-left text-base font-semibold transition-colors duration-200 motion-reduce:transition-none">
           <ToolGlyph icon={activeIcon} className="theme-dev-tool-glyph-active" />
           {/* One text run for the name, so it reads "Tools menu, current tool Tags, 3 awaiting review". */}
-          <span className="sr-only">{`Tools menu, current tool ${activeLabel}${unsavedAnywhere ? ", unsaved changes" : ""}${attention ? countBadgeSuffix(attention, undefined, attentionStale) : ""}`}</span>
+          <span className="sr-only">{`Tools menu, current tool ${activeLabel}${unsavedAnywhere ? ", unsaved changes" : ""}${attention ? countBadgeSuffix(attention, undefined, attentionStale, attentionAtLeast) : ""}`}</span>
           <span aria-hidden className="min-w-0 truncate">{activeLabel}</span>
-          <ToolMarks unsaved={unsavedAnywhere} badge={attention} stale={attentionStale} />
+          <ToolMarks unsaved={unsavedAnywhere} badge={attention} stale={attentionStale} atLeast={attentionAtLeast} />
           <ExpandIndicator isExpanded={open} variant="inline" className="theme-text-muted ml-auto shrink-0" />
         </button>
       </DialogPrimitive.Trigger>

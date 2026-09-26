@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 const { badgeState } = vi.hoisted(() => ({
   badgeState: {
     counts: {} as Record<string, number | undefined>,
-    readings: {} as Record<string, { failed: boolean } | undefined>,
+    readings: {} as Record<string, { failed: boolean; count?: number | null } | undefined>,
   },
 }));
 
@@ -295,6 +295,22 @@ describe("DevModePageChrome rail", () => {
     const menu = openMenu(getByRole("button", { name: /^Signed in as Member/ }));
     expect(within(menu).queryByRole("menuitem", { name: /^UI kit/ })).toBeNull();
     expect(within(menu).getByRole("menuitem", { name: "Sign out" })).toBeTruthy();
+  });
+
+  it("reads an Inbox sum with a count that never loaded as a floor, the way Home says it", () => {
+    badgeState.counts = { inbox: 13, feedback: 13 };
+    badgeState.readings = { feedback: { failed: false, count: 13 }, "trip-reports": { failed: true, count: null } };
+    try {
+      const { nav } = renderChrome("articles", "admin");
+      const inbox = within(nav).getByRole("button", { name: "Inbox, at least 13 awaiting review" });
+      const badge = within(inbox).getByTitle("At least 13 awaiting review. One of the counts did not load.");
+      expect(badge.textContent).toBe("13+");
+      // A floor is not a stale count: the badge stays filled.
+      expect(badge.hasAttribute("data-stale")).toBe(false);
+    } finally {
+      badgeState.counts = {};
+      badgeState.readings = {};
+    }
   });
 
   it("marks a count whose refresh failed as possibly out of date", () => {

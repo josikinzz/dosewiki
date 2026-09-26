@@ -27,6 +27,7 @@ export type PaletteToolState = {
   group: string;
   badge?: number;
   stale?: boolean;
+  atLeast?: boolean;
   unsaved?: boolean;
 };
 
@@ -221,8 +222,8 @@ export function DevCommandPalette({
     return (
       <CommandItem key={value} value={value} onSelect={() => openTool(tool)}>
         <ToolGlyph icon={meta?.icon ?? "lucide:square"} />
-        <ToolLabel label={tool.label} unsaved={meta?.unsaved} badge={meta?.badge} stale={meta?.stale} className="truncate" />
-        <ToolMarks unsaved={meta?.unsaved} badge={meta?.badge} stale={meta?.stale} />
+        <ToolLabel label={tool.label} unsaved={meta?.unsaved} badge={meta?.badge} stale={meta?.stale} atLeast={meta?.atLeast} className="truncate" />
+        <ToolMarks unsaved={meta?.unsaved} badge={meta?.badge} stale={meta?.stale} atLeast={meta?.atLeast} />
         <span className="theme-text-faint ml-auto shrink-0 text-xs">
           {current ? "Current" : tool.href ? "Opens full screen" : meta?.group}
         </span>

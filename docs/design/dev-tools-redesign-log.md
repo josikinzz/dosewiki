@@ -63,7 +63,11 @@ builds a new shared primitive, add it to **Conventions** and log it under
   dot: the label and its spoken suffix (", 3 awaiting review", ", unsaved
   changes", ", may be out of date") are one text run, and the visual dot and
   `CountBadge` are silent. `CountBadge` takes `stale` for a count whose
-  refresh failed (hollow, `theme-dev-count-badge[data-stale]`).
+  refresh failed (hollow, `theme-dev-count-badge[data-stale]`) and `atLeast`
+  for a sum with a part that never loaded ("13+", spoken and titled "at least
+  13", the way Home's `CountValue` says "At least 13"; Pass 22). The shell
+  sets `atLeast` on the Inbox roll-up from the same readings `sumHomeCounts`
+  reads, so the rail and Home never disagree about a floor.
 - **Leaving the shell goes through the registry.** A link to a route outside
   the shell (Review, the utilities, any saved view outside `/dev`) spreads
   `guardedLinkProps(href, onOpenHref)`, so a plain click asks the
@@ -775,7 +779,11 @@ builds a new shared primitive, add it to **Conventions** and log it under
   press signs off with the same request and revision as before. Opening the
   changes by hand counts. Moving to another article resets it; other
   articles sign off in one step; the diff still loads only when opened
-  (`ReviewChangesSinceReview` `openSignal` / `onOpened`).
+  (`ReviewChangesSinceReview` `openSignal` / `onOpened`). An editor's
+  "Recommend as reviewed" (or R) on a changed article takes the same gate
+  (Pass 22): the first press opens the changes and writes nothing, the next
+  opens the recommend confirm; a recommendation already waiting on this
+  version is not gated.
 - **Results carry what they finished.** A tick that completes a section or a
   class keeps its Undo; the completion becomes the result's title
   ("Stimulant, Common complete, all 3 reviewed."). A section names its class
