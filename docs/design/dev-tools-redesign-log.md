@@ -322,6 +322,37 @@ builds a new shared primitive, add it to **Conventions** and log it under
 - `ReplicationThumb` takes `compact` for small row wells: the missing-media
   placeholder drops its tracked type word (sr-only instead).
 
+- **A tool with several jobs splits into views, all kept mounted.** When one
+  tool holds distinct jobs (People: members, invites, the role guide), an
+  `EditorNavTabs` strip under the section heading switches `role="tabpanel"`
+  panels that stay mounted and hide with `hidden`, so a staged change or a
+  half-filled form survives a switch. Counts ride on the tabs as a number
+  with sr-only words ("Invites, 2 open"); a view is addressable with a hash
+  (`/dev/people#invites`), written with `replaceState(window.history.state,
+  ...)`. Reference: `PeopleTab`.
+- **Three filter views in a narrow column** are a three-column grid of
+  `pillActive`/`ghostPill` buttons (label over count, `aria-pressed`) in the
+  segmented capsule, so all three fit a phone without a scroll strip
+  (`ViewChoices` in `PeopleTab`).
+- **Secrets shown once ask before they are dismissed uncopied.** A one-time
+  value (password reset link, invite code) closes at once after a copy; before
+  one, Dismiss swaps the actions for "Close without copying? ... cannot be
+  shown again." with "Close it" and "Keep it". Reference: `useMemberActions`
+  reset card, `InviteCodesPanel` reveal.
+- **Results are scoped to their record.** A hook that reports writes on
+  several records keeps the record with the notice and renders it only in that
+  record's pane (`useMemberActions().noticesFor(email)`), under the buttons that
+  made it; picking another record never shows the last one's result.
+- **Grant changes say from and to.** A staged permission change shows one line
+  beside Save ("From Editor to Editor + Translator (Dutch), once you
+  confirm.", `describePermissionChange` in `membersModel.ts`) and the confirm
+  names the old grant too.
+- **A person reads as initials.** `Monogram` (`people/PersonPane.tsx`) draws
+  `theme-dev-avatar`; `data-kind="profile"` draws it open (dashed) for a
+  record nobody signs in to.
+- **Invite forms default to the least grant** (Contributor) and say what they
+  will create in one live sentence above the button (`describeInviteTerms`).
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -819,3 +850,96 @@ Deferred, with reasons:
 - Moving `PlaylistEditor` (public viewer) onto `PlaylistWorks`: that surface is
   outside this pass.
 - The phone bar's roll-up count on this tool: shell chrome.
+
+
+### Pass 8: People (`/dev/people`)
+
+Commit: see `git log --grep "Dev tools redesign: People"`.
+Screenshots: `tmp/redesign/people/before/` and `tmp/redesign/people/after/`
+(admin loaded dark and light; editor, editor_translator, translator and
+contributor locked; empty; failed; loading; Needs a link and Everyone views;
+search with no match; every kind of person: editor, translator, banned, self,
+another admin, linked contributor, unlinked profile, profile whose email has
+no account, second profile on one account; profile load failed; dirty;
+permission, ban, link and unlink dialogs; banned, permissions saved, reset
+link, reset dismiss guard, freeze refusal; linked; Roles; Invites, Active,
+older page, form, created code, dismiss guard, freeze, failed, revoked;
+"Invite them instead"; "What each role can do"; deep links by key and email;
+desktop and phone), captured by `tmp/redesign/people/capture.mjs`. Critique in
+`tmp/redesign/people/critique.md` (18/40 before), inventory with the
+item-by-item check in `tmp/redesign/people/inventory.md`, detector evidence in
+`tmp/redesign/people/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: "No role selected: Contributor access only." showed under a
+  ticked Editor box (account and invite form); it now shows only when neither
+  box is ticked, and the selected role's summary sits under the boxes. The
+  one-time reset link rendered at the page top, off screen on phones; results
+  now land in the open person's Account block under the buttons.
+- Three views under the People heading (see Conventions): Members, Invites,
+  Roles. The role guide and invite codes no longer sit under an open person;
+  "What each role can do" in the permissions block opens Roles. Home's invite
+  rows and "Open People" land on `/dev/people#invites`.
+- Members is the triage workspace: a sticky list column (count, Refresh icon,
+  `ViewChoices` with counts, search with `/` cap and Escape, the windowed
+  `EditorList` listbox kept for arrow keys) and `PersonPane.tsx` docked right:
+  initials, name, "(you)", sign-in and role, a link or flag pill, Banned, a
+  corner Close, a pager (`j` / `k`, "N of M") and Back to list below `lg`.
+  Rows are two lines at one pitch: name, role, and the flag with its glyph (or
+  where the profile is), Banned, and an unsaved dot on the open row. A wide
+  screen opens the first account that has something to manage; phones open
+  nothing until a pick. The address follows the open person.
+- The pane has two blocks that say when their changes land (Account: on the
+  next request, after a confirm; Public profile: at once). Account facts are a
+  grid (relative last sign-in, inviter by name, "Seed script"); Permissions
+  shows the from/to line, Discard and the role summary; Sign-in holds Reset
+  password and Ban (ghost destructive). The link row names the address in the
+  body face; a second profile names the first and offers "Open <name>"; a
+  profile whose address has no account offers "Invite them instead" (opens
+  Invites with the note filled in).
+- Invites: a "New invite code" panel (defaults to Contributor, a live sentence
+  naming what it creates, "Create invite code", the reveal with the message
+  first and a dismiss guard) beside "Issued codes" as open rows (status,
+  role, note, languages, "N of M used", relative created, "by you" or a name,
+  closes or revoked, redeemers who open their person), filter counts, a
+  Refresh icon, and "N codes loaded" beside "Load older codes".
+- Freeze: member writes, link changes, invite create and revoke read "Writes
+  are paused, so that was not saved." (link: "the link did not change").
+  Buttons stay enabled (the Inbox decision).
+- Counts are omitted while unknown (no "0 accounts" on a failure); every load
+  failure names what did not load.
+- Registry: `saveLine: "none"` for People (the pane's blocks say it).
+- Shared, backward compatible: `RoleGuide` labels use `type-meta-label` (also
+  on `/invite`); `MemberPermissionFields` sorts languages by name in a grid;
+  `MemberAccountPanel` takes optional `onShowRoles` and `nameOf`;
+  `useMemberActions` adds `noticesFor` (and keeps `notices`);
+  `InviteCodesPanel` takes optional `nameOf`, `onActiveCountChange`,
+  `prefillNote` and `onOpenMember`; `membersModel` adds `describePermissions`
+  and `describePermissionChange`; `.theme-dev-avatar[data-kind="profile"]`.
+- Journeys fixtures: `MEMBERS_SEED` covers every managed role (languages,
+  never signed in, banned, another admin `FIXTURE_ADMIN_PEER`),
+  `PROFILE_LINKS_SEED`, a non-empty `CONTRIBUTOR_PROFILES_SEED` (seven
+  profiles, no avatars), `/api/dev/people`, the member writes (refusing admins
+  and the viewer), invite paging (`INVITES_PAGE_SIZE`), create and revoke,
+  full contributor profiles by key with the link write and its revision check;
+  with a unit test. Tools that read the directory now see these profiles.
+
+Deferred, with reasons:
+
+- Confirms on Revoke invite, Reset password and Unban, and on Create invite
+  code: the pass brief fixes the strictness of every confirm exactly as it
+  was; recorded as an open question (recommended: add them, destructive for
+  Revoke).
+- Profile editor internals (uppercase labels, a folded danger zone, its save
+  bar and freeze wording): `ContributorProfileEditor` belongs to Contributors
+  and renders there too; the Contributors pass.
+- Cmd+S in the pane: two saves (permissions and profile), so one key cannot
+  name one.
+- A Banned view or filter: the three views fill the column; banned rows are
+  marked in the list and the pane, and search finds them.
+- Capping the invite history at five with Show all: paging already waits for
+  the admin, and the loaded count sits beside it.
+- Link rows instead of `EditorListRow` cards in the list: the windowed
+  listbox (one tab stop, arrow keys) is the Inbox's; its rows are cards.
+

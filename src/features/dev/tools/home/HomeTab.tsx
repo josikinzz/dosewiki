@@ -181,7 +181,7 @@ function InviteRow({ invite }: { invite: InviteCodeSummary }) {
   const closingSoon = closes !== null && closes.days >= 0 && closes.days <= INVITE_CLOSING_DAYS;
   return (
     <LinkRow
-      href={devHref({ type: "dev", tab: "people" })}
+      href={`${devHref({ type: "dev", tab: "people" })}#invites`}
       meta={invite.note ? <span className="line-clamp-2">{invite.note}</span> : undefined}
       trailing={
         closes ? (
@@ -229,7 +229,7 @@ function PendingInvitesCard({ delay }: { delay: number }) {
           renderItem={(invite) => <InviteRow invite={invite} />}
         />
       )}
-      <OnwardLink href={devHref({ type: "dev", tab: "people" })}>Open People</OnwardLink>
+      <OnwardLink href={`${devHref({ type: "dev", tab: "people" })}#invites`}>Open People</OnwardLink>
     </EditorSection>
   );
 }

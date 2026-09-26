@@ -144,12 +144,12 @@ describe("InviteCodesPanel", () => {
     expect(within(list).getAllByRole("listitem")).toHaveLength(2);
 
     const filter = within(screen.getByRole("group", { name: "Show codes" }));
-    await user.click(filter.getByRole("button", { name: "Active" }));
+    await user.click(filter.getByRole("button", { name: /^Active/ }));
     const rows = within(screen.getByRole("list", { name: "Invite codes" })).getAllByRole("listitem");
     expect(rows).toHaveLength(1);
     expect(rows[0]).toHaveTextContent("Ada");
 
-    await user.click(filter.getByRole("button", { name: "All" }));
+    await user.click(filter.getByRole("button", { name: /^All/ }));
     expect(within(screen.getByRole("list", { name: "Invite codes" })).getAllByRole("listitem")).toHaveLength(2);
   });
 
@@ -158,8 +158,9 @@ describe("InviteCodesPanel", () => {
     const user = userEvent.setup();
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
-    await user.click(screen.getByRole("checkbox", { name: "Editor" }));
-    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    // No role ticked by default: an invite grants Contributor until the admin opts up.
+    expect(screen.getByRole("checkbox", { name: "Editor" })).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
 
     const reveal = await screen.findByRole("region", { name: "New invite code" });
     const message = within(reveal).getByLabelText("Message to send");
@@ -180,7 +181,7 @@ describe("InviteCodesPanel", () => {
     const user = userEvent.setup();
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
-    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
     const reveal = await screen.findByRole("region", { name: "New invite code" });
 
     vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("denied"));
@@ -197,13 +198,12 @@ describe("InviteCodesPanel", () => {
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
 
-    await user.click(screen.getByRole("checkbox", { name: "Editor" }));
     await user.type(screen.getByLabelText("Note"), "Linus");
     await user.clear(screen.getByLabelText("Expires in (days)"));
     await user.type(screen.getByLabelText("Expires in (days)"), "14");
     await user.clear(screen.getByLabelText("Uses"));
     await user.type(screen.getByLabelText("Uses"), "2");
-    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
 
     const reveal = await screen.findByRole("region", { name: "New invite code" });
     expect(within(reveal).getByTestId("minted-invite-code")).toHaveTextContent(CODE);
@@ -231,9 +231,28 @@ describe("InviteCodesPanel", () => {
     const rows = within(screen.getByRole("list", { name: "Invite codes" })).getAllByRole("listitem");
     expect(rows).toHaveLength(3);
     expect(within(rows[0]).getByText("Linus")).toBeInTheDocument();
-    expect(within(rows[0]).getByText(/0\/2 used/)).toBeInTheDocument();
+    expect(within(rows[0]).getByText(/0 of 2 used/)).toBeInTheDocument();
+
+    // Copied, so Dismiss closes at once.
+    await user.click(within(reveal).getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByRole("region", { name: "New invite code" })).not.toBeInTheDocument();
+  });
+
+  it("asks before closing a new code nobody copied", async () => {
+    stubRoutes();
+    const user = userEvent.setup();
+    render(<InviteCodesPanel />);
+    await screen.findByRole("list", { name: "Invite codes" });
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
+    const reveal = await screen.findByRole("region", { name: "New invite code" });
 
     await user.click(within(reveal).getByRole("button", { name: "Dismiss" }));
+    expect(within(reveal).getByText(/Close without copying/)).toBeInTheDocument();
+    await user.click(within(reveal).getByRole("button", { name: "Keep it" }));
+    expect(within(reveal).getByTestId("minted-invite-code")).toHaveTextContent(CODE);
+
+    await user.click(within(reveal).getByRole("button", { name: "Dismiss" }));
+    await user.click(within(reveal).getByRole("button", { name: "Close it" }));
     expect(screen.queryByRole("region", { name: "New invite code" })).not.toBeInTheDocument();
   });
 
@@ -242,11 +261,12 @@ describe("InviteCodesPanel", () => {
     const user = userEvent.setup();
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
+    await user.click(screen.getByRole("checkbox", { name: "Editor" }));
     await user.click(screen.getByRole("checkbox", { name: "Translator" }));
     expect(screen.getByRole("checkbox", { name: "Editor" })).toBeChecked();
-    expect(screen.getByRole("button", { name: "Mint invite" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Create invite code" })).toBeDisabled();
     await user.click(screen.getByRole("checkbox", { name: /Dutch/ }));
-    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
     await screen.findByRole("region", { name: "New invite code" });
     const mint = calls.find((call) => call.init?.method === "POST");
     expect(JSON.parse(String(mint?.init?.body))).toMatchObject({ role: "editor_translator", glossaryLocales: ["nl"] });
@@ -258,7 +278,7 @@ describe("InviteCodesPanel", () => {
     render(<InviteCodesPanel />);
     await screen.findByRole("list", { name: "Invite codes" });
 
-    await user.click(screen.getByRole("button", { name: "Mint invite" }));
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Expiry must be between 1 and 365 days.");
     expect(screen.queryByRole("region", { name: "New invite code" })).not.toBeInTheDocument();

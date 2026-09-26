@@ -27,7 +27,7 @@ function RoleList({ icon, label, items }: { icon: string; label: string; items: 
   if (items.length === 0) return null;
   return (
     <div className="mt-3">
-      <span className="theme-text-faint block text-[11px] font-semibold uppercase tracking-[0.16em]">{label}</span>
+      <span className="type-meta-label theme-text-faint block">{label}</span>
       <ul className="mt-1 space-y-1">
         {items.map((item) => (
           <li key={item} className="theme-text-secondary flex gap-2 text-sm">

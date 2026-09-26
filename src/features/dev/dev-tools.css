@@ -226,6 +226,14 @@
     box-shadow: inset 0 0 0 1px var(--theme-frosted-control-on-panel-border);
   }
 
+  /* A profile nobody signs in to (People): the same disc, drawn open. */
+  .theme-dev-avatar[data-kind="profile"] {
+    background: transparent;
+    color: var(--theme-text-muted);
+    box-shadow: none;
+    border: 1px dashed var(--theme-border-strong);
+  }
+
   /* The search trigger on the rail and at the top of the phone sheet reads as a field. */
   .theme-dev-sheet-search,
   .theme-dev-rail-search {

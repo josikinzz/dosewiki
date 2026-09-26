@@ -36,7 +36,7 @@ export const PERSON_FLAG_LABEL: Record<PersonFlag, string> = {
   "no-profile": "No public profile",
   "unlinked-profile": "Unlinked profile",
   "no-account": "Linked email has no account",
-  "shared-link": "Account already has a profile",
+  "shared-link": "Second profile on one account",
 };
 
 export type Person = {
@@ -140,6 +140,48 @@ export function filterPeople(people: readonly Person[], view: PeopleView, search
     return [person.account?.email, person.account?.username, person.account?.name, person.profileKey, person.profileName]
       .some((value) => value?.toLowerCase().includes(needle));
   });
+}
+
+/** The glyph each flag carries in the list and the pane. */
+export const PERSON_FLAG_ICON: Record<PersonFlag, string> = {
+  "no-profile": "lucide:user-round-x",
+  "unlinked-profile": "lucide:unlink",
+  "no-account": "lucide:mail-x",
+  "shared-link": "lucide:copy",
+};
+
+export const PEOPLE_VIEW_LABEL: Record<PeopleView, string> = {
+  accounts: "Accounts",
+  unlinked: "Needs a link",
+  all: "Everyone",
+};
+
+/** What each view says when nothing is in it (and no search narrows it). */
+export const PEOPLE_VIEW_EMPTY: Record<PeopleView, string> = {
+  accounts: "No accounts yet. Invite someone to create one.",
+  unlinked: "Everyone is linked.",
+  all: "Nobody here yet.",
+};
+
+/** How many people each view holds. */
+export function countPeople(people: readonly Person[]): Record<PeopleView, number> {
+  return {
+    accounts: people.filter((person) => person.account).length,
+    unlinked: people.filter((person) => person.flag !== null).length,
+    all: people.length,
+  };
+}
+
+/** A linked person's second line in the list: their profile, or their sign-in when the name already is the profile. */
+export function personRowDetail(person: Person): string {
+  if (person.account && person.profileName && person.profileName !== personLabel(person)) return `Profile: ${person.profileName}`;
+  if (person.account) return person.account.email;
+  return person.profileKey ?? "";
+}
+
+/** A write refused under `DATA_WRITES_FROZEN`, from the route's words. */
+export function isFrozenWriteMessage(message: string): boolean {
+  return /frozen|writes are paused/i.test(message);
 }
 
 export async function fetchPeople(): Promise<PeopleData> {

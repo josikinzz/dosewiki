@@ -258,6 +258,40 @@ describe("journey fixtures", () => {
     assert.deepEqual(admin.unhandled, []);
   });
 
+  it("answers People: the roster with links, member writes, invite paging, create and revoke, and the profile link", () => {
+    const admin = createJourneyFixture();
+    const people = get(admin, "/api/dev/people").json;
+    assert.ok(people.members.some((member) => member.role === "translator" && member.glossaryLocales.length > 0));
+    assert.ok(people.links.some((link) => link.membershipEmail === "departed@localhost.invalid"));
+
+    // Admins and the viewer's own row are refused, like Postgres refuses them.
+    assert.equal(post(admin, "/api/dev/members/ban", { email: "lyrea@localhost.invalid" }).status, 403);
+    assert.equal(post(admin, "/api/dev/members/ban", { email: "kayla@localhost.invalid" }).status, 200);
+    assert.ok(get(admin, "/api/dev/people").json.members.find((member) => member.username === "kayla").bannedAt);
+    assert.match(post(admin, "/api/dev/members/reset", { email: "kayla@localhost.invalid" }).json.resetPath, /^\/reset-password\?token=/);
+    post(admin, "/api/dev/members/role", { email: "kayla@localhost.invalid", role: "editor_translator", glossaryLocales: ["nl"] });
+    assert.deepEqual(get(admin, "/api/dev/members").json.members.find((member) => member.username === "kayla").glossaryLocales, ["nl"]);
+
+    const first = get(admin, "/api/dev/invites").json;
+    assert.equal(first.invites.length, 5);
+    assert.equal(get(admin, "/api/dev/invites", `?cursor=${first.continuationCursor}`).json.invites.length, 2);
+    const minted = post(admin, "/api/dev/invites", { role: "contributor", expiresInDays: 7, maxUses: 1, note: "Ada" }).json;
+    assert.equal(get(admin, "/api/dev/invites").json.invites[0].id, minted.invite.id);
+    assert.equal(post(admin, "/api/dev/invites", { role: "translator", glossaryLocales: [], expiresInDays: 7, maxUses: 1 }).status, 400);
+    assert.equal(post(admin, `/api/dev/invites/${minted.invite.id}/revoke`, {}).status, 200);
+    assert.equal(post(admin, `/api/dev/invites/${minted.invite.id}/revoke`, {}).status, 400);
+
+    const zed = get(admin, "/api/dev/contributor-profile", "?key=ZED").json.profile;
+    assert.equal(zed.membershipEmail, null);
+    assert.equal(post(admin, "/api/dev/contributor-profile", { key: "ZED", expectedUpdatedAt: zed.updatedAt, membershipEmail: "kayla@localhost.invalid" }).status, 200);
+    assert.ok(get(admin, "/api/dev/people").json.links.some((link) => link.key === "ZED"));
+    assert.equal(post(admin, "/api/dev/contributor-profile", { key: "ZED", expectedUpdatedAt: zed.updatedAt, membershipEmail: null }).status, 409);
+
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/members/ban", { email: "kayla@localhost.invalid" }).status, 503);
+    assert.deepEqual(get(createJourneyFixture({ state: "empty" }), "/api/dev/people").json.links, []);
+    assert.deepEqual(admin.unhandled, []);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

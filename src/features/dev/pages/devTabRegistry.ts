@@ -364,6 +364,10 @@ const REGISTRY = [
     role: "admin",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "instant",
+    // Account changes apply on the member's next request after a confirm;
+    // profile saves go live at once. Each block of the person pane says which,
+    // so one shell sentence would misstate half of it.
+    saveLine: "none",
     layout: "shell",
     destination: SHELL,
   },

@@ -184,9 +184,9 @@ describe("Home cards", () => {
       "/dev/citation-review",
       "/dev/queue",
       "/dev/queue",
-      // The open invite row, then Open People.
-      "/dev/people",
-      "/dev/people",
+      // The open invite row, then Open People, both on the Invites view.
+      "/dev/people#invites",
+      "/dev/people#invites",
       "/dev/articles/lsd",
       "/dev/queue/prop-1",
     ]],

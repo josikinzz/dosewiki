@@ -72,20 +72,36 @@ export const FIXTURE_GLOSSARY_LOCALES = Object.freeze(["de", "nl", "ja"]);
 /** Review inbox totals per fixture language: one busy, one empty, one small. */
 const TRANSLATION_INBOX_TOTALS = Object.freeze({ de: 7, nl: 0, ja: 2 });
 
-/** Invite codes for the admin's Home and People: two open, one expired. */
+/**
+ * Invite codes for the admin's Home and People, newest first: two open (one
+ * with languages), one expired, one used, one revoked, and two older codes the
+ * history pages in on request (`INVITES_PAGE_SIZE`).
+ */
 function seedInvites() {
   const day = 86_400_000;
   const at = (offset) => new Date(FIXTURE_EPOCH + offset * day).toISOString();
-  const invite = (id, role, created, expires, status, note) => ({
+  const invite = (id, role, created, expires, status, extra = {}) => ({
     id, role, createdBy: FIXTURE_EMAIL, createdAt: at(created), expiresAt: at(expires),
-    maxUses: 1, redemptions: [], status, ...(note ? { note } : {}),
+    maxUses: 1, redemptions: [], status, ...extra,
   });
   return [
-    invite("fixture-invite-1", "editor", -2, 5, "active", "For the fixture reviewer"),
-    invite("fixture-invite-2", "translator", -1, 13, "active"),
-    invite("fixture-invite-3", "contributor", -20, -13, "expired", "Old batch"),
+    invite("fixture-invite-1", "editor", -2, 5, "active", { note: "For the fixture reviewer" }),
+    invite("fixture-invite-2", "translator", -1, 13, "active", { glossaryLocales: ["de", "nl"] }),
+    invite("fixture-invite-3", "contributor", -20, -13, "expired", { note: "Old batch" }),
+    invite("fixture-invite-4", "contributor", -30, -23, "exhausted", {
+      note: "River, for the colour set", redemptions: [{ email: FIXTURE_MEMBER, at: at(-29) }],
+    }),
+    invite("fixture-invite-5", "editor", -40, -33, "revoked", { note: "Sent to the wrong address", revokedAt: at(-39) }),
+    invite("fixture-invite-6", "contributor", -90, -83, "exhausted", {
+      maxUses: 3, redemptions: [{ email: "kayla@localhost.invalid", at: at(-89) }, { email: "banned@localhost.invalid", at: at(-88) }],
+      note: "Workshop signups",
+    }),
+    invite("fixture-invite-7", "editor_translator", -120, -113, "expired", { glossaryLocales: ["ja"] }),
   ];
 }
+
+/** Invite history pages this many codes at a time, so "Load older codes" has a second page. */
+const INVITES_PAGE_SIZE = 5;
 
 /** Another admin, so the Inbox can show an item someone else holds. */
 export const FIXTURE_OTHER_ADMIN = "other-admin@localhost.invalid";
@@ -252,8 +268,22 @@ export const WRITING_SEED = Object.freeze([
   },
 ]);
 
-/** An empty directory keeps corpus tools out of the error boundary without inventing profile rows. */
-export const CONTRIBUTOR_PROFILES_SEED = Object.freeze([]);
+/**
+ * The contributor directory the shell reads for every tool: public profiles
+ * with no remote avatar, so People can pair them with accounts (see
+ * `PROFILE_LINKS_SEED`) and nothing is fetched from a media host.
+ */
+export const CONTRIBUTOR_PROFILES_SEED = Object.freeze([
+  ["NERVEWING", "Nervewing", "Site admin"],
+  ["RIVER", "River Okafor", "Artist"],
+  ["RIVER-SKETCHES", "River's sketchbook", null],
+  ["MIRA", "Mira Hofstede", "Translator"],
+  ["HALCYON", "Halcyon", "Researcher"],
+  ["ZED", "Zed Artist", null],
+  ["ARCHIVE-COLLECTIVE", "The Archive Collective", null],
+].map(([key, displayName, role]) => Object.freeze({
+  key, displayName, aliases: [], avatarUrl: null, bio: "", links: [], hasCustomBio: false, ...(role ? { role } : {}),
+})));
 
 /**
  * Replication Studio rows with no private field and no remote media: slugs,
@@ -358,16 +388,38 @@ export const BANNER_PRESETS_SEED = Object.freeze([
 /** Another member, who owns a playlist the editor can only read. */
 export const FIXTURE_MEMBER = "river@localhost.invalid";
 
+/** Another admin on the roster, whose account People shows without actions. */
+export const FIXTURE_ADMIN_PEER = "lyrea@localhost.invalid";
+
 /**
- * The roster the admin's owner pickers read (`/api/dev/members`): the viewer,
- * two members and one banned account the pickers leave out.
+ * The roster (`/api/dev/members`, and People's `/api/dev/people`): the viewer,
+ * another admin, members of every managed role (a translator and an editor
+ * translator with languages), one who never signed in, and one banned account
+ * the owner pickers leave out.
  */
 export const MEMBERS_SEED = Object.freeze([
-  { email: FIXTURE_EMAIL, username: "nervewing", role: "admin" },
-  { email: FIXTURE_MEMBER, username: "river", role: "contributor" },
-  { email: "kayla@localhost.invalid", username: "kayla", role: "editor" },
-  { email: "banned@localhost.invalid", username: "banned-member", role: "contributor", bannedAt: "2025-11-01T00:00:00.000Z" },
+  { email: FIXTURE_EMAIL, username: "nervewing", name: "Nervewing", role: "admin", lastSeenAt: "2026-01-15T09:00:00.000Z" },
+  { email: FIXTURE_ADMIN_PEER, username: "lyrea", role: "admin", lastSeenAt: "2026-01-12T18:30:00.000Z" },
+  { email: FIXTURE_MEMBER, username: "river", name: "River Okafor", role: "contributor", invitedBy: FIXTURE_EMAIL, lastSeenAt: "2026-01-14T21:10:00.000Z" },
+  { email: "kayla@localhost.invalid", username: "kayla", role: "editor", invitedBy: FIXTURE_EMAIL, lastSeenAt: "2026-01-10T08:00:00.000Z" },
+  { email: "mira@localhost.invalid", username: "mira", name: "Mira Hofstede", role: "translator", glossaryLocales: ["de", "nl"], invitedBy: FIXTURE_ADMIN_PEER, lastSeenAt: "2025-12-02T12:00:00.000Z" },
+  { email: "sol@localhost.invalid", username: "sol", role: "editor_translator", glossaryLocales: ["ja"], invitedBy: FIXTURE_EMAIL, lastSeenAt: "2026-01-15T07:45:00.000Z" },
+  { email: "newcomer@localhost.invalid", username: "newcomer", role: "contributor", invitedBy: FIXTURE_EMAIL },
+  { email: "banned@localhost.invalid", username: "banned-member", role: "contributor", bannedAt: "2025-11-01T00:00:00.000Z", invitedBy: FIXTURE_ADMIN_PEER, lastSeenAt: "2025-10-30T00:00:00.000Z" },
 ].map((member) => Object.freeze(member)));
+
+/**
+ * The account-to-profile links People reads (`links` on `/api/dev/people`):
+ * paired accounts, a second profile on an account that already has one, and a
+ * profile linked to an address nobody signs in with.
+ */
+export const PROFILE_LINKS_SEED = Object.freeze([
+  { key: "NERVEWING", membershipEmail: FIXTURE_EMAIL },
+  { key: "RIVER", membershipEmail: FIXTURE_MEMBER },
+  { key: "RIVER-SKETCHES", membershipEmail: FIXTURE_MEMBER },
+  { key: "MIRA", membershipEmail: "mira@localhost.invalid" },
+  { key: "HALCYON", membershipEmail: "departed@localhost.invalid" },
+].map((link) => Object.freeze(link)));
 
 /**
  * Replication playlists in every state the Playlists tab shows: the viewer's
@@ -547,6 +599,16 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       owner_email: row.owner,
     }]),
   );
+
+  /** People: accounts by email, the profile links, invite codes and stored profiles, all changed by writes. */
+  const people = {
+    members: new Map((state === "empty" ? MEMBERS_SEED.filter((member) => member.email === FIXTURE_EMAIL) : MEMBERS_SEED)
+      .map((member) => [member.email, structuredClone(member)])),
+    links: state === "empty" ? [] : PROFILE_LINKS_SEED.map((link) => ({ ...link })),
+    invites: state === "empty" ? [] : seedInvites(),
+    inviteCounter: 0,
+    profiles: new Map(),
+  };
 
   const fixture = {
     role,
@@ -818,6 +880,106 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { proposal: structuredClone(detail) });
   }
 
+  /** One page of invite history, newest first; the cursor is the index the next page starts at. */
+  function invitePage(cursor) {
+    const start = cursor ? Number(cursor.replace("fixture-invites-", "")) || 0 : 0;
+    const invites = people.invites.slice(start, start + INVITES_PAGE_SIZE);
+    const next = start + INVITES_PAGE_SIZE;
+    return json(200, { ok: true, invites: structuredClone(invites), continuationCursor: next < people.invites.length ? `fixture-invites-${next}` : null });
+  }
+
+  function mintInvite(input) {
+    const roles = ["editor", "translator", "editor_translator", "contributor"];
+    if (!roles.includes(input.role)) return json(400, { error: "Choose Editor, Translator, both, or Contributor." });
+    const translates = input.role === "translator" || input.role === "editor_translator";
+    const glossaryLocales = Array.isArray(input.glossaryLocales) ? input.glossaryLocales : [];
+    if (translates && glossaryLocales.length === 0) return json(400, { error: "Choose at least one glossary language for a translator." });
+    const days = Number(input.expiresInDays ?? 7);
+    if (!Number.isInteger(days) || days < 1 || days > 365) return json(400, { error: "Expiry must be between 1 and 365 days." });
+    const maxUses = Number(input.maxUses ?? 1);
+    if (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 100) return json(400, { error: "Uses must be between 1 and 100." });
+    const createdAt = tick();
+    const invite = {
+      id: `fixture-invite-minted-${++people.inviteCounter}`,
+      role: input.role,
+      ...(translates ? { glossaryLocales } : {}),
+      createdBy: fixture.session.user.email,
+      createdAt,
+      expiresAt: new Date(Date.parse(createdAt) + days * 86_400_000).toISOString(),
+      maxUses,
+      redemptions: [],
+      status: "active",
+      ...(typeof input.note === "string" && input.note.trim() ? { note: input.note.trim() } : {}),
+    };
+    people.invites.unshift(invite);
+    return json(200, { ok: true, code: `fixt-ure${people.inviteCounter}-code-abcd-efgh-jkmn`, invite: structuredClone(invite) });
+  }
+
+  function revokeInvite(id) {
+    const invite = people.invites.find((row) => row.id === id);
+    if (!invite) return json(404, { error: "No invite code has that id." });
+    if (invite.status !== "active") return json(400, { error: `That invite is already ${invite.status === "exhausted" ? "fully redeemed" : invite.status}.` });
+    Object.assign(invite, { status: "revoked", revokedAt: tick() });
+    return json(200, { ok: true });
+  }
+
+  /** The member writes, refused the way Postgres refuses them: admins and the actor's own row. */
+  function memberWrite(action, input) {
+    const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
+    const member = people.members.get(email);
+    if (!member) return json(404, { error: `No member has the address ${email}.` });
+    if (member.role === "admin") return json(403, { error: "Admin accounts are managed from the seed script." });
+    if (email === fixture.session.user.email) return json(403, { error: "You cannot change your own account." });
+    if (action === "reset") return json(200, { ok: true, resetPath: `/reset-password?token=fixture-reset-${member.username ?? "member"}` });
+    if (action === "ban") member.bannedAt = tick();
+    if (action === "unban") delete member.bannedAt;
+    if (action === "role") {
+      member.role = input.role;
+      if (input.role === "translator" || input.role === "editor_translator") member.glossaryLocales = [...(input.glossaryLocales ?? [])];
+      else delete member.glossaryLocales;
+    }
+    return json(200, { ok: true, email });
+  }
+
+  /** A directory profile as the editor reads it, with its link and any saved changes. */
+  function directoryProfile(key) {
+    const entry = CONTRIBUTOR_PROFILES_SEED.find((profile) => profile.key === key);
+    if (!entry) return null;
+    if (!people.profiles.has(key)) {
+      people.profiles.set(key, {
+        key, displayName: entry.displayName, aliases: [], bio: fixture.state === "empty" ? "" : `${entry.displayName} keeps notes for the fixture.`,
+        role: entry.role ?? null, links: [], membershipEmail: null, avatarUrl: null, avatarStorageId: null, storedAvatarUrl: null,
+        replicationOrder: [], orderingRevision: nextRevision(), reportOrder: [], exclude_from_gallery: false, archival: false,
+        approved_replicator: false, staffNote: null, updatedAt: new Date(FIXTURE_EPOCH - 86_400_000).toISOString(), updatedBy: FIXTURE_ADMIN_PEER,
+      });
+    }
+    const profile = people.profiles.get(key);
+    profile.membershipEmail = people.links.find((link) => link.key === key)?.membershipEmail ?? null;
+    return profile;
+  }
+
+  /** The profile route's admin patch: fields and the membership email, checked against `expectedUpdatedAt`. */
+  function saveContributorProfile(input) {
+    const profile = directoryProfile(String(input.key ?? ""));
+    if (!profile) return json(200, { ok: true });
+    if (fixture.state === "conflicted" && !contested.has(`profile:${profile.key}`)) {
+      contested.add(`profile:${profile.key}`);
+      profile.updatedAt = tick();
+    }
+    if ((input.expectedUpdatedAt ?? null) !== profile.updatedAt) {
+      return json(409, { error: "Someone saved this profile after you loaded it. Reload it and try again.", code: "REVISION_CONFLICT" });
+    }
+    if ("membershipEmail" in input) {
+      people.links = people.links.filter((link) => link.key !== profile.key);
+      if (typeof input.membershipEmail === "string") people.links.push({ key: profile.key, membershipEmail: input.membershipEmail.trim().toLowerCase() });
+    }
+    for (const field of ["displayName", "bio", "role", "aliases", "links", "exclude_from_gallery", "archival", "approved_replicator"]) {
+      if (field in input && input[field] !== undefined) profile[field] = structuredClone(input[field]);
+    }
+    Object.assign(profile, { updatedAt: tick(), updatedBy: fixture.session.user.email });
+    return json(200, { ok: true });
+  }
+
   function route({ method, pathname, search = "", body }) {
     const params = new URLSearchParams(search);
     const upper = method.toUpperCase();
@@ -865,15 +1027,21 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       }));
     }
     if (pathname === "/api/dev/invites" && upper === "GET") {
-      return toolRead(() => json(200, { ok: true, continuationCursor: null, invites: fixture.state === "empty" ? [] : seedInvites() }));
+      return toolRead(() => invitePage(params.get("cursor")));
     }
+    if (pathname === "/api/dev/invites" && upper === "POST") return toolWrite(() => mintInvite(body ?? {}));
+    const revokeMatch = /^\/api\/dev\/invites\/([^/]+)\/revoke$/.exec(pathname);
+    if (revokeMatch && upper === "POST") return toolWrite(() => revokeInvite(decodeURIComponent(revokeMatch[1])));
     if (pathname === "/api/dev/translation-inbox" && upper === "GET") {
       const locale = params.get("locale") ?? "";
       const total = fixture.state === "empty" ? 0 : (TRANSLATION_INBOX_TOTALS[locale] ?? 0);
       return toolRead(() => json(200, { ok: true, locale, items: [], total, counts: {} }));
     }
+    if (pathname === "/api/dev/contributor-profile" && upper === "POST") return toolWrite(() => saveContributorProfile(body ?? {}));
     if (pathname === "/api/dev/contributor-profile" && upper === "GET") {
       const key = params.get("key") ?? "";
+      const known = directoryProfile(key);
+      if (known) return toolRead(() => json(200, { ok: true, profile: structuredClone(known), works: [], reports: [] }));
       return toolRead(() => json(200, {
         ok: true,
         profile: {
@@ -1062,8 +1230,18 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       return toolRead(() => playlistCandidates(params));
     }
     if (pathname === "/api/dev/members" && upper === "GET") {
-      return toolRead(() => json(200, { ok: true, self: fixture.session.user.email, members: structuredClone(MEMBERS_SEED) }));
+      return toolRead(() => json(200, { ok: true, self: fixture.session.user.email, members: structuredClone([...people.members.values()]) }));
     }
+    if (pathname === "/api/dev/people" && upper === "GET") {
+      return toolRead(() => json(200, {
+        ok: true,
+        self: fixture.session.user.email,
+        members: structuredClone([...people.members.values()]),
+        links: structuredClone(people.links),
+      }));
+    }
+    const memberAction = /^\/api\/dev\/members\/(role|ban|unban|reset)$/.exec(pathname);
+    if (memberAction && upper === "POST") return toolWrite(() => memberWrite(memberAction[1], body ?? {}));
 
     if (pathname.startsWith("/api/")) {
       fixture.unhandled.push({ method: upper, pathname, search });
