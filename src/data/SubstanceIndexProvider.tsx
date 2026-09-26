@@ -119,6 +119,14 @@ export function SubstanceIndexProvider({ children, libraryData }: SubstanceIndex
  *
  * @throws Error if used outside of SubstanceIndexProvider
  */
+/**
+ * The library when a provider is mounted, else null: for a surface that only
+ * improves with it (names instead of slugs) and renders without it.
+ */
+export function useLibraryIfPresent(): EditorLibraryData | null {
+  return useContext(SubstanceIndexContext);
+}
+
 export function useLibrary(): EditorLibraryData {
   const context = useContext(SubstanceIndexContext);
   if (context === null) {

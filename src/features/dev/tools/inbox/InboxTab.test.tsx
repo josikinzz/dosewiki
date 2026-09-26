@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
+import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { resetDevRailBadgesForTests } from "@/features/dev/pages/useDevRailBadges";
 import { queueResponse } from "@/test/feedbackQueueServer";
 
@@ -359,6 +361,23 @@ describe("InboxTab", () => {
       ["/api/dev/inbox/claims", expect.objectContaining({ body: JSON.stringify({ action: "takeover", source: "proposals", id: "prop-1" }) })],
     ]);
     expect(server.claims).toEqual([expect.objectContaining({ item_id: "prop-1", claimed_by: BEN })]);
+  });
+
+  it("names a citation row by its article title once the corpus has loaded", async () => {
+    stubServer(freshServer(), () => ADA);
+    const library = {
+      ...getEmptyEditorLibrary(),
+      allSubstanceRecords: [{ slug: "lsd", name: "LSD" }],
+    } as unknown as Parameters<typeof SubstanceIndexProvider>[0]["libraryData"];
+    render(
+      <SubstanceIndexProvider libraryData={library}>
+        <InboxTab actorEmail={ADA} />
+      </SubstanceIndexProvider>,
+    );
+    const list = await screen.findByRole("listbox", { name: "Inbox items" });
+    await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
+    expect(within(list).getByText("LSD")).toBeInTheDocument();
+    expect(within(list).queryByText("lsd")).not.toBeInTheDocument();
   });
 
   it("shows an expired claim as unclaimed, with who held it", async () => {

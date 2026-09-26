@@ -98,7 +98,6 @@ type DevTabDescriptorOf<Id extends string> = {
 };
 
 const NO_DATA: ReadonlySet<DevTabDataNeed> = new Set();
-const CORPUS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>(["library", "contributors"]);
 const CORPUS_WITH_LAYOUTS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>([
   "library",
   "contributors",
@@ -136,7 +135,9 @@ const REGISTRY = [
     // Everything that waits on an admin, from every intake tool, in one list.
     // The owning tools keep their tabs and open from here for the full review.
     role: "admin",
-    data: NO_DATA,
+    // The corpus names the citation queue's articles (slugs until it lands);
+    // the Inbox never waits for it.
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveModel: "instant",
     // Claims and intake decisions, one item at a time; publishing stays in the owning tools.
     saveLine: "none",

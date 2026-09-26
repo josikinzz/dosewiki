@@ -27,6 +27,7 @@ import { useDevRailBadgeReadings, invalidateDevRailBadge, type DevRailBadge } fr
 import { describeDay } from "@/features/dev/tools/home/homeModel";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
+import { useLibraryIfPresent } from "@/data/SubstanceIndexProvider";
 import { cn } from "@/lib/utils";
 
 import {
@@ -161,7 +162,18 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     () => new Map(sources.map((source) => [source.id, source])),
     [sources],
   );
-  const [items, setItems] = useState<InboxItem[] | null>(null);
+  const [loadedItems, setItems] = useState<InboxItem[] | null>(null);
+  // Citation rows arrive keyed by slug. Once the shell's corpus lands (the
+  // registry starts it without blocking), they read as article titles.
+  const library = useLibraryIfPresent();
+  const substanceRecords = library?.allSubstanceRecords;
+  const items = useMemo(() => {
+    if (!loadedItems || !substanceRecords?.length) return loadedItems;
+    const titles = new Map(substanceRecords.map((record) => [record.slug, record.name]));
+    return loadedItems.map((item) =>
+      item.source === "citations" && titles.has(item.id) ? { ...item, title: titles.get(item.id) as string } : item,
+    );
+  }, [loadedItems, substanceRecords]);
   const [errors, setErrors] = useState<InboxLoadFailure[]>([]);
   const [loading, setLoading] = useState(true);
   const [chip, setChip] = useState<InboxChip | null>(null);
