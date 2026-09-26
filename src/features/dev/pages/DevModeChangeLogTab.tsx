@@ -1,131 +1,51 @@
-import { Fragment, useCallback, useMemo, useState } from "react";
-import { DiffPreview } from "@/features/dev/components/DiffPreview";
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { describeChange, fieldWords } from "@/data/changelog/articleRecentChanges";
 import type { ChangeLogEntry } from "@/data/changelog/changeLog";
+import { getProfileByKeyFromList, type NormalizedUserProfile } from "@/data/userProfiles";
+import { EditorSection, LoadErrorState, Notice, TagToken, useDevShortcuts } from "@/features/dev/components";
+import { isTextEntryTarget } from "@/features/dev/components/devShortcuts";
+import { LINK_LIST_CLASS, OnwardLink, RowSkeletons } from "@/features/dev/tools/home/homeParts";
+import { cn } from "@/lib/utils";
+import { devHref } from "@/utils/devHref";
+
+import { ChangeLogEntryRow } from "./ChangeLogEntryRow";
+import { ChangeLogFilters } from "./ChangeLogFilters";
 import {
-  Notice,
-  EditorActionGroup,
-  EditorField,
-  EditorFieldRow,
-  EditorSection,
-  EditorStatusPill,
-  EditorToolbar,
-} from "@/features/dev/components";
-import { viewToPath } from "@/utils/routing";
-import { CHANGELOG_FEED_MAX_ROWS, type ChangelogFeedWindow } from "./useDevChangelogFeed";
+  countNoun,
+  describeDateFilter,
+  describeWindow,
+  groupByDay,
+  summarizeEntry,
+} from "./changeLogModel";
+import { CHANGELOG_FEED_MAX_ROWS } from "./useDevChangelogFeed";
 import type { ChangeLogController } from "./useDevModeChangeLog";
 
 type DevModeChangeLogTabProps = {
   controller: ChangeLogController;
+  /** The contributor directory, so a save names who made it rather than a stamped key. */
+  contributorProfiles?: readonly NormalizedUserProfile[];
 };
 
-type EntrySummary = {
-  /** What the save did, in editor words: "Reworded 3 words", "Updated 2 articles". */
-  headline: string;
-  /** Where it happened, as section and field words; null for whole-article saves. */
-  location: string | null;
-  /** A hand-written save note or the reference a source edit named. */
-  detail: string | null;
-  linesAdded: number;
-  linesRemoved: number;
-};
+const SHORTCUTS = [
+  { keys: "/", label: "Search saves" },
+  { keys: "j / k", label: "Next and previous save" },
+] as const;
 
-const SAVE_TIME_FORMAT: Intl.DateTimeFormatOptions = {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-};
+/** How many saves "Show more" adds; the controller reveals loaded saves in batches of this size. */
+const REVEAL_BATCH = 20;
 
 /**
- * One line the editor can read without opening the diff. The description
- * comes from the same projection the public article ledger uses, so the
- * raw field path never reaches the screen; the counts come from the stored
- * diff lines.
+ * Every save made in the editor, newest first, grouped by day. Filters sit in
+ * a sticky column on desktop and fold behind one button on phones; each save
+ * is one line that opens its diff in place.
  */
-function summarizeEntry(entry: ChangeLogEntry): EntrySummary {
-  const description = describeChange(entry.commit?.message ?? "", entry.markdown);
-  const articleCount = entry.articles.length;
-  const headline =
-    description.kind === "bulk" && articleCount > 1
-      ? `Updated ${articleCount} articles`
-      : description.message;
-  const location =
-    [description.section?.label, description.field ? fieldWords(description.field) : null]
-      .filter(Boolean)
-      .join(" › ") || null;
-
-  let linesAdded = 0;
-  let linesRemoved = 0;
-  for (const line of entry.markdown.split("\n")) {
-    if (line.startsWith("+")) linesAdded += 1;
-    else if (line.startsWith("-")) linesRemoved += 1;
-  }
-
-  return { headline, location, detail: description.detail, linesAdded, linesRemoved };
-}
-
-function LineCounts({ added, removed }: { added: number; removed: number }) {
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 font-mono tabular-nums"
-      aria-label={`${added} line${added === 1 ? "" : "s"} added, ${removed} line${removed === 1 ? "" : "s"} removed`}
-    >
-      <span className="text-[var(--editor-code-line-add-text)]">+{added}</span>
-      <span className="text-[var(--editor-code-line-remove-text)]">-{removed}</span>
-    </span>
-  );
-}
-
-function describeWindow(
-  feedWindow: ChangelogFeedWindow,
-  totalEntriesCount: number,
-): { pill: string; loading: boolean; note: string | null } {
-  if (feedWindow.loading && feedWindow.loadedCount === 0) {
-    return { pill: "Loading saves", loading: true, note: null };
-  }
-  if (feedWindow.loading) {
-    return {
-      pill: "Loading older saves",
-      loading: true,
-      note: `The latest ${feedWindow.loadedCount} saves are loaded so far.`,
-    };
-  }
-  if (feedWindow.atServerCap) {
-    return {
-      pill: `Latest ${feedWindow.loadedCount} saves`,
-      loading: false,
-      note: `Only the latest ${CHANGELOG_FEED_MAX_ROWS} saves can be loaded here; older saves do not appear in this list or its filters.`,
-    };
-  }
-  if (feedWindow.hasMore) {
-    return {
-      pill: `Latest ${feedWindow.loadedCount} saves`,
-      loading: false,
-      note: `Only the latest ${feedWindow.loadedCount} saves are loaded; older saves load from the end of the list.`,
-    };
-  }
-  return {
-    pill: `${totalEntriesCount} save${totalEntriesCount === 1 ? "" : "s"}`,
-    loading: false,
-    note: null,
-  };
-}
-
-export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
+export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: DevModeChangeLogTabProps) {
   const {
     notice,
     clearNotice,
@@ -143,8 +63,8 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
     filtersCardClassName,
     feedWindow,
     handleArticleSelect,
-    handleSearchChange,
-    handleDateChange,
+    handleSubmitterSelect,
+    setSearchQuery,
     applyQuickDateRange,
     clearFilters,
     focusArticleFilter,
@@ -153,12 +73,36 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
     handleDownloadEntry,
   } = controller;
 
+  const searchRef = useRef<HTMLInputElement>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
+  const shellListens = useDevShortcuts(SHORTCUTS);
+
+  const nameFor = useCallback(
+    (key: string) => getProfileByKeyFromList(contributorProfiles, key).displayName,
+    [contributorProfiles],
+  );
+
   // Diffs stay closed until asked for; ids are stable across filtering, so
   // an entry opened before a filter change is still open when it returns.
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => new Set());
+
+  // Saves that land while the tab is open wait above the list instead of
+  // shifting it under the reader: the newest time seen is the line.
+  const [seenUpTo, setSeenUpTo] = useState<number | null>(null);
+  const newestTime = latestEntry ? Date.parse(latestEntry.createdAt) : null;
+  if (seenUpTo === null && feedWindow.loadedCount > 0 && newestTime !== null && !Number.isNaN(newestTime)) {
+    setSeenUpTo(newestTime);
+  }
+  const isNew = useCallback(
+    (entry: ChangeLogEntry) => seenUpTo !== null && Date.parse(entry.createdAt) > seenUpTo,
+    [seenUpTo],
+  );
+  const newCount = useMemo(() => filteredEntries.filter(isNew).length, [filteredEntries, isNew]);
+  const shownEntries = useMemo(() => visibleEntries.filter((entry) => !isNew(entry)), [isNew, visibleEntries]);
+
   const anyVisibleExpanded = useMemo(
-    () => visibleEntries.some((entry) => expandedIds.has(entry.id)),
-    [expandedIds, visibleEntries],
+    () => shownEntries.some((entry) => expandedIds.has(entry.id)),
+    [expandedIds, shownEntries],
   );
 
   const toggleEntry = useCallback((id: string) => {
@@ -172,7 +116,7 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
 
   const toggleAllVisible = useCallback(() => {
     setExpandedIds((previous) => {
-      const visibleIds = visibleEntries.map((entry) => entry.id);
+      const visibleIds = shownEntries.map((entry) => entry.id);
       const next = new Set(previous);
       if (visibleIds.some((id) => next.has(id))) {
         for (const id of visibleIds) next.delete(id);
@@ -181,360 +125,319 @@ export function DevModeChangeLogTab({ controller }: DevModeChangeLogTabProps) {
       }
       return next;
     });
-  }, [visibleEntries]);
+  }, [shownEntries]);
 
-  const rows = useMemo(
-    () => visibleEntries.map((entry) => ({ entry, summary: summarizeEntry(entry) })),
-    [visibleEntries],
+  const days = useMemo(
+    () =>
+      groupByDay(
+        shownEntries.map((entry) => ({ entry, summary: summarizeEntry(entry) })),
+        (row) => row.entry.createdAt,
+      ),
+    [shownEntries],
   );
 
+  // `/` finds, j and k walk the saves; Enter or Space on a save opens it.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTextEntryTarget(event.target)) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      if (event.key === "/") {
+        event.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+        return;
+      }
+      if (event.key !== "j" && event.key !== "k") return;
+      const toggles = Array.from(feedRef.current?.querySelectorAll<HTMLButtonElement>("[data-change-toggle]") ?? []);
+      if (toggles.length === 0) return;
+      event.preventDefault();
+      const current = toggles.indexOf(document.activeElement as HTMLButtonElement);
+      const next =
+        current === -1
+          ? event.key === "j" ? 0 : toggles.length - 1
+          : Math.min(Math.max(current + (event.key === "j" ? 1 : -1), 0), toggles.length - 1);
+      toggles[next].focus();
+      toggles[next].scrollIntoView?.({ block: "nearest" });
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const feedState = describeWindow(feedWindow, totalEntriesCount);
+  const firstPageLoading = feedWindow.loading && feedWindow.loadedCount === 0;
+  const firstPageFailed = feedWindow.error !== null && feedWindow.loadedCount === 0;
+  const serverEmpty = feedWindow.loadedCount === 0 && !feedWindow.loading && feedWindow.error === null;
+  const olderPageFailed = feedWindow.error !== null && feedWindow.loadedCount > 0;
   const canLoadOlder = feedWindow.hasMore || (feedWindow.loading && feedWindow.loadedCount > 0);
+  const mostEdited = articleFrequency[0] ?? null;
+  const outsideFilters = totalEntriesCount - filteredEntries.length;
+  const remaining = filteredEntries.length - visibleEntries.length;
+
+  const articleTitle = filters.articleSlug
+    ? articleOptions.find((option) => option.slug === filters.articleSlug)?.title ?? filters.articleSlug
+    : null;
+  const dateWords = describeDateFilter(filters.startDate, filters.endDate);
+  const search = filters.searchQuery.trim();
+
+  const summary = firstPageFailed ? null : firstPageLoading ? (
+    <span aria-live="polite">Loading saves</span>
+  ) : (
+    <>
+      {activeFilterCount > 0 ? (
+        <>
+          <span aria-live="polite">
+            {`${filteredEntries.length} of ${countNoun(totalEntriesCount, "loaded save")} match`}
+          </span>
+          {feedWindow.loading ? <span className="sr-only">. Loading older saves</span> : null}
+          {". "}
+        </>
+      ) : (
+        <>
+          <span aria-live="polite">{feedState.status}</span>
+          {", newest first. "}
+        </>
+      )}
+      {mostEdited && activeFilterCount === 0 ? (
+        <>
+          {"Most edited: "}
+          <button
+            type="button"
+            onClick={() => focusArticleFilter(mostEdited.slug)}
+            title={`Show only saves to ${mostEdited.title}`}
+            className="theme-focus-ring theme-accent-underline rounded-chip font-medium text-dose-accent-strong underline-offset-4 hover:underline"
+          >
+            {mostEdited.title}
+          </button>
+          {` (${countNoun(mostEdited.count, "save")}).`}
+        </>
+      ) : null}
+      {feedState.note ? <span className="mt-1 block">{feedState.note}</span> : null}
+      {serverEmpty && totalEntriesCount > 0 ? (
+        <span className="mt-1 block">The server history has no saves yet; these come with the site&apos;s archive.</span>
+      ) : null}
+    </>
+  );
 
   return (
-    <div className="mt-10 grid w-full gap-6 lg:grid-cols-[19rem_minmax(0,1fr)]">
-      <div className="min-w-0">
-        <EditorSection
-          icon="lucide:filter"
-          title="Refine history"
-          className={filtersCardClassName}
-          actions={
-            activeFilterCount > 0 ? (
-              <>
-                <EditorStatusPill tone="warning">
-                  {`${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} active`}
-                </EditorStatusPill>
-                <Button variant="ghost" size="xs" onClick={clearFilters}>
-                  Clear
-                </Button>
-              </>
-            ) : undefined
-          }
-        >
-          <div className="space-y-4">
-            <EditorField label="Article" htmlFor="change-log-article">
-              <Select value={filters.articleSlug ?? "__all__"} onValueChange={handleArticleSelect}>
-                <SelectTrigger id="change-log-article">
-                  <SelectValue placeholder="All articles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">All articles</SelectItem>
-                  {articleOptions.map((option) => (
-                    <SelectItem key={option.slug} value={option.slug}>
-                      {option.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </EditorField>
+    <div className="mt-8 grid w-full gap-6 lg:mt-10 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
+      <aside aria-label="Filter saves" className={cn("min-w-0 lg:self-start", filtersCardClassName)}>
+        <ChangeLogFilters controller={controller} searchRef={searchRef} nameFor={nameFor} searchKey={shellListens} />
+      </aside>
 
-            <EditorFieldRow layout="twoColumn">
-              <EditorField label="Start date" htmlFor="change-log-start">
-                <Input
-                  id="change-log-start"
-                  type="date"
-                  value={filters.startDate ?? ""}
-                  onChange={handleDateChange("startDate")}
-                />
-              </EditorField>
-              <EditorField label="End date" htmlFor="change-log-end">
-                <Input
-                  id="change-log-end"
-                  type="date"
-                  value={filters.endDate ?? ""}
-                  onChange={handleDateChange("endDate")}
-                />
-              </EditorField>
-            </EditorFieldRow>
-
-            <EditorToolbar label="Quick date ranges" variant="compact" className="text-xs">
-              <Button
-                variant="glass"
-                size="xs"
-                className="rounded-full"
-                onClick={() => applyQuickDateRange(7)}
-              >
-                Past 7 days
-              </Button>
-              <Button
-                variant="glass"
-                size="xs"
-                className="rounded-full"
-                onClick={() => applyQuickDateRange(30)}
-              >
-                Past 30 days
-              </Button>
-              <Button
-                variant="glass"
-                size="xs"
-                className="rounded-full"
-                onClick={() => applyQuickDateRange(null)}
-              >
-                Any date
-              </Button>
-            </EditorToolbar>
-
-            <EditorField label="Search" htmlFor="change-log-search">
-              <Input
-                id="change-log-search"
-                type="search"
-                placeholder="Search saves by keyword, article, or diff text…"
-                value={filters.searchQuery}
-                onChange={handleSearchChange}
-              />
-            </EditorField>
-          </div>
-        </EditorSection>
-      </div>
-
-      <div className="min-w-0 space-y-8">
-        {notice && (
+      <div className="min-w-0 space-y-5">
+        {notice ? (
           <Notice
             tone={notice.type === "error" ? "danger" : notice.type === "pending" ? "loading" : "success"}
             message={notice.message}
             dismiss={notice.type === "pending" ? undefined : clearNotice}
           />
-        )}
+        ) : null}
 
         <EditorSection
           className="min-w-0"
           icon="lucide:history"
-          title="Save history"
-          description={
-            <>
-              {activeFilterCount > 0
-                ? "Showing loaded saves that match the active article, date, and search filters."
-                : "Every Dev mode save, newest first. Open an entry to see the lines that changed."}
-              {feedState.note ? ` ${feedState.note}` : null}
-            </>
+          title="Saves"
+          description={summary}
+          actions={
+            shownEntries.length > 0 && !firstPageLoading ? (
+              <ExpandButton
+                variant="floating"
+                isExpanded={anyVisibleExpanded}
+                onToggle={toggleAllVisible}
+                label={anyVisibleExpanded ? "Close all" : "Open all"}
+                ariaLabel={anyVisibleExpanded ? "Collapse every diff" : "Expand every diff"}
+              />
+            ) : undefined
           }
-          actions={(
-            <>
-              <EditorStatusPill loading={feedState.loading} live>
-                {feedState.pill}
-              </EditorStatusPill>
-              {latestEntry ? (
-                <EditorStatusPill>
-                  Latest: {new Date(latestEntry.createdAt).toLocaleString(undefined, SAVE_TIME_FORMAT)}
-                </EditorStatusPill>
-              ) : null}
-              {articleFrequency[0] ? (
-                <EditorStatusPill>
-                  Most active: {articleFrequency[0].title}
-                </EditorStatusPill>
-              ) : null}
-              <EditorStatusPill tone={activeFilterCount > 0 ? "warning" : "neutral"}>
-                {canShowMoreEntries
-                  ? `${visibleEntries.length} of ${filteredEntries.length} shown`
-                  : `${filteredEntries.length} shown`}
-              </EditorStatusPill>
-              {visibleEntries.length > 0 ? (
-                <ExpandButton
-                  variant="floating"
-                  isExpanded={anyVisibleExpanded}
-                  onToggle={toggleAllVisible}
-                  label={anyVisibleExpanded ? "Collapse all" : "Expand all"}
-                  ariaLabel={anyVisibleExpanded ? "Collapse every diff" : "Expand every diff"}
+        >
+          {activeFilterCount > 0 ? (
+            <div role="group" aria-label={`Active filters, ${activeFilterCount}`} className="flex flex-wrap items-center gap-2">
+              {articleTitle ? (
+                <TagToken
+                  variant="compact"
+                  label={`Article: ${articleTitle}`}
+                  onRemove={() => handleArticleSelect("__all__")}
+                  removeLabel="Remove the article filter"
                 />
               ) : null}
-            </>
-          )}
-        >
-          {filteredEntries.length === 0 ? (
+              {filters.submitter ? (
+                <TagToken
+                  variant="compact"
+                  label={`By ${nameFor(filters.submitter)}`}
+                  onRemove={() => handleSubmitterSelect(null)}
+                  removeLabel="Remove the saved by filter"
+                />
+              ) : null}
+              {dateWords ? (
+                <TagToken
+                  variant="compact"
+                  label={dateWords}
+                  onRemove={() => applyQuickDateRange(null)}
+                  removeLabel="Remove the date filter"
+                />
+              ) : null}
+              {search ? (
+                <TagToken
+                  variant="compact"
+                  label={`“${search}”`}
+                  onRemove={() => setSearchQuery("")}
+                  removeLabel="Clear the search"
+                />
+              ) : null}
+            </div>
+          ) : null}
+
+          {firstPageFailed ? (
+            <LoadErrorState
+              what="the change log"
+              message={feedWindow.error ?? ""}
+              onRetry={feedWindow.retry}
+              busy={feedWindow.retrying}
+            />
+          ) : null}
+
+          {newCount > 0 ? (
+            <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="theme-text-secondary flex items-center gap-2">
+                <Icon icon="lucide:sparkles" size={15} className="theme-icon-accent shrink-0" />
+                {`${countNoun(newCount, "new save")} landed since you opened this.`}
+              </span>
+              <Button type="button" variant="outline" size="sm" onClick={() => setSeenUpTo(newestTime)}>
+                {newCount === 1 ? "Show it" : "Show them"}
+              </Button>
+            </div>
+          ) : null}
+
+          {firstPageLoading ? (
+            <RowSkeletons rows={6} label="saves" />
+          ) : filteredEntries.length === 0 && firstPageFailed && activeFilterCount === 0 ? null : filteredEntries.length === 0 ? (
             <StateCard
               icon={activeFilterCount > 0 ? "lucide:search-x" : "lucide:history"}
               tone="neutral"
               align="center"
               compact
-              loading={feedState.loading}
-              title={
-                activeFilterCount > 0
-                  ? "No loaded saves match these filters"
-                  : feedState.loading
-                    ? "Loading saves"
-                    : "No saves logged yet"
-              }
+              loading={feedWindow.loading}
+              title={activeFilterCount > 0 ? "No loaded saves match these filters" : "No saves logged yet"}
               description={
                 activeFilterCount > 0
-                  ? canLoadOlder
-                    ? "Older saves are not loaded yet and may match. Load them, or clear the filters to see everything already here."
-                    : feedWindow.atServerCap
-                      ? `Only the latest ${CHANGELOG_FEED_MAX_ROWS} saves can be loaded here. Clear filters or broaden the date range to review the saves that are.`
-                      : "Clear filters or broaden the date range to review more saved diffs."
-                  : feedState.loading
-                    ? "The latest saves are on their way."
-                    : "Saves made in Dev mode appear here as soon as they land."
+                  ? [
+                      outsideFilters > 0 ? `${countNoun(outsideFilters, "loaded save")} ${outsideFilters === 1 ? "is" : "are"} outside these filters.` : null,
+                      canLoadOlder
+                        ? "Older saves are not loaded yet and may match."
+                        : feedWindow.atServerCap
+                          ? `Only the latest ${CHANGELOG_FEED_MAX_ROWS} saves can be loaded here.`
+                          : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" ")
+                  : "Saves made in the editor appear here as soon as they land."
               }
-              actions={activeFilterCount > 0 ? (
-                <>
-                  {canLoadOlder ? (
-                    <Button
-                      variant="glass"
-                      size="pill"
-                      className="rounded-full"
-                      onClick={feedWindow.loadMore}
-                      disabled={feedWindow.loading}
-                    >
-                      {feedWindow.loading ? "Loading older saves" : "Load older saves"}
+              actions={
+                activeFilterCount > 0 ? (
+                  <>
+                    {canLoadOlder ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={feedWindow.loadMore}
+                        disabled={feedWindow.loading}
+                      >
+                        {feedWindow.loading ? "Loading older saves" : "Load older saves"}
+                      </Button>
+                    ) : null}
+                    <Button type="button" variant="outline" size="sm" onClick={clearFilters}>
+                      Clear filters
                     </Button>
-                  ) : null}
-                  <Button variant="glass" size="pill" className="rounded-full" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                </>
-              ) : undefined}
+                  </>
+                ) : (
+                  <OnwardLink href={devHref({ type: "dev", tab: "articles" })}>Open Substances</OnwardLink>
+                )
+              }
             />
           ) : (
-            <div className="space-y-5">
-              {rows.map(({ entry, summary }, index) => {
-                const isExpanded = expandedIds.has(entry.id);
-                const diffId = `change-log-diff-${entry.id}`;
-                const headingId = `change-log-entry-${entry.id}`;
+            <div ref={feedRef} className="space-y-6">
+              {firstPageFailed ? (
+                <p className="theme-text-muted text-sm">
+                  {`Below are the ${countNoun(totalEntriesCount, "save")} bundled with the site's archive; newer saves are on the server.`}
+                </p>
+              ) : null}
+              {days.map((day) => {
+                const headingId = `change-log-day-${day.key}`;
                 return (
-                  <Fragment key={entry.id}>
-                    {index > 0 ? <div className="theme-gradient-divider h-px" /> : null}
-                    <article className="space-y-3" aria-labelledby={headingId}>
-                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                        <div className="min-w-0 space-y-1">
-                          <p id={headingId} className="text-sm font-semibold theme-text-primary">
-                            {new Date(entry.createdAt).toLocaleString(undefined, SAVE_TIME_FORMAT)}
-                          </p>
-                          <p className="text-sm theme-text-secondary">
-                            <span className="font-medium theme-text-primary">{summary.headline}</span>
-                            {summary.location ? (
-                              <span className="theme-text-muted"> in {summary.location}</span>
-                            ) : null}
-                            {summary.detail ? (
-                              <span className="theme-text-muted">: {summary.detail}</span>
-                            ) : null}
-                          </p>
-                          <p className="flex flex-wrap items-center gap-x-2 text-xs theme-text-faint">
-                            <LineCounts added={summary.linesAdded} removed={summary.linesRemoved} />
-                            {entry.commit?.url ? (
-                              <a
-                                href={entry.commit.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="theme-accent-emphasis transition"
-                              >
-                                {entry.commit.message}
-                              </a>
-                            ) : null}
-                            {entry.submittedBy ? <span>Submitted by {entry.submittedBy}</span> : null}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-2">
-                          {entry.articles.map((article) => {
-                            const href = viewToPath({ type: "substance", slug: article.slug });
-                            return (
-                              <span
-                                key={`${entry.id}-${article.slug}`}
-                                className="inline-flex items-center gap-1"
-                              >
-                                <Button
-                                  variant="ghostPill"
-                                  size="xs"
-                                  onClick={() => focusArticleFilter(article.slug)}
-                                  title={`Filter history to ${article.title}`}
-                                >
-                                  <Icon icon="lucide:filter" size={14} />
-                                  {article.title}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="xs"
-                                  className="rounded-full px-2"
-                                  asChild
-                                >
-                                  <a
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label={`Open ${article.title} article in a new tab`}
-                                  >
-                                    <Icon icon="lucide:external-link" size={14} />
-                                  </a>
-                                </Button>
-                              </span>
-                            );
-                          })}
-                          <ExpandButton
-                            variant="faint"
-                            isExpanded={isExpanded}
-                            onToggle={() => toggleEntry(entry.id)}
-                            ariaControls={isExpanded ? diffId : undefined}
-                            ariaLabel={isExpanded ? "Hide the diff" : "Show the diff"}
+                  <section key={day.key} aria-labelledby={headingId} className="space-y-1">
+                    <h3 id={headingId} className="flex items-baseline justify-between gap-3 px-0">
+                      <span className="theme-text-primary text-sm font-semibold" title={day.full}>
+                        {day.label}
+                      </span>
+                      <span className="theme-text-faint text-xs tabular-nums">{countNoun(day.items.length, "save")}</span>
+                    </h3>
+                    <ul className={LINK_LIST_CLASS}>
+                      {day.items.map(({ entry, summary: entrySummary }) => (
+                        <li key={entry.id}>
+                          <ChangeLogEntryRow
+                            entry={entry}
+                            summary={entrySummary}
+                            isExpanded={expandedIds.has(entry.id)}
+                            onToggle={toggleEntry}
+                            submitter={entry.submittedBy ? nameFor(entry.submittedBy) : null}
+                            archived={feedWindow.archivedIds.has(entry.id)}
+                            filterSlug={filters.articleSlug}
+                            search={search}
+                            feedback={entryFeedback?.entryId === entry.id ? entryFeedback : null}
+                            onClearFeedback={clearEntryFeedback}
+                            onFilterArticle={focusArticleFilter}
+                            onCopy={handleCopyEntry}
+                            onDownload={handleDownloadEntry}
                           />
-                        </div>
-                      </div>
-
-                      {isExpanded ? (
-                        <div id={diffId} className="space-y-3">
-                          <EditorActionGroup label="Save entry actions">
-                            {entryFeedback?.entryId === entry.id ? (
-                              <Notice placement="inline"
-                                tone={entryFeedback.tone}
-                                dismiss={clearEntryFeedback}
-                              >
-                                {entryFeedback.message}
-                              </Notice>
-                            ) : null}
-                            <Button
-                              variant="glass"
-                              size="xs"
-                              className="rounded-full"
-                              onClick={() => handleCopyEntry(entry)}
-                            >
-                              <Icon icon="lucide:copy" size={16} />
-                              Copy diff
-                            </Button>
-                            <Button
-                              variant="glass"
-                              size="xs"
-                              className="rounded-full"
-                              onClick={() => handleDownloadEntry(entry)}
-                            >
-                              <Icon icon="lucide:download" size={16} />
-                              Download .diff
-                            </Button>
-                          </EditorActionGroup>
-                          <DiffPreview diffText={entry.markdown} maxHeight="min(60vh, 640px)" />
-                        </div>
-                      ) : null}
-                    </article>
-                  </Fragment>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
                 );
               })}
-              <div className="flex flex-col items-center gap-2 pt-2">
+
+              <div className="flex flex-col items-center gap-2 border-t border-dose-divider pt-4 text-center">
+                <p className="theme-text-faint text-xs tabular-nums">
+                  {`Showing ${visibleEntries.length} of ${countNoun(filteredEntries.length, activeFilterCount > 0 ? "matching save" : "loaded save")}`}
+                </p>
                 {canShowMoreEntries ? (
-                  <Button
-                    variant="glass"
-                    size="pill"
-                    className="rounded-full"
-                    onClick={showMoreEntries}
-                  >
-                    Show more entries
+                  <Button type="button" variant="outline" size="sm" onClick={showMoreEntries}>
+                    {`Show ${Math.min(REVEAL_BATCH, remaining)} more`}
                   </Button>
+                ) : olderPageFailed ? (
+                  <LoadErrorState
+                    what="older saves"
+                    message={feedWindow.error ?? ""}
+                    onRetry={feedWindow.retry}
+                    busy={feedWindow.retrying}
+                  />
                 ) : canLoadOlder ? (
                   <Button
-                    variant="glass"
-                    size="pill"
-                    className="rounded-full"
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={feedWindow.loadMore}
                     disabled={feedWindow.loading}
+                    aria-busy={feedWindow.loading || undefined}
                   >
-                    {feedWindow.loading ? (
-                      <Icon icon="lucide:loader-2" size={16} className="animate-spin" />
-                    ) : (
-                      <Icon icon="lucide:history" size={16} />
-                    )}
+                    <Icon
+                      icon={feedWindow.loading ? "lucide:loader-2" : "lucide:history"}
+                      size={15}
+                      className={feedWindow.loading ? "animate-spin motion-reduce:animate-none" : undefined}
+                    />
                     {feedWindow.loading ? "Loading older saves" : "Load older saves"}
                   </Button>
                 ) : feedWindow.atServerCap ? (
-                  <p className="text-xs theme-text-faint">
+                  <p className="theme-text-faint text-xs">
                     {`Older saves are not loaded: this page holds the latest ${CHANGELOG_FEED_MAX_ROWS}.`}
                   </p>
-                ) : null}
+                ) : firstPageFailed ? null : (
+                  <p className="theme-text-faint text-xs">
+                    {activeFilterCount > 0 ? "That is every loaded save that matches." : "That is every save."}
+                  </p>
+                )}
               </div>
             </div>
           )}

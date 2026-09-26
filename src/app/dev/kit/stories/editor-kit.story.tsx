@@ -432,6 +432,7 @@ const surfacesStory: StoryDef = {
   examples: [
     { label: "Code", background: "plain", full: true, render: () => <CodeSurface title="Payload" value={'{\n  "slug": "lsd"\n}'} language="json" /> },
     { label: "Diff", background: "plain", full: true, render: () => <DiffSurface title="Changes" diffText={"- Old title\n+ New title"} /> },
+    { label: "Diff with a search highlight", note: "`highlight` marks each search term inside the lines (the Change log passes its search).", background: "plain", full: true, render: () => <DiffSurface title="Changes" diffText={"- 150 mg\n+ 150 mg or more"} highlight="mg" /> },
   ],
 };
 

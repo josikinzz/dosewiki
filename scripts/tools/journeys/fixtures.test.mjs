@@ -6,6 +6,7 @@ import {
   FIXTURE_EMAIL,
   JOURNEY_ROLES,
   TOOL_STATES,
+  buildChangelogFixture,
   buildReplicationFixture,
   createJourneyFixture,
   fixtureRevision,
@@ -178,6 +179,21 @@ describe("journey fixtures", () => {
     assert.equal(refused.status, 401);
     assert.equal(refused.json.error, "Authentication required.");
     assert.equal(fixture.requestsTo("POST", "/api/dev/writing-article").length, 1);
+  });
+
+  it("answers the change log feed newest first, capped by limit and by the route's 500", () => {
+    const feed = (fixture, limit) => get(fixture, "/api/editor/changelog", `?limit=${limit}`);
+    const loaded = feed(createJourneyFixture(), 100);
+    assert.equal(loaded.status, 200);
+    assert.equal(loaded.json.length, 24);
+    const times = loaded.json.map((row) => Date.parse(row.createdAt));
+    assert.deepEqual(times, [...times].sort((a, b) => b - a));
+    assert.ok(loaded.json.every((row) => !String(row.submittedBy ?? "").includes("@")));
+    assert.equal(feed(createJourneyFixture({ changelogRows: 900 }), 100).json.length, 100);
+    assert.equal(feed(createJourneyFixture({ changelogRows: 900 }), 9000).json.length, 500);
+    assert.deepEqual(feed(createJourneyFixture({ state: "empty" }), 100).json, []);
+    assert.equal(feed(createJourneyFixture({ state: "failed" }), 100).status, 500);
+    assert.deepEqual(buildChangelogFixture(7), buildChangelogFixture(7));
   });
 
   it("only accepts a loopback origin", () => {

@@ -209,7 +209,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (
-          <DevModeChangeLogTab controller={controller.changeLog} />
+          <DevModeChangeLogTab
+            controller={controller.changeLog}
+            contributorProfiles={controller.contributorDirectory.profiles}
+          />
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
             enableStickyPanels={controller.enableStickyPanels}

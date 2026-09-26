@@ -420,8 +420,10 @@ const REGISTRY = [
     icon: "lucide:history",
     group: "chrome",
     aliases: ["changelog"],
+    keywords: ["history", "diff", "saves"],
     role: "editor",
-    data: new Set<DevTabDataNeed>(["changelog"]),
+    // The directory names who made each save instead of its stamped key.
+    data: new Set<DevTabDataNeed>(["changelog", "contributors"]),
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,

@@ -1,5 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { HighlightedText } from "@/components/common/HighlightedText";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 import { JsonEditor } from "./JsonEditor";
@@ -94,6 +95,8 @@ export interface DiffSurfaceProps
   maxHeight?: MaxHeightValue;
   emptyText?: ReactNode;
   actions?: ReactNode;
+  /** Search text to mark inside the diff lines (each whitespace-separated term). */
+  highlight?: string;
 }
 
 function getDiffLineClassName(line: string) {
@@ -122,9 +125,11 @@ export function DiffSurface({
   maxHeight,
   emptyText,
   actions,
+  highlight,
   className,
   ...props
 }: DiffSurfaceProps) {
+  const query = highlight?.trim() ?? "";
   const normalized = diffText.replace(/\r\n/g, "\n");
   const lines = normalized ? normalized.split("\n") : [];
 
@@ -147,7 +152,13 @@ export function DiffSurface({
               key={`diff-line-${index}`}
               className={cn("block rounded px-2 py-0.5", getDiffLineClassName(line))}
             >
-              {line.length > 0 ? line : "\u00A0"}
+              {line.length === 0 ? (
+                "\u00A0"
+              ) : query ? (
+                <HighlightedText text={line} query={query} markClassName="px-0 py-0" />
+              ) : (
+                line
+              )}
             </span>
           ))
         : undefined}

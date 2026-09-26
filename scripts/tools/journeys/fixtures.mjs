@@ -294,6 +294,72 @@ function titleCase(slug) {
   return slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 }
 
+/**
+ * The change log feed (`/api/editor/changelog`), in the shape the route
+ * projects: newest first, one save every five hours back from the fixture
+ * clock. The saves cycle through every kind the tab describes: an inline
+ * prose edit, a source added and removed, a bare Dev editor stamp, a
+ * hand-written note on a save that touched many articles, and one long diff.
+ * Submitters are profile keys, never addresses.
+ */
+export function buildChangelogFixture(count = 24) {
+  const hour = 3_600_000;
+  const article = (id, title) => ({ id, title, slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-") });
+  const many = ["Caffeine", "Nicotine", "Alcohol", "Cannabis", "Kratom", "Modafinil", "Phenibut", "Tramadol", "Codeine", "Gabapentin", "Pregabalin", "Zolpidem", "Diazepam", "Alprazolam"]
+    .map((title, index) => article(500 + index, title));
+  const longDiff = Array.from({ length: 60 }, (_, line) => [
+    `-      "Dose ${line + 1} was listed in the old table",`,
+    `+      "Dose ${line + 1} now matches the reviewed table",`,
+  ]).flat().join("\n");
+  const kinds = [
+    (n) => ({
+      message: "Inline edit \u2014 summary",
+      articles: [article(301, "Mescaline")],
+      markdown: `-Mescaline is a naturally occurring psychedelic of the phenethylamine class.\n+Mescaline is a naturally occurring psychedelic of the phenethylamine class, known for its long duration.${n % 2 ? "\n+It is found in several cacti." : ""}`,
+    }),
+    () => ({
+      message: "Added a source \u2014 Nichols 2016, Psychedelics",
+      articles: [article(302, "Psilocybin")],
+      markdown: "+  { \"title\": \"Nichols 2016, Psychedelics\", \"doi\": \"10.1124/pr.115.011478\" }",
+    }),
+    () => ({
+      message: "Dev editor update - 1/12/2026, 3:04:11 PM",
+      articles: [article(303, "LSD")],
+      markdown: "# LSD \u00b7 #303\n\n-      \"onset\": \"20-60 minutes\",\n+      \"onset\": \"30-90 minutes\",\n-      \"peak\": \"3-5 hours\"\n+      \"peak\": \"2-4 hours\"",
+    }),
+    () => ({
+      message: "Dev editor update - Tightened the interaction warnings across depressants",
+      articles: many,
+      markdown: many.map((entry) => `# ${entry.title} \u00b7 #${entry.id}\n\n-      \"status\": \"caution\"\n+      \"status\": \"dangerous\"`).join("\n\n"),
+    }),
+    () => ({
+      message: "Removed a source \u2014 An unreviewed forum post",
+      articles: [article(304, "MDMA")],
+      markdown: "-  { \"title\": \"An unreviewed forum post\" }",
+    }),
+    () => ({
+      message: "Inline edit \u2014 routes[oral].dosage.heavy",
+      articles: [article(305, "Ketamine")],
+      markdown: "-150 mg\n+150 mg or more [cite:doi-10.1000-fixture]",
+    }),
+    () => ({
+      message: "Dev editor update - Rewrote the dose tables from the reviewed sources",
+      articles: [article(306, "2C-B"), article(307, "2C-E")],
+      markdown: `# 2C-B \u00b7 #306\n\n${longDiff}`,
+    }),
+  ];
+  const submitters = ["JOSIE", "KAYLA", null, "RIVER"];
+  return Array.from({ length: count }, (_, index) => {
+    const n = String(index + 1).padStart(4, "0");
+    return {
+      entryId: `fixture-change-${n}`,
+      createdAt: new Date(FIXTURE_EPOCH - (index * 5 + 1) * hour).toISOString(),
+      submittedBy: submitters[index % submitters.length],
+      ...kinds[index % kinds.length](index),
+    };
+  });
+}
+
 /** One waiting proposal, so the Queue has a record to show before a journey submits its own. */
 function seedProposal(row, role) {
   const at = new Date(FIXTURE_EPOCH - 3_600_000).toISOString();
@@ -324,7 +390,7 @@ function json(status, body) {
  * matching route would, or returns null for a request the fixture does not
  * own (documents and static assets, which the dev server serves).
  */
-export function createJourneyFixture({ role = "admin", state = "loaded", replicationRows = 24 } = {}) {
+export function createJourneyFixture({ role = "admin", state = "loaded", replicationRows = 24, changelogRows = 24 } = {}) {
   if (!JOURNEY_ROLES.includes(role)) throw new Error(`Unknown journey role: ${role}.`);
   if (!TOOL_STATES.includes(state)) throw new Error(`Unknown tool state: ${state}.`);
 
@@ -342,6 +408,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   );
   const proposals = state === "empty" ? [] : [seedProposal(writing.get("field-notes"), role)];
   const replications = buildReplicationFixture(state === "empty" ? 0 : replicationRows);
+  const changelog = buildChangelogFixture(state === "empty" ? 0 : changelogRows);
   const inbox = state === "empty"
     ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [] }
     : seedInbox();
@@ -682,6 +749,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         Object.assign(row, { status: to, reviewed_by: actor });
         return json(200, key === "trip" ? { ok: true, submission: structuredClone(row) } : { ok: true, feedback: structuredClone(row) });
       });
+    }
+
+    // Change log: the route caps `limit` at 500, as `changelog.getRecent` does.
+    if (pathname === "/api/editor/changelog" && upper === "GET") {
+      const limit = Math.min(Number(params.get("limit") ?? 50) || 50, 500);
+      return toolRead(() => json(200, structuredClone(changelog.slice(0, limit))));
     }
 
     if (pathname === "/api/dev/replications" && upper === "GET") {

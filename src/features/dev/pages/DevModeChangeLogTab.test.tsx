@@ -36,7 +36,14 @@ const IDLE_WINDOW: ChangelogFeedWindow = {
   atServerCap: false,
   loading: false,
   loadMore: () => {},
+  error: null,
+  retrying: false,
+  retry: () => {},
+  archivedIds: new Set(),
 };
+
+/** Each save's summary line, which is the disclosure for its diff. */
+const toggles = () => Array.from(document.querySelectorAll<HTMLButtonElement>("[data-change-toggle]"));
 
 function makeController(overrides: Partial<ChangeLogController> = {}): ChangeLogController {
   const entries = overrides.filteredEntries ?? ENTRIES;
@@ -44,9 +51,13 @@ function makeController(overrides: Partial<ChangeLogController> = {}): ChangeLog
     notice: null,
     feedWindow: IDLE_WINDOW,
     totalEntriesCount: ENTRIES.length,
-    filters: { articleSlug: null, startDate: null, endDate: null, searchQuery: "" },
+    filters: { articleSlug: null, startDate: null, endDate: null, searchQuery: "", submitter: null },
     articleOptions: [PREGABALIN, { slug: "fentanyl", title: "Fentanyl" }],
     articleFrequency: [],
+    submitterOptions: [
+      { key: "JOSIE", count: 1 },
+      { key: "OLDHANDLE", count: 1 },
+    ],
     filteredEntries: entries,
     visibleEntries: entries,
     visibleEntriesCount: entries.length,
@@ -57,9 +68,12 @@ function makeController(overrides: Partial<ChangeLogController> = {}): ChangeLog
     clearEntryFeedback: vi.fn(),
     filtersCardClassName: "w-full",
     handleArticleSelect: vi.fn(),
+    handleSubmitterSelect: vi.fn(),
     handleSearchChange: vi.fn(),
+    setSearchQuery: vi.fn(),
     handleDateChange: () => vi.fn(),
     applyQuickDateRange: vi.fn(),
+    setDateRange: vi.fn(),
     clearFilters: vi.fn(),
     clearNotice: vi.fn(),
     focusArticleFilter: vi.fn(),
@@ -86,20 +100,143 @@ describe("DevModeChangeLogTab", () => {
     expect(screen.queryByText("Copy diff")).not.toBeInTheDocument();
     expect(screen.queryByText(/Rare reports of psychosis at high doses/)).not.toBeInTheDocument();
 
-    const showButtons = screen.getAllByRole("button", { name: "Show the diff" });
-    expect(showButtons).toHaveLength(2);
-    await user.click(showButtons[0]);
+    expect(toggles()).toHaveLength(2);
+    for (const toggle of toggles()) expect(toggle).toHaveAttribute("aria-expanded", "false");
+    // The summary line names the save it opens.
+    expect(toggles()[0]).toHaveAccessibleName(/Reworded \d+ words/);
+    await user.click(toggles()[0]);
 
     expect(screen.getByText(/Rare reports of psychosis at high doses/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Copy diff" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Hide the diff" })).toHaveAttribute("aria-expanded", "true");
+    expect(toggles()[0]).toHaveAttribute("aria-expanded", "true");
+    expect(toggles()[0]).toHaveAttribute("aria-controls", "change-log-diff-inline-1");
 
     await user.click(screen.getByRole("button", { name: "Collapse every diff" }));
     expect(screen.queryByText(/Rare reports of psychosis at high doses/)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Show the diff" })).toHaveLength(2);
+    for (const toggle of toggles()) expect(toggle).toHaveAttribute("aria-expanded", "false");
 
     await user.click(screen.getByRole("button", { name: "Expand every diff" }));
-    expect(screen.getAllByRole("button", { name: "Hide the diff" })).toHaveLength(2);
+    for (const toggle of toggles()) expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("keeps filtering and the public link for every article of an open save", async () => {
+    const user = userEvent.setup();
+    const focusArticleFilter = vi.fn();
+    render(<DevModeChangeLogTab controller={makeController({ focusArticleFilter })} />);
+
+    await user.click(toggles()[1]);
+    await user.click(screen.getByRole("button", { name: /^Fentanyl, show only its saves/ }));
+    expect(focusArticleFilter).toHaveBeenCalledWith("fentanyl");
+    expect(screen.getByRole("link", { name: "Open Fentanyl article in a new tab" })).toHaveAttribute("target", "_blank");
+    expect(screen.getByRole("button", { name: "Download .diff" })).toBeInTheDocument();
+  });
+
+  it("names savers from the contributor directory", () => {
+    render(
+      <DevModeChangeLogTab
+        controller={makeController()}
+        contributorProfiles={[
+          { key: "JOSIE", displayName: "Josie Kins", aliases: [], avatarUrl: null, bio: "", links: [], hasCustomBio: false },
+        ]}
+      />,
+    );
+    expect(screen.getByText("by Josie Kins")).toBeInTheDocument();
+    expect(screen.queryByText(/JOSIE/)).not.toBeInTheDocument();
+  });
+
+  it("shows only the filtered article's part of a save that touched several", async () => {
+    const user = userEvent.setup();
+    render(
+      <DevModeChangeLogTab
+        controller={makeController({
+          filters: { articleSlug: "fentanyl", startDate: null, endDate: null, searchQuery: "", submitter: null },
+          activeFilterCount: 1,
+          filteredEntries: [ENTRIES[1]],
+          visibleEntries: [ENTRIES[1]],
+        })}
+      />,
+    );
+    await user.click(toggles()[0]);
+    expect(screen.getByText("Showing the Fentanyl part of this save.")).toBeInTheDocument();
+    expect(screen.queryByText(/A gabapentinoid/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Show the whole save" }));
+    expect(screen.getByText(/A gabapentinoid/)).toBeInTheDocument();
+  });
+
+  it("lists active filters as removable chips", async () => {
+    const user = userEvent.setup();
+    const handleArticleSelect = vi.fn();
+    const setSearchQuery = vi.fn();
+    render(
+      <DevModeChangeLogTab
+        controller={makeController({
+          filters: { articleSlug: "pregabalin", startDate: null, endDate: null, searchQuery: "psychosis", submitter: null },
+          activeFilterCount: 2,
+          handleArticleSelect,
+          setSearchQuery,
+        })}
+      />,
+    );
+    const group = screen.getByRole("group", { name: "Active filters, 2" });
+    await user.click(within(group).getByRole("button", { name: "Remove the article filter" }));
+    expect(handleArticleSelect).toHaveBeenCalledWith("__all__");
+    await user.click(within(group).getByRole("button", { name: "Clear the search" }));
+    expect(setSearchQuery).toHaveBeenCalledWith("");
+  });
+
+  it("draws a failed read in the tool with a retry, and keeps the archive listed", async () => {
+    const user = userEvent.setup();
+    const retry = vi.fn();
+    render(
+      <DevModeChangeLogTab
+        controller={makeController({
+          feedWindow: { ...IDLE_WINDOW, loadedCount: 0, error: "Editor read failed (500).", retry },
+        })}
+      />,
+    );
+    expect(screen.getByText("Could not load the change log")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole("article")).toHaveLength(2);
+  });
+
+  it("says an empty history is empty and points to where saves start", () => {
+    render(
+      <DevModeChangeLogTab
+        controller={makeController({
+          filteredEntries: [],
+          visibleEntries: [],
+          totalEntriesCount: 0,
+          latestEntry: null,
+          feedWindow: { ...IDLE_WINDOW, loadedCount: 0 },
+        })}
+      />,
+    );
+    expect(screen.getByText("No saves logged yet")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Open Substances/ })).toHaveAttribute("href", "/dev/articles");
+  });
+
+  it("stands in skeleton rows while the first page loads", () => {
+    render(
+      <DevModeChangeLogTab
+        controller={makeController({ feedWindow: { ...IDLE_WINDOW, loadedCount: 0, loading: true } })}
+      />,
+    );
+    expect(screen.getByText("Loading saves", { selector: "span.sr-only" })).toBeInTheDocument();
+    expect(screen.queryAllByRole("article")).toHaveLength(0);
+  });
+
+  it("moves between saves with j and k and focuses search with /", async () => {
+    const user = userEvent.setup();
+    render(<DevModeChangeLogTab controller={makeController()} />);
+    await user.keyboard("j");
+    expect(toggles()[0]).toHaveFocus();
+    await user.keyboard("j");
+    expect(toggles()[1]).toHaveFocus();
+    await user.keyboard("k");
+    expect(toggles()[0]).toHaveFocus();
+    await user.keyboard("/");
+    expect(screen.getByRole("searchbox")).toHaveFocus();
   });
 
   it("states the loaded window and loads older saves from the end of the list", async () => {
@@ -115,7 +252,8 @@ describe("DevModeChangeLogTab", () => {
 
     expect(screen.getByText("Latest 100 saves")).toBeInTheDocument();
     expect(screen.getByText(/Only the latest 100 saves are loaded/)).toBeInTheDocument();
-    expect(screen.queryByText("2 saves")).not.toBeInTheDocument();
+    // The window status, not a day's count.
+    expect(screen.queryByText("2 saves", { selector: "[aria-live]" })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Load older saves" }));
     expect(loadMore).toHaveBeenCalledTimes(1);
@@ -158,7 +296,7 @@ describe("DevModeChangeLogTab", () => {
   it("counts every loaded save once the window is closed", () => {
     render(<DevModeChangeLogTab controller={makeController()} />);
 
-    expect(screen.getByText("2 saves")).toBeInTheDocument();
+    expect(screen.getByText("2 saves", { selector: "[aria-live]" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Any date" })).toBeInTheDocument();
     expect(screen.queryByText("All time")).not.toBeInTheDocument();
   });

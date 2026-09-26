@@ -10,6 +10,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
+import { quickDateRange, summarizeEntry } from "./changeLogModel";
 import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 
 export type ChangeNotice = {
@@ -24,6 +25,8 @@ type ChangeLogFilters = {
   startDate: string | null;
   endDate: string | null;
   searchQuery: string;
+  /** A submitter stamp (profile key, upper case) or null for anyone. */
+  submitter: string | null;
 };
 
 type ChangeLogEntryFeedback = {
@@ -37,6 +40,13 @@ type ChangeLogArticleOption = {
   title: string;
 };
 
+type ChangeLogSubmitterOption = {
+  /** The stamped key, upper case, as the filter stores it. */
+  key: string;
+  /** Loaded saves carrying this stamp. */
+  count: number;
+};
+
 export type ChangeLogController = {
   notice: ChangeNotice | null;
   /** Server paging of the feed, passed through untouched from `useDevChangelogFeed`. */
@@ -44,6 +54,8 @@ export type ChangeLogController = {
   totalEntriesCount: number;
   filters: ChangeLogFilters;
   articleOptions: ChangeLogArticleOption[];
+  /** Everyone who stamped a loaded save, most saves first. */
+  submitterOptions: ChangeLogSubmitterOption[];
   articleFrequency: ReturnType<typeof buildArticleFrequencyIndex>;
   filteredEntries: ChangeLogEntry[];
   visibleEntries: ChangeLogEntry[];
@@ -55,11 +67,17 @@ export type ChangeLogController = {
   clearEntryFeedback: () => void;
   filtersCardClassName: string;
   handleArticleSelect: (value: string) => void;
+  /** Filters to one submitter stamp; null shows everyone. */
+  handleSubmitterSelect: (key: string | null) => void;
   handleSearchChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  /** Sets the search text directly (clearing it from its filter chip). */
+  setSearchQuery: (value: string) => void;
   handleDateChange: (
     field: "startDate" | "endDate",
   ) => (event: ChangeEvent<HTMLInputElement>) => void;
   applyQuickDateRange: (days: number | null) => void;
+  /** Sets both ends of the date range at once (swapping a reversed range). */
+  setDateRange: (startDate: string | null, endDate: string | null) => void;
   clearFilters: () => void;
   clearNotice: () => void;
   focusArticleFilter: (slug: string) => void;
@@ -74,7 +92,10 @@ const INITIAL_CHANGELOG_FILTERS: ChangeLogFilters = {
   startDate: null,
   endDate: null,
   searchQuery: "",
+  submitter: null,
 };
+
+const submitterKey = (value: string | null | undefined) => (value ?? "").trim().toUpperCase();
 
 const CHANGELOG_VISIBLE_BATCH_SIZE = 20;
 
@@ -82,7 +103,7 @@ const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 // Entry timestamps render in local time, so the date filters must cut on
-// local day boundaries — UTC boundaries exclude entries the list labels as
+// local day boundaries; UTC boundaries exclude entries the list labels as
 // belonging to the selected day.
 const parseLocalDateBoundary = (value: string, boundary: "start" | "end"): number | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -102,12 +123,6 @@ const parseLocalDateBoundary = (value: string, boundary: "start" | "end"): numbe
   return Number.isFinite(timestamp) ? timestamp : null;
 };
 
-const toLocalDateInputValue = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 export function useDevModeChangeLog({
   changeLogEntries,
@@ -144,6 +159,17 @@ export function useDevModeChangeLog({
     );
   }, [changeLogEntries]);
 
+  const submitterOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const entry of changeLogEntries) {
+      const key = submitterKey(entry.submittedBy);
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([key, count]) => ({ key, count }))
+      .sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
+  }, [changeLogEntries]);
+
   const normalizedRange = useMemo(
     () => ({
       start: filters.startDate ? parseLocalDateBoundary(filters.startDate, "start") : null,
@@ -173,6 +199,10 @@ export function useDevModeChangeLog({
         }
       }
 
+      if (filters.submitter && submitterKey(entry.submittedBy) !== filters.submitter) {
+        return false;
+      }
+
       if (query.length > 0) {
         const commitMessage = (entry.commit?.message ?? "").toLowerCase();
         const markdown = entry.markdown.toLowerCase();
@@ -181,25 +211,37 @@ export function useDevModeChangeLog({
             article.title.toLowerCase().includes(query) ||
             article.slug.toLowerCase().includes(query),
         );
+        // The row's own words ("Reworded 3 words in Summary") and who saved it.
+        const summary = summarizeEntry(entry);
+        const rowWords = [summary.headline, summary.location, summary.detail, entry.submittedBy]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-        if (!commitMessage.includes(query) && !markdown.includes(query) && !articleMatch) {
+        if (
+          !commitMessage.includes(query) &&
+          !markdown.includes(query) &&
+          !articleMatch &&
+          !rowWords.includes(query)
+        ) {
           return false;
         }
       }
 
       return true;
     });
-  }, [changeLogEntries, filters.articleSlug, filters.searchQuery, normalizedRange]);
+  }, [changeLogEntries, filters.articleSlug, filters.searchQuery, filters.submitter, normalizedRange]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.articleSlug) {
       count += 1;
     }
-    if (filters.startDate) {
+    // One date range is one filter, whichever ends it sets.
+    if (filters.startDate || filters.endDate) {
       count += 1;
     }
-    if (filters.endDate) {
+    if (filters.submitter) {
       count += 1;
     }
     if (filters.searchQuery.trim().length > 0) {
@@ -210,7 +252,7 @@ export function useDevModeChangeLog({
 
   useEffect(() => {
     setVisibleEntriesCount(CHANGELOG_VISIBLE_BATCH_SIZE);
-  }, [filters.articleSlug, filters.endDate, filters.searchQuery, filters.startDate]);
+  }, [filters.articleSlug, filters.endDate, filters.searchQuery, filters.startDate, filters.submitter]);
 
   const visibleEntries = useMemo(
     () => filteredEntries.slice(0, visibleEntriesCount),
@@ -277,6 +319,14 @@ export function useDevModeChangeLog({
     }));
   }, []);
 
+  const handleSubmitterSelect = useCallback((key: string | null) => {
+    setFilters((previous) => ({ ...previous, submitter: key ? submitterKey(key) : null }));
+  }, []);
+
+  const setSearchQuery = useCallback((value: string) => {
+    setFilters((previous) => ({ ...previous, searchQuery: value }));
+  }, []);
+
   const handleDateChange = useCallback(
     (field: "startDate" | "endDate") => (event: ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value.trim();
@@ -298,17 +348,17 @@ export function useDevModeChangeLog({
       return;
     }
 
-    const now = new Date();
-    const endValue = toLocalDateInputValue(now);
-    const start = new Date(now);
-    start.setDate(start.getDate() - (days - 1));
-    const startValue = toLocalDateInputValue(start);
+    const { startDate, endDate } = quickDateRange(days);
 
     setFilters((previous) => ({
       ...previous,
-      startDate: startValue,
-      endDate: endValue,
+      startDate,
+      endDate,
     }));
+  }, []);
+
+  const setDateRange = useCallback((startDate: string | null, endDate: string | null) => {
+    setFilters((previous) => ({ ...previous, startDate, endDate }));
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -388,6 +438,7 @@ export function useDevModeChangeLog({
     totalEntriesCount: changeLogEntries.length,
     filters,
     articleOptions,
+    submitterOptions,
     articleFrequency,
     filteredEntries,
     visibleEntries,
@@ -401,9 +452,12 @@ export function useDevModeChangeLog({
       ? "w-full space-y-5 lg:sticky lg:top-24"
       : "w-full space-y-5",
     handleArticleSelect,
+    handleSubmitterSelect,
     handleSearchChange,
+    setSearchQuery,
     handleDateChange,
     applyQuickDateRange,
+    setDateRange,
     clearFilters,
     clearNotice,
     focusArticleFilter,

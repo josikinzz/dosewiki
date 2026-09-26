@@ -169,7 +169,49 @@ export function useEditorRead<N extends EditorReadName>(
   return query.data;
 }
 
-export type EditorPaginatedStatus = "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
+/** A registered read that reports its own failure instead of throwing into render. */
+export type EditorReadState<N extends EditorReadName> = {
+  /** The last good answer; `undefined` until the first one lands (or while a new `args` key loads). */
+  data: EditorReadResult<N> | undefined;
+  /** The failure of the current key, when it has no data to fall back on; null otherwise. */
+  error: string | null;
+  /** A retry (or any refetch) is in flight. */
+  fetching: boolean;
+  retry: () => void;
+};
+
+/**
+ * `useEditorRead` for a tool that draws its own load failure: the same key,
+ * route and freshness, but a read that fails before any data lands comes back
+ * as `error` (with `retry`) rather than throwing to the route error boundary,
+ * so one failed read cannot take the editor shell down with it.
+ */
+export function useEditorReadState<N extends EditorReadName>(
+  name: N,
+  args: EditorReadArgs<N> | "skip",
+  freshness: EditorReadFreshness,
+): EditorReadState<N> {
+  const enabled = args !== "skip";
+  const query = useQuery<EditorReadResult<N>, Error>({
+    queryKey: editorReadKey(name, args === "skip" ? { skip: true } : args),
+    queryFn: ({ signal }) => fetchEditorJson<EditorReadResult<N>>(EDITOR_READ_ROUTES[name](args as EditorReadArgs<N>), signal),
+    enabled,
+    throwOnError: false,
+    ...freshnessOptions(freshness),
+  });
+  const { refetch } = query;
+  const retry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+  return {
+    data: query.data,
+    error: enabled && query.data === undefined && query.error ? query.error.message : null,
+    fetching: enabled && query.isFetching,
+    retry,
+  };
+}
+
+export type EditorPaginatedStatus ="LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
 
 /**
  * A cursor-paginated query drained the way Postgres's `usePaginatedQuery`

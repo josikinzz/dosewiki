@@ -219,6 +219,49 @@ builds a new shared primitive, add it to **Conventions** and log it under
   calendar fact (a trip date) is written out in the body face and read in UTC
   (`formatTripDate`), never a mono ISO string.
 - **Section descriptions** are capped at 75ch by `EditorSection` itself.
+- **A failed read stays in the tool.** `useEditorRead` throws a read that
+  fails before any data lands to the route error boundary, which drops the
+  whole editor (rail included). A tool that draws its own failure reads through
+  `useEditorReadState` (`src/hooks/useEditorRead.ts`: same key, route and
+  freshness; returns `data`, `error`, `fetching`, `retry`) and renders
+  `LoadErrorState` with `what`. A failure of a later page lands where that page
+  would have (the end of the list), and what already loaded stays.
+- **Feeds group by day.** A time-ordered feed puts its rows under local-day
+  `h3` headings ("Today", "Yesterday", "Tuesday, Jan 13", the year when it is
+  not this one) with a quiet count, and each row shows only the time of day in
+  a `<time>` whose title is the full moment. `groupByDay`, `dayLabel`,
+  `formatSaveTime` and `formatSaveMoment` in
+  `src/features/dev/pages/changeLogModel.ts` are the reference.
+- **Disclosure rows.** A row that opens in place (a diff, a detail) is one
+  button wrapped in the row's heading (`h4 > button`, the accordion pattern):
+  the summary is its name, `aria-expanded`/`aria-controls` carry the state,
+  `ExpandIndicator` sits at its end, and the open row takes
+  `theme-dev-link-lead`. Controls that belong to the item (filters, links,
+  copy) live in the opened region, never beside the summary where they crowd
+  it. `ChangeLogEntryRow` is the reference.
+- **Active filters are chips.** When filters are on, a group labelled "Active
+  filters, N" above the results shows one `TagToken variant="compact"` per
+  filter with its own remove button ("Remove the article filter"), and the
+  filter panel's heading carries "Clear all". A date range counts as one
+  filter. Filter counts and "N shown" use the neutral tone, never warning.
+- **Phone filter panels fold.** Below `lg`, search stays visible and every
+  other filter folds behind an outline "Filters" button (`aria-expanded`,
+  a `Badge` with the folded count) beside the search field; on desktop the
+  panel is a sticky column. `ChangeLogFilters` is the reference.
+- **Choice groups that do not fit one strip** (four date choices in a 17rem
+  column) are a two-column grid of `pillActive`/`ghostPill` buttons with
+  `aria-pressed` in the segmented control's capsule, not a strip that hides
+  options behind a scroll.
+- **New arrivals wait.** A list that refetches in the background holds items
+  newer than the first load behind a line ("2 new saves landed since you
+  opened this." plus "Show them"), so the list never shifts under the reader.
+- **Search shows its matches.** Row text runs through `HighlightedText`, and a
+  diff takes `DiffSurface`/`DiffPreview` `highlight` (new, optional) to mark
+  the same terms.
+- **`/` focuses the tool's search** (register it with `useDevShortcuts`) and
+  the field shows a `theme-dev-kbd` "/" cap on fine pointers while empty, with
+  `aria-keyshortcuts`. `j / k` walk a list's rows by focus when the rows are
+  disclosures rather than a selection.
 
 ## Passes
 
@@ -484,4 +527,80 @@ Deferred, with reasons:
   Aftermath" label: the Trip reports pass (labels are test-guarded there).
 - Next dev overlay "1 Issue" on every `/dev` page is a pre-existing hydration
   attribute mismatch in the shell, not this tool.
+
+### Pass 5: Change log (`/dev/change-log`)
+
+Commit: see `git log --grep "Dev tools redesign: Change log"`.
+Screenshots: `tmp/redesign/change-log/before/` and
+`tmp/redesign/change-log/after/` (admin, editor, editor_translator, locked
+translator and contributor; loaded dark and light; empty server; failed;
+loading; loading older; older page failed; long lists; open save; open bulk
+save filtered to one article; open all; copied and copy failed; article,
+submitter, custom reversed and quick date filters; search; filtered empty with
+and without older saves; phone Filters open; keyboard focus; desktop and
+phone), captured by `tmp/redesign/change-log/capture.mjs`. Critique in
+`tmp/redesign/change-log/critique.md` (16/40 before), inventory with the
+item-by-item check in `tmp/redesign/change-log/inventory.md`, detector
+evidence in `tmp/redesign/change-log/detector/`.
+
+Main changes:
+
+- P0: saves that touched many articles no longer crush their text column to
+  one character on desktop. Articles read as words on the row ("Caffeine,
+  Nicotine, Alcohol and 11 more"); per-article filter and public-link chips
+  moved into the open save, capped at six with a count reveal.
+- A failed feed read renders in the tool (`LoadErrorState`, Try again) instead
+  of replacing the editor with the route error page; the bundled archive stays
+  listed and says so. A failed older page lands at the end of the list.
+- Loading shows skeleton rows instead of passing the archive off as the feed;
+  saves only in the bundled archive are marked "Archive"; an empty server
+  history says so; a truly empty log points to Substances.
+- Layout: a 17rem sticky filter column and a day-grouped feed of disclosure
+  rows (see Conventions). The four header pills became one summary sentence
+  ("30 saves, newest first. Most edited: Ketamine (7 saves).", the article a
+  filter link); "N shown" moved to the end of the list with the one paging
+  slot ("Show 20 more", then "Load older saves", then the cap line).
+- Filters: `SearchablePicker` for Article (with save counts) and a new Saved
+  by filter (names from the contributor directory, which the tab now reads:
+  `data: ["changelog", "contributors"]`); date as a pressed-state group (Any
+  date, Past 7 days, Past 30 days, Custom) with From/To only for Custom, `min`
+  and `max`, and a "Swap the dates" hint for a reversed range; removable
+  chips; one "Clear all". A date range counts as one filter. Search also
+  matches the row's words and the saver, and matches are highlighted.
+- Open save: "Open <Article> in Substances" (accent link) when the save has
+  one article or the list is filtered to one, Copy diff and Download .diff as
+  outline buttons, "Commit" link, feedback under the actions, and the diff cut
+  to the filtered article's part (`sliceArticleDiff`) with "Show the whole
+  save".
+- Copy: "Saves" and "Filters" instead of three names; "editor" instead of
+  "Dev mode"; `Added a source "Title" in Sources`; savers by display name;
+  line counts in the body face with a zero side dropped.
+- Keys: `/` search, `j / k` next and previous save (in the `?` sheet).
+- Split into `ChangeLogFilters.tsx`, `ChangeLogEntryRow.tsx` and
+  `changeLogModel.ts` (with tests); the controller gains `submitter`,
+  `submitterOptions`, `handleSubmitterSelect`, `setSearchQuery`,
+  `setDateRange`; `ChangelogFeedWindow` gains `error`, `retrying`, `retry`,
+  `archivedIds`.
+- Shared, backward compatible: `useEditorReadState` in
+  `src/hooks/useEditorRead.ts`; `DiffSurface`/`DiffPreview` `highlight` (kit
+  story added).
+- Journeys fixtures: `buildChangelogFixture` and `/api/editor/changelog`
+  (limit honored, capped at 500; `changelogRows` option; empty and failed
+  states), with a unit test.
+
+Deferred, with reasons:
+
+- Dose, duration and interaction markers (and a filter for them) on bulk
+  saves: the stored diffs carry no field paths, so a changed `"min": 50` line
+  cannot be told apart between a dose range and a duration stage, and
+  interaction entries are bare strings. A marker would miss changes and read
+  as "nothing safety-related changed". Needs the save to store touched paths.
+- Filters in the URL: wants the shared saved-view convention (as the Inbox
+  pass recorded).
+- Server-side filtering past the 500-row cap, and a summary-only feed that
+  fetches a diff on open: backend.
+- Revert from the change log: needs server history and a product decision.
+- A docked diff pane (triage workspace): declined; a log is read as a stream
+  and "Open all" compares saves down the page.
+- `pushNotice` still has no caller; the page notice it feeds is kept.
 
