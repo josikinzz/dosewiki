@@ -4592,10 +4592,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   background-color: var(--theme-danger-bg);
 }
 
-.theme-ring-accent-strong {
-  --tw-ring-color: var(--theme-accent-strong);
-}
-
 /* Thin progress track with a hairline inset edge (glossary coverage bars). */
 .theme-progress-track {
   background-color: var(--theme-field-surface);

@@ -45,28 +45,6 @@
     border-color: var(--theme-accent-soft);
   }
 
-  /* Recessed scroll lists in the dev editors (tag panels etc.): a deep
-       surface with a subtle border, hairline row separation, and the shared
-       frosted row treatment for hovered/active rows. */
-  .theme-deep-list-surface {
-    border-color: var(--theme-border-subtle);
-    background-color: var(--theme-surface-deep);
-  }
-
-  .theme-deep-list-divide > :not(:last-child) {
-    border-color: var(--theme-divider);
-  }
-
-  .theme-deep-list-row[data-active="true"] {
-    background: var(--theme-frosted-control-on-panel-hover-bg);
-  }
-
-  @media (hover: hover) {
-    .theme-deep-list-row:hover {
-      background: var(--theme-frosted-control-on-panel-hover-bg);
-    }
-  }
-
   /* Repeat-entry card wrapper in the dev form editors. */
   .theme-entry-card {
     border-color: var(--theme-border-subtle);
