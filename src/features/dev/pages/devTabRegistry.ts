@@ -326,6 +326,8 @@ const REGISTRY = [
     role: "contributor",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "instant",
+    // The profile save dock says it beside Save; each order panel says it saves on its own.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
     // Profile folded in as the self scope; `/dev/profile` still lands there.

@@ -87,6 +87,8 @@ export type DevModePageControllerState = {
   playlistsInitialKey?: string;
   /** `/dev/people/<email or profile key>` (and `/dev/members/<email>`): the person People opens on. */
   peopleInitialKey?: string;
+  /** `/dev/contributors/<key or alias>`: the profile Contributors opens on. */
+  contributorsInitialKey?: string;
   /** Keys the tool subtree; see `DevModePageProps.toolMountKey`. */
   toolMountKey: number;
   /**

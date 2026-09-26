@@ -292,6 +292,34 @@ describe("journey fixtures", () => {
     assert.deepEqual(admin.unhandled, []);
   });
 
+  it("answers the Contributors editor: credited work, ordering and the identity operations", () => {
+    const admin = createJourneyFixture({ role: "admin" });
+    const river = get(admin, "/api/dev/contributor-profile", "?key=RIVER").json;
+    assert.deepEqual(river.profile.aliases, ["riverdraws", "r. okafor"]);
+    assert.equal(river.works.length, 9);
+    assert.equal(river.reports.length, 3);
+    assert.ok(river.profile.replicationOrder.includes("fixture-replication-retired"));
+
+    const saved = post(admin, "/api/dev/contributor-profile/ordering", { key: "RIVER", expectedRevision: river.profile.orderingRevision, replicationOrder: ["fixture-replication-05", "fixture-replication-retired"] });
+    assert.deepEqual(saved.json.prunedReplicationSlugs, ["fixture-replication-retired"]);
+    assert.equal(post(admin, "/api/dev/contributor-profile/ordering", { key: "RIVER", expectedRevision: river.profile.orderingRevision, replicationOrder: [] }).status, 409);
+
+    assert.equal(post(admin, "/api/dev/contributor-profile/danger", { action: "delete", key: "ZED", confirmKey: "zedd" }).status, 400);
+    assert.equal(post(admin, "/api/dev/contributor-profile/danger", { action: "delete", key: "RIVER", confirmKey: "river" }).status, 400);
+    assert.equal(post(admin, "/api/dev/contributor-profile/danger", { action: "delete", key: "ZED", confirmKey: "zed" }).status, 200);
+    assert.ok(!get(admin, "/api/editor/contributor-profiles").json.some((profile) => profile.key === "ZED"));
+    const merged = post(admin, "/api/dev/contributor-profile/danger", { action: "merge", fromKey: "RIVER-SKETCHES", toKey: "RIVER", confirmKey: "river-sketches" }).json;
+    assert.equal(merged.mergedInto, "RIVER");
+    assert.equal(post(admin, "/api/dev/contributor-profile/danger", { action: "retarget", authorName: "Riv", contributorKey: "RIVER", confirmKey: "RIVER" }).status, 200);
+
+    const editor = createJourneyFixture({ role: "editor" });
+    const mira = get(editor, "/api/dev/contributor-profile", "?key=MIRA").json.profile;
+    assert.equal(post(editor, "/api/dev/contributor-profile", { key: "MIRA", expectedUpdatedAt: mira.updatedAt, bio: "x" }).status, 403);
+    assert.equal(post(editor, "/api/dev/contributor-profile/danger", { action: "delete", key: "ZED", confirmKey: "ZED" }).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/contributor-profile/ordering", { key: "RIVER", reportOrder: [] }).status, 503);
+    assert.deepEqual(admin.unhandled, []);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

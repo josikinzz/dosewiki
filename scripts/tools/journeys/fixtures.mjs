@@ -286,6 +286,37 @@ export const CONTRIBUTOR_PROFILES_SEED = Object.freeze([
 })));
 
 /**
+ * What the Contributors editor reads beside a directory profile
+ * (`/api/dev/contributor-profile?key=`): stored fields past the directory's,
+ * and the works and reports credited to the name. River carries a full record
+ * (aliases, links, a curated order with one position whose work is gone, a
+ * byline that is not their name); Mira an admin's note and the trust flags;
+ * Halcyon the archival flag. No avatar points at a media host.
+ */
+export const CONTRIBUTOR_DETAIL_SEED = Object.freeze({
+  RIVER: {
+    aliases: ["riverdraws", "r. okafor"],
+    bio: "Draws what the room does after the second hour. Most of these started as sketches on the back of a setlist.",
+    links: [{ label: "Portfolio", url: "https://river.example.org" }, { label: "Mastodon", url: "https://social.example.org/@riverdraws" }],
+    replicationOrder: ["fixture-replication-05", "fixture-replication-02", "fixture-replication-retired"],
+    reportOrder: ["fixture-report-river-2"],
+    works: Array.from({ length: 9 }, (_, index) => index + 1),
+    reports: [
+      ["fixture-report-river-1", "Night swimming, slowly", "River Okafor", "2025-09-12", true],
+      ["fixture-report-river-2", "The kitchen that breathed", "riverdraws", "2025-06-03", false],
+      ["fixture-report-river-3", "Two walks in the fog", "R. Okafor", null, false],
+    ],
+  },
+  MIRA: {
+    approved_replicator: true,
+    staffNote: { markdown: "Mira translated the first glossary into Dutch and still reviews every change to it.", attribution: "Nervewing, editor" },
+    works: [3, 7],
+    reports: [],
+  },
+  HALCYON: { archival: true, exclude_from_gallery: true, works: [], reports: [] },
+});
+
+/**
  * Replication Studio rows with no private field and no remote media: slugs,
  * titles and effects are synthetic, and thumbnails are left empty so nothing
  * is fetched from a media host.
@@ -608,6 +639,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     invites: state === "empty" ? [] : seedInvites(),
     inviteCounter: 0,
     profiles: new Map(),
+    /** Profiles a merge or delete removed from the directory. */
+    removedProfiles: new Set(),
   };
 
   const fixture = {
@@ -944,13 +977,15 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   /** A directory profile as the editor reads it, with its link and any saved changes. */
   function directoryProfile(key) {
     const entry = CONTRIBUTOR_PROFILES_SEED.find((profile) => profile.key === key);
-    if (!entry) return null;
+    if (!entry || people.removedProfiles.has(key)) return null;
     if (!people.profiles.has(key)) {
+      const { works: _works, reports: _reports, ...stored } = fixture.state === "empty" ? {} : (CONTRIBUTOR_DETAIL_SEED[key] ?? {});
       people.profiles.set(key, {
         key, displayName: entry.displayName, aliases: [], bio: fixture.state === "empty" ? "" : `${entry.displayName} keeps notes for the fixture.`,
         role: entry.role ?? null, links: [], membershipEmail: null, avatarUrl: null, avatarStorageId: null, storedAvatarUrl: null,
         replicationOrder: [], orderingRevision: nextRevision(), reportOrder: [], exclude_from_gallery: false, archival: false,
         approved_replicator: false, staffNote: null, updatedAt: new Date(FIXTURE_EPOCH - 86_400_000).toISOString(), updatedBy: FIXTURE_ADMIN_PEER,
+        ...structuredClone(stored),
       });
     }
     const profile = people.profiles.get(key);
@@ -958,10 +993,91 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return profile;
   }
 
+  /** The works and reports credited to a profile, in the route's default order (newest first). */
+  function creditedTo(key) {
+    const seed = fixture.state === "empty" ? null : CONTRIBUTOR_DETAIL_SEED[key];
+    const profile = people.profiles.get(key);
+    const works = (seed?.works ?? []).map((n) => {
+      const id = String(n).padStart(2, "0");
+      return {
+        slug: `fixture-replication-${id}`, title: `Fixture replication ${id}`, artist: profile?.displayName ?? key, role: "replication",
+        type: n % 4 === 0 ? "video" : "image", effectSlug: ["drifting", "geometry", "tracers"][n % 3],
+        createdAt: new Date(FIXTURE_EPOCH - n * 86_400_000 * 9).toISOString(), thumbnailUrl: null,
+      };
+    });
+    const reports = (seed?.reports ?? []).map(([slug, title, authorName, tripDate, featured]) => ({ slug, title, authorName, tripDate, featured }));
+    return { works, reports };
+  }
+
+  /** The ordering route: editor floor, own record unless admin, the works revision checked like Postgres checks it. */
+  function saveContributorOrdering(input) {
+    if (!["admin", "editor", "editor_translator"].includes(fixture.role)) return json(403, { error: "Editor access required." });
+    const profile = directoryProfile(String(input.key ?? ""));
+    if (!profile) return json(400, { error: `Profile "${input.key}" not found.` });
+    if (fixture.role !== "admin" && profile.membershipEmail !== FIXTURE_EMAIL) return json(403, { error: "You can only edit your own contributor profile." });
+    if (fixture.state === "conflicted" && !contested.has(`ordering:${profile.key}`)) {
+      contested.add(`ordering:${profile.key}`);
+      profile.orderingRevision = nextRevision();
+    }
+    if (Array.isArray(input.replicationOrder) && input.expectedRevision !== profile.orderingRevision) {
+      return json(409, { error: "This collection changed. Reload its stored order before saving.", code: "CONFLICT" });
+    }
+    const { works, reports } = creditedTo(profile.key);
+    const prune = (order, items) => ({ kept: order.filter((slug) => items.some((item) => item.slug === slug)), pruned: order.filter((slug) => !items.some((item) => item.slug === slug)) });
+    const answer = { ok: true, key: profile.key, prunedReplicationSlugs: [], prunedReportSlugs: [] };
+    if (Array.isArray(input.replicationOrder)) {
+      const { kept, pruned } = prune(input.replicationOrder, works);
+      Object.assign(profile, { replicationOrder: kept, orderingRevision: nextRevision() });
+      answer.prunedReplicationSlugs = pruned;
+    }
+    if (Array.isArray(input.reportOrder)) {
+      const { kept, pruned } = prune(input.reportOrder, reports);
+      profile.reportOrder = kept;
+      answer.prunedReportSlugs = pruned;
+    }
+    return json(200, { ...answer, replicationOrder: profile.replicationOrder, reportOrder: profile.reportOrder });
+  }
+
+  /** Merge, delete and retarget: admin floor and the typed key, as the danger route checks them. */
+  function contributorDanger(input) {
+    if (fixture.role !== "admin") return json(403, { error: "Admin access required." });
+    const confirmed = (expected) => String(input.confirmKey ?? "").trim().toLowerCase() === String(expected ?? "").trim().toLowerCase();
+    if (input.action === "merge") {
+      if (!confirmed(input.fromKey)) return json(400, { error: `Type "${input.fromKey}" to confirm this merge.` });
+      const from = directoryProfile(String(input.fromKey));
+      const to = directoryProfile(String(input.toKey));
+      if (!from || !to) return json(400, { error: "Both profiles must exist to merge." });
+      to.aliases = [...new Set([...to.aliases, from.displayName.toLowerCase(), from.key.toLowerCase(), ...from.aliases])];
+      people.removedProfiles.add(from.key);
+      return json(200, { ok: true, action: "merge", mergedFrom: from.key, mergedInto: to.key, reportsUpdated: creditedTo(from.key).reports.length, aliases: to.aliases });
+    }
+    if (input.action === "delete") {
+      if (!confirmed(input.key)) return json(400, { error: `Type "${input.key}" to confirm this deletion.` });
+      const profile = directoryProfile(String(input.key));
+      if (!profile) return json(400, { error: `Profile "${input.key}" not found.` });
+      const credited = creditedTo(profile.key).reports.length;
+      if (credited > 0) return json(400, { error: `${credited} trip report(s) still credit ${profile.key}. Retarget or merge them before deleting.` });
+      people.removedProfiles.add(profile.key);
+      return json(200, { ok: true, action: "delete", key: profile.key, displayName: profile.displayName });
+    }
+    if (input.action === "retarget") {
+      if (!confirmed(input.contributorKey)) return json(400, { error: `Type "${input.contributorKey}" to confirm this retarget.` });
+      const profile = directoryProfile(String(input.contributorKey));
+      if (!profile) return json(400, { error: `Profile "${input.contributorKey}" not found.` });
+      const author = String(input.authorName ?? "").trim().toLowerCase();
+      if (!profile.aliases.includes(author)) profile.aliases = [...profile.aliases, author];
+      return json(200, { ok: true, action: "retarget", reportsUpdated: author ? 1 : 0 });
+    }
+    return json(400, { error: "Unknown contributor action." });
+  }
+
   /** The profile route's admin patch: fields and the membership email, checked against `expectedUpdatedAt`. */
   function saveContributorProfile(input) {
     const profile = directoryProfile(String(input.key ?? ""));
     if (!profile) return json(200, { ok: true });
+    if (fixture.role !== "admin" && profile.membershipEmail && profile.membershipEmail !== FIXTURE_EMAIL) {
+      return json(403, { error: "You can only edit your own contributor profile." });
+    }
     if (fixture.state === "conflicted" && !contested.has(`profile:${profile.key}`)) {
       contested.add(`profile:${profile.key}`);
       profile.updatedAt = tick();
@@ -973,8 +1089,14 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       people.links = people.links.filter((link) => link.key !== profile.key);
       if (typeof input.membershipEmail === "string") people.links.push({ key: profile.key, membershipEmail: input.membershipEmail.trim().toLowerCase() });
     }
-    for (const field of ["displayName", "bio", "role", "aliases", "links", "exclude_from_gallery", "archival", "approved_replicator"]) {
+    for (const field of ["displayName", "bio", "role", "aliases", "links", "exclude_from_gallery", "archival", "approved_replicator", "staffNote", "avatarUrl"]) {
       if (field in input && input[field] !== undefined) profile[field] = structuredClone(input[field]);
+    }
+    // An uploaded file is kept as the data it arrived as, so the preview survives the reload without a media host.
+    if (input.avatarUpload?.base64) {
+      Object.assign(profile, { avatarUrl: null, avatarStorageId: "fixture-avatar", storedAvatarUrl: `data:${input.avatarUpload.mimeType};base64,${input.avatarUpload.base64}` });
+    } else if (input.avatarUrl === null) {
+      Object.assign(profile, { avatarStorageId: null, storedAvatarUrl: null });
     }
     Object.assign(profile, { updatedAt: tick(), updatedBy: fixture.session.user.email });
     return json(200, { ok: true });
@@ -992,7 +1114,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     // Shell-wide reads answer as loaded in every state, so a tool's state is
     // what a journey sees rather than the whole shell failing around it.
     if (upper === "GET") {
-      if (pathname === "/api/editor/contributor-profiles") return json(200, structuredClone(CONTRIBUTOR_PROFILES_SEED));
+      if (pathname === "/api/editor/contributor-profiles") return json(200, structuredClone(CONTRIBUTOR_PROFILES_SEED.filter((profile) => !people.removedProfiles.has(profile.key))));
       if (pathname === "/api/dev/proposals/count") return json(200, { ok: true, submitted: proposals.filter((row) => row.status === "submitted").length });
       if (pathname === "/api/dev/trip-reports/needs-review-count") return json(200, { ok: true, count: 0 });
       if (pathname === "/api/feedback/pending-count") return json(200, { ok: true, article: 0, site: 0, total: 0 });
@@ -1038,10 +1160,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       return toolRead(() => json(200, { ok: true, locale, items: [], total, counts: {} }));
     }
     if (pathname === "/api/dev/contributor-profile" && upper === "POST") return toolWrite(() => saveContributorProfile(body ?? {}));
+    if (pathname === "/api/dev/contributor-profile/ordering" && upper === "POST") return toolWrite(() => saveContributorOrdering(body ?? {}));
+    if (pathname === "/api/dev/contributor-profile/danger" && upper === "POST") return toolWrite(() => contributorDanger(body ?? {}));
     if (pathname === "/api/dev/contributor-profile" && upper === "GET") {
       const key = params.get("key") ?? "";
       const known = directoryProfile(key);
-      if (known) return toolRead(() => json(200, { ok: true, profile: structuredClone(known), works: [], reports: [] }));
+      if (known) return toolRead(() => json(200, { ok: true, profile: structuredClone(known), ...creditedTo(known.key) }));
       return toolRead(() => json(200, {
         ok: true,
         profile: {

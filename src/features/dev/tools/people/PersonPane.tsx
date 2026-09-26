@@ -392,7 +392,7 @@ function ProfileEditor({ controller }: { controller: ContributorsController }) {
         <LoadErrorState what="this profile" message={detailError} onRetry={retryDetail} busy={isDetailLoading} />
       ) : null}
       {isDetailLoading && !detail ? <StateCard loading compact title="Loading profile" /> : null}
-      <ContributorProfileEditor controller={controller} linkedAccount={null} />
+      <ContributorProfileEditor controller={controller} linkedAccount={null} headingLevel="h5" />
     </div>
   );
 }

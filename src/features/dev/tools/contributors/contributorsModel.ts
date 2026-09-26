@@ -261,12 +261,13 @@ export type ContributorFormState = {
 
 export function toContributorForm(profile: EditorContributorProfile): ContributorFormState {
   return {
-    displayName: profile.displayName,
-    bio: profile.bio,
+    displayName: profile.displayName ?? "",
+    bio: profile.bio ?? "",
     role: profile.role ?? "",
     avatarUrl: profile.avatarUrl ?? "",
-    aliases: [...profile.aliases],
-    links: profile.links.map((link) => ({ ...link })),
+    // A self record the route hands back blank may omit the arrays; read them as empty.
+    aliases: [...(profile.aliases ?? [])],
+    links: (profile.links ?? []).map((link) => ({ ...link })),
     // `=== true` rather than a passthrough: a deployment whose getEditorProfile
     // predates the flag hydrates this from JSON as undefined, which must read
     // as "included" and keep the checkbox controlled.

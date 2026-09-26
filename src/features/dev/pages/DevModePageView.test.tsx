@@ -100,7 +100,7 @@ describe("DevModePageView", () => {
   });
 
   it("puts a live-write save line in the warning tone", async () => {
-    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("contributors")} />);
+    const { findByTestId, getByText } = render(<DevModePageView controller={buildController("banners")} />);
     await findByTestId("dev-tool");
 
     const line = getByText("Each save goes live right away.");
@@ -115,7 +115,7 @@ describe("DevModePageView", () => {
   });
 
   it("leaves the save line to tools that draw it beside their own primary action", async () => {
-    for (const id of ["replications", "queue", "people"] as const) {
+    for (const id of ["replications", "queue", "people", "contributors"] as const) {
       const { findByTestId, queryByText, unmount } = render(<DevModePageView controller={buildController(id)} />);
       await findByTestId("dev-tool");
       expect(queryByText(/goes live|for review|Commit sends/)).toBeNull();

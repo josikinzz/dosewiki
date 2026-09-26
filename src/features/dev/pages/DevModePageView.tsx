@@ -245,7 +245,9 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             canEdit={controller.canDraft}
             canApprove={controller.canApprove}
             sessionProfileKey={controller.sessionProfileKey}
+            viewerEmail={controller.userEmail}
             initialScope={controller.initialFilter}
+            initialKey={controller.contributorsInitialKey}
           />
         ) : controller.activeTab === "playlists" ? (
           <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />

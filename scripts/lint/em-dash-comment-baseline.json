@@ -218,7 +218,6 @@
   "src/features/dev/forms/rhf/DoseRangeStringInput.tsx": 1,
   "src/features/dev/pages/useDevRouteAccess.ts": 1,
   "src/features/dev/tools/contributors/contributorsModel.ts": 3,
-  "src/features/dev/tools/contributors/OrderingPanel.tsx": 3,
   "src/features/dev/tools/index-layout/IndexLayoutCard.tsx": 2,
   "src/features/dev/tools/index-layout/IndexLayoutTab.tsx": 1,
   "src/features/dev/tools/molecule-editor/applyRLabelsToMolblock.test.ts": 1,

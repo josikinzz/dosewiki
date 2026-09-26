@@ -58,7 +58,10 @@ const storedProfile = (key: string, displayName: string): EditorContributorProfi
 });
 
 /** Records the route serves, keyed by the profile key the tab asks for. */
-function stubProfileApi(records: Record<string, EditorContributorProfile>) {
+function stubProfileApi(
+  records: Record<string, EditorContributorProfile>,
+  { works = [], status }: { works?: Array<Record<string, unknown>>; status?: number } = {},
+) {
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const update = init?.method === "POST"
       ? JSON.parse(String(init.body)) as Partial<EditorContributorProfile>
@@ -68,11 +71,14 @@ function stubProfileApi(records: Record<string, EditorContributorProfile>) {
     if (!profile) {
       return Response.json({ error: `No contributor profile for "${key}".` }, { status: 404 });
     }
+    if (update && status) {
+      return Response.json({ error: "Someone saved this profile after you loaded it.", code: "PROFILE_CONFLICT" }, { status });
+    }
     if (update) {
       records[key] = { ...profile, ...update };
       return Response.json({ ok: true });
     }
-    return Response.json({ ok: true, profile, works: [], reports: [] });
+    return Response.json({ ok: true, profile, works, reports: [] });
   });
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -95,10 +101,17 @@ function renderTab(props: Partial<Parameters<typeof ContributorsTab>[0]> = {}) {
 function railNames(): string[] {
   return within(screen.getByRole("listbox", { name: "Contributors" }))
     .getAllByRole("option")
-    .map((item) => item.querySelector("span > span")?.textContent ?? "");
+    .map((item) => item.querySelector("[data-row-name]")?.textContent ?? "");
 }
 
 const scopeFilter = () => within(screen.getByRole("group", { name: "Scope" }));
+
+/** Save asks first, naming what changed; this confirms it. */
+async function saveThroughConfirm(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: /^Save profile/ }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("button", { name: "Save profile" }));
+}
 
 describe("ContributorsTab", () => {
   beforeEach(() => {
@@ -207,7 +220,7 @@ describe("ContributorsTab", () => {
     expect(screen.getByRole("heading", { name: "Avatar" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Bio" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Links" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save profile" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Save profile/ })).toBeInTheDocument();
     expect(screen.queryByLabelText("Credit title")).toBeNull();
     expect(screen.queryByLabelText("Membership email")).toBeNull();
     expect(screen.queryByLabelText("Add an alias")).toBeNull();
@@ -229,7 +242,7 @@ describe("ContributorsTab", () => {
 
     await user.clear(displayName);
     await user.type(displayName, "Josie K.");
-    await user.click(screen.getByRole("button", { name: "Save profile" }));
+    await saveThroughConfirm(user);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -273,7 +286,7 @@ describe("ContributorsTab", () => {
 
     await user.clear(displayName);
     await user.type(displayName, "Josie K.");
-    await user.click(screen.getByRole("button", { name: "Save profile" }));
+    await saveThroughConfirm(user);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -302,7 +315,7 @@ describe("ContributorsTab", () => {
     expect(role).toBeEnabled();
     await user.type(role, "Founder");
     await user.click(screen.getByLabelText("Approved replicator"));
-    await user.click(screen.getByRole("button", { name: "Save profile" }));
+    await saveThroughConfirm(user);
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -414,6 +427,8 @@ describe("ContributorsTab", () => {
     renderTab({ initialScope: "me" });
     await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
 
+    // The identity operations are folded shut until asked for.
+    await user.click(screen.getByRole("button", { name: /Danger zone/ }));
     const confirm = screen.getByLabelText("Confirm by typing JOSIE", { selector: "#contributor-merge-confirm" });
     expect(confirm).toBeDisabled();
     expect(screen.queryByRole("combobox", { name: "Destination profile" })).not.toBeNull();
@@ -434,5 +449,121 @@ describe("ContributorsTab", () => {
 
     await user.type(confirm, "JOSIE");
     expect(screen.getByRole("button", { name: "Merge and delete this profile" })).toBeEnabled();
+  });
+  it("opens another member's record read only for an editor below admin, and their own for editing", async () => {
+    const user = userEvent.setup();
+    stubProfileApi({
+      ADA: { ...storedProfile("ADA", "Ada Lovelace"), membershipEmail: "ada@example.org" },
+      JOSIE: storedProfile("JOSIE", "Josie Kins"),
+    });
+    renderTab({ canApprove: false, viewerEmail: "josie@example.org" });
+
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+    expect(screen.getByText(/Another member is linked to this profile, so only they or an admin can change it/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Display name")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /^Save profile/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Save works order" })).toBeNull();
+    // The identity operations are admin only on the route, so an editor reads why.
+    expect(screen.getByText("Merging, retargeting bylines and deleting a profile are admin only.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Danger zone/ })).toBeNull();
+
+    await user.click(within(screen.getByRole("listbox", { name: "Contributors" })).getByRole("option", { name: /Josie Kins/ }));
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
+    expect(screen.getByLabelText("Display name")).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Save profile/ })).toBeInTheDocument();
+  });
+
+  it("names the changed parts before a save and never saves past the confirm, from the button or Cmd+S", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace") });
+    renderTab();
+    const displayName = await screen.findByLabelText("Display name");
+    await waitFor(() => expect(displayName).toHaveValue("Ada Lovelace"));
+
+    await user.type(displayName, " Byron");
+    await user.click(screen.getByLabelText("Archival profile"));
+    await user.keyboard("{Meta>}s{/Meta}");
+    const dialog = await screen.findByRole("dialog", { name: "Save Ada Lovelace Byron?" });
+    expect(dialog).toHaveTextContent("You changed the name and archival flag.");
+    expect(dialog).toHaveTextContent("Archival profile: off to on.");
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+
+    await saveThroughConfirm(user);
+    await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
+    expect(await screen.findByText(/Saved Ada Lovelace Byron\. The public contributor page shows it now\./)).toBeInTheDocument();
+  });
+
+  it("holds Save while a link is half filled and says which row", async () => {
+    const user = userEvent.setup();
+    stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace") });
+    renderTab();
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+
+    await user.click(screen.getByRole("button", { name: "Add link" }));
+    await user.type(screen.getByLabelText("Link 1 label"), "Shop");
+
+    expect(screen.getByRole("button", { name: /^Save profile/ })).toBeDisabled();
+    expect(screen.getByText("Link 1: Add the address this link opens.")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Link 1 URL"), "https://shop.example.org");
+    expect(screen.getByRole("button", { name: /^Save profile/ })).toBeEnabled();
+  });
+
+  it("offers the latest version after a conflict, behind a confirm", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace") }, { status: 409 });
+    renderTab();
+    const displayName = await screen.findByLabelText("Display name");
+    await waitFor(() => expect(displayName).toHaveValue("Ada Lovelace"));
+
+    await user.type(displayName, " Byron");
+    await saveThroughConfirm(user);
+    expect(await screen.findByText("Someone saved this profile after you opened it.")).toBeInTheDocument();
+    expect(displayName).toHaveValue("Ada Lovelace Byron");
+
+    const reads = () => fetchMock.mock.calls.filter(([, init]) => init?.method !== "POST").length;
+    const before = reads();
+    await user.click(screen.getByRole("button", { name: "Load the latest version" }));
+    const dialog = await screen.findByRole("dialog", { name: "Load the latest version?" });
+    await user.click(within(dialog).getByRole("button", { name: "Load latest" }));
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+    expect(reads()).toBe(before + 1);
+    expect(await screen.findByText("Loaded the latest version. Apply your edits again, then save.")).toBeInTheDocument();
+  });
+
+  it("opens the profile a deep link names, by key or alias, and says when none answers", async () => {
+    stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace"), JOSIE: storedProfile("JOSIE", "Josie Kins") });
+    const { unmount } = renderTab({ initialKey: "josie" });
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Josie Kins"));
+    unmount();
+
+    renderTab({ initialKey: "countess" });
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+  });
+
+  it("warns about a deep link no profile answers to and drops it from the address", async () => {
+    stubProfileApi({ ADA: storedProfile("ADA", "Ada Lovelace") });
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    renderTab({ initialKey: "nobody" });
+    expect(await screen.findByText('No profile answers to "nobody".')).toBeInTheDocument();
+    await waitFor(() => expect(replaceState).toHaveBeenLastCalledWith(window.history.state, "", "/dev/contributors"));
+  });
+
+  it("saves a curated order from its own panel and says so there", async () => {
+    const user = userEvent.setup();
+    const fetchMock = stubProfileApi(
+      { ADA: { ...storedProfile("ADA", "Ada Lovelace"), orderingRevision: "a".repeat(64) } },
+      { works: [{ slug: "work-1", title: "First work", artist: "Ada", role: "replication", type: "image", effectSlug: null, createdAt: null, thumbnailUrl: null }] },
+    );
+    renderTab();
+    await waitFor(() => expect(screen.getByLabelText("Display name")).toHaveValue("Ada Lovelace"));
+
+    await user.click(screen.getByRole("button", { name: "Curate First work" }));
+    await user.click(screen.getByRole("button", { name: "Save works order" }));
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith("/api/dev/contributor-profile/ordering", expect.objectContaining({ method: "POST" })),
+    );
+    const works = screen.getByRole("heading", { name: "Works" }).closest("section") as HTMLElement;
+    expect(await within(works).findByText("Order saved. The contributor page shows it now.")).toBeInTheDocument();
   });
 });

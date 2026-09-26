@@ -134,8 +134,7 @@ builds a new shared primitive, add it to **Conventions** and log it under
   registry's `labelFor(role)` label.
 - **Accent links** use `text-dose-accent-strong theme-accent-underline
   underline-offset-4 hover:underline`; `theme-accent-link` is not defined in
-  any sheet (it silently renders body text; `ContributorProfileEditor` still
-  uses it).
+  any sheet (it silently renders body text; no tool uses it any more).
 - **Utilities** (`/dev/kit`, `/dev/themes`) lead with `EditorBackLink`.
 - **Triage workspace (list plus review pane).** A queue tool puts its list
   and filters on the left (`lg:sticky lg:top-24`, list `maxHeight`
@@ -352,6 +351,32 @@ builds a new shared primitive, add it to **Conventions** and log it under
   record nobody signs in to.
 - **Invite forms default to the least grant** (Contributor) and say what they
   will create in one live sentence above the button (`describeInviteTerms`).
+- **Write access mirrors the server rule.** When the route refuses some
+  records to a role (an editor below admin saving another member's profile),
+  the tool reads the same rule in the browser (`canWriteContributorProfile`,
+  a copy of `canEditContributorProfile`, fed the viewer address from the
+  shell's `userEmail`) and opens those records read only: fields disabled in
+  one `fieldset`, no dock, a lock line naming who can change it, orders read
+  only, admin-only operations as a sentence. Without the viewer address the
+  tool leaves the record open and the route decides.
+- **Saving one part never drops another.** A pane with several independent
+  saves reloads only the part that saved (`reloadParts` in
+  `useContributorsController`): an order save keeps an unsaved profile edit,
+  and "Load the latest version" of one part leaves the others alone.
+- **Destructive operations fold shut.** Rarely used, irreversible operations
+  sit at the end of the pane under one disclosure (`h4 > button` with
+  `ExpandIndicator`, kept mounted with `hidden`), keyed on the record so a typed
+  confirmation never carries to another record. The typed key has no
+  placeholder (a placeholder shows the answer) and says "That does not match"
+  while wrong. Reference: `ContributorDangerZone`.
+- **Avatars are drawn as the public page draws them.** Rows, pane headers and
+  previews of a public profile use `ContributorAvatar`
+  (`@/components/layout/PublicPagePrimitives`), so the circle crop is the one
+  readers see; `Monogram` stays for accounts.
+- **A blocked save says why, per row.** Form rows that the server would drop
+  silently (a half-filled or non-https link) carry their own problem line and
+  `aria-invalid`, and the dock's blocker names the row ("Link 2: ..."). Pure
+  rules live in the tool's model (`profileEditModel.ts`).
 
 ## Passes
 
@@ -949,3 +974,102 @@ Deferred, with reasons:
 - Link rows instead of `EditorListRow` cards in the list: the windowed
   listbox (one tab stop, arrow keys) is the Inbox's; its rows are cards.
 
+### Pass 9: Contributors (`/dev/contributors`)
+
+Commit: see `git log --grep "Dev tools redesign: Contributors"`.
+Screenshots: `tmp/redesign/contributors/before/` and
+`tmp/redesign/contributors/after/` (admin dark and light; editor,
+editor_translator, translator, contributor; empty directory; directory
+loading; profile loading; profile failed; Just me; search and no match; a full
+record (River), staff settings, orders, Mira; dirty; dirty guard; save
+confirm; Cmd+S; saved; conflict and Load latest; frozen; avatar picked,
+rejected, saved; partial link; bio over; alias added; order dirty, saved,
+conflict, row menu; danger folded and open; merge ready; delete refused;
+deleted; editor on another member's record; editor on their own; closed; deep
+link and unknown deep link; People embedding; desktop and phone), captured by
+`tmp/redesign/contributors/capture.mjs`. Critique in
+`tmp/redesign/contributors/critique.md` (17/40 before), inventory with the
+item-by-item check in `tmp/redesign/contributors/inventory.md`, detector
+evidence in `tmp/redesign/contributors/detector/` (static scan clean before
+and after).
+
+Main changes:
+
+- P0 fixes: a self record without arrays crashed the editor ("profile.aliases
+  is not iterable"); `toContributorForm` and the loader now read missing
+  arrays as empty. Editors below admin were shown editable forms, order saves
+  and the danger zone on records the routes refuse; those records now open
+  read only (see Conventions) and the danger zone says it is admin only.
+- Layout: the editor workspace. Sticky list column ("Profiles", count,
+  Scope, search with `/` cap and Escape, the windowed `EditorList` with
+  `ContributorAvatar`, "(you)" and an unsaved mark per row, row skeletons,
+  "Clear the search"), and `ProfilePane` (in `ContributorsTab.tsx`): avatar,
+  name as the heading (sr-only "Editing"/"Viewing"), key, relative last save,
+  "View public profile" accent link, read-only mark, corner Close, Back to
+  list below `lg`, focus on open, idle pane on desktop, nothing open on phones
+  until a pick. Deep links: `/dev/contributors/<key or alias>`
+  (`contributorsInitialKey` in the page controller); the address follows a
+  picked row with `replaceState(window.history.state, ...)`; an unknown key
+  warns at the list and drops from the address.
+- `ContributorProfileEditor` (also People's and the public artist page's):
+  sentence-case `EditorField`s everywhere (no `Label`), a heading level prop
+  (`headingLevel`, People passes `h5`), `showFacts`, `showSaveLine`,
+  `saveShortcut`; sections Identity, Avatar, Bio, Links, Aliases, Staff
+  settings (Visibility and provenance, Editor's note); the accent People link;
+  a save dock (result notice with its way forward, the blocker, Save profile
+  with the Cmd+S cap, Discard edits, state phrase, SaveLine) that bleeds to the
+  pane edges; a save confirm naming the changed parts and each trust flag from
+  and to (`changedProfileParts`, `trustFlagChanges`); conflict "Load the latest
+  version" and freeze copy; a lost answer says Save resends the same change.
+- Avatar: the public `ContributorAvatar` as the preview (circle, centre crop,
+  said in the help; there is no crop tool), Upload or Replace, Clear, Remove
+  now also for an uploaded picture, results beside it, the image address
+  folded behind "Use an image address instead", a named file input out of the
+  tab order.
+- Links: a fieldset per link, problem line per row, https check, label capped
+  at 60 (the server's cut), move up and down (new; the page lists links in
+  order), focus and announcements on add, move and remove.
+- `OrderingPanel` (shared with Replication Studio, backward compatible): open
+  rows instead of cards, a handle that shows the position, arrows from `sm`,
+  "More for <title>" menu (up, down, top, end), icon-only curate on phones,
+  announcements and kept focus, `type-meta-label` divider, counts in words,
+  "No changes yet" instead of "Order saved" at rest, no toolbar when there is
+  nothing to order; new optional props `headingLevel`, `notice`,
+  `onDismissNotice`, `saveNote`, `readOnly`, `autoCap` (Contributors folds the
+  default order after five).
+- `ContributorDangerZone`: folded (see Conventions), one danger surface with
+  three operations, `EditorField`/`EditorCheckbox`, no placeholder answers,
+  mismatch lines, a report-count warning before delete, pending labels, freeze
+  wording, a merge opens the destination, retarget results stay in the zone,
+  keyed per profile.
+- Results land where the write was made: `useContributorsController` now keeps
+  `profileNotice` (dock), `avatarNotice`, `orderNotices` (per panel),
+  `dangerNotice` and `notice` (list: merge, delete, deep link). In contextual
+  mode `notice` still carries profile and avatar results, so the artist page
+  editor is unchanged. New controller API: `canWrite`, `closeProfile`,
+  `loadLatest`, `selfKey`, `clearAvatarFile`, dismiss functions; options
+  `viewerEmail`, `initialKey`, `startClosed`.
+- Registry: `saveLine: "in-tool"` for Contributors; the shell test that
+  guards the frame's instant line now uses Banners.
+- Shared, backward compatible: `EditorSection` `headingLevel` accepts `h5`.
+- Journeys fixtures: `CONTRIBUTOR_DETAIL_SEED` (River with aliases, links,
+  nine works, three reports, a curated order with a retired slug; Mira with a
+  note and flags; Halcyon archival), credited works and reports on the
+  profile read, the ordering route (editor floor, ownership, revision check,
+  pruning, conflicted), the danger route (admin floor, typed key, delete
+  refused while credited, merge and delete remove from the directory), the
+  ownership refusal on profile saves, staff note, avatar upload and removal;
+  with a unit test.
+
+Deferred, with reasons:
+
+- Profile, Works and Reports as kept-mounted views: People embeds the same
+  editor inside one block, where a view strip would nest views; folding the
+  danger zone and the default order already halves the pane.
+- Merge, retarget and delete as one "Fix an identity" flow in People: a
+  product decision about where identity repair lives.
+- Creating a profile for someone else: no route; a member's first save
+  creates theirs.
+- Palette records for profiles: wants the shared records convention; the deep
+  link exists now.
+- "Un-curate" wording: shared with Replication Studio and its tests.

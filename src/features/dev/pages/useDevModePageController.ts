@@ -230,6 +230,7 @@ export function useDevModePageController({
     copyStudioInitialKey: initialArticleSlug,
     playlistsInitialKey: initialArticleSlug,
     peopleInitialKey: initialArticleSlug,
+    contributorsInitialKey: initialArticleSlug,
     toolMountKey,
     tripReportsInitialId: initialArticleSlug,
     queueInitialId: initialArticleSlug,
