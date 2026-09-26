@@ -766,6 +766,15 @@ builds a new shared primitive, add it to **Conventions** and log it under
   drawn, and the dock's sentence names which; a drawing failure is reported
   up from the article's own error boundary (`DrawFailure`), so the key and the
   button refuse together.
+- **Re-signing a changed record opens the changes first.** On an article that
+  changed since its sign-off, the first R or press of Mark as reviewed opens
+  the changes since review (scrolled in and focused, the dose, duration and
+  interaction block first) and turns the verdict into "Confirm reviewed" with
+  "Changes since the last review are shown above." in the dock; the next
+  press signs off with the same request and revision as before. Opening the
+  changes by hand counts. Moving to another article resets it; other
+  articles sign off in one step; the diff still loads only when opened
+  (`ReviewChangesSinceReview` `openSignal` / `onOpened`).
 - **Results carry what they finished.** A tick that completes a section or a
   class keeps its Undo; the completion becomes the result's title
   ("Stimulant, Common complete, all 3 reviewed."). A section names its class
@@ -2732,9 +2741,6 @@ Deferred, with reasons:
 
 - Display names for reviewers and flag authors: no directory maps member
   emails to names (as earlier passes).
-- A read gate before re-signing a stale article (open the diff first): stricter
-  than today, and the tested R-on-stale sign-off would change; left as a
-  product question.
 - Disabling the verdict while writes are frozen: the Inbox decision (buttons
   stay enabled so the next write can clear the freeze); the dock says it.
 - A per-article free note separate from flags: the route stores notes only
@@ -2743,4 +2749,12 @@ Deferred, with reasons:
   owns `MoleculeQuickEditor`.
 - Opening the stale diff by default: the tested load-on-demand stays; the
   notice leads with what to do.
+
+Follow-up commit "Review: open the changes before re-signing a changed article"
+(decided by the owner): the re-sign-off gate in Conventions. Stricter than
+before: a stale article now takes two presses. The two R-on-stale tests now
+press twice; new tests cover the first press opening the diff and writing
+nothing, the second writing the same request, changes opened by hand, one step
+for an article that is not stale, and the reset on navigation. Screenshots
+`gate-open-*` and `gate-signed-*` in `tmp/redesign/review/after/`.
 

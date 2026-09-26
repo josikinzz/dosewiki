@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
@@ -30,6 +30,13 @@ export interface ReviewChangesSinceReviewProps {
   reviewedAt?: string;
   /** The editor whose recommendation the sign-off approved, if any. */
   recommendedBy?: string;
+  /**
+   * Bumped by the workbench's re-sign-off gate: each new value opens the
+   * changes (loading them if needed) and brings the notice into view.
+   */
+  openSignal?: number;
+  /** Called once the changes have been opened, by the gate or by hand. */
+  onOpened?: () => void;
 }
 
 /**
@@ -37,7 +44,7 @@ export interface ReviewChangesSinceReviewProps {
  * one press shows only the fields that changed since the signed revision, so
  * re-review reads a diff instead of the whole article.
  */
-export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewedBy, reviewedAt, recommendedBy }: ReviewChangesSinceReviewProps) {
+export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewedBy, reviewedAt, recommendedBy, openSignal = 0, onOpened }: ReviewChangesSinceReviewProps) {
   const credit = signOffCredit({ reviewedBy, recommendedBy });
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -67,11 +74,35 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
   const toggle = () => {
     const next = !open;
     setOpen(next);
+    if (next) onOpened?.();
     if (next && !changes && !loading) void load();
   };
 
+  // The gate opens the changes and scrolls them in, focusing the notice so a
+  // screen reader lands on what to check. Only a new signal does this; the
+  // diff never loads before it is opened.
+  const sectionRef = useRef<HTMLElement>(null);
+  const handledSignal = useRef(openSignal);
+  useEffect(() => {
+    if (openSignal === handledSignal.current) return;
+    handledSignal.current = openSignal;
+    setOpen(true);
+    onOpened?.();
+    if (!changes && !loading) void load();
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    sectionRef.current?.scrollIntoView?.({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    sectionRef.current?.focus({ preventScroll: true });
+    // Only the signal starts this; load and onOpened are stable enough for one run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSignal]);
+
   return (
-    <section aria-label="Changed since review" className="theme-review-stale-notice rounded-card border">
+    <section
+      ref={sectionRef}
+      tabIndex={-1}
+      aria-label="Changed since review"
+      className="theme-review-stale-notice rounded-card border scroll-mt-[calc(var(--review-bar-height,3.5rem)+1rem)] outline-none"
+    >
       <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 gap-3">
           <Icon icon="lucide:git-compare" size={16} className="theme-text-secondary mt-0.5 shrink-0" aria-hidden />

@@ -262,7 +262,26 @@ export const ReviewExperience = memo(function ReviewExperience({
       onConfirm: () => recommendReviewed(recommendNoteRef.current?.value ?? ""),
     });
   }, [canRecommend, confirmRecommend, current, currentReadable, currentRecommendation, isTicking, recommendReviewed]);
-  const pressReviewed = canSignOff ? toggleReviewed : requestRecommendation;
+  // The re-sign-off gate: on a changed article the first press opens what
+  // changed since the last review, and only a press after that signs it off
+  // (the same request and revision as a one-step sign-off). Keyed by slug, so
+  // moving on resets it; other articles sign off in one step.
+  const [changesSeenSlug, setChangesSeenSlug] = useState<string | null>(null);
+  const [changesOpenSignal, setChangesOpenSignal] = useState(0);
+  const staleGateClosed =
+    canSignOff && current !== null && current.status === "stale" && Boolean(current.reviewedRevision) && changesSeenSlug !== current.slug;
+  const markChangesSeen = useCallback(() => {
+    setChangesSeenSlug(currentSlugRef.current);
+  }, [currentSlugRef]);
+  const signOff = useCallback(() => {
+    if (staleGateClosed) {
+      if (!currentReadable || isTicking) return;
+      setChangesOpenSignal((value) => value + 1);
+      return;
+    }
+    toggleReviewed();
+  }, [currentReadable, isTicking, staleGateClosed, toggleReviewed]);
+  const pressReviewed = canSignOff ? signOff : requestRecommendation;
 
   const [articleDirty, setArticleDirty] = useState(false);
   const [operationLocked, setOperationLocked] = useState(false);
@@ -374,6 +393,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     setMoleculePanelOpen(false);
     setCitationPanelOpen(false);
     setNotesPanelOpen(false);
+    setChangesSeenSlug(null);
   }, [currentSlug]);
 
   useEffect(() => {
@@ -491,7 +511,11 @@ export const ReviewExperience = memo(function ReviewExperience({
         ? "The article did not load, so it cannot be marked reviewed yet."
         : !currentArticleHydrated
           ? "Marking reviewed waits until the article has loaded."
-          : null;
+          : canSignOff && current.status === "stale" && changesSeenSlug === current.slug
+            ? "Changes since the last review are shown above."
+            : staleGateClosed
+              ? "It changed since its last review, so Mark as reviewed first opens the changes."
+              : null;
   const roleSentence = describeReviewRole({ canSignOff, canRecommend, recommendation: recommendationState });
   const roleLine = roleSentence || tickReason || (isHeld && flagCount === 0) ? (
     <>
@@ -613,6 +637,7 @@ export const ReviewExperience = memo(function ReviewExperience({
         isTicking={isTicking}
         canSignOff={canSignOff}
         recommendation={recommendationState}
+        confirm={canSignOff && current.status === "stale" && changesSeenSlug === current.slug}
         toggleReviewed={pressReviewed}
       />
     </>
@@ -662,6 +687,8 @@ export const ReviewExperience = memo(function ReviewExperience({
               reviewedBy={current.reviewedBy}
               reviewedAt={current.reviewedAt}
               recommendedBy={current.recommendedBy}
+              openSignal={changesOpenSignal}
+              onOpened={markChangesSeen}
             />
           </div>
         ) : null}

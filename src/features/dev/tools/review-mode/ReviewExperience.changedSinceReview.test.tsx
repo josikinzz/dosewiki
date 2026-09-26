@@ -192,9 +192,11 @@ describe("changed since review", () => {
     expect(options.some((text) => text.includes("Fentanyl"))).toBe(true);
   });
 
-  it("signs off the revision on screen again with R", async () => {
+  it("signs off the revision on screen again with a second R, after the first opens the changes", async () => {
     await renderWorkbench("heroin");
-    await screen.findByRole("region", { name: "Changed since review" });
+    const notice = await screen.findByRole("region", { name: "Changed since review" });
+    fireEvent.keyDown(window, { key: "r" });
+    await within(notice).findByLabelText("Article change review");
     fireEvent.keyDown(window, { key: "r" });
 
     await waitFor(() => expect(postedBodies()).toEqual([{ slug: "heroin", status: "completed", revision: "rev9" }]));
@@ -205,11 +207,71 @@ describe("changed since review", () => {
     await renderWorkbench("heroin");
     await screen.findByRole("region", { name: "Changed since review" });
     fireEvent.keyDown(window, { key: "r" });
+    await screen.findByRole("button", { name: "Confirm reviewed" });
+    fireEvent.keyDown(window, { key: "r" });
     await waitFor(() => expect(postedBodies()).toHaveLength(1));
     await screen.findByRole("status");
 
     fireEvent.keyDown(window, { key: "u" });
     await waitFor(() => expect(postedBodies()[1]).toEqual({ slug: "heroin", status: "completed", revision: "rev1" }));
     await screen.findByRole("region", { name: "Changed since review" });
+  });
+
+  describe("the re-sign-off gate", () => {
+    it("opens the changes on the first press and writes nothing", async () => {
+      await renderWorkbench("heroin");
+      const notice = await screen.findByRole("region", { name: "Changed since review" });
+      fireEvent.click(screen.getByRole("button", { name: "Mark as reviewed" }));
+
+      expect(await within(notice).findByLabelText("Article change review")).toBeTruthy();
+      expect(within(notice).getByRole("button", { name: "Hide changes since review" })).toHaveAttribute("aria-expanded", "true");
+      expect(await screen.findByRole("button", { name: "Confirm reviewed" })).toBeEnabled();
+      expect(screen.getByText("Changes since the last review are shown above.")).toBeVisible();
+      expect(postedBodies()).toEqual([]);
+    });
+
+    it("signs off with the same request as before on the second press", async () => {
+      await renderWorkbench("heroin");
+      await screen.findByRole("region", { name: "Changed since review" });
+      fireEvent.click(screen.getByRole("button", { name: "Mark as reviewed" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Confirm reviewed" }));
+
+      await waitFor(() => expect(postedBodies()).toEqual([{ slug: "heroin", status: "completed", revision: "rev9" }]));
+    });
+
+    it("counts changes opened by hand, so the next press signs off", async () => {
+      await renderWorkbench("heroin");
+      const notice = await screen.findByRole("region", { name: "Changed since review" });
+      fireEvent.click(within(notice).getByRole("button", { name: "Show changes since review" }));
+      fireEvent.click(await screen.findByRole("button", { name: "Confirm reviewed" }));
+
+      await waitFor(() => expect(postedBodies()).toEqual([{ slug: "heroin", status: "completed", revision: "rev9" }]));
+    });
+
+    it("keeps an article that is not stale to one step", async () => {
+      await renderWorkbench("codeine");
+      await waitFor(() => expect(screen.getByRole("button", { name: "Mark as reviewed" })).toBeEnabled());
+      fireEvent.keyDown(window, { key: "r" });
+
+      await waitFor(() => expect(postedBodies()).toEqual([{ slug: "codeine", status: "completed" }]));
+    });
+
+    it("resets when the reviewer moves to another article and back", async () => {
+      await renderWorkbench("heroin");
+      await screen.findByRole("region", { name: "Changed since review" });
+      fireEvent.keyDown(window, { key: "r" });
+      await screen.findByRole("button", { name: "Confirm reviewed" });
+
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      await waitFor(() => expect(screen.queryByRole("region", { name: "Changed since review" })).toBeNull());
+      fireEvent.keyDown(window, { key: "ArrowLeft" });
+      await screen.findByRole("region", { name: "Changed since review" });
+
+      expect(screen.getByRole("button", { name: "Mark as reviewed" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Confirm reviewed" })).toBeNull();
+      fireEvent.keyDown(window, { key: "r" });
+      await screen.findByRole("button", { name: "Confirm reviewed" });
+      expect(postedBodies()).toEqual([]);
+    });
   });
 });

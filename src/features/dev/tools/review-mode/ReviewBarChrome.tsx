@@ -197,8 +197,11 @@ export function MarkReviewedControl({
   isTicking,
   canSignOff,
   recommendation = null,
+  confirm = false,
   toggleReviewed,
 }: {
+  /** A changed article whose changes are open: the press now signs it off, so it says Confirm reviewed. */
+  confirm?: boolean;
   isCurrentReviewed: boolean;
   /** The tick that just happened is this article's, so the check draws in. */
   justTicked: boolean;
@@ -278,7 +281,7 @@ export function MarkReviewedControl({
       className={base}
       onClick={toggleReviewed}
       disabled={!hasCurrent || isTicking || !canSignOff}
-      aria-label="Mark as reviewed"
+      aria-label={confirm ? "Confirm reviewed" : "Mark as reviewed"}
       aria-keyshortcuts="r"
     >
       <Icon
@@ -286,7 +289,7 @@ export function MarkReviewedControl({
         size={16}
         className={isTicking ? "animate-spin motion-reduce:animate-none" : undefined}
       />
-      {isTicking ? "Saving" : "Mark as reviewed"}
+      {isTicking ? "Saving" : confirm ? "Confirm reviewed" : "Mark as reviewed"}
       <Kbd>R</Kbd>
     </Button>
   );
