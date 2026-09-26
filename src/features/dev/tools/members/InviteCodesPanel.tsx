@@ -13,6 +13,7 @@ import {
   EditorSegmentedControl,
   EditorStatusPill,
   LoadErrorState,
+  useConfirm,
   type EditorStatusPillTone,
 } from "@/features/dev/components";
 import { useWriteFreeze } from "@/features/dev/components/writeFreeze";
@@ -145,6 +146,7 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [listNotice, setListNotice] = useState<PanelNotice | null>(null);
   const { frozen } = useWriteFreeze();
+  const { confirm, dialog } = useConfirm();
   const revealRef = useRef<HTMLHeadingElement | null>(null);
   const headingId = useId();
   const formHeadingId = useId();
@@ -220,8 +222,23 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
     if (minted) revealRef.current?.focus({ preventScroll: false });
   }, [minted]);
 
-  const handleMint = async (event: FormEvent<HTMLFormElement>) => {
+  // A Contributor code is the smallest grant and creates at once; anything
+  // above it asks first and names exactly what the code will create.
+  const handleMint = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (role === "contributor") {
+      void mint();
+      return;
+    }
+    confirm({
+      title: `Create ${getRoleDisplayName(role)} invite code?`,
+      description: `${describeInviteTerms(role, glossaryLocales, expiresInDays, maxUses) ?? `Creates a ${getRoleDisplayName(role)} invite.`} Whoever redeems it gets ${getRoleDisplayName(role)} access${note.trim() ? ` (note: ${note.trim()})` : ""}.`,
+      confirmLabel: "Create invite code",
+      onConfirm: () => mint(),
+    });
+  };
+
+  const mint = async () => {
     setMintNotice(null);
     setIsMinting(true);
     try {
@@ -605,7 +622,15 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
                     className="-ml-2 self-start sm:ml-0"
                     disabled={revokingId === invite.id}
                     aria-busy={revokingId === invite.id || undefined}
-                    onClick={() => void handleRevoke(invite)}
+                    onClick={() =>
+                      confirm({
+                        title: `Revoke this ${getRoleDisplayName(invite.role)} invite?`,
+                        description: `${invite.note ? `The code noted "${invite.note}". ` : ""}Anyone holding this code can no longer create an account with it (${invite.redemptions.length} of ${invite.maxUses} uses spent). This cannot be undone; create a new code if they still need one.`,
+                        confirmLabel: "Revoke invite",
+                        destructive: true,
+                        onConfirm: () => handleRevoke(invite),
+                      })
+                    }
                     aria-label={`Revoke invite${invite.note ? ` for ${invite.note}` : ""}`}
                   >
                     <Icon icon="lucide:ban" size={14} />
@@ -651,6 +676,7 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
           />
         ) : null}
       </section>
+      {dialog}
     </div>
   );
 }

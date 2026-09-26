@@ -87,7 +87,12 @@ export function useMemberActions(reload: () => Promise<void>) {
   const toggleBan = (row: MemberRow) => {
     const label = row.username ?? row.email;
     if (row.bannedAt) {
-      void run(row.email, "unban", () => unbanMember(row.email), `${label} can sign in again.`);
+      confirm({
+        title: `Unban ${label}?`,
+        description: `${label} can sign in again at once, with the ${getRoleDisplayName(row.role)} permissions they held when banned.`,
+        confirmLabel: "Unban",
+        onConfirm: () => void run(row.email, "unban", () => unbanMember(row.email), `${label} can sign in again.`),
+      });
       return;
     }
     confirm({
@@ -100,6 +105,14 @@ export function useMemberActions(reload: () => Promise<void>) {
   };
 
   const issueReset = (row: MemberRow) =>
+    confirm({
+      title: `Issue a password reset link for ${row.username ?? row.email}?`,
+      description: `You get a one-time link to send ${row.username ?? row.email}; it works once and expires in an hour. Their current password keeps working until they use it, and any earlier reset link for them stops working.`,
+      confirmLabel: "Issue reset link",
+      onConfirm: () => issueResetNow(row),
+    });
+
+  const issueResetNow = (row: MemberRow) =>
     void run(
       row.email,
       "reset",

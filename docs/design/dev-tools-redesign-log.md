@@ -909,6 +909,16 @@ Main changes:
   Buttons stay enabled (the Inbox decision).
 - Counts are omitted while unknown (no "0 accounts" on a failure); every load
   failure names what did not load.
+- Confirms (follow-up commit "People: confirms for revoke, reset, unban,
+  elevated invites"; "as strict as today" means never weaker): Revoke invite
+  is a destructive `ConfirmDialog` naming the role, the note and the uses
+  spent and saying it cannot be undone; Reset password asks plainly, naming
+  the member and saying the current password keeps working until the link is
+  used and any earlier link stops working (the server keeps one token per
+  account); Unban asks, naming the member and the permissions they regain;
+  Create invite code asks only above Contributor, naming exactly what the code
+  creates (`describeInviteTerms` plus the note). Each has a test that Cancel
+  writes nothing and Confirm sends the same request as before.
 - Registry: `saveLine: "none"` for People (the pane's blocks say it).
 - Shared, backward compatible: `RoleGuide` labels use `type-meta-label` (also
   on `/invite`); `MemberPermissionFields` sorts languages by name in a grid;
@@ -927,10 +937,6 @@ Main changes:
 
 Deferred, with reasons:
 
-- Confirms on Revoke invite, Reset password and Unban, and on Create invite
-  code: the pass brief fixes the strictness of every confirm exactly as it
-  was; recorded as an open question (recommended: add them, destructive for
-  Revoke).
 - Profile editor internals (uppercase labels, a folded danger zone, its save
   bar and freeze wording): `ContributorProfileEditor` belongs to Contributors
   and renders there too; the Contributors pass.

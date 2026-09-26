@@ -242,18 +242,30 @@ describe("PeopleTab", () => {
     expect(await screen.findByText("ada is banned.")).toBeTruthy();
   });
 
-  it("posts unban at once and shows a reset link once", async () => {
+  it("asks before an unban and a reset, writes nothing on cancel, and shows a reset link once", async () => {
     const user = userEvent.setup();
     const { calls } = stubApi();
     renderTab();
 
     await openPerson(user, /^bob/);
     await user.click(accountPanel().getByRole("button", { name: "Unban" }));
+    const unban = await screen.findByRole("dialog", { name: "Unban bob?" });
+    expect(unban).toHaveTextContent("can sign in again at once, with the Contributor permissions");
+    await user.click(within(unban).getByRole("button", { name: "Cancel" }));
+    expect(calls).toHaveLength(0);
+    await user.click(accountPanel().getByRole("button", { name: "Unban" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Unban bob?" })).getByRole("button", { name: "Unban" }));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({ path: "/api/dev/members/unban", body: { email: "bob@example.com" } });
 
     await openPerson(user, /^ada/);
     await user.click(accountPanel().getByRole("button", { name: "Reset password" }));
+    const reset = await screen.findByRole("dialog", { name: "Issue a password reset link for ada?" });
+    expect(reset).toHaveTextContent("Their current password keeps working until they use it");
+    await user.click(within(reset).getByRole("button", { name: "Cancel" }));
+    expect(calls).toHaveLength(1);
+    await user.click(accountPanel().getByRole("button", { name: "Reset password" }));
+    await user.click(within(await screen.findByRole("dialog", { name: /password reset link for ada/ })).getByRole("button", { name: "Issue reset link" }));
     await waitFor(() => expect(calls).toHaveLength(2));
     expect(calls[1]).toEqual({ path: "/api/dev/members/reset", body: { email: "ada@example.com" } });
     // The link lands in ada's Account block, under the button that issued it.

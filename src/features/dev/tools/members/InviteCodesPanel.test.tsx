@@ -205,6 +205,8 @@ describe("InviteCodesPanel", () => {
     await user.type(screen.getByLabelText("Uses"), "2");
     await user.click(screen.getByRole("button", { name: "Create invite code" }));
 
+    // A Contributor code is the smallest grant: it creates without a confirm.
+    expect(screen.queryByRole("dialog")).toBeNull();
     const reveal = await screen.findByRole("region", { name: "New invite code" });
     expect(within(reveal).getByTestId("minted-invite-code")).toHaveTextContent(CODE);
     expect(within(reveal).getByTestId("minted-invite-link")).toHaveTextContent(
@@ -267,6 +269,13 @@ describe("InviteCodesPanel", () => {
     expect(screen.getByRole("button", { name: "Create invite code" })).toBeDisabled();
     await user.click(screen.getByRole("checkbox", { name: /Dutch/ }));
     await user.click(screen.getByRole("button", { name: "Create invite code" }));
+    // Above Contributor, it asks first and names what the code creates; Cancel sends nothing.
+    const ask = await screen.findByRole("dialog", { name: "Create Editor + Translator invite code?" });
+    expect(ask).toHaveTextContent("Creates a single-use Editor + Translator invite for Dutch");
+    await user.click(within(ask).getByRole("button", { name: "Cancel" }));
+    expect(calls.some((call) => call.init?.method === "POST")).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Create invite code" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Create invite code" }));
     await screen.findByRole("region", { name: "New invite code" });
     const mint = calls.find((call) => call.init?.method === "POST");
     expect(JSON.parse(String(mint?.init?.body))).toMatchObject({ role: "editor_translator", glossaryLocales: ["nl"] });
@@ -291,6 +300,13 @@ describe("InviteCodesPanel", () => {
     const list = await screen.findByRole("list", { name: "Invite codes" });
 
     await user.click(within(list).getByRole("button", { name: "Revoke invite for Ada" }));
+    const ask = await screen.findByRole("dialog", { name: "Revoke this Editor invite?" });
+    expect(ask).toHaveTextContent('The code noted "Ada".');
+    expect(ask).toHaveTextContent("This cannot be undone");
+    await user.click(within(ask).getByRole("button", { name: "Cancel" }));
+    expect(calls.some((call) => call.url.endsWith("/revoke"))).toBe(false);
+    await user.click(within(list).getByRole("button", { name: "Revoke invite for Ada" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Revoke invite" }));
 
     await waitFor(() =>
       expect(calls.some((call) => call.url === "/api/dev/invites/inv1/revoke" && call.init?.method === "POST")).toBe(true),
@@ -307,6 +323,7 @@ describe("InviteCodesPanel", () => {
     const list = await screen.findByRole("list", { name: "Invite codes" });
 
     await user.click(within(list).getByRole("button", { name: "Revoke invite for Ada" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Revoke invite" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Already fully redeemed.");
     expect(within(list).getByRole("button", { name: "Revoke invite for Ada" })).toBeEnabled();
