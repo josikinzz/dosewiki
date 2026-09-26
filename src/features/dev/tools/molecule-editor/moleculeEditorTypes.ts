@@ -21,6 +21,8 @@ export interface MoleculeOverride {
 
 export interface SaveResult {
   tone: "success" | "danger";
+  /** A refusal with its own way forward: a revision conflict, or the write freeze. */
+  kind?: "conflict" | "frozen";
   title?: string;
   message: string;
 }

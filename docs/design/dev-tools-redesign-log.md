@@ -675,6 +675,25 @@ builds a new shared primitive, add it to **Conventions** and log it under
   "Writes are paused, so that was not saved." and offers "Load the latest
   version" on a conflict the same way.
 
+- **A touch canvas is locked until Draw.** A drawing surface that claims every
+  touch (OpenChemLib sets `touch-action: none`) shows on phones behind a shield
+  child, so a swipe over it scrolls the page; an outline "Draw on the canvas"
+  toggle under it (and "Tap to draw" on the shield) unlocks drawing, which also
+  brings the tap-driven modes (bond pick, bold) and the tracing image, and
+  "Done drawing" locks it again. Tool strips over the canvas scroll sideways
+  below `sm` instead of wrapping. Reference: `MoleculeEditorWorkbench`
+  (`TouchShield`).
+- **A publish that replaces a picture shows both.** The confirm's `body` puts
+  "Live now" (the stored image) beside "After publishing" (what Save would
+  send), says what changed, and turns destructive when the change is more than
+  cosmetic (Molecules: changed chemistry). Reference: `MoleculePublishReview`.
+- **A tool whose save model differs by mode says it per mode.** Molecules sets
+  `saveLine: "in-tool"`; the dock's `SaveLine` keeps the instant sentence for
+  live depictions and takes `TEMPLATE_SAVE_COPY` for private templates.
+- **A preview that mounts a whole public page sits in its own error boundary**
+  with a fallback that says the unsaved work is untouched and offers Try again,
+  so a page that cannot render never drops the editor.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -2329,3 +2348,86 @@ Deferred, with reasons:
   decision.
 - Width transitions on the run progress bar (detector `layout-transition`):
   two segments in one track; the change is rare and reduced motion stops it.
+
+### Pass 19: Molecules (`/dev/molecule-editor`)
+
+Commit: see `git log --grep "Dev tools redesign: Molecules"`.
+Screenshots: `tmp/redesign/molecules/before/` and `tmp/redesign/molecules/after/`
+(admin idle dark and light; editor and contributor locked; empty; failed;
+loading; To do filter; search and no match; LSD open dark and light; MDMA with
+bold bonds; an article with no depiction; Salvinorin A with no SMILES; dirty and
+dirty at the bottom; changed chemistry; publish confirm; published; conflict and
+the Load the latest dialog; frozen; remove and switch dialogs; article preview;
+bond pick; drawing on a phone; classes; templates, a new template, the apply
+dialog; an unknown deep link; desktop and phone), captured by
+`tmp/redesign/molecules/capture.mjs`. Critique in
+`tmp/redesign/molecules/critique.md` (15/40 before), inventory with the
+item-by-item check in `tmp/redesign/molecules/inventory.md`, detector evidence
+in `tmp/redesign/molecules/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: a failed picker read threw to the route error page (rail
+  included); the picker, the article's SMILES and the class member reads now go
+  through non-throwing state hooks (`useMoleculePickerReadState`,
+  `useMoleculeSourceReadState`; the throwing `useMoleculeSourceRead` stays for
+  Review's quick editor) and the depiction list through `useEditorReadState`,
+  each failure a `LoadErrorState` in place. The article preview sits in its own
+  error boundary. Save published a live depiction with no confirm; it now asks
+  with the live and new images side by side (Cmd/Ctrl+S opens the same
+  confirm; templates, which publish nothing, save at once).
+- Layout: the editor workspace, `layout: "full-bleed"` capped at
+  `max-w-[100rem]`. `MoleculeListColumn.tsx` (sticky from `lg`): the kind of
+  structure as a three-column choice with counts, a count line, All / To do /
+  Edited (Saved for classes and templates) from the stored row's `source`
+  (`moleculeListModel.ts`: none, automatic baseline, hand edit, template), search
+  with `/`, rows grouped as the picker grouped them (publicly listed first, then
+  psychoactive class) with the state pill, "Not publicly listed", relative save
+  time, "Editing" and the unsaved dot; skeletons, "taking longer" with Try
+  again, empty pointing to Substances, no-match with Clear the search and Show
+  all, a line when the open record is hidden by the filter or not listed. The
+  record combobox is gone; the import and member comboboxes stay.
+- Pane (`MoleculeEditorWorkbench.tsx`): header with the name (sr-only
+  "Editing"), key, state pill, "Saved <relative> by X", View live (new tab), one
+  sentence on what the public page shows, engine status only while loading or
+  failed, corner Close and Back to list below `lg`; Drawing (Adjust as a
+  two-column grid on phones, the canvas sized to the viewport, the side column
+  of brand preview, Canvas settings, Tracing image and Canvas keys beside it from
+  `2xl` and under it below); Changed chemistry; "Start from something else"
+  (the automatic layout with Revert to auto, another saved structure, pasted
+  SMILES as an `EditorField` with Enter); In the article; Remove at the end with
+  a sentence. Save dock: the result (conflict with "Load the latest version"
+  behind a destructive confirm that re-reads the stored depiction and reloads
+  the canvas; freeze "Writes are paused, so your changes were not published."),
+  the stereo guard in words, the one reason Save is off, Save (names the
+  outcome, key cap), Revert to saved, Apply to class for templates, the state
+  phrase and `SaveLine`.
+- Phone: master/detail with `useScrollToDetail`, a deep link scrolls the pane in;
+  the canvas shows behind a Draw lock (see Conventions); the dock sticks in the
+  thumb zone.
+- Copy: no uppercase tracked labels (`type-meta-label`), no trailing ellipses,
+  sentence-case guard pills, "Apply to N members", "Save class depiction",
+  the remove confirm names the record and says there is no undo.
+- Registry: `layout: "full-bleed"`, `saveLine: "in-tool"`.
+- Journeys fixtures: `scripts/tools/journeys/moleculeFixtures.mjs`
+  (`createMoleculeRoutes`: the picker from the editor library, SMILES for every
+  article with Salvinorin A empty, ten stored depictions with fork-drawn MOL
+  blocks and brand SVGs in every source, one morphinan template, class members,
+  the depiction save with the admin floor, the `expectedUpdatedAt` check and a
+  concurrent save under `conflicted`, removal, template save, the apply preview
+  and write, the freeze through `toolWrite`); `/api/editor/molecule-overrides`
+  now lists them, so other tools' article previews draw these depictions.
+
+Deferred, with reasons:
+
+- Keyboard drawing on the canvas and a non-pointer bond pick: OpenChemLib
+  exposes no keyboard or AT affordance, and the fork is out of scope.
+- The OpenChemLib canvas annotations ("abs", "this enantiomer"): drawn by the
+  fork.
+- A thumbnail per list row: the list read carries no SVG; per-row reads would
+  be a new endpoint.
+- Undo after publish or remove: no server history.
+- The article preview in the screenshots shows its failure state: the journeys
+  library article carries only the fields the corpus tools read, and
+  `ArticleLayout` needs `routes`; a real article renders. Giving the fixture a
+  whole article would move every corpus tool's baselines.

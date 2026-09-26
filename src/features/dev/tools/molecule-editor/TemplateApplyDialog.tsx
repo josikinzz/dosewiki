@@ -110,10 +110,10 @@ export function TemplateApplyDialog({
         className="grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden p-0 md:max-w-6xl"
         showClose={false}
       >
-        <DialogHeader className="border-b border-dose-border px-6 py-5 pr-14">
+        <DialogHeader className="border-b border-dose-border px-4 py-4 pr-14 sm:px-6 sm:py-5">
           <DialogTitle>Apply {classLabel} template</DialogTitle>
           <DialogDescription className="theme-text-muted">
-            Review every rolled class member. Nothing is written until you confirm.
+            Review every class member. Nothing is written until you apply; hand-edited depictions are never overwritten.
           </DialogDescription>
           {!preparing && rows.length > 0 ? (
             <p className="theme-text-secondary pt-2 text-sm" aria-live="polite">
@@ -128,10 +128,10 @@ export function TemplateApplyDialog({
           ) : null}
         </DialogHeader>
 
-        <div className="min-h-0 overflow-y-auto px-6 py-5">
+        <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           {preparing ? (
             <Notice
-              tone="loading" title="Building preview" message="Loading current depictions, aligning matches, and rendering before/after pairs…"
+              tone="loading" title="Building preview" message="Loading current depictions, aligning matches, and rendering before and after pairs."
             />
           ) : error ? (
             <Notice
@@ -150,7 +150,7 @@ export function TemplateApplyDialog({
                   <Surface key={row.slug} variant="muted" padding="sm" radius="lg">
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="theme-text-primary truncate font-medium">{row.title}</p>
+                        <p className="theme-text-primary break-words font-medium">{row.title}</p>
                         <p className="theme-text-faint truncate font-mono text-xs">{row.slug}</p>
                       </div>
                       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -169,13 +169,13 @@ export function TemplateApplyDialog({
                         {resultStatus(result)}
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <p className="theme-text-faint mb-1.5 text-sm font-medium uppercase tracking-wide">Before</p>
+                        <p className="type-meta-label theme-text-muted mb-1.5">Before</p>
                         <MoleculePreviewFrame svg={row.beforeSvg} empty="Current depiction unavailable" />
                       </div>
                       <div>
-                        <p className="theme-text-faint mb-1.5 text-sm font-medium uppercase tracking-wide">After</p>
+                        <p className="type-meta-label theme-text-muted mb-1.5">After</p>
                         <MoleculePreviewFrame
                           svg={row.afterSvg}
                           empty={
@@ -207,7 +207,7 @@ export function TemplateApplyDialog({
           ) : null}
         </div>
 
-        <DialogFooter className="border-t border-dose-border px-6 py-4 sm:items-center sm:justify-between">
+        <DialogFooter className="border-t border-dose-border px-4 py-3 sm:items-center sm:justify-between sm:px-6 sm:py-4">
           <p className="theme-text-faint text-sm">
             {includedSlugs.size} of {summary.aligned} aligned depictions included
           </p>
@@ -226,7 +226,7 @@ export function TemplateApplyDialog({
                   size={16}
                   className={applying ? "animate-spin" : undefined}
                 />
-                {applying ? "Applying…" : `Confirm ${includedSlugs.size}`}
+                {applying ? "Applying" : `Apply to ${includedSlugs.size} ${includedSlugs.size === 1 ? "member" : "members"}`}
               </Button>
             ) : null}
           </div>

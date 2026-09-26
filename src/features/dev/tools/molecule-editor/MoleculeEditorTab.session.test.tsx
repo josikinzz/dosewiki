@@ -59,11 +59,13 @@ describe("MoleculeEditorTab sessions", () => {
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "donor molblock"),
     );
-    expect(screen.getByRole("combobox", { name: "Select a substance" })).toHaveTextContent("Donor");
+    await waitFor(() =>
+      expect(screen.getByTestId("molecule-pane").querySelector("h3")).toHaveTextContent("Editing Donor"),
+    );
+    expect(screen.getByText("Editing", { selector: "span.font-medium" })).toBeInTheDocument();
     expect(replaceState).not.toHaveBeenCalled();
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/molecule-editor/substances/example"),
@@ -142,15 +144,13 @@ describe("MoleculeEditorTab sessions", () => {
     await user.type(await screen.findByRole("textbox", { name: /Type Example to publish/ }), "Exa");
     await user.type(screen.getByRole("textbox", { name: "SMILES to load into the canvas" }), "CCN");
     await user.click(screen.getByRole("combobox", { name: "Select a structure to import" }));
-    await user.click(await screen.findByText("Donor"));
+    await user.click(await screen.findByRole("option", { name: /Donor/ }));
     await user.click(screen.getByRole("button", { name: "Set bond vertical" }));
     await user.click(screen.getByRole("button", { name: "Pick a bond" }));
     await user.click(screen.getByRole("button", { name: "Set bond vertical" }));
     expect(screen.getByText("Aligned")).toBeInTheDocument();
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-bond-pick", "true");
-
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
-    await user.click(await screen.findByRole("option", { name: /Donor/ }));
+    await user.click(screen.getByRole("button", { name: /^Donor/ }));
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Discard and switch" }));
 
@@ -162,7 +162,7 @@ describe("MoleculeEditorTab sessions", () => {
     expect(screen.getByRole("combobox", { name: "Select a structure to import" })).not.toHaveTextContent("Donor");
     expect(screen.queryByText("Aligned")).not.toBeInTheDocument();
     expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
-    expect(screen.getByText(/saved depiction$/)).toBeInTheDocument();
+    expect(screen.getByText("Saved depiction")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Emit rotation" }));
     expect(await screen.findByRole("textbox", { name: /Type Donor to publish/ })).toHaveValue("");
   });

@@ -36,7 +36,7 @@ describe("TracingLayer", () => {
 
   it("starts empty: a picker button, no overlay", () => {
     render(<Harness />);
-    expect(screen.getByRole("button", { name: "Trace an image…" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trace an image" })).toBeInTheDocument();
     expect(screen.queryByTestId("tracing-overlay")).not.toBeInTheDocument();
   });
 
@@ -82,6 +82,6 @@ describe("TracingLayer", () => {
 
     expect(screen.queryByTestId("tracing-overlay")).not.toBeInTheDocument();
     expect(revokeObjectURLMock).toHaveBeenCalledWith("blob:tracing-test");
-    expect(screen.getByRole("button", { name: "Trace an image…" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trace an image" })).toBeInTheDocument();
   });
 });

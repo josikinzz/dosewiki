@@ -602,4 +602,31 @@ describe("journey fixtures", () => {
     assert.throws(() => assertLoopbackBase("https://dose.wiki"), /loopback/);
     assert.throws(() => assertLoopbackBase("http://127.0.0.1.example.com"), /loopback/);
   });
+
+  it("answers the molecule editor: the picker, stored depictions, the revision check, the freeze and the admin floor", () => {
+    const admin = createJourneyFixture({ role: "admin", state: "loaded" });
+    const picker = get(admin, "/api/dev/molecule-editor", "?scope=picker&numItems=200").json;
+    assert.equal(picker.isDone, true);
+    assert.ok(picker.page.some((row) => row.slug === "lsd" && row.hasOverride));
+    assert.equal(get(admin, "/api/dev/molecule-editor", "?scope=source&slug=salvinorin-a").json.smiles, "");
+    const stored = get(admin, "/api/dev/molecule-override", "?slug=lsd").json.override;
+    assert.match(stored.molblock, /M {2}END/);
+    const post = (fixture, body) => fixture.respond({ method: "POST", pathname: "/api/dev/molecule-override", body });
+    const saved = post(admin, { slug: "lsd", molblock: stored.molblock, svg: "<svg/>", expectedUpdatedAt: stored.updatedAt });
+    assert.equal(saved.status, 200);
+    assert.equal(post(admin, { slug: "lsd", molblock: stored.molblock, svg: "<svg/>", expectedUpdatedAt: stored.updatedAt }).status, 409);
+    assert.ok(get(admin, "/api/editor/molecule-overrides").json.some((row) => row.slug === "lsd" && row.source === "editor"));
+
+    const conflicted = createJourneyFixture({ role: "admin", state: "conflicted" });
+    const theirs = get(conflicted, "/api/dev/molecule-override", "?slug=mdma").json.override;
+    const refused = post(conflicted, { slug: "mdma", molblock: theirs.molblock, svg: "<svg/>", expectedUpdatedAt: theirs.updatedAt });
+    assert.equal(refused.status, 409);
+    assert.equal(refused.json.conflict.updatedBy, "OTHER-ADMIN");
+
+    const frozen = createJourneyFixture({ role: "admin", state: "frozen" });
+    assert.equal(post(frozen, { slug: "lsd", molblock: "x", svg: "<svg/>" }).status, 503);
+    const editor = createJourneyFixture({ role: "editor", state: "loaded" });
+    assert.equal(get(editor, "/api/dev/molecule-editor", "?scope=picker&numItems=200").status, 403);
+    assert.deepEqual(get(admin, "/api/dev/molecule-class-template", "?list=1").json.templates.map((row) => row.classKey), ["morphinan"]);
+  });
 });

@@ -604,8 +604,8 @@ export function OclEditor({
 
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <EditorToolbar label="Drawing tools" variant="compact" className="shrink-0">
-        <EditorActionGroup label="Draw">
+      <EditorToolbar label="Drawing tools" variant="compact" className="shrink-0 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:pb-1 [&_button]:shrink-0">
+        <EditorActionGroup label="Draw" className="max-sm:flex-nowrap">
           <span aria-hidden="true" className={GROUP_LABEL_CLASS}>
             Draw
           </span>
@@ -627,7 +627,7 @@ export function OclEditor({
             );
           })}
         </EditorActionGroup>
-        <EditorActionGroup label="History" separatorBefore>
+        <EditorActionGroup label="History" separatorBefore className="max-sm:flex-nowrap max-sm:border-l max-sm:border-t-0 max-sm:pl-3 max-sm:pt-0">
           <Button
             variant="ghost"
             size="sm"
@@ -692,8 +692,8 @@ export function OclEditor({
             </svg>
             <span className="theme-text-primary pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 whitespace-nowrap rounded-full border border-dose-border bg-dose-surface-muted px-3 py-1 text-sm font-medium shadow-[var(--theme-elevation-lg)]">
               {boldToggleActive
-                ? "Click bonds to toggle bold · Esc to finish"
-                : "Click the bond to set vertical · Esc to cancel"}
+                ? "Click or tap bonds to toggle bold · Esc to finish"
+                : "Click or tap the bond to set vertical · Esc to cancel"}
             </span>
           </div>
         ) : null}
@@ -702,7 +702,7 @@ export function OclEditor({
   );
 }
 
-const GROUP_LABEL_CLASS = "theme-text-faint text-xs font-medium uppercase tracking-wide";
+const GROUP_LABEL_CLASS = "type-meta-label theme-text-faint";
 
 /** Lucide-style glyphs for the strip; wedge, hash and bond have no library icon. */
 function ToolGlyph({ tool }: { tool: OclToolId }) {

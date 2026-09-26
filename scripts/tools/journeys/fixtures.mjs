@@ -21,6 +21,7 @@
  */
 
 import { createTranslationRoutes } from "./translationFixtures.mjs";
+import { createMoleculeRoutes } from "./moleculeFixtures.mjs";
 
 /** Roles the synthetic session can carry; mirrors `APP_ROLES` in `src/lib/auth/roles.ts`, minus `viewer`, which cannot open `/dev`. */
 export const JOURNEY_ROLES = Object.freeze(["admin", "editor_translator", "editor", "translator", "contributor"]);
@@ -1585,6 +1586,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
 
   /** The translation workbench's store and routes (`translationFixtures.mjs`). */
   const translation = createTranslationRoutes({ fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN });
+  /** The molecule editor's picker, depictions and class templates (`moleculeFixtures.mjs`). */
+  const molecules = createMoleculeRoutes({
+    fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH,
+    articles: () => [...library.rows.values()],
+    priorityOf: (slug) => LIBRARY_PRIORITY_SEED[slug] ?? "normal",
+  });
 
   function writingList() {
     return [...writing.values()].map(({ slug, title, kind, status, creationTime, publicationDate, teaser, tags }) => ({
@@ -2643,7 +2650,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         return json(200, { ok: true, iconSize: size });
       });
     }
-    if (pathname === "/api/editor/molecule-overrides" && upper === "GET") return json(200, null);
+    const moleculeAnswer = molecules({ upper, pathname, params, body });
+    if (moleculeAnswer) return moleculeAnswer;
 
     if (pathname === "/api/dev/replications" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, ...structuredClone(replications) }));

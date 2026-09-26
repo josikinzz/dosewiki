@@ -121,6 +121,7 @@ describe("useDevChromeEnvironment", () => {
     }
     expect(DEV_TAB_REGISTRY.filter((tab) => tab.layout === "full-bleed").map((tab) => tab.id)).toEqual([
       "trip-report-submissions",
+      "molecule-editor",
       "banners",
       "replications",
       "writing",

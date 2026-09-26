@@ -27,8 +27,7 @@ describe("MoleculeEditorTab class R-group labels", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(screen.getByRole("button", { name: /^Generic classes/ }));
     await user.click(await screen.findByText("Phenethylamine"));
 
     await waitFor(() =>
@@ -67,8 +66,7 @@ describe("MoleculeEditorTab class R-group labels", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(screen.getByRole("button", { name: /^Generic classes/ }));
     await user.click(await screen.findByText("Phenethylamine"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
@@ -112,8 +110,7 @@ describe("MoleculeEditorTab class R-group labels", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(screen.getByRole("button", { name: /^Generic classes/ }));
     await user.click(await screen.findByText("Phenethylamine"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute(
@@ -149,8 +146,7 @@ describe("MoleculeEditorTab class R-group labels", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Generic classes" }));
-    await user.click(screen.getByRole("combobox", { name: "Select a class" }));
+    await user.click(screen.getByRole("button", { name: /^Generic classes/ }));
     await user.click(await screen.findByText("Phenethylamine"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute(

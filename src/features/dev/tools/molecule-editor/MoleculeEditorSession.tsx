@@ -1,19 +1,20 @@
 "use client";
 
 /**
- * One open structure in the molecule editor. `MoleculeEditorTab` keys this
- * component on `mode:selected`, so every field below belongs to exactly one
- * selection and a switch starts from a clean slate without a reset list.
+ * One open structure in the molecule editor: the pane of the Molecules
+ * workspace. `MoleculeEditorTab` keys this component on `mode:selected`, so
+ * every field below belongs to exactly one selection and a switch starts from a
+ * clean slate without a reset list.
  *
- *   • picker and import controls: the mode panel above the canvas
+ *   • header: the record's name, key, where its drawing comes from, last save
  *   • canvas: OpenChemLib editor behind a labeled dose.wiki tool strip: reposition
  *     atoms (Select), set per-bond wedge/hash stereo; an "Adjust" row above it holds
  *     the whole-depiction transforms
  *   • preview and settings: live brand-styled preview rendered by the same OpenChemLib
- *     engine as the canvas, plus fine rotation, tracing and the canvas key legend; a
- *     side column at xl widths, a collapsed disclosure below that
- *   • save bar: RDKit-backed stereo guard, Revert to auto / Revert to saved /
- *     Remove override and Save in one slim row that stays in reach while the canvas scrolls
+ *     engine as the canvas, plus fine rotation, tracing and the canvas key legend
+ *   • starting points: another saved structure, pasted SMILES (and a template's first start)
+ *   • save dock: result of the last write, RDKit-backed stereo guard, why Save is off,
+ *     Save (asks first when it publishes), Revert to saved, Revert to auto
  *
  * Data is live Postgres, so this works on the deployed admin host (not just locally):
  *   • per-substance SMILES come from the `substanceIndex` queries
@@ -22,9 +23,17 @@
  *   • Save POSTs to the editor-gated `/api/dev/molecule-override` route, which writes
  *     Postgres + revalidates the public page; Remove override DELETEs the saved row
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
-import { useConfirm, useUnsavedWork } from "@/features/dev/components";
+import {
+  Notice,
+  isWriteFreezeRefusal,
+  useConfirm,
+  useDevShortcuts,
+  useUnsavedWork,
+  useWriteFreeze,
+} from "@/features/dev/components";
+import { useModifierKeyLabel } from "../../pages/DevCommandPalette";
 import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
@@ -50,11 +59,14 @@ import { stripDummyAtoms } from "./stripDummyAtoms";
 import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
-import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
-import { useMoleculePickerRead } from "./useMoleculePickerRead";
+import { useMoleculeSourceReadState } from "./useMoleculeSourceRead";
+import { useMoleculePickerReadState } from "./useMoleculePickerRead";
 import { matchesTypedName } from "./chemistryDiff";
-import { MoleculeEditorModePanel } from "./MoleculeEditorModePanel";
-import { MoleculeEditorWorkbench } from "./MoleculeEditorWorkbench";
+import { MoleculeLoadNotices, MoleculeStartingPoints } from "./MoleculeEditorModePanel";
+import { TemplateInitialization } from "./MoleculeEditorPickers";
+import { MoleculeEditorWorkbench, MoleculeIdlePane, type MoleculePaneRecord } from "./MoleculeEditorWorkbench";
+import { MoleculePublishReview } from "./MoleculeEditorWorkbenchStatus";
+import { depictionStateOf } from "./moleculeListModel";
 import type {
   EditorMode,
   MoleculeClassTemplate,
@@ -74,8 +86,13 @@ const OVERRIDE_READS = [
 export interface MoleculeEditorSessionProps {
   mode: EditorMode;
   selected: string | null;
-  onSelect: (slug: string) => void;
-  onModeChange: (mode: string) => void;
+  /** What the list knows about the open record: its name and stored state. */
+  listRecord: MoleculePaneRecord | null;
+  /** True while the list is still loading, for the idle pane's words. */
+  listLoading: boolean;
+  onClose: () => void;
+  onBackToList: () => void;
+  titleRef: React.RefObject<HTMLHeadingElement | null>;
   /** Reports whether this session holds unsaved work, so the tab can ask before switching. */
   onDirtyChange: (dirty: boolean) => void;
   engines: {
@@ -86,13 +103,7 @@ export interface MoleculeEditorSessionProps {
   };
   fineRotation: boolean;
   onFineRotationChange: (enabled: boolean) => void;
-  picker: {
-    items: MoleculePickerItem[] | null;
-    loadTimedOut: boolean;
-    loadedCount: number;
-    overrideCount: number;
-    publishedCount: number;
-  };
+  loadTimedOut: boolean;
   molecules: MoleculePickerItem[] | null;
   classTemplates: MoleculePickerItem[];
   importableMolecules: MoleculePickerItem[] | null;
@@ -102,13 +113,16 @@ export interface MoleculeEditorSessionProps {
 export function MoleculeEditorSession({
   mode,
   selected,
-  onSelect,
-  onModeChange,
+  listRecord,
+  listLoading,
+  onClose,
+  onBackToList,
+  titleRef,
   onDirtyChange,
   engines: { ocl, oclError, rdkit, rdkitError },
   fineRotation,
   onFineRotationChange,
-  picker,
+  loadTimedOut,
   molecules,
   classTemplates,
   importableMolecules,
@@ -172,16 +186,23 @@ export function MoleculeEditorSession({
   const [initializingTemplate, setInitializingTemplate] = useState(false);
   const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
   const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
+  // Bumped to read the stored depiction again (Try again, Load the latest version).
+  const [overrideReload, setOverrideReload] = useState(0);
+  // Set by Load the latest version, so the next stored read replaces the canvas even when unchanged.
+  const forceNextLoad = useRef(false);
+  const freeze = useWriteFreeze();
+  const saveKeyLabel = useModifierKeyLabel("S");
   // See-through reference image over the canvas; session-only, never saved.
   const tracing = useTracingLayer();
   // --- live server data -----------------------------------------------------
   const invalidateEditorReads = useInvalidateEditorReads();
-  const moleculeSource = useMoleculeSourceRead(
+  const moleculeSourceRead = useMoleculeSourceReadState(
     selected && mode === "substances" ? selected : null,
   );
+  const moleculeSource = moleculeSourceRead.data;
   // Only the loading/loaded transition may re-resolve the baseline. A polled
   // source read can redeliver equal data without replacing a dirty canvas.
-  const articleLoading = moleculeSource === undefined;
+  const articleLoading = moleculeSource === undefined && !moleculeSourceRead.error;
   const sourceRef = useRef<string | null>(null);
 
   /**
@@ -248,10 +269,11 @@ export function MoleculeEditorSession({
     mode === "templates" && templateMemberSlug ? { slug: templateMemberSlug } : "skip",
     "document",
   );
-  const classMembershipInput = useMoleculePickerRead(
+  const classMembershipRead = useMoleculePickerReadState(
     mode === "templates" && !!selected,
     selected,
   );
+  const classMembershipInput = classMembershipRead.data;
   const selectedTemplateLabel =
     classTemplates.find((item) => item.slug === selected)?.title ?? selected ?? "class";
 
@@ -418,7 +440,7 @@ export function MoleculeEditorSession({
     return () => {
       cancelled = true;
     };
-  }, [mode, selected, templateDoc]);
+  }, [mode, selected, templateDoc, overrideReload]);
 
   // Template reads use the same protected server route/Postgres target as saves,
   // so reopening a class round-trips the row even when public and editor Postgres
@@ -497,7 +519,9 @@ export function MoleculeEditorSession({
       return; // override still loading
     }
     if (variant === "saved" && overrideDoc) {
-      loadSource(overrideDoc.molblock, { boldBonds: overrideDoc.boldBonds ?? [] });
+      const force = forceNextLoad.current;
+      forceNextLoad.current = false;
+      loadSource(overrideDoc.molblock, { force, boldBonds: overrideDoc.boldBonds ?? [] });
       setNoStructure(false);
       setComputing(false);
       return;
@@ -942,6 +966,10 @@ export function MoleculeEditorSession({
           updatedAt?: number;
           updatedBy?: string;
         };
+        if (isWriteFreezeRefusal(res.status, body) || (res.status >= 500 && freeze.frozen)) {
+          setSaveResult(frozenResult("saved"));
+          return;
+        }
         if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
         const savedTemplate = {
           classKey: selected,
@@ -955,7 +983,8 @@ export function MoleculeEditorSession({
         setBoldBaseline(boldBonds);
         setSaveResult({
           tone: "success",
-          message: "Saved. Use Apply to class to preview this template on each member.",
+          title: "Template saved",
+          message: "Nothing public changed. Use Apply to class to preview it on each member.",
         });
       } catch (err) {
         setSaveResult({
@@ -987,7 +1016,9 @@ export function MoleculeEditorSession({
       });
       const body = (await res.json().catch(() => ({}))) as {
         error?: string;
+        code?: string;
         updatedAt?: string;
+        updatedBy?: string;
         conflict?: { updatedAt?: string | null; updatedBy?: string | null };
       };
       if (res.status === 409) {
@@ -995,9 +1026,14 @@ export function MoleculeEditorSession({
         const who = body.conflict?.updatedBy || "Someone";
         setSaveResult({
           tone: "danger",
+          kind: "conflict",
           title: "Someone saved first",
-          message: `${who} saved this depiction after you opened it, so nothing was published. Your edit is still on the canvas. Reload the page to see their version before saving again.`,
+          message: `${who} saved this depiction after you opened it, so nothing was published. Your edit is still on the canvas. Load the latest version to see theirs before saving again; that drops your edit.`,
         });
+        return;
+      }
+      if (isWriteFreezeRefusal(res.status, body) || (res.status >= 500 && freeze.frozen)) {
+        setSaveResult(frozenResult("published"));
         return;
       }
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
@@ -1009,6 +1045,7 @@ export function MoleculeEditorSession({
         ...(boldBonds.length > 0 ? { boldBonds } : {}),
         source: "editor",
         updatedAt: body.updatedAt ?? new Date().toISOString(),
+        ...(body.updatedBy ? { updatedBy: body.updatedBy } : {}),
       });
       setBoldBaseline(boldBonds);
       setConfirmName("");
@@ -1016,10 +1053,11 @@ export function MoleculeEditorSession({
       void invalidateEditorReads([...OVERRIDE_READS]);
       setSaveResult({
         tone: "success",
+        title: "Published",
         message:
           mode === "classes"
-            ? "Saved. The override is live. The class page refreshes momentarily."
-            : "Saved. This is now the live depiction. The substance page refreshes momentarily.",
+            ? "Saved. The class depiction is live; the class page refreshes in a moment."
+            : "Saved. This is now the live depiction; the article refreshes in a moment.",
       });
     } catch (err) {
       setSaveResult({
@@ -1039,6 +1077,7 @@ export function MoleculeEditorSession({
     boldBonds,
     overrideDoc,
     invalidateEditorReads,
+    freeze.frozen,
   ]);
 
   const revertToAuto = useCallback(() => {
@@ -1095,13 +1134,18 @@ export function MoleculeEditorSession({
     try {
       const removeSlug = mode === "classes" ? `class:${selected}` : selected;
       const res = await fetch(`${SAVE_API}?slug=${encodeURIComponent(removeSlug)}`, { method: "DELETE" });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      const body = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+      if (isWriteFreezeRefusal(res.status, body) || (res.status >= 500 && freeze.frozen)) {
+        setSaveResult({ ...frozenResult("removed"), message: "Writes are paused, so the depiction was not removed. It is still live." });
+        return;
+      }
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
       setOverrideDoc(null);
       setVariant("auto");
       void invalidateEditorReads([...OVERRIDE_READS]);
       setSaveResult({
         tone: "success",
+        title: "Removed",
         message: "Override removed. Reverted to the automatic layout.",
       });
     } catch (err) {
@@ -1112,73 +1156,228 @@ export function MoleculeEditorSession({
     } finally {
       setSaving(false);
     }
-  }, [selected, mode, invalidateEditorReads]);
+  }, [selected, mode, invalidateEditorReads, freeze.frozen]);
 
   // Removing an override is destructive: always confirm, and warn about unsaved edits too.
   const requestRemove = useCallback(() => {
     if (!selected) return;
+    const name = publishName ?? selected;
     requestConfirm({
-      title: "Remove override?",
+      title: `Remove the ${name} depiction?`,
       description: dirty
-        ? "This deletes the saved override and discards your unsaved edits, returning the molecule to the automatic layout."
-        : "This deletes the saved override and returns the molecule to the automatic layout.",
+        ? "This deletes the saved override and discards your unsaved edits, returning the molecule to the automatic layout. There is no undo."
+        : "This deletes the saved override and returns the molecule to the automatic layout. There is no undo.",
       confirmLabel: "Remove override",
       destructive: true,
       onConfirm: () => {
         void performRemove();
       },
     });
-  }, [selected, dirty, performRemove, requestConfirm]);
+  }, [selected, dirty, performRemove, requestConfirm, publishName]);
 
-  // ---------------------------------------------------------------------------
+  // Live saves ask first and show the drawing that goes live beside the one
+  // that is live now; a template publishes nothing, so it saves at once.
+  const liveNow = mode === "templates" ? null : overrideDoc?.svg ?? null;
+  const changedParts = useMemo(() => {
+    const parts: string[] = [];
+    if (edited !== source) parts.push("the drawing");
+    if (boldDirty) parts.push("the bold bonds");
+    return parts;
+  }, [edited, source, boldDirty]);
+  const requestSave = useCallback(() => {
+    if (!canSave) return;
+    if (mode === "templates") {
+      void save();
+      return;
+    }
+    const name = publishName ?? selected ?? "this structure";
+    requestConfirm({
+      title: chemistryChanged ? `Publish changed chemistry for ${name}?` : `Publish the ${name} depiction?`,
+      description: `${
+        changedParts.length ? `You changed ${changedParts.join(" and ")}. ` : ""
+      }${
+        variant === "imported"
+          ? "The canvas holds an imported structure. "
+          : variant === "auto"
+            ? "The canvas holds the automatic layout. "
+            : ""
+      }${
+        mode === "classes"
+          ? "It replaces the class depiction on the class page as soon as it saves."
+          : "It replaces the structure on the public article as soon as it saves."
+      }`,
+      body: (
+        <MoleculePublishReview
+          before={liveNow}
+          after={previewSvg}
+          chemistryChanged={chemistryChanged}
+          beforeEmpty={mode === "classes" ? "No saved class depiction yet" : "No depiction yet: the article shows none"}
+        />
+      ),
+      confirmLabel: chemistryChanged ? "Publish changed chemistry" : mode === "classes" ? "Publish class depiction" : "Publish depiction",
+      destructive: chemistryChanged,
+      wide: true,
+      onConfirm: () => save(),
+    });
+  }, [canSave, mode, save, publishName, selected, requestConfirm, chemistryChanged, changedParts, variant, liveNow, previewSvg]);
+
+  // Cmd/Ctrl+S asks the same way the button does, and never saves past a confirm.
+  useDevShortcuts(SAVE_SHORTCUTS, !!selected);
+  useEffect(() => {
+    if (!selected) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== "s") return;
+      event.preventDefault();
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      requestSave();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selected, requestSave]);
+
+  // Someone saved first: read the stored depiction again and put it on the
+  // canvas, dropping the edit after a confirm that says so.
+  const loadLatest = useCallback(() => {
+    const run = () => {
+      forceNextLoad.current = true;
+      setSaveResult(null);
+      setConfirmName("");
+      setImportedMolblock(null);
+      setVariant("saved");
+      setOverrideReload((key) => key + 1);
+    };
+    requestConfirm({
+      title: "Load the latest version?",
+      description: "The canvas reloads the depiction someone else saved. Your edits on the canvas are dropped.",
+      confirmLabel: "Drop my edits and load",
+      destructive: true,
+      onConfirm: run,
+    });
+  }, [requestConfirm]);
+
+  // The one reason Save is off while there is something to save.
+  const saveBlocker = useMemo(() => {
+    if (saving || !selected || noStructure) return null;
+    if (!dirty && !chemistryChanged) return null;
+    if (renderBlocked) return "The renderer or the structure editor failed to load, so saving is off. Reload the page.";
+    if (!enginesReady) return "Waiting for the drawing engine to load.";
+    if (chemistryChanged && !chemistryConfirmed && publishName) {
+      return `This is a different molecule now. Type ${publishName} under Changed chemistry to publish it.`;
+    }
+    if (!previewSvg) return "Rendering the preview.";
+    return null;
+  }, [saving, selected, noStructure, dirty, chemistryChanged, renderBlocked, enginesReady, chemistryConfirmed, publishName, previewSvg]);
+
+  if (!selected) {
+    return (
+      <>
+        <MoleculeIdlePane mode={mode} loading={listLoading && !loadTimedOut} />
+        {confirmDialog}
+      </>
+    );
+  }
+
+  const record: MoleculePaneRecord = {
+    title:
+      listRecord?.title ??
+      (mode === "classes" ? selectedClass?.label : mode === "templates" ? selectedTemplateLabel : publishName) ??
+      selected,
+    slug: selected,
+    publiclyListed: listRecord?.publiclyListed,
+    ...(mode === "templates"
+      ? {
+          depiction: templateDoc ? "saved" : templateDoc === null ? "none" : listRecord?.depiction ?? "none",
+          savedAt: templateDoc?.updatedAt ?? listRecord?.savedAt ?? null,
+          savedBy: templateDoc?.updatedBy ?? null,
+        }
+      : overrideDoc === undefined
+        ? { depiction: listRecord?.depiction ?? "none", savedAt: listRecord?.savedAt ?? null, savedBy: null }
+        : {
+            depiction: overrideDoc ? depictionStateOf({ source: overrideDoc.source }, true) : "none",
+            savedAt: overrideDoc?.updatedAt ?? null,
+            savedBy: overrideDoc?.updatedBy ?? null,
+          }),
+  };
+  const canvasSource =
+    variant === "imported"
+      ? "Imported structure, not saved"
+      : loadedFromOverride
+        ? mode === "templates"
+          ? "Saved template"
+          : mode === "classes"
+            ? "Saved class depiction"
+            : "Saved depiction"
+        : mode === "templates"
+          ? "New template, not saved"
+          : "Automatic layout, not saved";
+
   return (
     <>
-      <MoleculeEditorModePanel
-        mode={mode}
-        onModeChange={onModeChange}
-        pickerItems={picker.items}
-        selected={selected}
-        onSelect={onSelect}
-        loadTimedOut={picker.loadTimedOut}
-        loadedCount={picker.loadedCount}
-        overrideCount={picker.overrideCount}
-        publishedCount={picker.publishedCount}
-        noStructure={noStructure}
-        variant={variant}
-        loadedFromOverride={loadedFromOverride}
-        importableMolecules={importableMolecules}
-        importSlug={importSlug}
-        onImportSlugChange={setImportSlug}
-        importing={importing}
-        saving={saving}
-        onImportStructure={() => void importFromSubstance()}
-        pasteSmilesInput={pasteSmilesInput}
-        onPasteSmilesInputChange={setPasteSmilesInput}
-        onImportSmiles={() => void importFromSmiles()}
-        templateLoadError={templateLoadError}
-        overrideLoadError={overrideLoadError}
-        templateDoc={templateDoc}
-        source={source}
-        templateSmilesInput={templateSmilesInput}
-        onTemplateSmilesInputChange={setTemplateSmilesInput}
-        onInitializeTemplateFromClass={() => void initializeTemplateFromClassStructure()}
-        onInitializeTemplateFromSmiles={() => void initializeTemplateFromSmiles()}
-        templateMemberItems={templateMemberItems}
-        templateMemberSlug={templateMemberSlug}
-        onTemplateMemberSlugChange={setTemplateMemberSlug}
-        onInitializeTemplateFromMember={() => void initializeTemplateFromMember()}
-        templateMemberReady={templateMemberReady}
-        classStructureReady={!!selectedClass && overrideDoc !== undefined}
-        initializingTemplate={initializingTemplate}
-        rendererReady={!!ocl && !!rdkit}
-        rendererError={oclError ?? rdkitError}
-      />
       <MoleculeEditorWorkbench
         mode={mode}
-        selected={selected}
+        record={record}
+        canvasSource={canvasSource}
+        titleRef={titleRef}
+        onClose={onClose}
+        onBackToList={onBackToList}
+        engineStatus={oclError || rdkitError ? "failed" : ocl && rdkit ? "ready" : "loading"}
+        lead={
+          <>
+            {mode === "substances" && moleculeSource === null && overrideDoc === null ? (
+              <Notice
+                tone="warning"
+                title="Nothing is listed at this address"
+                message={`No substance is saved as “${selected}”. It may have been renamed or removed; pick one from the list.`}
+              />
+            ) : null}
+            <MoleculeLoadNotices
+              mode={mode}
+              templateLoadError={templateLoadError}
+              overrideLoadError={overrideLoadError}
+              onRetryOverride={() => setOverrideReload((key) => key + 1)}
+              sourceError={moleculeSourceRead.error}
+              onRetrySource={moleculeSourceRead.retry}
+              membersError={classMembershipRead.error}
+              onRetryMembers={classMembershipRead.retry}
+            />
+            {mode === "templates" && templateDoc === null && !source && !templateLoadError ? (
+              <TemplateInitialization
+                onUseClassStructure={() => void initializeTemplateFromClassStructure()}
+                smiles={templateSmilesInput}
+                onSmilesChange={setTemplateSmilesInput}
+                onUseSmiles={() => void initializeTemplateFromSmiles()}
+                members={templateMemberItems}
+                membersLoading={classMembershipInput === undefined && !classMembershipRead.error}
+                selectedMember={templateMemberSlug}
+                onSelectMember={setTemplateMemberSlug}
+                onUseMember={() => void initializeTemplateFromMember()}
+                memberReady={templateMemberReady}
+                classStructureReady={!!selectedClass && overrideDoc !== undefined}
+                busy={initializingTemplate}
+              />
+            ) : null}
+          </>
+        }
+        startingPoints={
+          // An uninitialized template has its own three starts at the top of the pane.
+          mode === "templates" && templateDoc === null && !source ? null : <MoleculeStartingPoints
+            mode={mode}
+            importableMolecules={importableMolecules}
+            importSlug={importSlug}
+            onImportSlugChange={setImportSlug}
+            importing={importing}
+            saving={saving}
+            loadTimedOut={loadTimedOut}
+            onImportStructure={() => void importFromSubstance()}
+            pasteSmilesInput={pasteSmilesInput}
+            onPasteSmilesInputChange={setPasteSmilesInput}
+            onImportSmiles={() => void importFromSmiles()}
+            onRevertToAuto={revertToAuto}
+            canRevertToAuto={!noStructure && !saving && !!smiles}
+          />
+        }
         noStructure={noStructure}
         oclReady={!!ocl}
-        rdkitReady={!!rdkit}
         oclError={oclError}
         rdkitError={rdkitError}
         canvasError={canvasError}
@@ -1213,20 +1412,23 @@ export function MoleculeEditorSession({
         renderBlocked={renderBlocked}
         canTransform={canTransform}
         canSave={canSave}
+        saveBlocker={saveBlocker}
         hasOverride={hasOverride}
         templateDoc={templateDoc}
         templatePreparing={templateApplication.preparing}
+        canPrepareTemplate={!dirty && !saving && !!rdkit && !!ocl && !templateApplication.preparing}
         onPrepareTemplate={() => void templateApplication.prepare()}
-        onRevertToAuto={revertToAuto}
         onRevertToSaved={revertToSaved}
         canRevertToSaved={canRevertToSaved}
         onRequestRemove={requestRemove}
-        onSave={() => void save()}
+        onSave={requestSave}
+        saveKeyLabel={saveKeyLabel}
         publishName={publishName}
         confirmName={confirmName}
         onConfirmNameChange={setConfirmName}
         saveResult={saveResult}
         onDismissSaveResult={() => setSaveResult(null)}
+        onLoadLatest={loadLatest}
       />
 
       <TemplateApplyDialog
@@ -1245,4 +1447,18 @@ export function MoleculeEditorSession({
       {confirmDialog}
     </>
   );
+}
+
+const SAVE_SHORTCUTS = [
+  { keys: "Cmd+S", label: "Save the open structure (asks first when it goes live)" },
+] as const;
+
+/** A write refused by the freeze: nothing landed, the edit stays on the canvas. */
+function frozenResult(verb: "published" | "saved" | "removed"): SaveResult {
+  return {
+    tone: "danger",
+    kind: "frozen",
+    title: verb === "removed" ? "Not removed" : verb === "saved" ? "Not saved" : "Not published",
+    message: `Writes are paused, so your changes were not ${verb}. Your edit is still on the canvas.`,
+  };
 }

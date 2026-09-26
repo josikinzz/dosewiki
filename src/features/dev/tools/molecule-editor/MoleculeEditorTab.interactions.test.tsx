@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -24,7 +24,6 @@ describe("MoleculeEditorTab substance canvas flows", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
@@ -136,21 +135,20 @@ describe("MoleculeEditorTab substance canvas flows", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "example molblock"),
     );
 
     await user.click(screen.getByRole("combobox", { name: "Select a structure to import" }));
-    await user.click(await screen.findByText("Donor"));
+    await user.click(await screen.findByRole("option", { name: /Donor/ }));
     await user.click(screen.getByRole("button", { name: "Load structure" }));
 
     // The canvas replaces its content with the donor structure, unsaved.
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "donor molblock"),
     );
-    expect(screen.getByText(/imported structure, unsaved/)).toBeInTheDocument();
+    expect(screen.getByText("Imported structure, not saved")).toBeInTheDocument();
     expect(screen.getByText("Structure imported")).toBeInTheDocument();
     // Nothing publishes until the user edits: the save gate stays closed. The
     // chemistry guard runs on a 120 ms debounce after each canvas change, so the
@@ -173,7 +171,6 @@ describe("MoleculeEditorTab substance canvas flows", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
@@ -211,7 +208,6 @@ describe("MoleculeEditorTab substance canvas flows", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
@@ -239,6 +235,7 @@ describe("MoleculeEditorTab substance canvas flows", () => {
 
     fetchSpy.mockClear();
     await user.click(screen.getByRole("button", { name: "Save depiction" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Publish depiction" }));
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
     const saveCall = fetchSpy.mock.calls.find(([url]) => url === "/api/dev/molecule-override");

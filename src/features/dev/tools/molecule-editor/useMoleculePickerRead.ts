@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type MoleculePickerDto = {
   slug: string;
@@ -13,10 +13,22 @@ export type MoleculePickerDto = {
 
 type PickerPage = { page: MoleculePickerDto[]; continueCursor: string; isDone: boolean };
 
-/** Drain one authorized, bounded molecule projection; undefined remains loading. */
-export function useMoleculePickerRead(enabled: boolean, classKey?: string | null) {
+export type MoleculePickerReadState = {
+  /** null when disabled, undefined while loading (or after a failure), the rows once drained. */
+  data: MoleculePickerDto[] | null | undefined;
+  error: string | null;
+  retry: () => void;
+};
+
+/**
+ * Drain one authorized, bounded molecule projection. A failure stays in the
+ * tool (the list says so and offers Try again) instead of throwing to the
+ * route error boundary, which would drop the whole editor.
+ */
+export function useMoleculePickerReadState(enabled: boolean, classKey?: string | null): MoleculePickerReadState {
+  const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{ key: string; rows: MoleculePickerDto[] | Error }>({ key: "", rows: [] });
-  const key = enabled ? classKey ? `class:${classKey}` : "picker" : "disabled";
+  const key = enabled ? `${classKey ? `class:${classKey}` : "picker"}#${attempt}` : "disabled";
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -47,8 +59,9 @@ export function useMoleculePickerRead(enabled: boolean, classKey?: string | null
     });
     return () => controller.abort();
   }, [classKey, enabled, key]);
-  if (!enabled) return null;
-  if (state.key !== key) return undefined;
-  if (state.rows instanceof Error) throw state.rows;
-  return state.rows;
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+  if (!enabled) return { data: null, error: null, retry };
+  if (state.key !== key) return { data: undefined, error: null, retry };
+  if (state.rows instanceof Error) return { data: undefined, error: state.rows.message, retry };
+  return { data: state.rows, error: null, retry };
 }

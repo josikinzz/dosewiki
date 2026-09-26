@@ -242,8 +242,11 @@ const REGISTRY = [
     data: NO_DATA,
     saveModel: "instant",
     nestedSlug: true,
-    layout: "shell",
+    // The canvas wants the width beside its list column.
+    layout: "full-bleed",
     destination: SHELL,
+    // Substance and class saves go live, template saves publish nothing; the dock says which.
+    saveLine: "in-tool",
   },
   {
     id: "banners",
