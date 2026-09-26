@@ -1,58 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Icon, type IconName } from "@/components/common/Icon";
-import type { EditorStatusPillTone } from "@/features/dev/components";
+import { Icon } from "@/components/common/Icon";
 import {
-  EditorSection,
-} from "@/features/dev/components";
-import {
-  citationTone,
   formatCitationCount,
-  type CitationReviewApproveCommand,
-  type CitationReviewChecklistItem,
   type CitationReviewDecisionRecord,
-  type CitationReviewQueueSummary,
 } from "./citationReviewModels";
-
-/**
- * Tokenized callout-tile surface for a semantic tone. Shares the same
- * {@link EditorStatusPillTone} switchboard as the status pills so a tile, its
- * badge, and its diagnostic chip always agree. No baked navy/cyan hex, and the
- * fills flip correctly in light mode via the --theme-*-bg/-border families.
- */
-const TONE_TILE_SURFACE: Record<EditorStatusPillTone, { tile: string; icon: string }> = {
-  neutral: {
-    tile: "border-[color:var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)]",
-    icon: "theme-text-faint",
-  },
-  info: {
-    tile: "border-[color:var(--theme-semantic-info-badge-border)] bg-[var(--theme-info-bg,var(--theme-semantic-info-badge-bg))]",
-    icon: "text-[color:var(--theme-semantic-info-badge-text)]",
-  },
-  success: {
-    tile: "border-[color:var(--theme-success-border)] bg-[var(--theme-success-bg)]",
-    icon: "text-[color:var(--theme-success-text)]",
-  },
-  caution: {
-    tile: "border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)]",
-    icon: "text-[color:var(--theme-warning-text)]",
-  },
-  warning: {
-    tile: "border-[color:var(--theme-warning-border)] bg-[var(--theme-warning-bg)]",
-    icon: "text-[color:var(--theme-warning-text)]",
-  },
-  danger: {
-    tile: "border-[color:var(--theme-danger-border)] bg-[var(--theme-danger-bg)]",
-    icon: "text-[color:var(--theme-danger-text)]",
-  },
-};
-
-export function toneTileClass(tone: EditorStatusPillTone): string {
-  return `rounded-xl border p-3 ${TONE_TILE_SURFACE[tone].tile}`;
-}
-
-export function toneIconClass(tone: EditorStatusPillTone): string {
-  return TONE_TILE_SURFACE[tone].icon;
-}
 
 /** Row-level decisions raised from an evidence row or a section. */
 export type CitationEvidenceDecisionHandlers = {
@@ -78,8 +29,9 @@ export type CitationUndoOffer = {
 };
 
 /**
- * Inline undo shown inside the row, section or panel the decision came from.
- * It stays until the next decision replaces it or the reviewer keeps it.
+ * Inline result with Undo, shown inside the row, section or dock the decision
+ * came from. It stays until the next decision replaces it or the reviewer
+ * dismisses it; there is no timer, so the reviewer can read on first.
  */
 export function CitationUndoBar({ offer }: { offer: CitationUndoOffer }) {
   const { decision } = offer;
@@ -87,166 +39,34 @@ export function CitationUndoBar({ offer }: { offer: CitationUndoOffer }) {
   return (
     <div
       role="status"
-      className={`flex flex-wrap items-center gap-x-4 gap-y-2 ${toneTileClass("success")}`}
+      className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-card border border-[color:var(--theme-success-border)] bg-[var(--theme-success-bg)] px-3 py-2"
     >
+      <Icon icon="lucide:circle-check" size={15} className="theme-success-text-strong shrink-0" />
       <p className="min-w-0 flex-1 text-sm theme-text-secondary">
         <span className="font-medium theme-text-primary">
           {verb} {formatCitationCount(decision.prior.length, "row")}
         </span>{" "}
-        Saved to the live article. Undo puts each row back the way it was.
+        {decision.status === "approved" ? "Saved to the live article." : "Saved with your reason."} Undo puts each row
+        back the way it was.
       </p>
-      <span className="flex items-center gap-3">
-        <Button variant="outline" size="sm" disabled={offer.disabled} onClick={offer.onUndo}>
-          <Icon icon="lucide:undo-2" size={16} />
+      <span className="flex items-center gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={offer.disabled}
+          aria-keyshortcuts="u"
+          onClick={offer.onUndo}
+        >
+          <Icon icon="lucide:undo-2" size={14} />
           Undo
+          <span aria-hidden className="[@media(pointer:coarse)]:hidden">
+            <kbd className="theme-dev-kbd !text-current opacity-70">u</kbd>
+          </span>
         </Button>
-        <Button variant="quiet" size="quiet" onClick={offer.onKeep}>
-          Keep
+        <Button variant="ghost" size="sm" onClick={offer.onKeep}>
+          Dismiss
         </Button>
       </span>
     </div>
   );
 }
-
-export function CitationSelectedSummary({
-  selectedSummary,
-  articleTitle,
-}: {
-  selectedSummary: CitationReviewQueueSummary;
-  articleTitle: string | null;
-}) {
-  return (
-    <EditorSection
-      title={articleTitle}
-      description="Evidence rows, their quotes, and reviewer decisions for this article."
-    >
-      <div className="flex flex-wrap gap-x-10 gap-y-4">
-        <SummaryMetric
-          label="Blocking gaps"
-          value={
-            selectedSummary.blockingNeedsSourceCount +
-            selectedSummary.blockingNeedsReviewCount +
-            selectedSummary.blockingRejectedCount
-          }
-        />
-        <SummaryMetric
-          label="Ready approvals"
-          value={selectedSummary.supportedCount}
-          valueClassName="text-[color:var(--theme-evidence-text)]"
-        />
-        <SummaryMetric
-          label="Approved"
-          value={selectedSummary.approvedCount}
-          valueClassName="text-[color:var(--theme-success-text)]"
-        />
-        <SummaryMetric
-          label="Row diagnostics"
-          value={selectedSummary.diagnosticErrorCount + selectedSummary.diagnosticWarningCount}
-        />
-      </div>
-    </EditorSection>
-  );
-}
-
-function SummaryMetric({
-  label,
-  value,
-  valueClassName = "theme-text-primary",
-}: {
-  label: string;
-  value: number;
-  valueClassName?: string;
-}) {
-  return (
-    <div>
-      <p className={`text-2xl font-semibold ${valueClassName}`}>{value}</p>
-      <p className="mt-1 text-xs uppercase tracking-[0.2em] theme-text-faint">{label}</p>
-    </div>
-  );
-}
-
-const CHECKLIST_TONE_ICON: Record<CitationReviewChecklistItem["tone"], IconName> = {
-  complete: "lucide:badge-check",
-  attention: "lucide:triangle-alert",
-  pending: "lucide:clock-3",
-};
-
-export function CitationChecklistPanel({ checklist }: { checklist: CitationReviewChecklistItem[] }) {
-  return (
-    <EditorSection
-      icon="lucide:clipboard-check"
-      title="Review checklist"
-      description="Pre-flight checks for marker integrity, source support, and reviewer decisions."
-    >
-      <div className="grid gap-3 md:grid-cols-2">
-        {checklist.map((item) => (
-          <div
-            key={item.id}
-            className={toneTileClass(citationTone({ kind: "checklist", value: item.tone }))}
-          >
-            <div className="flex items-center gap-2">
-              <Icon
-                icon={CHECKLIST_TONE_ICON[item.tone]}
-                size={16}
-                className={toneIconClass(citationTone({ kind: "checklist", value: item.tone }))}
-              />
-              <p className="text-sm font-medium theme-text-primary">{item.label}</p>
-            </div>
-            <p className="mt-2 text-sm theme-text-muted">{item.detail}</p>
-          </div>
-        ))}
-      </div>
-    </EditorSection>
-  );
-}
-
-/**
- * The article-wide approval, placed after every evidence section so it is the
- * last thing the reviewer reaches. It stays locked until every ready row has
- * been opened in this session; the confirmation lives in the tab.
- */
-export function CitationBulkApprovePanel({
-  command,
-  openedCount,
-  undo,
-  onApproveAll,
-}: {
-  command: CitationReviewApproveCommand;
-  /** How many of the ready rows the reviewer has opened. */
-  openedCount: number;
-  undo?: CitationUndoOffer | null;
-  onApproveAll: (claimKeys: string[]) => void;
-}) {
-  const readyCount = command.claimKeys.length;
-  const locked = readyCount > 0 && openedCount < readyCount;
-
-  return (
-    <EditorSection
-      icon="lucide:badge-check"
-      title="Approve the ready rows"
-      description="Approves every row above that has a verified quote and is still waiting. Rejected rows are left alone."
-      actions={(
-        <Button
-          variant="outline"
-          size="pill"
-          className="rounded-full"
-          disabled={command.disabled || locked}
-          onClick={() => onApproveAll(command.claimKeys)}
-        >
-          <Icon icon="lucide:badge-check" size={16} />
-          {readyCount > 0 ? `Approve ${formatCitationCount(readyCount, "ready row")}` : "No ready rows"}
-        </Button>
-      )}
-    >
-      <p className="text-sm theme-text-muted">
-        {locked
-          ? `Open each ready row above before approving the set (${openedCount} of ${readyCount} opened). Each approval publishes that quote as the article's evidence.`
-          : readyCount > 0
-            ? "You will be asked to confirm, with the sections this touches listed."
-            : "Every row with a verified quote has already been decided."}
-      </p>
-      {undo ? <div className="mt-4"><CitationUndoBar offer={undo} /></div> : null}
-    </EditorSection>
-  );
-}
-

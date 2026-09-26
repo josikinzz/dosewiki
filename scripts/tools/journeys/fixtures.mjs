@@ -272,6 +272,162 @@ function seedTripSubmissions(at, logged) {
 }
 
 /**
+ * Citation evidence for Citations (`/dev/citation-review`) and the Inbox, by
+ * article slug. Every row state the reviewer meets: ready rows with one and
+ * with two verified quotes, blocking and non-blocking gaps, a needs-review row
+ * with diagnostics, decided rows (one rejected with a note), a legacy snippet,
+ * an article that is fully accepted (only under Accepted and All) and one
+ * holding a rejection (under Rejected).
+ */
+export function seedCitationEvidence() {
+  const hour = 3_600_000;
+  const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
+  const quote = (sourceName, referenceId, supportingQuote, rationale, extra = {}) => ({
+    sourceId: `src-${referenceId}`, sourceName, referenceId, supportingQuote, rationale,
+    verifiedQuote: { sourceId: `src-${referenceId}`, matchType: "exact", startOffset: 120, endOffset: 120 + supportingQuote.length },
+    ...extra,
+  });
+  const row = (section, key, claimText, status, severity, hours, extra = {}) => ({
+    section, claimKey: `${section}:${key}`, claimText, fieldPath: `${section}.${key.split("-")[0]}`,
+    referenceIds: [], status, severity, updatedAt: at(hours), ...extra,
+  });
+  const nichols = (text, why) => quote("Nichols, Psychedelics (Pharmacological Reviews, 2016)", "nichols-2016", text, why, { sourceType: "journal", quality: "high" });
+  const passie = (text, why) => quote("Passie et al., The pharmacology of lysergic acid diethylamide (CNS Neurosci Ther, 2008)", "passie-2008", text, why, { sourceType: "journal", quality: "high" });
+  return new Map([
+    ["lsd", [
+      row("summary", "potency", "LSD is active at doses measured in micrograms.", "supported", "blocking", 48, {
+        referenceIds: ["passie-2008"], confidence: 0.94,
+        supports: [passie("LSD is one of the most potent drugs known, with threshold effects at doses of about 20 micrograms.", "States the microgram potency directly.")],
+      }),
+      row("summary", "discovery", "Albert Hofmann first synthesized LSD in 1938.", "approved", "blocking", 200, {
+        referenceIds: ["passie-2008"], confidence: 0.97,
+        supports: [passie("LSD was first synthesized by Albert Hofmann in 1938 at the Sandoz laboratories in Basel.", "Names the chemist, the year and the lab.")],
+      }),
+      row("summary", "classic", "LSD is one of the classic psychedelics.", "needs_source", "non_blocking", 60),
+      row("pharmacology", "mechanism", "LSD acts mainly as a partial agonist at the 5-HT2A receptor.", "supported", "blocking", 50, {
+        referenceIds: ["nichols-2016", "passie-2008"], confidence: 0.91,
+        supports: [
+          nichols("The psychedelic effects of LSD are believed to be mediated primarily by partial agonist activity at 5-HT2A receptors.", "Direct statement of the receptor and the kind of agonism."),
+          passie("LSD binds with high affinity to 5-HT2A receptors, where it acts as a partial agonist.", "A second source for the same mechanism."),
+        ],
+      }),
+      row("pharmacology", "dopamine", "LSD also binds dopamine D2 receptors.", "supported", "non_blocking", 52, {
+        referenceIds: ["nichols-2016"], confidence: 0.82,
+        supports: [nichols("LSD also has significant affinity for dopamine D2 receptors, where it acts as an agonist.", "Names the D2 binding.")],
+      }),
+      row("pharmacology", "half-life", "Its elimination half-life is about 3.6 hours.", "needs_review", "blocking", 55, {
+        referenceIds: ["passie-2008"], confidence: 0.58,
+        supportingSnippet: "Plasma half-life was estimated at 175 minutes in one small study.",
+        supportRationale: "The snippet gives 175 minutes, which does not match 3.6 hours.",
+        diagnostics: [
+          { code: "quote_mismatch", message: "The quote states 175 minutes; the claim says about 3.6 hours.", severity: "warning" },
+          { code: "unverified_quote", message: "The quote was not found verbatim in the inspected source body.", severity: "error" },
+        ],
+      }),
+      row("tolerance", "cross", "Tolerance to LSD builds almost at once and crosses to psilocybin.", "rejected", "blocking", 70, {
+        referenceIds: ["nichols-2016"], confidence: 0.64, statusReason: "Wrong source: the cross-tolerance line is about mescaline, not psilocybin.",
+        supports: [nichols("Cross-tolerance develops between LSD and mescaline.", "Supports cross-tolerance, though with another drug.")],
+      }),
+      row("tolerance", "reset", "Tolerance returns to baseline after about two weeks.", "needs_source", "blocking", 72),
+      row("harm_potential", "toxicity", "LSD has very low physiological toxicity.", "supported", "blocking", 49, {
+        referenceIds: ["passie-2008"], confidence: 0.9,
+        supports: [passie("There are no documented human deaths from an LSD overdose, and its physiological toxicity is very low.", "States the low toxicity.")],
+      }),
+      row("legality", "schedule", "LSD is a Schedule I substance in the United States.", "needs_source", "blocking", 80),
+    ]],
+    ["mdma", [
+      row("summary", "class", "MDMA is an entactogen of the amphetamine class.", "supported", "blocking", 400, {
+        referenceIds: ["green-2003"], confidence: 0.93,
+        supports: [quote("Green et al., The pharmacology and clinical pharmacology of MDMA (Pharmacol Rev, 2003)", "green-2003", "MDMA is a ring-substituted amphetamine derivative with entactogenic properties.", "Names the class and the effect family.", { sourceType: "journal" })],
+      }),
+      row("pharmacology", "release", "MDMA releases serotonin through the serotonin transporter.", "supported", "blocking", 402, {
+        referenceIds: ["green-2003"], confidence: 0.95,
+        supports: [quote("Green et al., The pharmacology and clinical pharmacology of MDMA (Pharmacol Rev, 2003)", "green-2003", "MDMA produces a rapid release of 5-HT by acting on the serotonin transporter.", "States the release mechanism.", { sourceType: "journal" })],
+      }),
+      row("harm_potential", "hyperthermia", "Hyperthermia is one of its main acute risks.", "supported", "blocking", 405, {
+        referenceIds: ["green-2003"], confidence: 0.89,
+        supports: [quote("Green et al., The pharmacology and clinical pharmacology of MDMA (Pharmacol Rev, 2003)", "green-2003", "Acute hyperthermia is a major cause of MDMA-related morbidity.", "Names hyperthermia as a main acute risk.", { sourceType: "journal" })],
+      }),
+      row("harm_potential", "hyponatremia", "Drinking too much water can cause hyponatremia.", "approved", "non_blocking", 420, {
+        referenceIds: ["green-2003"], confidence: 0.86,
+        supports: [quote("Green et al., The pharmacology and clinical pharmacology of MDMA (Pharmacol Rev, 2003)", "green-2003", "Hyponatraemia has been reported after excessive water intake.", "States the water-intake risk.", { sourceType: "journal" })],
+      }),
+      row("history_culture", "merck", "Merck patented MDMA in 1912.", "needs_review", "non_blocking", 410, { confidence: 0.4 }),
+    ]],
+    ["ketamine", [
+      row("summary", "anesthetic", "Ketamine is a dissociative anesthetic.", "rejected", "blocking", 100, {
+        referenceIds: ["wiki-ketamine"], statusReason: "Source unreliable",
+        supports: [quote("Ketamine (Wikipedia)", "wiki-ketamine", "Ketamine is a dissociative anaesthetic used medically.", "Encyclopedia summary.", { sourceType: "wiki" })],
+      }),
+      row("pharmacology", "nmda", "Ketamine blocks NMDA receptors.", "supported", "blocking", 102, {
+        referenceIds: ["li-2017"], confidence: 0.92,
+        supports: [quote("Li and Vlisides, Ketamine: 50 years of modulating the mind (Front Hum Neurosci, 2016)", "li-2017", "Ketamine is a noncompetitive NMDA receptor antagonist.", "States the NMDA antagonism.", { sourceType: "journal" })],
+      }),
+    ]],
+    ["caffeine", [
+      row("summary", "adenosine", "Caffeine works by blocking adenosine receptors.", "supported", "non_blocking", 90, {
+        referenceIds: ["fredholm-1999"], confidence: 0.96,
+        supports: [quote("Fredholm et al., Actions of caffeine in the brain (Pharmacol Rev, 1999)", "fredholm-1999", "The main mechanism of action of caffeine is antagonism of adenosine receptors.", "Direct statement of the mechanism.", { sourceType: "journal" })],
+      }),
+    ]],
+    ["psilocybin", [
+      row("summary", "prodrug", "Psilocybin is a prodrug of psilocin.", "approved", "blocking", 600, {
+        referenceIds: ["passie-2002"], confidence: 0.95,
+        supports: [quote("Passie et al., The pharmacology of psilocybin (Addict Biol, 2002)", "passie-2002", "Psilocybin is rapidly dephosphorylated to psilocin, the active compound.", "States the prodrug relation.", { sourceType: "journal" })],
+      }),
+      row("pharmacology", "receptor", "Psilocin acts at 5-HT2A receptors.", "approved", "blocking", 600, {
+        referenceIds: ["passie-2002"], confidence: 0.93,
+        supports: [quote("Passie et al., The pharmacology of psilocybin (Addict Biol, 2002)", "passie-2002", "Psilocin has a high affinity for 5-HT2A receptors.", "Names the receptor.", { sourceType: "journal" })],
+      }),
+    ]],
+  ]);
+}
+
+/**
+ * `GET /api/citation-evidence/queue?status=`: one summary per article, as the
+ * route's native query answers. `open` keeps an article while any row is not
+ * accepted, `approved` lists fully accepted articles, `rejected` those holding
+ * a rejected row, `all` every article; newest activity first.
+ */
+export function citationQueueSummaries(evidence, filter = "open") {
+  const summaries = [];
+  let articleId = 0;
+  for (const [slug, rows] of evidence) {
+    articleId += 1;
+    const count = (test) => rows.filter(test).length;
+    const blocking = (status) => count((row) => row.severity === "blocking" && row.status === status);
+    const approved = count((row) => row.status === "approved");
+    const rejected = count((row) => row.status === "rejected");
+    const keep = filter === "all"
+      || (filter === "open" && approved < rows.length)
+      || (filter === "approved" && rows.length > 0 && approved === rows.length)
+      || (filter === "rejected" && rejected > 0);
+    if (!keep) continue;
+    const diagnostics = rows.flatMap((row) => row.diagnostics ?? []);
+    summaries.push({
+      slug,
+      articleId,
+      totalRows: rows.length,
+      supportedCount: count((row) => row.status === "supported"),
+      needsSourceCount: count((row) => row.status === "needs_source"),
+      needsReviewCount: count((row) => row.status === "needs_review"),
+      approvedCount: approved,
+      rejectedCount: rejected,
+      blockingCount: count((row) => row.severity === "blocking"),
+      blockingNeedsSourceCount: blocking("needs_source"),
+      blockingNeedsReviewCount: blocking("needs_review"),
+      blockingSupportedCount: blocking("supported"),
+      blockingRejectedCount: blocking("rejected"),
+      diagnosticErrorCount: diagnostics.filter((entry) => entry.severity === "error").length,
+      diagnosticWarningCount: diagnostics.filter((entry) => entry.severity === "warning").length,
+      sectionIds: [...new Set(rows.map((row) => row.section))],
+      updatedAt: rows.map((row) => row.updatedAt).sort().at(-1) ?? null,
+    });
+  }
+  return summaries.sort((left, right) => String(right.updatedAt).localeCompare(String(left.updatedAt)));
+}
+
+/**
  * What waits on an admin in the Inbox: trip reports, article, site and
  * glossary feedback, citation articles and one expired claim. The waiting
  * proposal comes from `seedProposal`. Every source is present so each row
@@ -400,16 +556,8 @@ export function seedInbox() {
         alternative: "Gewöhnung", details: "Reads oddly in the dosage context.", created_at: at(90),
       },
     ],
-    citations: [
-      {
-        slug: "lsd", articleId: 1, totalRows: 14, supportedCount: 6, needsSourceCount: 3, needsReviewCount: 2,
-        approvedCount: 3, rejectedCount: 0, blockingCount: 2, updatedAt: at(48),
-      },
-      {
-        slug: "mdma", articleId: 2, totalRows: 8, supportedCount: 5, needsSourceCount: 0, needsReviewCount: 1,
-        approvedCount: 2, rejectedCount: 0, blockingCount: 0, updatedAt: at(400),
-      },
-    ],
+    // The open queue, as the route answers it from `seedCitationEvidence`.
+    citations: citationQueueSummaries(seedCitationEvidence(), "open"),
     claims: [
       // Held by another admin and left untouched for over a day: reads as unclaimed.
       { source: "citations", item_id: "mdma", claimed_by: FIXTURE_OTHER_ADMIN, claimed_at: at(60), expired: true },
@@ -1239,6 +1387,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   const inbox = state === "empty"
     ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [], corrections: {}, candidates: {} }
     : seedInbox();
+  /** Citation evidence rows by article slug (Citations and the Inbox's citation queue). */
+  const citationEvidence = state === "empty" ? new Map() : seedCitationEvidence();
   /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
   /** The viewer's own published trip reports (My reports), keyed by id. */
@@ -2302,8 +2452,42 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         return json(200, { ok: true, feedback: structuredClone(row) });
       });
     }
+    // Citations: the queue by filter, one article's rows, and status writes (admin only, as the route).
     if (pathname === "/api/citation-evidence/queue" && upper === "GET") {
-      return toolRead(() => json(200, { ok: true, queue: structuredClone(inbox.citations) }));
+      return toolRead(() => json(200, { ok: true, queue: citationQueueSummaries(citationEvidence, params.get("status") ?? "open") }));
+    }
+    if (pathname === "/api/citation-evidence" && upper === "GET") {
+      return toolRead(() => {
+        const slug = params.get("slug") ?? "";
+        const rows = citationEvidence.get(slug) ?? [];
+        const answer = json(200, { ok: true, slug, rows: structuredClone(rows) });
+        // Under `conflicted`, another admin decides the article's first ready
+        // row right after the reviewer's first read of it.
+        if (fixture.state === "conflicted" && !contested.has(`citations:${slug}`)) {
+          contested.add(`citations:${slug}`);
+          const ready = rows.find((row) => row.status === "supported");
+          if (ready) Object.assign(ready, { status: "approved", statusReason: undefined, updatedAt: tick() });
+        }
+        return answer;
+      });
+    }
+    if (pathname === "/api/citation-evidence/status" && upper === "POST") {
+      if (fixture.role !== "admin") return json(403, { error: "Admin access required." });
+      return toolWrite(() => {
+        const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
+        const claimKeys = Array.isArray(body?.claimKeys) ? body.claimKeys : [];
+        if (!slug) return json(400, { error: "Slug is required." });
+        if (claimKeys.length === 0) return json(400, { error: "At least one claim key is required." });
+        const wanted = new Set(claimKeys);
+        const at = tick();
+        let updated = 0;
+        for (const row of citationEvidence.get(slug) ?? []) {
+          if (!wanted.has(row.claimKey)) continue;
+          Object.assign(row, { status: body.status, statusReason: body.statusReason || undefined, updatedAt: at });
+          updated += 1;
+        }
+        return json(200, { ok: true, updated, updatedBy: fixture.session.user.email });
+      });
     }
     const statusMatch = /^\/api\/(trip-report-submissions|article-feedback|site-feedback|glossary-feedback)\/([^/]+)\/status$/.exec(pathname);
     if (statusMatch && upper === "POST") {

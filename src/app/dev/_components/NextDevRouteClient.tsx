@@ -7,7 +7,7 @@ import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
 import { DevModeProvider } from "@/features/dev/context/DevModeContext";
 import { DevModePage } from "@/features/dev/pages/DevModePage";
-import { LIBRARY_DEPENDENT_TABS } from "@/features/dev/pages/devModePageUtils";
+import { tabNeedsLibrary } from "@/features/dev/pages/devModePageUtils";
 import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 import { parsePath, viewToPath } from "@/utils/routing";
 import { useOwnedProfileKey } from "./useOwnedProfileKey";
@@ -104,12 +104,10 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, onOpenP
   navigate: (path: string) => void;
   getCurrentPath: () => string;
 }) {
-  // Blocking corpus tools and the two late-fill consumers keep their existing
-  // behavior. Change Review waits until "Load into editor" is actually used.
-  const needsLibrary = useLibraryLatch(
-    LIBRARY_DEPENDENT_TABS.has(routeState.tab)
-    || routeState.tab === "tag-editor",
-  );
+  // Blocking corpus tools and the registry's deferred consumers (Tags,
+  // Citations) start the drain; the deferred ones render without waiting.
+  // Change Review waits until "Load into editor" is actually used.
+  const needsLibrary = useLibraryLatch(tabNeedsLibrary(routeState.tab));
   const { library, isLoading: isLoadingLibrary, requestLibrary } = useLazyLibrary(needsLibrary);
 
   // Nothing gates the shell. The tab rail paints on the first client render;

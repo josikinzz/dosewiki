@@ -571,6 +571,34 @@ builds a new shared primitive, add it to **Conventions** and log it under
   is loading drops its number and carries sr-only ", not loaded", so its name
   never reads as a zero.
 
+- **A write route without a revision check reads first.** When a tool's write
+  route takes no expected revision (citation status), the tool re-reads the
+  records it is about to change, compares what it showed (status, note, time),
+  and refuses with "Someone changed one of these rows after you opened it, so
+  nothing was saved. The latest is on screen now" (a warning in the dock) when
+  any moved. Undo refuses the same way when a row was decided again since
+  (`rowsChangedSince`, `rowsMovedSinceDecision` in
+  `src/features/dev/tools/citation-review/citationPaneModel.ts`).
+- **A decision never moves the row it decided.** A list whose order depends on
+  status (accepted last) holds the order rows first appeared in until the
+  reviewer refreshes or opens another record, so the result and its Undo stay
+  where the eye is.
+- **Per-row decisions inside an item keep their result in the row; the dock
+  holds the item-wide decision.** When one item holds many sub-decisions
+  (evidence rows in an article), each row keeps its buttons, result and Undo;
+  the pane's dock holds the result notice, the hold line and the item-wide
+  action (approve the set) with its one reason and a way to satisfy it ("Open
+  the next unread row", `o`). A decision that drains the item from the filter
+  keeps the pane on it with "Next waiting".
+- **A gate that asks the reviewer to read first offers the next unread.** When
+  a bulk action unlocks only after each part was opened, the dock names the
+  count ("1 of 4 opened"), rows carry an "Opened" mark, the opened set is kept
+  per record for the session, and a button and key open the next unread part.
+- **Registry corpus needs are honoured by the route.** `NextDevRouteClient`
+  starts the library drain for every tab `tabNeedsLibrary` names (blocking
+  `library` and `library-deferred`), not a hard-coded list; a tool that needs
+  article titles or whole articles says `library-deferred`.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1873,3 +1901,106 @@ Deferred, with reasons:
   differ clearly instead.
 - Sending the public reason from the pane instead of the reject dialog: it
   belongs to one decision, and the dialog now echoes the private note.
+
+### Pass 16: Citations (`/dev/citation-review`, alias `/dev/citations`)
+
+Commit: see `git log --grep "Dev tools redesign: Citations"`.
+Screenshots: `tmp/redesign/citations/before/` and `tmp/redesign/citations/after/`
+(admin loaded dark and light, full page; alias; every row kind open: ready with
+two sources, needs review with diagnostics and a legacy snippet, rejected with
+its note, needs source; reject form and Other; rejected; approved; undone; `a`
+with nothing open; `r`; section locked, confirm and approved; set confirm,
+approved and locked at the bottom; MDMA, Ketamine, Caffeine; Accepted,
+Rejected, All; search and no match; claimed; frozen decision; conflicted
+decision; deep link and missing deep link; empty; failed; loading; rows
+loading; rows failed; refresh failed with the list kept; stale rail count;
+editor and contributor locked; desktop and phone), captured by
+`tmp/redesign/citations/capture.mjs`. Critique in
+`tmp/redesign/citations/critique.md` (18/40 before), inventory with the
+item-by-item check in `tmp/redesign/citations/inventory.md`, detector evidence
+in `tmp/redesign/citations/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: on phones evidence rows were unreadable (pills squeezed the claim
+  to a few letters and the quote to a word per line); rows now stack the
+  status under a claim that never truncates. The status route writes without a
+  revision check, so a row another admin had just decided was decided blind;
+  every decision and undo now reads the rows first and refuses with the latest
+  on screen (see Conventions). Approving a rejected row or one the checks
+  flagged with an error now asks first (quoting the reason or the error), and a
+  row needs a support with a verified quote to be approvable
+  (`canApproveCitationEvidence`). The tool loaded no corpus, so titles showed
+  as slugs and the checklist's marker check and the token preview never
+  appeared unless another tool had loaded the library; the registry now says
+  `library-deferred` and the route honours it.
+- Layout: the triage workspace. `CitationQueuePanel` is the list column
+  (sticky from `lg` at `top-24`): "Articles" meta heading, count line, Refresh,
+  `CitationFilterChoices` (four filters in one grid, group "Queue filter"),
+  search with glyph, `/` cap and Escape, the freshness line, the missing deep
+  link line, one `LoadErrorState` for the queue (Open Review portal kept), the
+  empty and no-match states, the windowed list with fixed rows (title, blocking
+  and ready counts, holder, rows and accepted, relative time) and a key hint.
+  `CitationArticlePane` (new) docks right: title, one tally line, "Last
+  change", Open in Review, pager (`j`/`k`) and Back to list below `lg`, the
+  hidden-by-list line ("Not in the Open list after your decision", "Your
+  search hides this article"), "Where it stands", the sections, the folded
+  "Markers in the article text", and the dock (result notice, the other
+  article's undo, pending line, key hint, freeze line, hold line with Claim /
+  Release through the Inbox's claims, "Approve N ready rows" with its reason and
+  "Open the next unread row").
+- Rows (`CitationEvidencePanels.tsx`): sections as open lists of disclosure
+  rows (`h5 > button`, `ExpandIndicator`), "Opened" marks, one Blocking tone
+  shown only while not accepted, supports as figures with source, reference,
+  type, quality, how the quote matched and "Why it supports the claim",
+  diagnostics as a readable list, a meta line with confidence and keys, reason
+  lines under Approve and Reject, key caps on the active row, pending labels.
+  The section approval ("Approve N in <Section>") shows from two ready rows,
+  after the rows.
+- Order and keys: rows hold their first order until Refresh; `o` opens the
+  next unread ready row (and scrolls it in with focus on its toggle), `/`
+  focuses search, `j`/`k` move articles and focus the pane heading; all in the
+  `?` sheet.
+- Results: row, section and set undos stay beside what they changed (`u`
+  undoes; "Dismiss" instead of "Keep"); a drained article stays open with "left
+  the Open list" and "Next waiting"; a decision on another article is offered in
+  the dock with a link to it; freeze refusals read "Writes are paused, so that
+  was not saved."; the address follows the picked article.
+- Copy: Approve (verb) and Accepted (status), "ready to approve", section
+  names in sentence case from the catalog, checklist in plain words ("Markers
+  in the article text", no "dev draft"), empty states per filter ("All clear").
+- New modules: `CitationArticlePane.tsx` (`CitationArticlePane`, `KeyCap`,
+  `RelativeTime`, `CitationPaneSkeleton`), `citationPaneModel.ts` (`tallyRows`,
+  `describeTally`, `describeQueueTotals`, `describeEmptyFilter`,
+  `describeListCount`, `summaryBlockingGaps`, `rowsChangedSince`,
+  `rowsMovedSinceDecision`, `describeConflict`, `CITATION_FREEZE_COPY`) with
+  tests. `CitationQueueHeader`, `CitationSelectedSummary`,
+  `CitationChecklistPanel`, `CitationBulkApprovePanel` and the tone tiles are
+  gone. `useCitationReviewData` gains claims, `actionFailure` (failed, frozen,
+  conflict), `pendingStatus`, `isUndoing`, `missingSlug`, `keepSelection`;
+  `CitationReviewTab` takes `actorEmail` (the shell passes `userEmail`).
+- Shared, backward compatible: `NextDevRouteClient` drains the library for
+  every `tabNeedsLibrary` tab (Tags unchanged); `EditorCitationDiagnosticsPanel`
+  labels use `type-meta-label` (also in the Substances references form).
+- Journeys fixtures: `seedCitationEvidence` (LSD with every row state, MDMA,
+  Ketamine with a rejection, Caffeine, fully accepted Psilocybin) and
+  `citationQueueSummaries`; `/api/citation-evidence/queue` answers every filter
+  from the rows, `/api/citation-evidence?slug=` the rows, the status POST (admin
+  floor, freeze) changes them; under `conflicted` another admin accepts the
+  article's first ready row after the first read. The Inbox's citation seed is
+  derived from the same rows, so it lists four articles. With a unit test.
+
+Deferred, with reasons:
+
+- A source link per quote and the article sentence with its marker in place:
+  the evidence payload has no source URL and a field path does not reliably
+  name one sentence; both need server fields.
+- Disabling decisions while writes are frozen: the Inbox decision (buttons stay
+  enabled so the next write can clear the freeze); the dock says it.
+- Moving the single-row result and Undo into the dock: tests and the earlier
+  design keep it in the row, next to the buttons that made it (see Conventions).
+- A second reviewer for harm-critical sections, per-quote approval, and handing
+  gaps back to a research queue: product and server decisions.
+- Article titles in the Inbox's citation rows: its adapter has no corpus; the
+  Inbox pass owns that surface.
+

@@ -1,41 +1,42 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import {
   EditorActionGroup,
   EditorField,
-  EditorPanel,
-  EditorPanelBody,
-  EditorSection,
   EditorSelect,
   EditorStatusPill,
 } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
 import {
   CITATION_REJECT_REASONS,
   CITATION_REJECT_REASON_LABEL,
-  CITATION_SEVERITY_LABEL,
   CITATION_STATUS_LABEL,
   citationTone,
   formatCitationCount,
   formatCitationRejectReason,
   formatCitationSectionLabel,
   type CitationEvidenceRow as CitationEvidenceRowModel,
-  type CitationEvidenceStatus,
   type CitationRejectReason,
   type CitationReviewCommands,
 } from "./citationReviewModels";
 import {
   CitationUndoBar,
-  toneIconClass,
-  toneTileClass,
   type CitationEvidenceDecisionHandlers,
   type CitationRejectRequest,
   type CitationUndoOffer,
 } from "./CitationReviewPanels";
+import { KeyCap } from "./CitationArticlePane";
 
+/** A request to open one row (the `o` key, "Open the next unread row"); `nonce` changes per press. */
+export type CitationOpenRequest = { claimKey: string; nonce: number };
 
+/**
+ * One article section: its rows as an open list of disclosure rows, then,
+ * from two ready rows, the section's own approval with the reason it waits.
+ */
 export function CitationEvidenceSection({
   group,
   commands,
@@ -44,10 +45,15 @@ export function CitationEvidenceSection({
   sectionUndo,
   rowUndo,
   rejectRequest,
+  openRequest,
+  activeClaimKey = null,
+  pendingStatus = null,
   onApproveSection,
 }: {
   /** The `r` key's request to open one row's reject form. */
   rejectRequest?: CitationRejectRequest | null;
+  /** A request to open one row and bring it into view. */
+  openRequest?: CitationOpenRequest | null;
   group: { section: string; label: string; rows: CitationEvidenceRowModel[] };
   commands: CitationReviewCommands;
   handlers: CitationEvidenceDecisionHandlers;
@@ -57,6 +63,10 @@ export function CitationEvidenceSection({
   sectionUndo?: CitationUndoOffer | null;
   /** Undo for a single-row decision; rendered inside that row. */
   rowUndo?: CitationUndoOffer | null;
+  /** The row the `a` and `r` keys act on, which shows their caps. */
+  activeClaimKey?: string | null;
+  /** The verdict being written to the pending rows, so their buttons can say so. */
+  pendingStatus?: "approved" | "rejected" | null;
   onApproveSection: (section: string, claimKeys: string[]) => void;
 }) {
   const sectionCommand = commands.sections[group.section]?.approve ?? { claimKeys: [], disabled: true };
@@ -65,31 +75,23 @@ export function CitationEvidenceSection({
   // Same rule as the article-wide approval: every quote it would publish has
   // been opened first.
   const locked = readyCount > 0 && openedCount < readyCount;
-  const rowCount = formatCitationCount(group.rows.length, "evidence row");
+  const headingId = useId();
+  const reasonId = useId();
+  const label = formatCitationSectionLabel(group.section);
 
   return (
-    <EditorSection
-      title={formatCitationSectionLabel(group.section)}
-      description={
-        locked
-          ? `${rowCount} for this section. Open each ready row to approve them together (${openedCount} of ${readyCount} opened).`
-          : `${rowCount} for this section.`
-      }
-      actions={(
-        <Button
-          variant="outline"
-          size="pill"
-          className="rounded-full"
-          disabled={sectionCommand.disabled || locked}
-          onClick={() => onApproveSection(group.section, sectionCommand.claimKeys)}
-        >
-          <Icon icon="lucide:badge-check" size={16} />
-          Approve section-ready rows
-        </Button>
-      )}
-    >
-      <div className="space-y-3">
-        {sectionUndo ? <CitationUndoBar offer={sectionUndo} /> : null}
+    <section aria-labelledby={headingId} className="space-y-2">
+      <div className="theme-portal-rule flex items-baseline justify-between gap-3 border-b pb-1.5">
+        <h4 id={headingId} className="theme-accent-heading text-base font-semibold">
+          {label}
+        </h4>
+        <p className="theme-text-muted shrink-0 text-xs tabular-nums">
+          {formatCitationCount(group.rows.length, "row")}
+          {readyCount > 0 ? `, ${readyCount} ready` : ""}
+        </p>
+      </div>
+      {sectionUndo ? <CitationUndoBar offer={sectionUndo} /> : null}
+      <ul className="theme-dev-link-list -mx-2.5">
         {group.rows.map((row) => (
           <CitationEvidenceRow
             key={`${row.section}-${row.claimKey}`}
@@ -101,27 +103,48 @@ export function CitationEvidenceSection({
               rejectDisabled: true,
             }}
             handlers={handlers}
+            opened={openedClaimKeys.has(row.claimKey)}
+            active={activeClaimKey === row.claimKey}
+            pendingStatus={pendingStatus}
             undo={rowUndo && rowUndo.decision.prior[0]?.claimKey === row.claimKey ? rowUndo : null}
             rejectRequest={rejectRequest?.claimKey === row.claimKey ? rejectRequest.nonce : undefined}
+            openRequest={openRequest?.claimKey === row.claimKey ? openRequest.nonce : undefined}
           />
         ))}
-      </div>
-    </EditorSection>
+      </ul>
+      {readyCount > 1 ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={sectionCommand.disabled || locked}
+            aria-describedby={reasonId}
+            onClick={() => onApproveSection(group.section, sectionCommand.claimKeys)}
+          >
+            <Icon icon="lucide:badge-check" size={14} />
+            {`Approve ${readyCount} in ${label}`}
+          </Button>
+          <p id={reasonId} className="theme-text-muted min-w-0 flex-1 text-xs">
+            {locked
+              ? `Open each ready row to approve them together (${openedCount} of ${readyCount} opened).`
+              : "Asks first."}
+          </p>
+        </div>
+      ) : null}
+    </section>
   );
 }
-
-const UNRESOLVED_CITATION_STATUSES: readonly CitationEvidenceStatus[] = [
-  "needs_source",
-  "needs_review",
-  "rejected",
-];
 
 function formatCitationConfidence(value: number): string {
   const display = value >= 0 && value <= 1 ? `${Math.round(value * 100)}%` : `${value}`;
   return `${display} confidence`;
 }
 
-const REFERENCE_ID_BADGE_CLASS = "max-w-full break-all font-mono normal-case tracking-normal";
+const MATCH_WORDS: Record<string, string> = {
+  exact: "Exact match in the source",
+  normalized_whitespace: "Matched in the source after spacing was normalized",
+};
 
 const REJECT_REASON_OPTIONS = CITATION_REJECT_REASONS.map((value) => ({
   value,
@@ -132,10 +155,15 @@ const MAX_REJECT_DETAIL_LENGTH = 500;
 
 function CitationSupportQuote({ children }: { children: ReactNode }) {
   return (
-    <blockquote className="theme-quote-accent-border border-l-2 pl-3 text-sm leading-6 theme-text-secondary">
+    <blockquote className="theme-quote-accent-border border-l-2 pl-3 text-sm leading-6 theme-text-primary">
       {children}
     </blockquote>
   );
+}
+
+/** A short label over a block inside an open row, in sentence case. */
+function RowLabel({ children }: { children: ReactNode }) {
+  return <p className="theme-text-muted text-xs font-medium">{children}</p>;
 }
 
 function CitationRejectForm({
@@ -164,7 +192,8 @@ function CitationRejectForm({
   const detailMissing = detailRequired && detail.trim().length === 0;
 
   return (
-    <div className={`mt-4 space-y-3 ${toneTileClass("danger")}`}>
+    <div className="space-y-3 rounded-card border border-[color:var(--theme-danger-border)] px-3 py-3 sm:px-4">
+      <p className="theme-text-primary text-sm font-semibold">Reject this row</p>
       <EditorField
         id={reasonId}
         label="Why is this row rejected?"
@@ -192,7 +221,7 @@ function CitationRejectForm({
           <Textarea
             {...fieldProps}
             textareaSize="sm"
-            className="min-h-[72px] resize-y"
+            className="min-h-[72px] resize-y [field-sizing:content] max-h-[40vh]"
             value={detail}
             maxLength={MAX_REJECT_DETAIL_LENGTH}
             placeholder="What the next editor should check."
@@ -203,15 +232,15 @@ function CitationRejectForm({
       <EditorActionGroup label="Reject confirmation actions">
         <Button
           variant="destructivePill"
-          size="pill"
-          className="rounded-full"
+          size="sm"
+          className="rounded-control"
           disabled={detailMissing || pending}
           onClick={() => onConfirm(formatCitationRejectReason(reason, detail))}
         >
-          <Icon icon="lucide:x-circle" size={16} />
-          Reject row
+          <Icon icon="lucide:x-circle" size={14} />
+          {pending ? "Rejecting" : "Reject row"}
         </Button>
-        <Button variant="quiet" size="quiet" onClick={onCancel} disabled={pending}>
+        <Button variant="ghost" size="sm" onClick={onCancel} disabled={pending}>
           Keep reviewing
         </Button>
       </EditorActionGroup>
@@ -219,24 +248,49 @@ function CitationRejectForm({
   );
 }
 
+/** Why a row's Approve is off, or what approving it means, in one line. */
+function approveNote(row: CitationEvidenceRowModel, canApprove: boolean): string {
+  if (row.status === "approved") return "Accepted. This quote is part of the article's public evidence.";
+  if (!canApprove) {
+    return row.status === "needs_source"
+      ? "No source was found for this claim, so there is nothing to approve. It stays unmarked until a new research pass finds one."
+      : "No verified quote, so this row cannot be approved. Reject it with a reason, or leave it for the next research pass.";
+  }
+  if (row.status === "rejected") return "Rejected. Approving it now asks first and makes the quote public evidence.";
+  return "Approving makes this quote part of the article's public evidence at once.";
+}
+
 function CitationEvidenceRow({
   row,
   command,
   handlers,
   undo,
+  opened,
+  active,
+  pendingStatus,
   rejectRequest,
+  openRequest,
 }: {
   row: CitationEvidenceRowModel;
   command: CitationReviewCommands["rows"][string];
   handlers: CitationEvidenceDecisionHandlers;
   undo: CitationUndoOffer | null;
+  opened: boolean;
+  active: boolean;
+  pendingStatus: "approved" | "rejected" | null;
   /** Changes each time the `r` key asks this row for its reject form. */
   rejectRequest?: number;
+  /** Changes each time something asks this row to open. */
+  openRequest?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [keyboardReject, setKeyboardReject] = useState(false);
   const [seenRejectRequest, setSeenRejectRequest] = useState(rejectRequest);
+  const [seenOpenRequest, setSeenOpenRequest] = useState(openRequest);
+  const itemRef = useRef<HTMLLIElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+  const [scrollOnOpen, setScrollOnOpen] = useState(false);
   if (rejectRequest !== seenRejectRequest) {
     setSeenRejectRequest(rejectRequest);
     if (rejectRequest !== undefined && !command.rejectDisabled) {
@@ -245,9 +299,27 @@ function CitationEvidenceRow({
       setKeyboardReject(true);
     }
   }
-  const isUnresolved = UNRESOLVED_CITATION_STATUSES.includes(row.status);
+  if (openRequest !== seenOpenRequest) {
+    setSeenOpenRequest(openRequest);
+    if (openRequest !== undefined) {
+      setExpanded(true);
+      setScrollOnOpen(true);
+    }
+  }
+  // A row opened from elsewhere (the dock, the `o` key) counts as opened and
+  // comes into view with focus on its toggle, so `a` and `r` act on it.
+  useEffect(() => {
+    if (!scrollOnOpen) return;
+    setScrollOnOpen(false);
+    handlers.onRowExpanded(row.claimKey);
+    itemRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    toggleRef.current?.focus({ preventScroll: true });
+  }, [handlers, row.claimKey, scrollOnOpen]);
+
   const referenceIds = [...new Set(row.referenceIds)];
   const supports = row.supports ?? [];
+  const supportIds = new Set(supports.map((support) => support.referenceId));
+  const otherReferenceIds = referenceIds.filter((id) => !supportIds.has(id));
   const reviewerNote = row.statusReason?.trim() ?? "";
   const legacySnippet = row.supportingSnippet?.trim() ?? "";
   const showLegacySnippet =
@@ -261,48 +333,205 @@ function CitationEvidenceRow({
   // The collapsed row previews the quote it rests on, so a scan of the list
   // already shows what each approval would publish.
   const previewQuote = supports.find((support) => support.supportingQuote.trim())?.supportingQuote.trim() || legacySnippet;
+  const blocking = row.severity === "blocking" && row.status !== "approved";
+  const bodyId = useId();
+  const errors = (row.diagnostics ?? []).filter((diagnostic) => diagnostic.severity === "error").length;
 
   return (
-    <EditorPanel variant="inset" role="group" aria-label={`Evidence row: ${claimLabel}`}>
-      <button
-        type="button"
-        aria-expanded={expanded}
-        onClick={() => {
-          if (expanded) handlers.onRowCollapsed?.(row.claimKey);
-          else handlers.onRowExpanded(row.claimKey);
-          setExpanded(!expanded);
-        }}
-        className="theme-focus-ring-inset flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5"
-      >
-        <Icon icon="lucide:chevron-right" size={16} className={`theme-text-faint shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium theme-text-primary">{claimLabel}</span>
-          {!expanded && previewQuote ? <span className="mt-1 line-clamp-2 block text-sm theme-text-muted">{previewQuote}</span> : null}
-        </span>
-        <span className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-          {typeof row.confidence === "number" ? <span className="text-xs theme-text-faint">{formatCitationConfidence(row.confidence)}</span> : null}
-          {row.severity === "blocking" ? <EditorStatusPill tone={isUnresolved ? citationTone({ kind: "severity", value: row.severity }) : "neutral"} title="Blocks publication if left unresolved">{CITATION_SEVERITY_LABEL[row.severity]}</EditorStatusPill> : null}
-          <EditorStatusPill tone={citationTone({ kind: "status", value: row.status })}>{CITATION_STATUS_LABEL[row.status]}</EditorStatusPill>
-        </span>
-      </button>
+    <li ref={itemRef} role="group" aria-label={`Evidence row: ${claimLabel}`} className="scroll-mt-28">
+      <h5 className="text-sm">
+        <button
+          ref={toggleRef}
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={bodyId}
+          onClick={() => {
+            if (expanded) handlers.onRowCollapsed?.(row.claimKey);
+            else handlers.onRowExpanded(row.claimKey);
+            setExpanded(!expanded);
+          }}
+          className={cn(
+            "theme-dev-link-row flex min-h-11 w-full items-start gap-3 rounded-control px-2.5 py-2.5 text-left",
+            expanded && "theme-dev-link-lead",
+          )}
+        >
+          <span className="min-w-0 flex-1 space-y-1.5">
+            <span className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+              <span className="theme-text-primary min-w-0 font-medium leading-snug">{claimLabel}</span>
+              <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+                {opened && !expanded ? (
+                  <span className="theme-text-faint inline-flex items-center gap-1 text-xs" title="You opened this row">
+                    <Icon icon="lucide:eye" size={12} />
+                    Opened
+                  </span>
+                ) : null}
+                {blocking ? (
+                  <EditorStatusPill inline tone="caution" title="Blocks publication while it is unresolved">
+                    Blocking
+                  </EditorStatusPill>
+                ) : null}
+                <EditorStatusPill inline tone={citationTone({ kind: "status", value: row.status })}>
+                  {CITATION_STATUS_LABEL[row.status]}
+                </EditorStatusPill>
+              </span>
+            </span>
+            {!expanded && previewQuote ? (
+              <span className="theme-quote-accent-border theme-text-muted line-clamp-2 block border-l-2 pl-2.5 leading-6">
+                {previewQuote}
+              </span>
+            ) : null}
+          </span>
+          <ExpandIndicator isExpanded={expanded} className="mt-0.5 shrink-0" />
+        </button>
+      </h5>
 
-      {undo ? <div className="border-t border-[color:var(--editor-panel-border)] px-4 py-3 sm:px-5"><CitationUndoBar offer={undo} /></div> : null}
+      {undo ? <div className="px-2.5 pb-2"><CitationUndoBar offer={undo} /></div> : null}
 
-      {expanded ? (
-        <EditorPanelBody className="border-t border-[color:var(--editor-panel-border)]">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold theme-text-primary">{claimLabel}</p>
-            <p className="mt-1 break-all text-xs theme-text-faint">{row.claimKey}{row.fieldPath ? ` · ${row.fieldPath}` : ""}</p>
-          </div>
-          {reviewerNote ? <div className={`mt-3 ${toneTileClass(citationTone({ kind: "status", value: row.status }))}`}><p className="text-xs font-medium uppercase tracking-[0.2em] theme-text-faint">Reviewer note</p><p className="mt-1 text-sm theme-text-secondary">{reviewerNote}</p></div> : null}
-          {referenceIds.length > 0 ? <div className="mt-3 flex flex-wrap gap-2">{referenceIds.map((referenceId) => <Badge key={`${row.claimKey}-${referenceId}`} variant="secondary" className={REFERENCE_ID_BADGE_CLASS}>{referenceId}</Badge>)}</div> : null}
-          {showLegacySnippet ? <div className="mt-4"><CitationSupportQuote>{row.supportingSnippet}</CitationSupportQuote></div> : null}
-          {showLegacyRationale ? <p className="mt-3 text-sm theme-text-muted">{row.supportRationale}</p> : null}
-          {supports.length > 0 ? <div className="mt-4 space-y-4">{supports.map((support, index) => <div key={`${row.claimKey}-${support.referenceId}-${index}`} className="space-y-1.5"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium theme-text-primary">{support.sourceName}</p><Badge variant="secondary" className={REFERENCE_ID_BADGE_CLASS}>{support.referenceId}</Badge>{support.sourceType && support.sourceType !== "unknown" ? <Badge variant="secondary">{support.sourceType}</Badge> : null}{support.quality ? <Badge variant="secondary" className="normal-case tracking-normal">Quality: {support.quality}</Badge> : null}</div><CitationSupportQuote>{support.supportingQuote}</CitationSupportQuote><p className="text-sm theme-text-muted">{support.rationale}</p></div>)}</div> : null}
-          {(row.diagnostics?.length ?? 0) > 0 ? <div className="mt-4 space-y-2">{(row.diagnostics ?? []).map((diagnostic, index) => { const tone = citationTone({ kind: "diagnostic", value: diagnostic.severity }); return <div key={`${row.claimKey}-diagnostic-${index}`} className={`text-sm theme-text-secondary ${toneTileClass(tone)}`}><div className="flex items-center gap-2"><Icon icon={diagnostic.severity === "error" ? "lucide:triangle-alert" : "lucide:badge-alert"} size={15} className={toneIconClass(tone)} /><span className="font-medium theme-text-primary">{diagnostic.code}</span></div><p className="mt-1">{diagnostic.message}</p></div>; })}</div> : null}
-          {rejecting ? <CitationRejectForm pending={command.isPending} focusOnOpen={keyboardReject} onCancel={() => { setRejecting(false); setKeyboardReject(false); }} onConfirm={(statusReason) => { setRejecting(false); setKeyboardReject(false); handlers.onReject(row.claimKey, statusReason); }} /> : <EditorActionGroup label="Evidence row decision actions" className="mt-4"><Button variant="success" size="pill" className="rounded-full" disabled={command.approveDisabled} onClick={() => handlers.onApprove([row.claimKey])}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:badge-check"} size={16} className={command.isPending ? "animate-spin" : undefined} />Approve</Button><Button variant="destructivePill" size="pill" className="rounded-full" disabled={command.rejectDisabled} onClick={() => { setRejecting(true); setKeyboardReject(false); }}><Icon icon={command.isPending ? "lucide:loader-2" : "lucide:x-circle"} size={16} className={command.isPending ? "animate-spin" : undefined} />Reject</Button></EditorActionGroup>}
-        </EditorPanelBody>
-      ) : null}
-    </EditorPanel>
+      <div id={bodyId} hidden={!expanded} className="space-y-4 px-2.5 pb-4 pt-1">
+        {expanded ? (
+          <>
+            {reviewerNote ? (
+              <div className="space-y-1 rounded-card border border-[color:var(--editor-panel-border)] px-3 py-2">
+                <RowLabel>{row.status === "rejected" ? "Why it was rejected" : "Reviewer note"}</RowLabel>
+                <p className="theme-text-secondary text-sm">{reviewerNote}</p>
+              </div>
+            ) : null}
+
+            {supports.length > 0 ? (
+              <div className="space-y-4">
+                {supports.map((support, index) => (
+                  <figure key={`${row.claimKey}-${support.referenceId}-${index}`} className="space-y-1.5">
+                    <CitationSupportQuote>{support.supportingQuote}</CitationSupportQuote>
+                    <figcaption className="theme-text-muted space-y-0.5 pl-3.5 text-xs">
+                      <span className="theme-text-secondary block font-medium">{support.sourceName}</span>
+                      <span className="block [overflow-wrap:anywhere]">
+                        {[
+                          support.referenceId,
+                          support.sourceType && support.sourceType !== "unknown" ? support.sourceType : null,
+                          support.quality ? `${support.quality} quality` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </figcaption>
+                    <p className="theme-text-muted flex items-center gap-1.5 pl-3.5 text-xs">
+                      <Icon icon="lucide:search-check" size={12} className="theme-success-text-strong shrink-0" />
+                      {MATCH_WORDS[support.verifiedQuote?.matchType ?? ""] ?? "Checked against the source"}
+                    </p>
+                    <p className="theme-text-secondary pl-3.5 text-sm">
+                      <span className="theme-text-primary font-medium">Why it supports the claim: </span>
+                      {support.rationale}
+                    </p>
+                  </figure>
+                ))}
+              </div>
+            ) : null}
+
+            {showLegacySnippet ? (
+              <div className="space-y-1.5">
+                <RowLabel>Snippet from an earlier run, not a verified quote</RowLabel>
+                <CitationSupportQuote>{row.supportingSnippet}</CitationSupportQuote>
+              </div>
+            ) : null}
+            {showLegacyRationale ? <p className="theme-text-secondary text-sm">{row.supportRationale}</p> : null}
+
+            {(row.diagnostics?.length ?? 0) > 0 ? (
+              <div className="space-y-1.5">
+                <RowLabel>Checks that flagged this row</RowLabel>
+                <ul className="space-y-1.5">
+                  {(row.diagnostics ?? []).map((diagnostic, index) => (
+                    <li key={`${row.claimKey}-diagnostic-${index}`} className="flex gap-2 text-sm">
+                      <Icon
+                        icon={diagnostic.severity === "error" ? "lucide:triangle-alert" : "lucide:badge-alert"}
+                        size={15}
+                        className={cn("mt-0.5 shrink-0", diagnostic.severity === "error" ? "theme-danger-text-strong" : "theme-warning-text-strong")}
+                      />
+                      <span className="min-w-0">
+                        <span className="theme-text-secondary">{diagnostic.message}</span>{" "}
+                        <span className="theme-text-faint text-xs">({diagnostic.severity === "error" ? "error" : "warning"}, {diagnostic.code})</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {supports.length === 0 && !showLegacySnippet && !reviewerNote ? (
+              <p className="theme-text-muted text-sm">No quote was found for this claim.</p>
+            ) : null}
+
+            <p className="theme-text-faint text-xs [overflow-wrap:anywhere]">
+              {typeof row.confidence === "number" ? `${formatCitationConfidence(row.confidence)} · ` : ""}
+              {otherReferenceIds.length > 0 ? `Also cites ${otherReferenceIds.join(", ")} · ` : ""}
+              {row.fieldPath ? `${row.fieldPath} · ` : ""}
+              {row.claimKey}
+            </p>
+
+            {rejecting ? (
+              <CitationRejectForm
+                pending={command.isPending}
+                focusOnOpen={keyboardReject}
+                onCancel={() => {
+                  setRejecting(false);
+                  setKeyboardReject(false);
+                }}
+                onConfirm={(statusReason) => {
+                  setRejecting(false);
+                  setKeyboardReject(false);
+                  handlers.onReject(row.claimKey, statusReason);
+                }}
+              />
+            ) : (
+              <div className="space-y-1.5">
+                <EditorActionGroup label="Evidence row decision actions">
+                  <Button
+                    variant="success"
+                    size="sm"
+                    disabled={command.approveDisabled}
+                    aria-keyshortcuts={active ? "a" : undefined}
+                    aria-busy={(command.isPending && pendingStatus === "approved") || undefined}
+                    onClick={() => handlers.onApprove([row.claimKey])}
+                  >
+                    <Icon
+                      icon={command.isPending && pendingStatus === "approved" ? "lucide:loader-2" : "lucide:badge-check"}
+                      size={14}
+                      className={command.isPending && pendingStatus === "approved" ? "motion-safe:animate-spin" : undefined}
+                    />
+                    {command.isPending && pendingStatus === "approved" ? "Approving" : "Approve"}
+                    {active && !command.approveDisabled ? <KeyCap>a</KeyCap> : null}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="theme-danger-text-strong"
+                    disabled={command.rejectDisabled}
+                    aria-keyshortcuts={active ? "r" : undefined}
+                    aria-busy={(command.isPending && pendingStatus === "rejected") || undefined}
+                    onClick={() => {
+                      setRejecting(true);
+                      setKeyboardReject(false);
+                    }}
+                  >
+                    <Icon
+                      icon={command.isPending && pendingStatus === "rejected" ? "lucide:loader-2" : "lucide:x-circle"}
+                      size={14}
+                      className={command.isPending && pendingStatus === "rejected" ? "motion-safe:animate-spin" : undefined}
+                    />
+                    {command.isPending && pendingStatus === "rejected" ? "Rejecting" : "Reject"}
+                    {active && !command.rejectDisabled ? <KeyCap>r</KeyCap> : null}
+                  </Button>
+                </EditorActionGroup>
+                <p className="theme-text-muted text-xs">
+                  {approveNote(row, command.canApprove)}
+                  {errors > 0 && command.canApprove && row.status !== "approved"
+                    ? ` A check flagged ${errors === 1 ? "an error" : `${errors} errors`}, so approving asks first.`
+                    : ""}
+                </p>
+              </div>
+            )}
+          </>
+        ) : null}
+      </div>
+    </li>
   );
 }

@@ -526,6 +526,36 @@ describe("journey fixtures", () => {
     assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/trip-report-submissions/fixture-trip-4/promote", { publish: true }).status, 503);
   });
 
+  it("answers Citations: the queue by filter, one article's rows, admin status writes, and a concurrent decision", () => {
+    const fixture = createJourneyFixture();
+    const queue = (status) => get(fixture, "/api/citation-evidence/queue", `?status=${status}`).json.queue.map((row) => row.slug);
+    assert.deepEqual(queue("open"), ["lsd", "caffeine", "ketamine", "mdma"]);
+    assert.deepEqual(queue("approved"), ["psilocybin"]);
+    assert.deepEqual(queue("rejected"), ["lsd", "ketamine"]);
+    assert.equal(queue("all").length, 5);
+    const lsd = get(fixture, "/api/citation-evidence", "?slug=lsd").json.rows;
+    assert.equal(lsd.length, 10);
+
+    // Deciding every open row drains the article out of Open and into Accepted.
+    const keys = get(fixture, "/api/citation-evidence", "?slug=caffeine").json.rows.map((row) => row.claimKey);
+    assert.equal(post(fixture, "/api/citation-evidence/status", { slug: "caffeine", claimKeys: keys, status: "approved" }).json.updated, 1);
+    assert.ok(!queue("open").includes("caffeine"));
+    assert.ok(queue("approved").includes("caffeine"));
+    assert.equal(post(fixture, "/api/citation-evidence/status", { slug: "caffeine", claimKeys: [], status: "approved" }).status, 400);
+
+    assert.equal(post(createJourneyFixture({ role: "editor" }), "/api/citation-evidence/status", { slug: "lsd", claimKeys: ["summary:potency"], status: "approved" }).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/citation-evidence/status", { slug: "lsd", claimKeys: ["summary:potency"], status: "approved" }).status, 503);
+    assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/citation-evidence/queue", "?status=open").status, 500);
+    assert.deepEqual(get(createJourneyFixture({ state: "empty" }), "/api/citation-evidence/queue", "?status=all").json.queue, []);
+
+    // Under conflicted, another admin decides the first ready row after the first read.
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const first = get(conflicted, "/api/citation-evidence", "?slug=lsd").json.rows.find((row) => row.claimKey === "summary:potency");
+    const second = get(conflicted, "/api/citation-evidence", "?slug=lsd").json.rows.find((row) => row.claimKey === "summary:potency");
+    assert.equal(first.status, "supported");
+    assert.equal(second.status, "approved");
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

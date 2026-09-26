@@ -179,7 +179,9 @@ const REGISTRY = [
     aliases: ["citations"],
     keywords: ["references", "sources"],
     role: "admin",
-    data: NO_DATA,
+    // The corpus names each queued article and lets the open article load
+    // whole for its marker checks; the queue itself does not wait for it.
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,

@@ -253,7 +253,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "playlists" ? (
           <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />
         ) : controller.activeTab === "citation-review" ? (
-          <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
+          <CitationReviewTab
+            initialSlug={controller.citationReviewInitialSlug}
+            actorEmail={controller.userEmail ?? null}
+          />
         ) : controller.activeTab === "trip-report-submissions" ? (
           <TripReportPortalTab
             initialSubmissionId={controller.tripReportsInitialId}
