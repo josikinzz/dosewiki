@@ -321,6 +321,16 @@ const toolbarStory: StoryDef = {
         </div>
       ),
     },
+    {
+      label: "Inline, inside a sentence or a row button",
+      note: "`inline` renders the pill as a span, so it is valid inside a p, a label or a button. Pills speak in sentence case; never pass uppercase or tracking.",
+      render: () => (
+        <p className="theme-text-secondary text-sm">
+          Diazepam is <EditorStatusPill tone="success" inline>Live on 5 substances</EditorStatusPill> and{" "}
+          <EditorStatusPill tone="neutral" inline>Hidden on 1 by the cap</EditorStatusPill>.
+        </p>
+      ),
+    },
   ],
 };
 
@@ -367,7 +377,50 @@ function EditorListDemo() {
       onSelect={setSelected}
       emptyText="No substances match."
       search={{ placeholder: "Search substances", matches: (row, query) => row.name.toLowerCase().includes(query.toLowerCase()) }}
-      renderItem={(row, { selected: isSelected }) => <EditorListItem active={isSelected} title={row.name} />}
+      renderItem={(row, { selected: isSelected }) => <EditorListRow active={isSelected} title={row.name} />}
+    />
+  );
+}
+
+type TriageRow = { id: string; title: string; detail: string; pill?: string };
+const TRIAGE_ROWS: TriageRow[] = [
+  { id: "halcyon", title: "Halcyon at the lake", detail: "LSD 100 µg · Waiting since Jan 2", pill: "Accepted" },
+  { id: "festival", title: "Fixture festival notes, part two", detail: "MDMA 100 mg · Waiting since Jan 6" },
+  { id: "drive", title: "Night drive home", detail: "Cannabis 10 mg · Waiting since Jan 10", pill: "New" },
+  { id: "static", title: "Forty minutes of static", detail: "DMT 40 mg · Waiting since Jan 13" },
+];
+
+function EditorListTicksDemo() {
+  const [selected, setSelected] = useState<string | null>("festival");
+  const [checked, setChecked] = useState<ReadonlySet<string>>(new Set(["drive"]));
+  return (
+    <EditorList
+      label="Trip reports"
+      items={TRIAGE_ROWS}
+      getKey={(row) => row.id}
+      selectedKey={selected}
+      onSelect={setSelected}
+      estimateRowHeight={68}
+      emptyText="Nothing waits."
+      multiSelect={{
+        checkedKeys: checked,
+        onToggle: (key) =>
+          setChecked((current) => {
+            const next = new Set(current);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+          }),
+        checkLabel: (row) => `Select ${row.title}`,
+      }}
+      renderItem={(row, { selected: isSelected }) => (
+        <EditorListRow
+          active={isSelected}
+          title={row.title}
+          subtitle={row.detail}
+          badge={row.pill ? <EditorStatusPill tone={row.pill === "New" ? "info" : "success"} inline>{row.pill}</EditorStatusPill> : undefined}
+        />
+      )}
     />
   );
 }
@@ -381,7 +434,16 @@ const listStory: StoryDef = {
   source: "src/features/dev/components/EditorList.tsx",
   importLine: IMPORT_LINE("EditorList"),
   exports: ["EditorList"],
-  examples: [{ label: "Searchable list", background: "plain", full: true, render: () => <EditorListDemo /> }],
+  examples: [
+    { label: "Searchable list", background: "plain", full: true, render: () => <EditorListDemo /> },
+    {
+      label: "Bulk ticks, rows of different heights",
+      note: "Rows are measured one by one, so a row with a pill may be taller. Ticks take a 44px column under a coarse pointer; while a row is selected the focus cue is its border. Render EditorListRow (never a button) inside the list.",
+      background: "plain",
+      full: true,
+      render: () => <EditorListTicksDemo />,
+    },
+  ],
 };
 
 const tableStory: StoryDef = {
@@ -500,6 +562,44 @@ function ConfirmDemo() {
       >
         useConfirm
       </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          confirm({
+            title: "Enable “benzo-mixing” on 2 substances?",
+            description: "Readers of these articles see the banner at once.",
+            confirmLabel: "Enable on 2 substances",
+            affected: ["Alprazolam", "Diazepam"],
+            affectedLabel: "Shows on 2 substances",
+            onConfirm: () => undefined,
+          })
+        }
+      >
+        With affectedLabel
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          confirm({
+            title: "Approve 2 recommendations?",
+            description: "Each article is marked reviewed at the version the editor read.",
+            body: (
+              <ul className="theme-text-secondary list-disc space-y-1 pl-5 text-sm">
+                <li>LSD, recommended by Sam: “Doses match the sources.”</li>
+                <li>Ketamine, recommended by Mira.</li>
+              </ul>
+            ),
+            confirmLabel: "Approve 2",
+            onConfirm: () => Promise.reject(new Error("Writes are paused, so that was not saved.")),
+          })
+        }
+      >
+        With a body, refused
+      </Button>
       <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
         ConfirmDialog
       </Button>
@@ -522,7 +622,11 @@ const confirmStory: StoryDef = {
   importLine: IMPORT_LINE("ConfirmDialog, useConfirm"),
   exports: ["ConfirmDialog", "useConfirm"],
   examples: [{ label: "Open a confirm", render: () => <ConfirmDemo /> }],
-  notes: ["Lint bans native confirm() in dev tools; use this instead."],
+  notes: [
+    "Lint bans native confirm() in dev tools; use this instead.",
+    "`affectedLabel` heads the affected list in the tool's words (\"Shows on 5 substances\") instead of \"Affects N rows\".",
+    "`description` is wrapped in a p, so lists and paragraphs go in `body`. A rejected onConfirm shows its message in the dialog and relabels the button Try again.",
+  ],
 };
 
 const loadErrorStory: StoryDef = {
