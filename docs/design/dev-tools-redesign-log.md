@@ -643,6 +643,38 @@ builds a new shared primitive, add it to **Conventions** and log it under
   hidden record for release marks it ("Hidden on the site" in the option hint);
   a row's menu explains its issue pill in words.
 
+- **Many small decisions in a row stay rows, not a pane per item.** When a
+  review is dozens of short, independent decisions (glossary terms), the
+  workspace puts the groups on the left (link rows with a count left and a
+  thin progress bar) and the open group's rows in the pane, each row editable
+  in place with the English beside the translation, so focus can move to the
+  next row needing review after each write. The group's bulk actions sit in its
+  heading; the pane's dock holds only whole-list results, what is running, and
+  the way on to the next group. `TermsWorkspace` is the reference.
+- **In a list of many rows, only the edited row carries the accent.** A clean
+  row's Approve or Confirm is outline; an edited row's Save and approve is
+  accent. A main action that cannot run (a missing reason) is drawn outline
+  while off, never a dimmed accent (`ApprovalActions` `quiet`).
+- **Pressed-state choices are neutral, not accent.** Reason chips, modes and
+  filters use `pillActive`/`ghostPill` in the segmented capsule; accent is for
+  the action.
+- **A tool with sections inside one view** (Articles: Reader, Coverage, Recent
+  changes, Reader feedback, Runs) uses an `EditorSegmentedControl` under the
+  view's tab, sections mounted on first open and kept mounted; the address can
+  carry the section through the view names the deep-link parser already knows.
+- **One assigned choice is a fact.** A picker with a single option (a
+  Translator's one language) renders as a labelled value, not a one-option
+  select.
+- **Links from a tool pane to a public page open in a new tab** (with sr-only
+  "(opens in a new tab)"), so the unsaved-work registry never has to catch a
+  same-tab navigation it cannot see.
+- **A write refused under the freeze or by a revision check is typed at the
+  client.** A tool whose requests go through `devFetch` builds a small refusal
+  error in `onError` (`GlossaryWriteRefusal`: `frozen`, `conflict`) and one
+  helper words it (`describeWriteRefusal`), so every surface of the tool says
+  "Writes are paused, so that was not saved." and offers "Load the latest
+  version" on a conflict the same way.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -2173,3 +2205,127 @@ Deferred, with reasons:
   success sentence with the submitter: the shared save orchestrator, as the
   Tags pass recorded.
 - Multi-select moves: a new batch operation over the layout ops.
+
+
+### Pass 18: Glossary (`/dev/glossary`, the translation workbench)
+
+Commit: see `git log --grep "Dev tools redesign: Glossary"`.
+Screenshots: `tmp/redesign/glossary/before/` and `tmp/redesign/glossary/after/`
+(admin Inbox dark and light, full, a reason filter, a picked item, accepted,
+frozen accept, key accept with Undo; translator on an empty Inbox and on German;
+Terms dark and light, open, full, Continue, dirty, saved, approved, frozen,
+conflicted, history, where used, search and no match, More menu, reviewed
+language, new language, translator; Confirm all, Approve all and collision
+dialogs; Interface text, dirty, short labels, waiting for refresh; Style guide
+and full; Articles, full, an open article, a deep-linked paragraph, Coverage,
+Recent changes, Reader feedback, Runs; legend; empty, empty Terms, failed,
+loading; editor locked; editor_translator; desktop and phone), captured by
+`tmp/redesign/glossary/capture.mjs`. Critique in
+`tmp/redesign/glossary/critique.md` (18/40 before; design review in
+`assessment-a.md`), inventory with the item-by-item check in
+`tmp/redesign/glossary/inventory.md`, detector evidence in
+`tmp/redesign/glossary/detector/`.
+
+Main changes:
+
+- P0 fixes: a freeze refusal showed the server string (env var name, "the
+  fixture") beside a live-looking Approve; every glossary write now reads it
+  as "Writes are paused, so that was not saved." A revision conflict said
+  "Reload" with no control; the row now offers "Load the latest version"
+  (reloads the language, drops only that row's typed wording, asks first when
+  there is some). Inbox results landed above a 17-card list and model and bulk
+  results at the page top; the Inbox result sits in its dock, bulk, import and
+  draft results in the Terms dock, and run results under the Runs buttons.
+  Disabled accent buttons read as live; blocked main actions are outline and an
+  Inbox item with nothing to accept shows Edit as its main action.
+- Frame: `EditorNavTabs` "Workbench view" with counts (Inbox waiting, terms
+  and interface text to review; omitted while unknown) over kept-mounted
+  `role="tabpanel"` panels; Language as a field (a fact for one language,
+  "· live on the site" for the live mirror); Refresh (icon on phones); the
+  legend drawn with the pills it defines, as a popover from `sm`; the status
+  line formatted, empty for a language with nothing translated; "Opened from
+  the Inbox. Back to the Inbox" after an Inbox Edit. The registry now says
+  `saveLine: "in-tool"` and the header carries `SaveLine` with the tool's own
+  sentence (`GLOSSARY_SAVE_COPY`), which the freeze replaces.
+- Inbox (`ReviewInbox.tsx`): the triage workspace. List column ("Waiting",
+  count, Reload icon, a labelled Reason select with counts, compact rows with
+  scope glyph, reason pill, English and finding, the single-key toggle and key
+  hint under the list) and a pane (scope, place in words, reason, pager with
+  j/k, Back to list below `lg`, English and Readers see side by side, Approved
+  for, Suggestion, Found, Written by) with a decision dock (the live region
+  with the 10-second Undo and results, the glossary conflict with its Fine
+  here, Accept / Fine here / Edit / Skip with key caps, and one sentence on
+  what Accept does for this item). Empty says All clear with what was checked
+  folded. Phones: master/detail.
+- Terms (`TermsWorkspace.tsx`): progress card (legend under the bar, the never
+  checked segment in the info tone, "Open Runs" for admins); categories as
+  link rows with a left count and a bar; search with `/`; the four states as a
+  two-by-two choice with counts; More beside the heading; the open category in
+  a pane (name, bar, counts, Approve all / Confirm all with their counts, Back
+  to list and Close below `lg`), rows as open list items (English, definition,
+  kind and who wrote it on the left; status, "Readers see", the field, reason,
+  actions and the row's result on the right; Where it is used and History under
+  both at full width); a dock with whole-list results, the running write, the
+  unsaved line and "Continue with <next category>". Search lists every match
+  grouped, and a status filter that empties it says "Found under Approved (3)".
+  Bulk confirms list each term with its wording under "Confirms N terms".
+- Interface text: one vocabulary (Machine, Unreviewed, English changed,
+  Approved, Not in the site build), the three modes as a three-column choice
+  with counts, search with `/` in the view, Reload as an icon, labels as rows
+  (English and context left with "Where it appears" folded; facts, field,
+  reason, actions, history right), the range line on top and the pager after
+  the list. Short labels: a sticky selection bar ("N selected of M", Approve
+  selected accent only when something is chosen, selection as ghost buttons,
+  the batch result in the bar) and rows that stack on phones. Waiting for
+  refresh: a table that stacks on phones, one "Term not recorded" line.
+- Articles (`ArticlesView.tsx`): sections instead of four drawers. Reader: the
+  articles needing review as link rows (lead row, count, breakdown in words,
+  five then Show all), the find field beside them, the slug fallback folded as
+  "Open by address instead"; an open article is a panel (Back, "Open another
+  article", "Open the English page" in a new tab, title, progress bar and
+  tally, Review fluency for admins), paragraphs in two columns with sentence
+  case pills and a pencil on hover, the correction editor with facts as a `dl`,
+  a growing field, Escape to close, the unsaved line, receipts and history with
+  relative times; translator's notes are one quiet "Add translator's note" line
+  until one exists. Coverage: a headline with its bar, the breakdown and jobs
+  lines, relative times, meta-label headings. Recent changes: grouped by day,
+  the English once when unchanged. Reader feedback: readiness and evidence as a
+  `dl` with relative times, the reactions table, then the reader suggestion
+  queue. Runs: sentence-case "Latest run" label, results under the buttons.
+- Style guide: a panel with `EditorField`s, examples as a `dl` (Before struck),
+  "Add an example" with the reason it cannot be added yet, and a save dock
+  (result, reason, actions, state phrase); history beside it with relative
+  times.
+- Keys: `/` (Terms and Interface text search), the Inbox's j/k/a/u/e/f/s (in
+  the `?` sheet only while the Inbox is on screen), Escape closes a paragraph
+  editor.
+- New modules: `TermsWorkspace.tsx`, `ArticlesView.tsx`, `workbenchParts.tsx`
+  (`SearchField`, `ChoiceGrid`, `KeyCap`, `BackToList`, `PaneDock`,
+  `ResultNotice`, `RowSkeletons`, `When`); `glossaryModel` gains
+  `GlossaryWriteRefusal` and `describeWriteRefusal`; `WorkbenchDrawer.tsx` and
+  `GlossaryFilterBar` are gone.
+- Journeys fixtures: `scripts/tools/journeys/translationFixtures.mjs`
+  (glossary rows for Chinese, Dutch, German and Japanese in every review state,
+  a shared-rendering pair, the approve / confirm / edit / gloss / import /
+  history writes with the revision check, the collision acknowledgement, the
+  locale assignment and the admin and editor floors, interface text, the
+  inbox with every reason, articles, notes, style guides, coverage, changes,
+  fluency, reactions, readiness and usage), with a unit test. German keeps
+  the seven inbox items and Dutch none, so Home is unchanged.
+
+Deferred, with reasons:
+
+- Undo after a button Accept in the Inbox: no route reverses an approval; the
+  keyboard accept keeps its 10-second window before anything is written.
+- Article titles instead of slugs in Articles: the coverage and narrative
+  payloads carry slugs only; a manifest lookup by slug does not exist.
+- A pager between articles needing review inside the reader: the ranking is
+  read once per view; picking the next article from the list is one step.
+- Renaming the heading to match the rail ("Glossary") or the rail to match the
+  heading: a vocabulary decision; the glyph now matches.
+- The legend's "Draft (unreviewed)" and "Human approved" beside the Terms pills'
+  "Unreviewed" and "Approved": the legend's words are test-guarded vocabulary.
+- Removing the doubled ellipsis from `ExpandIndicator`: the kit's accessibility
+  decision.
+- Width transitions on the run progress bar (detector `layout-transition`):
+  two segments in one track; the change is rare and reduced motion stops it.

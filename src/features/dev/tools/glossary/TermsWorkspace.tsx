@@ -18,7 +18,7 @@ import { EditorPanel, EditorStatusPill, useScrollToDetail, type NoticeMessage } 
 import { cn } from "@/lib/utils";
 
 import { GlossaryGroupSection, reviewedShare, type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
-import { count, standingLabel, STATE_WORD, type GlossaryFilters, type GlossaryGroup, type GlossaryRow, type GlossaryRowPatch, type GlossaryStatusFilter, type ReviewCounts } from "./glossaryModel";
+import { count, filterRows, standingLabel, STATE_WORD, type GlossaryFilters, type GlossaryGroup, type GlossaryRow, type GlossaryRowPatch, type GlossaryStatusFilter, type ReviewCounts } from "./glossaryModel";
 import { TermsOverview, type NextCategory } from "./TermsOverview";
 import { BackToList, ChoiceGrid, PaneDock, ResultNotice, SearchField } from "./workbenchParts";
 import type { GlossaryUsageMap } from "@/lib/glossary/glossaryUsage";
@@ -128,6 +128,13 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
     count: choice.value === "draft" ? counts.drafts : choice.value === "unchecked" ? counts.unchecked : choice.value === "approved" ? counts.approved : undefined,
   }));
   const paneShown = searching || openCategory !== null;
+  // A search the status filter empties says where its matches are.
+  const allRows = allGroups.flatMap((group) => group.rows);
+  const elsewhere = searching && filterCount === 0 && filters.status !== "all"
+    ? STATUS_CHOICES.filter((choice) => choice.value !== "all" && choice.value !== filters.status)
+      .map((choice) => ({ ...choice, count: filterRows(allRows, { status: choice.value, search: filters.search }).length }))
+      .filter((choice) => choice.count > 0)
+    : [];
   const dockNotice = paneShown ? notice : null;
 
   return (
@@ -231,6 +238,15 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
               {groups.length === 0 ? (
                 <div className="space-y-2 px-4 py-6 sm:px-5">
                   <p className="theme-text-secondary text-sm">{filters.status === "all" ? "Try another word, or search the translation instead of the English." : "Try another word, or show every state."}</p>
+                  {elsewhere.length ? (
+                    <p className="theme-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                      {elsewhere.map((choice) => (
+                        <Button key={choice.value} type="button" variant="link" size="auto" className="text-sm" onClick={() => onStatus(choice.value)}>
+                          Found under {choice.label} ({choice.count})
+                        </Button>
+                      ))}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => onSearch("")}>Clear the search</Button>
                     {filters.status !== "all" ? <Button type="button" variant="ghost" size="sm" onClick={() => onStatus("all")}>Show All</Button> : null}
@@ -276,7 +292,9 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
               {allGroups.length === 0 ? (
                 "Terms appear here once the language has any."
               ) : (
-                <>
+                next === null ? (
+                  <p className="theme-text-secondary">Every category is reviewed. Open one to read or change its terms here.</p>
+                ) : <>
                   <p className="theme-text-secondary">Open a category to review its terms here.</p>
                   <p className="mt-1">
                     Or press <span className="theme-text-secondary">Continue reviewing</span> to open the next one with work left

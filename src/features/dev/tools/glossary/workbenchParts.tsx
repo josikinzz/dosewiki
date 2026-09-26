@@ -56,7 +56,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   );
 });
 
-export type Choice<T extends string> = { value: T; label: string; count?: number | null };
+/** `short` is the label a phone shows when the full one would not fit its cell. */
+export type Choice<T extends string> = { value: T; label: string; short?: string; count?: number | null };
 
 /**
  * Filter views that must all fit a narrow column: a grid of pressed-state
@@ -89,11 +90,14 @@ export function ChoiceGrid<T extends string>({ label, choices, value, onChange, 
             variant={selected ? "pillActive" : "ghostPill"}
             size="pill"
             aria-pressed={selected}
+            aria-label={choice.short ? `${choice.label}${typeof choice.count === "number" ? `, ${choice.count}` : choice.count === null ? ", not loaded" : ""}` : undefined}
             disabled={disabled}
             onClick={() => onChange(choice.value)}
             className={cn("h-auto min-h-9 w-full flex-col gap-0 rounded-control px-1.5 py-1 leading-tight [@media(pointer:coarse)]:min-h-11", TOUCH_HALO_Y)}
           >
-            <span className="text-xs font-medium">{choice.label}</span>
+            {choice.short ? (
+              <span aria-hidden className="text-xs font-medium"><span className="sm:hidden">{choice.short}</span><span className="max-sm:hidden">{choice.label}</span></span>
+            ) : <span className="text-xs font-medium">{choice.label}</span>}
             {choice.count === undefined ? null : choice.count === null ? (
               <span className="sr-only">, not loaded</span>
             ) : (

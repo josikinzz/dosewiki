@@ -6,49 +6,69 @@ of the editor role. Every read and write checks the assigned locale on the serve
 
 ## Layout: Terms, Interface text, Articles, Inbox, Style guide
 
-One nav, **Workbench view**, sits beside a labeled **Language** picker that
-names each language in its own script (for example "Deutsch (German)"). Its
-five entries map onto three internal views: **Terms**, **Interface text**, and
-**Style guide** are the Words view's lists (`terms`, `labels`, `style`),
-**Articles** is the Pages view, and **Inbox** is the Inbox view.
+One tab strip, **Workbench view**, sits under a labeled **Language** picker
+that names each language in its own script (for example "Deutsch (German)");
+a Translator with one assigned language sees it as a fact rather than a
+picker. Its five tabs map onto three internal views: **Terms**, **Interface
+text**, and **Style guide** are the Words view's lists (`terms`, `labels`,
+`style`), **Articles** is the Pages view, and **Inbox** is the Inbox view.
+Tabs carry counts when they are known (items waiting in the Inbox, terms and
+interface text still needing a person), and every view stays mounted once
+opened, so switching never drops typed work.
 
-The workbench opens on Terms with glossary categories closed and all review
-states included.
+The workbench opens on the Inbox. Terms opens with its categories closed and
+all review states included.
 
+- **Inbox** is a triage workspace: the items that need a person on the left,
+  the item under review on the right with its English, the wording readers
+  see, and what the check found, and a decision dock with **Accept**, **Fine
+  here**, **Edit** and **Skip** (key caps on each). See
+  [Review Inbox](#review-inbox). When nothing waits it says **All clear** and
+  folds away what it checked.
 - **Terms** starts with the language's review progress: how many terms are
   approved, unreviewed, and live but never checked, with one bar. **Continue
   reviewing** opens the first category (in site order) with work left and
   focuses its first row needing review. When every term is reviewed, the same
-  place says what happens next. Below it, one toolbar row holds **Search
-  words**, the status filter, and a **More** menu with **Export CSV**, **Import
-  CSV**, and (admin-only) **Draft missing terms**. Opening a category closes
-  the previous one; each category header shows a small progress bar and its own
-  **Approve all** and **Confirm all**. Search shows matching terms across
-  categories.
-- **Interface text** holds the UI labels. It shares **Search words** with
-  Terms, so a search carries across both.
-- **Articles** holds the article reader (see
-  [Substance narrative review](#substance-narrative-review)) with drawers
-  under it: **Coverage** (per-page coverage and the release evidence import),
-  **Recent changes** (recorded automatic changes), and **Reader feedback and
-  website readiness**. Admins also see a collapsed **Runs** drawer with the
-  latest run's progress and every control that calls the model for a whole
-  locale: start the main translation, **Retranslate** pending terms, and retry
-  failed pages. A Translator without admin sees no run controls.
-- **Inbox** lists everything in the locale that needs a person (see
-  [Review Inbox](#review-inbox)). It loads only after the reviewer selects it
-  or follows an Inbox link.
-- **Style guide** holds the locale's style guide.
+  place says what happens next, and an admin gets **Open Runs**. Below it,
+  the categories sit in a column (search with `/`, the four review states with
+  their counts, a **More** menu with **Export CSV**, **Import CSV**, and
+  (admin-only) **Draft missing terms**, then one row per category with its
+  progress) and the open category fills the pane beside it: its name and
+  counts, its own **Approve all** and **Confirm all**, and the rows, the
+  English on the left and the translation on the right. Opening a category
+  closes the previous one. Search lists matching terms across categories, each
+  category with its own bulk actions, and says where matches hide when the
+  status filter empties it. A dock at the bottom of the pane holds the result
+  of a whole-list write (a bulk approval, an import, a draft run) and what is
+  running.
+- **Interface text** holds the UI labels. It shares the search with Terms, so
+  a search carries across both.
+- **Articles** has five sections: **Reader** (the article reader, see
+  [Substance narrative review](#substance-narrative-review)), **Coverage**
+  (per-page coverage and the release evidence import), **Recent changes**
+  (recorded automatic changes, grouped by day), and **Reader feedback**
+  (reactions, website readiness and the reader suggestion queue). Admins also
+  see **Runs** with the latest run's progress and every control that calls
+  the model for a whole locale: start the main translation, **Retranslate**
+  pending terms, and retry failed pages; their results show in Runs. A
+  Translator without admin sees no run controls.
+- **Style guide** holds the locale's style guide, with its save actions in a
+  dock and its history beside it.
 
 Articles and Inbox show a status line with stored translation counts and run
 progress. Terms keeps those operational counts out of the terminology workflow.
+The header says how the two saves differ in one line (the tool's own save
+sentence), which the write freeze replaces with "Writes are paused." A refused
+write reads as the freeze ("Writes are paused, so that was not saved."), and a
+revision conflict on a term offers **Load the latest version**, which asks
+first when the row holds typed wording and keeps every other row's wording.
 
-One collapsed **Status legend** defines the states every panel names: Machine,
+One collapsed **Status legend** defines, with the pill each panel shows, the states every panel names: Machine,
 Draft, Live, never checked, Human approved, Source changed, and Re-check. Inside
 it the workbench says once: "Approved here is not yet deployed; Coverage in
 Articles shows what has been released." Panels do not repeat that approval,
 compilation, or processing is not publication; the release evidence itself
-(the Coverage drawer's publication status and rendered route evidence, and
+(the Coverage section's publication status and rendered route evidence, and
 website readiness) sits in Articles.
 
 Review history sits in a drawer on each item: **History** on a glossary row, a
@@ -73,7 +93,7 @@ Deep links keep working across the layout change. `translationView=inbox`,
 style guide). Older values map onto them: `glossary`
 (with `translationTerm`) and `labels` (with `translationLabel`) open Terms or
 Interface text, searched to the term or label; `narrative`, `coverage`, and
-`changes` open Articles, with the Coverage or Recent changes drawer open for the
+`changes` open Articles, on the Coverage or Recent changes section for the
 latter two; `translationReview=article` (with `translationSlug`,
 `translationSegment`, `translationVersion`, or `translationNote`) opens the
 article reader in Articles. `parseWorkbenchDeepLink` in
@@ -373,7 +393,7 @@ or medical accuracy.
 
 ## Coverage and propagation
 
-Coverage (a drawer in Articles) runs on demand. It inventories all six published record kinds and the
+Coverage (a section of Articles) runs on demand. It inventories all six published record kinds and the
 current UI source inventory. The source traversal is cached for at most five
 minutes; the response includes its timestamp. It counts never-stored segments,
 stale translations, recorded rejections, and glossary disagreements. Article

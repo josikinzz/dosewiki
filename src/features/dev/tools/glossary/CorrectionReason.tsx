@@ -36,7 +36,7 @@ export function openConflicts(source: string, target: string, mentions: readonly
 
 /** The four reason chips; one is chosen at a time. */
 export function ReasonKindChips({ value, onChange, disabled, label = "Reason" }: { value: CorrectionReasonKind | null; onChange: (kind: CorrectionReasonKind) => void; disabled?: boolean; label?: string }) {
-  return <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+  return <div className="flex flex-col items-start gap-x-2 gap-y-1 sm:flex-row sm:flex-wrap sm:items-center">
     <span className="theme-text-secondary text-xs">{label}</span>
     <div className="grid grid-cols-2 gap-1 rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1 sm:inline-grid sm:grid-cols-4">
       {CORRECTION_REASON_KINDS.map((kind) => <Button key={kind} type="button" size="pill" variant={value === kind ? "pillActive" : "ghostPill"} aria-pressed={value === kind} disabled={disabled}

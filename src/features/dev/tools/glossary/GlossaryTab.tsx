@@ -170,6 +170,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
   /** Bumped when an Inbox link opens an article in place, so the reader remounts and reads the link. */
   const [articleLink, setArticleLink] = useState(0);
+  /** Set while the view on screen was opened by an Inbox item's Edit, so the reviewer has one step back. */
+  const [fromInbox, setFromInbox] = useState(false);
   // Opens on the Inbox unless a deep link names a view; links written for the
   // older five views map onto these three (see parseWorkbenchDeepLink).
   const applyDeepLink = (search: string) => {
@@ -203,6 +205,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     window.history.replaceState(window.history.state, "", url);
     const link = applyDeepLink(url.search);
     if (link.view === "pages") setArticleLink((current) => current + 1);
+    setFromInbox(link.view !== "inbox");
     window.scrollTo({ top: 0 });
   };
   const updateLocation = (values: Record<string, string | null>) => {
@@ -227,6 +230,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   };
   const section: WorkbenchSection = view === "words" ? wordsList : view;
   const openSection = (next: WorkbenchSection) => {
+    setFromInbox(false);
     if (next === "terms" || next === "labels" || next === "style") openWordsList(next);
     else openView(next);
   };
@@ -499,9 +503,11 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
 
   /** Each term and the wording it puts in use, so the confirm shows what is being approved, not only its name. */
-  const wordingList = (terms: readonly string[]) => {
+  const wordingList = (terms: readonly string[], heading: string) => {
     const byTerm = new Map((data?.rows ?? []).map((row) => [row.term, row]));
     return (
+      <div className="space-y-2">
+      <p className="type-meta-label theme-text-muted">{heading}</p>
       <ul className="max-h-64 space-y-1 overflow-y-auto text-sm">
         {terms.map((term) => (
           <li key={term} className="flex flex-wrap items-baseline gap-x-2">
@@ -512,6 +518,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           </li>
         ))}
       </ul>
+      </div>
     );
   };
 
@@ -521,9 +528,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       title: `Approve the ${count(terms.length, `${STATE_WORD.draft} term`)} ${where === "shown" ? "shown" : `in ${where}`}?`,
       description: "Each translation is approved as it stands and will be used wherever the term appears. Terms already approved are unchanged.",
       confirmLabel: where === "shown" ? "Approve all shown" : `Approve ${where}`,
-      affected: [...terms],
-      affectedLabel: `Approves ${count(terms.length, "term")}`,
-      body: wordingList(terms),
+      body: wordingList(terms, `Approves ${count(terms.length, "term")}`),
       onConfirm: () => void approveMany(terms),
     });
   };
@@ -550,9 +555,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       title: `Confirm the ${count(terms.length, "live, never checked term")} ${where === "shown" ? "shown" : `in ${where}`}?`,
       description: "Each translation is recorded as checked by you, exactly as readers see it now. The wording on the site does not change. Edit any you disagree with instead.",
       confirmLabel: where === "shown" ? "Confirm all shown" : `Confirm ${where}`,
-      affected: [...terms],
-      affectedLabel: `Confirms ${count(terms.length, "term")}`,
-      body: wordingList(terms),
+      body: wordingList(terms, `Confirms ${count(terms.length, "term")}`),
       onConfirm: () => void confirmMany(terms),
     });
   };
@@ -775,6 +778,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         title="Translation workbench"
         description="Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
         actions={<SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} />}
+        // Above the workspaces, so the legend's popover is not covered by a sticky pane.
+        className="relative z-20"
       >
         {loadError ? (
           <LoadErrorState what="the glossary" message={loadError} onRetry={() => void load(locale)} />
@@ -816,6 +821,13 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
               <EditorNavTabs label="Workbench view" value={section} onChange={(next) => openSection(next as WorkbenchSection)} options={tabOptions} />
               <StatusLegend />
             </div>
+            {fromInbox && view !== "inbox" ? (
+              <p className="theme-text-muted flex flex-wrap items-center gap-x-2 text-sm">
+                <Icon icon="lucide:inbox" size={14} className="shrink-0" />
+                Opened from the Inbox.
+                <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => openSection("inbox")}>Back to the Inbox</Button>
+              </p>
+            ) : null}
             {/* Operational counts for the views that deal in stored translations; Terms keeps them out of the terminology work. */}
             {view === "pages" || view === "inbox" ? (
               <p className={cn("text-xs", status?.failed ? "text-[color:var(--theme-warning-text)]" : "theme-text-muted")} data-testid="translation-summary">
@@ -980,7 +992,9 @@ function runStatus(data: GlossaryList, starting: boolean): string | null {
 
 /** The status line on Inbox and Articles: stored translations against the current terms, the run, a failed refresh. */
 function operationalStatus(data: GlossaryList, starting: boolean, refreshError: string | null): { text: string; failed: boolean } {
-  const parts = [`${data.segments.current.toLocaleString()} of ${count(data.segments.total, "stored translation")} follow the current terms`];
+  const parts = data.segments.total === 0
+    ? ["Nothing has been translated into this language yet"]
+    : [`${data.segments.current.toLocaleString()} of ${data.segments.total.toLocaleString()} stored ${data.segments.total === 1 ? "translation" : "translations"} follow the current terms`];
   const runLine = runStatus(data, starting);
   if (runLine) parts.push(runLine);
   if (refreshError) parts.push(`Progress refresh failed: ${refreshError}`);

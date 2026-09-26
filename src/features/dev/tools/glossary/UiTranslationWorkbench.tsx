@@ -115,7 +115,7 @@ export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "",
       choices={[
         { value: "cards", label: "One at a time", count: shown ? shown.length : null },
         { value: "short", label: "Short labels", count: shortCount },
-        { value: "refresh", label: "Waiting for glossary refresh", count: refreshCount },
+        { value: "refresh", label: "Waiting for glossary refresh", short: "Glossary refresh", count: refreshCount },
       ]}
     />
     {error ? <LoadErrorState what="the interface text" message={error} onRetry={() => void load()} busy={loading} /> : null}

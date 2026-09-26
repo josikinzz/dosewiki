@@ -192,12 +192,16 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
                 {!canAdd && (adding.before || adding.after || adding.why) ? <span className="theme-text-muted text-xs">{adding.before.trim() && adding.before.trim() === adding.after.trim() ? "Before and After are the same." : "Before, After and Why are needed."}</span> : null}
               </div>
             </fieldset>
+
+            <div className="space-y-2">
+              <h4 className="theme-text-primary font-medium">Why you are changing it</h4>
+              <ReasonPicker value={reason} onChange={setReason} disabled={busy} needed={unsaved} />
+            </div>
           </div>
 
           <PaneDock label="Save">
             {error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
             {notice ? <Notice tone="success" placement="inline" message={notice} dismiss={() => setNotice("")} /> : null}
-            <ReasonPicker value={reason} onChange={setReason} disabled={busy} needed={unsaved} />
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <ApprovalActions changed={unsaved} approvable={approvable} busy={busy} blocked={!reason.kind}
                 onSave={() => void mutate("save")} onSaveAndApprove={() => void mutate("save-approve")} onApprove={() => void mutate("approve")} />
@@ -205,6 +209,7 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
                 {unsaved ? <span aria-hidden className="size-1.5 rounded-full bg-[var(--theme-accent)]" /> : null}
                 {busy ? "Saving" : stateLine}
               </span>
+              {unsaved && !reason.kind && !busy ? <span className="theme-text-muted text-xs">Choose why above to save them.</span> : null}
             </div>
           </PaneDock>
         </EditorPanel>

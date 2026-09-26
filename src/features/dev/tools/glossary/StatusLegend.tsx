@@ -25,12 +25,13 @@ export function StatusLegend() {
   const listId = useId();
   const [open, setOpen] = useState(false);
   return (
-    <div className="theme-text-muted relative w-full text-xs sm:w-auto">
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape closes the open legend; the button is the control.
+    <div className="theme-text-muted relative w-full text-xs sm:w-auto" onKeyDown={(event) => { if (event.key === "Escape" && open) { event.preventDefault(); setOpen(false); } }}>
       <button type="button" aria-expanded={open} aria-controls={listId} className="theme-focus-ring inline-flex min-h-8 items-center gap-1 rounded-control font-medium [@media(pointer:coarse)]:min-h-11" onClick={() => setOpen(!open)}>
         Status legend
         <ExpandIndicator isExpanded={open} />
       </button>
-      <div id={listId} hidden={!open} className="max-w-prose space-y-3 pb-1 pt-2 sm:absolute sm:right-0 sm:z-20 sm:mt-1 sm:w-[30rem] sm:rounded-card sm:border sm:border-[color:var(--editor-panel-border)] sm:bg-[var(--editor-panel-bg)] sm:p-4 sm:shadow-[var(--theme-elevation-overlay)]">
+      <div id={listId} hidden={!open} className="max-w-prose space-y-3 pb-1 pt-2 sm:absolute sm:right-0 sm:z-50 sm:mt-1 sm:w-[30rem] sm:rounded-card sm:border sm:border-[color:var(--editor-panel-border)] sm:bg-[var(--editor-panel-bg)] sm:p-4 sm:shadow-[var(--theme-elevation-overlay)]">
         <ul aria-label="Status legend" className="space-y-2">
           {STATUS_LEGEND.map((entry) => (
             <li key={entry.state} className="grid gap-x-3 gap-y-1 sm:grid-cols-[9.5rem_minmax(0,1fr)]">
