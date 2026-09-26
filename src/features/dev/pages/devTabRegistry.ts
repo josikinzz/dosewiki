@@ -280,7 +280,12 @@ const REGISTRY = [
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "record",
     withoutApproval: "submits-for-review",
-    layout: "shell",
+    // The pane's dock says it: a post can stay a draft or publish, and About
+    // publishes at once, which one frame sentence cannot both say.
+    saveLine: "in-tool",
+    // The list, the fields and a live preview of the public page sit side by
+    // side; the tool caps its own width.
+    layout: "full-bleed",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.
     filter: DEV_ROUTE_FILTERS.writing,

@@ -46,7 +46,7 @@ function WritingSession({ slug, writingKind, bylineAuthors, onRetry }: Props & {
             <Button variant="destructive" disabled={controller.uncertain || controller.saveState === "saving"} onClick={() => { if (controller.uncertain || controller.saveState === "saving") return; controller.discard(); setClosing(false); setOpen(false); }}>Discard and close</Button>
           </EditorToolbar>
         </EditorSection>
-      ) : controller.isLoadingRow ? <p role="status">Loading writing…</p> : !controller.loadedRow ? (
+      ) : controller.isLoadingRow ? <p role="status">Loading the page</p> : !controller.loadedRow ? (
         <EditorSection title="Writing could not be loaded" description="Retry loading before making changes.">
           {controller.notice ? <Notice {...controller.notice} /> : null}
           <EditorToolbar><Button onClick={onRetry}>Retry loading</Button><Button variant="outline" onClick={() => setOpen(false)}>Close editor</Button></EditorToolbar>

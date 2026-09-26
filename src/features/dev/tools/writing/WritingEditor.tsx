@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { EffectIndexArticlePage } from "@/features/articles/pages/EffectIndexArticlePage";
 import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
 import { toWritingBlogPost } from "@/features/blog/domain/writingBlogModel";
@@ -16,28 +13,18 @@ import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { useT } from "@/i18n/client";
 import {
   EditorActionStatus,
-  EditorField,
   Notice,
   EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
   EditorToolbar,
 } from "@/features/dev/components";
-import { SearchableMultiPicker } from "@/features/dev/components/SearchablePicker";
-import { TagMultiSelect } from "@/features/dev/components/tag-multi-select/TagMultiSelect";
 
-import { writingTagOptions, type WritingDraft } from "./writingEditorModel";
+import { WRITING_FIELD_LABELS, type WritingDraft } from "./writingEditorModel";
+import { WritingFields } from "./WritingFields";
 import { WritingRecoveryPanels, WritingSaveTime } from "./WritingRecoveryPanels";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
 
-const WRITING_FIELD_LABELS: Record<keyof WritingDraft, string> = {
-  title: "Title", slug: "Slug", teaser: "Teaser", coverImageUrl: "Cover image URL",
-  body: "Body", bodyFormat: "Body format", tags: "Tags", authorProfileKeys: "Byline",
-  status: "Publication state", publicationDate: "Publication date",
-};
-
-/** A stored date the date input can show; anything else shows empty beside its field error. */
-const DATE_INPUT_VALUE = /^\d{4}-\d{2}-\d{2}/;
 
 type WritingEditorProps = {
   contributorProfiles: NormalizedUserProfile[];
@@ -64,16 +51,9 @@ export function WritingEditor({
     draft,
     saveState,
     notice,
-    slugAvailability,
     readOnly,
     canSave,
-    dateError,
-    coverError,
-    updateTitle,
-    updateSlug,
     updateDraft,
-    setByline,
-    setDateIncomplete,
     save,
     submitForReview,
   } = controller;
@@ -81,10 +61,7 @@ export function WritingEditor({
   // The workbench opens with the preview beside the form; the contextual
   // dialog is too narrow for two columns, so there it starts closed.
   const [preview, setPreview] = useState(!contextual);
-  const [failedCover, setFailedCover] = useState<string | null>(null);
-  const [metadataOpen, setMetadataOpen] = useState(false);
   const [discarding, setDiscarding] = useState(false);
-  const metadataId = useId();
   const reviewRef = useRef<HTMLDivElement>(null);
   const reviewButtonRef = useRef<HTMLButtonElement>(null);
   const keepLocalEditsRef = useRef<HTMLButtonElement>(null);
@@ -101,23 +78,7 @@ export function WritingEditor({
     return bylineAuthors.find(item => item.key === key) ?? { key, name: profile?.displayName ?? key, href: `/contributors/${key.toLowerCase()}` };
   });
   const previewArticle = { ...controller.loadedRow, title: draft.title, slug: draft.slug, tags: draft.tags, body_raw: draft.body, body_ast: controller.parsedBody.ast, bodyFormat: draft.bodyFormat, shortDescription: draft.teaser, teaser: draft.teaser, coverImageUrl: draft.coverImageUrl, publicationDate: draft.publicationDate };
-  // Blog posts lead with a cover image and a teaser; articles do not.
-  const emphasiseCover = kind === "blog";
-  // An admin's save writes the row; an editor's is submitted for review. A
-  // proposal never renames, so an editor keeps a saved entry's slug.
-  const slugLocked = !canApprove && controller.loadedRow !== null;
   const saveEnabled = canSave && controller.isDirty;
-  const cover = draft.coverImageUrl.trim();
-  const tagOptions = useMemo(() => writingTagOptions(controller.entries ?? []), [controller.entries]);
-  const bylineOptions = useMemo(
-    () =>
-      contributorProfiles.map((profile) => ({
-        value: profile.key,
-        label: profile.displayName,
-        hint: `@${profile.key.toLowerCase()}`,
-      })),
-    [contributorProfiles],
-  );
 
   return (
     <>
@@ -139,160 +100,13 @@ export function WritingEditor({
       {/* Form and preview side by side from `lg:`; below that the preview follows the form. */}
       <div className={preview && !contextual ? "grid gap-6 lg:grid-cols-2 lg:items-start" : undefined}>
       <div className={contextual ? "min-w-0 space-y-4" : "min-w-0 space-y-6"}>
-      <EditorField label="Title">
-        {(control) => (
-          <Input
-            {...control}
-            value={draft.title}
-            disabled={readOnly}
-            onChange={(event) => updateTitle(event.target.value)}
-          />
-        )}
-      </EditorField>
-
-      {contextual ? <ExpandButton variant="inline" isExpanded={metadataOpen} onToggle={() => setMetadataOpen(value => !value)} ariaControls={metadataId} ariaLabel="Publication details and attribution" label="Publication details and attribution" /> : null}
-      <div id={metadataId} className={contextual ? "space-y-4" : "space-y-6"} hidden={contextual && !metadataOpen}>
-      <EditorField
-        label="Slug"
-        description={`${kind === "blog" ? "The post lives at /blog/<slug>." : "The article lives at /articles/<slug>."}${slugLocked ? " Only an admin can change the slug of a saved entry." : ""}`}
-        counter={slugStatusLabel(slugAvailability.state)}
-      >
-        {(control) => (
-          <>
-            <Input
-              {...control}
-              value={draft.slug}
-              disabled={readOnly || slugLocked}
-              onChange={(event) => updateSlug(event.target.value)}
-            />
-            {"message" in slugAvailability ? (
-              <p className="theme-text-faint mt-1.5 text-xs">{slugAvailability.message}</p>
-            ) : null}
-          </>
-        )}
-      </EditorField>
-
-      {emphasiseCover ? (
-        <EditorField
-          label="Cover image URL"
-          description="Shown on the blog index card and above the post. Use an https:// address or a site path."
-          error={coverError}
-        >
-          {(control) => (
-            <div className="flex flex-wrap items-start gap-3">
-              <Input
-                {...control}
-                className="min-w-0 flex-1"
-                value={draft.coverImageUrl}
-                disabled={readOnly}
-                onChange={(event) => updateDraft({ coverImageUrl: event.target.value })}
-              />
-              {cover && !coverError ? (
-                failedCover === cover ? (
-                  <p className="theme-text-faint text-xs">This image could not be loaded. Check the address.</p>
-                ) : (
-                  // A raw <img>: the address is whatever was typed, with no
-                  // known size for next/image, and the error event is how a
-                  // dead link is reported.
-                  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, @next/next/no-img-element -- `error` is a load event, not an interaction; a typed address has no known size.
-                  <img
-                    src={cover}
-                    alt="Cover preview"
-                    className="h-20 w-32 shrink-0 rounded-md border border-[color:var(--editor-toolbar-separator)] object-cover"
-                    onError={() => setFailedCover(cover)}
-                  />
-                )
-              ) : null}
-            </div>
-          )}
-        </EditorField>
-      ) : null}
-
-      <EditorField
-        label="Teaser"
-        description={
-          emphasiseCover
-            ? "The standfirst under the title, and the blurb on the index card."
-            : "One or two sentences, shown under the title and in listings."
-        }
-        counter={`${draft.teaser.length} characters`}
-      >
-        {(control) => (
-          <Textarea
-            {...control}
-            className={contextual ? "leading-6" : "font-mono leading-6"}
-            rows={2}
-            value={draft.teaser}
-            disabled={readOnly}
-            onChange={(event) => updateDraft({ teaser: event.target.value })}
-          />
-        )}
-      </EditorField>
-
-      <EditorField label="Byline" description={contributorProfiles.length === 0 && !profilesLoading ? "Contributor profile keys credited on the page, separated by commas." : "Contributor profiles credited on the page. Search by name or profile key."}>
-        {(control) =>
-          contributorProfiles.length === 0 && !profilesLoading ? (
-            <Input {...control} value={draft.authorProfileKeys.join(", ")} disabled={readOnly} onChange={event => setByline(event.target.value.split(",").map(key => key.trim()).filter(Boolean))} placeholder="Contributor profile keys, comma separated" />
-          ) : profilesLoading ? (
-            <p className="theme-text-faint text-sm">Loading contributors…</p>
-          ) : (
-            <SearchableMultiPicker
-              id={control.id}
-              options={bylineOptions}
-              value={draft.authorProfileKeys}
-              onChange={setByline}
-              disabled={readOnly}
-              placeholder="Add a contributor"
-              emptyText="No contributor matches that."
-              ariaLabel="Byline"
-            />
-          )
-        }
-      </EditorField>
-
-      <TagMultiSelect
-        label="Tags"
-        helperText="Pick an existing tag, or type a new one and press Enter."
-        placeholder="Add a tag"
-        value={draft.tags}
-        options={tagOptions}
-        onChange={(tags) => updateDraft({ tags })}
-        disabled={readOnly}
+      <WritingFields
+        controller={controller}
+        contributorProfiles={contributorProfiles}
+        profilesLoading={profilesLoading}
+        canApprove={canApprove}
+        contextual={contextual}
       />
-
-      <EditorField label="Publication date" description="The date shown on the page. Leave it empty to show none." error={dateError} errorLive>
-        {(control) => (
-          <Input
-            {...control}
-            type="date"
-            className="w-auto"
-            value={DATE_INPUT_VALUE.test(draft.publicationDate) ? draft.publicationDate.slice(0, 10) : ""}
-            disabled={readOnly}
-            onChange={(event) => {
-              setDateIncomplete(event.target.validity.badInput);
-              updateDraft({ publicationDate: event.target.value });
-            }}
-          />
-        )}
-      </EditorField>
-      </div>
-
-      <EditorField
-        label="Body"
-        description={`${draft.bodyFormat === "vcode" ? "VCode, preserved in its original format" : "Markdown"}. Headings become the article's contents rail.`}
-        counter={`${draft.body.length} characters`}
-      >
-        {(control) => (
-          <Textarea
-            {...control}
-            className="font-mono leading-6"
-            rows={contextual ? 10 : 20}
-            value={draft.body}
-            disabled={readOnly}
-            onChange={(event) => updateDraft({ body: event.target.value })}
-          />
-        )}
-      </EditorField>
 
       <EditorToolbar variant="split">
         <div className="flex flex-wrap items-center gap-2">
@@ -327,7 +141,7 @@ export function WritingEditor({
               onClick={() => void submitForReview()}
             >
               <Icon icon="lucide:send" size={15} />
-              {saveState === "saving" ? "Submitting…" : "Submit for review"}
+              {saveState === "saving" ? "Submitting" : "Submit for review"}
             </Button>
           )}
         </div>
@@ -359,9 +173,9 @@ export function WritingEditor({
           {controller.parsedBody.error ? (
             <p className="theme-text-muted text-sm">Fix the body markup to see the preview.</p>
           ) : kind === "blog" ? (
-            <WritingBlogPostPage post={toWritingBlogPost(previewArticle, previewAuthors)} />
+            <WritingBlogPostPage post={toWritingBlogPost(previewArticle, previewAuthors)} embedded />
           ) : (
-            <EffectIndexArticlePage article={previewArticle} bylineAuthors={previewAuthors} t={t} />
+            <EffectIndexArticlePage article={previewArticle} bylineAuthors={previewAuthors} t={t} embedded />
           )}
         </section>
       ) : null}
@@ -371,17 +185,3 @@ export function WritingEditor({
   );
 }
 
-function slugStatusLabel(state: string): string {
-  switch (state) {
-    case "free":
-      return "Available";
-    case "current":
-      return "Current slug";
-    case "taken":
-      return "Taken";
-    case "invalid":
-      return "Invalid";
-    default:
-      return "";
-  }
-}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCopyIndexSource } from "../useCopyIndexSource";
 
 import { normalizeFounderKeys } from "@/data/content/about";
@@ -17,7 +17,7 @@ import { useEditorDocument } from "@/features/dev/context/editorDocumentSession"
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
-import { useCopyIndexOperation } from "../useCopyIndexOperation";
+import { CopyIndexRefusal, useCopyIndexOperation } from "../useCopyIndexOperation";
 
 const API_PATH = "/api/dev/about";
 
@@ -41,7 +41,17 @@ type AboutConfigSource = {
   translationCredits?: unknown;
   revision?: number;
   aggregates?: AboutAggregateSource;
+  /** When and by whom the stored document was last written (the row's audit fields). */
+  updatedAt?: string | null;
+  updatedBy?: string | null;
 } | null | undefined;
+
+/**
+ * Why the last publication or submission did not land, when the route said:
+ * someone published after the draft was opened, or the write freeze refused
+ * it. Anything else is `other`.
+ */
+export type AboutSaveFailure = "conflict" | "frozen" | "other";
 
 type AboutDocument = {
   markdown: string;
@@ -110,6 +120,17 @@ export interface AboutEditorController {
   copySubtitle: () => void;
   /** Admin: writes the document. Editor: submits it as a change proposal and keeps the draft pending. */
   save: () => Promise<void>;
+  /** Why the last save did not land, or null. */
+  saveFailure: AboutSaveFailure | null;
+  dismissNotice: () => void;
+  /** Drops every edit and returns the draft to what was loaded. */
+  discard: () => void;
+  /** Reads the stored document again and replaces the draft with it (edits are dropped). */
+  loadLatest: () => void;
+  /** A load of the latest version is in flight. */
+  loadingLatest: boolean;
+  /** When the stored document was last written, and by whom, as the read says. */
+  lastWrite: { at: string | null; by: string | null };
 }
 
 export interface AboutEditorControllerOptions {
@@ -146,6 +167,11 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [copyNotice, setCopyNotice] = useState<AboutCopyNotice | null>(null);
+  const [saveFailure, setSaveFailure] = useState<AboutSaveFailure | null>(null);
+  // "Load the latest version": the next document the read delivers replaces
+  // the draft, rather than waiting behind it as a refresh conflict.
+  const replaceOnNext = useRef<AboutConfigSource | null | false>(false);
+  const [loadingLatest, setLoadingLatest] = useState(false);
 
   const { draft, original, isDirty, applyDraftTransform, applyHydration } = document;
 
@@ -277,6 +303,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
   const save = useCallback(async () => {
     setSaveState("saving");
     setNotice(null);
+    setSaveFailure(null);
     const snapshot = canApprove && publicationUncertain && publicationSnapshot.current ? publicationSnapshot.current : { draft, original };
     if (canApprove) publicationSnapshot.current = snapshot;
     const body = {
@@ -335,6 +362,7 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
       });
     } catch (error) {
       setSaveState("error");
+      setSaveFailure(error instanceof CopyIndexRefusal ? (error.conflict ? "conflict" : error.frozen ? "frozen" : "other") : "other");
       setNotice({
         tone: "danger",
         title: canApprove ? "Save failed" : "Submission failed",
@@ -348,7 +376,48 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     }
   }, [applyHydration, canApprove, draft, original, publicationBody, acknowledge, publicationUncertain]);
 
+  const dismissNotice = useCallback(() => setNotice(null), []);
+  const discard = useCallback(() => {
+    if (publicationUncertain) return;
+    applyDraftTransform(() => original);
+    setNotice(null);
+    setSaveFailure(null);
+    setSaveState("idle");
+  }, [applyDraftTransform, original, publicationUncertain]);
+  const loadLatest = useCallback(() => {
+    if (publicationUncertain) return;
+    replaceOnNext.current = aboutConfig ?? null;
+    setLoadingLatest(true);
+    source.reload();
+  }, [aboutConfig, publicationUncertain, source]);
+  // The read answered after "Load the latest version": the stored document
+  // becomes both the draft and the baseline, so the next publication is
+  // checked against the version the editor now sees.
+  useEffect(() => {
+    if (replaceOnNext.current === false) return;
+    if (source.error) {
+      replaceOnNext.current = false;
+      setLoadingLatest(false);
+      setNotice({ tone: "danger", message: `The latest version could not be loaded. ${source.error}` });
+      return;
+    }
+    if (aboutConfig === undefined || aboutConfig === replaceOnNext.current) return;
+    replaceOnNext.current = false;
+    setLoadingLatest(false);
+    const latest = toAboutDocument(aboutConfig);
+    applyHydration(() => ({ draft: latest, original: latest }));
+    setSaveFailure(null);
+    setSaveState("idle");
+    setNotice({ tone: "info", message: "Loaded the latest version. Apply your edits again, then publish." });
+  }, [aboutConfig, applyHydration, source.error]);
+
   return {
+    saveFailure,
+    dismissNotice,
+    discard,
+    loadLatest,
+    loadingLatest,
+    lastWrite: { at: aboutConfig?.updatedAt ?? null, by: aboutConfig?.updatedBy ?? null },
     isLoaded: aboutConfig !== undefined,
     loadError: source.error,
     reloadSource: source.reload,

@@ -266,7 +266,79 @@ export const WRITING_SEED = Object.freeze([
     tags: [],
     authorProfileKeys: [],
   },
+  {
+    slug: "harm-reduction-basics",
+    title: "Harm reduction basics",
+    kind: "article",
+    status: "published",
+    bodyFormat: "markdown",
+    body_raw: "Start low and go slow.\n\n## Test what you take\n\nReagent kits catch the most common substitutions.\n\n## Plan the setting\n\nPick a place you know, with people you trust.",
+    teaser: "Five habits that make the worst outcomes rarer.",
+    tags: ["guides", "safety"],
+    authorProfileKeys: ["NERVEWING", "HALCYON"],
+    publicationDate: "2025-11-02",
+  },
+  {
+    slug: "dosage-tables-explained",
+    title: "How to read a dosage table",
+    kind: "article",
+    status: "draft",
+    bodyFormat: "markdown",
+    body_raw: "Each row is a route of administration.",
+    teaser: "Threshold, light, common, strong and heavy, in plain words.",
+    tags: ["guides"],
+    authorProfileKeys: ["RIVER"],
+  },
+  {
+    slug: "winter-update",
+    title: "Winter update: translations and trip reports",
+    kind: "blog",
+    status: "published",
+    bodyFormat: "markdown",
+    body_raw: "Three new languages landed this winter.\n\n## Trip reports\n\nThe portal now takes timelines.",
+    teaser: "Three new languages and a trip report portal with timelines.",
+    coverImageUrl: "/effectindex/social-card.png",
+    tags: ["news", "translations"],
+    authorProfileKeys: ["MIRA"],
+    publicationDate: "2025-12-18",
+  },
 ]);
+
+/**
+ * The About page document (`/api/dev/about`): an introduction, the two
+ * section headings the public page splits on, two founders and one
+ * translation credit, as `siteConfig.getAboutForEditor` returns it.
+ */
+export const ABOUT_SEED = Object.freeze({
+  aboutMarkdown: [
+    "dose.wiki gathers what harm reduction volunteers have written about {{compoundCount}} substances into one open dataset.",
+    "",
+    "Every article links to the pages it drew on.",
+    "",
+    "## Sources and review",
+    "",
+    "Drafts were checked by people before publication. Each article says whether it has been reviewed.",
+    "",
+    "## Project history",
+    "",
+    "The project grew out of a decade of community documentation.",
+  ].join("\n"),
+  aboutSubtitle: "An open library of {{compoundCount}} psychoactive substances and {{reportCount}} trip reports.",
+  founderProfileKeys: ["NERVEWING", "RIVER"],
+  translationCredits: { "zh-Hans": [{ profileKey: "MIRA", contribution: "Chinese glossary and About translation" }] },
+});
+
+/** The live counts the About placeholders resolve to. */
+const ABOUT_AGGREGATES = Object.freeze({
+  compoundCount: 412,
+  psychoactiveClassCount: 38,
+  categoryCount: 38,
+  chemicalClassCount: 61,
+  mechanismClassCount: 24,
+  mechanismOfActionClassCount: 24,
+  reportCount: 1290,
+  replicationCount: 540,
+});
 
 /**
  * The contributor directory the shell reads for every tool: public profiles
@@ -647,6 +719,17 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   };
   for (const key of copy.rows.keys()) copy.revisions.set(key, 1);
 
+  /** About: the one stored document (none when empty), its revision, and answered operations by id. */
+  const about = {
+    doc: state === "empty" ? null : {
+      ...structuredClone(ABOUT_SEED),
+      updatedAt: new Date(FIXTURE_EPOCH - 50 * 3_600_000).toISOString(),
+      updatedBy: FIXTURE_OTHER_ADMIN,
+    },
+    revision: state === "empty" ? 0 : 3,
+    operations: new Map(),
+  };
+
   /** Replication playlists keyed by key (Playlists). */
   const playlists = new Map(
     (state === "empty" ? [] : PLAYLISTS_SEED).map((row) => [row.key, {
@@ -726,7 +809,47 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   };
 
   function writingList() {
-    return [...writing.values()].map(({ slug, title, kind, status, creationTime }) => ({ slug, title, kind, status, creationTime }));
+    return [...writing.values()].map(({ slug, title, kind, status, creationTime, publicationDate, teaser, tags }) => ({
+      slug, title, kind, status, creationTime, publicationDate, teaser, tags,
+    }));
+  }
+
+  /** The About content a publication compares, in one stable string. */
+  function aboutContent(doc) {
+    if (!doc) return "null";
+    return JSON.stringify([doc.aboutMarkdown ?? "", doc.aboutSubtitle ?? "", doc.founderProfileKeys ?? [], doc.translationCredits ?? {}]);
+  }
+
+  /** `POST /api/dev/about`: admin floor, operation replay, and the revision and content check `saveAbout` makes. */
+  function saveAbout(body) {
+    if (fixture.role !== "admin") return json(403, { error: "Only an admin can publish the About page. Submit it for review instead.", code: "FORBIDDEN" });
+    const operationId = String(body.operationId ?? "");
+    const replay = about.operations.get(operationId);
+    if (replay) return json(200, { ...replay, replayed: true });
+    // Someone else publishes just before the editor's first publication lands.
+    if (fixture.state === "conflicted" && !contested.has("about") && about.doc) {
+      contested.add("about");
+      about.doc = { ...about.doc, aboutSubtitle: `${about.doc.aboutSubtitle} Edited by someone else.`, updatedAt: tick(), updatedBy: FIXTURE_OTHER_ADMIN };
+      about.revision += 1;
+    }
+    const expected = body.expected ?? null;
+    if (body.expectedRevision !== about.revision || aboutContent(expected) !== aboutContent(about.doc)) {
+      return json(409, { error: "Published content changed since you opened this editor. Your draft is preserved. Reload the latest source and reconcile before publishing.", code: "EDIT_CONFLICT" });
+    }
+    const next = {
+      aboutMarkdown: String(body.aboutMarkdown ?? ""),
+      aboutSubtitle: String(body.aboutSubtitle ?? ""),
+      founderProfileKeys: [...(body.founderProfileKeys ?? [])],
+      translationCredits: structuredClone(body.translationCredits ?? about.doc?.translationCredits ?? {}),
+    };
+    if (about.doc && aboutContent(about.doc) === aboutContent(next)) {
+      return json(200, { ok: true, revision: about.revision, replayed: false, unchanged: true, about: { ...next, revision: about.revision } });
+    }
+    about.revision += 1;
+    about.doc = { ...next, updatedAt: tick(), updatedBy: fixture.session.user.email };
+    const answer = { ok: true, revision: about.revision, replayed: false, unchanged: false, about: { ...structuredClone(next), revision: about.revision } };
+    if (operationId) about.operations.set(operationId, answer);
+    return json(200, answer);
   }
 
   function readWritingRow(slug) {
@@ -757,6 +880,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       teaser: body.teaser ?? "",
       tags: body.tags ?? [],
       authorProfileKeys: body.authorProfileKeys ?? [],
+      coverImageUrl: body.coverImageUrl ?? "",
       publicationDate: body.publicationDate,
       baseRevision: revision,
       creationTime: existing?.creationTime ?? clock,
@@ -1204,6 +1328,15 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         return toolRead(() => slug ? readWritingRow(slug) : json(200, { ok: true, articles: writingList() }));
       }
       if (upper === "POST") return toolWrite(() => saveWritingRow(body ?? {}));
+    }
+
+    if (pathname === "/api/dev/about") {
+      if (upper === "GET") {
+        return toolRead(() => json(200, about.doc
+          ? { ...structuredClone(about.doc), revision: about.revision, aggregates: { ...ABOUT_AGGREGATES } }
+          : { aggregates: { ...ABOUT_AGGREGATES } }));
+      }
+      if (upper === "POST") return toolWrite(() => saveAbout(body ?? {}));
     }
 
     if (pathname === "/api/dev/proposals") {

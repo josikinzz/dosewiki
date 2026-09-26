@@ -90,14 +90,14 @@ export function AboutCopyEditors({
       >
         <div className="space-y-6">
           {contextual ? <ExpandButton variant="inline" isExpanded={tokensOpen} onToggle={() => setTokensOpen(value => !value)} ariaControls={tokensId} ariaLabel="Live count placeholders" label="Live count placeholders" /> : null}
-          <div id={tokensId} className={contextual && !tokensOpen ? "hidden" : "flex flex-wrap gap-2 text-[11px] theme-text-muted"}>
+          <div id={tokensId} className={contextual && !tokensOpen ? "hidden" : "flex flex-wrap gap-2 text-xs theme-text-muted"}>
             {PLACEHOLDER_TOKENS.map((token) => (
               <TagToken
                 key={token.key}
                 variant="readonly"
                 label={(
                   <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 whitespace-normal">
-                    <code className="font-mono text-[0.7rem] theme-text-secondary">{`{{${token.key}}}`}</code>
+                    <code className="font-mono text-xs theme-text-secondary">{`{{${token.key}}}`}</code>
                     <span className="theme-text-faint">{token.label}</span>
                   </span>
                 )}

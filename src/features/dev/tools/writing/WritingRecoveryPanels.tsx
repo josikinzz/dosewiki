@@ -69,7 +69,7 @@ export function WritingRecoveryPanels({
     return (
       <section aria-label={recovery ? "Review recovered changes" : "Review changes saved meanwhile"}>
         <EditorSection
-          headingLevel="h3"
+          headingLevel="h4"
           title={recovery ? "Review recovered changes" : "Review changes saved meanwhile"}
           description={`Someone saved this page after ${recovery ? "your copy was made" : "you started editing"}. The editor holds both sets of changes; a field you both changed keeps the latest saved version until you choose. Nothing is saved until you save.`}
         >

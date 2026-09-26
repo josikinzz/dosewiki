@@ -123,6 +123,7 @@ describe("useDevChromeEnvironment", () => {
       "trip-report-submissions",
       "banners",
       "replications",
+      "writing",
       "index-layout",
     ]);
   });

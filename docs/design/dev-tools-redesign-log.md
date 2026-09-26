@@ -404,6 +404,25 @@ builds a new shared primitive, add it to **Conventions** and log it under
   against the live text are warned beside the field ("You removed
   {{siteName}}. The page will no longer fill it in.", `placeholderChanges`).
 
+- **A preview of a public page embeds it.** A pane that previews a public
+  page renders the page component in its embedded form: no `main` landmark or
+  `main-content` id (a second one broke the skip link), and one column laid out
+  on the preview's own width, since page breakpoints read the viewport.
+  `EffectIndexArticlePage embedded` (contents listed above the article) and
+  `WritingBlogPostPage embedded` are the reference.
+- **Fields beside a preview switch views.** A pane with a live preview carries
+  an `EditorSegmentedControl` "View" (Write / Preview / Both): Both is side by
+  side from `xl` with the preview sticky and scrolling on its own, stacked
+  below; wide screens open on Both, phones on Write. `WritingPane` and the
+  About pane are the reference.
+- **The save button names the outcome.** When one button can publish,
+  republish, keep a draft or take a page down, its label follows the draft
+  (`writingSaveAction`: Publish, Publish changes, Save draft, Unpublish) and
+  the confirm's title and consequence sentence say the same.
+- **A pane where something is always open has no Close.** Writing always
+  shows a record (About when nothing else is picked), so the pane header keeps
+  Back to list below `lg` and drops the corner Close.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1201,4 +1220,95 @@ Deferred, with reasons:
   `Button` recipe.
 - `EditorList`'s loop with rows of different heights is avoided here, not
   fixed in the shared list (recorded as a convention above).
+
+### Pass 11: Writing (`/dev/writing`, the pinned About page included)
+
+Commit: see `git log --grep "Dev tools redesign: Writing"`.
+Screenshots: `tmp/redesign/writing/before/` and `tmp/redesign/writing/after/`
+(admin landing dark and light; articles and blog lists; article and blog rows,
+full, bottom, light; new article and new post; dirty, dirty guard, discard
+confirm; publish confirm; saved; conflict and the merge after it; frozen;
+preview hidden and preview only; invalid and taken address; blocked cover;
+recovery offer after a reload; unknown deep link; list and row failed; empty;
+list and row loading; editor row, dirty, submitted; editor_translator;
+translator and contributor locked; About loaded dark and light, full, bottom,
+dirty, publish confirm, saved, conflict, load latest, frozen, discard, live
+counts, founders, founder added, credits, editor, editor submitted, failed,
+empty, loading, guard; desktop and phone), captured by
+`tmp/redesign/writing/capture.mjs`. Critique in
+`tmp/redesign/writing/critique.md` (18/40 before), inventory with the
+item-by-item check in `tmp/redesign/writing/inventory.md`, detector evidence in
+`tmp/redesign/writing/detector/` (one false positive before).
+
+Main changes:
+
+- P0 fixes: save, conflict and freeze results rendered at the top of a long
+  form (About showed only "Save failed"); they now land in a save dock. A failed
+  row read showed a blank editable form under "Load failed"; it is now
+  `LoadErrorState` in the pane with no form and no dock. A 503 freeze refusal
+  was held as an unconfirmed publication (fields locked, "Retry publication
+  confirmation"); `useWritingWorkbenchController` now treats it as a definite
+  refusal (the About side already had it from Copy's `CopyIndexRefusal`). The
+  preview rendered a second `<main id="main-content">` and clipped its headings
+  in a 420px column; it now uses the embedded page components.
+- Layout: the editor workspace, `layout: "full-bleed"` with the tool capped at
+  `max-w-[100rem]`. The list column (sticky from `lg`) holds "Pinned" (About
+  page), the Kind control (Articles / Blog posts with counts, omitted while
+  unknown), New article / New post, a filter with `/` past eight pages, and
+  link rows grouped Drafts then Live (title, address, written date, "Editing",
+  unsaved dot). `WritingPane.tsx` docks on the right: saved title (sr-only
+  "Editing"), kind and state pill, View live and the address, date and "Saved
+  at", Back to list below `lg`; the View switch; `WritingFields.tsx` in three
+  groups (Words, Publishing, Byline and tags); the preview; a Versions section
+  (Load the latest saved version, recent changes as disclosure rows); the dock.
+- Dock: result notice (conflict keeps the route's words and offers Load the
+  latest saved version, which merges and so needs no destructive confirm;
+  freeze copy), the one blocker (`writingSaveBlocker`, a refused rename, an open
+  recovery choice, or the unconfirmed publication with its Retry), the outcome
+  button with the Cmd+S cap, Discard edits (destructive confirm), the state
+  phrase (including "Unsaved changes kept in this browser at ..."), and
+  `SaveLine` (`WRITING_ADMIN_SAVE_COPY` for admins, the proposal line for
+  editors). The admin review moved into the confirm (`WritingChangesReview`:
+  Was / Now per field, the body as a diff).
+- About (`AboutEditorTab.tsx`, now the About pane): header with View live and
+  "Last published" (who, for admins), the View switch, Page text (Markdown
+  source, Copy Markdown, Reset text while changed, live counts folded and
+  inserting at the caret with today's values), Subtitle and search description
+  (raw and filled-in counts, warning past 160), preview (now with the subtitle),
+  Founders and Translation credits as `AboutPaneSection`s with
+  `ContributorAvatar` rows, "More About wording, in Copy" as link rows, Changes,
+  and a dock (Publish About page / Submit for review, a confirm naming the
+  changed parts with their diffs, Discard edits, conflict with "Load the latest
+  version" behind a destructive confirm, freeze copy, unconfirmed alert).
+- Keys: Cmd+S in both panes (asks first; Submit goes straight out), `/` for
+  the list filter, `j / k` to walk the rows; all in the `?` sheet.
+- Controller API (frontend): `saveFailure`, `dismissNotice`, `listLoading`,
+  `retryList`, `rowError`, `retryRow`, `missingSlug`, `dismissMissing`; About
+  gains `saveFailure`, `dismissNotice`, `discard`, `loadLatest`,
+  `loadingLatest`, `lastWrite`. Model: `WRITING_FIELD_LABELS` (Slug is
+  "Address"), `writingAddress`, `writingKindNoun`, `changedWritingFields`,
+  `describeWritingChanges`, `joinWords`, `writingSaveAction`,
+  `writingSaveBlocker`, `groupWritingEntries`, `writingEntryMatches`,
+  `formatPublicationDate`.
+- Registry: `saveLine: "in-tool"`, `layout: "full-bleed"`.
+- Shared, backward compatible: `EffectIndexArticlePage` and
+  `WritingBlogPostPage` take `embedded`; the contextual `WritingEditor` renders
+  `WritingFields` (its review, discard and status flow unchanged, preview
+  embedded); "…" dropped from the contextual Writing and About strings.
+- Journeys fixtures: `WRITING_SEED` gains a dated article with a byline, a
+  draft article and a blog post with a cover; the list carries date, teaser and
+  tags as the route does; `ABOUT_SEED` and `/api/dev/about` (GET with
+  aggregates, POST with the admin floor, operation replay, revision and content
+  check, `conflicted` and `frozen`), with a unit test. Journeys now press the
+  outcome button and confirm in a dialog, check `aria-current`, and expect the
+  freeze copy.
+
+Deferred, with reasons:
+
+- Undo after publishing: no server history.
+- The accent first word and uppercase role chips inside the About preview:
+  they are the public renderer and `ContributorCard`, drawn as readers see them.
+- `AboutCopyEditors` still carries its non-contextual mode, now unused in the
+  tool; the contextual About panel owns it and its layout was out of scope.
+- A Close in the pane: see the convention above.
 

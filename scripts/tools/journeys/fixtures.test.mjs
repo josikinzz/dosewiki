@@ -85,7 +85,7 @@ describe("journey fixtures", () => {
     assert.deepEqual(loaded.session.user.glossaryLocales, ["de", "nl", "ja"]);
     assert.equal(fixtureSession("editor").user.glossaryLocales, undefined);
     const work = get(loaded, "/api/dev/my-work").json;
-    assert.deepEqual(work.drafts.map((draft) => draft.slug), ["launch-post"]);
+    assert.deepEqual(work.drafts.map((draft) => draft.slug), ["launch-post", "dosage-tables-explained"]);
     assert.deepEqual(work.proposals.map((proposal) => proposal._id), ["journeyseed000001"]);
     assert.equal(get(loaded, "/api/dev/translation-inbox", "?locale=de").json.total, 7);
     assert.equal(get(loaded, "/api/dev/invites").json.invites.filter((invite) => invite.status === "active").length, 2);
@@ -96,6 +96,31 @@ describe("journey fixtures", () => {
     assert.deepEqual(get(empty, "/api/dev/invites").json.invites, []);
     assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/dev/my-work").status, 500);
     assert.deepEqual(loaded.unhandled, []);
+  });
+
+  it("answers the About document and publishes it against its revision and content", () => {
+    const fixture = createJourneyFixture();
+    const read = get(fixture, "/api/dev/about").json;
+    assert.equal(read.revision, 3);
+    assert.equal(read.aggregates.compoundCount, 412);
+    const expected = { aboutMarkdown: read.aboutMarkdown, aboutSubtitle: read.aboutSubtitle, founderProfileKeys: read.founderProfileKeys, translationCredits: read.translationCredits };
+    const body = { ...expected, aboutSubtitle: "New subtitle.", expected, expectedRevision: 3, operationId: "op-1" };
+    const saved = post(fixture, "/api/dev/about", body);
+    assert.equal(saved.status, 200);
+    assert.equal(saved.json.revision, 4);
+    assert.equal(post(fixture, "/api/dev/about", body).json.replayed, true, "the same operation answers as it did");
+    assert.equal(post(fixture, "/api/dev/about", { ...body, operationId: "op-2" }).status, 409, "the old revision is refused");
+    assert.equal(get(fixture, "/api/dev/about").json.aboutSubtitle, "New subtitle.");
+
+    assert.equal(post(createJourneyFixture({ role: "editor" }), "/api/dev/about", body).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/about", body).status, 503);
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    assert.equal(post(conflicted, "/api/dev/about", body).status, 409);
+    const newer = get(conflicted, "/api/dev/about").json;
+    assert.match(newer.aboutSubtitle, /Edited by someone else\./);
+    const newerExpected = { aboutMarkdown: newer.aboutMarkdown, aboutSubtitle: newer.aboutSubtitle, founderProfileKeys: newer.founderProfileKeys, translationCredits: newer.translationCredits };
+    assert.equal(post(conflicted, "/api/dev/about", { ...body, expected: newerExpected, expectedRevision: newer.revision, operationId: "op-3" }).status, 200);
+    assert.equal(get(createJourneyFixture({ state: "empty" }), "/api/dev/about").json.revision, undefined);
   });
 
   it("refuses a save made against an older revision, then takes one made against the newer", () => {
@@ -165,8 +190,8 @@ describe("journey fixtures", () => {
   it("answers every other API request itself and records it, so nothing reaches the server", () => {
     const fixture = createJourneyFixture();
     assert.equal(get(fixture, "/api/editor/substances").status, 404);
-    assert.equal(post(fixture, "/api/dev/about", {}).status, 501);
-    assert.deepEqual(fixture.unhandled.map((entry) => `${entry.method} ${entry.pathname}`), ["GET /api/editor/substances", "POST /api/dev/about"]);
+    assert.equal(post(fixture, "/api/dev/no-such-route", {}).status, 501);
+    assert.deepEqual(fixture.unhandled.map((entry) => `${entry.method} ${entry.pathname}`), ["GET /api/editor/substances", "POST /api/dev/no-such-route"]);
     // Documents and assets are the dev server's.
     assert.equal(get(fixture, "/dev/writing"), null);
   });
