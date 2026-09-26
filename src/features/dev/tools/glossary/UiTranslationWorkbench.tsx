@@ -102,7 +102,7 @@ export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "",
         {sharedSearch === undefined
           ? <SearchField ref={searchRef} className="min-w-0 flex-1" label="Search UI labels" value={search} onChange={(value) => { setSearch(value); setPage(0); }} placeholder="Search English, translation, or context" />
           : <SearchField ref={searchRef} className="min-w-0 flex-1" label="Search words" value={search} onChange={setSearch} placeholder="Search English, translation, or context" description="Terms shares this search." />}
-        <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Reload UI labels" title="Reload UI labels" disabled={loading} aria-busy={loading || undefined} onClick={() => void load()}>
+        <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0" aria-label="Refresh interface text" title="Refresh interface text" disabled={loading} aria-busy={loading || undefined} onClick={() => void load()}>
           <Icon icon="lucide:refresh-cw" size={15} className={loading ? "motion-safe:animate-spin" : undefined} />
         </Button>
       </div>

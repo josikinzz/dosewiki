@@ -634,8 +634,8 @@ describe("TagEditorTab state-machine integration", () => {
       }),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Reload tags" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reload tags" })).not.toBeDisabled());
+    fireEvent.click(screen.getByRole("button", { name: "Refresh tags" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Refresh tags" })).not.toBeDisabled());
 
     expect(screen.getByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();

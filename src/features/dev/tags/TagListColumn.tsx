@@ -89,14 +89,14 @@ export const TagListColumn = forwardRef<HTMLElement, TagListColumnProps>(functio
             onClick={onReload}
             disabled={reload === "busy"}
             aria-busy={reload === "busy" || undefined}
-            aria-label={reload === "busy" ? "Reloading tags" : "Reload tags"}
-            title="Reload tags"
+            aria-label={reload === "busy" ? "Refreshing tags" : "Refresh tags"}
+            title="Refresh tags"
           >
             <Icon icon="lucide:refresh-cw" size={15} className={reload === "busy" ? "animate-spin motion-reduce:animate-none" : undefined} />
           </Button>
         </div>
       </div>
-      {reload === "busy" ? <span role="status" className="sr-only">Reloading tags</span> : null}
+      {reload === "busy" ? <span role="status" className="sr-only">Refreshing tags</span> : null}
       {reload === "failed" ? (
         <Notice
           placement="inline"

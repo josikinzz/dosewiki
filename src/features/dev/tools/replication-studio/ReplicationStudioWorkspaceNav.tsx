@@ -96,11 +96,11 @@ export function ReplicationStudioWorkspaceNav({
             size="sm"
             disabled={busy}
             onClick={onReload}
-            aria-label="Reload the corpus"
-            title="Reload the corpus"
+            aria-label="Refresh the corpus"
+            title="Refresh the corpus"
           >
             <Icon icon="lucide:refresh-cw" size={15} />
-            <span className="max-lg:sr-only">Reload</span>
+            <span className="max-lg:sr-only">Refresh</span>
           </Button>
           <Button type="button" variant="accent" size="sm" onClick={onUpload}>
             <Icon icon="lucide:upload" size={15} />

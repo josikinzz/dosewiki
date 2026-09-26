@@ -380,7 +380,7 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
               {data && data.total > INBOX_PAGE_SIZE ? ` · showing ${offset + 1} to ${offset + data.items.length}` : ""}
               {skippedHere > 0 ? ` · ${skippedHere} skipped this session` : ""}
             </p>
-            <Button type="button" variant="ghost" size="icon" className="-mr-2 size-8" aria-label="Reload inbox" title="Reload inbox" disabled={loading} aria-busy={loading || undefined} onClick={() => void load(offset, reason)}>
+            <Button type="button" variant="ghost" size="icon" className="-mr-2 size-8" aria-label="Refresh the waiting list" title="Refresh the waiting list" disabled={loading} aria-busy={loading || undefined} onClick={() => void load(offset, reason)}>
               <Icon icon="lucide:refresh-cw" size={14} className={loading ? "motion-safe:animate-spin" : undefined} />
             </Button>
           </div>

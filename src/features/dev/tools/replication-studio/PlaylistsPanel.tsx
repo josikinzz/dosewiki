@@ -187,7 +187,7 @@ export function PlaylistsPanel({
           </div>
           <Button type="button" variant="ghost" size="sm" disabled={isSaving} onClick={() => controller.reload()}>
             <Icon icon="lucide:refresh-cw" size={15} />
-            Reload
+            Refresh
           </Button>
         </div>
 

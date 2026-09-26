@@ -812,7 +812,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                   />
                 </EditorField>
               )}
-              <Button type="button" variant="ghost" size="sm" className="shrink-0 max-sm:size-10 max-sm:px-0 [@media(pointer:coarse)]:min-h-11" onClick={() => void refresh()} disabled={locked} aria-busy={busy === "load" || undefined} title="Reload this language">
+              <Button type="button" variant="ghost" size="sm" className="shrink-0 max-sm:size-10 max-sm:px-0 [@media(pointer:coarse)]:min-h-11" onClick={() => void refresh()} disabled={locked} aria-busy={busy === "load" || undefined} title="Refresh this language">
                 <Icon icon="lucide:refresh-cw" size={14} className={busy === "load" ? "motion-safe:animate-spin" : undefined} />
                 <span className="max-sm:sr-only">{busy === "load" ? "Refreshing" : "Refresh"}</span>
               </Button>

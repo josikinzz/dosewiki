@@ -290,7 +290,7 @@ describe("PlaylistsPanel", () => {
     await waitFor(() => expect(calls.filter(({ method }) => method === "POST")).toHaveLength(1));
     expect(title).toBeDisabled();
     expect(screen.getByRole("button", { name: "New playlist" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Reload" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Close" })).toBeDisabled();
     expect(
       screen.getAllByRole("button", { name: "Edit" }).every((button) => button.hasAttribute("disabled")),
