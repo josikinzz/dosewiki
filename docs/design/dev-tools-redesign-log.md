@@ -184,6 +184,41 @@ builds a new shared primitive, add it to **Conventions** and log it under
   Reviewing).
 - The user-facing name of the surface is "Editor" (sr-only h1, nav landmarks
   "Editor tools" / "Editor sections", "Leave editor").
+- **Editor workspace (list plus editing pane).** A tool that opens one record
+  to edit uses the triage workspace layout with an editing pane: list left
+  (`lg:sticky lg:top-24`, rows are `theme-dev-link-row` buttons, the open row
+  gets `aria-current` plus `theme-dev-link-lead` and "Editing"), pane right as
+  `EditorPanel className="overflow-visible"`. The pane header names the record
+  (its saved title as the heading, sr-only "Editing"), carries the live link
+  and one corner Close (`absolute`, `TOUCH_ICON`), and "Back to list" below
+  `lg`. Desktop shows an idle pane that says what opens there; phones hide it.
+  Opening moves focus to the pane heading from an effect (never a frame
+  later, or a click into a field loses focus to it). My reports
+  (`MyReportsTab`, `OwnedReportPane`) is the reference.
+- **Save dock.** An editing pane's `sticky bottom-0` footer (the decision
+  dock recipe, `aria-label="Save"`) holds, in order: the result of the last
+  save as a `Notice` (success, refusal, conflict with its way forward), then
+  Save (accent, pending label, key cap on fine pointers), a quiet discard
+  button, a one-phrase state ("Unsaved changes" with the unsaved dot, "No
+  changes yet"), and the tool's `SaveLine`. Such a tool sets `saveLine:
+  "in-tool"`. Notices about the list (a failed open) stay at the list.
+- **Save key.** Cmd/Ctrl+S in an editing pane opens the same confirm Save
+  does (never saves past it) and is registered through `useDevShortcuts`
+  ("Cmd+S"). Show the cap with `useModifierKeyLabel("S")`
+  (`DevCommandPalette.tsx`; `usePaletteKeyLabel` now wraps it).
+- **Conflicts offer the way forward.** A revision conflict says someone saved
+  after you opened it and offers "Load the latest version" behind a
+  destructive confirm that says the edits are dropped. A freeze refusal says
+  "Writes are paused, so your changes were not published" and keeps the draft.
+- **Confirms say what changes.** A publish confirm names the changed parts
+  ("You changed the title and tags."); a grant of rights names who gets what.
+- **Fields use `EditorField`.** Sentence-case labels and descriptions, never
+  hand-rolled `uppercase tracking-wide` labels; a group of controls (tags, a
+  body of phases) is a labelled group or a `fieldset` with a `legend`.
+- **Dates in rows.** Event dates are relative `<time>` (`RelativeDay`); a
+  calendar fact (a trip date) is written out in the body face and read in UTC
+  (`formatTripDate`), never a mono ISO string.
+- **Section descriptions** are capped at 75ch by `EditorSection` itself.
 
 ## Passes
 
@@ -387,4 +422,66 @@ Deferred, with reasons:
   shell's `onOpenHref`; the unsaved-work registry's `beforeunload` still
   covers the navigation.
 - Detector `ai-color-palette` findings: the brand accent, a brand decision.
+
+### Pass 4: My reports (`/dev/my-reports`)
+
+Commit: see `git log --grep "Dev tools redesign: My reports"`.
+Screenshots: `tmp/redesign/my-reports/before/` and
+`tmp/redesign/my-reports/after/` (admin, contributor, editor; loaded dark and
+light; empty; failed; loading; open, open with a body, scrolled, dirty; publish,
+discard, assign and load-latest dialogs; saved; conflict; frozen; open failed;
+assign filled, done and failed; edit from a submission; desktop and phone),
+captured by `tmp/redesign/my-reports/capture.mjs`. Critique in
+`tmp/redesign/my-reports/critique.md` (17/40 before), inventory with the
+item-by-item check in `tmp/redesign/my-reports/inventory.md`, detector
+evidence in `tmp/redesign/my-reports/detector/`.
+
+Main changes:
+
+- Layout: the editor workspace (see Conventions). The list of owned reports
+  is link-row buttons with address, trip date and relative publication; the
+  open report docks on the right with a sticky save dock that really sticks
+  (the old footer sat inside an `overflow-hidden` panel). Phones: opening
+  scrolls the pane in and focuses its heading; Back to list returns.
+- Save results land in the dock; the conflict offers Load the latest version;
+  freeze reads plainly; the confirm lists what changed; Cmd/Ctrl+S; Revert is
+  "Discard edits"; duplicate tags are skipped; the add-tag box is 16px on
+  phones; the registry now says `saveLine: "in-tool"`.
+- Split into `OwnedReportPane.tsx`, `SubmissionsSection.tsx`,
+  `AssignOwnerSection.tsx`; model helpers `formatTripDate`,
+  `normalizeReportSlug`, `isRevisionConflict`, `isWriteFreezeRefusal`,
+  `submissionOutcome`, `sortSubmissions`, `changedParts`, `joinParts`.
+- Submissions: an open list (not a table), newest first, a tally in the
+  heading, relative submitted and decided dates, "Edit your report" on a
+  published submission the member owns, "Submit a revised report" on a
+  rejected one, capped at five. A member who owns nothing sees Submissions
+  first. Empty states point onward (`/reports/submit`, See your submissions).
+- Assign owner: `EditorField`s that stack on phones, a pasted page address
+  resolves to its slug with a preview, a confirm names the email and slug
+  before posting, the result shows under the button.
+- Loading is skeleton rows; each read's failure is one `LoadErrorState` with
+  `what`; Refresh reloads both reads.
+- Shared, backward compatible: `TagToken` remove gets `TOUCH_HALO`;
+  `EditorSection` caps its description at 75ch (every tool);
+  `PortalReportTimelineEditor` draws its move arrows as icons and its entry
+  count in the body face (labels unchanged); `useModifierKeyLabel`.
+- Journeys fixtures: owned report records (`OWNED_REPORT_SEED`, three
+  reports, one with a body, one with no trip date), the record route (GET and a
+  POST honoring `conflicted` and `frozen`), the owner route (404 for unknown
+  slugs), and six submissions covering every status. Home's "Your trip
+  reports" reads the same seed, so its screenshots now show more rows.
+
+Deferred, with reasons:
+
+- Undo or restore after publishing, and whether owner edits should be pending
+  revisions: needs server history and a product decision.
+- Deep link to an open report and palette records for owned reports: the
+  shell owns tool routes; wants the shared deep-link convention.
+- Slug combobox with titles and current owner in Assign owner: the only list
+  is the full portal corpus read, which carries no owner; needs an endpoint.
+- Accepted and Published share the success tone: shared intake vocabulary.
+- Timeline editor duplicate "+ entry", textarea heights and the "Conclusion /
+  Aftermath" label: the Trip reports pass (labels are test-guarded there).
+- Next dev overlay "1 Issue" on every `/dev` page is a pre-existing hydration
+  attribute mismatch in the shell, not this tool.
 

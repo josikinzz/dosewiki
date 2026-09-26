@@ -83,7 +83,8 @@ export function EditorSection({
               <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
             ) : null}
           </div>
-          {description ? <p className="theme-text-faint text-sm">{description}</p> : null}
+          {/* A readable measure: a one-line description never runs the full width of a wide frame. */}
+          {description ? <p className="theme-text-faint max-w-[75ch] text-sm">{description}</p> : null}
         </div>
       ) : null}
       {children}

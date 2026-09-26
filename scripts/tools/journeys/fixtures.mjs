@@ -171,6 +171,62 @@ const FROZEN_ERROR = Object.freeze({
 const AUTH_ERROR = Object.freeze({ error: "Authentication required." });
 const REVISION_CONFLICT = "Someone saved this article after you loaded it.";
 
+/** Published reports an admin can assign in the fixture; any other slug answers 404. */
+const OWNED_REPORT_SLUGS_EXTRA = Object.freeze(["museum-walk"]);
+
+/** The viewer's own published trip reports, oldest last. */
+export const OWNED_REPORT_SEED = Object.freeze([
+  {
+    id: "fixture-report-1",
+    slug: "fixture-festival-notes",
+    createdAt: FIXTURE_EPOCH - 300 * 3_600_000,
+    fields: {
+      title: "Fixture festival notes",
+      subject: { name: "nervewing", trip_date: "2025-12-20" },
+      substances: [{ name: "Psilocybin", dose: "2 g", roa: "oral" }],
+      introduction: "A long day at a small festival, with friends close by the whole time.",
+      onset: [
+        { time: "T+0:30", description: "Colours on the stage lights begin to breathe." },
+        { time: "T+0:50", description: "A warm body load and a lot of laughing." },
+      ],
+      peak: [{ time: "T+2:00", description: "The crowd sounds like one slow wave." }],
+      offset: [],
+      conclusion: "Slept well and felt clear the next morning.",
+      tags: ["festival", "friends"],
+    },
+  },
+  {
+    id: "fixture-report-2",
+    slug: "a-slow-walk-by-the-river",
+    createdAt: FIXTURE_EPOCH - 40 * 3_600_000,
+    fields: {
+      title: "A slow walk by the river with a very long title that has to wrap on a phone",
+      subject: { name: "nervewing", trip_date: "2026-01-10" },
+      substances: [{ name: "LSD", dose: "75 µg", roa: "oral" }],
+      onset: [],
+      peak: [],
+      offset: [],
+      tags: [],
+    },
+  },
+  {
+    id: "fixture-report-3",
+    slug: "quiet-evening",
+    createdAt: FIXTURE_EPOCH - 900 * 3_600_000,
+    fields: {
+      title: "Quiet evening",
+      subject: { name: "nervewing" },
+      substances: [{ name: "Cannabis" }],
+      introduction: "Short notes from a calm night in.",
+      onset: [{ description: "Music felt closer." }],
+      peak: [],
+      offset: [],
+      tags: ["music"],
+    },
+  },
+]);
+const OWNER_ASSIGNABLE_SLUGS = Object.freeze([...OWNED_REPORT_SEED.map((row) => row.slug), ...OWNED_REPORT_SLUGS_EXTRA]);
+
 export const WRITING_SEED = Object.freeze([
   {
     slug: "launch-post",
@@ -291,6 +347,10 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     : seedInbox();
   /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
+  /** The viewer's own published trip reports (My reports), keyed by id. */
+  const ownedReports = new Map(
+    (state === "empty" ? [] : OWNED_REPORT_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: FIXTURE_EMAIL, revision: nextRevision() }]),
+  );
 
   const fixture = {
     role,
@@ -385,6 +445,34 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (key && key !== body.slug) writing.delete(key);
     writing.set(body.slug, row);
     return json(200, { ok: true, slug: body.slug, revision });
+  }
+
+  function saveOwnedReport(body) {
+    const row = ownedReports.get(String(body.id ?? ""));
+    if (!row) return json(404, { error: "That trip report no longer exists." });
+    // Someone else's save lands just before the owner's first one.
+    if (fixture.state === "conflicted" && !contested.has(row.id)) {
+      contested.add(row.id);
+      row.fields = { ...row.fields, introduction: `${row.fields.introduction ?? ""} Edited by someone else.`.trim() };
+      row.revision = nextRevision();
+    }
+    if (body.expectedRevision !== row.revision) {
+      return json(409, { error: `Trip report ${row.slug} changed since it was opened. Reload it and apply your edits again.` });
+    }
+    const updates = body.updates ?? {};
+    // An owner saves content only: title, tags and the body. Byline, subject and substances stay.
+    row.fields = {
+      ...row.fields,
+      title: String(updates.title ?? row.fields.title),
+      tags: Array.isArray(updates.tags) ? updates.tags : row.fields.tags,
+      introduction: updates.introduction,
+      onset: Array.isArray(updates.onset) ? updates.onset : row.fields.onset,
+      peak: Array.isArray(updates.peak) ? updates.peak : row.fields.peak,
+      offset: Array.isArray(updates.offset) ? updates.offset : row.fields.offset,
+      conclusion: updates.conclusion,
+    };
+    row.revision = nextRevision();
+    return json(200, { ok: true, slug: row.slug, fields: structuredClone(row.fields), revision: row.revision });
   }
 
   function proposalSummary(proposal) {
@@ -507,16 +595,44 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         submissions: fixture.state === "empty" ? [] : [
           { id: "fixture-submission-1", title: "A quiet evening with a fixture", status: "reviewing", submitted_at: at(30) },
           { id: "fixture-submission-2", title: "Fixture festival notes", status: "published", submitted_at: at(400), decided_at: at(300), report_slug: "fixture-festival-notes" },
+          { id: "fixture-submission-3", title: "Museum walk", status: "rejected", submitted_at: at(700), decided_at: at(650), public_reason: "The dose for the second substance is missing, so readers could not compare it." },
+          { id: "fixture-submission-4", title: "Night drive home", status: "accepted", submitted_at: at(120), decided_at: at(60) },
+          { id: "fixture-submission-5", title: "First time, in a tent", status: "new", submitted_at: at(2) },
+          { id: "fixture-submission-6", title: "Untitled notes", status: "rejected", submitted_at: at(1200), decided_at: at(1100) },
         ],
       }));
     }
     if (pathname === "/api/dev/trip-reports/mine" && upper === "GET") {
       return toolRead(() => json(200, {
         ok: true,
-        reports: fixture.state === "empty" ? [] : [
-          { id: "fixture-report-1", slug: "fixture-festival-notes", title: "Fixture festival notes", createdAt: FIXTURE_EPOCH - 300 * 3_600_000 },
-        ],
+        reports: [...ownedReports.values()].map((row) => ({
+          id: row.id,
+          slug: row.slug,
+          title: row.fields.title,
+          ...(row.fields.subject.trip_date ? { tripDate: row.fields.subject.trip_date } : {}),
+          createdAt: row.createdAt,
+        })),
       }));
+    }
+    // My reports: one owned report's editable body, its save, and the admin's owner assignment.
+    if (pathname === "/api/dev/trip-reports/record") {
+      if (upper === "GET") {
+        const row = ownedReports.get(params.get("id") ?? "");
+        return toolRead(() => row
+          ? json(200, { ok: true, report: { id: row.id, slug: row.slug, ownerEmail: row.ownerEmail, fields: structuredClone(row.fields), revision: row.revision } })
+          : json(404, { error: "That trip report no longer exists." }));
+      }
+      if (upper === "POST") return toolWrite(() => saveOwnedReport(body ?? {}));
+    }
+    const ownerMatch = /^\/api\/dev\/trip-reports\/([^/]+)\/owner$/.exec(pathname);
+    if (ownerMatch && upper === "POST") {
+      return toolWrite(() => {
+        const slug = decodeURIComponent(ownerMatch[1]).trim();
+        const email = String(body?.email ?? "").trim().toLowerCase();
+        if (!email) return json(400, { error: "A member email is required." });
+        if (!OWNER_ASSIGNABLE_SLUGS.includes(slug)) return json(404, { error: `No published trip report has the address /reports/${slug}.` });
+        return json(200, { ok: true, slug, ownerEmail: email });
+      });
     }
 
     // Inbox: every intake queue it reads, plus claims, answered from one in-memory store.

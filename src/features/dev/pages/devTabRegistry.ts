@@ -396,6 +396,8 @@ const REGISTRY = [
     role: "contributor",
     data: NO_DATA,
     saveModel: "instant",
+    // The sentence sits in the editor's save dock and its idle pane, beside Save.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },

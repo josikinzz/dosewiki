@@ -1,5 +1,6 @@
 "use client";
 
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -187,7 +188,7 @@ function TimelineBlock({
       <div className="relative flex items-center gap-2">
         <PhaseMarker tone={dot} />
         <h4 className={`font-display text-base font-semibold ${text}`}>{label}</h4>
-        <span className="text-dose-text-ghost font-mono text-[11px]">
+        <span className="theme-text-faint text-xs tabular-nums">
           {entries.length} {entries.length === 1 ? "entry" : "entries"}
         </span>
         <span className="flex-1" />
@@ -228,7 +229,7 @@ function TimelineBlock({
                 title="Move earlier"
                 onClick={() => onChange(swap(entries, index, index - 1))}
               >
-                ↑
+                <Icon icon="lucide:arrow-up" size={16} />
               </Button>
               <Button
                 type="button"
@@ -239,7 +240,7 @@ function TimelineBlock({
                 title="Move later"
                 onClick={() => onChange(swap(entries, index, index + 1))}
               >
-                ↓
+                <Icon icon="lucide:arrow-down" size={16} />
               </Button>
               <Button
                 type="button"

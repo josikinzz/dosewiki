@@ -56,13 +56,22 @@ type RecordsState = { records: PaletteRecord[]; loading: boolean; failed: string
 
 /** The palette's key, the way this machine writes it. */
 export function usePaletteKeyLabel(): string {
-  const [label, setLabel] = useState("Ctrl K");
+  return useModifierKeyLabel("K");
+}
+
+/**
+ * A Cmd/Ctrl chord as this platform writes it: `⌘S` on Apple, `Ctrl S`
+ * elsewhere. Server render and first paint say `Ctrl`, then the effect
+ * settles it, so hydration never disagrees.
+ */
+export function useModifierKeyLabel(key: string): string {
+  const [label, setLabel] = useState(`Ctrl ${key}`);
   useEffect(() => {
     const platform = (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform
       ?? navigator.platform
       ?? navigator.userAgent;
-    setLabel(/mac|iphone|ipad|ipod/i.test(platform) ? "⌘K" : "Ctrl K");
-  }, []);
+    setLabel(/mac|iphone|ipad|ipod/i.test(platform) ? `⌘${key}` : `Ctrl ${key}`);
+  }, [key]);
   return label;
 }
 
