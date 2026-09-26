@@ -105,7 +105,9 @@ describe("saved view counts", () => {
       expect.stringContaining("Substance d"),
       expect.stringContaining("Substance f"),
     ]);
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent(`Unresolved (${count})`);
+    expect(
+      within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name: `Unresolved, ${count}` }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
   it("My pending proposals counts exactly the rows the view lists", async () => {

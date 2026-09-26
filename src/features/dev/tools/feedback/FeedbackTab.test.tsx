@@ -131,20 +131,19 @@ describe("FeedbackTab", () => {
     expect((await screen.findAllByText("Mescaline")).length).toBeGreaterThan(0);
   });
 
-  it("disables transitions the status machine forbids", async () => {
+  it("offers only the transitions the status machine allows", async () => {
     const user = userEvent.setup();
     render(<FeedbackTab initialSource="site" />);
 
     // The queue opens on New; the spam row lives under Spam, from where only `reviewing` is reachable.
     await screen.findAllByText("Website technical issue");
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "Spam 1" }));
-    expect((await screen.findAllByText("Miscellaneous")).length).toBeGreaterThan(0);
+    await user.click(within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name: /^Spam/ }));
+    expect(await screen.findByRole("heading", { level: 3, name: "Miscellaneous" })).toBeInTheDocument();
 
-    expect(screen.getByRole("button", { name: "Reviewing" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Resolve" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Spam" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Reopen" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Resolve" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reject" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mark as spam" })).not.toBeInTheDocument();
   });
 
   it("keeps the chosen status across sources and in the URL, and asks the site queue for that status", async () => {
@@ -152,17 +151,16 @@ describe("FeedbackTab", () => {
     render(<FeedbackTab />);
 
     await screen.findAllByText("Mescaline");
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "Spam 0" }));
+    await user.click(within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name: "Spam, 0" }));
 
     expect(window.location.search).toBe("?source=article&status=spam");
-    expect(screen.getByText("No spam feedback right now.")).toBeInTheDocument();
+    expect(await screen.findByText(/^No spam article feedback\./)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Site" }));
 
     expect(await screen.findAllByText("Miscellaneous")).not.toHaveLength(0);
     expect(screen.queryByText("Website technical issue")).not.toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Spam (1)");
+    expect(await screen.findByRole("button", { name: "Spam, 1" })).toHaveAttribute("aria-pressed", "true");
     expect(window.location.search).toBe("?source=site&status=spam");
     // The status filter runs on the server, so every spam row is reachable, not only a recent window.
     expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/api/site-feedback/queue?status=spam&"), expect.anything());
@@ -331,6 +329,7 @@ describe("FeedbackTab", () => {
 
     expect(screen.queryByText("Mescaline")).not.toBeInTheDocument();
     expect(screen.getAllByText("Website technical issue").length).toBeGreaterThan(0);
-    expect(screen.getByText("1 new · 1 spam")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New, 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Spam, 1" })).toBeInTheDocument();
   });
 });

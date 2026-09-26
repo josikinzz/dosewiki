@@ -27,6 +27,18 @@ const SOURCE_OPTIONS: { value: FeedbackSource; label: string }[] = [
   { value: "site", label: "Site" },
 ];
 
+/** Where each source comes from, said once under the source choice. */
+const SOURCE_DESCRIPTION: Record<FeedbackSource, string> = {
+  article: "Sent from the feedback form at the end of each article.",
+  site: "Sent from the site feedback form: requests, bugs, design, speed and accessibility.",
+};
+
+const TOOL_HEADING = {
+  icon: "lucide:message-square-text",
+  title: "Feedback",
+  description: "Private reports from readers: resolve, reject or correct each one. None of it is public.",
+};
+
 /**
  * One Feedback tab over both reader intakes. The source filter picks the
  * adapter; the queue itself does not know which source it is showing.
@@ -50,7 +62,16 @@ const SOURCE_OPTIONS: { value: FeedbackSource; label: string }[] = [
  * than the router: the filters are client-only state, so a server round trip
  * would buy nothing.
  */
-export function FeedbackTab({ initialSource, initialId }: { initialSource?: string; initialId?: string }) {
+export function FeedbackTab({
+  initialSource,
+  initialId,
+  actorEmail = null,
+}: {
+  initialSource?: string;
+  initialId?: string;
+  /** The signed-in admin, so the review can say "You are reviewing this". */
+  actorEmail?: string | null;
+}) {
   const [source, setSource] = useState<FeedbackSource>(initialSource === "site" ? "site" : "article");
   const pendingBySource = useDevRailBadgeParts("feedback");
   const [fromUrl] = useState(() =>
@@ -70,8 +91,9 @@ export function FeedbackTab({ initialSource, initialId }: { initialSource?: stri
 
   function writeUrl(nextSource: FeedbackSource, nextStatus: FeedbackQueueFilter | null) {
     const { sort, search, selectedId } = context.current;
+    // Keep Next's history state, or the App Router reads this as a navigation.
     window.history.replaceState(
-      null,
+      window.history.state,
       "",
       feedbackTaskHref({ source: nextSource, id: selectedId, status: nextStatus, sort, search }),
     );
@@ -99,6 +121,7 @@ export function FeedbackTab({ initialSource, initialId }: { initialSource?: stri
     feedbackTaskHref({ source, status: statusFilter, sort: context.current.sort, search: context.current.search, id });
 
   const sourceFilter = (guard: FeedbackDraftGuard) => (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
     <EditorSegmentedControl
       label="Feedback source"
       options={SOURCE_OPTIONS.map((option) => {
@@ -112,9 +135,13 @@ export function FeedbackTab({ initialSource, initialId }: { initialSource?: stri
         }
       }}
     />
+      <p className="theme-text-muted min-w-0 text-sm">{SOURCE_DESCRIPTION[source]}</p>
+    </div>
   );
 
   const queueProps = {
+    heading: TOOL_HEADING,
+    actorEmail,
     headerActions: sourceFilter,
     statusFilter,
     onStatusFilterChange: selectStatus,

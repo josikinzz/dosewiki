@@ -153,8 +153,7 @@ describe("starting and linking a correction", () => {
     const start = await within(section).findByRole("link", { name: "Start correction" });
     expect(start).toHaveAttribute("href", "/mescaline?feedback=fb-0001");
 
-    await user.click(within(section).getByRole("combobox", { name: "Section to correct" }));
-    await user.click(await screen.findByRole("option", { name: "Dosage and duration" }));
+    await user.selectOptions(within(section).getByRole("combobox", { name: "Section to correct" }), "Dosage and duration");
 
     expect(start).toHaveAttribute("href", "/mescaline?feedback=fb-0001&section=dosage");
     expect(start.getAttribute("href")).not.toContain("reader");
@@ -181,8 +180,7 @@ describe("starting and linking a correction", () => {
     const section = await correctionSection();
     expect(await within(section).findByText("No change is linked yet.")).toBeInTheDocument();
     await user.click(within(section).getByRole("button", { name: "Link existing change" }));
-    await user.click(within(section).getByRole("combobox", { name: "Change to link" }));
-    await user.click(await screen.findByRole("option", { name: /Proposal #000def/ }));
+    await user.click(within(section).getByRole("radio", { name: /Proposal #000def/ }));
     await user.click(within(section).getByRole("button", { name: "Link" }));
 
     await waitFor(() =>
@@ -203,7 +201,8 @@ describe("explicit outcomes", () => {
     renderQueue();
     await correctionSection();
 
-    await user.click(screen.getByRole("button", { name: "Duplicate" }));
+    await user.click(screen.getByRole("button", { name: "Close as" }));
+    await user.click(await screen.findByRole("menuitem", { name: /^Duplicate/ }));
     await waitFor(() =>
       expect(server.posts).toContainEqual({
         path: "/api/article-feedback/fb-0001/status",
@@ -219,7 +218,8 @@ describe("explicit outcomes", () => {
     renderQueue();
     await correctionSection();
 
-    await user.click(screen.getByRole("button", { name: "No change needed" }));
+    await user.click(screen.getByRole("button", { name: "Close as" }));
+    await user.click(await screen.findByRole("menuitem", { name: /^No change needed/ }));
     const dialog = await screen.findByRole("dialog", { name: "Close as No change needed?" });
     expect(server.posts).toEqual([]);
     await user.click(within(dialog).getByRole("button", { name: "No change needed" }));

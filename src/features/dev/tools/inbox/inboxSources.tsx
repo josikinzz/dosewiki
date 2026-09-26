@@ -392,8 +392,8 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
   return {
     id: spec.id,
     toolLabel: spec.id === "glossary-feedback" ? "Glossary" : "Feedback",
-    // Article and site feedback draw their own title and pills; glossary feedback does not.
-    detailHasHeading: spec.id !== "glossary-feedback",
+    // The feedback adapters draw facts only; the Inbox pane header names the item and its pills.
+    detailHasHeading: false,
     async list() {
       return (await spec.loadPending()).filter((row) => PENDING_FEEDBACK.includes(row.status)).map(toItem);
     },

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -49,10 +49,14 @@ function stubQueue() {
   );
 }
 
-/** The record under review, read from the Review heading's line. */
+/** The record under review, read from the review pane's heading. */
 function reviewing(title: string) {
-  return screen.findByText(new RegExp(`^${title} · received`));
+  return screen.findByRole("heading", { level: 3, name: title });
 }
+
+const statusChoice = (name: string | RegExp) =>
+  within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name });
+const queueOptions = () => within(screen.getByRole("listbox", { name: "Feedback queue" })).getAllByRole("option");
 
 const address = () => window.location.pathname + window.location.search;
 
@@ -77,9 +81,8 @@ describe("Feedback task links", () => {
     const { unmount } = render(<FeedbackTab />);
 
     await reviewing("Mescaline");
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "Unresolved 2" }));
-    await user.click(screen.getByRole("option", { name: /Psilocybin/ }));
+    await user.click(statusChoice("Unresolved, 2"));
+    await user.click(await within(screen.getByRole("listbox", { name: "Feedback queue" })).findByRole("option", { name: /Psilocybin/ }));
     await reviewing("Psilocybin");
     await user.click(screen.getByRole("button", { name: "Copy link" }));
 
@@ -94,8 +97,8 @@ describe("Feedback task links", () => {
     render(<FeedbackTab initialSource="article" initialId="fb-psilocybin" />);
 
     await reviewing("Psilocybin");
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Unresolved (2)");
-    expect(screen.getByRole("option", { name: /Psilocybin/ })).toHaveAttribute("aria-selected", "true");
+    expect(statusChoice("Unresolved, 2")).toHaveAttribute("aria-pressed", "true");
+    expect(queueOptions().find((option) => /Psilocybin/.test(option.textContent ?? ""))).toHaveAttribute("aria-selected", "true");
   });
 
   it("opens a linked record the current filter does not list, read on its own", async () => {
@@ -105,7 +108,8 @@ describe("Feedback task links", () => {
     await reviewing("LSD");
     expect(fetch).toHaveBeenCalledWith("/api/article-feedback/fb-lsd", expect.anything());
     // The list keeps its own filter; nothing else took the review.
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("New (1)");
+    expect(statusChoice(/^New/)).toHaveAttribute("aria-pressed", "true");
+    expect(statusChoice(/^New/)).toHaveAccessibleName("New, 1");
   });
 
   it("says a removed or inaccessible record is gone instead of selecting another row", async () => {
@@ -114,7 +118,7 @@ describe("Feedback task links", () => {
     render(<FeedbackTab initialSource="article" initialId="fb-deleted" />);
 
     expect(await screen.findByText("This item no longer exists or you cannot open it")).toBeInTheDocument();
-    expect(screen.queryByText(/^Mescaline · received/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 3, name: "Mescaline" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Resolve" })).not.toBeInTheDocument();
     expect(address()).toBe("/dev/article-feedback/fb-deleted?source=article");
 
@@ -131,16 +135,16 @@ describe("Feedback task links", () => {
     render(<FeedbackTab initialSource="article" initialId="fb-psilocybin" />);
 
     await reviewing("Psilocybin");
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("All (3)");
-    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveTextContent("Newest first");
+    expect(statusChoice("All, 3")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveDisplayValue("Newest first");
     expect(screen.getByRole("searchbox", { name: "Search feedback" })).toHaveValue("duration");
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/article-feedback/queue?status=all&order=newest&limit=100&q=duration"),
       expect.anything(),
     );
-    const options = screen.getAllByRole("option").map((option) => option.textContent);
+    const options = queueOptions().map((option) => option.textContent);
     expect(options[0]).toContain("LSD");
-    expect(screen.getByRole("option", { name: /Psilocybin/ })).toHaveAttribute("aria-selected", "true");
+    expect(queueOptions().find((option) => /Psilocybin/.test(option.textContent ?? ""))).toHaveAttribute("aria-selected", "true");
   });
 
   it("never puts a search that names a reader's contact into the address or a request URL", async () => {

@@ -103,6 +103,51 @@ function seedInvites() {
 /** Invite history pages this many codes at a time, so "Load older codes" has a second page. */
 const INVITES_PAGE_SIZE = 5;
 
+const FEEDBACK_STATUSES = Object.freeze(["new", "reviewing", "resolved", "rejected", "spam"]);
+const FEEDBACK_IMPORTANCE_RANK = Object.freeze({ critical: 0, high: 1, normal: 2, low: 3 });
+/** Row fields the feedback search reads: never the reader's contact columns, as the route. */
+const FEEDBACK_UNSEARCHED = new Set(["id", "contact_email", "email", "status", "created_at", "updated_at", "reviewed_by", "reviewed_at"]);
+
+/**
+ * `GET /api/{article,site}-feedback/queue`: `status` (a status, `all` or
+ * `unresolved`), `q`, `order` (oldest, newest, importance), an offset
+ * `cursor` and `limit`, with per-status counts of every row the search
+ * matches, as the route answers.
+ */
+export function feedbackQueuePage(all, params) {
+  const status = params.get("status") ?? "all";
+  const order = params.get("order") ?? "oldest";
+  const limit = Math.max(1, Math.min(100, Number(params.get("limit") ?? 100) || 100));
+  const needle = (params.get("q") ?? "").trim().toLowerCase();
+  const matching = needle
+    ? all.filter((row) =>
+        Object.entries(row)
+          .filter(([field, value]) => typeof value === "string" && !FEEDBACK_UNSEARCHED.has(field))
+          .map(([, value]) => value)
+          .join(" ")
+          .toLowerCase()
+          .includes(needle),
+      )
+    : [...all];
+  const counts = Object.fromEntries(FEEDBACK_STATUSES.map((name) => [name, 0]));
+  for (const row of matching) counts[row.status] += 1;
+  const listed = matching.filter((row) =>
+    status === "all" ? true : status === "unresolved" ? row.status === "new" || row.status === "reviewing" : row.status === status,
+  );
+  const byAge = (a, b) => a.created_at.localeCompare(b.created_at);
+  const rank = (row) => FEEDBACK_IMPORTANCE_RANK[row.importance ?? row.urgency] ?? 4;
+  listed.sort(order === "newest" ? (a, b) => byAge(b, a) : order === "importance" ? (a, b) => rank(a) - rank(b) || byAge(a, b) : byAge);
+  const offset = Number.parseInt(params.get("cursor") ?? "0", 10) || 0;
+  const end = offset + limit;
+  return {
+    ok: true,
+    feedback: structuredClone(listed.slice(offset, end)),
+    counts,
+    nextCursor: end < listed.length ? String(end) : null,
+    total: listed.length,
+  };
+}
+
 /** Another admin, so the Inbox can show an item someone else holds. */
 export const FIXTURE_OTHER_ADMIN = "other-admin@localhost.invalid";
 
@@ -134,13 +179,58 @@ export function seedInbox() {
       {
         id: "fixture-af-1", status: "new", schema_version: 1, substance_slug: "mescaline", substance_title: "Mescaline",
         category: "inaccurate", importance: "high", details: "The oral duration looks off; most sources give 10 to 12 hours.",
-        honeypot_triggered: false, created_at: at(120), updated_at: at(120),
+        contact_email: "reader.one@example.invalid", honeypot_triggered: false, created_at: at(120), updated_at: at(120),
       },
       {
         id: "fixture-af-2", status: "reviewing", schema_version: 1, substance_slug: "lsd", substance_title: "LSD",
         category: "source", importance: "normal", details: "A 2025 study on microdosing could be cited in Pharmacology.",
         source_url: "https://example.invalid/study", honeypot_triggered: false, created_at: at(300), updated_at: at(10),
-        reviewed_by: FIXTURE_EMAIL, decision_log: logged(FIXTURE_EMAIL, 10, "new", "reviewing"),
+        reviewed_by: FIXTURE_EMAIL,
+        decision_log: [
+          ...logged(FIXTURE_EMAIL, 10, "new", "reviewing"),
+          { at: at(9), actor: FIXTURE_EMAIL, from: "reviewing", to: "reviewing", linked_change: { kind: "proposal", id: "fixture-prop-lsd1" } },
+        ],
+      },
+      {
+        id: "fixture-af-3", status: "new", schema_version: 1, substance_slug: "tramadol", substance_title: "Tramadol",
+        category: "missing", importance: "critical",
+        details: "The interactions section does not mention serotonin syndrome with SSRIs.\nA friend combined them after reading the page and ended up in hospital.",
+        contact_email: "worried.friend@example.invalid", honeypot_triggered: false, created_at: at(30), updated_at: at(30),
+      },
+      {
+        id: "fixture-af-4", status: "reviewing", schema_version: 1, substance_slug: "2c-b", substance_title: "2C-B",
+        category: "broken-link", importance: "low", details: "The second reference in History and culture goes to a dead page.",
+        honeypot_triggered: false, created_at: at(160), updated_at: at(26),
+        reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 26, "new", "reviewing"),
+      },
+      {
+        id: "fixture-af-5", status: "resolved", schema_version: 1, substance_slug: "ketamine", substance_title: "Ketamine",
+        category: "inaccurate", importance: "normal", details: "Insufflated onset is listed as 30 minutes; it is closer to 5 to 15.",
+        honeypot_triggered: false, created_at: at(500), updated_at: at(60), reviewed_by: FIXTURE_EMAIL,
+        review_notes: "Fixed the insufflated onset.",
+        decision_log: [
+          ...logged(FIXTURE_OTHER_ADMIN, 200, "new", "reviewing"),
+          { at: at(80), actor: FIXTURE_EMAIL, from: "reviewing", to: "reviewing", linked_change: { kind: "revision", id: "fixture-rev-ketamine" } },
+          { at: at(60), actor: FIXTURE_EMAIL, from: "reviewing", to: "resolved", note: "Fixed the insufflated onset." },
+        ],
+      },
+      {
+        id: "fixture-af-6", status: "rejected", schema_version: 1, substance_slug: "caffeine", substance_title: "Caffeine",
+        category: "other", importance: "low", details: "Coffee should be listed as a substance too.",
+        honeypot_triggered: false, created_at: at(700), updated_at: at(650), reviewed_by: FIXTURE_OTHER_ADMIN,
+        review_notes: "Caffeine covers coffee.",
+        decision_log: [{ at: at(650), actor: FIXTURE_OTHER_ADMIN, from: "new", to: "rejected", note: "Caffeine covers coffee.", outcome: "no_change_needed" }],
+      },
+      {
+        id: "fixture-af-7", status: "spam", schema_version: 1, substance_slug: "dmt", substance_title: "DMT",
+        category: "other", importance: "critical", details: "Cheap vapes shipped worldwide, visit our shop.",
+        honeypot_triggered: true, created_at: at(40), updated_at: at(40),
+      },
+      {
+        id: "fixture-af-8", status: "resolved", schema_version: 1, substance_slug: "mdma", substance_title: "MDMA",
+        category: "source", importance: "normal", details: "There is a newer review on neurotoxicity worth citing.",
+        honeypot_triggered: false, created_at: at(2000), updated_at: at(1900), reviewed_by: FIXTURE_OTHER_ADMIN,
+        review_notes: "Added to the references.", reviewed_at: at(1900),
       },
     ],
     site: [
@@ -149,7 +239,53 @@ export function seedInbox() {
         page: "/search", details: "Search returns nothing on a phone.", honeypot_triggered: false,
         created_at: at(5), updated_at: at(5),
       },
+      {
+        id: "fixture-sf-2", status: "reviewing", schema_version: 1, category: "accessibility", urgency: "high",
+        page: "/lsd", details: "The dosage chart cannot be read with a screen reader; the tiers have no text.",
+        email: "listener@example.invalid", honeypot_triggered: false, created_at: at(90), updated_at: at(12),
+        reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 12, "new", "reviewing"),
+      },
+      {
+        id: "fixture-sf-3", status: "new", schema_version: 1, category: "article-request", urgency: "low",
+        details: "Could you add an article on kanna?", email: "kanna.fan@example.invalid",
+        honeypot_triggered: false, created_at: at(220), updated_at: at(220),
+      },
+      {
+        id: "fixture-sf-4", status: "resolved", schema_version: 1, category: "ui-design", urgency: "normal",
+        page: "/effects", details: "The effect cards overlap at 1024 pixels wide.", honeypot_triggered: false,
+        created_at: at(400), updated_at: at(100), reviewed_by: FIXTURE_EMAIL, review_notes: "Fixed in the grid.",
+        decision_log: [{ at: at(100), actor: FIXTURE_EMAIL, from: "new", to: "resolved", note: "Fixed in the grid." }],
+      },
+      {
+        id: "fixture-sf-5", status: "spam", schema_version: 1, category: "misc", details: "Buy cheap watches.",
+        honeypot_triggered: true, created_at: at(15), updated_at: at(15),
+      },
     ],
+    /** Changes already linked to article feedback, and what Link existing change can offer, by article. */
+    corrections: {
+      "fixture-af-2": [
+        {
+          change: { kind: "proposal", id: "fixture-prop-lsd1" }, linkedAt: at(9), state: "pending",
+          proposal: { id: "fixture-prop-lsd1", status: "submitted", summary: "Cite the 2025 microdosing study", createdAt: at(9) },
+        },
+      ],
+      "fixture-af-5": [
+        {
+          change: { kind: "revision", id: "fixture-rev-ketamine" }, linkedAt: at(80), state: "published",
+          revision: { id: "fixture-rev-ketamine", summary: "Insufflated onset: 5 to 15 minutes", createdAt: at(82) },
+        },
+      ],
+    },
+    candidates: {
+      mescaline: {
+        proposals: [{ id: "fixture-prop-mesc1", status: "submitted", summary: "Oral duration 10 to 12 hours", createdAt: at(20) }],
+        revisions: [{ id: "fixture-rev-mesc0", summary: "Dosage table tidy-up", createdAt: at(900) }],
+      },
+      lsd: {
+        proposals: [{ id: "fixture-prop-lsd1", status: "submitted", summary: "Cite the 2025 microdosing study", createdAt: at(9) }],
+        revisions: [],
+      },
+    },
     glossary: [
       {
         id: "fixture-gf-1", status: "new", locale: "de", term: "Toleranz", target: "Toleranz", version: "v1",
@@ -749,7 +885,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   const replications = buildReplicationFixture(state === "empty" ? 0 : replicationRows);
   const changelog = buildChangelogFixture(state === "empty" ? 0 : changelogRows);
   const inbox = state === "empty"
-    ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [] }
+    ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [], corrections: {}, candidates: {} }
     : seedInbox();
   /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
@@ -1570,18 +1706,55 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
     for (const [prefix, key] of [["article-feedback", "article"], ["site-feedback", "site"]]) {
       if (pathname === `/api/${prefix}/queue` && upper === "GET") {
-        const status = params.get("status") ?? "all";
-        const rows = inbox[key].filter((row) => status === "all" || row.status === status);
-        const counts = { new: 0, reviewing: 0, resolved: 0, rejected: 0, spam: 0 };
-        for (const row of inbox[key]) counts[row.status] += 1;
-        return toolRead(() => json(200, { ok: true, feedback: structuredClone(rows), counts, nextCursor: null, total: rows.length }));
+        return toolRead(() => json(200, feedbackQueuePage(inbox[key], params)));
+      }
+      const itemMatch = new RegExp(`^/api/${prefix}/([^/]+)$`).exec(pathname);
+      if (itemMatch && itemMatch[1] !== "queue" && upper === "GET") {
+        return toolRead(() => {
+          const row = inbox[key].find((entry) => entry.id === decodeURIComponent(itemMatch[1]));
+          return row ? json(200, { ok: true, feedback: structuredClone(row) }) : json(404, { error: "Feedback not found." });
+        });
       }
     }
     if (pathname === "/api/glossary-feedback/queue" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, locale: "de", locales: ["de"], feedback: structuredClone(inbox.glossary) }));
     }
-    if (/^\/api\/article-feedback\/[^/]+\/corrections$/.test(pathname) && upper === "GET") {
-      return toolRead(() => json(200, { ok: true, corrections: [], candidates: { proposals: [], revisions: [] } }));
+    const correctionsMatch = /^\/api\/article-feedback\/([^/]+)\/corrections$/.exec(pathname);
+    if (correctionsMatch && upper === "GET") {
+      return toolRead(() => {
+        const id = decodeURIComponent(correctionsMatch[1]);
+        const row = inbox.article.find((entry) => entry.id === id);
+        if (!row) return json(404, { error: "Article feedback not found." });
+        return json(200, {
+          ok: true,
+          corrections: structuredClone(inbox.corrections[id] ?? []),
+          candidates: structuredClone(inbox.candidates[row.substance_slug] ?? { proposals: [], revisions: [] }),
+        });
+      });
+    }
+    if (correctionsMatch && upper === "POST") {
+      return toolWrite(() => {
+        const id = decodeURIComponent(correctionsMatch[1]);
+        const row = inbox.article.find((entry) => entry.id === id);
+        if (!row) return json(404, { error: "Article feedback not found." });
+        const change = body?.change;
+        const pool = inbox.candidates[row.substance_slug] ?? { proposals: [], revisions: [] };
+        const proposal = change?.kind === "proposal" ? pool.proposals.find((entry) => entry.id === change.id) : null;
+        const revision = change?.kind === "revision" ? pool.revisions.find((entry) => entry.id === change.id) : null;
+        if (!proposal && !revision) return json(400, { error: "That change is not a proposal or published revision of this article." });
+        const linkedAt = tick();
+        const existing = inbox.corrections[id] ?? [];
+        if (!existing.some((entry) => entry.change.kind === change.kind && entry.change.id === change.id)) {
+          inbox.corrections[id] = [
+            ...existing,
+            proposal
+              ? { change: { kind: "proposal", id: proposal.id }, linkedAt, state: "pending", proposal: structuredClone(proposal) }
+              : { change: { kind: "revision", id: revision.id }, linkedAt, state: "published", revision: structuredClone(revision) },
+          ];
+          row.decision_log = [...(row.decision_log ?? []), { at: linkedAt, actor: fixture.session.user.email, from: row.status, to: row.status, linked_change: { kind: change.kind, id: change.id } }];
+        }
+        return json(200, { ok: true, feedback: structuredClone(row) });
+      });
     }
     if (pathname === "/api/citation-evidence/queue" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, queue: structuredClone(inbox.citations) }));
@@ -1595,6 +1768,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         const to = body?.status;
         const actor = fixture.session.user.email;
         row.decision_log = [...(row.decision_log ?? []), { at: tick(), actor, from: row.status, to, ...(body?.notes || body?.note ? { note: body.notes ?? body.note } : {}) }];
+        const outcome = typeof body?.outcome === "string" ? body.outcome : undefined;
+        if (outcome) row.decision_log[row.decision_log.length - 1].outcome = outcome;
         Object.assign(row, { status: to, reviewed_by: actor });
         return json(200, key === "trip" ? { ok: true, submission: structuredClone(row) } : { ok: true, feedback: structuredClone(row) });
       });

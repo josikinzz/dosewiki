@@ -63,7 +63,7 @@ const HANDLER_OF: Record<TriageAction, keyof TriageShortcutHandlers> = {
 export function TriageShortcutHint({ className }: { className?: string }) {
   return (
     <p className={`theme-text-faint text-xs [@media(pointer:coarse)]:hidden ${className ?? ""}`}>
-      Press <kbd className="font-mono">?</kbd> for keyboard shortcuts.
+      Press <kbd className="theme-dev-kbd">?</kbd> for keyboard shortcuts.
     </p>
   );
 }

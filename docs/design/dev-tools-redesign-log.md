@@ -468,6 +468,44 @@ builds a new shared primitive, add it to **Conventions** and log it under
   `p aria-live`), not a second `Notice`, so the result that follows replaces it
   without two status regions.
 
+- **Status-claimed queues show a hold line.** A queue whose claim is its
+  Reviewing status (feedback, trip reports) reads who holds each item from the
+  decision log (`holdOf` in `src/features/dev/tools/feedback/feedbackReviewModel.ts`:
+  open, mine, other, unknown, decided with who and when) and draws it as the
+  first dock line, the Inbox's `ClaimStrip` recipe: Claim on New, Release when
+  it is yours, "Claimed by X" otherwise, and on a decided item "Resolved by you,
+  2 days ago. Reopen it to decide again." with Reopen. Claim and Release are
+  announced in a polite live region, not a notice; Reopen is a decision with
+  Undo. Decisions a decided item cannot take are hidden, not a row of disabled
+  buttons. Rows name the holder ("You", "Claimed by X").
+- **More than three decisions fold into a menu.** The dock keeps the primary
+  and the two common negatives as buttons (Resolve, Reject, Mark as spam, with
+  key caps); explicit outcomes (Duplicate, Explanation provided, No change
+  needed) sit in a ghost "Close as" `DropdownMenu` whose items say what each
+  records ("Resolves it: you answered the reader."). `FeedbackReviewPane` is the
+  reference.
+- **Seven statuses in a narrow column** are a four-column grid of
+  `pillActive`/`ghostPill` buttons (waiting work first, then the decided
+  history, label over count; `FeedbackStatusChoices`). The spoken separator is
+  `<span className="sr-only">,</span> {count}` with the space outside the
+  sr-only span, so the name reads "Spam, 1" (a trailing space inside it is
+  trimmed to "Spam,1").
+- **Waiting work opens most important first** when readers rate importance
+  (critical, then oldest within a level); history opens newest first. A named
+  view that asks for oldest first keeps it.
+- **A search with no match here says where the matches are** when the counts
+  come from the same search ("Found under Spam (1)", each a link that switches
+  the filter), plus "Clear the search".
+- **Facts about an intake item** are a `dl` of `type-meta-label` terms over
+  body values (`FeedbackFacts`, `src/features/dev/tools/feedback/FeedbackFacts.tsx`),
+  links carrying their own glyph (mail for a reply, arrow for a new tab). The
+  reader's own words sit in a quiet well under "What they wrote", never in a
+  fact cell.
+- **The pane of a queue hides on phones until a pick**; the automatic first
+  row is a desktop convenience. Tapping the automatic row counts as a pick
+  (pins it, scrolls the pane in). `useScrollToDetail` keys on the picked id, so
+  the automatic row never scrolls a phone.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1456,3 +1494,90 @@ Deferred, with reasons:
   `commitControls` too.
 - Success notices quote tags with straight quotes: they are the state
   machine's record strings, which its tests assert.
+
+### Pass 13: Feedback (`/dev/article-feedback`, `/dev/feedback`, `/dev/site-feedback`)
+
+Commit: see `git log --grep "Dev tools redesign: Feedback"`.
+Screenshots: `tmp/redesign/feedback/before/` and `tmp/redesign/feedback/after/`
+(admin article and site, dark and light; every status filter; importance
+order; search, contact search, no match, filtered empty with "Found under";
+every kind of item: new with contact, mine with a pending correction,
+claimed by another admin, resolved with a published correction, rejected with
+an outcome, spam with the spam trap, a pre-log note, site items; reject, spam,
+No change needed, bulk and discard-note dialogs; Close as menu; note typed;
+claimed; resolved with Undo; undone; bulk; link picker; linked; frozen
+decision; deep link outside the filter; missing deep link; empty; failed;
+loading; stale rail count; editor, contributor and translator locked; desktop
+and phone; the Inbox embedding in `after/inbox/`), captured by
+`tmp/redesign/feedback/capture.mjs`. Critique in
+`tmp/redesign/feedback/critique.md` (15/40 before), inventory with the
+item-by-item check in `tmp/redesign/feedback/inventory.md`, detector evidence
+in `tmp/redesign/feedback/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: a critical safety report sat under older nits (waiting work now
+  opens By importance when the source asks readers for one); nobody could see
+  who held a Reviewing item (hold line from the decision log); the result,
+  Undo and decisions sat far below long content (decision dock); on phones the
+  review was two screens below the list and tapping the automatic first row did
+  nothing (master/detail with Back to list and a pager; tapping it counts as a
+  pick).
+- Layout: the triage workspace. Tool heading "Feedback" with the source choice
+  (Article / Site with rail counts) and one sentence per source; the list
+  column (`FeedbackQueueColumn.tsx`, sticky from `lg`): "Queue" meta heading,
+  count line, Refresh, `FeedbackStatusChoices` (seven statuses, four columns,
+  counts), search with glyph, `/` cap and Escape, the Sort `EditorSelect`, the
+  contact hint, the bulk toolbar, the windowed list (rows: title, importance
+  when not normal, status only when the filter spans statuses, category, age,
+  holder, words), paging, the load failure in place, and a key hint.
+  `FeedbackReviewPane.tsx` docks on the right: title, category, "Waiting
+  since" / "Received", importance and status pills, Copy link, pager, the
+  "hidden by the list" line for a linked item another filter hides, facts,
+  "What they wrote", Correction, the decision log, the note, and the dock
+  (notice with Undo, freeze line, hold line with Claim / Release / Reopen,
+  Resolve / Reject / Mark as spam with key caps, the "Close as" outcome menu).
+  Decided items hide the decisions and offer Reopen.
+- Copy: "Mark as spam" (was "Spam"), "Claim" (was the "Reviewing" button),
+  sentence-case source titles, "Reader rated it" in the reader's words, the No
+  change needed confirm says it closes as No change needed, spam confirms are
+  destructive, bulk confirms say "N items"; a freeze refusal reads "Writes are
+  paused, so that was not saved."
+- Correction panel: native `EditorSelect` for the section (labelled), Start
+  correction with its new-tab glyph, "Link existing change" as a reveal with
+  `ExpandIndicator` opening a radio list of proposals and revisions with
+  summaries (Link, Cancel), linked rows in one bordered list with relative
+  dates; folded on spam.
+- Inbox embedding: the adapters' `renderDetail` now returns facts only
+  (`FeedbackFacts`), so every feedback source sets `detailHasHeading: false`
+  and the Inbox pane draws the title and pills.
+- New modules: `FeedbackFacts.tsx` (`FeedbackFacts`, `readerScale`,
+  `formatReceived`, `readableAddress`), `FeedbackQueueColumn.tsx`,
+  `FeedbackReviewPane.tsx`, `feedbackReviewModel.ts` (`holdOf`,
+  `describeEmptyQueue`, `describeFilterCount`, `isFreezeRefusal`, status and
+  importance words and tones) with tests. `FeedbackReviewQueue` gains
+  `heading` and `actorEmail` (the tab passes the shell's `userEmail`);
+  `FeedbackMetadataItem` is gone; adapters gain `labels.noun`.
+- Registry: `saveLine: "none"` for Feedback.
+- Shared, backward compatible: `TriageShortcutHint` draws `?` with
+  `theme-dev-kbd`. Glossary's reader feedback mounts the same queue and gets
+  the workspace unchanged in behaviour.
+- Journeys fixtures: the feedback seed grows to eight article and five site
+  items (every status, contact, spam trap, outcome, pre-log note, another
+  admin's claim), `feedbackQueuePage` answers `status` (with `unresolved`),
+  `q` (never contact columns), `order`, `cursor`, `limit`; one item by id;
+  corrections with linked changes and candidates; the link POST; outcomes on
+  status writes; with a unit test. The Inbox and Home now list four more
+  waiting feedback items.
+
+Deferred, with reasons:
+
+- Keeping the pane on the decided item: the queue's tested rhythm hands the
+  review to the next row; the notice names the decided item and keeps Undo.
+- Bulk Resolve: a new bulk capability for a decision that carries a note and
+  an outcome.
+- Friendly names in `DecisionLogSection` and the hold line for external
+  emails: no directory (as the Inbox pass).
+- Importance order treating spam as low: the server's order.
+- Take over for feedback claims: the Inbox offers it only for claim-table
+  sources.

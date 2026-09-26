@@ -409,6 +409,43 @@ describe("journey fixtures", () => {
     assert.equal(second.length, first.length + 1);
   });
 
+  it("answers the Feedback queue as the route does: status, search, order, paging, one item, corrections", () => {
+    const fixture = createJourneyFixture();
+    const page = (search) => get(fixture, "/api/article-feedback/queue", search).json;
+
+    const unresolved = page("?status=unresolved&order=oldest&limit=100");
+    assert.ok(unresolved.feedback.every((row) => row.status === "new" || row.status === "reviewing"));
+    assert.equal(unresolved.total, unresolved.counts.new + unresolved.counts.reviewing);
+    assert.equal(page("?status=new&order=importance").feedback[0].importance, "critical");
+    const newest = page("?status=all&order=newest").feedback.map((row) => row.created_at);
+    assert.deepEqual(newest, [...newest].sort().reverse());
+    const first = page("?status=all&limit=3");
+    assert.equal(first.feedback.length, 3);
+    assert.equal(first.nextCursor, "3");
+    assert.equal(page("?status=all&limit=3&cursor=3").feedback[0].id, page("?status=all&limit=4").feedback[3].id);
+    // The search reads the words, never the reader's contact columns.
+    assert.equal(page("?status=all&q=serotonin").feedback.length, 1);
+    assert.equal(page("?status=all&q=worried.friend").feedback.length, 0);
+
+    assert.equal(get(fixture, "/api/article-feedback/fixture-af-5").json.feedback.status, "resolved");
+    assert.equal(get(fixture, "/api/article-feedback/fixture-gone").status, 404);
+    assert.equal(get(fixture, "/api/site-feedback/fixture-sf-2").json.feedback.category, "accessibility");
+
+    const corrections = get(fixture, "/api/article-feedback/fixture-af-1/corrections").json;
+    assert.deepEqual(corrections.corrections, []);
+    assert.equal(corrections.candidates.proposals.length, 1);
+    const linked = post(fixture, "/api/article-feedback/fixture-af-1/corrections", { change: { kind: "proposal", id: "fixture-prop-mesc1" } });
+    assert.equal(linked.status, 200);
+    assert.equal(get(fixture, "/api/article-feedback/fixture-af-1/corrections").json.corrections[0].state, "pending");
+    assert.equal(post(fixture, "/api/article-feedback/fixture-af-1/corrections", { change: { kind: "proposal", id: "nope" } }).status, 400);
+
+    const closed = post(fixture, "/api/article-feedback/fixture-af-1/status", { status: "resolved", outcome: "duplicate" });
+    assert.equal(closed.json.feedback.decision_log.at(-1).outcome, "duplicate");
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/article-feedback/fixture-af-1/status", { status: "resolved" }).status, 503);
+    assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/article-feedback/queue", "?status=all").status, 500);
+    assert.equal(get(createJourneyFixture({ state: "empty" }), "/api/site-feedback/queue", "?status=all").json.total, 0);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

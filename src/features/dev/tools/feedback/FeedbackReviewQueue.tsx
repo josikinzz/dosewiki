@@ -1,50 +1,35 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { ExpandIndicator } from "@/components/common/ExpandButton";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { EmptyStateSurface } from "@/components/ui/surface";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Icon } from "@/components/common/Icon";
-import {
-  Notice,
-  EditorActionGroup,
-  EditorField,
-  EditorList,
-  EditorListRow,
   EditorPanel,
   EditorSection,
   EditorStatusPill,
-  EditorToolbar,
   LoadErrorState,
-  TriageShortcutHint,
+  Notice,
   useConfirm,
+  useDevShortcuts,
   useDirtyGuard,
+  useScrollToDetail,
   useTriageShortcuts,
-  type EditorStatusPillTone,
+  useWriteFreeze,
 } from "@/features/dev/components";
-import { FEEDBACK_INTAKE_STATUS, INTAKE_STATUS_LABEL, INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
 import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
 import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { decisionLogOf, type DecisionLogEntry } from "@/features/intake/decisionLog";
-import {
-  FEEDBACK_OUTCOMES,
-  FEEDBACK_OUTCOME_LABEL,
-  FEEDBACK_OUTCOME_STATUS,
-  type FeedbackOutcome,
-} from "@/features/intake/feedbackCorrection";
+import { FEEDBACK_OUTCOME_LABEL, type FeedbackOutcome } from "@/features/intake/feedbackCorrection";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
+import { cn } from "@/lib/utils";
 
+import { FeedbackQueueColumn } from "./FeedbackQueueColumn";
+import { FeedbackReviewPane, type FeedbackNotice, type FeedbackPendingAction } from "./FeedbackReviewPane";
 import {
   QUEUE_STATUSES,
   defaultSort,
@@ -56,6 +41,16 @@ import {
   type QueueSort,
   type StatusCounts,
 } from "./feedbackQueueModel";
+import {
+  FEEDBACK_STATUS_LABELS,
+  FREEZE_DECISION_COPY,
+  IMPORTANCE_PILL_TONE,
+  IMPORTANCE_WORD,
+  STATUS_PILL_TONE,
+  describeEmptyQueue,
+  holdOf,
+  isFreezeRefusal,
+} from "./feedbackReviewModel";
 
 export type FeedbackQueueStatus = "new" | "reviewing" | "resolved" | "rejected" | "spam";
 
@@ -94,7 +89,11 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
   /** The row's importance, for sources whose form asks for one. */
   importance?: (item: Item) => FeedbackImportance | null | undefined;
-  /** Source-specific header and metadata; the queue renders details, notes, and decisions. */
+  /**
+   * The item's facts (where it came from, received, contact, spam trap) as
+   * `FeedbackFacts`. The review pane draws the title, pills and what the
+   * reader wrote itself, so this draws neither.
+   */
   renderDetail: (item: Item) => ReactNode;
   /**
    * True when the source stores a decision log, so the review shows every
@@ -117,6 +116,8 @@ export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
     title: string;
     description: string;
     emptyQueue: string;
+    /** What one item is called in sentences ("article feedback"). */
+    noun?: string;
     itemTitle: (item: Item) => string;
     itemSubtitle: (item: Item) => string | null;
     transitioned: (item: Item, statusLabel: string) => string;
@@ -129,8 +130,6 @@ type LoadState =
   | { status: "error"; message: string };
 
 type MoreState = { status: "idle" } | { status: "loading" } | { status: "error"; message: string };
-
-type ActionFeedback = { tone: "success" | "danger"; message: string };
 
 /**
  * The search a queue request may carry: the typed text, or nothing when it
@@ -145,24 +144,7 @@ const SEARCH_DEBOUNCE_MS = 250;
 
 const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", "unresolved", ...QUEUE_STATUSES];
 
-/** The shared intake words (docs/glossary.md, Intake Status); feedback stores them as is. */
-const STATUS_LABELS: Record<FeedbackQueueFilter, string> = {
-  all: "All",
-  unresolved: "Unresolved",
-  new: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.new],
-  reviewing: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.reviewing],
-  resolved: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.resolved],
-  rejected: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.rejected],
-  spam: INTAKE_STATUS_LABEL[FEEDBACK_INTAKE_STATUS.spam],
-};
-
-const STATUS_PILL_TONE: Record<FeedbackQueueStatus, EditorStatusPillTone> = {
-  new: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.new],
-  reviewing: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.reviewing],
-  resolved: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.resolved],
-  rejected: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.rejected],
-  spam: INTAKE_STATUS_TONE[FEEDBACK_INTAKE_STATUS.spam],
-};
+const STATUS_LABELS = FEEDBACK_STATUS_LABELS;
 
 /** Decisions the bulk bar can make on ticked rows. */
 type BulkDecision = Extract<FeedbackQueueStatus, "rejected" | "spam">;
@@ -186,42 +168,16 @@ export function undoTarget(
 /** Decisions that take the row off the queue and are asked about before they write. */
 const CONFIRMED_DECISIONS: Record<
   Extract<FeedbackQueueStatus, "rejected" | "spam">,
-  { title: string; verb: string; confirmLabel: string; destructive: boolean }
+  { title: string; lead: (title: string) => string; confirmLabel: string; destructive: boolean }
 > = {
-  rejected: { title: "Reject this feedback?", verb: "Rejecting", confirmLabel: "Reject", destructive: true },
-  spam: { title: "Mark as spam?", verb: "Marking", confirmLabel: "Mark as spam", destructive: false },
+  rejected: { title: "Reject this feedback?", lead: (title) => `Rejecting the feedback on “${title}”`, confirmLabel: "Reject", destructive: true },
+  spam: { title: "Mark as spam?", lead: (title) => `Marking the feedback on “${title}” as spam`, confirmLabel: "Mark as spam", destructive: true },
 };
 
-const IMPORTANCE_LABELS: Record<FeedbackImportance, string> = {
-  critical: "Critical",
-  high: "High",
-  normal: "Normal",
-  low: "Low",
-};
-
-const IMPORTANCE_PILL_TONE: Record<FeedbackImportance, EditorStatusPillTone> = {
-  critical: "danger",
-  high: "caution",
-  normal: "info",
-  low: "neutral",
-};
-
-const SORT_LABELS: Record<QueueSort, string> = {
-  oldest: "Oldest first",
-  newest: "Newest first",
-  importance: "Importance",
-};
+const SEARCH_SHORTCUTS = [{ keys: "/", label: "Search feedback" }] as const;
 
 export function isFeedbackQueueFilter(value: unknown): value is FeedbackQueueFilter {
   return typeof value === "string" && (QUEUE_FILTERS as string[]).includes(value);
-}
-
-/** "3 new · 4 resolved": the statuses that have rows, in queue order. */
-function describeCounts(counts: StatusCounts): string {
-  const parts = QUEUE_STATUSES.filter((status) => counts[status] > 0).map(
-    (status) => `${counts[status]} ${STATUS_LABELS[status].toLowerCase()}`,
-  );
-  return parts.length === 0 ? "Empty" : parts.join(" · ");
 }
 
 /**
@@ -252,8 +208,17 @@ type LinkState =
   | { id: string; state: "pending" | "found" | "missing" }
   | { id: string; state: "error"; message: string };
 
+/**
+ * A feedback queue as a triage workspace: the list and its filters on the
+ * left (sticky from `lg`), the item under review docked on the right with
+ * one header and a decision dock (see the Inbox, which embeds the same
+ * adapters). Below `lg` the two stack: picking a row scrolls the pane in, the
+ * pane carries Back to list and a pager, and the automatic first row stays
+ * off screen until a pick.
+ */
 export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   adapter,
+  heading,
   headerActions,
   statusFilter,
   onStatusFilterChange,
@@ -262,10 +227,13 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   initialSearch = "",
   onContextChange,
   taskLinkFor,
+  actorEmail = null,
 }: {
   adapter: FeedbackSourceAdapter<Item>;
+  /** The tool heading, when it is not the source's own (the Feedback tab names the tool). */
+  heading?: { icon: string; title: string; description?: ReactNode };
   /**
-   * Trailing controls on the tool heading, such as the tab's source filter.
+   * Controls under the tool heading, such as the tab's source filter.
    * They receive the queue's draft guard: a control that replaces the queue
    * runs its change through `guard` so a typed note is never dropped silently.
    */
@@ -287,13 +255,15 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
    * the tab can keep them in the address.
    */
   onContextChange?: (context: FeedbackQueueContext) => void;
-  /** The task link for one item, for the Review's Copy link button. */
+  /** The task link for one item, for the pane's Copy link button. */
   taskLinkFor?: (id: string) => string;
+  /** The signed-in admin, so the pane can say "You are reviewing this". */
+  actorEmail?: string | null;
 }) {
   const { labels } = adapter;
+  const noun = labels.noun ?? "feedback";
   // The rail count this queue feeds: glossary feedback has its own badge.
   const railBadge = adapter.source === "glossary" ? "glossary-feedback" : "feedback";
-  const reviewSectionId = `${adapter.source}-feedback-review-section`;
   const [feedback, setFeedback] = useState<Item[]>([]);
   const [counts, setCounts] = useState<StatusCounts | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -305,15 +275,19 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   /** A linked item the current list does not show (another status, or beyond the loaded pages). */
   const [linkedRow, setLinkedRow] = useState<Item | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
+  const [refreshing, setRefreshing] = useState(false);
   const [moreState, setMoreState] = useState<MoreState>({ status: "idle" });
-  const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
+  const [notice, setNotice] = useState<FeedbackNotice | null>(null);
+  const [announcement, setAnnouncement] = useState("");
   const [note, setNote] = useState("");
-  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ id: string; action: FeedbackPendingAction } | null>(null);
   const [autoFilter, setAutoFilter] = useState<FeedbackQueueFilter>("new");
   const [sortChoice, setSortChoice] = useState<QueueSort | null>(initialSort);
   const [searchText, setSearchText] = useState(initialSearch);
   const [search, setSearch] = useState(() => searchableText(initialSearch));
   const contactSearch = looksLikeContactDetails(searchText);
+  const pendingId = pending?.id ?? null;
+  const { frozen } = useWriteFreeze();
   /**
    * Which list request is allowed to write state. Every load takes the next
    * number, so a response arriving after a newer load (or after unmount) is
@@ -323,8 +297,20 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   /** How many rows are loaded, so a background refresh re-reads as many. */
   const loadedCount = useRef(0);
 
+  const baseId = useId();
+  const noteId = `${adapter.source}-feedback-review-note`;
+  const searchId = `${adapter.source}-feedback-search`;
+  const listHeadingId = `${baseId}-queue`;
+  const paneHeadingId = `${baseId}-review`;
+  const listRef = useRef<HTMLElement | null>(null);
+  const paneRef = useRef<HTMLElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const noteRef = useRef<HTMLTextAreaElement | null>(null);
+
   const activeFilter: FeedbackQueueFilter = statusFilter ?? autoFilter;
-  const sort = sortChoice ?? defaultSort(activeFilter);
+  // Waiting work opens most important first when the source asks readers for importance, so a
+  // safety report never sits under older nits; history opens newest first.
+  const sort = sortChoice ?? (adapter.importance && defaultSort(activeFilter) === "oldest" ? "importance" : defaultSort(activeFilter));
   const automatic = statusFilter === null;
 
   const { guard, dialog: draftDialog } = useDirtyGuard(note.trim().length > 0, {
@@ -336,7 +322,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set());
   const [bulkPending, setBulkPending] = useState(false);
   const [lastDecision, setLastDecision] = useState<LastDecision | null>(null);
-  const noteId = `${adapter.source}-feedback-review-note`;
 
   useEffect(() => {
     loadedCount.current = feedback.length;
@@ -393,6 +378,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           status: "error",
           message: error instanceof Error ? error.message : "Unable to load feedback.",
         });
+      } finally {
+        if (version === loadVersion.current) setRefreshing(false);
       }
     },
     [adapter, activeFilter, automatic, search, sort],
@@ -404,6 +391,11 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       loadVersion.current += 1;
     };
   }, [loadQueue]);
+
+  function refresh() {
+    setRefreshing(true);
+    void loadQueue({ background: feedback.length > 0 });
+  }
 
   /** The next page, appended; the selection and any typed note stay where they are. */
   async function loadMore() {
@@ -464,6 +456,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
     return visible[0] ?? null;
   }, [heldRow, link, linkedRow, note, selectedId, visible]);
+  const selectedIndex = selected ? visible.findIndex((row) => row.id === selected.id) : -1;
+  /** A row the admin picked, or a link named, as opposed to the automatic first row. */
+  const picked = selected !== null && selected.id === selectedId;
+
+  // Picking a row below `lg` brings the pane into view; the automatic first row never scrolls.
+  useScrollToDetail(paneRef, picked ? selected.id : link && link.id === selectedId && !selected ? `link:${link.id}:${link.state}` : null);
 
   // Find a task link's item once the first list is in: on the list, or read
   // on its own when this filter, search or page does not show it.
@@ -542,14 +540,15 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
 
   function selectRow(id: string) {
     if (id === selected?.id) {
+      // Picking the automatic row still counts as a pick: on a phone it brings the pane in.
+      if (selectedId !== id) setSelectedId(id);
       return;
     }
     guard(() => {
       setSelectedId(id);
       setLink(null);
-      setActionFeedback(null);
+      setNotice(null);
       setNote("");
-      scrollReviewIntoViewOnSmallScreens(reviewSectionId);
     });
   }
 
@@ -565,15 +564,20 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
     guard(() => {
       apply();
-      setActionFeedback(null);
+      setNotice(null);
       setNote("");
     });
+  }
+
+  function changeSearch(text: string) {
+    setSearchText(text);
   }
 
   /** Put a written row in the list and move its count from the old status to the new one. */
   function applyTransition(updated: Item, previousStatus: FeedbackQueueStatus) {
     setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
     setLinkedRow((row) => (row && row.id === updated.id ? updated : row));
+    setHeldRow((row) => (row && row.id === updated.id ? updated : row));
     setCounts((current) =>
       current && updated.status !== previousStatus
         ? { ...current, [previousStatus]: current[previousStatus] - 1, [updated.status]: current[updated.status] + 1 }
@@ -581,15 +585,30 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     );
   }
 
-  async function updateStatus(status: FeedbackQueueStatus, outcome?: FeedbackOutcome) {
+  function failureNotice(error: unknown, fallback: string): FeedbackNotice {
+    const message = error instanceof Error ? error.message : fallback;
+    return { tone: "danger", message: isFreezeRefusal(message) ? FREEZE_DECISION_COPY : message };
+  }
+
+  /**
+   * Write one status change on the row under review. Claims and releases
+   * change the hold line in place and are announced; decisions leave a notice
+   * with Undo in the dock.
+   */
+  async function updateStatus(
+    status: FeedbackQueueStatus,
+    outcome?: FeedbackOutcome,
+    kind: "decision" | "claim" | "release" | "reopen" = "decision",
+  ) {
     if (!selected || pendingId || bulkPending) {
       return;
     }
 
     const decidedId = selected.id;
     const previousStatus = selected.status;
-    setPendingId(decidedId);
-    setActionFeedback(null);
+    const title = labels.itemTitle(selected);
+    setPending({ id: decidedId, action: kind === "decision" ? outcome ?? (status as FeedbackPendingAction) : kind });
+    setNotice(null);
     const trimmedNote = note.trim();
     try {
       const updated = await adapter.transition(decidedId, {
@@ -598,25 +617,31 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         ...(outcome ? { outcome } : {}),
       });
       applyTransition(updated, previousStatus);
+      const quiet = kind === "claim" || kind === "release";
       setLastDecision(
-        updated.status !== previousStatus
-          ? { id: updated.id, title: labels.itemTitle(updated), from: previousStatus, to: updated.status }
+        updated.status !== previousStatus && !quiet
+          ? { id: updated.id, title, from: previousStatus, to: updated.status }
           : null,
       );
-      setPendingId(null);
+      setPending(null);
       // The admin may have moved to another row while this was in flight;
       // that row, its note and its notices are theirs to keep.
       if (currentRowId.current === decidedId) {
-        setActionFeedback({
-          tone: "success",
-          message: labels.transitioned(
-            updated,
-            outcome
-              ? `${STATUS_LABELS[status].toLowerCase()} as ${FEEDBACK_OUTCOME_LABEL[outcome]}`
-              : STATUS_LABELS[status].toLowerCase(),
-          ),
-        });
-        setNote("");
+        if (quiet) {
+          setAnnouncement(kind === "claim" ? `You are reviewing "${title}".` : `Released "${title}" for anyone to pick up.`);
+        } else {
+          setNotice({
+            tone: "success",
+            undo: true,
+            message: labels.transitioned(
+              updated,
+              outcome
+                ? `${STATUS_LABELS[status].toLowerCase()} as ${FEEDBACK_OUTCOME_LABEL[outcome]}`
+                : STATUS_LABELS[status].toLowerCase(),
+            ),
+          });
+        }
+        if (trimmedNote.length > 0) setNote("");
         if (!matchesFilter(updated.status, activeFilter)) {
           // The decided row leaves this filter: hand the review to its neighbour, pinned.
           const index = visible.findIndex((row) => row.id === decidedId);
@@ -630,11 +655,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       // keeping the list and the selection where they are.
       void loadQueue({ background: true });
     } catch (error) {
-      setActionFeedback({
-        tone: "danger",
-        message: error instanceof Error ? error.message : "Unable to update feedback.",
-      });
-      setPendingId(null);
+      setNotice(failureNotice(error, "Unable to update feedback."));
+      setPending(null);
     }
   }
 
@@ -647,15 +669,14 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       return;
     }
     const decision = CONFIRMED_DECISIONS[status];
+    const typed = note.trim().length > 0;
     confirm({
       title: outcome ? `Close as ${FEEDBACK_OUTCOME_LABEL[outcome]}?` : decision.title,
-      description: (
-        <>
-          {decision.verb} the feedback for &ldquo;{labels.itemTitle(selected)}&rdquo; writes to production right away
-          and takes it off the queue. It stays in the {STATUS_LABELS[status]} list, where it can go back to Reviewing.
-          {note.trim().length > 0 ? " Your review note is saved with it." : null}
-        </>
-      ),
+      description: `${
+        outcome
+          ? `Closing the feedback on “${labels.itemTitle(selected)}” as ${FEEDBACK_OUTCOME_LABEL[outcome]} rejects it at once`
+          : `${decision.lead(labels.itemTitle(selected))} writes at once`
+      } and takes it off the queue. It stays under ${STATUS_LABELS[status]}, where it can be reopened. ${typed ? "Your review note is saved with it." : "No review note is attached."}`,
       confirmLabel: outcome ? FEEDBACK_OUTCOME_LABEL[outcome] : decision.confirmLabel,
       destructive: decision.destructive,
       onConfirm: () => updateStatus(status, outcome),
@@ -676,14 +697,14 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       return;
     }
     const decision = lastDecision;
-    setPendingId(decision.id);
-    setActionFeedback(null);
+    setPending({ id: decision.id, action: "undo" });
+    setNotice(null);
     try {
       const updated = await adapter.transition(decision.id, { status: undoTo });
       applyTransition(updated, decision.to);
       setLastDecision(null);
-      setPendingId(null);
-      setActionFeedback({
+      setPending(null);
+      setNotice({
         tone: "success",
         message: `Undone. ${labels.transitioned(updated, STATUS_LABELS[updated.status].toLowerCase())}`,
       });
@@ -694,11 +715,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       invalidateDevRailBadge(railBadge);
       void loadQueue({ background: true });
     } catch (error) {
-      setActionFeedback({
-        tone: "danger",
-        message: error instanceof Error ? error.message : "Unable to undo that decision.",
-      });
-      setPendingId(null);
+      setNotice(failureNotice(error, "Unable to undo that decision."));
+      setPending(null);
     }
   }
 
@@ -716,9 +734,9 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     const href = new URL(taskLinkFor(id), window.location.origin).toString();
     try {
       await navigator.clipboard.writeText(href);
-      setActionFeedback({ tone: "success", message: "Link copied. It opens this item with the current filter, order and search." });
+      setNotice({ tone: "success", message: "Link copied. It opens this item with the current filter, order and search." });
     } catch {
-      setActionFeedback({ tone: "danger", message: `Copy did not work in this browser. The link is ${href}` });
+      setNotice({ tone: "danger", message: `Copy did not work in this browser. The link is ${href}` });
     }
   }
 
@@ -736,7 +754,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
 
   async function runBulk(status: BulkDecision, targets: Item[]) {
     setBulkPending(true);
-    setActionFeedback(null);
+    setNotice(null);
     const failures: string[] = [];
     const done = new Set<string>();
     // One at a time: each write is its own decision in the item's log.
@@ -746,7 +764,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         applyTransition(updated, row.status);
         done.add(row.id);
       } catch (error) {
-        failures.push(`${labels.itemTitle(row)}: ${error instanceof Error ? error.message : "failed"}`);
+        const message = error instanceof Error ? error.message : "failed";
+        failures.push(`${labels.itemTitle(row)}: ${isFreezeRefusal(message) ? "writes are paused" : message}`);
       }
     }
     setChecked((current) => new Set([...current].filter((id) => !done.has(id))));
@@ -754,7 +773,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     setBulkPending(false);
     const verb = status === "spam" ? "Marked" : "Rejected";
     const tail = status === "spam" ? " as spam" : "";
-    setActionFeedback(
+    setNotice(
       failures.length === 0
         ? { tone: "success", message: `${verb} ${done.size} feedback ${done.size === 1 ? "item" : "items"}${tail}.` }
         : {
@@ -775,16 +794,11 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     const skipped = checkedRows.length - targets.length;
     confirm({
       title: status === "spam" ? `Mark ${count} as spam?` : `Reject ${count}?`,
-      description: (
-        <>
-          This writes to production right away and takes {targets.length === 1 ? "it" : "them"} off the queue. Each stays
-          in the {STATUS_LABELS[status]} list, where it can go back to Reviewing.
-          {skipped > 0 ? ` ${skipped} ticked ${skipped === 1 ? "item is" : "items are"} already there and stay as they are.` : null}
-        </>
-      ),
+      description: `This writes at once and takes ${targets.length === 1 ? "it" : "them"} off the queue. Each stays under ${STATUS_LABELS[status]}, where it can be reopened.${skipped > 0 ? ` ${skipped} ticked ${skipped === 1 ? "item is" : "items are"} already there and stay as they are.` : ""}`,
       confirmLabel: status === "spam" ? "Mark as spam" : "Reject",
-      destructive: status === "rejected",
+      destructive: true,
       affected: targets.map((row) => labels.itemTitle(row)),
+      affectedLabel: `${targets.length} ${targets.length === 1 ? "item" : "items"}`,
       onConfirm: () => runBulk(status, targets),
     });
   }
@@ -792,12 +806,15 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const canDecide = (status: FeedbackQueueStatus) =>
     selected !== null && !pendingId && !bulkPending && (adapter.transitions[selected.status] ?? []).includes(status);
 
+  function move(direction: 1 | -1) {
+    if (visible.length === 0) return;
+    const index = visible.findIndex((row) => row.id === selected?.id);
+    const next = index < 0 ? (direction === 1 ? visible[0] : visible[visible.length - 1]) : visible[index + direction];
+    if (next) selectRow(next.id);
+  }
+
   const { helpDialog } = useTriageShortcuts({
-    onMove: (direction) => {
-      const index = visible.findIndex((row) => row.id === selected?.id);
-      const next = index < 0 ? visible[0] : visible[index + direction];
-      if (next) selectRow(next.id);
-    },
+    onMove: move,
     onAccept: () => {
       if (canDecide("resolved")) decide("resolved");
     },
@@ -807,255 +824,280 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     onSpam: () => {
       if (canDecide("spam")) decide("spam");
     },
-    onNote: () => document.getElementById(noteId)?.focus(),
+    onNote: () => noteRef.current?.focus(),
     onUndo: () => void undoLastDecision(),
     labels: { accept: "Resolve" },
   });
 
-  return (
-    <div className="flex w-full flex-col gap-8">
-      <EditorSection
-        icon={labels.icon}
-        title={labels.title}
-        description={labels.description}
-        actions={headerActions?.(guard)}
+  // `/` focuses the search, as in every other list tool.
+  useDevShortcuts(SEARCH_SHORTCUTS);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey || event.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const backToList = () => {
+    listRef.current?.scrollIntoView({ block: "start" });
+    listRef.current?.querySelector<HTMLElement>('[role="listbox"]')?.focus({ preventScroll: true });
+  };
+
+  const ready = loadState.status === "ready" || (loadState.status === "error" && feedback.length > 0);
+  const empty = ready && visible.length === 0 ? describeEmptyQueue(activeFilter, counts, search, noun) : null;
+  const busy = pendingId !== null || bulkPending;
+  const title = heading?.title ?? labels.title;
+  const icon = heading?.icon ?? labels.icon;
+  const hiddenByList =
+    selected && selectedIndex < 0 ? (
+      <p className="flex flex-wrap items-center gap-x-2">
+        <Icon icon="lucide:eye-off" size={13} className="theme-text-faint shrink-0" />
+        <span>
+          {matchesFilter(selected.status, activeFilter)
+            ? "The list does not show this item right now."
+            : `The list shows ${STATUS_LABELS[activeFilter].toLowerCase()} feedback, so this ${STATUS_LABELS[selected.status].toLowerCase()} item is not in it.`}
+        </span>
+      </p>
+    ) : null;
+
+  const bulkBar =
+    checkedRows.length > 0 ? (
+      <div
+        role="toolbar"
+        aria-label="Bulk feedback actions"
+        className="flex flex-wrap items-center gap-2 rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-3 py-2"
       >
-        {loadState.status === "error" ? (
-          <LoadErrorState message={loadState.message} onRetry={() => void loadQueue({ background: feedback.length > 0 })} />
-        ) : null}
+        <p className="theme-text-secondary mr-auto text-sm tabular-nums" aria-live="polite">
+          {checkedRows.length} selected
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "spam"))}
+          onClick={() => bulkDecide("spam")}
+        >
+          Mark as spam
+        </Button>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "rejected"))}
+          onClick={() => bulkDecide("rejected")}
+        >
+          Reject
+        </Button>
+        <Button type="button" variant="quiet" size="quiet" disabled={bulkPending} onClick={() => setChecked(new Set())}>
+          Clear
+        </Button>
+      </div>
+    ) : null;
+
+  // Below `lg` the pane waits for a pick: the automatic first row is a desktop convenience.
+  const paneHidden = !picked && !openLink && !notice;
+
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <EditorSection icon={icon} title={title} description={heading ? heading.description : labels.description}>
+        {headerActions ? <div className="space-y-2">{headerActions(guard)}</div> : null}
         <DevRailBadgeFreshness badge={railBadge} noun="feedback items" />
       </EditorSection>
 
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 xl:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)]">
-        <EditorSection
-          icon="lucide:list"
-          title="Queue"
-          description={counts && loadState.status !== "loading" ? describeCounts(counts) : "Loading"}
-          delay={0.05}
-          actions={(
-            <>
-              <label htmlFor={`${adapter.source}-feedback-sort`} className="sr-only">
-                Sort
-              </label>
-              <Select value={sort} onValueChange={(value) => setSortChoice(value as QueueSort)}>
-                <SelectTrigger id={`${adapter.source}-feedback-sort`} selectSize="compact" className="w-36">
-                  <SelectValue>{SORT_LABELS[sort]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(SORT_LABELS) as QueueSort[])
-                    .filter((option) => option !== "importance" || adapter.importance)
-                    .map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {SORT_LABELS[option]}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              <label htmlFor={`${adapter.source}-feedback-filter`} className="sr-only">
-                Queue filter
-              </label>
-              <Select value={activeFilter} onValueChange={(value) => changeFilter(value as FeedbackQueueFilter)}>
-                <SelectTrigger id={`${adapter.source}-feedback-filter`} selectSize="compact" className="w-36">
-                  <SelectValue>
-                    {STATUS_LABELS[activeFilter]}
-                    {total === null ? null : ` (${total})`}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {QUEUE_FILTERS.map((filter) => (
-                    <SelectItem key={filter} value={filter}>
-                      <span className="flex w-full items-center justify-between gap-3">
-                        {STATUS_LABELS[filter]}{" "}
-                        <span className="theme-text-faint tabular-nums">{counts ? totalFor(counts, filter) : ""}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(20rem,26rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
+        <FeedbackQueueColumn
+          listRef={listRef}
+          headingId={listHeadingId}
+          noun={noun}
+          filter={activeFilter}
+          counts={loadState.status === "loading" ? null : counts}
+          onFilterChange={changeFilter}
+          sort={sort}
+          sortOptions={(["oldest", "newest", "importance"] as QueueSort[]).filter(
+            (option) => option !== "importance" || Boolean(adapter.importance),
           )}
-        >
-          {loadState.status === "loading" ? (
-            <EditorStatusPill tone="info" loading live>
-              Loading feedback...
-            </EditorStatusPill>
-          ) : null}
-          <Input
-            type="search"
-            inputSize="sm"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            placeholder="Search feedback"
-            aria-label="Search feedback"
-            aria-describedby={contactSearch ? `${noteId}-search-hint` : undefined}
-            className="mb-2"
-          />
-          {contactSearch ? (
-            <p id={`${noteId}-search-hint`} role="status" className="theme-text-muted mb-2 text-xs">
-              Contact details cannot be searched. Search by substance, page or the feedback text instead.
-            </p>
-          ) : null}
-          {checkedRows.length > 0 ? (
-            <EditorPanel variant="toolbar" className="mb-2 p-2">
-              <EditorToolbar label="Bulk feedback actions" variant="split">
-                <p className="theme-text-secondary text-sm tabular-nums" aria-live="polite">
-                  {checkedRows.length} selected
-                </p>
-                <EditorActionGroup label="Bulk decision" align="end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "spam"))}
-                    onClick={() => bulkDecide("spam")}
-                  >
-                    Mark as spam
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    disabled={bulkPending || !checkedRows.some((row) => canBulk(row, "rejected"))}
-                    onClick={() => bulkDecide("rejected")}
-                  >
-                    Reject
-                  </Button>
-                  <Button type="button" variant="quiet" size="quiet" disabled={bulkPending} onClick={() => setChecked(new Set())}>
-                    Clear
-                  </Button>
-                </EditorActionGroup>
-              </EditorToolbar>
-            </EditorPanel>
-          ) : null}
-          {loadState.status === "ready" || feedback.length > 0 ? (
-            <EditorList
-              label="Feedback queue"
-              items={visible}
-              getKey={(row) => row.id}
-              selectedKey={selected?.id ?? null}
-              onSelect={selectRow}
-              multiSelect={{
-                checkedKeys: checked,
-                onToggle: toggleChecked,
-                checkLabel: (row) => `Select ${labels.itemTitle(row)}`,
-                canCheck: (row) => canBulk(row, "spam") || canBulk(row, "rejected"),
-              }}
-              emptyText={
-                search
-                  ? `No ${activeFilter === "all" ? "" : `${STATUS_LABELS[activeFilter].toLowerCase()} `}feedback matches "${search}".`
-                  : activeFilter === "all"
-                    ? labels.emptyQueue
-                    : `No ${STATUS_LABELS[activeFilter].toLowerCase()} feedback right now.`
-              }
-              renderItem={(row, { selected: active }) => (
-                <QueueRow
-                  title={labels.itemTitle(row)}
-                  subtitle={labels.itemSubtitle(row)}
-                  importance={adapter.importance?.(row) ?? null}
-                  row={row}
-                  active={active}
-                />
-              )}
-            />
-          ) : null}
-          {loadState.status === "ready" && total !== null && total > 0 ? (
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="theme-text-faint text-xs tabular-nums">
-                {visible.length} of {total} loaded
-              </p>
-              {nextCursor ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={moreState.status === "loading"}
-                  onClick={() => void loadMore()}
-                >
-                  {moreState.status === "loading" ? "Loading more..." : "Load more"}
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-          {moreState.status === "error" ? (
-            <Notice placement="inline" tone="danger" dismiss={() => setMoreState({ status: "idle" })}>
-              {moreState.message}
-            </Notice>
-          ) : null}
-          <TriageShortcutHint className="mt-3" />
-        </EditorSection>
-
-        <EditorSection
-          id={reviewSectionId}
-          icon="lucide:file-search"
-          title="Review"
-          description={
-            selected
-              ? `${labels.itemTitle(selected)} · received ${formatFeedbackDate(selected.created_at) ?? "unknown date"}`
-              : openLink
-                ? "Linked feedback"
-                : "No feedback selected"
-          }
-          delay={0.1}
-          actions={
-            selected && taskLinkFor ? (
-              <Button type="button" variant="ghost" size="sm" onClick={() => void copyTaskLink(selected.id)}>
-                <Icon icon="lucide:link" size={14} />
-                Copy link
-              </Button>
+          onSortChange={setSortChoice}
+          searchId={searchId}
+          searchRef={searchRef}
+          searchText={searchText}
+          onSearchChange={changeSearch}
+          contactSearch={contactSearch}
+          loading={loadState.status === "loading"}
+          refreshing={refreshing}
+          onRefresh={refresh}
+          bulk={bulkBar}
+          rows={visible}
+          total={total}
+          selectedId={selected?.id ?? null}
+          onSelect={selectRow}
+          checked={checked}
+          onToggleChecked={toggleChecked}
+          canCheck={(row) => canBulk(row, "spam") || canBulk(row, "rejected")}
+          titleOf={labels.itemTitle}
+          subtitleOf={labels.itemSubtitle}
+          importanceOf={(row) => adapter.importance?.(row) ?? null}
+          holdOf={(row) => holdOf(row, actorEmail)}
+          empty={empty}
+          onShowEverything={() => changeFilter("all")}
+          onClearSearch={() => {
+            setSearchText("");
+            searchRef.current?.focus();
+          }}
+          canLoadMore={Boolean(nextCursor)}
+          loadingMore={moreState.status === "loading"}
+          onLoadMore={() => void loadMore()}
+          moreError={moreState.status === "error" ? moreState.message : null}
+          onDismissMoreError={() => setMoreState({ status: "idle" })}
+          ready={ready}
+          error={
+            loadState.status === "error" ? (
+              <LoadErrorState
+                what={noun}
+                message={loadState.message}
+                onRetry={() => void loadQueue({ background: feedback.length > 0 })}
+              />
             ) : null
           }
+        />
+
+        <section
+          ref={paneRef}
+          aria-label={selected ? `Review: ${labels.itemTitle(selected)}` : "Review"}
+          className={cn("scroll-mt-24", paneHidden && (ready ? "hidden lg:block" : "hidden"))}
         >
-          {openLink?.state === "missing" ? (
-            <Notice
-              tone="warning" title={MISSING_TASK_TITLE} message="The link names a feedback item that was removed, or one your role cannot open. Nothing else was selected in its place." actions={(
-                  <Button type="button" variant="outline" size="sm" onClick={leaveLink}>
-                    Show the queue
-                  </Button>
-                )}
-            />
-          ) : openLink?.state === "error" ? (
-            <Notice
-              tone="danger" title="The linked feedback did not load" message={openLink.message} actions={(
-                  <Button type="button" variant="outline" size="sm" onClick={() => void lookUpLinked(openLink.id)}>
-                    Try again
-                  </Button>
-                )}
-            />
-          ) : openLink?.state === "pending" ? (
-            <EditorStatusPill tone="info" loading live>
-              Opening the linked feedback...
-            </EditorStatusPill>
+          <p className="sr-only" role="status" aria-live="polite">
+            {announcement}
+          </p>
+          {openLink ? (
+            <EditorPanel className="space-y-4 p-4 sm:p-5">
+              <Button type="button" variant="ghost" size="sm" className="-ml-2 lg:hidden" onClick={backToList}>
+                <Icon icon="lucide:arrow-left" size={14} />
+                Back to list
+              </Button>
+              {openLink.state === "missing" ? (
+                <Notice
+                  tone="warning"
+                  title={MISSING_TASK_TITLE}
+                  message="The link names a feedback item that was removed, or one your role cannot open. Nothing else was selected in its place."
+                  actions={(
+                    <Button type="button" variant="outline" size="sm" onClick={leaveLink}>
+                      Show the queue
+                    </Button>
+                  )}
+                />
+              ) : openLink.state === "error" ? (
+                <Notice
+                  tone="danger"
+                  title="The linked feedback did not load"
+                  message={openLink.message}
+                  actions={(
+                    <Button type="button" variant="outline" size="sm" onClick={() => void lookUpLinked(openLink.id)}>
+                      Try again
+                    </Button>
+                  )}
+                />
+              ) : (
+                <EditorStatusPill tone="info" loading live>
+                  Opening the linked feedback
+                </EditorStatusPill>
+              )}
+            </EditorPanel>
           ) : selected ? (
-            <FeedbackDetail
-              row={selected}
-              header={adapter.renderDetail(selected)}
-              correction={adapter.renderCorrection?.(selected, replaceRow) ?? null}
-              recordsOutcomes={adapter.recordsOutcomes === true}
-              keepsDecisionLog={adapter.keepsDecisionLog === true}
-              validTargets={adapter.transitions[selected.status] ?? []}
-              pending={pendingId === selected.id || bulkPending}
+            <FeedbackReviewPane
+              key={selected.id}
+              title={labels.itemTitle(selected)}
+              subtitle={labels.itemSubtitle(selected)}
+              status={selected.status}
+              importance={adapter.importance?.(selected) ?? null}
+              receivedAt={selected.created_at}
+              hold={holdOf(selected, actorEmail)}
+              headingId={paneHeadingId}
+              position={selectedIndex >= 0 ? { index: selectedIndex, total: visible.length } : null}
+              onMove={move}
+              onBackToList={backToList}
+              onCopyLink={taskLinkFor ? () => void copyTaskLink(selected.id) : undefined}
+              hiddenByList={hiddenByList}
+              facts={adapter.renderDetail(selected)}
+              details={selected.details}
+              correction={
+                adapter.renderCorrection ? (
+                  <CorrectionSlot key={selected.id} folded={selected.status === "spam"}>
+                    {adapter.renderCorrection(selected, replaceRow)}
+                  </CorrectionSlot>
+                ) : null
+              }
+              history={<FeedbackHistory row={selected} keepsDecisionLog={adapter.keepsDecisionLog === true} />}
               note={note}
               noteId={noteId}
-              onNoteChange={changeNote}
-              actionFeedback={actionFeedback}
-              onDismissFeedback={() => setActionFeedback(null)}
-              onStatusChange={decide}
-              undo={
-                lastDecision && undoTo
-                  ? {
-                      label: `Undo: back to ${STATUS_LABELS[undoTo]}`,
-                      disabled: pendingId !== null || bulkPending,
-                      onUndo: () => void undoLastDecision(),
-                    }
-                  : null
+              noteRef={noteRef}
+              noteDescription={
+                adapter.keepsDecisionLog
+                  ? "Optional. Added to the decision log with the decision you make next."
+                  : "Optional. Saved with the decision and replaces the previous note."
               }
+              onNoteChange={changeNote}
+              validTargets={adapter.transitions[selected.status] ?? []}
+              recordsOutcomes={adapter.recordsOutcomes === true}
+              pending={pending && pending.id === selected.id ? pending.action : null}
+              // Another row's decision in flight leaves this one free to read and note.
+              busy={pending?.id === selected.id || bulkPending}
+              frozen={frozen}
+              notice={notice}
+              onDismissNotice={() => setNotice(null)}
+              canUndo={Boolean(lastDecision && undoTo)}
+              onUndo={() => void undoLastDecision()}
+              onDecide={decide}
+              onClaim={() => void updateStatus("reviewing", undefined, "claim")}
+              onRelease={() => void updateStatus("new", undefined, "release")}
+              onReopen={() => void updateStatus("reviewing", undefined, "reopen")}
             />
           ) : (
-            <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted text-sm">
-              Select a feedback entry to review.
-            </EmptyStateSurface>
+            <div className="space-y-3">
+              {notice ? (
+                <Notice placement="inline" tone={notice.tone} dismiss={() => setNotice(null)}>
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span>{notice.message}</span>
+                    {notice.undo && lastDecision && undoTo ? (
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="auto"
+                        className="text-sm"
+                        disabled={busy}
+                        aria-keyshortcuts="u"
+                        onClick={() => void undoLastDecision()}
+                      >
+                        Undo
+                      </Button>
+                    ) : null}
+                  </span>
+                </Notice>
+              ) : null}
+              <EmptyStateSurface padding="lg" radius="lg" className="theme-text-muted hidden text-sm lg:block">
+                {ready && visible.length === 0 ? (
+                  <span className="flex items-center gap-2">
+                    <Icon icon="lucide:inbox" size={16} className="theme-text-faint shrink-0" />
+                    Nothing to review under this filter.
+                  </span>
+                ) : (
+                  <>
+                    Pick feedback to review it here
+                    <span className="[@media(pointer:coarse)]:hidden">
+                      , or press <kbd className="theme-dev-kbd">j</kbd> to start at the top
+                    </span>
+                    .
+                  </>
+                )}
+              </EmptyStateSurface>
+            </div>
           )}
-        </EditorSection>
+        </section>
       </div>
       {draftDialog}
       {confirmDialog}
@@ -1064,12 +1106,61 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   );
 }
 
-/** Below xl the queue sits above the review, so picking a row brings the review up. */
-function scrollReviewIntoViewOnSmallScreens(sectionId: string) {
-  if (typeof window === "undefined" || window.innerWidth >= 1280) {
-    return;
+/**
+ * The source's correction panel. On spam it folds shut (nothing to correct,
+ * but a mistaken spam call can still be corrected) and mounts only when opened.
+ */
+function CorrectionSlot({ folded, children }: { folded: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(!folded);
+  const regionId = useId();
+  if (!folded) return <>{children}</>;
+  return (
+    <section className="space-y-3">
+      <h4 className="theme-accent-heading text-sm font-semibold">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={regionId}
+          onClick={() => setOpen((value) => !value)}
+          className="theme-focus-ring inline-flex items-center gap-2 rounded-control"
+        >
+          Correction
+          <ExpandIndicator isExpanded={open} />
+        </button>
+      </h4>
+      <div id={regionId} hidden={!open}>
+        {open ? children : null}
+      </div>
+      {open ? null : <p className="theme-text-muted text-sm">Marked as spam, so there is nothing to correct. Open it to start or link a correction anyway.</p>}
+    </section>
+  );
+}
+
+/** The decision log for sources that keep one; otherwise the latest note with who and when. */
+function FeedbackHistory({ row, keepsDecisionLog }: { row: FeedbackQueueItem; keepsDecisionLog: boolean }) {
+  if (keepsDecisionLog) {
+    return (
+      <DecisionLogSection
+        entries={decisionLogOf(row)}
+        statusLabel={(status) => STATUS_LABELS[status]}
+        outcomeLabel={(outcome) => FEEDBACK_OUTCOME_LABEL[outcome]}
+      />
+    );
   }
-  document.getElementById(sectionId)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  if (!row.review_notes && !row.reviewed_by) return null;
+  return (
+    <section>
+      <h4 className="theme-accent-heading text-sm font-semibold">Review notes</h4>
+      {row.reviewed_by || row.reviewed_at ? (
+        <p className="theme-text-faint mt-1 text-xs">
+          {[formatReviewerIdentity(row.reviewed_by), formatFeedbackDate(row.reviewed_at)].filter(Boolean).join(" · ")}
+        </p>
+      ) : null}
+      {row.review_notes ? (
+        <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.review_notes}</p>
+      ) : null}
+    </section>
+  );
 }
 
 export function formatFeedbackDate(value?: string): string | null {
@@ -1083,233 +1174,18 @@ export function formatFeedbackDate(value?: string): string | null {
   return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-/**
- * Two lines at a fixed pitch, so the windowed list can place rows: title and
- * subtitle share the first line with the status pill, details take the second.
- */
-function QueueRow({
-  active,
-  importance,
-  row,
-  subtitle,
-  title,
-}: {
-  active: boolean;
-  importance: FeedbackImportance | null;
-  row: FeedbackQueueItem;
-  subtitle: string | null;
-  title: string;
-}) {
+export function FeedbackStatusPill({ status, inline = false }: { status: FeedbackQueueStatus; inline?: boolean }) {
   return (
-    <EditorListRow active={active} className="items-start">
-      <span className="min-w-0 flex-1 space-y-1">
-        <span className="flex items-center justify-between gap-3">
-          <span className="min-w-0 truncate text-sm">
-            <span className={`font-semibold ${active ? "theme-accent-heading" : "theme-text-primary"}`}>{title}</span>
-            {subtitle ? <span className="theme-text-faint text-xs"> · {subtitle}</span> : null}
-          </span>
-          <span className="flex shrink-0 items-center gap-1.5">
-            {importance ? <FeedbackImportancePill importance={importance} /> : null}
-            <FeedbackStatusPill status={row.status} />
-          </span>
-        </span>
-        <span className="theme-text-muted block truncate text-xs">{row.details}</span>
-      </span>
-    </EditorListRow>
-  );
-}
-
-function FeedbackDetail({
-  actionFeedback,
-  correction,
-  recordsOutcomes,
-  header,
-  keepsDecisionLog,
-  note,
-  noteId,
-  onDismissFeedback,
-  onNoteChange,
-  onStatusChange,
-  pending,
-  row,
-  undo,
-  validTargets,
-}: {
-  undo: { label: string; disabled: boolean; onUndo: () => void } | null;
-  actionFeedback: ActionFeedback | null;
-  correction: ReactNode;
-  recordsOutcomes: boolean;
-  header: ReactNode;
-  keepsDecisionLog: boolean;
-  note: string;
-  noteId: string;
-  onDismissFeedback: () => void;
-  onNoteChange: (note: string) => void;
-  onStatusChange: (status: FeedbackQueueStatus, outcome?: FeedbackOutcome) => void;
-  pending: boolean;
-  row: FeedbackQueueItem;
-  validTargets: FeedbackQueueStatus[];
-}) {
-  const canMoveTo = (status: FeedbackQueueStatus) => !pending && validTargets.includes(status);
-
-  return (
-    <div className="space-y-6">
-      {header}
-
-      <section>
-        <h4 className="theme-accent-heading text-sm font-semibold">Details</h4>
-        <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.details}</p>
-      </section>
-
-      {correction}
-
-      {keepsDecisionLog ? (
-        <DecisionLogSection
-          entries={decisionLogOf(row)}
-          statusLabel={(status) => STATUS_LABELS[status]}
-          outcomeLabel={(outcome) => FEEDBACK_OUTCOME_LABEL[outcome]}
-        />
-      ) : row.review_notes || row.reviewed_by ? (
-        <section>
-          <h4 className="theme-accent-heading text-sm font-semibold">Review notes</h4>
-          {row.reviewed_by || row.reviewed_at ? (
-            <p className="theme-text-faint mt-1 text-xs">
-              {[formatReviewerIdentity(row.reviewed_by), formatFeedbackDate(row.reviewed_at)].filter(Boolean).join(" · ")}
-            </p>
-          ) : null}
-          {row.review_notes ? (
-            <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">
-              {row.review_notes}
-            </p>
-          ) : null}
-        </section>
-      ) : null}
-
-      <div className="space-y-3">
-        <EditorField
-          htmlFor={noteId}
-          label="Review note"
-          description={
-            keepsDecisionLog
-              ? "Optional. Added to the decision log with the decision you make next."
-              : "Optional. Saved with the decision and replaces the previous note."
-          }
-        >
-          <Textarea
-            id={noteId}
-            textareaSize="sm"
-            value={note}
-            disabled={pending}
-            onChange={(event) => onNoteChange(event.target.value)}
-            placeholder="What was checked, changed, or why this was declined."
-          />
-        </EditorField>
-        <EditorPanel variant="toolbar" className="p-3">
-          <EditorToolbar label="Feedback review actions" variant="split">
-            <EditorActionGroup label="Review decision">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!canMoveTo("reviewing")}
-                onClick={() => onStatusChange("reviewing")}
-              >
-                Reviewing
-              </Button>
-              <Button
-                type="button"
-                variant="success"
-                disabled={!canMoveTo("resolved")}
-                onClick={() => onStatusChange("resolved")}
-              >
-                Resolve
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={!canMoveTo("rejected")}
-                onClick={() => onStatusChange("rejected")}
-              >
-                Reject
-              </Button>
-            </EditorActionGroup>
-            {recordsOutcomes ? (
-              <EditorActionGroup label="Close without a correction">
-                {FEEDBACK_OUTCOMES.map((outcome) => (
-                  <Button
-                    key={outcome}
-                    type="button"
-                    variant="outline"
-                    disabled={!canMoveTo(FEEDBACK_OUTCOME_STATUS[outcome])}
-                    onClick={() => onStatusChange(FEEDBACK_OUTCOME_STATUS[outcome], outcome)}
-                  >
-                    {FEEDBACK_OUTCOME_LABEL[outcome]}
-                  </Button>
-                ))}
-              </EditorActionGroup>
-            ) : null}
-            <EditorActionGroup label="Classification" align="end">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!canMoveTo("spam")}
-                onClick={() => onStatusChange("spam")}
-              >
-                Spam
-              </Button>
-            </EditorActionGroup>
-          </EditorToolbar>
-        </EditorPanel>
-        {actionFeedback || undo ? (
-          <div className="flex flex-wrap items-center gap-2">
-            {actionFeedback ? (
-              <Notice placement="inline" tone={actionFeedback.tone} dismiss={onDismissFeedback}>
-                {actionFeedback.message}
-              </Notice>
-            ) : null}
-            {undo ? (
-              <Button type="button" variant="outline" size="sm" disabled={undo.disabled} onClick={undo.onUndo}>
-                {undo.label}
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-export function FeedbackStatusPill({ status }: { status: FeedbackQueueStatus }) {
-  return (
-    <EditorStatusPill tone={STATUS_PILL_TONE[status] ?? "neutral"}>
+    <EditorStatusPill inline={inline} tone={STATUS_PILL_TONE[status] ?? "neutral"}>
       {STATUS_LABELS[status] ?? status}
     </EditorStatusPill>
   );
 }
 
-export function FeedbackImportancePill({ importance }: { importance: FeedbackImportance }) {
-  return <EditorStatusPill tone={IMPORTANCE_PILL_TONE[importance]}>{IMPORTANCE_LABELS[importance]}</EditorStatusPill>;
-}
-
-export function FeedbackMetadataItem({ href, label, value }: { href?: string; label: string; value?: string | null }) {
-  if (!value) {
-    return null;
-  }
-
+export function FeedbackImportancePill({ importance, inline = false }: { importance: FeedbackImportance; inline?: boolean }) {
   return (
-    <div>
-      <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-wider">{label}</p>
-      {href ? (
-        <a
-          href={href}
-          // A mailto link opens the mail app, not a new tab.
-          {...(href.startsWith("mailto:") ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-          className="theme-accent-heading mt-1 block break-all text-sm hover:underline"
-        >
-          {value}
-        </a>
-      ) : (
-        <p className="theme-text-primary mt-1 text-sm">{value}</p>
-      )}
-    </div>
+    <EditorStatusPill inline={inline} tone={IMPORTANCE_PILL_TONE[importance]}>
+      {IMPORTANCE_WORD[importance]}
+    </EditorStatusPill>
   );
 }

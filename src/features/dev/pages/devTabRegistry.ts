@@ -210,6 +210,8 @@ const REGISTRY = [
     layout: "shell",
     destination: SHELL,
     badge: "feedback",
+    // Decisions write one item at a time and the review dock says so; no save sentence fits.
+    saveLine: "none",
     // Site feedback folded in as the source filter; `/dev/site-feedback` still opens that queue.
     filter: DEV_ROUTE_FILTERS["article-feedback"],
   },

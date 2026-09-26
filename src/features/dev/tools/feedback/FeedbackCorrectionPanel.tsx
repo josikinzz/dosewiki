@@ -2,18 +2,13 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { ExpandIndicator } from "@/components/common/ExpandButton";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Notice, EditorActionGroup, EditorStatusPill, EditorToolbar } from "@/features/dev/components";
+import { EditorSelect, EditorStatusPill, Notice } from "@/features/dev/components";
+import { describeDay } from "@/features/dev/tools/home/homeModel";
 import {
   ARTICLE_SECTION_LABELS,
-  isArticleEditorSection,
   type ArticleEditorSection,
 } from "@/features/article/editing/articleSections";
 import {
@@ -26,8 +21,10 @@ import {
   type ResolvedCorrection,
 } from "@/features/intake/feedbackCorrection";
 import { devHref } from "@/utils/devHref";
+import { cn } from "@/lib/utils";
 
 import { formatFeedbackDate } from "./FeedbackReviewQueue";
+import { isFreezeRefusal } from "./feedbackReviewModel";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
 /** The section Start correction opens on when the admin picks none: a guess from the category. */
@@ -43,7 +40,7 @@ type LoadState =
   | { status: "ready"; corrections: ResolvedCorrection[]; candidates: CorrectionCandidates }
   | { status: "error"; message: string };
 
-type Notice = { tone: "success" | "danger"; message: string };
+type PanelNotice = { tone: "success" | "danger"; message: string };
 
 const shortId = (id: string) => `#${id.slice(-6)}`;
 
@@ -76,7 +73,7 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
   const [picking, setPicking] = useState(false);
   const [choice, setChoice] = useState<string>("");
   const [linking, setLinking] = useState(false);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  const [notice, setNotice] = useState<PanelNotice | null>(null);
   const version = useRef(0);
 
   const load = useCallback(async () => {
@@ -130,7 +127,11 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
       if (payload.feedback && typeof payload.feedback === "object") onLinked?.(payload.feedback as Row);
       await load();
     } catch (error) {
-      setNotice({ tone: "danger", message: error instanceof Error ? error.message : "Unable to link that change." });
+      const message = error instanceof Error ? error.message : "Unable to link that change.";
+      setNotice({
+        tone: "danger",
+        message: isFreezeRefusal(message) ? "Writes are paused, so the link was not saved. Try again once they resume." : message,
+      });
     } finally {
       setLinking(false);
     }
@@ -140,6 +141,8 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
   const hasCandidates = candidates.proposals.length + candidates.revisions.length > 0;
   const corrections = state.status === "ready" ? state.corrections : [];
   const completed = corrections.some((correction) => isCompletedCorrection(correction.state));
+  const startHref = (returnTo?: string) =>
+    correctionHref(slug, feedbackId, section === WHOLE_ARTICLE ? null : section, returnTo);
 
   return (
     <section aria-labelledby={headingId} className="space-y-3">
@@ -147,7 +150,7 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
         <h4 id={headingId} className="theme-accent-heading text-sm font-semibold">
           Correction
         </h4>
-        <p className="theme-text-faint mt-0.5 text-xs">
+        <p className="theme-text-muted mt-0.5 max-w-prose text-xs">
           Advisory. A linked change never gates its own review or publication, and this feedback&apos;s status stays
           your decision.
         </p>
@@ -155,15 +158,16 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
 
       {state.status === "loading" ? (
         <EditorStatusPill tone="info" loading live>
-          Loading corrections...
+          Loading corrections
         </EditorStatusPill>
       ) : null}
       {state.status === "error" ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <p role="alert" className="theme-text-secondary text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <p role="alert" className="theme-text-secondary flex items-center gap-2 text-sm">
+            <Icon icon="lucide:triangle-alert" size={14} className="theme-warning-text-strong shrink-0" />
             {state.message}
           </p>
-          {/* Named for this panel: the queue above keeps its own Try again. */}
+          {/* Named for this panel: the queue keeps its own Try again. */}
           <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
             Reload corrections
           </Button>
@@ -173,7 +177,7 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
         corrections.length === 0 ? (
           <p className="theme-text-muted text-sm">No change is linked yet.</p>
         ) : (
-          <ol aria-label="Linked changes" className="space-y-3">
+          <ol aria-label="Linked changes" className="divide-y divide-[color:var(--editor-panel-border)] rounded-card border border-[color:var(--editor-panel-border)]">
             {corrections.map((correction) => (
               <CorrectionRow key={`${correction.change.kind}:${correction.change.id}`} correction={correction} slug={slug} />
             ))}
@@ -184,93 +188,109 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
         <p className="theme-text-secondary text-sm">No correction has been published for this feedback yet.</p>
       ) : null}
 
-      <EditorToolbar label="Correction actions" variant="split">
-        <EditorActionGroup label="Start correction">
-          <label htmlFor={sectionId} className="sr-only">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="min-w-0 flex-1 basis-48 sm:max-w-64">
+          <label htmlFor={sectionId} className="theme-text-secondary mb-1 block text-xs font-medium">
             Section to correct
           </label>
-          <Select value={section} onValueChange={setSection}>
-            <SelectTrigger id={sectionId} selectSize="compact" className="w-48">
-              <SelectValue>{section === WHOLE_ARTICLE ? "Whole article" : (isArticleEditorSection(section) ? ARTICLE_SECTION_LABELS[section] : "Whole article")}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={WHOLE_ARTICLE}>Whole article</SelectItem>
-              {(Object.keys(ARTICLE_SECTION_LABELS) as ArticleEditorSection[]).map((key) => (
-                <SelectItem key={key} value={key}>
-                  {ARTICLE_SECTION_LABELS[key]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button asChild variant="outline" size="sm">
-            <a
-              href={correctionHref(slug, feedbackId, section === WHOLE_ARTICLE ? null : section)}
-              target="_blank"
-              rel="noopener noreferrer"
-              // The address is the queue's task link by now; read it at the click so the
-              // article can return to this item with its filters.
-              onClick={(event) => {
-                event.currentTarget.href = correctionHref(
-                  slug,
-                  feedbackId,
-                  section === WHOLE_ARTICLE ? null : section,
-                  window.location.pathname + window.location.search,
-                );
-              }}
-            >
-              Start correction
-            </a>
-          </Button>
-        </EditorActionGroup>
-        <EditorActionGroup label="Link existing change" align="end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            aria-expanded={picking}
-            disabled={state.status !== "ready"}
-            onClick={() => setPicking((open) => !open)}
+          <EditorSelect
+            id={sectionId}
+            selectSize="sm"
+            value={section}
+            onChange={(event) => setSection(event.target.value)}
+            options={[
+              { value: WHOLE_ARTICLE, label: "Whole article" },
+              ...(Object.keys(ARTICLE_SECTION_LABELS) as ArticleEditorSection[]).map((key) => ({
+                value: key,
+                label: ARTICLE_SECTION_LABELS[key],
+              })),
+            ]}
+          />
+        </div>
+        <Button asChild variant="outline" size="sm" className="h-10">
+          <a
+            href={startHref()}
+            target="_blank"
+            rel="noopener noreferrer"
+            // The address is the queue's task link by now; read it at the click so the
+            // article can return to this item with its filters.
+            onClick={(event) => {
+              event.currentTarget.href = startHref(window.location.pathname + window.location.search);
+            }}
           >
-            Link existing change
-          </Button>
-        </EditorActionGroup>
-      </EditorToolbar>
-      <p className="theme-text-faint text-xs">
+            Start correction
+            <Icon icon="lucide:arrow-up-right" size={14} />
+          </a>
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-10"
+          aria-expanded={picking}
+          aria-controls={pickerId}
+          disabled={state.status !== "ready"}
+          onClick={() => setPicking((open) => !open)}
+        >
+          Link existing change
+          <ExpandIndicator isExpanded={picking} />
+        </Button>
+      </div>
+      <p className="theme-text-muted max-w-prose text-xs">
         Start correction opens the article editor in a new tab. A proposal you submit there is linked here; this
         feedback&apos;s id travels with it, never the reader&apos;s contact details.
       </p>
 
-      {picking ? (
-        hasCandidates ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor={pickerId} className="sr-only">
-              Change to link
-            </label>
-            <Select value={choice} onValueChange={setChoice}>
-              <SelectTrigger id={pickerId} selectSize="compact" className="min-w-0 max-w-full flex-1">
-                <SelectValue placeholder="Choose a proposal or published revision" />
-              </SelectTrigger>
-              <SelectContent>
-                {candidates.proposals.map((proposal) => (
-                  <SelectItem key={`proposal:${proposal.id}`} value={`proposal:${proposal.id}`}>
-                    Proposal {shortId(proposal.id)} · {proposal.status.replace("_", " ")} · {proposal.summary}
-                  </SelectItem>
-                ))}
-                {candidates.revisions.map((revision) => (
-                  <SelectItem key={`revision:${revision.id}`} value={`revision:${revision.id}`}>
-                    Published revision {shortId(revision.id)} · {formatFeedbackDate(revision.createdAt)} · {revision.summary}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="button" size="sm" disabled={!parseChoice(choice) || linking} onClick={() => void link()}>
-              {linking ? "Linking..." : "Link"}
-            </Button>
-          </div>
-        ) : (
-          <p className="theme-text-muted text-sm">This article has no proposals or published revisions to link.</p>
-        )
-      ) : null}
+      <div id={pickerId} hidden={!picking} className="theme-reveal-enter">
+        {picking ? (
+          hasCandidates ? (
+            <fieldset className="space-y-2 rounded-card border border-[color:var(--editor-panel-border)] p-3">
+              <legend className="theme-text-secondary px-1 text-xs font-medium">Change to link</legend>
+              <CandidateGroup
+                label="Proposals"
+                name={`${pickerId}-choice`}
+                options={candidates.proposals.map((proposal) => ({
+                  value: `proposal:${proposal.id}`,
+                  title: `Proposal ${shortId(proposal.id)}`,
+                  meta: proposal.status.replace("_", " "),
+                  summary: proposal.summary,
+                }))}
+                choice={choice}
+                onChoose={setChoice}
+              />
+              <CandidateGroup
+                label="Published revisions"
+                name={`${pickerId}-choice`}
+                options={candidates.revisions.map((revision) => ({
+                  value: `revision:${revision.id}`,
+                  title: `Published revision ${shortId(revision.id)}`,
+                  meta: formatFeedbackDate(revision.createdAt) ?? "",
+                  summary: revision.summary,
+                }))}
+                choice={choice}
+                onChoose={setChoice}
+              />
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={!parseChoice(choice) || linking}
+                  aria-busy={linking || undefined}
+                  onClick={() => void link()}
+                >
+                  {linking ? "Linking" : "Link"}
+                </Button>
+                <Button type="button" size="sm" variant="ghost" disabled={linking} onClick={() => setPicking(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </fieldset>
+          ) : (
+            <p className="theme-text-muted text-sm">This article has no proposals or published revisions to link.</p>
+          )
+        ) : null}
+      </div>
 
       {notice ? (
         <Notice placement="inline" tone={notice.tone} dismiss={() => setNotice(null)}>
@@ -281,36 +301,104 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
   );
 }
 
+function CandidateGroup({
+  label,
+  name,
+  options,
+  choice,
+  onChoose,
+}: {
+  label: string;
+  name: string;
+  options: { value: string; title: string; meta: string; summary: string }[];
+  choice: string;
+  onChoose: (value: string) => void;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <div className="space-y-1">
+      <p className="type-meta-label theme-text-muted px-1">{label}</p>
+      <ul className="space-y-1">
+        {options.map((option) => {
+          const checked = option.value === choice;
+          return (
+            <li key={option.value}>
+              <label
+                className={cn(
+                  "flex cursor-pointer items-start gap-3 rounded-control px-2 py-2 text-sm transition-colors hover:bg-[var(--editor-panel-bg-subtle)]",
+                  checked && "bg-[var(--editor-panel-bg-subtle)]",
+                )}
+              >
+                <input
+                  type="radio"
+                  name={name}
+                  value={option.value}
+                  checked={checked}
+                  onChange={() => onChoose(option.value)}
+                  className="mt-1 size-4 shrink-0"
+                />
+                <span className="min-w-0">
+                  <span className="theme-text-primary font-medium">{option.title}</span>
+                  {option.meta ? <span className="theme-text-muted">{` · ${option.meta}`}</span> : null}
+                  <span className="theme-text-secondary block">{option.summary}</span>
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 function CorrectionRow({ correction, slug }: { correction: ResolvedCorrection; slug: string }) {
   const { proposal, revision, state } = correction;
   const label = CORRECTION_STATE_LABEL[state];
+  const linked = describeDay(correction.linkedAt);
   return (
-    <li className="theme-portal-rule border-l-2 pl-3">
+    <li className="space-y-1 px-3 py-2.5">
       <div className="flex flex-wrap items-center gap-2">
-        <EditorStatusPill tone={CORRECTION_STATE_TONE[state]}>{label}</EditorStatusPill>
-        <span className="theme-text-faint text-xs">Linked {formatFeedbackDate(correction.linkedAt)}</span>
+        <EditorStatusPill inline tone={CORRECTION_STATE_TONE[state]}>
+          {label}
+        </EditorStatusPill>
+        {linked ? (
+          <span className="theme-text-muted text-xs">
+            Linked{" "}
+            <time dateTime={correction.linkedAt} title={linked.full}>
+              {linked.relative}
+            </time>
+          </span>
+        ) : null}
       </div>
       {proposal ? (
-        <p className="theme-text-primary mt-1 text-sm">
-          <a href={devHref({ type: "dev", tab: "queue", slug: encodeURIComponent(proposal.id) })} className="theme-accent-heading hover:underline">
+        <p className="theme-text-primary text-sm">
+          <a
+            href={devHref({ type: "dev", tab: "queue", slug: encodeURIComponent(proposal.id) })}
+            className="text-dose-accent-strong theme-accent-underline underline-offset-4 hover:underline"
+          >
             Proposal {shortId(proposal.id)}
           </a>
           {`: ${proposal.summary}`}
           {correction.revisedFrom ? (
-            <span className="theme-text-faint text-xs"> · revision of proposal {shortId(correction.revisedFrom)}</span>
+            <span className="theme-text-muted text-xs"> · revision of proposal {shortId(correction.revisedFrom)}</span>
           ) : null}
         </p>
       ) : null}
       {revision && isCompletedCorrection(state) ? (
-        <p className="theme-text-secondary mt-1 text-sm">
+        <p className="theme-text-secondary text-sm">
           Published revision {shortId(revision.id)} · {formatFeedbackDate(revision.createdAt)} · {revision.summary} ·{" "}
-          <a href={`/${slug}`} target="_blank" rel="noopener noreferrer" className="theme-accent-heading hover:underline">
+          <a
+            href={`/${slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-dose-accent-strong theme-accent-underline underline-offset-4 hover:underline"
+          >
             Open article
           </a>
         </p>
       ) : null}
       {revision && !isCompletedCorrection(state) ? (
-        <p className="theme-text-secondary mt-1 text-sm">
+        <p className="theme-text-secondary text-sm">
           Revision {shortId(revision.id)} was published and later undone.
         </p>
       ) : null}
