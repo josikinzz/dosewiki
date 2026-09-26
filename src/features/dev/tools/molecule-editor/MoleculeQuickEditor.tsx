@@ -262,7 +262,7 @@ function GuardRow({
   }
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+      <span className="type-meta-label theme-text-faint">
         Stereo guard
       </span>
       <div>{pill}</div>
@@ -286,7 +286,7 @@ function PreviewBox({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+      <span className="type-meta-label theme-text-faint">
         Brand preview
       </span>
       <div className="grid h-24 w-24 place-items-center rounded-xl border border-dose-border bg-dose-surface-muted p-2">

@@ -220,7 +220,7 @@ export function PlaylistsPanel({
         <section aria-labelledby="playlist-editor-heading" className="space-y-4 border-t border-[color:var(--editor-panel-border)] pt-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[min(100%,18rem)] flex-1 space-y-1">
-              <label htmlFor={titleFieldId} className="theme-text-muted block text-[11px] uppercase tracking-[0.24em]">
+              <label htmlFor={titleFieldId} className="theme-text-secondary block text-sm font-medium">
                 Playlist name
               </label>
               <Input

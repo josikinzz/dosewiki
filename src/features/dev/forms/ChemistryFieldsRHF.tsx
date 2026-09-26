@@ -52,9 +52,9 @@ export function ChemistryFieldsRHF({
 
       {/* Binding sites combine target identity, mechanism, and measured activity. */}
       <div className="space-y-3">
-        <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+        <p className="type-meta-label theme-text-faint flex items-center gap-1.5">
           <Icon icon="fluent:brain-circuit-28-filled" className="theme-icon-accent h-4 w-4" size={16} />
-          Binding Sites
+          Binding sites
         </p>
         <div className="space-y-3">
           {bindingSites.fields.length === 0 && (
@@ -136,7 +136,7 @@ export function ChemistryFieldsRHF({
       </div>
 
       {/* Pharmacokinetics & Metabolites */}
-      <p className="theme-text-faint flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+      <p className="type-meta-label theme-text-faint flex items-center gap-1.5">
         <Icon icon="material-symbols:metabolism-rounded" className="theme-icon-accent h-3.5 w-3.5" size={14} />
         Pharmacokinetics
       </p>

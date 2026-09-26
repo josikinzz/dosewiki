@@ -62,7 +62,7 @@ export function FieldGroup({ label, children }: FieldGroupProps) {
     <div className="space-y-4">
       {label ? (
         <div className="flex items-center gap-3">
-          <p className="theme-text-faint whitespace-nowrap text-[10px] font-medium uppercase tracking-wider">
+          <p className="type-meta-label theme-text-faint whitespace-nowrap">
             {label}
           </p>
           <div className="theme-gradient-divider h-px flex-1" />

@@ -78,7 +78,7 @@ function FacetSection({
         onClick={() => setOpen((value) => !value)}
         className="theme-replication-facet-heading flex w-full items-center gap-2 px-4 py-2.5 text-left"
       >
-        <h3 className="theme-section-heading flex-1 text-xs font-semibold uppercase tracking-[0.18em]">
+        <h3 className="type-meta-label theme-section-heading flex-1">
           {title}
         </h3>
         {active.length > 0 ? (

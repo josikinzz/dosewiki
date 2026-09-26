@@ -325,7 +325,7 @@ export function GalleryBoardList({
             )}
           >
             <div className="theme-gradient-divider h-px flex-1" />
-            <span className="theme-text-faint text-[11px] uppercase tracking-[0.3em]">
+            <span className="theme-text-faint text-xs">
               Drop here to remove priority
             </span>
             <div className="theme-gradient-divider h-px flex-1" />

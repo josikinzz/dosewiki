@@ -667,7 +667,7 @@ export function ReplicationAssociationsPanel({
 
           {groups.map((group) => (
             <div key={group.key} className="space-y-2">
-              <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
+              <p className="type-meta-label theme-text-faint">
                 {group.caption}
               </p>
               <ul aria-label={group.caption} className="space-y-2">

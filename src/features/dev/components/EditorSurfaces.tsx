@@ -61,7 +61,7 @@ export function CodeSurface({
       {(title || actions) ? (
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--editor-code-border)] px-3 py-2">
           {title ? (
-            <div className="theme-text-faint text-xs font-medium uppercase tracking-[0.18em]">
+            <div className="type-meta-label theme-text-faint">
               {title}
             </div>
           ) : null}

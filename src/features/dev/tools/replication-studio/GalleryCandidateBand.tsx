@@ -242,7 +242,7 @@ export function Fold({ cap }: { cap: number }) {
     <li className="list-none py-2">
       <div className="theme-replication-fold flex items-center gap-3 border-y px-3 py-2">
         <Icon icon="lucide:scissors" size={14} className="theme-accent-emphasis shrink-0" />
-        <p className="theme-accent-emphasis text-[11px] font-semibold uppercase tracking-[0.24em]">
+        <p className="theme-accent-emphasis text-xs font-semibold">
           The article stops here: positions {cap + 1}+ reach /replications only
         </p>
       </div>
@@ -264,7 +264,7 @@ export function BandHeading({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <h4 id={id} className="theme-text-muted flex items-center gap-1.5 text-[11px] uppercase tracking-[0.3em]">
+      <h4 id={id} className="type-meta-label theme-text-muted flex items-center gap-1.5">
         <Icon icon={icon} size={12} className="shrink-0" />
         {children}
       </h4>
