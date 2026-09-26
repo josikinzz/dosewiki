@@ -355,6 +355,49 @@ export const BANNER_PRESETS_SEED = Object.freeze([
   },
 ].map((preset) => Object.freeze(preset)));
 
+/** Another member, who owns a playlist the editor can only read. */
+export const FIXTURE_MEMBER = "river@localhost.invalid";
+
+/**
+ * The roster the admin's owner pickers read (`/api/dev/members`): the viewer,
+ * two members and one banned account the pickers leave out.
+ */
+export const MEMBERS_SEED = Object.freeze([
+  { email: FIXTURE_EMAIL, username: "nervewing", role: "admin" },
+  { email: FIXTURE_MEMBER, username: "river", role: "contributor" },
+  { email: "kayla@localhost.invalid", username: "kayla", role: "editor" },
+  { email: "banned@localhost.invalid", username: "banned-member", role: "contributor", bannedAt: "2025-11-01T00:00:00.000Z" },
+].map((member) => Object.freeze(member)));
+
+/**
+ * Replication playlists in every state the Playlists tab shows: the viewer's
+ * own (one long enough to fold, one holding a work that is no longer
+ * published), another member's (read only below admin) and an unowned one
+ * (admin only). Entries name `buildReplicationFixture` slugs.
+ */
+export const PLAYLISTS_SEED = Object.freeze([
+  {
+    key: "classic-psychedelic-opener", title: "Classic psychedelic opener", owner: FIXTURE_EMAIL, hoursAgo: 3,
+    slugs: [1, 5, 2, 9, 13, 4].map((n) => `fixture-replication-${String(n).padStart(2, "0")}`),
+  },
+  {
+    key: "late-night-geometry", title: "Late night geometry", owner: FIXTURE_EMAIL, hoursAgo: 50,
+    slugs: ["fixture-replication-03", "fixture-replication-07", "retired-fixture-work", "fixture-replication-11"],
+  },
+  {
+    key: "the-long-tunnel", title: "The long tunnel, every drifting and breathing work in one slow sequence", owner: FIXTURE_EMAIL, hoursAgo: 400,
+    slugs: Array.from({ length: 23 }, (_, index) => `fixture-replication-${String(index + 1).padStart(2, "0")}`),
+  },
+  {
+    key: "rivers-colour-set", title: "River's colour set", owner: FIXTURE_MEMBER, hoursAgo: 30,
+    slugs: ["fixture-replication-02", "fixture-replication-06", "fixture-replication-10"],
+  },
+  {
+    key: "house-opener", title: "House opener", owner: null, hoursAgo: 900,
+    slugs: ["fixture-replication-01", "fixture-replication-12"],
+  },
+].map((playlist) => Object.freeze({ ...playlist, slugs: Object.freeze(playlist.slugs) })));
+
 /** The site-wide banner glyph size the fixture stores. */
 export const BANNER_ICON_SIZE_SEED = 40;
 
@@ -492,6 +535,18 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     operations: new Map(),
     iconSize: BANNER_ICON_SIZE_SEED,
   };
+
+  /** Replication playlists keyed by key (Playlists). */
+  const playlists = new Map(
+    (state === "empty" ? [] : PLAYLISTS_SEED).map((row) => [row.key, {
+      key: row.key,
+      title: row.title,
+      replication_slugs: [...row.slugs],
+      updated_at: new Date(FIXTURE_EPOCH - row.hoursAgo * 3_600_000).toISOString(),
+      updated_by: row.owner ?? FIXTURE_OTHER_ADMIN,
+      owner_email: row.owner,
+    }]),
+  );
 
   const fixture = {
     role,
@@ -656,6 +711,71 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
     banners.operations.set(changeId, answer);
     return json(200, { ok: true, ...structuredClone(answer) });
+  }
+
+  /** Whether the session may change a playlist: its owner, or any admin. */
+  function playlistEditable(row) {
+    return fixture.role === "admin" || row.owner_email === fixture.session.user.email;
+  }
+
+  /** The collection route: editors and admins list every playlist, everyone else only their own. */
+  function listPlaylists() {
+    const all = fixture.role === "admin" || fixture.role === "editor" || fixture.role === "editor_translator";
+    return [...playlists.values()]
+      .filter((row) => all || row.owner_email === fixture.session.user.email)
+      .sort((left, right) => left.title.localeCompare(right.title))
+      .map(({ replication_slugs, ...row }) => ({ ...row, work_count: replication_slugs.length, editable: playlistEditable(row) }));
+  }
+
+  /**
+   * The upsert: the `updated_at` check (409 with the stored row), the owner
+   * rule (403 NOT_OWNER), and entries that name no published work pruned and
+   * named in the answer. A conflicted store saves each playlist once as
+   * someone else just before the editor's first save.
+   */
+  function savePlaylistRow(body) {
+    const key = String(body.key ?? "");
+    const existing = playlists.get(key);
+    if (fixture.state === "conflicted" && existing && !contested.has(`playlist:${key}`)) {
+      contested.add(`playlist:${key}`);
+      existing.title = `${existing.title} (edited by someone else)`;
+      existing.updated_at = tick();
+      existing.updated_by = FIXTURE_OTHER_ADMIN;
+    }
+    if (existing && !playlistEditable(existing)) {
+      return json(403, { error: `"${existing.title}" belongs to ${existing.owner_email}; only its owner or an admin may change it.`, code: "NOT_OWNER" });
+    }
+    if ((existing?.updated_at ?? null) !== (body.expectedUpdatedAt ?? null)) {
+      return json(409, { ok: false, conflict: existing ? structuredClone(existing) : null });
+    }
+    const known = new Set(replications.rows.map((row) => row.slug));
+    const slugs = [...new Set(Array.isArray(body.slugs) ? body.slugs : [])];
+    const row = {
+      key,
+      title: String(body.title ?? "").trim(),
+      replication_slugs: slugs.filter((slug) => known.has(slug)),
+      updated_at: tick(),
+      updated_by: fixture.session.user.email,
+      owner_email: existing ? existing.owner_email : (fixture.role === "admin" ? (body.ownerEmail ?? null) : fixture.session.user.email),
+    };
+    playlists.set(key, row);
+    return json(200, { ok: true, playlist: { ...structuredClone(row), editable: true, pruned: slugs.filter((slug) => !known.has(slug)) } });
+  }
+
+  /** The bounded candidates read: newest first, at most 24 matches, or the asked slugs that exist. */
+  function playlistCandidates(params) {
+    const project = (row) => ({ slug: row.slug, title: row.title, artist: row.artist, type: row.type, thumbnail_url: row.thumbnail_url, url: row.type === "image" ? row.url : null, duration: row.duration });
+    const asked = params.get("slugs");
+    if (asked !== null) {
+      const bySlug = new Map(replications.rows.map((row) => [row.slug, row]));
+      return json(200, { ok: true, candidates: asked.split(",").flatMap((slug) => (bySlug.has(slug) ? [project(bySlug.get(slug))] : [])) });
+    }
+    const words = (params.get("q") ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const found = replications.rows
+      .filter((row) => words.every((word) => `${row.title} ${row.artist} ${row.slug}`.toLowerCase().includes(word)))
+      .slice(0, 24)
+      .map(project);
+    return json(200, { ok: true, candidates: found });
   }
 
   function proposalSummary(proposal) {
@@ -905,8 +1025,44 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/replications/featured" && upper === "GET") {
       return toolRead(() => json(200, { slugs: replications.rows.slice(0, 12).map((row) => row.slug), curated: false }));
     }
-    if (pathname === "/api/dev/replications/playlists" && upper === "GET") {
-      return toolRead(() => json(200, { playlists: [] }));
+    // Playlists: the member's own playlists, one by key, the upsert, removal, owner handoff and the work lookup.
+    if (pathname === "/api/dev/replications/playlists") {
+      if (upper === "GET") return toolRead(() => json(200, { ok: true, playlists: listPlaylists() }));
+      if (upper === "POST") return toolWrite(() => savePlaylistRow(body ?? {}));
+    }
+    const playlistMatch = /^\/api\/dev\/replications\/playlists\/([^/]+)(\/owner)?$/.exec(pathname);
+    if (playlistMatch) {
+      const row = playlists.get(decodeURIComponent(playlistMatch[1]));
+      const missing = () => json(404, { ok: false, error: "No playlist with that key." });
+      if (playlistMatch[2] && upper === "POST") {
+        return toolWrite(() => {
+          if (fixture.role !== "admin") return json(403, { error: "Only an admin can hand a playlist to a member." });
+          if (!row) return missing();
+          const ownerEmail = body?.ownerEmail ? String(body.ownerEmail).trim().toLowerCase() : null;
+          if (ownerEmail && !MEMBERS_SEED.some((member) => member.email === ownerEmail)) return json(404, { error: `No member has the address ${ownerEmail}.`, code: "MEMBER_NOT_FOUND" });
+          Object.assign(row, { owner_email: ownerEmail, updated_at: tick(), updated_by: fixture.session.user.email });
+          return json(200, { ok: true, key: row.key, owner_email: row.owner_email, updated_at: row.updated_at, updated_by: row.updated_by });
+        });
+      }
+      if (!playlistMatch[2] && upper === "GET") {
+        return toolRead(() => (row && (playlistEditable(row) || listPlaylists().some((entry) => entry.key === row.key))
+          ? json(200, { ok: true, playlist: { ...structuredClone(row), editable: playlistEditable(row) } })
+          : missing()));
+      }
+      if (!playlistMatch[2] && upper === "DELETE") {
+        return toolWrite(() => {
+          if (!row) return missing();
+          if (!playlistEditable(row)) return json(403, { error: `"${row.title}" belongs to ${row.owner_email}; only its owner or an admin may change it.`, code: "NOT_OWNER" });
+          playlists.delete(row.key);
+          return json(200, { ok: true, key: row.key });
+        });
+      }
+    }
+    if (pathname === "/api/dev/replications/playlist-candidates" && upper === "GET") {
+      return toolRead(() => playlistCandidates(params));
+    }
+    if (pathname === "/api/dev/members" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, self: fixture.session.user.email, members: structuredClone(MEMBERS_SEED) }));
     }
 
     if (pathname.startsWith("/api/")) {

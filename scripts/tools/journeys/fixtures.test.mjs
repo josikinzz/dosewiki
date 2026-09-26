@@ -223,6 +223,41 @@ describe("journey fixtures", () => {
     assert.deepEqual(presets(createJourneyFixture({ state: "empty" })), []);
   });
 
+  it("answers the Playlists reads and writes with the route's ownership and updated_at checks", () => {
+    const list = (fixture) => get(fixture, "/api/dev/replications/playlists").json.playlists;
+    const admin = createJourneyFixture();
+    assert.equal(list(admin).length, 5);
+    assert.ok(list(admin).every((row) => row.editable));
+    // An editor reads everyone's and edits their own; a contributor lists only their own.
+    const editor = createJourneyFixture({ role: "editor" });
+    assert.deepEqual(list(editor).filter((row) => !row.editable).map((row) => row.key), ["house-opener", "rivers-colour-set"]);
+    assert.equal(list(createJourneyFixture({ role: "contributor" })).length, 3);
+    assert.equal(get(createJourneyFixture({ role: "contributor" }), "/api/dev/replications/playlists/house-opener").status, 404);
+
+    const one = get(admin, "/api/dev/replications/playlists/late-night-geometry").json.playlist;
+    assert.equal(one.replication_slugs.length, 4);
+    const saved = post(admin, "/api/dev/replications/playlists", { key: one.key, title: "Late", slugs: one.replication_slugs, expectedUpdatedAt: one.updated_at });
+    assert.equal(saved.status, 200);
+    assert.deepEqual(saved.json.playlist.pruned, ["retired-fixture-work"]);
+    assert.equal(post(admin, "/api/dev/replications/playlists", { key: one.key, title: "Stale", slugs: [], expectedUpdatedAt: one.updated_at }).status, 409);
+    assert.equal(post(admin, "/api/dev/replications/playlists/house-opener/owner", { ownerEmail: "river@localhost.invalid" }).json.owner_email, "river@localhost.invalid");
+    assert.equal(admin.respond({ method: "DELETE", pathname: "/api/dev/replications/playlists/house-opener" }).status, 200);
+    assert.equal(list(admin).length, 4);
+    assert.equal(editor.respond({ method: "DELETE", pathname: "/api/dev/replications/playlists/house-opener" }).status, 403);
+
+    // The work lookup: words, or the asked slugs that exist.
+    assert.equal(get(admin, "/api/dev/replications/playlist-candidates", "?q=replication 07").json.candidates[0].slug, "fixture-replication-07");
+    assert.deepEqual(get(admin, "/api/dev/replications/playlist-candidates", "?slugs=fixture-replication-01,ghost").json.candidates.map((card) => card.slug), ["fixture-replication-01"]);
+    assert.ok(get(admin, "/api/dev/members").json.members.some((member) => member.bannedAt));
+
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const first = get(conflicted, "/api/dev/replications/playlists/house-opener").json.playlist;
+    assert.equal(post(conflicted, "/api/dev/replications/playlists", { ...first, slugs: first.replication_slugs, expectedUpdatedAt: first.updated_at }).status, 409);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/replications/playlists", { key: "x", title: "x", slugs: [], expectedUpdatedAt: null }).status, 503);
+    assert.deepEqual(list(createJourneyFixture({ state: "empty" })), []);
+    assert.deepEqual(admin.unhandled, []);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

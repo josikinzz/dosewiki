@@ -239,3 +239,54 @@ function requestJson(
     onError: (status) => byStatus[status]?.(),
   });
 }
+
+/** The list row a stored playlist stands for, so a save updates the list without a second read. */
+export function summaryOf(playlist: OwnedPlaylist): OwnedPlaylistSummary {
+  return {
+    key: playlist.key,
+    title: playlist.title,
+    work_count: playlist.replication_slugs.length,
+    updated_at: playlist.updated_at,
+    updated_by: playlist.updated_by,
+    owner_email: playlist.owner_email,
+    editable: playlist.editable,
+  };
+}
+
+/** Rows in reading order: by name, the way the collection route sorts them. */
+export function sortPlaylists<T extends { title: string }>(rows: readonly T[]): T[] {
+  return [...rows].sort((left, right) => left.title.localeCompare(right.title));
+}
+
+/** Why Save cannot run right now, in words, or `null` when it can. */
+export function saveBlocker(draft: PlaylistDraft): string | null {
+  if (draft.title.trim().length === 0) return "Name the playlist to save it.";
+  if (draft.key.length === 0) return "Use letters or numbers in the name, so the playlist gets a key.";
+  return null;
+}
+
+/** A write refused because writes are frozen (the write boundary's wording). */
+export function isWriteFreezeRefusal(message: string): boolean {
+  return /frozen|writes are paused/i.test(message);
+}
+
+/**
+ * The parts of a playlist a save changes, for the dock's state line and the
+ * confirm heading: "the name and the order".
+ */
+export function changedPlaylistParts(draft: PlaylistDraft, saved: OwnedPlaylist | null): string[] {
+  if (!saved) return [];
+  const parts: string[] = [];
+  if (draft.title !== saved.title) parts.push("the name");
+  const before = new Set(saved.replication_slugs);
+  const after = new Set(draft.slugs);
+  const added = draft.slugs.some((slug) => !before.has(slug));
+  const removed = saved.replication_slugs.some((slug) => !after.has(slug));
+  if (added && removed) parts.push("which works it holds");
+  else if (added) parts.push("added works");
+  else if (removed) parts.push("removed works");
+  const stayed = saved.replication_slugs.filter((slug) => after.has(slug));
+  const stayedInNewOrder = draft.slugs.filter((slug) => before.has(slug));
+  if (stayed.some((slug, index) => slug !== stayedInNewOrder[index])) parts.push("the order");
+  return parts;
+}

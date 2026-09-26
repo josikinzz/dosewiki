@@ -12,7 +12,7 @@ export type SaveModel = "record" | "batch" | "instant";
  */
 export type SaveDestination = "live" | "proposal" | "read-only";
 
-type SaveLineCopy = { label: string; detail: string; icon: string; tone: EditorStatusPillTone };
+export type SaveLineCopy = { label: string; detail: string; icon: string; tone: EditorStatusPillTone };
 
 /**
  * The save model, said once per tool beside its primary action. Only a write
@@ -72,16 +72,23 @@ export function saveLineCopy(model: SaveModel, destination: SaveDestination): Sa
 export function SaveLine({
   model,
   destination = "live",
+  copy: override,
   className,
 }: {
   model: SaveModel;
   destination?: SaveDestination;
+  /**
+   * The tool's own sentence, for a tool whose save the three models misdescribe
+   * (Playlists: a save stores the playlist and publishes nothing). The write
+   * freeze still replaces it.
+   */
+  copy?: SaveLineCopy;
   className?: string;
 }) {
   // A tool that draws its own line beside its primary action must not keep
   // promising a live write while the freeze refuses every one.
   const frozen = useWriteFreeze().frozen;
-  const copy = frozen ? WRITE_FREEZE_COPY : saveLineCopy(model, destination);
+  const copy = frozen ? WRITE_FREEZE_COPY : (override ?? saveLineCopy(model, destination));
   return (
     <EditorStatusPill tone={copy.tone} icon={copy.icon} title={copy.detail} className={className}>
       {copy.label}

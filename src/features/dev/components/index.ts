@@ -133,7 +133,7 @@ export {
   useWriteFreeze,
   useWriteFreezeObserver,
 } from "./writeFreeze";
-export type { SaveDestination, SaveModel } from "./SaveLine";
+export type { SaveDestination, SaveLineCopy, SaveModel } from "./SaveLine";
 
 export {
   UnsavedWorkProvider,

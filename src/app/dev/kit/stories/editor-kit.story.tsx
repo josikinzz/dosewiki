@@ -546,7 +546,7 @@ const saveLineStory: StoryDef = {
   name: "SaveLine",
   tier: "editor",
   status: "stable",
-  summary: "States where a save goes, beside the primary action, from the tool's save model.",
+  summary: "States where a save goes, beside the primary action, from the tool's save model, or the tool's own sentence through `copy` when no model fits.",
   source: "src/features/dev/components/SaveLine.tsx",
   importLine: IMPORT_LINE("SaveLine, SAVE_LINE_COPY, WRITE_FREEZE_COPY, saveLineCopy"),
   exports: ["SaveLine", "SAVE_LINE_COPY", "WRITE_FREEZE_COPY", "saveLineCopy"],
@@ -563,6 +563,15 @@ const saveLineStory: StoryDef = {
           <p className="theme-text-faint text-xs">{saveLineCopy("batch", "live").detail}</p>
           <p className="theme-text-faint text-xs">While writes are paused every line reads: {WRITE_FREEZE_COPY.label}</p>
         </div>
+      ),
+    },
+    {
+      label: "A tool's own sentence (copy)",
+      render: () => (
+        <SaveLine
+          model="instant"
+          copy={{ label: "Saving publishes nothing.", detail: "An admin applies a playlist to a gallery in Replication Studio.", icon: "lucide:archive", tone: "info" }}
+        />
       ),
     },
   ],

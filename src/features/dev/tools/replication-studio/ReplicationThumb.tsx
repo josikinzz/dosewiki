@@ -41,11 +41,12 @@ type PreviewState =
   | { status: "idle" | "loading" | "error"; url: null }
   | { status: "ready"; url: string };
 
-function Placeholder({ type }: { type: StudioMediaType }) {
+function Placeholder({ type, compact }: { type: StudioMediaType; compact: boolean }) {
   return (
     <div className="theme-text-faint flex h-full w-full flex-col items-center justify-center theme-replication-media-well gap-1">
-      <Icon icon={TYPE_ICON[type]} size={20} />
-      <span className="text-[11px] uppercase tracking-[0.24em]">{type}</span>
+      <Icon icon={TYPE_ICON[type]} size={compact ? 16 : 20} />
+      {/* A small well has no room for the word; the glyph says the type. */}
+      {compact ? <span className="sr-only">{type}</span> : <span className="text-[11px] uppercase tracking-[0.24em]">{type}</span>}
     </div>
   );
 }
@@ -55,10 +56,13 @@ export function ReplicationThumb({
   className,
   showGlyph = true,
   enableVideoPreview = false,
+  compact = false,
 }: {
   row: ThumbSubject;
   className?: string;
   showGlyph?: boolean;
+  /** A small square (a list row): the missing-media placeholder drops its type word. */
+  compact?: boolean;
   /** Play the compressed preview rendition on hover or while at least half visible. */
   enableVideoPreview?: boolean;
 }) {
@@ -161,7 +165,7 @@ export function ReplicationThumb({
           onError={() => setFailed(true)}
         />
       ) : (
-        <Placeholder type={row.type} />
+        <Placeholder type={row.type} compact={compact} />
       )}
 
       {showPreview ? (

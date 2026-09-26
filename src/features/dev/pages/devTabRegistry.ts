@@ -343,6 +343,9 @@ const REGISTRY = [
     role: "contributor",
     data: NO_DATA,
     saveModel: "instant",
+    // A save stores the playlist and publishes nothing, which the instant
+    // sentence would misstate; the tool says so beside Save instead.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },

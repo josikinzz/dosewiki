@@ -289,6 +289,39 @@ builds a new shared primitive, add it to **Conventions** and log it under
   the preset", "Substances: Each change goes live when you confirm it"), never
   a sentence-length uppercase label.
 
+- **A tool's own save sentence.** When none of the three save models says
+  what a save does (Playlists stores a playlist and publishes nothing), set
+  `saveLine: "in-tool"` and pass `SaveLine copy={...}` (a `SaveLineCopy`,
+  now exported); the write freeze still replaces it.
+- **Address sync keeps Next's state.** A tool that mirrors its open record in
+  the address calls `window.history.replaceState(window.history.state, "",
+  path)`. Passing `null` makes the App Router treat it as a navigation that
+  scrolls to the top (and can re-render the route with new params). A deep
+  link's keyed read is never cancelled by the address changing under it; a
+  later request wins by counter, and a failed deep link drops its key from
+  the address.
+- **Reorderable rows.** An ordered list of media drags by a handle that also
+  shows the position (`@dnd-kit` pointer, touch long-press and keyboard
+  sensors, with announcements that name the item), keeps Move up / Move down /
+  Remove icon buttons from `sm` up, and folds them into a per-row "More for
+  <name>" menu on phones (which adds Move to the top / Move to the end), so
+  the title keeps its width. Every move and removal is announced in a polite
+  live region and focus stays on the moved row (or the next row after a
+  removal). `PlaylistWorks.tsx` is the reference.
+- **Keep focused fields clear of the dock.** An editing pane with a sticky
+  dock gives its body `[&_:is(input,button)]:scroll-mb-40
+  [&_:is(input,button)]:scroll-mt-28`, so a field scrolled to by focus or
+  search is not hidden under the dock or the public header.
+- **Read-only records open read only.** A record the member may read but not
+  change opens in the same pane with no dock, a lock line naming who can
+  change it, and a way to make it theirs (Playlists: "Copy into a new
+  playlist"). The row says "Read only" and "Viewing" when open.
+- **Confirm descriptions are plain text.** `ConfirmDialog` wraps
+  `description` in a `<p>`; a list or paragraphs go in `body`, or React
+  reports invalid nesting (the dev overlay's issue count climbs).
+- `ReplicationThumb` takes `compact` for small row wells: the missing-media
+  placeholder drops its tracked type word (sr-only instead).
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -721,3 +754,68 @@ Deferred, with reasons:
 - `EditorStatusPill` `inline` has no kit example yet; the story's exports are
   unchanged.
 
+
+### Pass 7: Playlists (`/dev/playlists`)
+
+Commit: see `git log --grep "Dev tools redesign: Playlists"`.
+Screenshots: `tmp/redesign/playlists/before/` and `tmp/redesign/playlists/after/`
+(admin loaded dark and light; editor, editor_translator, contributor and
+translator; empty; failed; loading; open, light, as editor, long, unavailable
+entry, bottom; dirty; search and no match; slug error; new as admin and as
+contributor; save, discard, remove and owner dialogs; saved; saved with a
+pruned entry; conflict; frozen; deep link; unknown deep link; open failed;
+thumbnails failed; roster failed; row menu; read-only view; copy into new;
+desktop and phone), captured by `tmp/redesign/playlists/capture.mjs`. Critique
+in `tmp/redesign/playlists/critique.md` (18/40 before), inventory with the
+item-by-item check in `tmp/redesign/playlists/inventory.md`, detector evidence
+in `tmp/redesign/playlists/detector/` (clean before and after).
+
+Main changes:
+
+- P0 fixes: the shell said "Each save goes live right away" over a tool whose
+  saves publish nothing (now `saveLine: "in-tool"` and "Saving publishes
+  nothing." in the dock); a revision conflict offers "Load the latest
+  version"; a freeze refusal reads as the freeze and keeps the draft; a deep
+  link to a playlist never opened (the address sync replaced the key before
+  the keyed read landed, which cancelled it).
+- Layout: the editor workspace. Playlists are link rows (works, relative
+  update time, owner name for an admin, "Read only" with a lock), the open
+  playlist is `PlaylistPane.tsx` (header with key, update time and owner,
+  corner Close, Back to list, focus and scroll on open) with a sticky save
+  dock (notice, the one reason Save is blocked, Save or Create with the Cmd+S
+  cap, Discard edits, state line, SaveLine). An unsaved new draft is its own
+  row; New takes you back to it rather than sitting disabled.
+- Works (`PlaylistWorks.tsx`): "Works, in order" heading with a count, drag by
+  the handle, arrows and remove from `sm`, a row menu on phones with top and
+  end moves, announcements and kept focus, missing entries flagged per row
+  with "Remove them now", thumbnails Try again. "Add works": search with a
+  glyph, `/` cap, Escape, "Searching", a count line, "Add all N", Try again,
+  focus to the next result; the slug paste folds behind "Paste a slug
+  instead".
+- Owner: an in-pane block ("Changes on its own confirm, not with Save."),
+  members by name everywhere ("(you)" for the viewer), a failed roster read
+  says so with Try again. Remove moved into the pane.
+- Read only: editors open other members' playlists in the pane without a dock
+  and can "Copy into a new playlist".
+- Key: a sentence under Name instead of a disabled field. A list filter with
+  `/` appears past eight playlists.
+- Shared, backward compatible: `SaveLine` `copy` and exported `SaveLineCopy`
+  (kit story example added); `ReplicationThumb` `compact`; `useWorkCards`
+  `retry`. `PlaylistEditor` is untouched and still serves the public viewer's
+  contextual editor.
+- Journeys fixtures: `PLAYLISTS_SEED` (five playlists: the viewer's own, one
+  long enough to fold, one with an unpublished entry, another member's, an
+  unowned one), `MEMBERS_SEED` (with a banned member), the collection, keyed,
+  save (updated_at check, owner rule, pruning, conflicted and frozen),
+  delete, owner and candidates routes, and `/api/dev/members`; with a unit
+  test. People's roster read now answers from this seed.
+
+Deferred, with reasons:
+
+- Duplicate or restore after removal: no server history; the confirm says so.
+- Showing an owner's address to editors on read-only rows: the route sends it,
+  but the earlier design kept owner addresses admin-only; the pane says
+  "Another member owns this playlist" instead.
+- Moving `PlaylistEditor` (public viewer) onto `PlaylistWorks`: that surface is
+  outside this pass.
+- The phone bar's roll-up count on this tool: shell chrome.
