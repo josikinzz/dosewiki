@@ -16,7 +16,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { EmptyStateSurface } from "@/components/ui";
 import {
   EditorPanel,
   EditorSection,
@@ -539,7 +538,6 @@ export function TripReportPortalTab({
           ) : (
             <IdlePane
               waiting={orderedRows.length > 0}
-              frozen={frozen}
               undo={
                 lastDecision && undoTo ? (
                   <Button
@@ -599,19 +597,17 @@ function OpeningPane({
 /** What the pane says on desktop before a row is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({
   waiting,
-  frozen,
   undo,
   filtered,
 }: {
   waiting: boolean;
-  frozen: boolean;
   undo: React.ReactNode;
   filtered: boolean;
 }) {
   return (
     <div className="space-y-3">
       {undo ? <p className="theme-text-muted text-sm">{undo}</p> : null}
-      <EmptyStateSurface padding="lg" radius="lg" className="space-y-3 text-left">
+      <EditorPanel variant="subtle" className="space-y-3 px-5 py-6">
         <p className="theme-text-primary flex items-center gap-2 text-base font-semibold">
           <Icon icon="lucide:notebook-pen" size={18} className="theme-icon-accent shrink-0" />
           {waiting ? "Pick a report to open it here" : filtered ? "Nothing in this view" : "Nothing to open"}
@@ -624,13 +620,9 @@ function IdlePane({
             Press <kbd className="theme-dev-kbd">j</kbd> to start at the top.
           </span>
         </p>
-        {frozen ? (
-          <p className="theme-text-muted flex items-center gap-2 text-xs">
-            <Icon icon="lucide:circle-pause" size={13} className="theme-warning-text-strong shrink-0" />
-            Writes are paused right now; decisions and saves will not land until they resume.
-          </p>
-        ) : null}
-      </EmptyStateSurface>
+        {/* The shared line: it says how decisions and saves land, and turns into the freeze sentence while writes are paused. */}
+        <SaveLine model="instant" />
+      </EditorPanel>
     </div>
   );
 }

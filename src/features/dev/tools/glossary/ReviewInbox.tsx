@@ -355,7 +355,17 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
   } else if (item) {
     paneBody = <InboxItemDetail item={item} locale={locale} position={{ index: current, total: visible.length }} onMove={(delta) => moveTo(current + delta)} onBack={backToList} />;
   } else {
-    paneBody = <p className="theme-text-muted px-4 py-6 text-sm sm:px-5">Pick an item to review it here.</p>;
+    paneBody = (
+      <div className="space-y-3 px-4 py-6 sm:px-5">
+        <p className="theme-text-primary flex items-center gap-2 text-base font-semibold">
+          <Icon icon="lucide:languages" size={18} className="theme-icon-accent shrink-0" />
+          Pick an item to review it here
+        </p>
+        <p className="theme-text-muted max-w-[62ch] text-sm">
+          It opens with the English beside what readers see now, and Accept, Fine here, Edit and Skip in the dock.
+        </p>
+      </div>
+    );
   }
 
   return (
