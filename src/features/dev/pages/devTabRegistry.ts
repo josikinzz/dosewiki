@@ -401,9 +401,9 @@ const REGISTRY = [
     data: NO_DATA,
     saveModel: "instant",
     // The workbench has two saves (Save draft keeps a rendering for another
-    // reviewer, Save and approve puts it in use), and its own header says so.
-    // One shell sentence about "instant" writes contradicted it.
-    saveLine: "none",
+    // reviewer, Save and approve puts it in use). Its header carries its own
+    // SaveLine sentence, which the write freeze still replaces.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
     // Reader feedback on the renderings waits here, per language the reviewer holds.

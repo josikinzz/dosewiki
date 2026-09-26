@@ -99,7 +99,7 @@ function stubWorkbench() {
   return { writes, reads };
 }
 
-const view = (name: string) => within(screen.getByRole("group", { name: "Workbench view" })).getByRole("button", { name });
+const view = (name: string) => within(screen.getByRole("tablist", { name: "Workbench view" })).getByRole("tab", { name: new RegExp(`^${name}(,|$)`) });
 const REASON_NAMES = ["Fluency", "Terminology", "Accuracy", "Local addition"];
 
 /** The one reason control: the four kinds and an optional note, the same on every surface. */
@@ -121,8 +121,8 @@ describe("translation workbench for a translator", () => {
   it("opens on the Inbox, first in the nav", async () => {
     const { reads } = stubWorkbench();
     render(<GlossaryTab viewerRole="translator" />);
-    await waitFor(() => expect(view("Inbox")).toHaveAttribute("aria-pressed", "true"));
-    const names = within(screen.getByRole("group", { name: "Workbench view" })).getAllByRole("button").map((button) => button.textContent);
+    await waitFor(() => expect(view("Inbox")).toHaveAttribute("aria-selected", "true"));
+    const names = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab").map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim());
     expect(names[0]).toBe("Inbox");
     await waitFor(() => expect(reads.some((read) => read.startsWith("/api/dev/translation-inbox"))).toBe(true));
   });
@@ -138,7 +138,7 @@ describe("translation workbench for a translator", () => {
     stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await user.click(await screen.findByRole("button", { name: "Terms" }));
+    await user.click(await screen.findByRole("tab", { name: /^Terms/ }));
     await user.type(screen.getByRole("searchbox", { name: "Search words" }), "euphoria");
     await screen.findByRole("textbox", { name: "Translation for euphoria" });
     expect(screen.queryByText(/Approvals here are recorded as/)).not.toBeInTheDocument();
@@ -149,13 +149,13 @@ describe("translation workbench for a translator", () => {
     const { reads } = stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await user.click(await screen.findByRole("button", { name: "Articles" }));
+    await user.click(await screen.findByRole("tab", { name: /^Articles/ }));
     const list = await screen.findByRole("list", { name: "Articles needing review" });
     const items = within(list).getAllByRole("listitem");
     // Articles only, ranked by how much there is to check.
-    expect(items.map((item) => within(item).getByRole("button").textContent)).toEqual(["2c-b", "lsd", "mdma"]);
-    expect(within(items[0]).getByText(/6 to check/)).toBeInTheDocument();
-    await user.click(within(items[0]).getByRole("button", { name: "2c-b" }));
+    expect(items.map((item) => within(item).getByRole("button").getAttribute("aria-label")?.split(",")[0])).toEqual(["2c-b", "lsd", "mdma"]);
+    expect(within(items[0]).getByRole("button", { name: "2c-b, 6 to check" })).toBeInTheDocument();
+    await user.click(within(items[0]).getByRole("button", { name: /^2c-b,/ }));
     await screen.findByText("0 of 1 paragraphs human approved");
     expect(reads.some((read) => read.startsWith("/api/dev/translation-narrative?") && read.includes("slug=2c-b"))).toBe(true);
   });
@@ -165,23 +165,23 @@ describe("translation workbench for a translator", () => {
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
 
-    await user.click(await screen.findByRole("button", { name: "Terms" }));
+    await user.click(await screen.findByRole("tab", { name: /^Terms/ }));
     await user.type(screen.getByRole("searchbox", { name: "Search words" }), "euphoria");
     const termInput = await screen.findByRole("textbox", { name: "Translation for euphoria" });
     await user.clear(termInput);
     await user.type(termInput, "欣快");
-    expectReasonPicker(termInput.closest("tr")!);
+    expectReasonPicker(termInput.closest("[data-term]") as HTMLElement);
     await user.clear(screen.getByRole("searchbox", { name: "Search words" }));
 
     await user.click(view("Interface text"));
     const label = await screen.findByRole("textbox", { name: "Translation for appearance.light" });
-    expectReasonPicker(label.closest("section[aria-label='UI labels']")!);
+    expectReasonPicker(label.closest("section[aria-label='UI labels']") as HTMLElement);
 
     await user.click(view("Style guide"));
     expectReasonPicker(await screen.findByRole("region", { name: "Style guide" }));
 
     await user.click(view("Articles"));
-    await user.click(await screen.findByRole("button", { name: "mdma" }));
+    await user.click(await screen.findByRole("button", { name: /^mdma,/ }));
     await user.click(await screen.findByRole("button", { name: "Review summary" }));
     await screen.findByRole("textbox", { name: "Correction" });
     expectReasonPicker(screen.getByRole("region", { name: "Narrative review" }));
@@ -205,7 +205,7 @@ describe("translation workbench for a translator", () => {
       expect(document.body.textContent ?? "").not.toMatch(/zh-Hans/);
     }
     await user.click(view("Articles"));
-    await user.click(await screen.findByRole("button", { name: "mdma" }));
+    await user.click(await screen.findByRole("button", { name: /^mdma,/ }));
     await screen.findByText("0 of 1 paragraphs human approved");
     expect(document.body.textContent ?? "").not.toMatch(/zh-Hans/);
   }, 20_000);
@@ -230,7 +230,7 @@ describe("one save-then-approve model", () => {
     const { writes } = stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await user.click(await screen.findByRole("button", { name: "Interface text" }));
+    await user.click(await screen.findByRole("tab", { name: /^Interface text/ }));
     const input = await screen.findByRole("textbox", { name: "Translation for appearance.light" });
     await user.type(input, "浅色");
     // A changed wording names its reason before it is saved.
@@ -247,8 +247,8 @@ describe("one save-then-approve model", () => {
     const { writes } = stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await user.click(await screen.findByRole("button", { name: "Articles" }));
-    await user.click(await screen.findByRole("button", { name: "mdma" }));
+    await user.click(await screen.findByRole("tab", { name: /^Articles/ }));
+    await user.click(await screen.findByRole("button", { name: /^mdma,/ }));
     await user.click(await screen.findByRole("button", { name: "Review summary" }));
     const correction = await screen.findByRole("textbox", { name: "Correction" });
     await user.clear(correction);
@@ -264,7 +264,7 @@ describe("one save-then-approve model", () => {
     const { writes } = stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
-    await user.click(await screen.findByRole("button", { name: "Style guide" }));
+    await user.click(await screen.findByRole("tab", { name: /^Style guide/ }));
     const rules = await screen.findByRole("textbox", { name: "Rules, one per line" });
     await user.type(rules, "{enter}Use full sentences.");
     await user.click(screen.getByRole("button", { name: "Fluency" }));

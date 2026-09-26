@@ -25,7 +25,7 @@ export function TranslationProgress({ data, starting, error, onRefresh, onRetryE
     <Surface variant="subtle" padding="md" className="space-y-4" aria-label={`${languageLabel(data.locale)} translation progress`}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
-          <p className="theme-text-faint text-xs uppercase tracking-widest">{data.locale} · Latest translation run</p>
+          <p className="type-meta-label theme-text-muted">Latest run</p>
           <h3 className="flex items-center gap-2 text-base font-semibold" aria-live="polite">
             <span key={running ? "working" : "finished"} className={!running && !issues ? styles.complete : ""}>
               <Icon icon={running ? "lucide:languages" : issues ? "lucide:circle-alert" : "lucide:check-check"} size={20} />
@@ -33,8 +33,8 @@ export function TranslationProgress({ data, starting, error, onRefresh, onRetryE
           </h3>
         </div>
         <div className="shrink-0 text-right tabular-nums">
-          <strong className="theme-text-primary block text-3xl leading-none tracking-tight">{starting ? "…" : `${percent}%`}</strong>
-          {!starting ? <span className="theme-text-faint text-[0.6875rem]">of this run</span> : null}
+          <strong className="theme-text-primary block text-3xl leading-none">{starting ? "…" : `${percent}%`}</strong>
+          {!starting ? <span className="theme-text-faint text-xs">of this run</span> : null}
         </div>
       </div>
       {!starting ? <div className="flex items-baseline justify-between gap-3 text-xs tabular-nums">
@@ -56,7 +56,7 @@ export function TranslationProgress({ data, starting, error, onRefresh, onRetryE
           ? `${number(jobs.inFlight ?? 0)} pages being worked on${jobs.retrying ? ` · ${number(jobs.retrying)} retrying` : ""}. Progress refreshes every 5 seconds. You can close this page; translation continues on the server.`
           : "This run is saved. This is the latest saved run, not whole-site coverage; Coverage in Articles shows the whole site."}
       </p>
-      <p className="theme-text-faint text-[0.6875rem] tabular-nums">Updated {new Date(data.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}</p>
+      <p className="theme-text-faint text-xs tabular-nums">Updated {new Date(data.generatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}</p>
       {issues > 0 && <p className="text-xs text-[color:var(--theme-warning-text)]">{number(jobs.completedWithRejections)} pages contain segments that failed validation and retain their previous wording or fall back to English. {jobs.exhausted > 0 ? `${number(jobs.exhausted)} pages stopped after repeated failures. ` : ""}Saved translations are preserved. Review these results before running translation again.</p>}
       {!running && jobs.exhausted > 0 && onRetryExhausted ? <Button variant="outline" size="sm" disabled={retryDisabled} onClick={onRetryExhausted}>
         <Icon icon="lucide:rotate-ccw" size={14} />Retry {number(jobs.exhausted)} failed {jobs.exhausted === 1 ? "page" : "pages"}

@@ -26,7 +26,7 @@ async function openGrid(list: UiTranslationRow[], approve?: (body: { items: { id
   }));
   const user = userEvent.setup();
   render(<UiTranslationWorkbench locale="zh-Hans" />);
-  await user.click(await screen.findByRole("button", { name: "Short labels" }));
+  await user.click(await screen.findByRole("button", { name: /^Short labels/ }));
   return { user, requests };
 }
 

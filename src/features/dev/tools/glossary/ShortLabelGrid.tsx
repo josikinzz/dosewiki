@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { StateCard } from "@/components/common/StateCard";
 import { Notice, EditorStatusPill, useConfirm, type NoticeMessage } from "@/features/dev/components";
 import { translationRequest } from "./TranslationHistory";
-import type { UiEditDrafts } from "./UiTranslationWorkbench";
+import { UI_STATUS_LABEL, UI_STATUS_TONE, type UiEditDrafts } from "./UiTranslationWorkbench";
 
 const endpoint = "/api/dev/translation-workbench/approve-many";
 const PAGE_SIZE = 100;
@@ -16,7 +16,6 @@ const CONFIRM_ABOVE = 200;
 const unplaced = "No recorded location";
 
 const savedTarget = (row: UiTranslationRow) => row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "";
-const statusLabel = (row: UiTranslationRow) => row.status === "stale" ? "Source changed" : row.status === "unreviewed" ? "No human review" : row.status;
 
 /**
  * Dense review for labels of three words or fewer that still need a person.
@@ -89,29 +88,33 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
     });
   };
 
-  return <div className="space-y-3">
-    <p className="theme-text-secondary text-sm">Labels of three words or fewer that still need review, grouped by where they first appear. Tick the rows that read right in context, edit any wording inline, then approve them together. Longer strings stay in the one-at-a-time view.</p>
-    <div className="flex flex-wrap items-center gap-2">
-      <Button type="button" variant="outline" size="sm" disabled={busy || !candidates.length} onClick={() => setSelected(new Set(candidates.filter(({ row }) => targetFor(row).trim()).map(({ row }) => row.id)))}>Select all matching</Button>
-      <Button type="button" variant="outline" size="sm" disabled={busy || !selected.size} onClick={() => setSelected(new Set())}>Clear selection</Button>
-      <Button type="button" variant="accent" size="sm" disabled={busy || !chosen.length} aria-busy={busy || undefined} onClick={approveSelected}>Approve selected ({chosen.length})</Button>
-      <span className="theme-text-faint text-xs">{candidates.length} short labels need review</span>
+  return <div className="space-y-4">
+    <p className="theme-text-secondary max-w-prose text-sm">Labels of three words or fewer that still need review, grouped by where they first appear. Tick the rows that read right in context, edit any wording inline, then approve them together. Longer strings stay in the one-at-a-time view.</p>
+    <div className="theme-portal-rule sticky top-20 z-10 space-y-2 rounded-card border bg-[var(--editor-panel-bg)]/95 px-3 py-2.5 backdrop-blur" role="group" aria-label="Selection">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" variant={chosen.length ? "accent" : "outline"} size="sm" disabled={busy || !chosen.length} aria-busy={busy || undefined} onClick={approveSelected}>{busy ? "Approving" : `Approve selected (${chosen.length})`}</Button>
+        <Button type="button" variant="ghost" size="sm" disabled={busy || !candidates.length} onClick={() => setSelected(new Set(candidates.filter(({ row }) => targetFor(row).trim()).map(({ row }) => row.id)))}>Select all matching</Button>
+        <Button type="button" variant="ghost" size="sm" disabled={busy || !selected.size} onClick={() => setSelected(new Set())}>Clear selection</Button>
+        <span className="theme-text-muted text-xs tabular-nums" aria-live="polite">{chosen.length} selected of {candidates.length} short labels needing review</span>
+      </div>
+      {notice ? <Notice {...notice} placement="inline" dismiss={() => setNotice(null)} /> : null}
     </div>
-    {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
-    {!candidates.length ? <StateCard compact title="No short labels need review" description="Every matching label of three words or fewer is approved." /> : null}
-    {lastPage > 0 ? <div className="flex flex-wrap items-center gap-3" aria-label="Short label pages">
+    {!candidates.length ? <StateCard compact tone="success" icon="lucide:check-check" title="No short labels need review" description="Every matching label of three words or fewer is approved." /> : null}
+    {lastPage > 0 ? <nav className="flex flex-wrap items-center gap-2" aria-label="Short label pages">
       <Button variant="outline" size="sm" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous short labels</Button>
-      <span className="theme-text-secondary text-sm">{current * PAGE_SIZE + 1} to {Math.min((current + 1) * PAGE_SIZE, candidates.length)} of {candidates.length}</span>
+      <span className="theme-text-secondary text-sm tabular-nums">{current * PAGE_SIZE + 1} to {Math.min((current + 1) * PAGE_SIZE, candidates.length)} of {candidates.length}</span>
       <Button variant="outline" size="sm" disabled={current >= lastPage} onClick={() => setPage(current + 1)}>Next short labels</Button>
-    </div> : null}
-    {[...groups].map(([location, group]) => <fieldset key={location} className="space-y-1">
-      <legend className="theme-text-faint break-all font-mono text-xs">{location}</legend>
-      {group.map((row) => <div key={row.id} className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 py-0.5">
-        <input type="checkbox" className="accent-dose-accent-strong" aria-label={`Select ${row.id}`} checked={selected.has(row.id)} disabled={busy} onChange={() => toggle(row.id)} />
-        <div className="min-w-0"><p className="theme-text-primary break-words text-sm">{row.source}</p><p className="theme-text-faint line-clamp-2 break-words text-xs" title={row.context}>{row.context}</p></div>
-        <Input inputSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={targetFor(row)} disabled={busy} onChange={(event) => editTarget(row, event.target.value)} />
-        <EditorStatusPill tone="warning">{statusLabel(row)}</EditorStatusPill>
-      </div>)}
+    </nav> : null}
+    {[...groups].map(([location, group]) => <fieldset key={location} className="min-w-0 space-y-1">
+      <legend className="theme-text-muted break-all text-xs font-medium">{location}</legend>
+      <ul className="theme-dev-link-list">
+        {group.map((row) => <li key={row.id} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 px-1 py-2 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_9rem] sm:items-center">
+          <input type="checkbox" className="accent-dose-accent-strong mt-1 size-4 sm:mt-0 [@media(pointer:coarse)]:size-5" aria-label={`Select ${row.id}`} checked={selected.has(row.id)} disabled={busy} onChange={() => toggle(row.id)} />
+          <div className="min-w-0"><p className="theme-text-primary break-words text-sm" lang="en">{row.source}</p><p className="theme-text-faint line-clamp-2 break-words text-xs" title={row.context}>{row.context}</p></div>
+          <div className="col-start-2 min-w-0 sm:col-start-auto"><Input inputSize="sm" lang={locale} dir="auto" aria-label={`Translation for ${row.id}`} value={targetFor(row)} disabled={busy} onChange={(event) => editTarget(row, event.target.value)} /></div>
+          <div className="col-start-2 sm:col-start-auto"><EditorStatusPill tone={UI_STATUS_TONE[row.status] ?? "warning"} inline>{UI_STATUS_LABEL[row.status] ?? row.status}</EditorStatusPill></div>
+        </li>)}
+      </ul>
     </fieldset>)}
     {dialog}
   </div>;

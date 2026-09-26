@@ -20,6 +20,8 @@
  * directly.
  */
 
+import { createTranslationRoutes } from "./translationFixtures.mjs";
+
 /** Roles the synthetic session can carry; mirrors `APP_ROLES` in `src/lib/auth/roles.ts`, minus `viewer`, which cannot open `/dev`. */
 export const JOURNEY_ROLES = Object.freeze(["admin", "editor_translator", "editor", "translator", "contributor"]);
 
@@ -69,8 +71,10 @@ export function fixtureSession(role, now = FIXTURE_EPOCH) {
 /** The languages a translating fixture role holds. */
 export const FIXTURE_GLOSSARY_LOCALES = Object.freeze(["de", "nl", "ja"]);
 
-/** Review inbox totals per fixture language: one busy, one empty, one small. */
-const TRANSLATION_INBOX_TOTALS = Object.freeze({ de: 7, nl: 0, ja: 2 });
+/**
+ * Review inbox totals per fixture language follow the translation store
+ * (`translationFixtures.mjs`): German 7, Dutch none, Japanese 2.
+ */
 
 /**
  * Invite codes for the admin's Home and People, newest first: two open (one
@@ -1579,6 +1583,9 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return answer();
   };
 
+  /** The translation workbench's store and routes (`translationFixtures.mjs`). */
+  const translation = createTranslationRoutes({ fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN });
+
   function writingList() {
     return [...writing.values()].map(({ slug, title, kind, status, creationTime, publicationDate, teaser, tags }) => ({
       slug, title, kind, status, creationTime, publicationDate, teaser, tags,
@@ -2366,11 +2373,9 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/invites" && upper === "POST") return toolWrite(() => mintInvite(body ?? {}));
     const revokeMatch = /^\/api\/dev\/invites\/([^/]+)\/revoke$/.exec(pathname);
     if (revokeMatch && upper === "POST") return toolWrite(() => revokeInvite(decodeURIComponent(revokeMatch[1])));
-    if (pathname === "/api/dev/translation-inbox" && upper === "GET") {
-      const locale = params.get("locale") ?? "";
-      const total = fixture.state === "empty" ? 0 : (TRANSLATION_INBOX_TOTALS[locale] ?? 0);
-      return toolRead(() => json(200, { ok: true, locale, items: [], total, counts: {} }));
-    }
+    // The translation workbench (Glossary) and the language inboxes Home counts.
+    const translationAnswer = translation({ upper, pathname, params, body });
+    if (translationAnswer) return translationAnswer;
     if (pathname === "/api/dev/contributor-profile" && upper === "POST") return toolWrite(() => saveContributorProfile(body ?? {}));
     if (pathname === "/api/dev/contributor-profile/ordering" && upper === "POST") return toolWrite(() => saveContributorOrdering(body ?? {}));
     if (pathname === "/api/dev/contributor-profile/danger" && upper === "POST") return toolWrite(() => contributorDanger(body ?? {}));

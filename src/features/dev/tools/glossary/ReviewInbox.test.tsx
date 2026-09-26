@@ -162,8 +162,9 @@ describe("Review inbox", () => {
     const user = userEvent.setup();
     render(<ReviewInbox locale="zh-Hans" />);
     await user.click(await screen.findByRole("button", { name: "Accept" }));
-    const item = screen.getByRole("listitem", { name: `Translation: ${recheck.english}` });
-    expect(item).toHaveTextContent("Replication (体验再现)");
+    // The item stays listed, and the decision dock names what the wording leaves out.
+    expect(screen.getByRole("listitem", { name: `Translation: ${recheck.english}` })).toBeInTheDocument();
+    expect(await screen.findByText(/This wording leaves out Replication \(体验再现\)/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Fine here: accept without Replication/ }));
     expect(await screen.findByText(`Accepted "${recheck.english}".`)).toBeInTheDocument();
     expect(writes).toEqual([

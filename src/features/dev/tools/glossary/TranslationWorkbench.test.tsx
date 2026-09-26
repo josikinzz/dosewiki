@@ -53,7 +53,7 @@ describe("UI translation review", () => {
     const user = userEvent.setup();
     render(<UiTranslationWorkbench locale="zh-Hans" />);
     expect(await screen.findByRole("textbox", { name: "Translation for appearance.light" })).toHaveValue("浅色");
-    expect(screen.getByText("No human review")).toBeInTheDocument();
+    expect(screen.getByText("Machine")).toBeInTheDocument();
     expect(screen.getByText("Compiled wording:")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Approve" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Fluency" }));

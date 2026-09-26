@@ -556,6 +556,46 @@ describe("journey fixtures", () => {
     assert.equal(second.status, "approved");
   });
 
+  it("answers the translation workbench: a translator's languages, the revision check, shared renderings, the admin floor", () => {
+    const admin = createJourneyFixture();
+    const list = get(admin, "/api/dev/translation-glossary").json;
+    assert.equal(list.locale, "zh-Hans");
+    assert.ok(list.rows.some((row) => row.review_provenance === "legacy_unverified"));
+    const draft = list.rows.find((row) => row.term === "Time distortion");
+    assert.equal(post(admin, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: [draft.term], expectedRevisions: { [draft.term]: "0:0" } }).status, 409);
+    const approved = post(admin, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: [draft.term], expectedRevisions: { [draft.term]: draft.revision } });
+    assert.equal(approved.status, 200);
+    assert.equal(approved.json.rows[0].status, "approved");
+    // Elation would share Euphoria's approved rendering: asked first, then allowed with the acknowledgement.
+    const elation = list.rows.find((row) => row.term === "Elation");
+    const refused = post(admin, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: ["Elation"], expectedRevisions: { Elation: elation.revision } });
+    assert.equal(refused.status, 409);
+    assert.match(refused.json.collisionConfirmation, /^[a-f0-9]{64}$/);
+    assert.equal(post(admin, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: ["Elation"], expectedRevisions: { Elation: elation.revision }, collisionConfirmation: refused.json.collisionConfirmation }).status, 200);
+
+    const translator = createJourneyFixture({ role: "translator" });
+    assert.deepEqual(get(translator, "/api/dev/translation-glossary").json.locales.map((option) => option.locale), ["nl", "de", "ja"]);
+    assert.equal(get(translator, "/api/dev/translation-glossary", "?locale=zh-Hans").status, 403);
+    assert.equal(post(translator, "/api/dev/translation-glossary/draft", { locale: "nl" }).status, 403);
+    assert.equal(post(translator, "/api/dev/translation-glossary/gloss", { term: "Euphoria", gloss: "Joy." }).status, 403);
+    assert.equal(get(translator, "/api/dev/translation-inbox", "?locale=de").json.total, 7);
+    assert.equal(get(translator, "/api/dev/translation-inbox", "?locale=nl").json.total, 0);
+
+    const frozen = createJourneyFixture({ state: "frozen" });
+    const row = get(frozen, "/api/dev/translation-glossary").json.rows.find((entry) => entry.term === "Heavy");
+    assert.equal(post(frozen, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: ["Heavy"], expectedRevisions: { Heavy: row.revision } }).status, 503);
+
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const first = get(conflicted, "/api/dev/translation-glossary").json.rows.find((entry) => entry.term === "Heavy");
+    assert.equal(post(conflicted, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: ["Heavy"], expectedRevisions: { Heavy: first.revision } }).status, 409);
+    const latest = get(conflicted, "/api/dev/translation-glossary").json.rows.find((entry) => entry.term === "Heavy");
+    assert.equal(post(conflicted, "/api/dev/translation-glossary/approve", { locale: "zh-Hans", terms: ["Heavy"], expectedRevisions: { Heavy: latest.revision } }).status, 200);
+
+    assert.ok(get(admin, "/api/dev/translation-workbench", "?locale=zh-Hans").json.rows.length > 20);
+    assert.equal(get(admin, "/api/dev/translation-narrative", "?locale=zh-Hans&kind=article&slug=lsd").json.rows.length, 8);
+    assert.ok(get(admin, "/api/dev/translation-coverage", "?locale=zh-Hans").json.pages.length > 3);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

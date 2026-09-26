@@ -1,22 +1,12 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { GlossaryUsageDisclosure } from "@/components/glossary/GlossaryUsageDisclosure";
-import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Surface } from "@/components/ui/surface";
-import {
-  EditorStatusPill,
-  EditorTable,
-  EditorTableBody,
-  EditorTableCell,
-  EditorTableHead,
-  EditorTableHeading,
-  EditorTableRow,
-} from "@/features/dev/components";
+import { EditorStatusPill } from "@/features/dev/components";
 import {
   count,
   isLiveUnchecked,
@@ -41,10 +31,26 @@ export type GlossaryEditDrafts = Map<string, { value: string; revision: string; 
 /** A term edit usually corrects terminology, so that kind starts chosen, visibly, and a click changes it. */
 const TERM_REASON: ReasonDraft = { kind: "terminology", note: "" };
 
-/** The outcome of the last single-row write, shown on that row rather than at the top of the page. */
-export type GlossaryRowNotice = { term: string; tone: "success" | "danger"; message: string };
+/**
+ * The outcome of the last single-row write, shown on that row rather than at
+ * the top of the page. `conflict` and `frozen` name refusals the row can say
+ * more about: someone saved first (reload to review the latest), or writes
+ * are paused.
+ */
+export type GlossaryRowNotice = { term: string; tone: "success" | "danger"; message: string; conflict?: boolean; frozen?: boolean };
 
 const capitalize = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
+
+/** What a row's status pill says and its tone; the same words the counts and filters use. */
+export function rowStatus(row: GlossaryRow): { label: string; tone: "info" | "success" | "warning" } {
+  if (isLiveUnchecked(row)) return { label: "Live, never checked", tone: "info" };
+  return row.status === "approved" ? { label: capitalize(STATE_WORD.approved), tone: "success" } : { label: capitalize(STATE_WORD.draft), tone: "warning" };
+}
+
+/** The share of a category a person has decided, for the small bars. */
+export function reviewedShare(totals: { total: number; draft: number; unchecked: number }): number {
+  return totals.total ? ((totals.total - totals.draft - totals.unchecked) / totals.total) * 100 : 0;
+}
 
 export type GlossaryGroupSectionProps = {
   group: GlossaryGroup;
@@ -52,7 +58,6 @@ export type GlossaryGroupSectionProps = {
   /** Category counts from the unfiltered rows, so the header keeps its meaning while a search narrows the list. */
   totals: { total: number; draft: number; unchecked: number };
   statusFilter: GlossaryStatusFilter;
-  expanded: boolean;
   /** A whole-tab write is in flight; every row locks. */
   disabled: boolean;
   /** The one row a single-row write is locking, if any. */
@@ -63,7 +68,12 @@ export type GlossaryGroupSectionProps = {
   usages: GlossaryUsageMap;
   /** The viewer may write definitions (editor and up); otherwise they read as plain text. */
   canDefine: boolean;
-  onToggle: () => void;
+  /** Heading level of the category name: `h3` when it heads the pane, `h4` under a search heading. */
+  headingLevel?: "h3" | "h4";
+  /** Id for the heading, so the pane can move focus to it. */
+  headingId?: string;
+  /** Shown before the name: Back to list on phones. */
+  lead?: ReactNode;
   onApproveAll: () => void;
   onConfirmAll: () => void;
   onApprove: (row: GlossaryRow) => void;
@@ -72,108 +82,75 @@ export type GlossaryGroupSectionProps = {
   onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
+  onReload: (term: string) => void;
   rowNotice: GlossaryRowNotice | null;
 };
 
 /**
- * One category of terms behind one header. The header carries the one number
- * a reviewer scans for before opening anything: how much of this category
- * still needs a decision, out of how much there is. Approving the whole group
- * lives on the header too, so a category that was drafted well can be cleared
- * in one confirmed step; the confirm names the category, the button does not
- * have to.
+ * One category of terms: its name, how much of it still needs a decision out
+ * of how much there is, the two bulk actions (each touching exactly its own
+ * count, and each confirming first), then the rows as an open list.
  */
-export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, expanded, disabled, writingTerm, glosses, usages, canDefine, onToggle, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, rowNotice }: GlossaryGroupSectionProps) {
-  const bodyId = useId();
+export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, disabled, writingTerm, glosses, usages, canDefine, headingLevel: Heading = "h3", headingId, lead, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, onReload, rowNotice }: GlossaryGroupSectionProps) {
   const { category, rows, draftCount, uncheckedCount } = group;
   const open = standingLabel({ drafts: totals.draft, unchecked: totals.unchecked });
   const standing = open ? `${open} · ${count(totals.total, "term")}` : count(totals.total, "term");
   return (
-    <Surface variant="subtle" padding="none" radius="lg" data-testid={`glossary-group-${category.id}`}>
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3">
-        <ExpandButton
-          variant="inline"
-          className="min-h-11 gap-2 text-left text-sm font-semibold"
-          isExpanded={expanded}
-          onToggle={onToggle}
-          label={category.label}
-          ariaLabel={`${category.label}: ${standing}`}
-          ariaControls={bodyId}
-        />
-        <span className="flex flex-1 items-center gap-3">
-          {/* Decorative: the header's accessible name already carries these counts. */}
-          <span aria-hidden="true" className="hidden h-1.5 w-20 shrink-0 overflow-hidden rounded-full theme-progress-track sm:flex">
-            <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${totals.total ? ((totals.total - totals.draft - totals.unchecked) / totals.total) * 100 : 0}%` }} />
-          </span>
-          <span className="theme-text-muted text-xs tabular-nums">{standing}</span>
-        </span>
-        {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
-        {!open && statusFilter === "all" ? <EditorStatusPill tone="success">Reviewed</EditorStatusPill> : null}
-        {expanded && draftCount > 0 ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={disabled || writingTerm !== null}
-            aria-label={`Approve all ${count(draftCount, `${STATE_WORD.draft} term`)} in ${category.label}`}
-            onClick={onApproveAll}
-          >
-            <Icon icon="lucide:check-check" size={14} />
-            Approve all
-          </Button>
-        ) : null}
-        {expanded && uncheckedCount > 0 ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={disabled || writingTerm !== null}
-            aria-label={`Confirm all ${count(uncheckedCount, "live, never checked term")} in ${category.label}`}
-            onClick={onConfirmAll}
-          >
-            <Icon icon="lucide:badge-check" size={14} />
-            Confirm all
-          </Button>
-        ) : null}
-      </div>
-      <div id={bodyId} hidden={!expanded} className="px-3 pb-3">
-        {expanded ? <GlossaryTable editDrafts={editDrafts} rows={rows} disabled={disabled} writingTerm={writingTerm} glosses={glosses} usages={usages} canDefine={canDefine} onApprove={onApprove} onConfirm={onConfirm} onSave={onSave} onSaveAndApprove={onSaveAndApprove} onSaveDefinition={onSaveDefinition} onRestored={onRestored} rowNotice={rowNotice} /> : null}
-      </div>
-    </Surface>
-  );
-}
-
-type GlossaryTableProps = {
-  editDrafts: GlossaryEditDrafts;
-  rows: GlossaryRow[];
-  disabled: boolean;
-  writingTerm: string | null;
-  glosses: Readonly<Record<string, string>>;
-  usages: GlossaryUsageMap;
-  canDefine: boolean;
-  onApprove: (row: GlossaryRow) => void;
-  onConfirm: (row: GlossaryRow) => void;
-  onSave: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
-  onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
-  onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
-  onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
-  rowNotice: GlossaryRowNotice | null;
-};
-
-function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usages, canDefine, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, rowNotice }: GlossaryTableProps) {
-  return (
-    <EditorTable className="md:min-w-[56rem]">
-      <EditorTableHead>
-        <EditorTableHeading>Term</EditorTableHeading>
-        <EditorTableHeading>Type</EditorTableHeading>
-        <EditorTableHeading>Translation</EditorTableHeading>
-        <EditorTableHeading>Status</EditorTableHeading>
-        <EditorTableHeading>Written by</EditorTableHeading>
-        <EditorTableHeading>Actions</EditorTableHeading>
-      </EditorTableHead>
-      <EditorTableBody>
+    <section aria-labelledby={headingId} data-testid={`glossary-group-${category.id}`} className="min-w-0">
+      <header className="theme-portal-rule space-y-3 border-b px-4 py-3.5 sm:px-5">
+        {lead}
+        <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+          <div className="min-w-0 space-y-1.5">
+            <Heading id={headingId} tabIndex={-1} className="theme-accent-heading text-lg font-semibold leading-tight outline-none">
+              {category.label}
+            </Heading>
+            <p className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm tabular-nums">
+              {/* Decorative: the counts beside it say the same in words. */}
+              <span aria-hidden="true" className="flex h-1.5 w-20 shrink-0 overflow-hidden rounded-full theme-progress-track">
+                <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${reviewedShare(totals)}%` }} />
+              </span>
+              <span>{standing}</span>
+              {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
+              {!open && statusFilter === "all" ? <EditorStatusPill tone="success" inline>Reviewed</EditorStatusPill> : null}
+            </p>
+          </div>
+          {draftCount > 0 || uncheckedCount > 0 ? (
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label={`Bulk actions for ${category.label}`}>
+              {draftCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled || writingTerm !== null}
+                  aria-label={`Approve all ${count(draftCount, `${STATE_WORD.draft} term`)} in ${category.label}`}
+                  onClick={onApproveAll}
+                >
+                  <Icon icon="lucide:check-check" size={14} />
+                  Approve all
+                  <span aria-hidden className="tabular-nums opacity-70">{draftCount}</span>
+                </Button>
+              ) : null}
+              {uncheckedCount > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled || writingTerm !== null}
+                  aria-label={`Confirm all ${count(uncheckedCount, "live, never checked term")} in ${category.label}`}
+                  onClick={onConfirmAll}
+                >
+                  <Icon icon="lucide:badge-check" size={14} />
+                  Confirm all
+                  <span aria-hidden className="tabular-nums opacity-70">{uncheckedCount}</span>
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </header>
+      <ul aria-label={`Terms in ${category.label}`} className="theme-dev-link-list px-1.5 sm:px-2.5">
         {rows.map((row) => (
-          <GlossaryTableRow
+          <GlossaryTermRow
             key={`${row.locale}:${row.term}`}
             editDrafts={editDrafts}
             row={row}
@@ -186,16 +163,18 @@ function GlossaryTable({ rows, editDrafts, disabled, writingTerm, glosses, usage
             onConfirm={onConfirm}
             onSave={onSave}
             onSaveAndApprove={onSaveAndApprove}
-            onSaveDefinition={onSaveDefinition} onRestored={onRestored}
+            onSaveDefinition={onSaveDefinition}
+            onRestored={onRestored}
+            onReload={onReload}
             notice={rowNotice?.term === row.term ? rowNotice : null}
           />
         ))}
-      </EditorTableBody>
-    </EditorTable>
+      </ul>
+    </section>
   );
 }
 
-type GlossaryTableRowProps = {
+type GlossaryTermRowProps = {
   editDrafts: GlossaryEditDrafts;
   row: GlossaryRow;
   /** The term's definition, absent until an editor writes one. */
@@ -211,10 +190,17 @@ type GlossaryTableRowProps = {
   onSaveAndApprove: (row: GlossaryRow, target: string, reason: ReviewReason) => void;
   onSaveDefinition: (row: GlossaryRow, gloss: string) => void;
   onRestored: (patch: GlossaryRowPatch | null) => Promise<void>;
+  onReload: (term: string) => void;
   notice: GlossaryRowNotice | null;
 };
 
-function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, notice }: GlossaryTableRowProps) {
+/**
+ * One term: what it is on the left (the English, its definition, its kind,
+ * who wrote the wording, where it is used, its history), and the decision on
+ * the right (the status, the wording readers see, the field, the reason once
+ * it changes, the one main action and its result).
+ */
+function GlossaryTermRow({ row, editDrafts, gloss, usage, canDefine, disabled, writing, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, onReload, notice }: GlossaryTermRowProps) {
   const draftKey = JSON.stringify([row.locale, row.term]);
   const [draft, setDraft] = useState(() => editDrafts.get(draftKey)?.value ?? row.target);
   const [reason, setReason] = useState<ReasonDraft>(() => editDrafts.get(draftKey)?.reason ?? TERM_REASON);
@@ -229,6 +215,7 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
   const unchecked = isLiveUnchecked(row);
   const canSave = draft.trim().length > 0 && (dirty || unchecked);
   const blocked = dirty && !reason.kind;
+  const status = rowStatus(row);
   const editedRow = () => ({ ...row, revision: editDrafts.get(draftKey)?.revision ?? row.revision });
   const sentReason = () => reasonFor(reason, "Saved the wording as it stands.");
   const save = () => {
@@ -239,7 +226,7 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
     editDrafts.set(draftKey, { value: draft, revision: editDrafts.get(draftKey)?.revision ?? row.revision, reason: next });
   };
   // Plain Enter only saves an edit as a draft; on a clean row it does nothing,
-  // and the hint above the table says so. Approving takes the button or
+  // and the hint beside the list says so. Approving takes the button or
   // Ctrl/Command+Enter, which runs the same main action the button shows.
   const submit = () => {
     if (held) return;
@@ -252,27 +239,41 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
     } else if (row.status === "draft") onApprove(row);
     else if (unchecked) onConfirm(row);
   };
+  const writtenBy = row.review_provenance === "legacy_unverified" ? "Older import" : row.source === "human" ? "A person" : "Machine";
   return (
-    <EditorTableRow data-term={row.term} data-status={row.status} data-needs-review={row.status === "draft" || unchecked || undefined} aria-busy={writing || undefined}>
-      <EditorTableCell wide>
-        <span className="block font-medium theme-text-primary">{row.term}</span>
+    <li
+      data-term={row.term}
+      data-status={row.status}
+      data-needs-review={row.status === "draft" || unchecked || undefined}
+      aria-busy={writing || undefined}
+      className="grid min-w-0 gap-x-6 gap-y-3 px-2.5 py-4 md:grid-cols-[minmax(0,13rem)_minmax(0,1fr)]"
+    >
+      <div className="min-w-0 space-y-1">
+        <p className="theme-text-primary font-medium leading-snug">{row.term}</p>
         {canDefine ? (
           <GlossaryDefinition term={row.term} gloss={gloss} held={held} onSave={(next) => onSaveDefinition(row, next)} />
         ) : gloss ? (
-          <span className="theme-text-secondary block text-xs">{gloss}</span>
+          <p className="theme-text-secondary text-xs leading-relaxed">{gloss}</p>
         ) : null}
-        <GlossaryUsageDisclosure term={row.term} initialData={usage} />
-        <TranslationHistory revision={row.revision} name={row.term} disabled={held || dirty}
-          load={async () => (await translationRequest<{ history: ReviewHistoryEntry[] }>(`/api/dev/translation-glossary/history?locale=${encodeURIComponent(row.locale)}&term=${encodeURIComponent(row.term)}`)).history}
-          restore={async (restoreRevision) => {
-            const restored = await translationRequest<Partial<GlossaryRowPatch>>("/api/dev/translation-glossary/history", { locale: row.locale, term: row.term, expectedRevision: row.revision, restoreRevision });
-            await onRestored(restored.rows && restored.pending ? { rows: restored.rows, pending: restored.pending } : null);
-          }} />
-      </EditorTableCell>
-      <EditorTableCell label="Type" className="theme-text-secondary text-xs">
-        {kindLabel(row.kind)}
-      </EditorTableCell>
-      <EditorTableCell label="Translation" wide>
+        {/* The runbook's column names, kept as facts: what kind of term, and who wrote the wording (reviewer names stay in History). */}
+        <dl className="theme-text-muted flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
+          <div className="flex gap-1"><dt className="sr-only">Type</dt><dd>{kindLabel(row.kind)}</dd></div>
+          <div className="flex gap-1"><dt>Written by</dt><dd className="theme-text-secondary">{writtenBy}</dd></div>
+        </dl>
+      </div>
+      <div className="min-w-0 space-y-2 md:col-start-2 md:row-start-1">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <EditorStatusPill tone={status.tone} inline>{status.label}</EditorStatusPill>
+          {row.approved_target && row.status === "draft" ? (
+            <span className="theme-text-secondary text-xs">Readers see: <span lang={row.locale} dir="auto" className="theme-text-primary">{row.approved_target}</span></span>
+          ) : null}
+          {dirty ? (
+            <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs">
+              <span aria-hidden className="size-1.5 rounded-full bg-[var(--theme-accent)]" />
+              Unsaved
+            </span>
+          ) : null}
+        </div>
         <Input
           inputSize="sm"
           aria-label={`Translation for ${row.term}`}
@@ -295,19 +296,9 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
             else submit();
           }}
         />
+        {unchecked && !dirty ? <p className="theme-text-muted text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
         {/* The shared reason control, once there is a change to explain; a term's natural reason is chosen to start, in plain view. */}
-        {dirty ? <div className="mt-2"><ReasonPicker value={reason} onChange={editReason} disabled={held} needed noteAriaLabel={`Note for ${row.term}`} /></div> : null}
-      </EditorTableCell>
-      <EditorTableCell label="Status">
-        {row.approved_target && row.status === "draft" ? <p className="theme-text-secondary mb-1 text-xs">Readers see: <span lang={row.locale} dir="auto">{row.approved_target}</span></p> : null}
-        <EditorStatusPill tone={unchecked ? "info" : row.status === "approved" ? "success" : "warning"}>{unchecked ? "Live, never checked" : capitalize(STATE_WORD[row.status])}</EditorStatusPill>
-        {unchecked ? <p className="theme-text-faint mt-1 text-xs">Readers already see this wording. Confirm it as it stands, or edit it and save a draft.</p> : null}
-      </EditorTableCell>
-      <EditorTableCell label="Written by" className="theme-text-secondary text-xs">
-        {/* Who wrote the wording, not who reviewed it; names stay in History. */}
-        {row.review_provenance === "legacy_unverified" ? "Older import" : row.source === "human" ? "A person" : "Machine"}
-      </EditorTableCell>
-      <EditorTableCell>
+        {dirty ? <ReasonPicker value={reason} onChange={editReason} disabled={held} needed noteAriaLabel={`Note for ${row.term}`} /> : null}
         {/*
           One main action per state: an edit is saved and approved in one step,
           a clean draft is approved, live wording is confirmed. Save draft stays
@@ -320,22 +311,50 @@ function GlossaryTableRow({ row, editDrafts, gloss, usage, canDefine, disabled, 
           approvable={row.status === "draft"}
           busy={held}
           blocked={blocked}
+          quiet
           onSave={save}
           onSaveAndApprove={() => onSaveAndApprove(editedRow(), draft.trim(), sentReason())}
           onApprove={() => onApprove(row)}
           extra={unchecked ? (
-            <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={held} onClick={() => onConfirm(row)}>
+            <Button type="button" variant="outline" size="sm" data-row-action="approve" disabled={held} onClick={() => onConfirm(row)}>
               <Icon icon="lucide:badge-check" size={14} />
               Confirm
             </Button>
           ) : null}
-        />
+        >
+          {writing ? <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs" aria-hidden><Icon icon="lucide:loader-circle" size={12} className="motion-safe:animate-spin" />Saving</span> : null}
+        </ApprovalActions>
         {/* Always mounted, so screen readers announce the result when it arrives. */}
-        <p role="status" className={notice ? `mt-1 text-xs ${notice.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}` : "sr-only"}>
-          {notice?.message ?? ""}
-        </p>
-      </EditorTableCell>
-    </EditorTableRow>
+        <div role="status" className={notice ? `flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${notice.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "text-[color:var(--theme-success-text)]"}` : "sr-only"}>
+          {notice ? (
+            <>
+              <span className="inline-flex items-start gap-1.5">
+                <Icon icon={notice.tone === "danger" ? (notice.frozen ? "lucide:circle-pause" : "lucide:circle-alert") : "lucide:circle-check"} size={13} className="mt-px shrink-0" />
+                <span>{notice.message}</span>
+              </span>
+              {notice.conflict ? (
+                <Button type="button" variant="link" size="auto" className="text-xs" onClick={() => onReload(row.term)}>Load the latest version</Button>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+      </div>
+      <div className="min-w-0 md:col-span-2 md:row-start-2">
+        <div className="flex flex-wrap items-start gap-x-5 [&>*:has([aria-expanded=true])]:basis-full">
+          <div className="min-w-0">
+            <GlossaryUsageDisclosure term={row.term} initialData={usage} />
+          </div>
+          <div className="min-w-0 text-xs">
+            <TranslationHistory revision={row.revision} name={row.term} disabled={held || dirty}
+              load={async () => (await translationRequest<{ history: ReviewHistoryEntry[] }>(`/api/dev/translation-glossary/history?locale=${encodeURIComponent(row.locale)}&term=${encodeURIComponent(row.term)}`)).history}
+              restore={async (restoreRevision) => {
+                const restored = await translationRequest<Partial<GlossaryRowPatch>>("/api/dev/translation-glossary/history", { locale: row.locale, term: row.term, expectedRevision: row.revision, restoreRevision });
+                await onRestored(restored.rows && restored.pending ? { rows: restored.rows, pending: restored.pending } : null);
+              }} />
+          </div>
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -352,7 +371,7 @@ type GlossaryDefinitionProps = {
  * swaps in a one-line input. Enter or leaving the field saves a changed,
  * non-empty definition, so clicking away never drops typed text; only
  * Escape puts the text back unchanged. The server decides what is too long
- * or empty, and its message lands in the notice.
+ * or empty, and its message lands on the row.
  */
 function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionProps) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -375,24 +394,27 @@ function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionPro
   };
   if (editing) {
     return (
-      <Input
-        ref={input}
-        inputSize="sm"
-        className="mt-1"
-        aria-label={`Definition for ${term}`}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={() => close(true)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-            event.preventDefault();
-            close(true);
-          } else if (event.key === "Escape") {
-            event.preventDefault();
-            close(false);
-          }
-        }}
-      />
+      <div className="space-y-1">
+        <Input
+          ref={input}
+          inputSize="sm"
+          aria-label={`Definition for ${term}`}
+          aria-describedby={`${encodeURIComponent(term)}-definition-hint`}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={() => close(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              close(true);
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              close(false);
+            }
+          }}
+        />
+        <p id={`${encodeURIComponent(term)}-definition-hint`} className="theme-text-faint text-xs">Enter or leaving the field saves; Escape puts it back. Every language shows this definition.</p>
+      </div>
     );
   }
   return (
@@ -400,7 +422,7 @@ function GlossaryDefinition({ term, gloss, held, onSave }: GlossaryDefinitionPro
       type="button"
       variant="quiet"
       size="auto"
-      className={`group inline-flex items-start gap-1.5 whitespace-normal text-left text-xs font-normal ${gloss ? "theme-text-secondary" : ""}`}
+      className={`group -mx-1 inline-flex items-start gap-1.5 whitespace-normal rounded-control px-1 text-left text-xs font-normal leading-relaxed ${gloss ? "theme-text-secondary" : "theme-text-faint"}`}
       disabled={held}
       onClick={() => setDraft(gloss ?? "")}
     >
