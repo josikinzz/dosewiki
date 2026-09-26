@@ -2346,10 +2346,17 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (upper === "GET") {
       if (pathname === "/api/editor/contributor-profiles") return json(200, structuredClone(CONTRIBUTOR_PROFILES_SEED.filter((profile) => !people.removedProfiles.has(profile.key))));
       if (pathname === "/api/dev/proposals/count") return json(200, { ok: true, submitted: proposals.filter((row) => row.status === "submitted").length });
-      if (pathname === "/api/dev/trip-reports/needs-review-count") return json(200, { ok: true, count: 0 });
-      if (pathname === "/api/feedback/pending-count") return json(200, { ok: true, article: 0, site: 0, total: 0 });
-      if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: 0 });
-      if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: 0 });
+      // Rail counts come from the same seeds the queues list, so the rail, Home
+      // and each queue agree (the routes count the same statuses the queues treat as waiting).
+      const pending = (row) => row.status === "new" || row.status === "reviewing";
+      if (pathname === "/api/dev/trip-reports/needs-review-count") return json(200, { ok: true, count: inbox.trip.filter((row) => TRIP_NEEDS_REVIEW.includes(row.status)).length });
+      if (pathname === "/api/feedback/pending-count") {
+        const article = inbox.article.filter(pending).length;
+        const site = inbox.site.filter(pending).length;
+        return json(200, { ok: true, article, site, total: article + site });
+      }
+      if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: citationQueueSummaries(citationEvidence, "open").length });
+      if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: inbox.glossary.filter(pending).length });
       if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(library.layouts));
       // The commit button's server check: ready, so a commit is not held back.
       if (pathname === "/api/editor-config-health") return json(200, { canSaveToPostgres: true, issues: [], checkedAt: new Date(FIXTURE_EPOCH).toISOString() });

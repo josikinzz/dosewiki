@@ -74,6 +74,20 @@ describe("journey fixtures", () => {
     }
   });
 
+  it("counts the rail badges from the same seeds the queues list", () => {
+    const fixture = createJourneyFixture();
+    const waitingTrips = get(fixture, "/api/trip-report-submissions/queue", "?scope=needs-review").json.submissions.length;
+    assert.equal(get(fixture, "/api/dev/trip-reports/needs-review-count").json.count, waitingTrips);
+    const feedback = get(fixture, "/api/feedback/pending-count").json;
+    assert.equal(feedback.total, feedback.article + feedback.site);
+    assert.ok(feedback.article > 0 && feedback.site > 0);
+    const openCitations = get(fixture, "/api/citation-evidence/queue", "?status=open").json.queue.length;
+    assert.equal(get(fixture, "/api/citation-evidence/open-count").json.count, openCitations);
+    const empty = createJourneyFixture({ state: "empty" });
+    assert.equal(get(empty, "/api/feedback/pending-count").json.total, 0);
+    assert.equal(get(empty, "/api/dev/trip-reports/needs-review-count").json.count, 0);
+  });
+
   it("lists nothing in the empty state", () => {
     const fixture = createJourneyFixture({ state: "empty" });
     assert.deepEqual(get(fixture, "/api/dev/writing-article").json.articles, []);
