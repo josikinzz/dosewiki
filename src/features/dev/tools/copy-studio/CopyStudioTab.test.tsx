@@ -7,7 +7,12 @@ import type { CopyBlockRow } from "./copyStudioUtils";
 const query = vi.hoisted(() => ({ rows: [] as CopyBlockRow[] }));
 
 vi.mock("@/hooks/useEditorRead", () => ({
-  useEditorRead: (name: string) => (name === "copyBlocks:getEditorCatalogue" ? query.rows : undefined),
+  useEditorReadState: (name: string) => ({
+    data: name === "copyBlocks:getEditorCatalogue" ? query.rows : undefined,
+    error: null,
+    fetching: false,
+    retry: vi.fn(),
+  }),
   useInvalidateEditorReads: () => async () => undefined,
 }));
 /** `state` overrides the snapshot read, to hold the tab in its loading or failed state. */
@@ -25,6 +30,12 @@ import { CopyStudioTab } from "./CopyStudioTab";
 function LeaveProbe({ onLeave }: { onLeave: () => void }) {
   const { confirmExit } = useUnsavedWorkRegistry();
   return <button type="button" onClick={() => confirmExit(onLeave, "leave")}>Leave editor</button>;
+}
+
+/** The writes a test's fetch saw; the tool also reads the open proposals with a GET. */
+function writes(fetchMock: ReturnType<typeof vi.fn>): [string, RequestInit][] {
+  return (fetchMock.mock.calls as [string, RequestInit | undefined][])
+    .filter(([, init]) => init?.method && init.method !== "GET") as [string, RequestInit][];
 }
 
 function railOptions(): HTMLElement[] {
@@ -72,7 +83,7 @@ describe("CopyStudioTab", () => {
     expect(keys.some((entry) => entry.startsWith("Reuse notice"))).toBe(true);
     expect(keys.some((entry) => entry.includes("SEO"))).toBe(true);
     // The result counter tracks the filtered rail, not the catalogue's size.
-    expect(screen.getByText(`${keys.length} found`)).toBeTruthy();
+    expect(screen.getByText(`${keys.length} matches in every section`)).toBeTruthy();
 
     await userEvent.clear(search);
     await userEvent.paste("footer tagline");
@@ -87,10 +98,11 @@ describe("CopyStudioTab", () => {
     render(<CopyStudioTab initialKey="about-doc-link-blurbs" canApprove />);
 
     const sections = screen.getByRole("group", { name: "Copy sections" });
-    expect(within(sections).getByRole("button", { name: "Site" }).getAttribute("aria-pressed")).toBe("true");
-    const groupTabs = screen.getByRole("tablist", { name: "Copy groups" });
-    expect(within(groupTabs).getByRole("tab", { name: /About/ }).getAttribute("aria-selected")).toBe("true");
-    expect(within(groupTabs).queryByRole("tab", { name: /Docs/ })).toBeNull();
+    expect(within(sections).getByRole("button", { name: /^Site/ }).getAttribute("aria-pressed")).toBe("true");
+    const group = screen.getByRole("combobox", { name: "Group" }) as HTMLSelectElement;
+    expect(group.value).toBe("About");
+    expect(within(group).queryByRole("option", { name: /Docs|Code/ })).toBeNull();
+    expect(screen.getByRole("heading", { level: 3, name: /Documentation card blurbs/ })).toBeTruthy();
 
     expect(activeRailKey()).toContain("about-doc-link-blurbs");
   });
@@ -98,11 +110,11 @@ describe("CopyStudioTab", () => {
   it("shows only the chosen section's groups and writes the open block into the address", async () => {
     render(<CopyStudioTab canApprove />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Docs" }));
-    const groupTabs = screen.getByRole("tablist", { name: "Copy groups" });
-    const tabs = within(groupTabs).getAllByRole("tab").map((tab) => tab.textContent ?? "");
-    expect(tabs.every((tab) => tab.startsWith("Docs"))).toBe(true);
-    expect(tabs).toHaveLength(3);
+    await userEvent.click(screen.getByRole("button", { name: /^Docs/ }));
+    const group = screen.getByRole("combobox", { name: "Group" });
+    const labels = within(group).getAllByRole("option").map((option) => option.textContent ?? "");
+    // The section already says Docs, so the groups drop the prefix.
+    expect(labels.map((label) => label.replace(/ \(\d+\)$/, ""))).toEqual(["Code", "How", "License"]);
 
     const options = railOptions();
     expect(options.length).toBeGreaterThan(0);
@@ -120,7 +132,7 @@ describe("CopyStudioTab", () => {
     const field = screen.getByRole("textbox", { name: "Copy" });
     const before = (field as HTMLTextAreaElement).value;
     await userEvent.type(field, " Edited.");
-    expect(screen.getByText("Unsaved changes")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes")).toBeTruthy();
 
     const other = railOptions().find((option) => option.textContent?.includes("about-doc-link-blurbs"))!;
     await userEvent.click(other);
@@ -129,10 +141,10 @@ describe("CopyStudioTab", () => {
     expect((screen.getByRole("textbox", { name: "Copy" }) as HTMLTextAreaElement).value).toBe(`${before} Edited.`);
     expect(activeRailKey()).toContain("about-reuse-notice");
 
-    await userEvent.click(screen.getByRole("tab", { name: /Footer/ }));
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Group" }), "Footer");
     await userEvent.click(screen.getByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(activeRailKey()).toContain("footer-"));
-    expect(screen.queryByText("Unsaved changes")).toBeNull();
+    expect(screen.queryByText("Unpublished changes")).toBeNull();
   });
 
   it("lets an admin save a block directly and removes stored copy only after confirming", async () => {
@@ -149,21 +161,27 @@ describe("CopyStudioTab", () => {
 
     await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
     await userEvent.click(saveButton);
-    expect(fetchMock).not.toHaveBeenCalled();
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish shared copy?" })).getByRole("button", { name: "Publish copy" }));
+    expect(writes(fetchMock)).toHaveLength(0);
+    const confirmDialog = screen.getByRole("dialog", { name: "Publish “Reuse notice”?" });
+    // The confirm shows the change it publishes.
+    expect(within(confirmDialog).getByText(/Edited\./)).toBeTruthy();
+    await userEvent.click(within(confirmDialog).getByRole("button", { name: "Publish copy" }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    await waitFor(() => expect(writes(fetchMock)).toHaveLength(1));
+    const [url, init] = writes(fetchMock)[0];
     expect(url).toBe("/api/dev/copy-block");
     expect(JSON.parse(init.body as string)).toMatchObject({ key: "about-reuse-notice" });
+    expect(await screen.findByText(/Published “Reuse notice”/)).toBeTruthy();
 
+    // Removal folds shut at the end of the pane.
+    await userEvent.click(screen.getByRole("button", { name: /Remove the stored copy/ }));
     await userEvent.click(screen.getByRole("button", { name: "Remove stored copy" }));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(writes(fetchMock)).toHaveLength(1);
     const dialog = screen.getByRole("dialog", { name: "Remove stored copy?" });
     await userEvent.click(within(dialog).getByRole("button", { name: "Remove stored copy" }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    const [, removeInit] = fetchMock.mock.calls[1] as [string, RequestInit];
+    await waitFor(() => expect(writes(fetchMock)).toHaveLength(2));
+    const [, removeInit] = writes(fetchMock)[1];
     expect(removeInit.method).toBe("DELETE");
     expect(JSON.parse(removeInit.body as string).key).toBe("about-reuse-notice");
   });
@@ -187,8 +205,8 @@ describe("CopyStudioTab", () => {
     expect(screen.getByText("Changes to propose")).toBeTruthy();
     await userEvent.click(submitButton);
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    await waitFor(() => expect(writes(fetchMock)).toHaveLength(1));
+    const [url, init] = writes(fetchMock)[0];
     expect(url).toBe("/api/dev/proposals");
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
@@ -228,7 +246,7 @@ describe("CopyStudioTab", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Submit for review" }));
 
     await waitFor(() => expect(onLeave).toHaveBeenCalledTimes(1));
-    expect(fetchMock.mock.calls[0][0]).toBe("/api/dev/proposals");
+    expect(writes(fetchMock)[0][0]).toBe("/api/dev/proposals");
   });
 
   it("never publishes an admin's block from the shell dialog, only discards it", async () => {
@@ -252,7 +270,7 @@ describe("CopyStudioTab", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
 
     expect(onLeave).toHaveBeenCalledTimes(1);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(writes(fetchMock)).toHaveLength(0);
   });
 
   it("finds a block by a phrase from its stored text", async () => {
@@ -279,14 +297,14 @@ describe("CopyStudioTab", () => {
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
 
     expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(before);
-    expect(screen.getByText("Proposal pending")).toBeTruthy();
+    expect(screen.getAllByText("Proposal pending").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Submit for review" })).toBeDisabled();
 
     const other = railOptions().find((option) => option.textContent?.includes("about-doc-link-blurbs"))!;
     await userEvent.click(other);
     expect(screen.queryByRole("dialog", { name: /Discard changes to/ })).toBeNull();
     await waitFor(() => expect(activeRailKey()).toContain("about-doc-link-blurbs"));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(writes(fetchMock)).toHaveLength(1);
   });
 
   it("renders the preview and the diff before the publish toolbar", async () => {
@@ -294,17 +312,18 @@ describe("CopyStudioTab", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
 
     const publish = screen.getByRole("button", { name: "Publish copy" });
-    for (const heading of ["Preview", "Pending changes"]) {
+    for (const heading of ["Preview", "Changes"]) {
       const section = screen.getByRole("heading", { name: heading });
       expect(section.compareDocumentPosition(publish) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
   });
 
-  it("names the two ways back to the default apart and says what each does", () => {
+  it("names the two ways back to the default apart and says what each does", async () => {
     query.rows = [STORED_REUSE_NOTICE];
     render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
 
     const draftReset = screen.getByRole("button", { name: "Load default into draft" });
+    await userEvent.click(screen.getByRole("button", { name: /Remove the stored copy/ }));
     const remove = screen.getByRole("button", { name: "Remove stored copy" });
     expect(draftReset).toHaveAccessibleDescription(/draft/i);
     expect(remove).toHaveAccessibleDescription(/public pages/i);
@@ -337,7 +356,95 @@ describe("CopyStudioTab", () => {
     await userEvent.click(screen.getByRole("button", { name: "Submit for review" }));
     expect(await screen.findByText("Production changed. Your draft is preserved.")).toBeTruthy();
     expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(`${STORED_REUSE_NOTICE.body} Local.`);
-    const input = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const input = JSON.parse(writes(fetchMock)[0][1].body as string);
     expect(input.baselines[0].document.body).toBe(STORED_REUSE_NOTICE.body);
+  });
+  /** A fetch that answers the proposal list and hands every write to `write`. */
+  function routedFetch(write: (url: string, init: RequestInit) => { ok: boolean; status: number; body: unknown }) {
+    return vi.fn(async (url: string, init?: RequestInit) => {
+      if (!init?.method || init.method === "GET") return { ok: true, status: 200, json: async () => ({ proposals: [] }) };
+      const answer = write(url, init);
+      return { ok: answer.ok, status: answer.status, json: async () => answer.body };
+    });
+  }
+
+  it("offers the latest version after someone else published, behind a confirm that says the edits are dropped", async () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    const fetchMock = routedFetch(() => ({ ok: false, status: 409, body: { error: "Published content changed since you opened this editor.", code: "EDIT_CONFLICT" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+    await userEvent.click(screen.getByRole("button", { name: "Publish copy" }));
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Publish copy" }));
+
+    const save = screen.getByRole("contentinfo", { name: "Save" });
+    expect(await within(save).findByText("Someone published this block after you opened it.")).toBeTruthy();
+    // The draft is kept and still editable.
+    expect(screen.getByRole("textbox", { name: "Copy" })).toHaveValue(`${STORED_REUSE_NOTICE.body} Edited.`);
+    expect(screen.getByRole("textbox", { name: "Copy" })).toBeEnabled();
+    await userEvent.click(within(save).getByRole("button", { name: "Load the latest version" }));
+    const dialog = screen.getByRole("dialog", { name: "Load the latest version?" });
+    expect(within(dialog).getByText(/edits here are dropped/)).toBeTruthy();
+  });
+
+  it("says a freeze refusal plainly and keeps the draft editable", async () => {
+    query.rows = [STORED_REUSE_NOTICE];
+    vi.stubGlobal("fetch", routedFetch(() => ({ ok: false, status: 503, body: { error: "Data writes are frozen.", code: "DATA_WRITES_FROZEN" } })));
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+    await userEvent.click(screen.getByRole("button", { name: "Publish copy" }));
+    await userEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Publish copy" }));
+
+    expect(await screen.findByText(/Writes are paused, so your changes were not published/)).toBeTruthy();
+    expect(screen.queryByText(/Publication unconfirmed/)).toBeNull();
+    expect(screen.getByRole("textbox", { name: "Copy" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Discard edits" })).toBeEnabled();
+  });
+
+  it("opens the publish confirm from Cmd+S and never publishes past it", async () => {
+    const fetchMock = routedFetch(() => ({ ok: true, status: 200, body: { ok: true, revision: 1, replayed: false, unchanged: false } }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<CopyStudioTab initialKey="about-reuse-notice" canApprove />);
+
+    await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
+    await userEvent.keyboard("{Meta>}s{/Meta}");
+    expect(screen.getByRole("dialog", { name: "Publish “Reuse notice”?" })).toBeTruthy();
+    expect(writes(fetchMock)).toHaveLength(0);
+  });
+
+  it("warns about a deep link to a key no block has", () => {
+    render(<CopyStudioTab initialKey="no-such-block" canApprove />);
+    expect(screen.getByText(/No copy block has the key "no-such-block"/)).toBeTruthy();
+  });
+
+  it("warns when a draft drops a placeholder the live text uses", async () => {
+    render(<CopyStudioTab initialKey="seo-substances-index-description" canApprove />);
+    const field = screen.getByRole("textbox", { name: "Copy" });
+    await userEvent.clear(field);
+    await userEvent.type(field, "Browse substance records.");
+    expect(screen.getByText(/You removed \{\{siteName\}\}, \{\{substanceCount\}\}/)).toBeTruthy();
+  });
+
+  it("lists every edited block across sections with Edited only", async () => {
+    query.rows = [STORED_REUSE_NOTICE, { key: "footer-tagline", kind: "plain", body: "Stored footer.", label: "Footer tagline", group: "Footer" }];
+    render(<CopyStudioTab canApprove />);
+
+    await userEvent.click(screen.getByRole("button", { name: /^Edited only/ }));
+    expect(railKeys().map((entry) => entry.match(/[a-z]+(?:-[a-z]+)+/)?.[0])).toEqual(["footer-tagline", "about-reuse-notice"]);
+    expect(screen.getByText("2 edited blocks in every section")).toBeTruthy();
+  });
+  it("moves list items up and down and says where each landed", async () => {
+    render(<CopyStudioTab initialKey="about-doc-link-blurbs" canApprove />);
+    const first = (screen.getByRole("textbox", { name: "Item 1" }) as HTMLInputElement).value;
+    const second = (screen.getByRole("textbox", { name: "Item 2" }) as HTMLInputElement).value;
+    expect(screen.getByRole("button", { name: "Move item 1 up" })).toBeDisabled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Move item 1 down" }));
+    expect(screen.getByRole("textbox", { name: "Item 1" })).toHaveValue(second);
+    expect(screen.getByRole("textbox", { name: "Item 2" })).toHaveValue(first);
+    expect(screen.getByText("Item 1 moved to position 2.")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes")).toBeTruthy();
   });
 });

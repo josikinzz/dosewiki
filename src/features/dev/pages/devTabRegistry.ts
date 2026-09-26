@@ -295,6 +295,9 @@ const REGISTRY = [
     data: NO_DATA,
     saveModel: "record",
     withoutApproval: "submits-for-review",
+    // The pane's dock says it: an admin's Publish goes live with no draft step,
+    // which the frame's "record" sentence would misstate.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },

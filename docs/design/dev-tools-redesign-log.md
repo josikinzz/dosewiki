@@ -378,6 +378,32 @@ builds a new shared primitive, add it to **Conventions** and log it under
   `aria-invalid`, and the dock's blocker names the row ("Link 2: ..."). Pure
   rules live in the tool's model (`profileEditModel.ts`).
 
+- **Rows in a windowed `EditorList` share one fixed height.** The list sizes
+  its window from the first measured row and keeps the selected row in view;
+  rows of different heights (one with a pill, one without) make those two
+  fight, and a selection near the bottom of the box loops until React stops
+  it ("Maximum update depth exceeded"). Pin the row (`h-[3.75rem]
+  overflow-hidden` on `EditorListRow`) and pass the matching
+  `estimateRowHeight` (row plus the option's 4px gap). `CopyBlockRowView`
+  is the reference.
+- **Sections in a narrow list column** are a three-column grid of
+  `pillActive`/`ghostPill` buttons (label over count) in the segmented capsule
+  (`SectionChoices` in `CopyStudioTab`, after People's `ViewChoices`), and a
+  tier with more than four options under them is a labelled `EditorSelect`
+  with counts, not a tab strip that wraps or hides options sideways.
+- **Twins sit together.** A record with another publication's wording
+  (`footer-tagline` and `footer-tagline-effect-index`) is listed straight
+  after its base, and the pane links to the other wording
+  (`groupCopyStudioBlocks`, `copyBlockTwin`).
+- **Open proposals show on the record.** A tool whose editors submit
+  proposals reads `GET /api/dev/proposals` (an editor sees their own, an admin
+  everyone's), marks the rows and says in the pane who proposed what with
+  "Open in Change Review", so a reload does not forget a submission and an
+  admin does not publish over one unknowingly (`openCopyProposals`).
+- **A draft that drops what the page fills in says so.** Placeholder changes
+  against the live text are warned beside the field ("You removed
+  {{siteName}}. The page will no longer fill it in.", `placeholderChanges`).
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1073,3 +1099,106 @@ Deferred, with reasons:
 - Palette records for profiles: wants the shared records convention; the deep
   link exists now.
 - "Un-curate" wording: shared with Replication Studio and its tests.
+
+### Pass 10: Copy (`/dev/copy-studio`)
+
+Commit: see `git log --grep "Dev tools redesign: Copy"`.
+Screenshots: `tmp/redesign/copy-studio/before/` and
+`tmp/redesign/copy-studio/after/` (admin dark and light; editor,
+editor_translator, translator and contributor; empty; catalogue failed;
+catalogue loading; block loading; block failed; deep link and unknown deep
+link; list, Effect Index, placeholder and no-default blocks; long markdown;
+dirty and dirty at the bottom; publish, remove and discard dialogs; published;
+conflict; frozen; default loaded into the draft; list item removed and moved;
+placeholder dropped; removal unfolded; editor dirty, submitted and after a
+reload; search by name, by words and with no match; Docs and Other sections;
+Edited only; desktop and phone), captured by
+`tmp/redesign/copy-studio/capture.mjs`. Critique in
+`tmp/redesign/copy-studio/critique.md` (15/40 before), inventory with the
+item-by-item check in `tmp/redesign/copy-studio/inventory.md`, detector
+evidence in `tmp/redesign/copy-studio/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: a failed catalogue read dropped the whole editor to the route
+  error page; it now reads through `useEditorReadState`, shows
+  `LoadErrorState` in the list column, and the list stays usable from the
+  checked-in defaults. A 503 freeze refusal was held as an unconfirmed
+  publication (fields locked, Discard hidden, "retry the same publication");
+  `useCopyIndexOperation` now treats the freeze as a definite refusal (the
+  server's revision check still guards any retry) and the dock says "Writes
+  are paused, so your changes were not published." A revision conflict had no
+  way forward; it now says "Someone published this block after you opened
+  it." with "Load the latest version" behind a destructive confirm
+  (`replaceOnNext` lets the next keyed read replace the dirty draft).
+- The frame said "Save draft stays private. Publish goes live." over a tool
+  with no draft: the registry now sets `saveLine: "in-tool"` and the dock
+  says "Publish goes live at once." (`COPY_PUBLISH_SAVE_COPY`) for admins and
+  the proposal sentence for editors.
+- Layout: the editor workspace. The list column (sticky from `lg`) holds the
+  count ("453 blocks, 4 edited"), `SectionChoices` (six sections with counts,
+  two rows of three), a Group `EditorSelect` with counts (the section prefix
+  dropped: "Code", not "Docs · Code"), search with a glyph, `/` cap and
+  Escape, a count line ("8 in Home", "12 matches in every section"), "Edited
+  only" (every stored block across sections), and the windowed listbox with
+  fixed-height rows (label, Effect Index / Edited / Pending pills, key, the
+  place while searching, matches highlighted, "matched its default wording"
+  for a stored block the catalogue lists without text). `CopyBlockPane.tsx`
+  docks on the right: the label as the heading (sr-only "Editing"), key,
+  section / group, "Stored <relative>" (and by whom for an admin), a source
+  pill, the twin line with "Open the Effect Index wording" (or the dose.wiki
+  one), an open proposal line, corner Close, Back to list below `lg`. Wide
+  screens open the group's first block; phones open nothing until a pick; a
+  deep link scrolls the pane in and focuses its heading once loaded; an
+  unknown deep link warns at the list.
+- Pane body: the field (grows with its words), placeholders the page fills in
+  with warnings for dropped or new ones, Preview in a well (bulleted lists,
+  "This block will be empty"), Changes (diff only when dirty), Default
+  wording (show the default, Load default into draft with its reason when
+  off, and Remove stored copy folded shut; a block with no default says it
+  deletes for good). Save dock: result notice, the one blocker (unconfirmed
+  publication, loading, failed, pending proposal), Publish copy / Submit for
+  review with the Cmd+S cap, Discard edits (new), state phrase ("Unpublished
+  changes" / "Changes to propose" / "Proposal pending" / "No changes yet"),
+  SaveLine. The publish confirm is titled with the block and shows the diff.
+- Keys: Cmd+S (Publish asks first; Submit goes straight out, as the button
+  does) and `/`, both in the `?` sheet.
+- `CopyBlockFields` (shared with the public contextual editor, same props plus
+  optional `lengthGuide`): sentence descriptions, a numbered list with Move up
+  / Move down (new), Remove as an icon on phones, focus follows add, move,
+  remove and undo, an item count against 64, SEO text shows a character count
+  against the search-result length.
+- Palette: every checked-in block is a record ("Copy · Group · key"), loaded
+  from the bundled defaults only when the palette opens (`devRecordSources`).
+- Contextual editor (`CopyBlock.editor.tsx`) wording aligned: "Publish
+  “<label>”?", "Publish copy", "Published “<label>”."
+- Shared, backward compatible: `useCopyIndexOperation` throws
+  `CopyIndexRefusal` (an `Error` with `status`, `code`, `conflict`, `frozen`)
+  and clears the unconfirmed state on the freeze refusal (About and Index
+  layout read it unchanged); `copyStudioUtils` gains `copyBlockBaseKey`,
+  `copyBlockTwin`, `copySearchMatch`, `placeholderChanges`,
+  `countSectionBlocks`, `describeCopySource`, `openCopyProposals`,
+  `copyLengthGuide`, and preview stand-ins for `siteName`, `reviewer`,
+  `discordInvite`.
+- Journeys fixtures: `COPY_BLOCKS_SEED` (stored markdown, plain, list and a
+  block with no default), `/api/editor/copy-blocks` (metadata only, as the
+  real catalogue), `/api/dev/copy-block` GET by key with its revision, POST
+  and DELETE with the admin floor, the `expected` / `expectedRevision` check,
+  operation replay, `conflicted` and `frozen`; with a unit test.
+
+Deferred, with reasons:
+
+- "Edited" means a stored row exists, not that it differs from the default:
+  the catalogue route returns metadata only, so the list cannot compare text.
+- A page map ("Appears on") and a live link per block: no source names which
+  pages read a key.
+- Publishing text equal to the default deleting the row: server behaviour.
+- The phantom blank removed line in the diff for an inserted paragraph:
+  the shared `buildTextChangelog` builder.
+- Palette records for stored blocks with no checked-in default: they come
+  only from the catalogue read, which the palette does not make.
+- The disabled accent button reading as enabled in light mode: the shared
+  `Button` recipe.
+- `EditorList`'s loop with rows of different heights is avoided here, not
+  fixed in the shared list (recorded as a convention above).
+

@@ -320,6 +320,36 @@ describe("journey fixtures", () => {
     assert.deepEqual(admin.unhandled, []);
   });
 
+  it("answers Copy: a metadata catalogue, keyed reads, and admin writes with the revision check", () => {
+    const fixture = createJourneyFixture();
+    const catalogue = get(fixture, "/api/editor/copy-blocks").json;
+    assert.ok(catalogue.some((row) => row.key === "about-reuse-notice"));
+    assert.ok(catalogue.every((row) => !("body" in row) && !("items" in row)));
+    const read = get(fixture, "/api/dev/copy-block", "?key=about-reuse-notice").json;
+    assert.equal(read.revision, 1);
+    assert.match(read.document.body, /CC0/);
+    assert.deepEqual(get(fixture, "/api/dev/copy-block", "?key=footer-supporter-prefix").json, { document: null, revision: 0 });
+
+    const draft = { key: "about-reuse-notice", kind: "markdown", label: "Reuse notice", group: "About", body: "New words." };
+    const stale = fixture.respond({ method: "POST", pathname: "/api/dev/copy-block", body: { ...draft, expected: read.document, expectedRevision: 0, operationId: "op-0" } });
+    assert.equal(stale.status, 409);
+    const saved = post(fixture, "/api/dev/copy-block", { ...draft, expected: read.document, expectedRevision: 1, operationId: "op-1" });
+    assert.deepEqual([saved.status, saved.json.revision, saved.json.unchanged], [200, 2, false]);
+    assert.equal(post(fixture, "/api/dev/copy-block", { ...draft, expected: read.document, expectedRevision: 1, operationId: "op-1" }).json.replayed, true);
+    const removed = fixture.respond({ method: "DELETE", pathname: "/api/dev/copy-block", body: { key: draft.key, expected: { ...draft, revision: 2 }, expectedRevision: 2, operationId: "op-2" } });
+    assert.deepEqual([removed.status, removed.json.removed], [200, true]);
+    assert.equal(get(fixture, "/api/dev/copy-block", "?key=about-reuse-notice").json.document, null);
+
+    assert.equal(post(createJourneyFixture({ role: "editor" }), "/api/dev/copy-block", { ...draft, expected: null, expectedRevision: 0 }).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/copy-block", { ...draft, expected: null, expectedRevision: 0 }).status, 503);
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const before = get(conflicted, "/api/dev/copy-block", "?key=about-reuse-notice").json;
+    assert.equal(post(conflicted, "/api/dev/copy-block", { ...draft, expected: before.document, expectedRevision: before.revision }).status, 409);
+    const after = get(conflicted, "/api/dev/copy-block", "?key=about-reuse-notice").json;
+    assert.equal(post(conflicted, "/api/dev/copy-block", { ...draft, expected: after.document, expectedRevision: after.revision }).status, 200);
+    assert.deepEqual(get(createJourneyFixture({ state: "empty" }), "/api/editor/copy-blocks").json, []);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

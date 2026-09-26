@@ -484,6 +484,22 @@ export const PLAYLISTS_SEED = Object.freeze([
 /** The site-wide banner glyph size the fixture stores. */
 export const BANNER_ICON_SIZE_SEED = 40;
 
+/**
+ * Stored copy blocks (Copy): rows that override a checked-in default, plus one
+ * block stored with no default at all (it lists under "Other" and has no
+ * default to go back to). The catalogue route answers metadata only, as
+ * `copyBlocks.getEditorCatalogue` does; the keyed read answers the full row.
+ */
+export const COPY_BLOCKS_SEED = Object.freeze([
+  {
+    key: "about-reuse-notice", kind: "markdown", label: "Reuse notice", group: "About", hoursAgo: 30,
+    body: "Writing by dose.wiki editors, data schemas and normalization work is licensed [CC0](/docs/license): it is in the public domain.\n\nThird-party content such as quoted text, reagent data or replications may carry other terms.",
+  },
+  { key: "footer-tagline", kind: "plain", label: "Footer tagline", group: "Footer", hoursAgo: 200, body: "dose.wiki does not endorse drug use. Information here is for harm reduction and education." },
+  { key: "home-loading-lines", kind: "list", label: "Loading lines", group: "Home", hoursAgo: 5, items: ["Weighing the evidence", "Checking the doses", "Reading the fine print"] },
+  { key: "launch-week-note", kind: "markdown", label: "Launch week note", group: "Launch", hoursAgo: 900, body: "Thanks for visiting during **launch week**. Tell us what [reads badly](/about#contact)." },
+].map((row) => Object.freeze({ ...row, ...(row.items ? { items: Object.freeze(row.items) } : {}) })));
+
 function titleCase(slug) {
   return slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 }
@@ -618,6 +634,18 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     operations: new Map(),
     iconSize: BANNER_ICON_SIZE_SEED,
   };
+
+  /** Copy: stored rows by key with their revision, the revision of every key ever written, and answered operations. */
+  const copy = {
+    rows: new Map((state === "empty" ? [] : COPY_BLOCKS_SEED).map(({ hoursAgo, ...row }, index) => [row.key, {
+      ...structuredClone(row),
+      updatedAt: new Date(FIXTURE_EPOCH - hoursAgo * 3_600_000).toISOString(),
+      updatedBy: index === 1 ? FIXTURE_OTHER_ADMIN : FIXTURE_EMAIL,
+    }])),
+    revisions: new Map(),
+    operations: new Map(),
+  };
+  for (const key of copy.rows.keys()) copy.revisions.set(key, 1);
 
   /** Replication playlists keyed by key (Playlists). */
   const playlists = new Map(
@@ -806,6 +834,53 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
     banners.operations.set(changeId, answer);
     return json(200, { ok: true, ...structuredClone(answer) });
+  }
+
+  /** The comparable content of a copy row, for the route's `expected` check. */
+  function copyContent(row) {
+    if (!row || typeof row !== "object") return null;
+    return JSON.stringify({ key: row.key, kind: row.kind, body: row.body ?? null, items: row.items ?? null, label: row.label, group: row.group, flavor: row.flavor ?? null });
+  }
+
+  /** `POST` and `DELETE /api/dev/copy-block`: admin only, with the revision check and operation replay. */
+  function writeCopyBlock(method, body) {
+    if (fixture.role !== "admin") return json(403, { error: "Only an admin can publish copy. Submit it for review instead.", code: "FORBIDDEN" });
+    const key = String(body.key ?? "");
+    const operationId = String(body.operationId ?? "");
+    const replay = copy.operations.get(operationId);
+    if (replay) return json(200, { ...replay, replayed: true });
+    if (fixture.state === "conflicted" && !contested.has(`copy:${key}`)) {
+      contested.add(`copy:${key}`);
+      const existing = copy.rows.get(key);
+      if (existing) {
+        const edit = existing.kind === "list" ? { items: [...(existing.items ?? []), "Added by someone else"] } : { body: `${existing.body ?? ""} (edited by someone else)` };
+        Object.assign(existing, edit, { updatedAt: tick(), updatedBy: FIXTURE_OTHER_ADMIN });
+      }
+      copy.revisions.set(key, (copy.revisions.get(key) ?? 0) + 1);
+    }
+    const revision = copy.revisions.get(key) ?? 0;
+    const existing = copy.rows.get(key) ?? null;
+    if (body.expectedRevision !== revision || copyContent(body.expected) !== copyContent(existing)) {
+      return json(409, { error: "Published content changed since you opened this editor. Your draft is preserved. Reload the latest source and reconcile before publishing.", code: "EDIT_CONFLICT" });
+    }
+    let answer;
+    if (method === "DELETE") {
+      if (!existing) return json(200, { ok: true, key, removed: false, revision, replayed: false, unchanged: true });
+      copy.rows.delete(key);
+      copy.revisions.set(key, revision + 1);
+      answer = { ok: true, key, removed: true, revision: revision + 1, replayed: false, unchanged: false };
+    } else {
+      const next = {
+        key, kind: body.kind, label: body.label, group: body.group, ...(body.flavor ? { flavor: body.flavor } : {}),
+        ...(body.kind === "list" ? { items: [...(body.items ?? [])] } : { body: String(body.body ?? "") }),
+      };
+      if (existing && copyContent(existing) === copyContent(next)) return json(200, { ok: true, key, updated: true, revision, replayed: false, unchanged: true });
+      copy.rows.set(key, { ...next, updatedAt: tick(), updatedBy: fixture.session.user.email });
+      copy.revisions.set(key, revision + 1);
+      answer = { ok: true, key, updated: Boolean(existing), revision: revision + 1, replayed: false, unchanged: false };
+    }
+    if (operationId) copy.operations.set(operationId, answer);
+    return json(200, answer);
   }
 
   /** Whether the session may change a playlist: its owner, or any admin. */
@@ -1277,6 +1352,23 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         Object.assign(row, { status: to, reviewed_by: actor });
         return json(200, key === "trip" ? { ok: true, submission: structuredClone(row) } : { ok: true, feedback: structuredClone(row) });
       });
+    }
+
+    // Copy: the metadata-only catalogue, one block by key with its revision, and the admin writes.
+    if (pathname === "/api/editor/copy-blocks" && upper === "GET") {
+      return toolRead(() => json(200, [...copy.rows.values()].map(({ key, flavor, kind, label, group, updatedAt, updatedBy }) => ({ key, flavor, kind, label, group, updatedAt, updatedBy }))));
+    }
+    if (pathname === "/api/dev/copy-block") {
+      if (upper === "GET") {
+        const key = params.get("key") ?? "";
+        if (!/^[a-z0-9][a-z0-9-]*$/.test(key)) return json(400, { error: "A valid copy key is required." });
+        return toolRead(() => {
+          const row = copy.rows.get(key);
+          const revision = copy.revisions.get(key) ?? 0;
+          return json(200, { document: row ? { ...structuredClone(row), revision } : null, revision });
+        });
+      }
+      if (upper === "POST" || upper === "DELETE") return toolWrite(() => writeCopyBlock(upper, body ?? {}));
     }
 
     // Change log: the route caps `limit` at 500, as `changelog.getRecent` does.
