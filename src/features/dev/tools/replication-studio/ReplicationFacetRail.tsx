@@ -82,7 +82,7 @@ function FacetSection({
           {title}
         </h3>
         {active.length > 0 ? (
-          <span className="theme-accent-emphasis font-mono text-xs tabular-nums">
+          <span className="theme-accent-emphasis text-xs tabular-nums">
             {active.length} on
           </span>
         ) : null}
@@ -119,7 +119,7 @@ function FacetSection({
                       onChange={() => onToggleFacet(kind, entry.key)}
                     />
                     <span className="min-w-0 flex-1 truncate">{entry.label}</span>
-                    <span className="theme-text-faint font-mono text-xs tabular-nums">{count}</span>
+                    <span className="theme-text-faint text-xs tabular-nums">{count}</span>
                   </label>
                 </li>
               );
@@ -184,18 +184,18 @@ export function ReplicationFacetRail({
             type="search"
             inputSize="sm"
             aria-label="Search replications"
+            aria-keyshortcuts="/"
             placeholder="Title, artist, slug"
             autoComplete="off"
             className="pl-9 pr-8"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
           />
-          <kbd
-            aria-hidden="true"
-            className="theme-text-faint pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-[color:var(--editor-panel-border)] px-1.5 font-mono text-xs"
-          >
-            /
-          </kbd>
+          {query ? null : (
+            <span aria-hidden className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden">
+              <kbd className="theme-dev-kbd">/</kbd>
+            </span>
+          )}
         </div>
       </div>
       <div className="border-t border-[color:var(--editor-panel-border)]">

@@ -53,7 +53,7 @@ export function ReplicationStudioWorkspaceNav({
         <h2 className="theme-text-primary font-display text-lg font-semibold leading-tight">
           Replication Studio
         </h2>
-        <p className="theme-text-faint font-mono text-xs tabular-nums">
+        <p className="theme-text-faint text-xs tabular-nums">
           {rowCount} works · {artistCount} artists · {effectCount} effects
         </p>
       </div>

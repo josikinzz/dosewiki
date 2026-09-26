@@ -176,7 +176,7 @@ function ReplicationListRow({ row, selected, focusable, position, total, hideEff
           </Badge>
         ))}
         {row.effect_tags.length > 0 ? (
-          <span className="theme-text-faint font-mono text-xs tabular-nums">
+          <span className="theme-text-faint text-xs tabular-nums">
             {row.effect_tags.length} tag{row.effect_tags.length === 1 ? "" : "s"}
           </span>
         ) : null}
@@ -391,7 +391,7 @@ export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGrid
           <div className="sticky top-0 z-10 h-0" aria-hidden="true">
             <div className="theme-replication-pinned-header flex items-baseline gap-3 border-b pb-1" style={{ height: headerHeight }}>
               <span className="theme-accent-emphasis font-display text-base font-semibold">{pinned.label}</span>
-              <span className="theme-text-faint font-mono text-xs tabular-nums">
+              <span className="theme-text-faint text-xs tabular-nums">
                 {pinned.count} item{pinned.count === 1 ? "" : "s"}
               </span>
             </div>

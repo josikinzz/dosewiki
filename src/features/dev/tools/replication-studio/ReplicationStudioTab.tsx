@@ -302,7 +302,7 @@ export function ReplicationStudioTab({
   const libraryToolbar = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {railColumn ? null : filtersPopover}
-      <p className="theme-text-secondary shrink-0 font-mono text-xs tabular-nums" aria-live="polite">
+      <p className="theme-text-secondary shrink-0 text-xs tabular-nums" aria-live="polite">
         {visibleRows.length === rows.length
           ? `${rows.length} works`
           : `${visibleRows.length} of ${rows.length} shown`}
