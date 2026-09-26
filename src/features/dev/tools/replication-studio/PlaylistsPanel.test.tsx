@@ -204,6 +204,29 @@ describe("PlaylistsPanel", () => {
     expect(screen.getByLabelText("Playlist name")).toHaveValue("");
   });
 
+  it("offers Load the latest version after a revision conflict, behind a confirm that drops the draft", async () => {
+    const calls = stubPlaylistFetch();
+    const stubbed = vi.mocked(fetch);
+    const answer = stubbed.getMockImplementation() as (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+    stubbed.mockImplementation(async (input, init) =>
+      (init?.method ?? "GET") === "POST" ? Response.json({ error: "Changed" }, { status: 409 }) : answer(input, init),
+    );
+    const user = userEvent.setup();
+    renderPanel({ allRows: [row(0), row(1), row(2)] });
+
+    await user.click((await screen.findAllByRole("button", { name: "Edit" }))[0]);
+    await user.type(screen.getByLabelText("Playlist name"), " changed");
+    await user.click(screen.getByRole("button", { name: /^Save/ }));
+
+    expect(await screen.findByText(/Someone saved “Alpha changed” after you opened it, so nothing was saved\./)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Load the latest version" }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Load the latest version" }));
+
+    await waitFor(() => expect(screen.getByLabelText("Playlist name")).toHaveValue("Alpha"));
+    expect(calls.filter((call) => call.url.endsWith("/alpha") && call.method === "GET").length).toBeGreaterThanOrEqual(2);
+  });
+
   it("requires confirmation before delete and disables the row while deletion is pending", async () => {
     let resolveDelete: ((response: Response) => void) | undefined;
     const deleteResponse = new Promise<Response>((resolve) => {

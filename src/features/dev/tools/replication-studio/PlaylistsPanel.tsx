@@ -148,7 +148,33 @@ export function PlaylistsPanel({
       }
     >
       {feedback ? (
-        <Notice placement="inline" tone={feedback.tone} dismiss={() => controller.setFeedback(null)}>
+        <Notice
+          placement="inline"
+          tone={feedback.tone}
+          dismiss={() => controller.setFeedback(null)}
+          actions={
+            feedback.conflictKey ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isSaving}
+                onClick={() => {
+                  const key = feedback.conflictKey as string;
+                  confirm({
+                    title: `Load the latest “${draft?.title.trim() || key}”?`,
+                    description: "The stored playlist opens in place of your draft, and your unsaved changes to it are dropped.",
+                    confirmLabel: "Load the latest version",
+                    destructive: true,
+                    onConfirm: () => controller.reload(key),
+                  });
+                }}
+              >
+                Load the latest version
+              </Button>
+            ) : undefined
+          }
+        >
           {feedback.message}
         </Notice>
       ) : null}
@@ -159,7 +185,7 @@ export function PlaylistsPanel({
             <h4 id="saved-playlists-heading" className="theme-text-primary text-sm font-semibold">Saved playlists</h4>
             <p className="theme-text-muted text-xs">Open one to edit its order or apply it to drugs.</p>
           </div>
-          <Button type="button" variant="ghost" size="sm" disabled={isSaving} onClick={controller.reload}>
+          <Button type="button" variant="ghost" size="sm" disabled={isSaving} onClick={() => controller.reload()}>
             <Icon icon="lucide:refresh-cw" size={15} />
             Reload
           </Button>

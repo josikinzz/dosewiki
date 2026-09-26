@@ -301,7 +301,7 @@ function WorkRow({
       style={{ transform: DndCSS.Transform.toString(transform), transition }}
       className={cn(
         "relative flex items-center gap-2.5 border-b border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)] py-2 last:border-b-0 sm:gap-3",
-        isDragging && "z-10 opacity-80 shadow-lg",
+        isDragging && "z-10 opacity-80 shadow-[var(--theme-elevation-lg)]",
       )}
     >
       {readOnly ? (

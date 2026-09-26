@@ -159,7 +159,7 @@ function SortableRow({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "relative flex list-none items-center gap-2 border-b border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)] py-1.5 last:border-b-0 sm:gap-3",
-        isDragging && "z-10 opacity-80 shadow-lg",
+        isDragging && "z-10 opacity-80 shadow-[var(--theme-elevation-lg)]",
       )}
     >
       {readOnly ? (
