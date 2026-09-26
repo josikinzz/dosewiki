@@ -777,10 +777,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
         icon="lucide:languages"
         title="Glossary"
         description="The translation workbench. Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
-        actions={<SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} />}
+        // Beside the heading from `sm`; on a phone it follows the description instead of splitting it from the title.
+        actions={<span className="max-sm:hidden"><SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} /></span>}
         // Above the workspaces, so the legend's popover is not covered by a sticky pane.
         className="relative z-20"
       >
+        <div className="sm:hidden">
+          <SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} />
+        </div>
         {loadError ? (
           <LoadErrorState what="the glossary" message={loadError} onRetry={() => void load(locale)} />
         ) : data === null ? (
