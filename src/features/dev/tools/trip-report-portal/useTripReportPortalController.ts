@@ -17,6 +17,14 @@ import type { PromotionAttribution } from "./PortalSubmissionReview";
 import { assignReportOwner } from "../my-reports/myReportsModel";
 import { assignedNotice, publishedNotice } from "../my-reports/ownershipCopy";
 import {
+  classifyRefusal,
+  FREEZE_DECISION_COPY,
+  FREEZE_SAVE_COPY,
+  type WriteRefusal,
+} from "./submissionReviewModel";
+import {
+  bucketOf,
+  defaultSortFor,
   EMPTY_PORTAL_FACETS,
   filterPortalRows,
   groupPortalRows,
@@ -41,10 +49,38 @@ type DetailState =
   | { status: "loading" }
   | { status: "error"; message: string };
 
-type Feedback = { tone: "success" | "danger"; message: string };
+/**
+ * The result of the last write on the open record, shown in its pane's dock.
+ * `kind` says what the dock offers with it: Undo after a decision, Load the
+ * latest version after a conflict, the attribution choices after the byline
+ * guard refused, the member assignment after a publish.
+ */
+export type PortalNotice = {
+  tone: "success" | "danger" | "info" | "warning";
+  message: string;
+  title?: string;
+  kind?: "decision" | "conflict" | "claim" | "frozen" | "published" | "loaded";
+};
+type Feedback = PortalNotice;
+
+/** Every write the tool can start; the control that started it names its pending state. */
+export type PortalPendingAction =
+  | TripReportSubmissionStatus
+  | "claim"
+  | "release"
+  | "reopen"
+  | "undo"
+  | "preview"
+  | "publish"
+  | "assign"
+  | "save"
+  | "delete"
+  | "latest";
+
+/** A notice at the list: what happened to something no longer open, or a link that found nothing. */
+export type ListNotice = { tone: "success" | "danger" | "warning"; message: string };
 
 const DISCARD_COPY = {
-  title: "Discard your edits?",
   description: "This report has changes that were not saved. Discarding them leaves the live page as it is now.",
 };
 
@@ -56,13 +92,18 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   const [query, setQuery] = useState("");
   const [facets, setFacets] = useState<PortalFacets>(EMPTY_PORTAL_FACETS);
   const [groupBy, setGroupBy] = useState<PortalGroupBy>("none");
-  const [sort, setSort] = useState<PortalSort>("newest");
+  /** Null until the editor picks one: each bucket then opens in its own order. */
+  const [sortChoice, setSortChoice] = useState<PortalSort | null>(null);
+  const sort = sortChoice ?? defaultSortFor(bucket);
+  const setSort = useCallback((next: PortalSort) => setSortChoice(next), []);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ReportDetail | null>(null);
   const [detailState, setDetailState] = useState<DetailState>({ status: "idle" });
   const [draft, setDraft] = useState<TripReportEditableFields | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<PortalPendingAction | null>(null);
+  const busy = pending !== null;
+  const setBusy = (next: PortalPendingAction | false) => setPending(next === false ? null : next);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<DataTripReportImportPayload | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<TripReportSubmissionRow | null>(null);
@@ -79,6 +120,10 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   const [checkedIds, setCheckedIds] = useState<ReadonlySet<string>>(() => new Set());
   /** The bulk bar's own notice, shown above the list rather than in one review. */
   const [bulkFeedback, setBulkFeedback] = useState<Feedback | null>(null);
+  /** A notice about something no longer open (a deleted report, a link that named nothing). */
+  const [listNotice, setListNotice] = useState<ListNotice | null>(null);
+  /** Bumped when a report's latest version replaces the draft, so the pane can say so and reset its choices. */
+  const [reloadToken, setReloadToken] = useState(0);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const openReportRef = useRef<string | null>(null);
@@ -211,16 +256,23 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   );
 
   // Only a published report holds a draft; a submission review has nothing to drop.
+  /** An attribution choice the pane holds apart from the draft; it counts as unsaved work too. */
+  const [attributionDirty, setAttributionDirty] = useState(false);
   const dirty =
     selected?.origin === "published" &&
     draft !== null &&
     detail !== null &&
     detail.id === selected.id &&
-    JSON.stringify(draft) !== JSON.stringify(detail.fields);
+    (JSON.stringify(draft) !== JSON.stringify(detail.fields) || attributionDirty);
   // The in-tool guard keeps row clicks, Prev/Next and Close; the shell owns
   // rail clicks, Leave and unload. A report save replaces the live page, so
   // the shell only discards.
-  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
+  const openTitle = selected?.title?.trim() || "this report";
+  const { guard, dialog: discardDialog } = useDirtyGuard(dirty, {
+    ...DISCARD_COPY,
+    title: `Discard your edits to “${openTitle}”?`,
+    warnOnUnload: false,
+  });
   useUnsavedWork({
     id: "trip-report-submissions:report",
     tab: "trip-report-submissions",
@@ -255,16 +307,51 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   /** Open a row from the list, asking first when that would drop unsaved edits. */
   const selectRow = useCallback((row: PortalRow) => guard(() => openRow(row)), [guard, openRow]);
 
-  // A deep link (`/dev/trip-report-submissions/<submission id>`, as the Inbox
-  // opens it) selects that submission once its row has loaded.
+  // A deep link (`/dev/trip-report-submissions/<id>`, as the Inbox opens a
+  // submission) selects that row once it has loaded, from whichever bucket
+  // holds it. Once both reads are in and it is nowhere, the list says so.
   const initialOpenedRef = useRef(false);
+  const [linkedBucket, setLinkedBucket] = useState<PortalBucket | null>(null);
   useEffect(() => {
     if (!initialSubmissionId || initialOpenedRef.current) return;
-    const row = rows.find((entry) => entry.origin === "submission" && entry.id === initialSubmissionId);
-    if (!row) return;
+    const row = rows.find((entry) => entry.id === initialSubmissionId);
+    if (!row) {
+      if (load.corpus.status !== "loading" && load.submissions.status !== "loading") {
+        initialOpenedRef.current = true;
+        setListNotice({
+          tone: "warning",
+          message: "The link names a trip report or submission that is not here. It may have been removed, or its list did not load. Nothing else was opened.",
+        });
+      }
+      return;
+    }
     initialOpenedRef.current = true;
+    if (row.origin === "published") {
+      setBucket("published");
+      setLinkedBucket("published");
+    } else if (bucketOf(row) !== "needs") {
+      setBucket("all");
+      setLinkedBucket("all");
+    }
     openRow(row);
-  }, [initialSubmissionId, rows, openRow]);
+  }, [initialSubmissionId, rows, openRow, load.corpus.status, load.submissions.status]);
+
+  // The address follows the open record, so a reload or a shared link lands on it.
+  // `replaceState` keeps Next's history state so the router does not treat it as a navigation.
+  const addressRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const base = window.location.pathname.replace(/\/dev\/(trip-report-submissions|trip-reports)(\/.*)?$/, "/dev/$1");
+    if (!/\/dev\/(trip-report-submissions|trip-reports)$/.test(base)) return;
+    const next = selectedId ? `${base}/${encodeURIComponent(selectedId)}` : base;
+    if (addressRef.current === null && !selectedId) {
+      addressRef.current = window.location.pathname;
+      return;
+    }
+    if (window.location.pathname === next) return;
+    addressRef.current = next;
+    window.history.replaceState(window.history.state, "", `${next}${window.location.search}`);
+  }, [selectedId]);
 
   /**
    * Step to the neighbouring row in list order. A row that has just left the
@@ -290,6 +377,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   /** Close without asking; for paths where the record is already gone. */
   const dropEditor = useCallback(() => {
     openReportRef.current = null;
+    setLinkedBucket(null);
     setSelectedId(null);
     setDetail(null);
     setDetailState({ status: "idle" });
@@ -349,7 +437,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
       return;
     }
 
-    setBusy(true);
+    setBusy("save");
     setFeedback(null);
     try {
       const response = await fetch(RECORD_API, {
@@ -369,18 +457,15 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback({
-          tone: "danger",
-          message: typeof payload.error === "string" ? payload.error : "Unable to save that report.",
-        });
-        return;
+        setFeedback(saveRefusalNotice(classifyRefusal(response.status, payload, "Unable to save that report.")));
+        return false;
       }
 
       const fields = payload.fields as TripReportEditableFields | undefined;
       const revision = payload.revision;
       if (!fields || typeof revision !== "string") {
         setFeedback({ tone: "danger", message: "The saved report response was incomplete." });
-        return;
+        return false;
       }
 
       setDetail({ id: selected.id, fields, revision });
@@ -398,10 +483,41 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
             : report,
         ),
       );
-      setFeedback({ tone: "success", message: `Saved "${fields.title}".` });
+      setFeedback({
+        tone: "success",
+        message: `Saved "${fields.title}". The live page at /reports/${selected.publicSlug ?? ""} shows it now.`,
+      });
       void loadPublished();
+      return true;
     } catch {
-      setFeedback({ tone: "danger", message: "Network error while saving the report." });
+      setFeedback({
+        tone: "danger",
+        message: "The answer was lost, so the save may or may not have gone through. Save again; a save that already landed is refused as a conflict rather than made twice.",
+      });
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Replace the draft with the report as it is live now; the pane asks before this drops edits. */
+  async function loadLatest() {
+    if (!selected || selected.origin !== "published") return;
+    const id = selected.id;
+    setBusy("latest");
+    try {
+      const response = await fetch(`${RECORD_API}?id=${encodeURIComponent(id)}`);
+      const payload = await response.json().catch(() => ({}));
+      const fields = payload?.report?.fields as TripReportEditableFields | undefined;
+      const revision = payload?.report?.revision;
+      if (!response.ok || !fields || typeof revision !== "string") {
+        throw new Error(typeof payload?.error === "string" ? payload.error : "The latest version did not load. Try again.");
+      }
+      if (openReportRef.current !== id) return;
+      setDetail({ id, fields, revision });
+      setDraft(structuredClone(fields));
+      setReloadToken((token) => token + 1);
+      setFeedback({ tone: "info", kind: "loaded", message: "Loaded the latest version. Apply your edits again, then save." });
     } finally {
       setBusy(false);
     }
@@ -412,7 +528,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
       return;
     }
 
-    setBusy(true);
+    setBusy("delete");
     setFeedback(null);
     try {
       const response = await fetch(RECORD_API, {
@@ -423,14 +539,17 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
+        const refusal = classifyRefusal(response.status, payload, "Unable to delete that report.");
         setFeedback({
           tone: "danger",
-          message: typeof payload.error === "string" ? payload.error : "Unable to delete that report.",
+          kind: refusal.kind === "frozen" ? "frozen" : undefined,
+          message: refusal.kind === "frozen" ? "Writes are paused, so the report was not deleted." : refusal.message,
         });
         return;
       }
 
       updateReports((reports) => reports.filter((report) => report.id !== selected.id));
+      setListNotice({ tone: "success", message: `Deleted "${selected.title}". /reports/${selected.publicSlug ?? ""} no longer exists.` });
       dropEditor();
       void loadPublished();
     } catch {
@@ -440,19 +559,24 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     }
   }
 
-  async function changeSubmissionStatus(status: TripReportSubmissionStatus, notes?: string, publicReason?: string) {
-    if (!selectedSubmission) {
-      return;
+  async function changeSubmissionStatus(
+    status: TripReportSubmissionStatus,
+    notes?: string,
+    publicReason?: string,
+    action: PortalPendingAction = status,
+  ): Promise<boolean> {
+    if (!selectedSubmission || busy) {
+      return false;
     }
 
     const previousStatus = selectedSubmission.status;
-    setBusy(true);
+    setBusy(action);
     setFeedback(null);
     try {
       const result = await postSubmissionStatus(selectedSubmission.id, status, notes, publicReason);
       if (!result.ok) {
-        setFeedback({ tone: "danger", message: result.message });
-        return;
+        setFeedback(decisionRefusalNotice(result.refusal));
+        return false;
       }
       const updated = result.submission;
       patchSubmission(updated);
@@ -461,10 +585,11 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
           ? { id: updated.id, title: updated.title, from: previousStatus, to: updated.status }
           : null,
       );
-      setFeedback({ tone: "success", message: STATUS_FEEDBACK[updated.status](updated.title) });
+      setFeedback({ tone: "success", kind: "decision", message: STATUS_FEEDBACK[updated.status](updated.title) });
       setPromotionPayload(null);
       invalidateDevRailBadge("trip-reports");
       void loadSubmissionIndex();
+      return true;
     } finally {
       setBusy(false);
     }
@@ -478,12 +603,12 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
       return;
     }
     const decision = lastDecision;
-    setBusy(true);
+    setBusy("undo");
     setFeedback(null);
     try {
       const result = await postSubmissionStatus(decision.id, undoTo);
       if (!result.ok) {
-        setFeedback({ tone: "danger", message: result.message });
+        setFeedback(decisionRefusalNotice(result.refusal));
         return;
       }
       replaceSubmission(result.submission);
@@ -514,7 +639,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
    * decision log records its own entry. Returns what happened for the notice.
    */
   async function runBulkDecision(status: Extract<TripReportSubmissionStatus, "rejected" | "spam">, targets: PortalRow[]) {
-    setBusy(true);
+    setBusy(status);
     setFeedback(null);
     const failures: string[] = [];
     const done = new Set<string>();
@@ -526,7 +651,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
           if (submissionDetail?.id === result.submission.id) setSubmissionDetail(result.submission);
           done.add(row.id);
         } else {
-          failures.push(`${row.title}: ${result.message}`);
+          failures.push(`${row.title}: ${result.refusal.kind === "frozen" ? "writes are paused" : result.refusal.message}`);
         }
       }
     } finally {
@@ -545,12 +670,21 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     void loadSubmissionIndex();
   }
 
-  async function runPromotion(publish: boolean, attribution: PromotionAttribution) {
+  /**
+   * Preview (writes nothing public) or publish. `quiet` builds the preview the
+   * publish confirm shows without a notice. Returns the payload the preview
+   * describes, or null when the route refused.
+   */
+  async function runPromotion(
+    publish: boolean,
+    attribution: PromotionAttribution,
+    { quiet = false }: { quiet?: boolean } = {},
+  ): Promise<DataTripReportImportPayload | null> {
     if (!selectedSubmission) {
-      return;
+      return null;
     }
 
-    setBusy(true);
+    setBusy(publish ? "publish" : "preview");
     setFeedback(null);
     try {
       const response = await fetch(`/api/trip-report-submissions/${selectedSubmission.id}/promote`, {
@@ -565,38 +699,54 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
 
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setFeedback({
-          tone: "danger",
-          message: typeof payload.error === "string" ? payload.error : "Unable to promote submission.",
-        });
-        return;
+        const refusal = classifyRefusal(response.status, payload, "Unable to promote submission.");
+        setFeedback(
+          refusal.kind === "claim"
+            ? {
+                tone: "warning",
+                kind: "claim",
+                title: "The byline matches a contributor",
+                message: `${refusal.message.split(". ")[0]}. Pick that contributor under Publishing, or tick “Publish without attribution”, then publish again.`,
+              }
+            : refusal.kind === "frozen"
+              ? { tone: "danger", kind: "frozen", message: publish ? "Writes are paused, so nothing was published." : FREEZE_DECISION_COPY }
+              : { tone: "danger", message: refusal.message },
+        );
+        return null;
       }
 
       const updated = payload.submission as TripReportSubmissionRow | undefined;
       if (!updated) {
         setFeedback({ tone: "danger", message: "The promotion response was incomplete." });
-        return;
+        return null;
       }
-      patchSubmission(updated);
+      // A preview changes nothing, so only a publish replaces the submission.
+      if (publish) patchSubmission(updated);
       setPromotionPayload(payload.payload ?? null);
       const suggestedOwner =
         typeof payload.suggestedOwner?.email === "string" ? payload.suggestedOwner.email : null;
       const slug = typeof payload.payload?.slug === "string" ? payload.payload.slug : null;
       setAssignable(publish && suggestedOwner && slug ? { slug, email: suggestedOwner } : null);
-      setFeedback({
-        tone: "success",
-        message: publish
-          ? publishedNotice(selectedSubmission.title, suggestedOwner)
-          : "Preview ready below. Nothing has been published yet.",
-      });
+      if (publish || !quiet) {
+        setFeedback({
+          tone: "success",
+          kind: publish ? "published" : undefined,
+          message: publish
+            ? publishedNotice(selectedSubmission.title, suggestedOwner)
+            : "Preview ready under Publishing. Nothing has been published yet.",
+        });
+      }
 
       if (publish) {
+        setLastDecision(null);
         invalidateDevRailBadge("trip-reports");
         void loadSubmissionIndex();
         void loadPublished();
       }
+      return (payload.payload as DataTripReportImportPayload | undefined) ?? null;
     } catch {
       setFeedback({ tone: "danger", message: "Network error while promoting the submission." });
+      return null;
     } finally {
       setBusy(false);
     }
@@ -608,7 +758,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
       return;
     }
     const target = assignable;
-    setBusy(true);
+    setBusy("assign");
     try {
       const result = await assignReportOwner(target.slug, target.email);
       setAssignable(null);
@@ -625,6 +775,13 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   }
 
   return {
+    setAttributionDirty,
+    linkedBucket,
+    listNotice,
+    loadLatest,
+    pending,
+    reloadToken,
+    setListNotice,
     assignable,
     assignToSuggestedOwner,
     bucket,
@@ -680,7 +837,7 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   };
 }
 
-type StatusResult = { ok: true; submission: TripReportSubmissionRow } | { ok: false; message: string };
+type StatusResult = { ok: true; submission: TripReportSubmissionRow } | { ok: false; refusal: WriteRefusal };
 
 /** One status write through the guarded route; the route resolves the actor and appends the log entry. */
 async function postSubmissionStatus(
@@ -701,14 +858,45 @@ async function postSubmissionStatus(
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      return { ok: false, message: typeof payload.error === "string" ? payload.error : "Unable to update submission." };
+      return { ok: false, refusal: classifyRefusal(response.status, payload, "Unable to update submission.") };
     }
     const updated = payload.submission as TripReportSubmissionRow | undefined;
     return updated
       ? { ok: true, submission: updated }
-      : { ok: false, message: "The updated submission response was incomplete." };
+      : { ok: false, refusal: { kind: "other", message: "The updated submission response was incomplete." } };
   } catch {
-    return { ok: false, message: "Network error while updating the submission." };
+    return { ok: false, refusal: { kind: "other", message: "Network error while updating the submission." } };
+  }
+}
+
+/** A refused decision in the dock: the freeze in its own words, anything else as the route said it. */
+function decisionRefusalNotice(refusal: WriteRefusal): PortalNotice {
+  return refusal.kind === "frozen"
+    ? { tone: "danger", kind: "frozen", message: FREEZE_DECISION_COPY }
+    : { tone: "danger", message: refusal.message };
+}
+
+/** A refused report save, with the way forward each refusal has. */
+function saveRefusalNotice(refusal: WriteRefusal): PortalNotice {
+  switch (refusal.kind) {
+    case "frozen":
+      return { tone: "danger", kind: "frozen", message: FREEZE_SAVE_COPY };
+    case "conflict":
+      return {
+        tone: "danger",
+        kind: "conflict",
+        title: "Someone saved this report after you opened it.",
+        message: "Your edits are still here. Copy anything you want to keep, then load the latest version and apply them again.",
+      };
+    case "claim":
+      return {
+        tone: "warning",
+        kind: "claim",
+        title: "The new byline matches a contributor",
+        message: `${refusal.message.split(". ")[0]}. Pick that contributor under Byline and attribution, or tick “Keep the byline without attribution”, then save again.`,
+      };
+    default:
+      return { tone: "danger", message: refusal.message };
   }
 }
 
@@ -735,9 +923,9 @@ export function canBulkDecide(row: PortalRow, status: "rejected" | "spam"): bool
 }
 
 const STATUS_FEEDBACK: Record<TripReportSubmissionStatus, (title: string) => string> = {
-  submitted: (title) => `Returned "${title}" to the queue.`,
-  reviewing: (title) => `Review started on "${title}".`,
-  accepted: (title) => `Accepted "${title}". Publish it below when ready.`,
+  submitted: (title) => `Released "${title}" back to New.`,
+  reviewing: (title) => `You are reviewing "${title}".`,
+  accepted: (title) => `Accepted "${title}". Publish it when ready.`,
   rejected: (title) => `Rejected "${title}".`,
   spam: (title) => `Marked "${title}" as spam.`,
   exported: (title) => `Published "${title}".`,

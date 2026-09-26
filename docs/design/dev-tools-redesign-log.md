@@ -538,6 +538,39 @@ builds a new shared primitive, add it to **Conventions** and log it under
   consumer, with flags for what the pane header already says (`showStatus`,
   `showProposer`, `showDrift`).
 
+- **One list, two kinds of record, two docks.** When a queue and the corpus it
+  feeds share one list (Trip reports: submissions and published reports), a
+  row opens the pane its kind needs: a review pane with the decision dock, or
+  an editing pane with the save dock. Rows say which kind they are when the
+  title alone could mislead ("Submission · ..." on a submission that became a
+  report), and each pane links across ("Open the published report").
+- **A triage list column folds every filter but search at every width** when
+  the pane beside it needs the width: an outline "Filters" button with the
+  folded count (`aria-expanded`, the `ChangeLogFilters` badge recipe) opens a
+  panel holding the order, the grouping and multi-value facets
+  (`SearchableMultiPicker`, counts as the option hint, counted within the view
+  on screen). While the panel is shut, active facets show as removable chips
+  with "Clear all". `PortalListColumn` is the reference.
+- **Picking from a listbox keeps focus in the list.** The arrow keys must keep
+  walking it, so a pick from the list never moves focus; the pager, j/k, "Next
+  waiting" and links across move focus to the pane heading (from an effect).
+- **A publish shows what goes public before it asks.** A button that makes
+  something public first builds the preview the route offers (a write that
+  publishes nothing) and puts it in the confirm's `body` (address, byline,
+  attribution, what is included); the button reads "Checking" meanwhile. A
+  preview never replaces the record it previews, so nothing reads "Nothing is
+  public yet" after a publish.
+- **A missing permission blocks the public step, with the reason.** When the
+  record says its author did not agree (trip report `publish_consent`), the
+  publish button is off and the dock says why, and the fact reads as a warning.
+  The tool is stricter than the route here on purpose.
+- **Text boxes that hold prose grow with their words** (`[field-sizing:content]`
+  with a `max-h-[70vh]` cap and 16px on phones), so a long account never
+  scrolls inside a small box. `PortalReportTimelineEditor` is the reference.
+- **A count that cannot be known speaks.** A view choice whose source failed or
+  is loading drops its number and carries sr-only ", not loaded", so its name
+  never reads as a zero.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -1708,3 +1741,135 @@ Deferred, with reasons:
   confirm: the proposal summary rows carry keys only.
 - A reviewer attestation recorded with an approval: needs a server field.
 
+
+### Pass 15: Trip reports (`/dev/trip-report-submissions`, alias `/dev/trip-reports`)
+
+Commit: see `git log --grep "Dev tools redesign: Trip reports"`.
+Screenshots: `tmp/redesign/trip-reports/before/` and
+`tmp/redesign/trip-reports/after/` (admin loaded dark and light; alias; the
+three views; grouped; a facet; filters open; search and no match; every kind of
+submission: new, claimed by another admin, mine, accepted, accepted with the
+byline guard, rejected before the log, spam from the spam trap, published;
+reject, spam, publish, bulk, save, discard and keys dialogs; note typed;
+claimed; accepted with Undo and Next waiting; preview; published with the
+member offer; the byline refusal; bulk; published report open, light, timeline,
+bottom, flat body, dirty, saved, conflict, frozen, byline claim, delete
+unfolded; frozen decision; deep link and missing deep link; empty; failed;
+corpus failed; loading; open failed; editor, editor_translator, contributor and
+translator locked; desktop and phone), captured by
+`tmp/redesign/trip-reports/capture.mjs`. Critique in
+`tmp/redesign/trip-reports/critique.md` (16/40 before), inventory with the
+item-by-item check in `tmp/redesign/trip-reports/inventory.md`, detector
+evidence in `tmp/redesign/trip-reports/detector/` (static scan clean).
+
+Main changes:
+
+- P0 fixes: every result, refusal and conflict rendered at the top of the pane,
+  off screen from the button; they now land in a decision dock (submissions)
+  or a save dock (reports). After a publish the stale preview still said
+  "Nothing is public yet"; a preview no longer replaces the submission and a
+  published one says Published with View live and "Open the published report".
+  Publish was offered on a submission whose author gave no consent; it is now
+  off with the reason (stricter than the route). On phones about thirty facet
+  controls sat above the list and the decisions after the whole report; the
+  tool is master/detail now.
+- Layout: the triage workspace, `max-w-[100rem]`. `EditorSection` "Trip
+  reports" with one sentence of totals. `PortalListColumn.tsx`: "Reports" meta
+  heading, count line, Refresh, three views (Needs review, Published, All; label
+  over count, ", not loaded" while a source is unknown), search with glyph, `/`
+  cap and Escape, "Filters" (Order, Group by, Substances, Authors and Tags as
+  `SearchableMultiPicker`s counted within the view), active filter chips with
+  Clear all, the list notice, the bulk bar, one `LoadErrorState` per failed read
+  (one for both), skeleton rows, empty states (All clear with Show everything,
+  "Found under Published (2)" with "Clear the search and filters", an empty
+  corpus pointing to the public submission form), the windowed list with fixed
+  64px rows (title, status when the view spans statuses, byline, first substance
+  and dose, "Waiting since" or the trip date, "Submission ·" on a submission
+  that became a report, the unsaved dot), and the key hint.
+- Order: Needs review opens "Waiting longest" (received date, new sort
+  `waiting`); Published and All open newest trip first; a picked order holds
+  across views. Rows carry `receivedAt`.
+- Submission pane (`PortalSubmissionReview.tsx`, rewritten): Back to list and
+  the icon pager below `lg`, corner Close, title, byline and substances,
+  "Waiting since", status; the hidden-by-list line with "Show it in the list";
+  consent and contact facts (`FeedbackFacts`, consent and age as warnings, the
+  spam trap); "What they wrote" (the trip's details, substances, the phases in
+  their colours, received date); the decision log; Publishing (contributor
+  picker, the keep-unattributed box shown when the byline matches or the route
+  refused, Preview publish, the preview); Published (View live, Open the
+  published report); the private Decision note (grows, `n`). Dock: the result
+  (Undo with `u`, "Next waiting: <title>", "Assign to this member", "Go to
+  Publishing" after a byline refusal), the freeze line, the hold line
+  (`submissionHoldOf`: Claim, Release, "Claimed by X", "Accepted by you, 2 days
+  ago. It waits for Publish." and Reopen, "Rejected by X. Reopen it to decide
+  again."), then Accept (accent, `a`), Reject (`r`), Mark as spam (`s`) on New
+  and Reviewing, or Publish (accent, builds the preview then confirms with it)
+  and Reject on Accepted. The reject confirm keeps the public reason field,
+  echoes the private note, and says an author without a reason sees only
+  "Rejected". The note clears once a decision records it.
+- Report pane (`PortalReportPane.tsx`, new; the editor workspace): saved title
+  (sr-only "Editing"), Published, View live and the address, attribution and
+  licence in words, corner Close, Back to list and pager below `lg`; Title;
+  "Byline and attribution" (byline with contributor suggestions, the contributor
+  profile as a `SearchablePicker` by name with Clear selection, a live line with
+  "Attribute to <name>" when the new byline is a contributor's name, the
+  keep-unattributed box); "The trip"; Tags; Substances; Report body; "Delete this
+  report" folded shut and keyed on the report (typed address, no placeholder,
+  "That does not match", names unsaved edits). Dock: result (conflict with Load
+  the latest version behind a destructive confirm; freeze copy; the byline
+  refusal with its two ways out), Save with the Cmd+S cap (asks first, naming the
+  changed parts including attribution), Discard edits, state phrase, `SaveLine`.
+  A deletion lands as a notice at the list. The discard dialog names the report.
+- Keys: `j / k`, `a`, `r`, `s`, `n`, `u`, `/`, Esc and Cmd+S, all in the `?`
+  sheet. Picking from the listbox keeps focus there; the pager, j/k and links
+  move it to the pane heading.
+- The address follows the open record (`/dev/trip-report-submissions/<id>`,
+  `replaceState(window.history.state, ...)`); a deep link opens published
+  reports too, switching the view, and one that names nothing says so at the
+  list.
+- Registry: `saveLine: "in-tool"`. The shell passes `actorEmail`.
+- Timeline editor (shared with My reports and the public correction panel):
+  one "Add entry" under each phase (the empty phase has its own "Add an onset
+  entry"), "Conclusion" instead of "Conclusion / Aftermath" (the public page's
+  heading is unchanged), text boxes that grow with their words, icon Remove,
+  32px arrow buttons with touch halos, entries as an `ol`. Labels of every
+  control a test reads are unchanged ("Onset entry 1 timestamp", "Move Onset
+  entry 2 earlier", "Remove Onset entry 1").
+- Shared, backward compatible: `ReportTagsField.tsx` (My reports' tags field,
+  moved out of `OwnedReportPane`); `ReportFields.tsx` (`TripDetailsFields`,
+  `SubstancesField` with a fieldset per substance and focus on add and remove);
+  `PortalReportEditor` is now only the public correction panel's form (same
+  props; "Report title", "Review"; unused props kept optional) and draws the
+  shared field groups; `submissionReviewModel.ts` (`submissionHoldOf`,
+  `classifyRefusal`, `changedReportParts`, `attributionMoved`, freeze copy);
+  `tripReportPortalModel` gains `receivedAt`, the `waiting` sort, label maps,
+  `defaultSortFor`, `bucketMatchCounts`, `describePortalEmpty`.
+  `PortalOrganizerRail.tsx` and the unused `theme-portal-row`, `-bucket`,
+  `-needs-dot` and `-count-badge` rules are gone.
+- Journeys fixtures: trip submissions in every status with full bodies
+  (`seedTripSubmissions`: new with contact, claimed by another admin, mine,
+  accepted with a member's email, accepted with a contributor's byline, rejected
+  before the log, spam trap, published), `PORTAL_REPORTS_SEED` (three more
+  published reports, one attributed, one flat), `/api/dev/trip-reports`, the
+  queue's `scope=portal`, `scope=needs-review` and `id=`, the promote route
+  (accepted only, the byline guard, preview, publish, suggested owner), the
+  admin's record save (every field, attribution, the byline guard, revision
+  check) and delete; with a unit test. The Inbox and Home now list three more
+  waiting trip reports.
+
+Deferred, with reasons:
+
+- Holder names on list rows ("Claimed by X"): the portal index
+  (`listPortalSummaries`) carries no reviewer or decision log; the pane's hold
+  line has it. Needs a server field.
+- Row checkboxes without a touch halo and the doubled focus outline on the open
+  row: shared `EditorList`.
+- Delete as unpublish with a log, or undo after delete or publish: server
+  history and a product decision.
+- "Accept and publish" in one step: Accept is a status the Inbox and the
+  transition table rely on; Publish now carries its own preview.
+- Splitting Submissions and Published reports into two views: the one-corpus
+  list is the tool's founding decision (see the model's header); the panes now
+  differ clearly instead.
+- Sending the public reason from the pane instead of the reject dialog: it
+  belongs to one decision, and the dialog now echoes the private note.

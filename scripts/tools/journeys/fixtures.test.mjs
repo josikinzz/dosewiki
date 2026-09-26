@@ -483,6 +483,49 @@ describe("journey fixtures", () => {
     assert.equal(get(createJourneyFixture({ state: "empty" }), "/api/site-feedback/queue", "?status=all").json.total, 0);
   });
 
+  it("answers Trip reports: the corpus, the portal index, one submission, promotion and the admin's record writes", () => {
+    const fixture = createJourneyFixture();
+    const corpus = get(fixture, "/api/dev/trip-reports").json;
+    assert.ok(corpus.reports.length >= 6);
+    assert.ok(corpus.reports.every((row) => row.fields === undefined && typeof row.createdAt === "number"));
+    assert.ok(corpus.contributors.some((row) => row.key === "HALCYON"));
+    // My reports still lists only the viewer's own reports.
+    assert.equal(get(fixture, "/api/dev/trip-reports/mine").json.reports.length, 3);
+
+    const index = get(fixture, "/api/trip-report-submissions/queue", "?scope=portal").json;
+    assert.ok(index.needsReview.every((row) => ["submitted", "reviewing", "accepted"].includes(row.status)));
+    assert.ok(index.history.some((row) => row.status === "exported"));
+    assert.equal(index.needsReview[0].report.introduction, undefined);
+    assert.ok(get(fixture, "/api/trip-report-submissions/queue", "?scope=needs-review").json.submissions.every((row) => row.status !== "spam"));
+    assert.equal(get(fixture, "/api/trip-report-submissions/queue", "?id=fixture-trip-4").json.submission.status, "accepted");
+    assert.equal(get(fixture, "/api/trip-report-submissions/queue", "?id=gone").status, 404);
+
+    // Promotion: accepted only, the byline guard, a preview that changes nothing, then a publish.
+    assert.equal(post(fixture, "/api/trip-report-submissions/fixture-trip-1/promote", { publish: false }).status, 400);
+    assert.equal(post(fixture, "/api/trip-report-submissions/fixture-trip-5/promote", { publish: false }).status, 409);
+    assert.equal(post(fixture, "/api/trip-report-submissions/fixture-trip-5/promote", { publish: false, profile_key: "HALCYON" }).status, 200);
+    const preview = post(fixture, "/api/trip-report-submissions/fixture-trip-4/promote", { publish: false });
+    assert.equal(preview.json.submission.status, "accepted");
+    assert.equal(preview.json.payload.slug, "night-drive-home");
+    const published = post(fixture, "/api/trip-report-submissions/fixture-trip-4/promote", { publish: true });
+    assert.equal(published.json.submission.status, "exported");
+    assert.equal(published.json.suggestedOwner.email, "river@localhost.invalid");
+    assert.ok(get(fixture, "/api/dev/trip-reports").json.reports.some((row) => row.slug === "night-drive-home"));
+
+    // The admin saves every field against the revision, and the byline guard holds.
+    const record = get(fixture, "/api/dev/trip-reports/record", "?id=fixture-report-6").json.report;
+    const save = (updates, extra = {}) =>
+      post(fixture, "/api/dev/trip-reports/record", { mode: "save", id: record.id, expected: record.fields, expectedRevision: record.revision, updates, ...extra });
+    assert.equal(save({ ...record.fields, subject: { ...record.fields.subject, name: "Halcyon" } }).status, 409);
+    const saved = save({ ...record.fields, title: "Two grams, and rain" });
+    assert.equal(saved.json.fields.title, "Two grams, and rain");
+    assert.equal(save({ ...record.fields }).status, 409);
+    assert.equal(post(fixture, "/api/dev/trip-reports/record", { mode: "delete", id: "fixture-report-5" }).status, 200);
+    assert.equal(get(fixture, "/api/dev/trip-reports/record", "?id=fixture-report-5").status, 404);
+    assert.equal(post(createJourneyFixture({ role: "editor" }), "/api/dev/trip-reports/record", { mode: "delete", id: "fixture-report-5" }).status, 403);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/trip-report-submissions/fixture-trip-4/promote", { publish: true }).status, 503);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

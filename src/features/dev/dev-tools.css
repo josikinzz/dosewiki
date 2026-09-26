@@ -462,65 +462,11 @@
   }
 
   /*
-     * Trip Report Portal. The corpus index is a flat hairline list, not a card
-     * grid (style guide §9, "index lists"): homogeneous rows sit directly on the
-     * canvas, separated by a 1px rule, and selection is the violet route-active
-     * fill with a 1px inset outline rather than a border stripe.
+     * Trip reports. The hairline that separates the pane header, the dock and
+     * the list's group headings.
      */
   .theme-portal-rule {
     border-color: var(--theme-border-subtle);
-  }
-
-  .theme-portal-row {
-    color: var(--theme-text-secondary);
-  }
-
-  @media (hover: hover) {
-    .theme-portal-row:not([data-state="active"]):hover {
-      background: var(--theme-frosted-control-hover-bg);
-    }
-  }
-
-  .theme-portal-row[data-state="active"] {
-    background: var(--theme-selected-control-bg);
-    box-shadow: inset 0 0 0 1px var(--theme-selected-control-border);
-  }
-
-  .theme-portal-row[data-state="active"] .theme-portal-row-title {
-    color: var(--theme-selected-control-text);
-  }
-
-  .theme-portal-row:focus-visible {
-    outline: 1px solid var(--theme-text-secondary);
-    outline-offset: -2px;
-  }
-
-  .theme-portal-bucket {
-    color: var(--theme-text-muted);
-  }
-
-  @media (hover: hover) {
-    .theme-portal-bucket:not([data-state="active"]):hover {
-      background: var(--theme-frosted-control-on-panel-hover-bg);
-      color: var(--theme-text-primary);
-    }
-  }
-
-  .theme-portal-bucket[data-state="active"] {
-    background: var(--theme-selected-control-bg);
-    color: var(--theme-selected-control-text);
-    box-shadow: 0 0 0 1px var(--theme-selected-control-border);
-  }
-
-  /* The needs-review marker, and the same magenta pill on the dev tab. */
-  .theme-portal-needs-dot {
-    background: var(--theme-accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 18%, transparent);
-  }
-
-  .theme-portal-count-badge {
-    background: var(--theme-accent);
-    color: var(--theme-surface-deep);
   }
 
   /*

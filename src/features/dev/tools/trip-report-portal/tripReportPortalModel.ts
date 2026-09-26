@@ -45,7 +45,42 @@ export type PortalBucket = "needs" | "published" | "all";
 
 export type PortalStatusKind = "needs" | "published" | "accepted" | "rejected";
 
-export type PortalSort = "newest" | "oldest" | "title";
+/**
+ * `waiting` puts the row that entered the system first on top (the queue's
+ * fair order); `newest` and `oldest` read the trip date when there is one.
+ */
+export type PortalSort = "waiting" | "newest" | "oldest" | "title";
+
+export const PORTAL_SORT_LABELS: Record<PortalSort, string> = {
+  waiting: "Waiting longest",
+  newest: "Newest trip",
+  oldest: "Oldest trip",
+  title: "Title",
+};
+
+export const PORTAL_GROUP_LABELS: Record<PortalGroupBy, string> = {
+  none: "No grouping",
+  substance: "Substance",
+  author: "Author",
+  date: "Trip year",
+};
+
+export const PORTAL_BUCKET_LABELS: Record<PortalBucket, string> = {
+  needs: "Needs review",
+  published: "Published",
+  all: "All",
+};
+
+export const PORTAL_FACET_LABELS: Record<PortalFacetKind, string> = {
+  substance: "Substances",
+  author: "Authors",
+  tag: "Tags",
+};
+
+/** The order a bucket opens in: the queue waits longest first, the corpus newest first. */
+export function defaultSortFor(bucket: PortalBucket): PortalSort {
+  return bucket === "needs" ? "waiting" : "newest";
+}
 
 export type PortalGroupBy = "substance" | "author" | "date" | "none";
 
@@ -83,6 +118,8 @@ export type PortalRow = {
   intakeStatus: IntakeStatus;
   /** Trip date when known, else the date the row entered the system. */
   sortDate: string;
+  /** When the row entered the system: received for a submission, published for a report (ISO). */
+  receivedAt: string;
   /**
    * Editable slice. Null on a submission, and null on a published row until the
    * body has been fetched for the open editor — the index never carries it.
@@ -149,6 +186,7 @@ export function toPortalRowFromReport(report: PublishedReportPayload): PortalRow
     statusKind: "published",
     intakeStatus: TRIP_REPORT_INTAKE_STATUS.published,
     sortDate: report.subject.trip_date ?? isoDate(report.createdAt),
+    receivedAt: isoMoment(report.createdAt),
     fields: null,
     profileKey: report.profileKey ?? null,
     license: report.license ?? null,
@@ -186,11 +224,17 @@ export function toPortalRowFromSubmission(submission: SubmissionRowPayload): Por
     statusKind: statusKindOf(submission.status),
     intakeStatus: TRIP_REPORT_INTAKE_STATUS[submission.status],
     sortDate: submission.report.subject.trip_date ?? submission.created_at.slice(0, 10),
+    receivedAt: submission.created_at,
     fields: null,
     profileKey: null,
     license: null,
     attributionReviewed: false,
   };
+}
+
+function isoMoment(timestamp: number): string {
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString();
 }
 
 function isoDate(timestamp: number): string {
@@ -321,6 +365,10 @@ export function sortPortalRows(rows: readonly PortalRow[], sort: PortalSort): Po
       return left.title.localeCompare(right.title);
     }
 
+    if (sort === "waiting") {
+      return left.receivedAt.localeCompare(right.receivedAt) || left.title.localeCompare(right.title);
+    }
+
     const comparison = left.sortDate.localeCompare(right.sortDate);
     return sort === "oldest" ? comparison : -comparison;
   });
@@ -394,4 +442,58 @@ export function portalStats(rows: readonly PortalRow[]): PortalStats {
   }
 
   return { reports: rows.length, authors: authors.size, substances: substances.size };
+}
+
+/**
+ * How many rows each bucket would show for this search and these facets, so
+ * an empty list can say where the matches are ("Found under Published (2)").
+ */
+export function bucketMatchCounts(
+  rows: readonly PortalRow[],
+  request: Omit<PortalQuery, "bucket" | "sort">,
+): Record<PortalBucket, number> {
+  const matching = filterPortalRows(rows, { ...request, bucket: "all", sort: "title" });
+  return {
+    needs: matching.filter((row) => bucketOf(row) === "needs").length,
+    published: matching.filter((row) => bucketOf(row) === "published").length,
+    all: matching.length,
+  };
+}
+
+/** Why a bucket is empty and what to offer: a search or filter elsewhere, or a truly clear queue. */
+export type PortalEmpty =
+  | { kind: "filtered"; message: string; found: { bucket: PortalBucket; count: number }[] }
+  | { kind: "bucket"; message: string; elsewhere: number }
+  | { kind: "clear"; message: string };
+
+export function describePortalEmpty(
+  rows: readonly PortalRow[],
+  request: PortalQuery,
+): PortalEmpty {
+  const filtered = request.query.trim() !== "" || activeFacetCount(request.facets) > 0;
+  const bucketWord = request.bucket === "all" ? "" : `${PORTAL_BUCKET_LABELS[request.bucket].toLowerCase()} `;
+  if (filtered) {
+    const counts = bucketMatchCounts(rows, request);
+    const found = (["needs", "published", "all"] as const)
+      .filter((bucket) => bucket !== request.bucket && counts[bucket] > 0)
+      .map((bucket) => ({ bucket, count: counts[bucket] }));
+    const what = request.query.trim() ? `matches “${request.query.trim()}”` : "matches these filters";
+    return { kind: "filtered", message: `No ${bucketWord}report ${what}.`, found };
+  }
+  if (rows.length === 0) {
+    return { kind: "clear", message: "No trip reports yet. Submissions and published reports will both list here." };
+  }
+  if (request.bucket === "needs") {
+    const published = countBucket(rows, "published");
+    return {
+      kind: "bucket",
+      message: `All clear. No submission waits on a decision${published > 0 ? `; ${published} published ${published === 1 ? "report is" : "reports are"} under Published` : ""}.`,
+      elsewhere: rows.length,
+    };
+  }
+  return {
+    kind: "bucket",
+    message: `No ${bucketWord}reports. ${rows.length} ${rows.length === 1 ? "report is" : "reports are"} under other buckets.`,
+    elsewhere: rows.length,
+  };
 }

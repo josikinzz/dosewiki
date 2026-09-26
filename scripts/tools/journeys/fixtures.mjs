@@ -151,6 +151,126 @@ export function feedbackQueuePage(all, params) {
 /** Another admin, so the Inbox can show an item someone else holds. */
 export const FIXTURE_OTHER_ADMIN = "other-admin@localhost.invalid";
 
+/** Submission statuses that wait on an admin (the portal's Needs review, the rail badge). */
+const TRIP_NEEDS_REVIEW = Object.freeze(["submitted", "reviewing", "accepted"]);
+
+/** A submitted report body: who, what, and the phases, as the intake form stores it. */
+function tripReportBody(title, subject, substances, parts = {}) {
+  return {
+    title,
+    subject,
+    substances,
+    introduction: parts.introduction,
+    onset: parts.onset ?? [],
+    peak: parts.peak ?? [],
+    offset: parts.offset ?? [],
+    conclusion: parts.conclusion,
+    tags: parts.tags ?? [],
+  };
+}
+
+/**
+ * Trip report submissions in every status the portal shows: new, claimed by
+ * another admin, claimed by the viewer, accepted (one whose byline matches a
+ * contributor, so Publish asks about attribution), rejected before the
+ * decision log with a public reason, spam from the spam trap, and published.
+ */
+function seedTripSubmissions(at, logged) {
+  const row = (id, status, title, author, report, extra = {}) => ({
+    id,
+    status,
+    schema_version: 1,
+    report,
+    title,
+    author_name: author,
+    substance_names: report.substances.map((entry) => entry.name),
+    may_contact: false,
+    publish_consent: true,
+    age_confirmed: true,
+    honeypot_triggered: false,
+    created_at: at(extra.hours ?? 70),
+    updated_at: at(extra.updated ?? extra.hours ?? 70),
+    ...extra.fields,
+  });
+  return [
+    row("fixture-trip-1", "submitted", "A quiet evening with a fixture", "Fixture author", tripReportBody(
+      "A quiet evening with a fixture",
+      { name: "Fixture author", trip_date: "2026-01-02", setting: "Home, with one sober friend", age: "29", gender: "Female", weight: "61 kg", medications: "None" },
+      [{ name: "Psilocybin", dose: "1.5 g", roa: "oral" }],
+      {
+        introduction: "Trip report with approximate timestamps:\n\n~7:30 PM Ate the mushrooms with lemon tea.\n\n~8:10 PM Colours start to breathe, a light body load.\n\n~9:00 PM Lights out and music on. The peak is warm and slow.\n\n~11:30 PM Coming down gently. Tired but content.\n\nLooking back, a low dose in a calm room was the right call.",
+        tags: ["first time", "music"],
+      },
+    ), { hours: 70, fields: { contact_email: "fixture.author@example.invalid", may_contact: true } }),
+    row("fixture-trip-2", "reviewing", "Fixture festival notes, part two", "", tripReportBody(
+      "Fixture festival notes, part two",
+      { name: "" },
+      [{ name: "MDMA", dose: "100 mg", roa: "oral" }, { name: "Ketamine", dose: "30 mg", roa: "insufflated" }],
+      {
+        introduction: "Second day at the festival.",
+        onset: [{ time: "T+0:40", description: "Warm rush while the set changed." }],
+        peak: [{ time: "T+1:30", description: "Everything felt close and easy." }],
+        conclusion: "Heavy comedown the next day.",
+        tags: ["festival"],
+      },
+    ), { hours: 200, updated: 20, fields: { may_contact: true, publish_consent: false, reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 20, "submitted", "reviewing") } }),
+    row("fixture-trip-3", "reviewing", "Forty minutes of static", "Sable", tripReportBody(
+      "Forty minutes of static",
+      { name: "Sable", trip_date: "2025-12-28", setting: "Bedroom, lights low" },
+      [{ name: "DMT", dose: "40 mg", roa: "vaporized" }],
+      {
+        introduction: "My third time with DMT, and the first I wrote down right after.",
+        onset: [{ time: "T+0:00", description: "Held it in and lay back." }],
+        peak: [{ time: "T+0:02", description: "A room made of static that seemed to be waiting for me." }],
+        offset: [{ time: "T+0:15", description: "Back, shaky and laughing." }],
+        conclusion: "Short, loud and very strange. I would not do it alone again.",
+        tags: ["breakthrough"],
+      },
+    ), { hours: 30, updated: 6, fields: { reviewed_by: FIXTURE_EMAIL, decision_log: logged(FIXTURE_EMAIL, 6, "submitted", "reviewing") } }),
+    row("fixture-trip-4", "accepted", "Night drive home", "Night owl", tripReportBody(
+      "Night drive home",
+      { name: "Night owl", trip_date: "2025-11-30", setting: "Passenger seat, then home" },
+      [{ name: "Cannabis", dose: "10 mg", roa: "oral" }],
+      {
+        introduction: "An edible that came on during the drive home.",
+        onset: [{ time: "T+1:10", description: "Street lights started to smear." }],
+        peak: [{ time: "T+2:00", description: "Time stretched; the drive felt like an hour." }],
+        conclusion: "Take edibles at home.",
+        tags: ["edible"],
+      },
+    ), { hours: 120, updated: 60, fields: { contact_email: FIXTURE_MEMBER, may_contact: true, reviewed_by: FIXTURE_EMAIL, decision_log: [...logged(FIXTURE_EMAIL, 100, "submitted", "reviewing"), { at: at(60), actor: FIXTURE_EMAIL, from: "reviewing", to: "accepted", note: "Clear and careful; the timing warning is useful." }] } }),
+    row("fixture-trip-5", "accepted", "Halcyon at the lake", "Halcyon", tripReportBody(
+      "Halcyon at the lake",
+      { name: "Halcyon", trip_date: "2025-09-14", setting: "Lake shore, two friends" },
+      [{ name: "LSD", dose: "100 µg", roa: "oral" }],
+      {
+        introduction: "A long, bright afternoon by the water.",
+        peak: [{ time: "T+3:00", description: "The lake and the sky swapped places for a while." }],
+        conclusion: "One of the good ones.",
+        tags: ["nature"],
+      },
+    ), { hours: 300, updated: 90, fields: { reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 90, "reviewing", "accepted") } }),
+    row("fixture-trip-6", "rejected", "Museum walk", "Anonymous", tripReportBody(
+      "Museum walk",
+      { name: "Anonymous" },
+      [{ name: "LSD", dose: "75 µg", roa: "oral" }, { name: "Cannabis" }],
+      { introduction: "A slow walk through the museum.", tags: ["museum"] },
+    ), { hours: 700, updated: 650, fields: { review_notes: "No dose given for the second substance.", reviewed_by: FIXTURE_OTHER_ADMIN, reviewed_at: at(650) } }),
+    row("fixture-trip-7", "spam", "Cheap tabs shipped worldwide", "shop", tripReportBody(
+      "Cheap tabs shipped worldwide",
+      { name: "shop" },
+      [{ name: "LSD" }],
+      { introduction: "Visit our shop for the best prices." },
+    ), { hours: 40, updated: 38, fields: { honeypot_triggered: true, publish_consent: false, age_confirmed: false, reviewed_by: FIXTURE_EMAIL, decision_log: logged(FIXTURE_EMAIL, 38, "submitted", "spam") } }),
+    row("fixture-trip-8", "exported", "Fixture festival notes", "nervewing", tripReportBody(
+      "Fixture festival notes",
+      { name: "nervewing", trip_date: "2025-12-20" },
+      [{ name: "Psilocybin", dose: "2 g", roa: "oral" }],
+      { introduction: "A long day at a small festival.", tags: ["festival"] },
+    ), { hours: 400, updated: 300, fields: { reviewed_by: FIXTURE_EMAIL, exported_trip_report_id: "fixture-report-1", exported_at: at(300), decision_log: [...logged(FIXTURE_EMAIL, 350, "submitted", "accepted"), { at: at(300), actor: FIXTURE_EMAIL, from: "accepted", to: "exported" }] } }),
+  ];
+}
+
 /**
  * What waits on an admin in the Inbox: trip reports, article, site and
  * glossary feedback, citation articles and one expired claim. The waiting
@@ -162,19 +282,7 @@ export function seedInbox() {
   const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
   const logged = (actor, hours, from, to) => [{ at: at(hours), actor, from, to }];
   return {
-    trip: [
-      {
-        id: "fixture-trip-1", status: "submitted", schema_version: 1, report: {}, title: "A quiet evening with a fixture",
-        author_name: "Fixture author", substance_names: ["Psilocybin"], may_contact: false, publish_consent: true,
-        age_confirmed: true, honeypot_triggered: false, created_at: at(70), updated_at: at(70),
-      },
-      {
-        id: "fixture-trip-2", status: "reviewing", schema_version: 1, report: {}, title: "Fixture festival notes, part two",
-        author_name: "", substance_names: ["MDMA", "Ketamine"], may_contact: true, publish_consent: false,
-        age_confirmed: true, honeypot_triggered: false, created_at: at(200), updated_at: at(20),
-        reviewed_by: FIXTURE_OTHER_ADMIN, decision_log: logged(FIXTURE_OTHER_ADMIN, 20, "submitted", "reviewing"),
-      },
-    ],
+    trip: seedTripSubmissions(at, logged),
     article: [
       {
         id: "fixture-af-1", status: "new", schema_version: 1, substance_slug: "mescaline", substance_title: "Mescaline",
@@ -378,6 +486,66 @@ export const OWNED_REPORT_SEED = Object.freeze([
   },
 ]);
 const OWNER_ASSIGNABLE_SLUGS = Object.freeze([...OWNED_REPORT_SEED.map((row) => row.slug), ...OWNED_REPORT_SLUGS_EXTRA]);
+
+/**
+ * Published trip reports other members wrote, so the portal's corpus has
+ * several authors, substances, licences and one attributed report. The
+ * flat one keeps its whole account in the introduction, as a submitted
+ * report often arrives.
+ */
+export const PORTAL_REPORTS_SEED = Object.freeze([
+  {
+    id: "fixture-report-4",
+    slug: "museum-walk",
+    createdAt: FIXTURE_EPOCH - 1500 * 3_600_000,
+    license: "CC BY-SA 4.0",
+    profileKey: "RIVER",
+    fields: {
+      title: "Museum walk",
+      subject: { name: "River Okafor", trip_date: "2024-05-11", setting: "City museum, then a park", age: "34" },
+      substances: [{ name: "LSD", dose: "75 µg", roa: "oral" }],
+      introduction: "A planned low dose with a sober friend nearby.",
+      onset: [{ time: "T+0:45", description: "Paintings started to hum." }],
+      peak: [{ time: "T+2:30", description: "Stood in front of one canvas for twenty minutes." }],
+      offset: [{ time: "T+6:00", description: "A long, happy walk home." }],
+      conclusion: "Museums are made for this.",
+      tags: ["museum", "art"],
+    },
+  },
+  {
+    id: "fixture-report-5",
+    slug: "salvia-in-the-garden",
+    createdAt: FIXTURE_EPOCH - 3000 * 3_600_000,
+    license: "author-retained",
+    fields: {
+      title: "Salvia in the garden",
+      subject: { name: "coldbrew", trip_date: "2023-07-02" },
+      substances: [{ name: "Salvia divinorum", dose: "20x extract", roa: "smoked" }],
+      introduction: "Trip report with approximate timestamps:\n\n~2:00 PM Lit the pipe in the garden chair.\n\n~2:01 PM The garden folded like a book.\n\n~2:06 PM Coming back, confused about which side of the page I was on.\n\nLooking back, a sitter is not optional.",
+      onset: [],
+      peak: [],
+      offset: [],
+      tags: ["dissociative"],
+    },
+  },
+  {
+    id: "fixture-report-6",
+    slug: "two-grams-in-the-rain",
+    createdAt: FIXTURE_EPOCH - 2200 * 3_600_000,
+    fields: {
+      title: "Two grams in the rain",
+      subject: { name: "coldbrew", trip_date: "2024-10-19", setting: "Forest trail" },
+      substances: [{ name: "Psilocybin", dose: "2 g", roa: "oral" }, { name: "Cannabis", roa: "smoked" }],
+      introduction: "Rain all day, which turned out to be the point.",
+      onset: [{ time: "T+0:35", description: "Every drop on the hood sounded separate." }],
+      peak: [{ time: "T+1:50", description: "A small cannabis top-up made everything louder." }],
+      offset: [],
+      conclusion: "Dry socks next time.",
+      tags: ["nature", "combo"],
+    },
+  },
+]);
+
 
 export const WRITING_SEED = Object.freeze([
   {
@@ -1074,9 +1242,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
   /** The viewer's own published trip reports (My reports), keyed by id. */
-  const ownedReports = new Map(
-    (state === "empty" ? [] : OWNED_REPORT_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: FIXTURE_EMAIL, revision: nextRevision() }]),
-  );
+  const ownedReports = new Map([
+    ...(state === "empty" ? [] : OWNED_REPORT_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: FIXTURE_EMAIL, revision: nextRevision() }]),
+    // Everyone else's published reports: the portal lists them, My reports does not.
+    ...(state === "empty" ? [] : PORTAL_REPORTS_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: null, revision: nextRevision() }]),
+  ]);
   /** Banner presets keyed by key, each with its revision, plus the answered writes by change id. */
   const banners = {
     presets: new Map((state === "empty" ? [] : BANNER_PRESETS_SEED).map((preset) => [preset.key, { preset: structuredClone(preset), baseHash: nextRevision() }])),
@@ -1278,9 +1448,81 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, slug: body.slug, revision });
   }
 
+  /** The portal's index projection of one published report: no body. */
+  function portalRowOf(row) {
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.fields.title,
+      subject: { name: row.fields.subject.name, ...(row.fields.subject.trip_date ? { trip_date: row.fields.subject.trip_date } : {}) },
+      substances: structuredClone(row.fields.substances),
+      tags: [...row.fields.tags],
+      featured: false,
+      license: row.license ?? null,
+      profileKey: row.profileKey ?? null,
+      createdAt: row.createdAt,
+    };
+  }
+
+  /** The profile a byline answers to, by display name, as the attribution guard reads it. */
+  function claimedProfile(name) {
+    const needle = String(name ?? "").trim().toLowerCase();
+    return needle ? CONTRIBUTOR_PROFILES_SEED.find((profile) => profile.displayName.toLowerCase() === needle) ?? null : null;
+  }
+
+  function authorNameClaim(name, profileKey, confirmed) {
+    const match = claimedProfile(name);
+    if (!match || confirmed || profileKey === match.key) return null;
+    return json(409, {
+      error: `Author name "${String(name).trim()}" matches contributor profile "${match.key}". Assign that profile key to attribute the report, or confirm publishing it without attribution.`,
+    });
+  }
+
+  /** The promote route: accepted only, the attribution guard, then a preview or a published report. */
+  function promoteSubmission(id, request) {
+    if (fixture.session.user.role !== "admin") return json(403, { error: "Admin access required." });
+    const row = inbox.trip.find((entry) => entry.id === id);
+    if (!row) return json(404, { error: "Trip report submission not found." });
+    if (row.status !== "accepted") return json(400, { error: "Only accepted submissions can be promoted." });
+    const profileKey = typeof request.profile_key === "string" ? request.profile_key.trim() : "";
+    if (profileKey && !CONTRIBUTOR_PROFILES_SEED.some((profile) => profile.key === profileKey)) return json(400, { error: "Contributor profile not found." });
+    const refused = authorNameClaim(row.report.subject.name, profileKey, request.confirm_author_name_claim === true);
+    if (refused) return refused;
+    const slug = row.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const payload = {
+      ...structuredClone(row.report),
+      subject: { ...structuredClone(row.report.subject), ...(profileKey ? { profile_key: profileKey } : {}) },
+      slug,
+      featured: false,
+    };
+    if (request.publish !== true) return json(200, { ok: true, published: false, submission: structuredClone(row), payload });
+    const reportId = `fixture-report-${slug}`;
+    ownedReports.set(reportId, {
+      id: reportId, slug, createdAt: Date.parse(tick()), ownerEmail: null, revision: nextRevision(), profileKey: profileKey || null,
+      fields: { title: row.title, subject: payload.subject, substances: payload.substances, introduction: payload.introduction, onset: payload.onset, peak: payload.peak, offset: payload.offset, conclusion: payload.conclusion, tags: payload.tags },
+    });
+    const at = tick();
+    row.decision_log = [...(row.decision_log ?? []), { at, actor: fixture.session.user.email, from: row.status, to: "exported" }];
+    Object.assign(row, { status: "exported", exported_trip_report_id: reportId, exported_at: at, reviewed_by: fixture.session.user.email });
+    const member = MEMBERS_SEED.find((entry) => entry.email === String(row.contact_email ?? "").toLowerCase());
+    return json(200, { ok: true, published: true, submission: structuredClone(row), payload, suggestedOwner: member ? { email: member.email } : null });
+  }
+
+  /** The record route's delete: admin only, and the report leaves every list. */
+  function deletePortalReport(body) {
+    if (fixture.session.user.role !== "admin") return json(403, { error: "Admin access required." });
+    const id = String(body.id ?? "");
+    if (!ownedReports.has(id)) return json(404, { error: "That trip report no longer exists." });
+    ownedReports.delete(id);
+    return json(200, { ok: true, deleted: true });
+  }
+
   function saveOwnedReport(body) {
+    if (body.mode === "delete") return deletePortalReport(body);
     const row = ownedReports.get(String(body.id ?? ""));
     if (!row) return json(404, { error: "That trip report no longer exists." });
+    const admin = fixture.session.user.role === "admin";
+    if (!admin && row.ownerEmail !== FIXTURE_EMAIL) return json(403, { error: "Only this report's owner or an admin can change it." });
     // Someone else's save lands just before the owner's first one.
     if (fixture.state === "conflicted" && !contested.has(row.id)) {
       contested.add(row.id);
@@ -1291,6 +1533,20 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       return json(409, { error: `Trip report ${row.slug} changed since it was opened. Reload it and apply your edits again.` });
     }
     const updates = body.updates ?? {};
+    if (admin) {
+      // An admin also changes the byline, subject, substances and attribution; the attribution guard still applies.
+      const profileKey = typeof body.profile_key === "string" ? body.profile_key.trim() : undefined;
+      if (profileKey && !CONTRIBUTOR_PROFILES_SEED.some((profile) => profile.key === profileKey)) return json(400, { error: "Contributor profile not found." });
+      const bylineMoved = String(updates.subject?.name ?? "").trim().toLowerCase() !== String(row.fields.subject.name ?? "").trim().toLowerCase();
+      if (bylineMoved) {
+        const refused = authorNameClaim(updates.subject?.name, profileKey ?? row.profileKey ?? "", body.confirm_author_name_claim === true);
+        if (refused) return refused;
+      }
+      row.fields = structuredClone({ ...row.fields, ...updates });
+      if (profileKey !== undefined) row.profileKey = profileKey || null;
+      row.revision = nextRevision();
+      return json(200, { ok: true, slug: row.slug, fields: structuredClone(row.fields), revision: row.revision });
+    }
     // An owner saves content only: title, tags and the body. Byline, subject and substances stay.
     row.fields = {
       ...row.fields,
@@ -1920,7 +2176,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/trip-reports/mine" && upper === "GET") {
       return toolRead(() => json(200, {
         ok: true,
-        reports: [...ownedReports.values()].map((row) => ({
+        reports: [...ownedReports.values()].filter((row) => row.ownerEmail === FIXTURE_EMAIL).map((row) => ({
           id: row.id,
           slug: row.slug,
           title: row.fields.title,
@@ -1964,9 +2220,36 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         });
       }
     }
-    if (pathname === "/api/trip-report-submissions/queue" && upper === "GET") {
-      return toolRead(() => json(200, { ok: true, submissions: structuredClone(inbox.trip) }));
+    // Trip reports: the published corpus, the submission queue (portal index, needs review, one item), promotion.
+    if (pathname === "/api/dev/trip-reports" && upper === "GET") {
+      return toolRead(() => json(200, {
+        ok: true,
+        reports: [...ownedReports.values()].map(portalRowOf),
+        contributors: CONTRIBUTOR_PROFILES_SEED.filter((profile) => !people.removedProfiles.has(profile.key)).map(({ key, displayName }) => ({ key, displayName })),
+      }));
     }
+    if (pathname === "/api/trip-report-submissions/queue" && upper === "GET") {
+      return toolRead(() => {
+        const id = params.get("id");
+        if (id !== null) {
+          const row = inbox.trip.find((entry) => entry.id === id);
+          return row ? json(200, { ok: true, submission: structuredClone(row) }) : json(404, { error: "Trip report submission not found." });
+        }
+        const waiting = (row) => TRIP_NEEDS_REVIEW.includes(row.status);
+        const scope = params.get("scope");
+        if (scope === "portal") {
+          const summary = ({ id: rowId, status, title, author_name, created_at, report }) => ({
+            id: rowId, status, title, author_name, created_at,
+            report: { subject: report.subject, substances: report.substances, tags: report.tags },
+          });
+          return json(200, { ok: true, needsReview: inbox.trip.filter(waiting).map(summary), history: inbox.trip.filter((row) => !waiting(row)).map(summary) });
+        }
+        if (scope === "needs-review") return json(200, { ok: true, submissions: structuredClone(inbox.trip.filter(waiting)) });
+        return json(200, { ok: true, submissions: structuredClone(inbox.trip) });
+      });
+    }
+    const promoteMatch = /^\/api\/trip-report-submissions\/([^/]+)\/promote$/.exec(pathname);
+    if (promoteMatch && upper === "POST") return toolWrite(() => promoteSubmission(decodeURIComponent(promoteMatch[1]), body ?? {}));
     for (const [prefix, key] of [["article-feedback", "article"], ["site-feedback", "site"]]) {
       if (pathname === `/api/${prefix}/queue` && upper === "GET") {
         return toolRead(() => json(200, feedbackQueuePage(inbox[key], params)));

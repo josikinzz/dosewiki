@@ -197,6 +197,8 @@ const REGISTRY = [
     layout: "full-bleed",
     destination: SHELL,
     badge: "trip-reports",
+    // Decisions say what they do in the review dock; a report's save states its model beside Save.
+    saveLine: "in-tool",
   },
   {
     id: "article-feedback",

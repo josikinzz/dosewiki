@@ -255,7 +255,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         ) : controller.activeTab === "citation-review" ? (
           <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
         ) : controller.activeTab === "trip-report-submissions" ? (
-          <TripReportPortalTab initialSubmissionId={controller.tripReportsInitialId} />
+          <TripReportPortalTab
+            initialSubmissionId={controller.tripReportsInitialId}
+            actorEmail={controller.userEmail ?? null}
+          />
         ) : controller.activeTab === "article-feedback" ? (
           <FeedbackTab
             initialSource={controller.initialFilter}
