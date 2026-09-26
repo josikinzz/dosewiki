@@ -107,7 +107,7 @@ export function useDirtyGuard(
           </DialogDescription>
         </DialogHeader>
         {error ? <p role="alert" className="text-dose-text-primary">{error}</p> : null}
-        <DialogFooter className="gap-2">
+        <DialogFooter className="flex-wrap gap-2 [&>button]:h-auto [&>button]:min-h-10 [&>button]:whitespace-normal">
           <Button type="button" variant="outline" disabled={busy} onClick={() => setPending(null)}>
             Keep editing
           </Button>
@@ -115,7 +115,7 @@ export function useDirtyGuard(
             Discard changes
           </Button> : null}
           {copy?.onSave ? <Button type="button" disabled={busy} onClick={() => void save()}>
-            {busy ? "Saving draft…" : "Save draft and continue"}
+            {busy ? "Saving draft" : "Save draft and continue"}
           </Button> : null}
         </DialogFooter>
       </DialogContent>

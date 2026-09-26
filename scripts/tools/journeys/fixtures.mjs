@@ -22,6 +22,7 @@
 
 import { createTranslationRoutes } from "./translationFixtures.mjs";
 import { createMoleculeRoutes } from "./moleculeFixtures.mjs";
+import { createSubstanceRoutes, wholeArticle } from "./substanceFixtures.mjs";
 
 /** Roles the synthetic session can carry; mirrors `APP_ROLES` in `src/lib/auth/roles.ts`, minus `viewer`, which cannot open `/dev`. */
 export const JOURNEY_ROLES = Object.freeze(["admin", "editor_translator", "editor", "translator", "contributor"]);
@@ -1593,6 +1594,14 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     priorityOf: (slug) => LIBRARY_PRIORITY_SEED[slug] ?? "normal",
   });
 
+  /** The Substances tool's article lifecycle (`substanceFixtures.mjs`). */
+  const substances = createSubstanceRoutes({
+    fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN,
+    row: (slug) => library.rows.get(slug) ?? null,
+    proposals,
+    proposalSummary: (proposal) => proposalSummary(proposal),
+  });
+
   function writingList() {
     return [...writing.values()].map(({ slug, title, kind, status, creationTime, publicationDate, teaser, tags }) => ({
       slug, title, kind, status, creationTime, publicationDate, teaser, tags,
@@ -2254,7 +2263,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (!row) return json(404, { error: `No substance article is stored at ${slug}.` });
     const reads = (library.articleReads.get(slug) ?? 0) + 1;
     library.articleReads.set(slug, reads);
-    const answer = json(200, { ok: true, scope: "article", article: structuredClone(row) });
+    // Four articles are whole (`substanceFixtures.mjs`); the rest stay the thin projection.
+    const answer = json(200, { ok: true, scope: "article", article: wholeArticle(row) ?? structuredClone(row) });
     if (fixture.state === "conflicted" && reads === 1 && !contested.has(`article:${slug}`)) {
       contested.add(`article:${slug}`);
       row.index_categories = [...row.index_categories, TAG_ARTICLE_CONCURRENT_CATEGORY];
@@ -2368,9 +2378,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/my-work" && upper === "GET") {
       return toolRead(() => json(200, {
         ok: true,
-        drafts: [...writing.values()]
-          .filter((row) => row.status === "draft")
-          .map((row) => ({ slug: row.slug, title: row.title, updatedAt: new Date(row.creationTime).toISOString() })),
+        drafts: [
+          ...substances.myDrafts(),
+          ...[...writing.values()]
+            .filter((row) => row.status === "draft")
+            .map((row) => ({ slug: row.slug, title: row.title, updatedAt: new Date(row.creationTime).toISOString() })),
+        ],
         proposals: proposals.filter((row) => ownsProposal(row) && (row.status === "submitted" || row.status === "changes_requested")).map(proposalSummary),
       }));
     }
@@ -2716,6 +2729,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (scope && scope !== "list") return json(400, { error: `Unsupported editor library scope: ${scope}.` });
       return json(200, { ok: true, scope: "list", articles: [...library.rows.values()].map((row) => ({ ...structuredClone(row), priority: LIBRARY_PRIORITY_SEED[row.slug] ?? "normal", reference_count: 0 })) });
     }
+    const substanceAnswer = substances.route({ upper, pathname, params, body });
+    if (substanceAnswer) return substanceAnswer;
     if (pathname === "/api/save-article" && upper === "POST") return toolWrite(() => saveLibraryArticles(body ?? {}));
 
     const memberAction = /^\/api\/dev\/members\/(role|ban|unban|reset)$/.exec(pathname);

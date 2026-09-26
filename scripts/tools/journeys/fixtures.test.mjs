@@ -86,7 +86,8 @@ describe("journey fixtures", () => {
     assert.deepEqual(loaded.session.user.glossaryLocales, ["de", "nl", "ja"]);
     assert.equal(fixtureSession("editor").user.glossaryLocales, undefined);
     const work = get(loaded, "/api/dev/my-work").json;
-    assert.deepEqual(work.drafts.map((draft) => draft.slug), ["launch-post", "dosage-tables-explained"]);
+    // The seeded MDMA article draft first, then the writing drafts.
+    assert.deepEqual(work.drafts.map((draft) => draft.slug), ["mdma", "launch-post", "dosage-tables-explained"]);
     assert.deepEqual(work.proposals.map((proposal) => proposal._id), ["journeyseed000001", "fixture-prop-about1", "fixture-prop-ket1"]);
     assert.equal(get(loaded, "/api/dev/translation-inbox", "?locale=de").json.total, 7);
     assert.equal(get(loaded, "/api/dev/invites").json.invites.filter((invite) => invite.status === "active").length, 2);
@@ -628,5 +629,48 @@ describe("journey fixtures", () => {
     const editor = createJourneyFixture({ role: "editor", state: "loaded" });
     assert.equal(get(editor, "/api/dev/molecule-editor", "?scope=picker&numItems=200").status, 403);
     assert.deepEqual(get(admin, "/api/dev/molecule-class-template", "?list=1").json.templates.map((row) => row.classKey), ["morphinan"]);
+  });
+
+  it("answers the Substances article lifecycle the way the route does", () => {
+    const lifecycle = (fixture, slug) => get(fixture, "/api/dev/article-lifecycle", `?slug=${slug}`);
+    const write = (fixture, body) => post(fixture, "/api/dev/article-lifecycle", { changeId: `change-${Math.random().toString(36).slice(2)}`, ...body });
+    const admin = createJourneyFixture();
+    // A whole article for the seeded four, the thin row for the rest.
+    assert.ok(get(admin, "/api/dev/editor-library", "?slug=lsd").json.article.dosage.routes.length > 0);
+    assert.equal(get(admin, "/api/dev/editor-library", "?slug=caffeine").json.article.dosage, undefined);
+    const lsd = lifecycle(admin, "lsd").json;
+    assert.equal(lsd.draft, null);
+    assert.equal(lsd.history.length, 2);
+    assert.ok(lsd.proposals.some((proposal) => proposal._id === "fixture-prop-lsd1"));
+    // MDMA opens on the viewer's saved draft.
+    assert.equal(lifecycle(admin, "mdma").json.draft.article.dosage.routes[0].dose_ranges.moderate.min, 90);
+    const changed = structuredClone(lsd.article);
+    changed.dosage.routes[0].dose_ranges.moderate.max = 160;
+    assert.equal(write(admin, { action: "publish", slug: "lsd", baseHash: lsd.baseHash, summary: "", article: changed }).json.code, "ARTICLE_SUMMARY_REQUIRED");
+    assert.equal(write(admin, { action: "publish", slug: "lsd", baseHash: lsd.baseHash, summary: "x", article: lsd.article }).json.code, "ARTICLE_UNCHANGED");
+    const published = write(admin, { action: "publish", slug: "lsd", baseHash: lsd.baseHash, summary: "Moderate", article: changed });
+    assert.equal(published.status, 200);
+    assert.equal(lifecycle(admin, "lsd").json.article.dosage.routes[0].dose_ranges.moderate.max, 160);
+    assert.equal(write(admin, { action: "publish", slug: "lsd", baseHash: lsd.baseHash, summary: "again", article: changed }).status, 409);
+
+    const editor = createJourneyFixture({ role: "editor" });
+    const base = lifecycle(editor, "lsd").json;
+    assert.equal(write(editor, { action: "publish", slug: "lsd", baseHash: base.baseHash, summary: "x", article: changed }).status, 403);
+    const submitted = write(editor, { action: "submit", slug: "lsd", baseHash: base.baseHash, summary: "Moderate", article: changed });
+    assert.match(submitted.json.proposalId, /^fixture-prop-article-/);
+    assert.ok(get(editor, "/api/dev/my-work").json.proposals.some((proposal) => proposal._id === submitted.json.proposalId));
+    assert.equal(write(editor, { action: "saveDraft", slug: "lsd", baseHash: base.baseHash, article: changed, draftVersion: 0 }).status, 200);
+    assert.equal(write(editor, { action: "saveDraft", slug: "lsd", baseHash: base.baseHash, article: changed, draftVersion: 0 }).status, 409);
+
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    const stale = lifecycle(conflicted, "lsd").json;
+    assert.equal(write(conflicted, { action: "publish", slug: "lsd", baseHash: stale.baseHash, summary: "x", article: changed }).json.code, "ARTICLE_CONFLICT");
+    const fresh = lifecycle(conflicted, "lsd").json;
+    assert.equal(write(conflicted, { action: "publish", slug: "lsd", baseHash: fresh.baseHash, summary: "x", article: { ...changed, summary: fresh.article.summary } }).status, 200);
+
+    const frozen = createJourneyFixture({ state: "frozen" });
+    const held = lifecycle(frozen, "lsd").json;
+    assert.equal(write(frozen, { action: "saveDraft", slug: "lsd", baseHash: held.baseHash, article: changed }).json.code, "DATA_WRITES_FROZEN");
+    assert.equal(lifecycle(createJourneyFixture({ role: "contributor" }), "lsd").status, 403);
   });
 });

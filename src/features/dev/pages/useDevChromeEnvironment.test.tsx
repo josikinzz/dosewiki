@@ -104,7 +104,7 @@ describe("useDevChromeEnvironment", () => {
     };
     const { result, rerender } = renderHook(
       ({ activeTab }) => useDevChromeEnvironment({ activeTab, ...props }),
-      { initialProps: { activeTab: "articles" as DevModeTab } },
+      { initialProps: { activeTab: "home" as DevModeTab } },
     );
 
     expect(result.current.mainClassName).not.toContain("max-w-");
@@ -120,6 +120,7 @@ describe("useDevChromeEnvironment", () => {
       );
     }
     expect(DEV_TAB_REGISTRY.filter((tab) => tab.layout === "full-bleed").map((tab) => tab.id)).toEqual([
+      "articles",
       "trip-report-submissions",
       "molecule-editor",
       "banners",

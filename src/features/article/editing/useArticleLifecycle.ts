@@ -11,6 +11,7 @@ import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 import { articlePublicationNotice, type ArticlePublicationNotice } from "./publicationNotice";
 import { articleSectionForPath, type ArticleEditorSection } from "./articleSections";
 import { placeWords } from "./changeNote";
+import { classifyLifecycleFailure, type LifecycleAction, type LifecycleFailure } from "./articleSessionModel";
 import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
 import { articleArrayIdentity } from "../../../../lib/proposals/articlePatch";
 import { mergeThreeWay, type MergeSide } from "../../../../lib/proposals/threeWayMerge";
@@ -51,7 +52,7 @@ export type ArticleRevision = {
 };
 type Snapshot = {
   article: SubstanceArticle & { slug?: string }; baseHash: string;
-  draft: { article: SubstanceArticle; baseHash: string; version: number; revisionOf?: string } | null;
+  draft: { article: SubstanceArticle; baseHash: string; version: number; revisionOf?: string; updatedAt?: string } | null;
   history: ArticleRevision[];
   draftVersion?: number;
   proposals?: ProposalSummary[];
@@ -137,6 +138,10 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   // The proposal this session just submitted, kept for the pending chip.
   const [submittedProposalId, setSubmittedProposalId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The write in flight, so a dock can say what is running.
+  const [pendingAction, setPendingAction] = useState<LifecycleAction | null>(null);
+  // Why the last write did not land, when the answer said: frozen, a conflict, or a refusal.
+  const [failure, setFailure] = useState<LifecycleFailure | null>(null);
   const [loading, setLoading] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [revisionOf, setRevisionOf] = useState<string | undefined>();
@@ -160,6 +165,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     return data as Snapshot;
   }, [slug]);
   const adoptSnapshot = useCallback((next: Snapshot, published = false) => {
+    setFailure(null);
     const value = published ? next.article : next.draft?.article ?? next.article;
     setSnapshot(next);
     setBaseHash(published ? next.baseHash : next.draft?.baseHash ?? next.baseHash);
@@ -273,7 +279,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       adoptSnapshot(recovery);
       setNotice("Latest saved state loaded. Unsaved local edits were discarded; published content has not changed.");
     }
-    setError(null);
+    setError(null); setFailure(null);
   }, [recovery, merge, preview, adoptSnapshot]);
 
   const act = useCallback(async (action: ArticleLifecycleAction, summary = "", revisionId?: string, candidate?: SubstanceArticle) => {
@@ -299,16 +305,23 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     if (!pending.current) pending.current = { identity, changeId: crypto.randomUUID() };
     if (candidate) preview(candidate);
     requestLock.current = true;
-    setBusy(true); setError(null); setNotice(null); setPublication(null);
+    setBusy(true); setError(null); setNotice(null); setPublication(null); setFailure(null); setPendingAction(action);
     try {
       const response = await fetch("/api/dev/article-lifecycle", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...body, changeId: pending.current.changeId }),
       });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) setExpired(true);
-        if (response.status >= 400 && response.status < 500) pending.current = null;
+        // A refusal the server named (a 4xx, or the write freeze's 503) is
+        // definite: nothing was written, so the same request is not held for
+        // a retry. Only a lost or unexplained answer stays unconfirmed.
+        const kind = classifyLifecycleFailure(response.status, data?.code);
+        if (kind) {
+          pending.current = null;
+          setFailure({ kind, action, message: data.error ?? "The change was rejected. Your local changes are retained." });
+        }
         throw new Error(data.error ?? "The change was rejected. Your local changes are retained.");
       }
       pending.current = null;
@@ -316,7 +329,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       setVersion(data.draftVersion ?? data.draft?.version ?? version ?? 0);
       if (action === "saveDraft") {
         setSavedArticle(nextArticle); preview(nextArticle);
-        setSnapshot((previous) => previous ? { ...previous, draftVersion: data.draftVersion, draft: { article: nextArticle, baseHash, version: data.draftVersion ?? data.draft?.version ?? 0, revisionOf } } : previous);
+        setSnapshot((previous) => previous ? { ...previous, draftVersion: data.draftVersion, draft: { article: nextArticle, baseHash, version: data.draftVersion ?? data.draft?.version ?? 0, revisionOf, updatedAt: new Date().toISOString() } } : previous);
         setNotice("Private draft saved. Published content has not changed.");
       } else if (action === "discardDraft") {
         // The receipt has a hash but no article. Never pair it with our old public document.
@@ -364,7 +377,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       const message = failure instanceof Error ? failure.message : "No confirmation received. Keep your draft and retry the same action to confirm it.";
       setUncertain(pending.current !== null);
       setError(pending.current ? `No confirmation received. Retry your last change to confirm it. ${message}` : message); throw failure;
-    } finally { requestLock.current = false; setBusy(false); }
+    } finally { requestLock.current = false; setBusy(false); setPendingAction(null); }
   }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, feedbackRef, readSnapshot, adoptSnapshot]);
   const retry = useCallback(async () => {
     if (!pending.current) return;
@@ -387,6 +400,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [published, article]);
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published, isFieldChanged, history: snapshot?.history ?? [],
-    hasDraft: !!snapshot?.draft, publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
+    hasDraft: !!snapshot?.draft, draftSavedAt: snapshot?.draft?.updatedAt ?? null, pendingAction, failure, clearFailure: () => setFailure(null), publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
     dirty, load, refresh, recovery, merge, mergeChoices, chooseMerge, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, feedbackRef, setFeedbackRef, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }

@@ -155,7 +155,9 @@ const REGISTRY = [
     data: CORPUS_WITH_LAYOUTS,
     saveModel: "record",
     withoutApproval: "submits-for-review",
-    layout: "shell",
+    // The article pane's save dock says where a save lands, beside Save draft and Review.
+    saveLine: "in-tool",
+    layout: "full-bleed",
     destination: SHELL,
   },
   {

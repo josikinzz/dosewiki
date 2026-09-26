@@ -125,7 +125,7 @@ describe("private article session boundaries", () => {
     await user.type(dose, "not a dose");
     await user.type(duration, "eventually");
     const editor = screen.getByRole("dialog", { name: "Edit dosage and duration" });
-    await user.click(within(editor).getByRole("button", { name: "Preview locally" }));
+    await user.click(within(editor).getByRole("button", { name: "Apply to preview" }));
     await waitFor(() => expect(dose).toHaveFocus());
     expect(dose).toHaveValue("not a dose");
     expect(duration).toHaveValue("eventually");
@@ -139,7 +139,7 @@ describe("private article session boundaries", () => {
 
     await user.clear(duration);
     await user.type(duration, "15-30 minutes");
-    await user.click(within(editor).getByRole("button", { name: "Preview locally" }));
+    await user.click(within(editor).getByRole("button", { name: "Apply to preview" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Edit dosage and duration" })).toBeNull());
   });
 });
@@ -361,7 +361,7 @@ describe("leaving and discarding through the shared guard and confirm", () => {
     const field = await screen.findByDisplayValue(ownerSummary);
     fireEvent.change(field, { target: { value: "Local correction" } });
     fireEvent.input(field);
-    await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Preview locally" }));
+    await user.click(within(screen.getByRole("dialog", { name: /^Edit / })).getByRole("button", { name: "Apply to preview" }));
     await waitFor(() => expect(screen.getByRole("article", { name: "Article preview" }).textContent).toBe("Local correction"));
 
     expect(screen.getByRole("button", { name: "Save draft" }).textContent).toBe("Save draft");

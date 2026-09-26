@@ -86,6 +86,16 @@ export type PublishSheetProps = {
   /** Leaves the sheet without publishing. */
   onCancel?: () => void;
   confirmDescription?: string;
+  /** What the publish confirm shows under its sentence, such as the changes that matter most. Widens it. */
+  confirmBody?: ReactNode;
+  /** Draw the publish confirm as destructive, for a change with unresolved warnings. */
+  confirmDestructive?: boolean;
+  /** Heading over the confirm's list of targets ("Changes 2 pages"). */
+  confirmAffectedLabel?: string;
+  /** The outcome of the last attempt, drawn under the buttons that made it (a refusal and its way forward). */
+  result?: ReactNode;
+  /** Read before anything else in the sheet, such as a safety check. */
+  lead?: ReactNode;
   children?: ReactNode;
 };
 
@@ -98,7 +108,7 @@ export type PublishSheetProps = {
  */
 export function PublishSheet({
   changes, targets, onPublish, receipt, actions = ["Publish"], heading = "Your changes", headingRef,
-  description, note, problems, disabled = false, busy = false, countLabel, onCancel, confirmDescription, children,
+  description, note, problems, disabled = false, busy = false, countLabel, onCancel, confirmDescription, confirmBody, confirmAffectedLabel, confirmDestructive = false, lead, result, children,
 }: PublishSheetProps) {
   const noteId = useId();
   const { confirm, dialog } = useConfirm();
@@ -119,7 +129,10 @@ export function PublishSheet({
       title: "Publish this change to every reader?",
       description: confirmDescription ?? `It is saved on the editor host first, then delivered to the public site.${countLabel ? ` ${countLabel}.` : ""}${noteText}`,
       affected: [...targets],
+      ...(confirmBody ? { body: confirmBody, wide: true } : {}),
+      ...(confirmAffectedLabel ? { affectedLabel: confirmAffectedLabel } : {}),
       confirmLabel: "Publish",
+      destructive: confirmDestructive,
       onConfirm: () => perform("Publish"),
     });
   };
@@ -134,6 +147,7 @@ export function PublishSheet({
   // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
   return <section data-testid="publish-sheet" aria-label="Review and publish" className="min-w-0 space-y-4 [overflow-wrap:anywhere]" onKeyDown={onKeyDown}>
     <h3 ref={headingRef} tabIndex={-1} className="theme-text-primary theme-focus-ring font-semibold">{heading}</h3>
+    {lead}
     {description ? <div className="theme-text-muted text-sm">{description}</div> : null}
     {isFieldChanges(changes) ? <FieldChangeList changes={changes} /> : changes}
     <section className="space-y-1">
@@ -155,7 +169,8 @@ export function PublishSheet({
       </Button>)}
       {onCancel ? <Button variant="ghost" disabled={busy} onClick={onCancel}>Cancel</Button> : null}
     </div>
-    <p className="theme-text-muted text-xs">Press Ctrl+Enter or Cmd+Enter to {primary === "Publish" ? "review and publish" : "submit for review"}.</p>
+    {result}
+    <p className="theme-text-muted text-xs [@media(pointer:coarse)]:hidden">Press Ctrl+Enter or Cmd+Enter to {primary === "Publish" ? "review and publish" : "submit for review"}.</p>
     {error ? <p role="alert" className="theme-text-primary whitespace-pre-wrap text-sm">{error}</p> : null}
     {receipt ? <PublicationReceiptChips receipt={receipt} /> : null}
     {children}
