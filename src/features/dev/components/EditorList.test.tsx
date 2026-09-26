@@ -128,6 +128,11 @@ describe("EditorList", () => {
     expect(onToggle).toHaveBeenCalledTimes(2);
     expect(listbox.querySelectorAll(FOCUSABLE)).toHaveLength(0);
     expect(within(listbox).queryByRole("checkbox")).not.toBeInTheDocument();
+    // A finger-sized tick under a coarse pointer, and one focus cue: the open row's border.
+    expect(screen.getByTitle("Select Item 1").className).toContain("[@media(pointer:coarse)]:h-11");
+    expect(screen.getByTitle("Select Item 1").className).toContain("[@media(pointer:coarse)]:w-11");
+    expect(listbox).toHaveClass("theme-dev-listbox");
+    expect(second.querySelector(".theme-dev-list-row")).not.toBeNull();
   });
 
   it("selects on click and filters through the search box", () => {

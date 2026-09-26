@@ -158,6 +158,19 @@
     pointer-events: none;
   }
 
+  /* A windowed EditorList holds focus on the listbox and marks the current
+       row with aria-activedescendant. Ringing the box as well as drawing the
+       open row's border doubled the line where the two meet, so while a row
+       is selected the focus cue is that row's own border, and the box keeps
+       the shared ring only when nothing is selected. */
+  .theme-dev-listbox:focus-visible:has([role="option"][aria-selected="true"] .theme-dev-list-row) {
+    outline-color: transparent;
+  }
+
+  .theme-dev-listbox:focus-visible [role="option"][aria-selected="true"] .theme-dev-list-row {
+    border-color: var(--theme-text-secondary);
+  }
+
   .theme-dev-link-row {
     color: var(--theme-text-secondary);
   }

@@ -364,7 +364,8 @@ export function EditorList<T>({
       >
         {multiSelect ? (
           <>
-            <span className="flex w-5 shrink-0 justify-center">
+            {/* A 44px column under a coarse pointer, so the tick is a finger-sized target of its own. */}
+            <span className="flex w-5 shrink-0 justify-center [@media(pointer:coarse)]:w-11">
               {checkable ? <TickBox item={item} itemKey={key} multiSelect={multiSelect} /> : null}
             </span>
             <div className="min-w-0 flex-1">{renderItem(item, { selected })}</div>
@@ -399,7 +400,7 @@ export function EditorList<T>({
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}
         style={{ maxHeight }}
-        className="min-h-0 overflow-y-auto overscroll-contain rounded-xl theme-focus-ring"
+        className="theme-dev-listbox min-h-0 overflow-y-auto overscroll-contain rounded-xl theme-focus-ring"
       >
         {visible.length === 0 ? (
           <p className="theme-text-muted px-3 py-6 text-center text-sm">{emptyText}</p>
@@ -451,7 +452,7 @@ function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; 
         event.stopPropagation();
         multiSelect.onToggle(itemKey);
       }}
-      className="flex h-5 w-5 cursor-pointer items-center justify-center"
+      className="flex h-5 w-5 cursor-pointer items-center justify-center [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
     >
       {/* Drawn, not a native input, so nothing inside the listbox can take focus. */}
       <span
