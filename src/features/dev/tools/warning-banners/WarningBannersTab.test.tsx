@@ -14,6 +14,7 @@ const { useQueryMock } = vi.hoisted(() => ({
 
 vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: useQueryMock,
+  useEditorReadState: (...args: unknown[]) => ({ data: useQueryMock(...args), error: null, fetching: false, retry: () => {} }),
   useInvalidateEditorReads: () => async () => undefined,
 }));
 
@@ -135,12 +136,12 @@ function stubPresets(presets: WarningBannerPreset[]) {
 }
 
 async function openDrawer(user: UserEvent) {
-  await user.click(screen.getByRole("button", { name: new RegExp(PRESET.key), expanded: false }));
+  await user.click(screen.getByRole("button", { name: new RegExp(PRESET.key) }));
   return screen.getByLabelText("Headline");
 }
 
 async function waitForTargets() {
-  await screen.findByRole("button", { name: new RegExp(PRESET.key), expanded: false });
+  await screen.findByRole("button", { name: new RegExp(PRESET.key) });
 }
 
 /**
@@ -175,7 +176,7 @@ describe("WarningBannersTab presets", () => {
     const headline = await openDrawer(user);
     const save = screen.getByRole("button", { name: /Publish preset/ });
     expect(save).toBeDisabled();
-    expect(screen.getByText("No changes")).toBeInTheDocument();
+    expect(screen.getByText("No changes yet")).toBeInTheDocument();
 
     await user.clear(headline);
     await user.type(headline, "  Mixing opioids and benzos  ");
@@ -307,7 +308,7 @@ describe("WarningBannersTab presets", () => {
     const headline = await openDrawer(user);
     await user.type(headline, "!");
 
-    await user.click(screen.getByRole("button", { name: /second-preset/, expanded: false }));
+    await user.click(screen.getByRole("button", { name: /second-preset/ }));
     let dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Discard unsaved changes?");
     await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
@@ -320,7 +321,7 @@ describe("WarningBannersTab presets", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
 
-    await user.click(screen.getByRole("button", { name: /second-preset/, expanded: false }));
+    await user.click(screen.getByRole("button", { name: /second-preset/ }));
     dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("button", { name: "Discard changes" }));
     await waitFor(() => expect(screen.getByLabelText("Headline")).toHaveValue("Second headline"));
@@ -432,15 +433,13 @@ describe("WarningBannersTab presets", () => {
 
     // One danger substance, not "2 of 2": the sitewide caution notice is a
     // preset, never every slug, and the switched-off preset counts for nothing.
-    const summary = screen.getByText(
+    screen.getByText(
       "1 of 2 substances are on a banner list. 1 sitewide preset reaches every article, including ones published later.",
     );
-    const tones = within(summary.previousElementSibling as HTMLElement);
-    expect(tones.getByText("danger").closest("div")).toHaveTextContent("1of 2 substances");
-    expect(tones.getByText("unsafe").closest("div")).toHaveTextContent("0of 2 substances");
-    expect(tones.getByText("caution").closest("div")).toHaveTextContent(
-      "Every article1 sitewide preset",
-    );
+    const tone = (name: string) => document.querySelector(`[data-tone="${name}"]`) as HTMLElement;
+    expect(tone("danger")).toHaveTextContent("Danger1of 2 substances");
+    expect(tone("unsafe")).toHaveTextContent("Unsafe0of 2 substances");
+    expect(tone("caution")).toHaveTextContent("CautionAllarticles, 1 sitewide preset");
   });
 
   it("adopts the echoed slug list and reports slugs the server pruned", async () => {
@@ -491,7 +490,7 @@ describe("WarningBannersTab coverage", () => {
     expect(dialog).toHaveTextContent("Readers of Alprazolam see this banner");
     expect(dialog).toHaveTextContent("Your unsaved edits to its words are not published by this change; they stay a draft.");
     expect(writes).toHaveLength(0);
-    await user.click(within(dialog).getByRole("button", { name: "Enable on alprazolam" }));
+    await user.click(within(dialog).getByRole("button", { name: "Enable on Alprazolam" }));
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].method).toBe("POST");
@@ -529,13 +528,13 @@ describe("WarningBannersTab coverage", () => {
     await openDrawer(user);
 
     await user.type(screen.getByLabelText("Find substances"), "alpraz");
-    await user.click(screen.getByLabelText("Stage alprazolam"));
+    await user.click(screen.getByLabelText("Select Alprazolam"));
     await user.click(screen.getByRole("button", { name: "Enable on 1 substance" }));
     await confirmWrite(user, "Cancel");
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(writes).toHaveLength(0);
-    expect(screen.getByLabelText("Stage alprazolam")).toBeChecked();
+    expect(screen.getByLabelText("Select Alprazolam")).toBeChecked();
     expect(screen.getByRole("button", { name: "Enable on 1 substance" })).toBeEnabled();
   });
 
@@ -543,21 +542,21 @@ describe("WarningBannersTab coverage", () => {
     const writes = stubApi();
     const user = userEvent.setup();
     render(<WarningBannersTab initialSubstanceSlug="diazepam" />);
-    await screen.findByRole("button", { name: "Disable on diazepam" });
+    await screen.findByRole("button", { name: "Disable on Diazepam" });
 
     // Loose on the verb: the live copy reads "1 banner render here" (the plural
     // suffix is applied backwards), and grammar is not the contract under test.
     expect(screen.getByText(/^1 banner renders? here, in this order\.$/)).toBeInTheDocument();
     expect(screen.getByText(/^Coverage started on/)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Disable on diazepam" }));
+    await user.click(screen.getByRole("button", { name: "Disable on Diazepam" }));
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Disable opioid-respiratory on Diazepam?");
     expect(dialog).toHaveTextContent(
       "Readers of Diazepam stop seeing this banner as soon as you confirm. It will render nowhere afterwards.",
     );
     expect(writes).toHaveLength(0);
-    await user.click(within(dialog).getByRole("button", { name: "Disable on diazepam" }));
+    await user.click(within(dialog).getByRole("button", { name: "Disable on Diazepam" }));
 
     await waitFor(() => expect(writes).toHaveLength(1));
     expect(writes[0].method).toBe("POST");
@@ -566,7 +565,7 @@ describe("WarningBannersTab coverage", () => {
       enabled: true,
       enabledSlugs: [],
     });
-    await screen.findByText("Disabled opioid-respiratory on diazepam.");
+    await screen.findByText("Disabled opioid-respiratory on Diazepam.");
 
     await user.click(screen.getByRole("button", { name: /Undo/ }));
 
@@ -587,20 +586,73 @@ describe("WarningBannersTab coverage", () => {
           return new Response(JSON.stringify({ presets: storedPresets }), { status: 200 });
         }
         return new Response(JSON.stringify({ error: "Postgres rejected the write." }), {
-          status: 409,
+          status: 422,
         });
       }),
     );
     const user = userEvent.setup();
     render(<WarningBannersTab initialSubstanceSlug="diazepam" />);
-    await screen.findByRole("button", { name: "Disable on diazepam" });
+    await screen.findByRole("button", { name: "Disable on Diazepam" });
 
-    await user.click(screen.getByRole("button", { name: "Disable on diazepam" }));
-    await confirmWrite(user, "Disable on diazepam");
+    await user.click(screen.getByRole("button", { name: "Disable on Diazepam" }));
+    await confirmWrite(user, "Disable on Diazepam");
 
     // `SafetyBanner` previews carry `role="alert"` too, so locate the notice by its title.
     const title = await screen.findByText("Couldn't save that preset");
     expect(title.closest('[role="alert"]')).toHaveTextContent("Postgres rejected the write.");
     expect(screen.queryByRole("button", { name: /Undo/ })).not.toBeInTheDocument();
+  });
+
+  it("offers the latest version when someone published the preset after it was opened", async () => {
+    let conflicted = true;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input.toString();
+        if (url === TARGETS_API) {
+          return new Response(JSON.stringify({ items: TARGETS }), { status: 200 });
+        }
+        if (url === PRESET_API && !init?.method) {
+          return new Response(JSON.stringify({ presets: storedPresets }), { status: 200 });
+        }
+        if (url.startsWith(`${PRESET_API}?`)) {
+          // The re-read after the conflict: someone else's headline, a newer revision.
+          return new Response(
+            JSON.stringify({ preset: { ...PRESET, headline: "Their headline" }, baseHash: "c".repeat(64), history: [], operation: null }),
+            { status: 200 },
+          );
+        }
+        if (url === PRESET_API && conflicted) {
+          conflicted = false;
+          return new Response(
+            JSON.stringify({ error: "This warning changed since it was opened. Reload its current version before publishing; your local edits have not been applied." }),
+            { status: 409 },
+          );
+        }
+        if (url.startsWith(LIBRARY_API)) return new Response("{}", { status: 404 });
+        if (url.startsWith("/api/reagent-proxy")) return new Response("{}", { status: 404 });
+        throw new Error(`Unexpected fetch ${url}`);
+      }),
+    );
+    const user = userEvent.setup();
+    render(<WarningBannersTab />);
+    await waitForTargets();
+
+    const headline = await openDrawer(user);
+    await user.type(headline, "!");
+    await user.click(screen.getByRole("button", { name: /Publish preset/ }));
+    await confirmWrite(user, "Publish preset");
+
+    await screen.findByText("Someone published this preset after you opened it.");
+    // The draft is kept until the editor chooses to drop it.
+    expect(screen.getByLabelText("Headline")).toHaveValue(`${PRESET.headline}!`);
+
+    await user.click(screen.getByRole("button", { name: "Load the latest version" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Your unsaved edits to opioid-respiratory are dropped");
+    await user.click(within(dialog).getByRole("button", { name: "Load latest" }));
+
+    await waitFor(() => expect(screen.getByLabelText("Headline")).toHaveValue("Their headline"));
+    expect(screen.getByText("No changes yet")).toBeInTheDocument();
   });
 });

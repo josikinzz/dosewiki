@@ -91,6 +91,11 @@ export interface EditorStatusPillProps
   loading?: boolean;
   live?: boolean;
   icon?: IconName;
+  /**
+   * Render as a `span` rather than the Badge's `div`, for a pill inside
+   * phrasing content (a row button, a sentence) where a block is invalid.
+   */
+  inline?: boolean;
   children: ReactNode;
 }
 
@@ -114,12 +119,24 @@ export function EditorStatusPill({
   loading = false,
   live = false,
   icon,
+  inline = false,
   className,
   children,
   ...props
 }: EditorStatusPillProps) {
+  const content = (
+    <>
+      {loading ? (
+        <Icon icon="lucide:loader-2" size={13} className="shrink-0 animate-spin" />
+      ) : icon ? (
+        <Icon icon={icon} size={13} className="shrink-0" />
+      ) : null}
+      {children}
+    </>
+  );
   return (
     <Badge
+      asChild={inline}
       variant="outline"
       data-badge-tone={statusPillBadgeTone[tone]}
       className={cn(
@@ -138,12 +155,7 @@ export function EditorStatusPill({
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading ? (
-        <Icon icon="lucide:loader-2" size={13} className="shrink-0 animate-spin" />
-      ) : icon ? (
-        <Icon icon={icon} size={13} className="shrink-0" />
-      ) : null}
-      {children}
+      {inline ? <span>{content}</span> : content}
     </Badge>
   );
 }

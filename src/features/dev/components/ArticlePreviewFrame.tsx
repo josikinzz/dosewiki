@@ -87,6 +87,8 @@ export type ArticlePreviewFrameProps = {
   overrides?: Partial<Omit<ArticleLayoutProps, "article">>;
   /** Names the frame for assistive tech and tests. */
   label?: string;
+  /** The width the frame opens at; the editor can still switch. Defaults to desktop. */
+  defaultWidth?: ArticlePreviewWidth;
 };
 
 /* ------------------------------------------------------------------ */
@@ -280,9 +282,10 @@ export function ArticlePreviewFrame({
   draft,
   overrides,
   label = "Article preview",
+  defaultWidth = "desktop",
 }: ArticlePreviewFrameProps) {
   const [scheme, setScheme] = useState<ColorScheme>(hostScheme);
-  const [width, setWidth] = useState<ArticlePreviewWidth>("desktop");
+  const [width, setWidth] = useState<ArticlePreviewWidth>(defaultWidth);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const body = useFrameBody(iframeRef, scheme);

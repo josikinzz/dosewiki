@@ -24,6 +24,8 @@ export interface ConfirmRequest {
   destructive?: boolean;
   /** Rows a bulk write touches; the first eight are listed, the rest counted. */
   affected?: string[];
+  /** The heading over `affected` ("Shows on 5 articles"); defaults to "Affects N rows". */
+  affectedLabel?: string;
   /** Widens the dialog for a body that carries diffs. */
   wide?: boolean;
   onConfirm: () => void | Promise<void>;
@@ -103,7 +105,7 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
             {affected.length > 0 ? (
               <div className="space-y-1.5">
                 <p className="type-meta-label theme-text-faint">
-                  Affects {affected.length} {affected.length === 1 ? "row" : "rows"}
+                  {request.affectedLabel ?? `Affects ${affected.length} ${affected.length === 1 ? "row" : "rows"}`}
                 </p>
                 <ul className="theme-text-secondary max-h-48 space-y-0.5 overflow-y-auto text-sm">
                   {preview.map((row) => (

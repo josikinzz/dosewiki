@@ -196,6 +196,33 @@ describe("journey fixtures", () => {
     assert.deepEqual(buildChangelogFixture(7), buildChangelogFixture(7));
   });
 
+  it("answers the Banners reads and writes with the route's revision check", () => {
+    const presets = (fixture) => get(fixture, "/api/dev/warning-banner").json.presets;
+    const fixture = createJourneyFixture();
+    const [first] = presets(fixture);
+    assert.equal(presets(fixture).length, 5);
+    assert.ok(get(fixture, "/api/dev/warning-banner/targets").json.items.some((item) => item.slug === "diazepam"));
+    assert.equal(get(fixture, "/api/editor/banner-display").json.iconSize, 40);
+
+    // A publish echoes the list minus slugs that name no article, and a stale revision is refused.
+    const saved = post(fixture, "/api/dev/warning-banner", { ...first, enabledSlugs: ["heroin", "ghost"], changeId: "c1" });
+    assert.equal(saved.status, 200);
+    assert.deepEqual(saved.json.enabledSlugs, ["heroin"]);
+    assert.equal(post(fixture, "/api/dev/warning-banner", { ...first, changeId: "c2" }).status, 409);
+    // The answered write reconciles by change id.
+    assert.equal(get(fixture, "/api/dev/warning-banner", `?key=${first.key}&changeId=c1`).json.operation.changeId, "c1");
+    const removed = fixture.respond({ method: "DELETE", pathname: "/api/dev/warning-banner", body: { key: first.key, baseHash: saved.json.baseHash, changeId: "c3" } });
+    assert.equal(removed.status, 200);
+    assert.equal(presets(fixture).length, 4);
+
+    // Someone else saves a conflicted preset just before the first publish; frozen and failed answer as the routes do.
+    const conflicted = createJourneyFixture({ state: "conflicted" });
+    assert.equal(post(conflicted, "/api/dev/warning-banner", { ...presets(conflicted)[0], changeId: "c4" }).status, 409);
+    assert.equal(post(createJourneyFixture({ state: "frozen" }), "/api/dev/warning-banner/display", { iconSize: 50 }).status, 503);
+    assert.equal(get(createJourneyFixture({ state: "failed" }), "/api/dev/warning-banner").status, 500);
+    assert.deepEqual(presets(createJourneyFixture({ state: "empty" })), []);
+  });
+
   it("only accepts a loopback origin", () => {
     assert.equal(assertLoopbackBase("http://127.0.0.1:3100").port, "3100");
     assert.equal(assertLoopbackBase("http://localhost:3100").hostname, "localhost");

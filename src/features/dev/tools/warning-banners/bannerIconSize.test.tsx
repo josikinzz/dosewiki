@@ -1,3 +1,4 @@
+import { createRef } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -59,18 +60,27 @@ function renderPresets(control: BannerIconSizeControl) {
       presets={[PRESET]}
       targets={TARGETS}
       iconSizeControl={control}
-      openKey={PRESET.key}
+      iconSizeNotice={null}
+      onDismissIconSizeNotice={vi.fn()}
       draft={PRESET}
-      isNew={false}
+      saved={PRESET}
       isDirty={false}
       saveState="idle"
       iconValid
+      notice={null}
+      onDismissNotice={vi.fn()}
+      saveKeyLabel="Ctrl S"
+      listRef={createRef()}
+      paneRef={createRef()}
+      titleRef={createRef()}
       onIconValidityChange={vi.fn()}
       onDraftChange={vi.fn()}
       onOpen={vi.fn()}
       onCreate={vi.fn()}
       onSave={vi.fn()}
       onDiscard={vi.fn()}
+      onClose={vi.fn()}
+      onBackToList={vi.fn()}
       onRequestEnablement={vi.fn()}
       onRequestDelete={vi.fn()}
       onInspectCoverage={vi.fn()}
@@ -81,7 +91,7 @@ function renderPresets(control: BannerIconSizeControl) {
 const SIZE_LABEL = "Icon size · applies to every banner";
 
 describe("global safety-banner icon size", () => {
-  it("offers exactly one size control, in the global toolbar beside New preset", () => {
+  it("offers exactly one size control, beside the preset list and outside the open preset", () => {
     renderPresets(iconSizeControl());
 
     const field = screen.getByLabelText(SIZE_LABEL);
@@ -93,11 +103,9 @@ describe("global safety-banner icon size", () => {
     // would mean the size had leaked into per-preset state.
     expect(screen.getAllByRole("spinbutton")).toHaveLength(1);
 
-    const [globalToolbar] = screen.getAllByRole("toolbar");
-    expect(globalToolbar).toContainElement(field);
-    expect(globalToolbar).toContainElement(
-      screen.getByRole("button", { name: /New preset/ }),
-    );
+    // Beside the list, never in the pane: the size is not preset state.
+    expect(screen.getByTestId("banner-preset-editor")).not.toContainElement(field);
+    expect(screen.getByRole("region", { name: "Every banner" })).toContainElement(field);
   });
 
   it("renders the drawer preview glyph at the global size, inside the article frame", async () => {

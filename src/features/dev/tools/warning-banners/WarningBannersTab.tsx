@@ -1,22 +1,22 @@
 "use client";
 
 /**
- * Banner Studio — `/dev` → Banners, deep-linked at `/dev/banners/<slug>`.
+ * Banner Studio: `/dev` → Banners, deep-linked at `/dev/banners/<slug>`.
  *
- * Two jobs with very different frequencies live in one tab (design brief §3):
+ * Two jobs with very different frequencies live in one tab:
  * `Presets` authors the handful of banners that will ever exist, `Coverage`
  * audits what a reader actually sees on one substance. This module owns
- * everything the two views must not disagree about — the preset list, the loaded
+ * everything the two views must not disagree about: the preset list, the loaded
  * corpus, the draft, every write, and the rollout readout.
  *
  * Three disciplines are load-bearing. Banners are opt-in: nothing here maps a
  * classification onto a rendered banner, and `searchWarningBannerTargets` only
  * ever produces slugs for an editor to enable by hand. Saving is never
- * optimistic — the route's echoed `enabledSlugs` is adopted verbatim because the
+ * optimistic: the route's echoed `enabledSlugs` is adopted verbatim because the
  * server drops slugs that no longer resolve, and a pruned slug that silently
  * stayed on screen would be a lie about what the public site shows. And the
- * glyph size is site-wide, so it is held here on its own wire — its own query,
- * its own draft, its own save state and its own notice — because a preset save
+ * glyph size is site-wide, so it is held here on its own wire (its own query,
+ * its own draft, its own save state and its own notice), because a preset save
  * and a size save can be in flight at once and must never be mistaken for each
  * other.
  */
@@ -24,11 +24,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
-import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
 import {
   compareWarningBanners,
   clampSafetyBannerIconSize,
+  MAX_BANNERS_PER_ARTICLE,
   isWarningBannerTone,
   normalizeEnabledSlugs,
   SAFETY_BANNER_ICON_SIZE_DEFAULT,
@@ -36,19 +36,26 @@ import {
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
+  EditorSection,
+  LoadErrorState,
   useConfirm,
+  useDevShortcuts,
   useDirtyGuard,
+  useScrollToDetail,
   useUnsavedWork,
   type EditorActionStatusState,
   type NoticeMessage,
 } from "@/features/dev/components";
-import { useEditorRead, useInvalidateEditorReads } from "@/hooks/useEditorRead";
+import { useWriteFreeze } from "@/features/dev/components/writeFreeze";
+import { useEditorReadState, useInvalidateEditorReads } from "@/hooks/useEditorRead";
+import { useModifierKeyLabel } from "../../pages/DevCommandPalette";
+import { RowSkeletons } from "../home/homeParts";
 import { WarningBannersBoundary } from "./WarningBannersBoundary";
 import {
   WarningBannersStudioView,
   type WarningBannersStudioViewMode,
 } from "./WarningBannersStudioView";
-import { summarizeBannerCoverage } from "./bannerCoverage";
+import { slugsHiddenByCap, summarizeBannerCoverage, summarizeCapSuppression } from "./bannerCoverage";
 import { planEnablementChange, type EnablementChange } from "./enablement";
 import {
   applyDraftChange,
@@ -65,7 +72,15 @@ import {
   cachedWarningBannerTargets,
   fetchWarningBannerTargets,
 } from "./warningBannerTargets";
-import { pendingWarning, publishWarning, readWarningJson, retryPendingWarning, writeWarning } from "./warningEditing";
+import {
+  pendingWarning,
+  publishWarning,
+  readWarningJson,
+  readWarningState,
+  retryPendingWarning,
+  WarningRequestError,
+  writeWarning,
+} from "./warningEditing";
 import type { EditableWarningPreset } from "./warningEditing";
 
 
@@ -98,6 +113,28 @@ type WarningBannerPresetDoc = {
 type StudioView = WarningBannersStudioViewMode;
 
 type SaveState = EditorActionStatusState | "idle";
+
+/**
+ * A preset notice, plus whether it reports a write that did not land. When the
+ * shell has seen the write freeze, a failed write reads as the freeze rather
+ * than as the reconcile step's "not yet confirmed", which is what the client
+ * says after any 5xx.
+ */
+type BannerNotice = NoticeMessage & { writeFailed?: boolean };
+
+/** A save refused by the revision check: someone published this preset after it was opened. */
+function isRevisionConflict(error: unknown): boolean {
+  return (error instanceof WarningRequestError && error.status === 409)
+    || (error instanceof Error && /changed since it was opened/i.test(error.message));
+}
+
+const FREEZE_TITLE = "Writes are paused, so your changes were not published.";
+
+const EDITOR_SHORTCUTS = [
+  { keys: "Cmd+S", label: "Publish the open preset (asks first)" },
+  { keys: "/", label: "Find a substance" },
+] as const;
+const VIEW_SHORTCUTS = [{ keys: "/", label: "Find a substance" }] as const;
 
 const BLANK_PRESET: WarningBannerPreset = {
   key: "",
@@ -139,14 +176,21 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const initialSubstanceSlug = initialPresetKey === null ? initialSlug : undefined;
   const [rows, setRows] = useState<WarningBannerPresetDoc[] | undefined>(undefined);
   const [rowsError, setRowsError] = useState<string | null>(null);
+  const [rowsLoading, setRowsLoading] = useState(false);
   const [rowsToken, setRowsToken] = useState(0);
 
   useEffect(() => {
     let active = true;
     setRowsError(null);
+    setRowsLoading(true);
     readWarningJson<{ presets: WarningBannerPresetDoc[] }>("/api/dev/warning-banner").then(
-      (result) => { if (active) setRows(result.presets); },
-      (error: unknown) => { if (active) setRowsError(error instanceof Error ? error.message : "The warning presets could not be loaded."); },
+      (result) => { if (active) { setRows(result.presets); setRowsLoading(false); } },
+      (error: unknown) => {
+        if (active) {
+          setRowsError(error instanceof Error ? error.message : "The warning presets could not be loaded.");
+          setRowsLoading(false);
+        }
+      },
     );
     return () => { active = false; };
   }, [rowsToken]);
@@ -170,6 +214,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const [targets, setTargets] = useState<WarningBannerTarget[]>(
     () => cachedWarningBannerTargets ?? [],
   );
+  const [targetsLoaded, setTargetsLoaded] = useState(() => cachedWarningBannerTargets !== null);
   const [targetsError, setTargetsError] = useState<string | null>(null);
   const [targetsToken, setTargetsToken] = useState(0);
   const [view, setView] = useState<StudioView>(
@@ -179,23 +224,45 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const [editor, setEditor] = useState<PresetEditor | null>(null);
   const [iconValid, setIconValid] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
-  const [notice, setNotice] = useState<NoticeMessage | null>(null);
+  const [notice, setNotice] = useState<BannerNotice | null>(null);
   const { confirm, dialog: confirmDialog } = useConfirm();
+  const freeze = useWriteFreeze();
+  const saveKeyLabel = useModifierKeyLabel("S");
+  const listRef = useRef<HTMLElement>(null);
+  const paneRef = useRef<HTMLElement>(null);
+  const paneTitleRef = useRef<HTMLHeadingElement>(null);
+  /** Set when a row opens a preset, so the pane's heading takes focus once it has rendered. */
+  const focusPaneOnOpen = useRef(false);
 
   const isDirty = editor ? isCopyDirty(editor) || isScopeDirty(editor) : false;
   const draft = useMemo(() => (editor ? composeDraft(editor) : null), [editor]);
   // Replacing the open draft (another preset, New preset, Coverage's Edit, or
-  // closing the drawer) asks first while it holds unsaved work.
+  // closing the pane) asks first while it holds unsaved work.
   // The shell owns rail clicks, Leave and unload; this guard keeps the
   // in-tool switches.
   const { guard: guardDraft, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, { warnOnUnload: false });
+
+  // Phones stack the pane under the list: opening a preset scrolls it in.
+  const openIdentity = editor ? (editor.origin?.key ?? "new") : null;
+  useScrollToDetail(paneRef, view === "presets" ? openIdentity : null);
+  // Name the preset for keyboard and screen reader users once its pane is in
+  // the page. An effect, not a frame later, so a click that lands in a field
+  // right after cannot lose its focus to the heading.
+  useEffect(() => {
+    if (openIdentity === null || !focusPaneOnOpen.current) return;
+    focusPaneOnOpen.current = false;
+    paneTitleRef.current?.focus({ preventScroll: true });
+  }, [openIdentity]);
 
   /**
    * The site-wide glyph size. Its own query, draft, save state and notice, none
    * of them shared with `submitPreset`: an editor who saves a preset must not see
    * a pill claiming the size was stored, and vice versa.
    */
-  const display = useEditorRead("siteConfig:getBannerDisplay", {}, "list");
+  // Read without throwing, so a failed read degrades the size control alone
+  // and the presets stay editable; the boundary is the net for anything else.
+  const displayRead = useEditorReadState("siteConfig:getBannerDisplay", {}, "list");
+  const display = displayRead.data;
   const invalidateEditorReads = useInvalidateEditorReads();
   const storedIconSize = display
     ? clampSafetyBannerIconSize(display.iconSize)
@@ -210,14 +277,17 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const [iconSizeSaveState, setIconSizeSaveState] = useState<SaveState>("idle");
   const [iconSizeNotice, setIconSizeNotice] = useState<NoticeMessage | null>(null);
 
+  // The corpus is read once per visit (and cached across visits), so the
+  // readout's denominator, Coverage and the substance search are all ready
+  // without waiting for a view to ask.
   useEffect(() => {
-    if (view !== "coverage" && editor === null) return;
     let cancelled = false;
     fetchWarningBannerTargets({ refresh: targetsToken > 0 }).then(
       (items) => {
         if (!cancelled) {
           setTargets(items);
           setTargetsError(null);
+          setTargetsLoaded(true);
         }
       },
       (error: unknown) => {
@@ -225,13 +295,14 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
           setTargetsError(
             error instanceof Error ? error.message : "The substance list could not be loaded.",
           );
+          setTargetsLoaded(true);
         }
       },
     );
     return () => {
       cancelled = true;
     };
-  }, [editor, targetsToken, view]);
+  }, [targetsToken]);
 
   // A deep link can arrive while the tab is already mounted: an editor reading
   // an article clicks through to `/dev/banners/<slug>` and the controller hands
@@ -244,16 +315,75 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   }, [initialSubstanceSlug]);
 
   /**
-   * The blast radius, and the loudest thing on the page (design brief §2),
-   * split by tone so a death warning on 31 substances is not hidden behind a
-   * sitewide caution notice.
+   * The blast radius, and the loudest thing on the page, split by tone so a
+   * death warning on 31 substances is not hidden behind a sitewide caution
+   * notice.
    */
   const coverage = useMemo(() => summarizeBannerCoverage(presets), [presets]);
+  const capped = useMemo(
+    () => summarizeCapSuppression(presets, targets.map((target) => target.slug)),
+    [presets, targets],
+  );
+
+  /** Re-read one preset after a conflict and put the latest version in front of the editor. */
+  const loadLatest = useCallback(async (key: string) => {
+    const state = await readWarningState(key);
+    const latest = state.preset ? { ...state.preset, baseHash: state.baseHash } : null;
+    setRows((current) => [...(current ?? []).filter((row) => row.key !== key), ...(latest ? [latest] : [])]);
+    setEditor((current) =>
+      current?.origin?.key === key ? (latest ? editorFor(latest, BLANK_PRESET) : null) : current,
+    );
+    setSaveState("idle");
+    setNotice({
+      tone: "info",
+      message: latest
+        ? `Loaded the latest version of ${key}. Apply your edits again, then publish.`
+        : `${key} was deleted after you opened it. Nothing renders it now.`,
+    });
+  }, []);
+
+  const askLoadLatest = useCallback((key: string) => {
+    confirm({
+      title: "Load the latest version?",
+      description: `Your unsaved edits to ${key} are dropped and the editor shows it as it is live now. Copy anything you want to keep first.`,
+      confirmLabel: "Load latest",
+      destructive: true,
+      onConfirm: () => loadLatest(key),
+    });
+  }, [confirm, loadLatest]);
+
+  /** The notice for a write that did not land, with its way forward. */
+  const failureNotice = useCallback((key: string, error: unknown, fallback: string): BannerNotice => {
+    const retry = pendingWarning(key) ? (
+      <Button variant="outline" size="sm" onClick={() => recoverPending(key)}>Retry original change</Button>
+    ) : undefined;
+    if (isRevisionConflict(error)) {
+      return {
+        tone: "danger",
+        title: "Someone published this preset after you opened it.",
+        message: "Nothing was published, and your edits are still here. Copy anything you want to keep, then load the latest version.",
+        actions: (
+          <Button type="button" variant="outline" size="sm" onClick={() => askLoadLatest(key)}>
+            Load the latest version
+          </Button>
+        ),
+      };
+    }
+    return {
+      tone: "danger",
+      title: fallback,
+      message: error instanceof Error ? error.message : "The change could not be saved.",
+      actions: retry,
+      writeFailed: true,
+    };
+    // `recoverPending` is a plain function declared below; it only reads module state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [askLoadLatest]);
 
   /**
    * One POST is every write in this tool: authoring copy, enabling a class of
    * substances, and disabling one slug all submit a whole preset. Scope writes
-   * submit the saved copy, never the drawer's unsaved words. Returns the
+   * submit the saved copy, never the pane's unsaved words. Returns the
    * confirmed preset and its new revision for the caller to adopt, or `null`
    * when the write failed and local edits must remain untouched.
    */
@@ -290,16 +420,11 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         return { ...result.preset, baseHash: result.baseHash };
       } catch (error) {
         setSaveState("error");
-        setNotice({
-          tone: "danger",
-          title: "Couldn't save that preset",
-          message: error instanceof Error ? error.message : "The preset could not be saved.",
-          actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button> : undefined,
-        });
+        setNotice(failureNotice(preset.key, error, "Couldn't save that preset"));
         return null;
       }
     },
-    [],
+    [failureNotice],
   );
 
   /**
@@ -320,7 +445,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const previous = preset.enabledSlugs;
     const adopted = await submitPreset({ ...preset, enabledSlugs: nextSlugs });
     if (!adopted) return;
-    // Keep an open drawer in step with a write made from inside it: the saved
+    // Keep an open pane in step with a write made from inside it: the saved
     // list becomes the scope draft's list, and unsaved words stay a draft.
     setEditor((current) =>
       current?.origin?.key === adopted.key
@@ -338,7 +463,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
       actions: (
         <Button
           type="button"
-          variant="secondary"
+          variant="outline"
           size="sm"
           onClick={() => {
             void commitEnabledSlugs(
@@ -378,8 +503,18 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const saved = open?.origin ?? preset;
     const dirty = open !== null && isCopyDirty(open);
     const plan = planEnablementChange(saved, change, targets, { dirty });
+    // An enable that the two-banner cap would hide says so before it is confirmed.
+    const hidden = change.action === "enable" && saved.enabled
+      ? slugsHiddenByCap(presets, saved, plan.nextSlugs, change.slugs)
+      : [];
+    const capNote = hidden.length === 0
+      ? ""
+      : change.slugs.length === 1
+        ? ` ${substanceTitles(hidden, targets)[0]} already shows ${MAX_BANNERS_PER_ARTICLE} banners that come first, so this one will not render there.`
+        : ` It will not render on ${hidden.length} of them (${substanceTitles(hidden, targets).join(", ")}): they already show ${MAX_BANNERS_PER_ARTICLE} banners that come first.`;
     confirm({
       ...plan.request,
+      description: `${plan.request.description}${capNote}`,
       onConfirm: () => commitEnabledSlugs(saved, plan.nextSlugs, plan.summary),
     });
   }
@@ -388,7 +523,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const operation = pendingWarning(key);
     if (!operation) return;
     confirm({
-      title: `Resolve pending warning ${key}?`,
+      title: `Resolve the unconfirmed change to ${key}?`,
       description: <><p>Retry sends the original change again. If it already went through, nothing publishes twice. Different local edits are not sent.</p><pre className="max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(operation.body, null, 2)}</pre></>,
       confirmLabel: "Retry original change",
       onConfirm: async () => {
@@ -402,28 +537,27 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
           setNotice({ tone: "info", message: `Confirmed the original change for ${key}.` });
         } catch (error) {
           setSaveState("error");
-          setNotice({
-            tone: "danger", title: "Original warning change unresolved",
-            message: error instanceof Error ? error.message : "The original change could not be confirmed.",
-            actions: pendingWarning(key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(key)}>Retry original change</Button> : undefined,
-          });
+          setNotice(failureNotice(key, error, "Original warning change unresolved"));
         }
       },
     });
   }
 
   const openPreset = useCallback((preset: WarningBannerPreset | null) => {
+    focusPaneOnOpen.current = preset !== null;
     setEditor(preset ? editorFor(preset, BLANK_PRESET) : null);
     setSaveState("idle");
     setNotice(preset && pendingWarning(preset.key) ? {
-      tone: "warning", message: "An earlier warning publication remains unconfirmed. Retry the original change before making another.",
-      actions: <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button>,
+      tone: "warning", message: "An earlier change to this preset is still unconfirmed. Retry the original change before making another.",
+      actions: <Button variant="outline" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button>,
     } : null);
+    // `recoverPending` only reads module state and opens the confirm.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // `/dev/banners/preset:<key>` (the Cmd+K palette's preset records) opens
   // that preset's editor once the presets arrive. Each key opens once, so
-  // closing the drawer sticks.
+  // closing the pane sticks.
   const openedPresetRef = useRef<string | null>(null);
   useEffect(() => {
     if (!initialPresetKey || rows === undefined || openedPresetRef.current === initialPresetKey) return;
@@ -440,17 +574,28 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const changes = describeCopyChanges(editor.origin, editor.copyDraft);
     const titles = substanceTitles(submitted.enabledSlugs, targets);
     const reach = submitted.allSubstances
-      ? "Every substance article, including future articles."
+      ? "It shows on every substance article, including ones published later."
       : titles.length === 0
-        ? "No assigned articles."
-        : `${titles.length} substance article${titles.length === 1 ? "" : "s"}.`;
+        ? "It is on no substance's list yet."
+        : `It shows on ${titles.length} substance article${titles.length === 1 ? "" : "s"}.`;
+    const switches = editor.origin
+      ? [
+          editor.origin.enabled !== submitted.enabled
+            ? submitted.enabled ? "You switch it on." : "You switch it off."
+            : null,
+          (editor.origin.allSubstances === true) !== submitted.allSubstances
+            ? submitted.allSubstances ? "It becomes sitewide." : "It stops being sitewide and follows its list."
+            : null,
+        ].filter(Boolean).join(" ")
+      : "";
     confirm({
-      title: "Publish shared warning preset?",
+      title: editor.origin ? `Publish ${submitted.key}?` : `Publish the new preset ${submitted.key}?`,
       description: (
         <>
           <span className="block">
             This changes shared warning copy on dose.wiki and Effect Index. {reach}
             {submitted.enabled ? "" : " The preset stays switched off."}
+            {switches ? ` ${switches}` : ""}
           </span>
           {changes.length > 0 ? (
             <span className="mt-3 block space-y-2">
@@ -472,10 +617,14 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         </>
       ),
       affected: submitted.allSubstances ? undefined : titles,
+      affectedLabel: `Shows on ${titles.length} substance${titles.length === 1 ? "" : "s"}`,
       confirmLabel: "Publish preset",
       onConfirm: async () => {
         const adopted = await submitPreset(submitted);
-        if (adopted) setEditor(editorFor(adopted, BLANK_PRESET));
+        if (adopted) {
+          setEditor(editorFor(adopted, BLANK_PRESET));
+          setNotice((current) => current ?? { tone: "success", message: `Published ${adopted.key}. Readers see it now wherever it renders.` });
+        }
       },
     });
   }, [editor, submitPreset, confirm, targets]);
@@ -496,14 +645,9 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
       });
     } catch (error) {
       setSaveState("error");
-      setNotice({
-        tone: "danger",
-        title: "Couldn't delete that preset",
-        message: error instanceof Error ? error.message : "The preset could not be deleted.",
-        actions: pendingWarning(preset.key) ? <Button variant="secondary" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button> : undefined,
-      });
+      setNotice(failureNotice(preset.key, error, "Couldn't delete that preset"));
     }
-  }, []);
+  }, [failureNotice]);
 
   const requestDelete = useCallback(
     (preset: WarningBannerPreset) => {
@@ -512,7 +656,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         : `${preset.enabledSlugs.length} substance${preset.enabledSlugs.length === 1 ? "" : "s"}`;
       confirm({
         title: `Delete ${preset.key}?`,
-        description: `${preset.key} is enabled on ${reach}. Deleting destroys its headline and points, and it stops rendering everywhere.`,
+        description: `${preset.key} is enabled on ${reach}. Deleting destroys its headline and points, and it stops rendering everywhere. To stop it showing but keep the words, cancel, untick Enabled and publish instead.`,
         confirmLabel: "Delete preset",
         destructive: true,
         onConfirm: () => deletePreset(preset),
@@ -527,7 +671,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const iconSize = clampSafetyBannerIconSize(Number.parseInt(iconSizeText, 10));
   const iconSizeDirty = iconSizeDraft !== null && iconSize !== storedIconSize;
 
-  const handleSaveIconSize = useCallback(async () => {
+  const saveIconSize = useCallback(async () => {
     setIconSizeSaveState("saving");
     setIconSizeNotice(null);
 
@@ -537,20 +681,24 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ iconSize }),
       });
-      const payload = (await response.json()) as { error?: string; iconSize?: number };
+      const payload = (await response.json()) as { error?: string; code?: string; iconSize?: number };
       if (!response.ok || typeof payload.iconSize !== "number") {
-        throw new Error(payload.error ?? "The icon size could not be saved.");
+        throw new Error(
+          response.status === 503 && payload.code === "DATA_WRITES_FROZEN"
+            ? "Writes are paused, so the size was not saved. It is still in the field; save again once writes resume."
+            : (payload.error ?? "The icon size could not be saved."),
+        );
       }
 
       // Adopt the echoed number, not the typed one: it is what the clamp stored,
-      // and re-seeding the draft from it clears the dirty pill without waiting
+      // and re-seeding the draft from it clears the unsaved line without waiting
       // for the reactive query to come back round.
       const stored = clampSafetyBannerIconSize(payload.iconSize);
       setIconSizeDraft(String(stored));
       void invalidateEditorReads(["siteConfig:getBannerDisplay"]);
       setIconSizeSaveState("saved");
       setIconSizeNotice({
-        tone: "info",
+        tone: "success",
         title: "Icon size saved for every banner",
         message: `Every safety banner now renders its glyph at ${stored}px, on every article that shows one.`,
       });
@@ -563,6 +711,16 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
       });
     }
   }, [iconSize, invalidateEditorReads]);
+
+  // The size changes every banner on the site, so it asks first and says so.
+  const handleSaveIconSize = useCallback(() => {
+    confirm({
+      title: `Change the icon size on every banner to ${iconSize}px?`,
+      description: `Every safety banner on every article that shows one renders its glyph at ${iconSize}px instead of ${storedIconSize}px, as soon as you confirm.`,
+      confirmLabel: "Save size",
+      onConfirm: saveIconSize,
+    });
+  }, [confirm, iconSize, saveIconSize, storedIconSize]);
 
   // Both drafts would go live on save (a preset on its articles, the size on
   // every banner), so the shell only discards them.
@@ -587,17 +745,91 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     },
   });
 
+  // Cmd+S or Ctrl+S asks to publish the open preset; it never publishes past
+  // the confirm. `/` focuses the substance search on screen.
+  const paneOpen = editor !== null && view === "presets";
+  useDevShortcuts(paneOpen ? EDITOR_SHORTCUTS : VIEW_SHORTCUTS, rows !== undefined);
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+  const canPublish = paneOpen && isDirty && saveState !== "saving";
+  useEffect(() => {
+    if (rows === undefined) return;
+    const onKey = (event: KeyboardEvent) => {
+      const dialogOpen = Boolean(document.querySelector('[role="dialog"], [role="alertdialog"]'));
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === "s") {
+        if (!paneOpen) return;
+        event.preventDefault();
+        if (canPublish && !dialogOpen) handleSaveRef.current();
+        return;
+      }
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey || event.defaultPrevented || dialogOpen) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      const search = [...document.querySelectorAll<HTMLInputElement>("input[data-banner-search]")]
+        .find((input) => !input.disabled && input.offsetParent !== null);
+      if (!search) return;
+      event.preventDefault();
+      search.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [rows, paneOpen, canPublish]);
+
+  const closeEditor = () =>
+    guardDraft(() => {
+      const key = editor?.origin?.key;
+      setEditor(null);
+      setSaveState("idle");
+      setNotice(null);
+      requestAnimationFrame(() => {
+        listRef.current
+          ?.querySelector<HTMLElement>(key ? `[data-preset="${CSS.escape(key)}"] button` : "button")
+          ?.focus({ preventScroll: true });
+      });
+    });
+
+  const backToList = () => {
+    listRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    const key = editor?.origin?.key;
+    listRef.current
+      ?.querySelector<HTMLElement>(key ? `[data-preset="${CSS.escape(key)}"] button` : "ul button")
+      ?.focus({ preventScroll: true });
+  };
+
   if (rows === undefined) {
-    if (rowsError) {
-      return <StateCard compact tone="danger" title="Unable to load warning presets" description={rowsError} actions={<Button variant="secondary" onClick={() => setRowsToken((value) => value + 1)}>Retry preset read</Button>} />;
-    }
     return (
-      <StateCard loading compact className="mt-10" title="Loading banner presets" />
+      <div className="mt-6 md:mt-8">
+        <EditorSection icon="lucide:triangle-alert" title="Banner Studio">
+          {rowsError ? (
+            <LoadErrorState
+              what="the banner presets"
+              message={rowsError}
+              busy={rowsLoading}
+              onRetry={() => setRowsToken((value) => value + 1)}
+            />
+          ) : (
+            <div className="max-w-md">
+              <RowSkeletons rows={4} label="banner presets" />
+            </div>
+          )}
+        </EditorSection>
+      </div>
     );
   }
 
-  // A new preset has no row to expand, so nothing in the table is marked open.
-  const openKey = editor?.origin?.key ?? null;
+  // Freeze turns a failed write's notice into the freeze's own words; the
+  // draft stays, and the retry (when there is one) stays with it.
+  const { writeFailed, ...plainNotice } = notice ?? { writeFailed: false };
+  const shownNotice: NoticeMessage | null = notice
+    ? writeFailed && freeze.frozen
+      ? {
+          ...plainNotice,
+          title: FREEZE_TITLE,
+          message: "They are still here. Try again once writes resume.",
+        }
+      : (plainNotice as NoticeMessage)
+    : null;
+  const dismissNotice = () => setNotice(null);
 
   return (
     <WarningBannersStudioView
@@ -607,71 +839,98 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
           {dirtyGuardDialog}
         </>
       }
-      initialSubstanceSlug={initialSubstanceSlug}
-      presets={presets}
+      presetCount={presets.length}
+      capped={capped}
       targets={targets}
       targetsError={targetsError}
       coverage={coverage}
       view={view}
-      coverageSlug={coverageSlug}
-      openKey={openKey}
-      draft={draft}
-      isNew={editor !== null && editor.origin === null}
-      isDirty={isDirty}
-      saveState={saveState}
-      notice={notice}
-      iconSizeNotice={iconSizeNotice}
-      iconSizeControl={{
-        size: iconSize,
-        text: iconSizeText,
-        dirty: iconSizeDirty,
-        saveState: iconSizeSaveState,
-        onTextChange: (text) => {
-          setIconSizeSaveState("idle");
-          setIconSizeDraft(text);
-        },
-        onSave: () => void handleSaveIconSize(),
-        onReset: () => {
-          setIconSizeDraft(null);
-          setIconSizeSaveState("idle");
-          setIconSizeNotice(null);
-        },
+      onRetryTargets={() => {
+        setTargetsError(null);
+        setTargetsToken((token) => token + 1);
       }}
-      iconValid={iconValid}
-      onRetryTargets={() => setTargetsToken((token) => token + 1)}
       onViewChange={setView}
-      onIconValidityChange={setIconValid}
-      onDraftChange={(next) => {
-        setSaveState("idle");
-        setEditor((current) => (current ? applyDraftChange(current, next) : current));
-      }}
-      onOpen={(preset) => guardDraft(() => openPreset(preset))}
-      onCreate={() =>
-        guardDraft(() => {
-          setEditor(editorFor(null, BLANK_PRESET));
+      presetsProps={{
+        presets,
+        targets,
+        capped,
+        iconSizeNotice,
+        onDismissIconSizeNotice: () => setIconSizeNotice(null),
+        iconSizeControl: {
+          size: iconSize,
+          text: iconSizeText,
+          dirty: iconSizeDirty,
+          saveState: iconSizeSaveState,
+          loadError: displayRead.error,
+          retrying: displayRead.fetching,
+          onRetryLoad: displayRead.retry,
+          onTextChange: (text) => {
+            setIconSizeSaveState("idle");
+            setIconSizeDraft(text);
+          },
+          onSave: handleSaveIconSize,
+          onReset: () => {
+            setIconSizeDraft(null);
+            setIconSizeSaveState("idle");
+            setIconSizeNotice(null);
+          },
+        },
+        draft,
+        saved: editor?.origin ?? null,
+        isDirty,
+        saveState,
+        iconValid,
+        notice: shownNotice,
+        onDismissNotice: dismissNotice,
+        saveKeyLabel,
+        listRef,
+        paneRef,
+        titleRef: paneTitleRef,
+        onIconValidityChange: setIconValid,
+        onDraftChange: (next) => {
           setSaveState("idle");
-          setNotice(null);
-        })
-      }
-      onSave={() => void handleSave()}
-      onDiscard={() =>
-        setEditor((current) =>
-          current?.origin ? editorFor(current.origin, BLANK_PRESET) : null,
-        )
-      }
-      onRequestEnablement={requestEnablement}
-      onRequestDelete={requestDelete}
-      onInspectCoverage={(slug) => {
-        setCoverageSlug(slug);
-        setView("coverage");
+          setEditor((current) => (current ? applyDraftChange(current, next) : current));
+        },
+        onOpen: (preset) => guardDraft(() => openPreset(preset)),
+        onCreate: () =>
+          guardDraft(() => {
+            focusPaneOnOpen.current = true;
+            setEditor(editorFor(null, BLANK_PRESET));
+            setSaveState("idle");
+            setNotice(null);
+          }),
+        onSave: handleSave,
+        onDiscard: () =>
+          setEditor((current) =>
+            current?.origin ? editorFor(current.origin, BLANK_PRESET) : null,
+          ),
+        onClose: closeEditor,
+        onBackToList: backToList,
+        onRequestEnablement: requestEnablement,
+        onRequestDelete: requestDelete,
+        onInspectCoverage: (slug) => {
+          setCoverageSlug(slug);
+          setView("coverage");
+        },
       }}
-      onCoverageSlugChange={setCoverageSlug}
-      onEditCoveragePreset={(preset) =>
-        guardDraft(() => {
-          openPreset(preset);
-          setView("presets");
-        })
-      }
+      coverageProps={{
+        presets,
+        targets,
+        targetsLoaded,
+        iconSize,
+        activeSlug: coverageSlug,
+        linkedSlug: initialSubstanceSlug,
+        onActiveSlugChange: setCoverageSlug,
+        saveState,
+        notice: shownNotice,
+        onDismissNotice: dismissNotice,
+        onRequestEnablement: requestEnablement,
+        onEditPreset: (preset) =>
+          guardDraft(() => {
+            openPreset(preset);
+            setView("presets");
+          }),
+      }}
     />
   );
 }

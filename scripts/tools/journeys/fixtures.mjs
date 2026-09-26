@@ -290,6 +290,74 @@ export function buildReplicationFixture(count = 24) {
   return { rows, effects: effects.map((slug) => ({ slug, name: titleCase(slug) })).sort((a, b) => a.slug.localeCompare(b.slug)) };
 }
 
+/**
+ * Banners: the substance corpus the tool enables presets on
+ * (`/api/dev/warning-banner/targets`). Class strings are free-form, as the real
+ * articles' are, so a class search finds what an editor would find.
+ */
+export const BANNER_TARGETS_SEED = Object.freeze([
+  ["alcohol", "Alcohol", ["Depressant"]],
+  ["alprazolam", "Alprazolam", ["Benzodiazepine"]],
+  ["caffeine", "Caffeine", ["Xanthine", "Stimulant"]],
+  ["cocaine", "Cocaine", ["Alkaloid (tropane)", "Stimulant"]],
+  ["diazepam", "Diazepam", ["Benzodiazepine"]],
+  ["dxm", "DXM", ["Morphinan (substituted)", "Dissociative"]],
+  ["fentanyl", "Fentanyl", ["Opioid", "Anilidopiperidine"]],
+  ["ghb", "GHB", ["Depressant"]],
+  ["heroin", "Heroin", ["Opioid", "Morphinan"]],
+  ["ketamine", "Ketamine", ["Arylcyclohexylamine", "Dissociative"]],
+  ["lsd", "LSD", ["Lysergamide", "Psychedelic"]],
+  ["mdma", "MDMA", ["Amphetamine (substituted)", "Entactogen"]],
+  ["morphine", "Morphine", ["Opioid", "Morphinan"]],
+  ["oxycodone", "Oxycodone", ["Opioid", "Morphinan (semi-synthetic)"]],
+  ["phenibut", "Phenibut", ["Gabapentinoid", "Depressant"]],
+  ["psilocybin", "Psilocybin", ["Tryptamine", "Psychedelic"]],
+  ["2c-b", "2C-B", ["Phenethylamine", "Psychedelic"]],
+  ["25i-nbome", "25I-NBOMe", ["Phenethylamine", "Psychedelic"]],
+].map(([slug, title, classes]) => Object.freeze({ slug, title, classes: Object.freeze(classes) })));
+
+/**
+ * Banner presets in every state the tool shows: live on a list (danger and
+ * caution), live everywhere (the sitewide caution notice), enabled on nothing
+ * (renders nowhere) and switched off. Diazepam carries three, so the
+ * two-banner cap suppresses one there.
+ */
+export const BANNER_PRESETS_SEED = Object.freeze([
+  {
+    key: "opioid-respiratory", tone: "danger", icon: "lucide:wind", severityLabel: "Danger",
+    headline: "Opioids and other depressants stop breathing together",
+    points: ["Both slow the brainstem's drive to breathe, and together far more than either alone.", "The risk outlasts the high: redosing as it fades is when most overdoses happen."],
+    enabled: true, allSubstances: false, enabledSlugs: ["diazepam", "fentanyl", "heroin", "morphine", "oxycodone"],
+  },
+  {
+    key: "nbome-potency", tone: "danger", icon: "lucide:skull", severityLabel: "Danger",
+    headline: "Active in micrograms, and often sold as LSD",
+    points: ["A blotter that tastes bitter is not LSD.", "- Seizures and deaths are reported at doses that fit on one tab."],
+    enabled: true, allSubstances: false, enabledSlugs: [],
+  },
+  {
+    key: "serotonin-toxicity", tone: "unsafe", icon: "lucide:thermometer", severityLabel: "Unsafe",
+    headline: "Overheating and serotonin toxicity",
+    points: ["Stay cool, take breaks from dancing, and sip water rather than drinking a lot at once."],
+    enabled: false, allSubstances: false, enabledSlugs: ["mdma"],
+  },
+  {
+    key: "benzo-tolerance", tone: "caution", icon: "lucide:activity", severityLabel: "Caution",
+    headline: "Tolerance builds within days, and stopping suddenly can cause seizures",
+    points: ["Taper with medical help after daily use."],
+    enabled: true, allSubstances: false, enabledSlugs: ["alprazolam", "diazepam"],
+  },
+  {
+    key: "citation-system-overhaul-1", tone: "caution", icon: "lucide:triangle-alert", severityLabel: "Notice",
+    headline: "Our citation system is being overhauled",
+    points: ["Some references on this page may be missing or out of date while we rebuild them."],
+    enabled: true, allSubstances: true, enabledSlugs: [],
+  },
+].map((preset) => Object.freeze(preset)));
+
+/** The site-wide banner glyph size the fixture stores. */
+export const BANNER_ICON_SIZE_SEED = 40;
+
 function titleCase(slug) {
   return slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 }
@@ -418,6 +486,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   const ownedReports = new Map(
     (state === "empty" ? [] : OWNED_REPORT_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: FIXTURE_EMAIL, revision: nextRevision() }]),
   );
+  /** Banner presets keyed by key, each with its revision, plus the answered writes by change id. */
+  const banners = {
+    presets: new Map((state === "empty" ? [] : BANNER_PRESETS_SEED).map((preset) => [preset.key, { preset: structuredClone(preset), baseHash: nextRevision() }])),
+    operations: new Map(),
+    iconSize: BANNER_ICON_SIZE_SEED,
+  };
 
   const fixture = {
     role,
@@ -540,6 +614,48 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     };
     row.revision = nextRevision();
     return json(200, { ok: true, slug: row.slug, fields: structuredClone(row.fields), revision: row.revision });
+  }
+
+  function bannerDoc({ preset, baseHash }) {
+    return { ...structuredClone(preset), baseHash };
+  }
+
+  /**
+   * The warning route's publish and delete: the revision check (409 with the
+   * route's words), a conflicted store's concurrent save, slugs that name no
+   * article dropped from the echo, and each answer kept by change id so a
+   * retried write reconciles instead of publishing twice.
+   */
+  function writeBanner(method, body) {
+    const key = String(body.key ?? "");
+    const row = banners.presets.get(key);
+    if (fixture.state === "conflicted" && row && !contested.has(`banner:${key}`)) {
+      contested.add(`banner:${key}`);
+      row.preset = { ...row.preset, headline: `${row.preset.headline} (edited by someone else)` };
+      row.baseHash = nextRevision();
+    }
+    if (body.baseHash !== (row?.baseHash ?? fixtureRevision(0))) {
+      return json(409, { error: "This warning changed since it was opened. Reload its current version before publishing; your local edits have not been applied." });
+    }
+    const changeId = String(body.changeId ?? "");
+    const base = { key, changeId, affectedSlugs: [], publication: { status: "published" } };
+    let answer;
+    if (method === "DELETE") {
+      banners.presets.delete(key);
+      answer = { ...base, baseHash: fixtureRevision(0), preset: null, allSubstances: false, enabledSlugs: [] };
+    } else {
+      const known = new Set(BANNER_TARGETS_SEED.map((target) => target.slug));
+      const enabledSlugs = [...new Set((body.enabledSlugs ?? []).filter((slug) => known.has(slug)))].sort();
+      const preset = {
+        key, tone: body.tone, icon: body.icon, severityLabel: body.severityLabel, headline: body.headline,
+        points: body.points ?? [], enabled: Boolean(body.enabled), allSubstances: Boolean(body.allSubstances), enabledSlugs,
+      };
+      const baseHash = nextRevision();
+      banners.presets.set(key, { preset, baseHash });
+      answer = { ...base, baseHash, preset: structuredClone(preset), allSubstances: preset.allSubstances, enabledSlugs };
+    }
+    banners.operations.set(changeId, answer);
+    return json(200, { ok: true, ...structuredClone(answer) });
   }
 
   function proposalSummary(proposal) {
@@ -756,6 +872,32 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       const limit = Math.min(Number(params.get("limit") ?? 50) || 50, 500);
       return toolRead(() => json(200, structuredClone(changelog.slice(0, limit))));
     }
+
+    // Banners: presets, the corpus, the site-wide glyph size, and the preview's article read.
+    if (pathname === "/api/dev/warning-banner") {
+      if (upper === "GET") {
+        const key = params.get("key");
+        if (!key) return toolRead(() => json(200, { presets: [...banners.presets.values()].map(bannerDoc) }));
+        const row = banners.presets.get(key);
+        const operation = banners.operations.get(params.get("changeId") ?? "") ?? null;
+        return toolRead(() => json(200, { preset: row ? structuredClone(row.preset) : null, baseHash: row?.baseHash ?? fixtureRevision(0), history: [], operation }));
+      }
+      if (upper === "POST" || upper === "DELETE") return toolWrite(() => writeBanner(upper, body ?? {}));
+    }
+    if (pathname === "/api/dev/warning-banner/targets" && upper === "GET") {
+      return toolRead(() => json(200, { ok: true, items: structuredClone(BANNER_TARGETS_SEED) }));
+    }
+    if (pathname === "/api/editor/banner-display" && upper === "GET") {
+      return toolRead(() => json(200, { iconSize: banners.iconSize }));
+    }
+    if (pathname === "/api/dev/warning-banner/display" && upper === "POST") {
+      return toolWrite(() => {
+        const size = Math.min(72, Math.max(24, Math.round(Number(body?.iconSize) || BANNER_ICON_SIZE_SEED)));
+        banners.iconSize = size;
+        return json(200, { ok: true, iconSize: size });
+      });
+    }
+    if (pathname === "/api/editor/molecule-overrides" && upper === "GET") return json(200, null);
 
     if (pathname === "/api/dev/replications" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, ...structuredClone(replications) }));

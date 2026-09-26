@@ -263,6 +263,32 @@ builds a new shared primitive, add it to **Conventions** and log it under
   `aria-keyshortcuts`. `j / k` walk a list's rows by focus when the rows are
   disclosures rather than a selection.
 
+- **Pills in phrasing content.** A status pill inside a row button, a
+  label or a sentence passes `EditorStatusPill inline`, which renders the
+  Badge as a `span` (a `div` inside a `p` or `button` is invalid and React
+  reports it as a hydration risk).
+- **Write results land where the write was made.** A tool with several places
+  that write keeps one result notice and routes it: the save dock while an
+  item is open, the list heading when nothing is open, the detail pane of a
+  second view (Coverage) when the write came from there. Never a page-top
+  notice above the fold.
+- **A failed write under the freeze reads as the freeze.** When a tool's write
+  helper reconciles a 5xx into its own words, mark the notice as a failed
+  write and, while `useWriteFreeze().frozen`, show "Writes are paused, so your
+  changes were not published." instead, keeping any retry action.
+- **A global setting lives apart from the item being edited.** A control that
+  changes every record (the banner glyph size) sits in its own labelled
+  section outside the editing pane, asks before it saves, and names the old
+  and new value in the confirm.
+- **Confirm headings over affected lists** pass `affectedLabel` to
+  `ConfirmDialog` ("Shows on 5 substances") instead of the default "Affects N
+  rows".
+- **One pane, two save models, said out loud.** When part of a pane publishes
+  with the dock's button and part writes on its own confirm, each block gets a
+  one-word meta label and a plain sentence beside it ("Switches: Publish with
+  the preset", "Substances: Each change goes live when you confirm it"), never
+  a sentence-length uppercase label.
+
 ## Passes
 
 Each entry lists the tab, the commit, the main changes, any new shared
@@ -603,4 +629,95 @@ Deferred, with reasons:
 - A docked diff pane (triage workspace): declined; a log is read as a stream
   and "Open all" compares saves down the page.
 - `pushNotice` still has no caller; the page notice it feeds is kept.
+
+### Pass 6: Banners (`/dev/banners`)
+
+Commit: see `git log --grep "Dev tools redesign: Banners"`.
+Screenshots: `tmp/redesign/banners/before/` and `tmp/redesign/banners/after/`
+(loaded dark and light; locked editor and contributor; empty; presets failed;
+display read failed; substance list failed; loading; open, scrolled, bottom,
+light, off, sitewide; dirty; invalid; new; publish, discard, delete, enable,
+disable, size and load-latest dialogs; search; staged; enabled with Undo;
+saved; deleted; conflict; frozen; size dirty and saved; Coverage idle, deep
+link, unknown slug, light; preset deep link; desktop and phone), captured by
+`tmp/redesign/banners/capture.mjs`. Critique in
+`tmp/redesign/banners/critique.md` (18/40 before), inventory with the
+item-by-item check in `tmp/redesign/banners/inventory.md`, detector evidence in
+`tmp/redesign/banners/detector/` (static scan of `source-before/`: clean).
+
+Main changes:
+
+- Presets is the editor workspace: presets as link rows (key, headline, tone,
+  state pill "Live on 5 substances" / "Live everywhere" / "Renders nowhere" /
+  "Off", "Hidden on N by the cap") left and sticky, the open preset in
+  `PresetPane.tsx` right: header (key, tone, state, corner Close, Back to list
+  below `lg`, focus on open, `useScrollToDetail`), the drawer's Preview /
+  Words / Where it shows, Delete at the end with a keep-the-words hint, and a
+  save dock (result notice, the one reason Publish is blocked from
+  `publishBlocker`, Publish preset with the Cmd+S cap, Discard edits, state
+  line). The table and its in-row drawer are gone.
+- Every preset write result lands in context (see Conventions). A 409 is a
+  conflict with "Load the latest version" (re-reads the one preset through
+  `readWarningState`, destructive confirm); a failed write under the freeze
+  reads as the freeze and keeps "Retry original change".
+- Readout: one three-column strip that stays three columns on a phone, tone
+  chips on `type-chip-label`, the sitewide tone as "All articles", and the
+  summary names the two-banner stacking rule and how many articles hit it
+  (`summarizeCapSuppression`); the Enable confirm says when the cap would hide
+  the banner (`slugsHiddenByCap`). The substance corpus is read on arrival so
+  the denominator is there from the start.
+- The glyph size moved to an "Every banner" section under the list: secondary
+  Save size behind a confirm naming old and new size, a glyph drawn at the
+  saved size, an unsaved line, its own notice. Its read now goes through
+  `useEditorReadState`, so a failure degrades only this section; the error
+  boundary remains as a net and renders `LoadErrorState`.
+- Where it shows: "Switches" (publish with the preset) and "Substances" (each
+  change goes live on its own confirm) are labelled blocks; sitewide copy no
+  longer says "renders nowhere" and the search hides while sitewide; results
+  group into Name matches and "Class matches, read before enabling", rows
+  toggle on tap, checkboxes are "Select <title>"; the enable row has no accent
+  and shows only when something can be enabled.
+- Coverage is a workspace too: searchable link-row list at every width (the
+  phone select is gone; the list is a capped scroll well), "On N lists"
+  pills, a detail panel (title, slug, count, classes, the deep-link line, the
+  write notice, banners with Edit words and "Disable on <title>", cap warnings
+  with their own Disable, "Not on this article" with Enable here), Rollout as
+  link rows opening the preset. A `/dev/banners/<slug>` link scrolls its
+  substance into view on phones once the list has loaded.
+- Keys: Cmd+S (asks first) and `/` (focus the substance search), both in the
+  `?` sheet through `useDevShortcuts`.
+- Copy: sentence-case tones, titles in confirm buttons and notices, publish
+  confirm titled with the preset and naming switch changes, loading as skeleton
+  rows, `LoadErrorState` with `what` for presets, substance list and display.
+- New modules: `PresetPane.tsx`, `bannerLabels.ts` (`TONE_LABEL`,
+  `STATE_PILL_TONE`, `presetStateLabel`, `presetReachLabel`, `countNoun`);
+  `presetDrafts.ts` gains `presetDraftIssues` and `publishBlocker` (the drawer
+  and the dock share them).
+- Shared, backward compatible: `EditorStatusPill` `inline`; `ConfirmRequest`
+  `affectedLabel`; `ArticlePreviewFrame` `defaultWidth`.
+- Journeys fixtures: `BANNER_TARGETS_SEED` (18 substances with free-form
+  classes), `BANNER_PRESETS_SEED` (live listed danger and caution, sitewide
+  caution, enabled-on-nothing, off; Diazepam carries three so the cap bites),
+  the preset read by key with `operation` by change id, publish and delete with
+  the route's revision check and conflict wording, pruning of unknown slugs,
+  `/api/editor/banner-display`, the display POST, and molecule overrides
+  answering null; with a unit test.
+
+Deferred, with reasons:
+
+- One save model for the whole pane (substance list changes as part of the
+  draft): it would remove the immediate enable and disable with Undo, an
+  existing capability; the two models are now labelled instead.
+- Headline as the row and pane name instead of the key: the key is the stored
+  identity the tool, the palette records and the dialogs name, and the
+  earlier design settled on it; the headline sits under it on every row.
+- The preview frame keeping article height when its article fails, and its
+  36px theme and width toggles: shared `ArticlePreviewFrame` behaviour that
+  Replication Studio uses too (the fixture has no article to serve).
+- Delete as a restorable tombstone or requiring the preset to be off first:
+  server behaviour; the pane and the confirm point at unticking Enabled.
+- Default severity label from tone: would overwrite an editor's words; the
+  field describes a mismatch instead.
+- `EditorStatusPill` `inline` has no kit example yet; the story's exports are
+  unchanged.
 
