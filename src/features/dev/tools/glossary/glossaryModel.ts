@@ -10,7 +10,7 @@ import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch }
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 import { devFetch } from "@/features/dev/tools/devFetch";
-import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreeze";
+import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreezeRefusal";
 
 export type GlossaryRow = GlossaryListResponse["rows"][number];
 

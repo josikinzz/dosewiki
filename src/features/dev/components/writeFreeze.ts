@@ -1,12 +1,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 
-/**
- * The code every write route answers with while `DATA_WRITES_FROZEN` is on
- * (a 503 whose body carries `code: "DATA_WRITES_FROZEN"`). Mirrors
- * `DATA_WRITES_FROZEN_CODE` in `lib/runtime/dataWriteFreeze.ts`; the browser
- * bundle never imports the server module.
- */
-export const WRITE_FREEZE_CODE = "DATA_WRITES_FROZEN";
+import { WRITE_FREEZE_CODE, isWriteFreezeRefusal } from "./writeFreezeRefusal";
+
+// The refusal itself is React-free (`writeFreezeRefusal.ts`) so server modules can read it.
+export { WRITE_FREEZE_CODE, isWriteFreezeRefusal };
 
 /**
  * What the editor shell knows about the write freeze. The browser has no
@@ -32,14 +29,6 @@ export function reportWriteFreeze(now = Date.now()) {
 /** A write landed, so the freeze (if one was seen) is over. */
 export function clearWriteFreeze() {
   set({ frozen: false, since: null });
-}
-
-/** True when a response is the freeze refusal: status 503 with the freeze code. */
-export function isWriteFreezeRefusal(status: number, payload: unknown): boolean {
-  return status === 503
-    && payload !== null
-    && typeof payload === "object"
-    && (payload as { code?: unknown }).code === WRITE_FREEZE_CODE;
 }
 
 function subscribe(listener: () => void) {
