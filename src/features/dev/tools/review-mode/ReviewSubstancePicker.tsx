@@ -18,6 +18,8 @@ import {
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { EditorStatusPill } from "@/features/dev/components";
 import { StatusBadge, type StatusBadgeTone } from "@/components/common/StatusBadge";
+import { HighlightedText } from "@/components/common/HighlightedText";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { ReviewState } from "@/schema/substance/editorial";
 import {
@@ -25,6 +27,7 @@ import {
   type ReviewQueueGroup,
 } from "./reviewQueue";
 import { REVIEW_STATUS_NAMES } from "./reviewStatusNames";
+import { REVIEW_STATE_TONE } from "./reviewDockModel";
 
 /** Status colours shared by the picker rows and the command bar's own dot. */
 export const STATUS_DOT: Record<ReviewState, { className: string; label: string }> = {
@@ -97,7 +100,9 @@ function DisclosureRow({
   reviewed,
   total,
   depth,
+  query = "",
 }: {
+  query?: string;
   expanded: boolean;
   onToggle: () => void;
   icon?: string;
@@ -112,7 +117,7 @@ function DisclosureRow({
       onClick={onToggle}
       aria-expanded={expanded}
       className={cn(
-        "theme-focus-ring-inset flex w-full items-center gap-2 rounded-xl py-1.5 pr-2 text-left transition [@media(pointer:coarse)]:min-h-11",
+        "theme-focus-ring-inset flex w-full items-center gap-2 rounded-control py-1.5 pr-2 text-left transition [@media(pointer:coarse)]:min-h-11",
         "hover:[background:var(--theme-frosted-control-on-panel-bg)]",
         depth === 0
           ? "theme-text-primary pl-2 text-sm font-semibold"
@@ -127,25 +132,27 @@ function DisclosureRow({
       {icon ? (
         <Icon icon={icon} size={14} className="theme-text-faint shrink-0" />
       ) : null}
-      <span className="truncate">{label}</span>
+      <HighlightedText text={label} query={query} className="truncate" markClassName="px-0" />
       {total > 0 && reviewed === total ? (
         /* The seal: a finished bucket swaps its counter for an emerald check
            chip, so completed classes read as *done* at a glance — and the
            remaining plain counters quietly ask to be turned green. Derived
            from live counts, so an undo un-seals it. */
         <span
-          className="theme-review-seal ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[10px] font-semibold tabular-nums"
+          className="theme-review-seal ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-xs font-semibold tabular-nums"
           title={`All ${total} reviewed`}
         >
-          <Icon icon="lucide:check" size={10} />
+          <Icon icon="lucide:check" size={11} aria-hidden />
           {total}
+          <span className="sr-only"> of {total} reviewed</span>
         </span>
       ) : (
         <span
-          className="theme-text-faint ml-auto shrink-0 text-[11px] tabular-nums"
+          className="theme-text-faint ml-auto shrink-0 text-xs tabular-nums"
           title={`${reviewed} of ${total} reviewed`}
         >
-          {reviewed}/{total}
+          <span aria-hidden>{reviewed}/{total}</span>
+          <span className="sr-only">, {reviewed} of {total} reviewed</span>
         </span>
       )}
     </button>
@@ -158,7 +165,9 @@ function EntryItem({
   isCurrent,
   depth,
   onSelect,
+  query = "",
 }: {
+  query?: string;
   entry: PickerEntry;
   isCurrent: boolean;
   depth: 0 | 1 | 2;
@@ -181,7 +190,7 @@ function EntryItem({
           STATUS_DOT[entry.status].className,
         )}
       />
-      <span className="truncate font-medium">{entry.name}</span>
+      <HighlightedText text={entry.name} query={query} className="truncate font-medium" markClassName="px-0" />
       {/* The slug is near-duplicate of the name and search still matches on
           it, so below `sm` its width goes to the name instead. */}
       <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
@@ -200,40 +209,15 @@ function EntryItem({
           </span>
         </StatusBadge>
       ) : null}
-      {/* Below `sm` the status pills yield to the row's status dot — same
+      {/* Below `sm` the status pills yield to the row's status dot: same
           information, and the name needs the width more. */}
-      {entry.status === "completed" ? (
+      {entry.status !== "needed" ? (
         <EditorStatusPill
-          tone="success"
-          icon="lucide:badge-check"
-          className={cn(
-            "hidden sm:inline-flex",
-            entry.flagSummary ? undefined : "ml-auto",
-          )}
+          inline
+          tone={REVIEW_STATE_TONE[entry.status]}
+          className={cn("hidden sm:inline-flex", entry.flagSummary ? undefined : "ml-auto")}
         >
-          {REVIEW_STATUS_NAMES.completed.toLowerCase()}
-        </EditorStatusPill>
-      ) : entry.status === "stale" ? (
-        <EditorStatusPill
-          tone="info"
-          icon="lucide:git-compare"
-          className={cn(
-            "hidden sm:inline-flex",
-            entry.flagSummary ? undefined : "ml-auto",
-          )}
-        >
-          {REVIEW_STATUS_NAMES.stale.toLowerCase()}
-        </EditorStatusPill>
-      ) : entry.status === "in_progress" ? (
-        <EditorStatusPill
-          tone="warning"
-          icon="lucide:pencil-line"
-          className={cn(
-            "hidden sm:inline-flex",
-            entry.flagSummary ? undefined : "ml-auto",
-          )}
-        >
-          {REVIEW_STATUS_NAMES.in_progress.toLowerCase()}
+          {REVIEW_STATUS_NAMES[entry.status]}
         </EditorStatusPill>
       ) : null}
     </CommandItem>
@@ -257,14 +241,24 @@ export function ReviewSubstancePicker({
   grouped,
   current,
   onSelect,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   entries: readonly PickerEntry[];
   groups: readonly ReviewQueueGroup[];
   grouped: boolean;
   current: PickerEntry | null;
   onSelect: (slug: string) => void;
+  /** Controlled open state (the workbench's `/` opens it); uncontrolled without it. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = controlledOpen ?? ownOpen;
+  const setOpen = (next: boolean) => {
+    setOwnOpen(next);
+    onOpenChange?.(next);
+  };
   const [query, setQuery] = useState("");
   /** Sparse overrides; anything absent falls back to the current article's branch. */
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
@@ -355,10 +349,11 @@ export function ReviewSubstancePicker({
           aria-expanded={open}
           aria-label={
             current
-              ? `Current article: ${current.name}. Open the substance list`
-              : "Open the substance list"
+              ? `Current article: ${current.name}, ${STATUS_DOT[current.status].label}. Open the article list`
+              : "Open the article list"
           }
-          title="Jump to any article"
+          title="Find any article (/)"
+          aria-keyshortcuts="/"
           // An explicit min-width is what lets the name actually truncate: a
           // flex item defaults to `min-width: auto` and would otherwise
           // refuse to shrink below its text, pushing the mobile row's other
@@ -412,19 +407,19 @@ export function ReviewSubstancePicker({
             onValueChange={setQuery}
             placeholder={
               grouped
-                ? "Search by name, slug or class…"
-                : "Search by name or slug…"
+                ? "Search by name, slug or class"
+                : "Search by name or slug"
             }
           />
           {grouped && !needle ? (
             <div className="theme-divider flex items-center justify-between border-b px-3 py-1.5">
-              <span className="theme-text-faint text-[11px] uppercase tracking-[0.12em]">
+              <span className="type-meta-label theme-text-muted">
                 By category
               </span>
               <Button
                 variant="textLink"
                 size="auto"
-                className="text-[11px]"
+                className={cn("text-xs", TOUCH_HALO)}
                 onClick={() => setAll(!allExpanded)}
               >
                 {allExpanded ? "Collapse all" : "Expand all"}
@@ -433,8 +428,13 @@ export function ReviewSubstancePicker({
           ) : null}
           <CommandList className="max-h-[min(26rem,60vh)]">
             {isEmpty ? (
-              <div className="theme-text-muted py-6 text-center text-sm">
-                No articles found
+              <div className="theme-text-muted space-y-2 px-4 py-6 text-center text-sm">
+                <p>{needle ? <>No article matches “{query.trim()}”.</> : "No articles in this view."}</p>
+                {needle ? (
+                  <Button variant="link" size="quiet" className="h-auto p-0" onClick={() => setQuery("")}>
+                    Clear the search
+                  </Button>
+                ) : null}
               </div>
             ) : null}
             {grouped
@@ -454,6 +454,7 @@ export function ReviewSubstancePicker({
                         reviewed={reviewedCount(groupEntries)}
                         total={group.count}
                         depth={0}
+                        query={query.trim()}
                       />
                       {groupOpen
                         ? group.sections.map((section) => {
@@ -468,6 +469,7 @@ export function ReviewSubstancePicker({
                                   reviewed={reviewedCount(section.entries)}
                                   total={section.entries.length}
                                   depth={1}
+                                  query={query.trim()}
                                 />
                                 {sectionOpen
                                   ? section.entries.map((entry) => (
@@ -477,6 +479,7 @@ export function ReviewSubstancePicker({
                                         isCurrent={entry.slug === current?.slug}
                                         depth={2}
                                         onSelect={choose}
+                                        query={query.trim()}
                                       />
                                     ))
                                   : null}
@@ -492,6 +495,7 @@ export function ReviewSubstancePicker({
                               isCurrent={entry.slug === current?.slug}
                               depth={1}
                               onSelect={choose}
+                                        query={query.trim()}
                             />
                           ))
                         : null}
@@ -507,6 +511,7 @@ export function ReviewSubstancePicker({
                         isCurrent={entry.slug === current?.slug}
                         depth={0}
                         onSelect={choose}
+                                        query={query.trim()}
                       />
                     ))}
                   </div>

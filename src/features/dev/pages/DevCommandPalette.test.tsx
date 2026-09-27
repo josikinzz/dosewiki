@@ -7,7 +7,7 @@ vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
 }));
-vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import { useDevShortcuts } from "../components/devShortcuts";
 import { useUnsavedWork } from "../components/unsavedWork";
@@ -238,7 +238,8 @@ describe("the ? sheet", () => {
     const sheet = screen.getByRole("dialog", { name: "Keyboard shortcuts" });
     const tool = within(sheet).getByRole("region", { name: "Replications" });
     expect(within(tool).getByText("Next and previous card")).toBeTruthy();
-    expect(within(tool).getByText("Cmd+Z")).toBeTruthy();
+    // Spoken as written, drawn as keycaps.
+    expect(within(tool).getAllByText("Cmd+Z").length).toBeGreaterThan(0);
     const shell = within(sheet).getByRole("region", { name: "Everywhere in the editor" });
     expect(within(shell).getByText("Open any tool or record")).toBeTruthy();
   });

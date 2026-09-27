@@ -36,10 +36,13 @@ export function openConflicts(source: string, target: string, mentions: readonly
 
 /** The four reason chips; one is chosen at a time. */
 export function ReasonKindChips({ value, onChange, disabled, label = "Reason" }: { value: CorrectionReasonKind | null; onChange: (kind: CorrectionReasonKind) => void; disabled?: boolean; label?: string }) {
-  return <div className="flex flex-wrap items-center gap-1">
-    <span className="theme-text-secondary mr-1 text-xs">{label}</span>
-    {CORRECTION_REASON_KINDS.map((kind) => <Button key={kind} type="button" size="sm" variant={value === kind ? "accent" : "outline"} aria-pressed={value === kind} disabled={disabled}
-      onClick={() => onChange(kind)}>{CORRECTION_REASON_LABEL[kind]}</Button>)}
+  return <div className="flex flex-col items-start gap-x-2 gap-y-1 sm:flex-row sm:flex-wrap sm:items-center">
+    <span className="theme-text-secondary text-xs">{label}</span>
+    <div className="grid grid-cols-2 gap-1 rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1 sm:inline-grid sm:grid-cols-4">
+      {CORRECTION_REASON_KINDS.map((kind) => <Button key={kind} type="button" size="pill" variant={value === kind ? "pillActive" : "ghostPill"} aria-pressed={value === kind} disabled={disabled}
+        className="h-8 rounded-control px-2.5 text-xs [@media(pointer:coarse)]:min-h-11"
+        onClick={() => onChange(kind)}>{CORRECTION_REASON_LABEL[kind]}</Button>)}
+    </div>
   </div>;
 }
 
@@ -67,7 +70,7 @@ export function ReasonPicker({ value, onChange, disabled, needed = false, noteLa
     <ReasonKindChips value={value.kind} onChange={(kind) => onChange({ ...value, kind })} disabled={disabled} />
     <div className="space-y-1">
       <label htmlFor={`${id}-note`} className="theme-text-secondary text-xs">{noteLabel}</label>
-      <Input id={`${id}-note`} inputSize="sm" aria-label={noteAriaLabel} value={value.note} maxLength={1000} disabled={disabled} placeholder="What was wrong, in a few words" onChange={(event) => onChange({ ...value, note: event.target.value })} />
+      <Input id={`${id}-note`} inputSize="sm" aria-label={noteAriaLabel} value={value.note} maxLength={1000} disabled={disabled} placeholder="Why, in a few words" onChange={(event) => onChange({ ...value, note: event.target.value })} />
     </div>
     {needed && !value.kind ? <p className="theme-text-faint text-xs">{REASON_NEEDED}</p> : null}
   </div>;
@@ -89,7 +92,7 @@ export function reasonFor(draft: ReasonDraft, fallback: string): ReviewReason {
  * action when there is nothing to approve (Confirm on a live, never checked
  * term); `children` follow the save buttons.
  */
-export function ApprovalActions({ changed, canSave = changed, approvable, blocked = false, busy = false, label, onSave, onSaveAndApprove, onApprove, extra, children }: {
+export function ApprovalActions({ changed, canSave = changed, approvable, blocked = false, busy = false, label, onSave, onSaveAndApprove, onApprove, extra, quiet = false, children }: {
   /** The wording differs from what is saved. */
   changed: boolean;
   /** Save draft applies; defaults to `changed`. */
@@ -104,13 +107,21 @@ export function ApprovalActions({ changed, canSave = changed, approvable, blocke
   onSaveAndApprove: () => void;
   onApprove: () => void;
   extra?: ReactNode;
+  /**
+   * In a list of many items, a clean item's Approve is outline so the one
+   * item being edited carries the accent; an edited item's Save and approve
+   * stays accent.
+   */
+  quiet?: boolean;
   children?: ReactNode;
 }) {
+  // An accent that cannot be pressed reads as the live primary on dark panels, so a blocked main action is drawn outline.
+  const saveApproveOff = busy || blocked;
   return <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
-    {changed ? <Button type="button" variant="accent" size="sm" disabled={busy || blocked} onClick={onSaveAndApprove}>Save and approve</Button>
-      : approvable ? <Button type="button" variant="accent" size="sm" data-row-action="approve" disabled={busy} onClick={onApprove}>Approve</Button>
+    {changed ? <Button type="button" variant={saveApproveOff ? "outline" : "accent"} size="sm" disabled={saveApproveOff} onClick={onSaveAndApprove}>Save and approve</Button>
+      : approvable ? <Button type="button" variant={quiet || busy ? "outline" : "accent"} size="sm" data-row-action="approve" disabled={busy} onClick={onApprove}>Approve</Button>
       : extra ?? null}
-    {canSave ? <Button type="button" variant="outline" size="sm" disabled={busy || blocked} onClick={onSave}>Save draft</Button> : null}
+    {canSave ? <Button type="button" variant={changed ? "outline" : "ghost"} size="sm" disabled={busy || blocked} onClick={onSave}>Save draft</Button> : null}
     {children}
   </div>;
 }

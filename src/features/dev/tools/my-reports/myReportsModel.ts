@@ -129,10 +129,99 @@ export function formatPublished(timestamp: number): string {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+/**
+ * A trip date as a row shows it ("1 Feb 2026"). The stored value is a calendar
+ * day, so it is read in UTC and never shifts with the viewer's zone. Anything
+ * that does not parse as a day comes back as written.
+ */
+export function formatTripDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return value;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
+
+/**
+ * The slug an admin means, from whatever they pasted: a bare slug, the path
+ * `/reports/<slug>`, or the full page address. Presentation only; the owner
+ * route still decides whether the report exists.
+ */
+export function normalizeReportSlug(input: string): string {
+  let value = input.trim();
+  try {
+    if (/^https?:\/\//i.test(value)) value = new URL(value).pathname;
+  } catch {
+    return value;
+  }
+  value = value.replace(/[?#].*$/, "").replace(/^\/+|\/+$/g, "");
+  return value.startsWith("reports/") ? value.slice("reports/".length) : value;
+}
+
+/** A save refused because someone saved the report after it was opened (the record route's 409 wording). */
+export function isRevisionConflict(message: string): boolean {
+  return /changed since it was opened/i.test(message);
+}
+
+/** A save refused because writes are frozen (the write boundary's wording). */
+export function isWriteFreezeRefusal(message: string): boolean {
+  return /frozen|writes are paused/i.test(message);
+}
+
+/** What a submission's row says under its title, by status. */
+export type SubmissionOutcome =
+  | { kind: "reason"; reason: string }
+  | { kind: "live"; slug: string }
+  | { kind: "note"; text: string };
+
+export function submissionOutcome(row: MemberSubmission): SubmissionOutcome {
+  if (row.public_reason) return { kind: "reason", reason: row.public_reason };
+  if (row.status === "published" && row.report_slug) return { kind: "live", slug: row.report_slug };
+  switch (row.status) {
+    case "rejected":
+      return { kind: "note", text: "No reason was given." };
+    case "published":
+      return { kind: "note", text: "Live on the site." };
+    case "accepted":
+      return { kind: "note", text: "Accepted and waiting to be published." };
+    default:
+      return { kind: "note", text: "Waiting on a reviewer." };
+  }
+}
+
+/** Submissions newest first, so a fresh decision is on top. */
+export function sortSubmissions(rows: readonly MemberSubmission[]): MemberSubmission[] {
+  return [...rows].sort((a, b) => b.submitted_at.localeCompare(a.submitted_at));
+}
+
 function requestJson(
   url: string,
   init: RequestInit | undefined,
   messages: { network: string; failure: string },
 ) {
   return devFetch(url, { ...init, messages, emptyBodyOk: true });
+}
+
+const BODY_PARTS: { key: keyof TripReportEditableFields; label: string }[] = [
+  { key: "title", label: "title" },
+  { key: "tags", label: "tags" },
+  { key: "introduction", label: "introduction" },
+  { key: "onset", label: "onset" },
+  { key: "peak", label: "peak" },
+  { key: "offset", label: "offset" },
+  { key: "conclusion", label: "conclusion" },
+];
+
+/** The parts of a report a draft changes, in reading order ("title", "tags", "peak"). */
+export function changedParts(saved: TripReportEditableFields, draft: TripReportEditableFields): string[] {
+  return BODY_PARTS.filter(({ key }) => JSON.stringify(saved[key] ?? null) !== JSON.stringify(draft[key] ?? null)).map(
+    ({ label }) => label,
+  );
+}
+
+/** "the title, tags and peak": a list as a sentence says it. */
+export function joinParts(parts: readonly string[]): string {
+  if (parts.length === 0) return "";
+  const named = parts.map((part, index) => (index === 0 ? `the ${part}` : part));
+  return named.length === 1 ? named[0] : `${named.slice(0, -1).join(", ")} and ${named[named.length - 1]}`;
 }

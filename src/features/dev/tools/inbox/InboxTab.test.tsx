@@ -2,6 +2,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getEmptyEditorLibrary } from "@/data/emptyLibrary";
+import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { resetDevRailBadgesForTests } from "@/features/dev/pages/useDevRailBadges";
 import { queueResponse } from "@/test/feedbackQueueServer";
 
@@ -265,7 +267,7 @@ describe("InboxTab", () => {
     expect(screen.queryByRole("button", { name: "Claim" })).not.toBeInTheDocument();
 
     // Ben's Unassigned view no longer offers it; Ada's Mine view would.
-    await user.click(within(screen.getByRole("group", { name: "Assigned to" })).getByRole("button", { name: "Unassigned" }));
+    await user.click(within(screen.getByRole("group", { name: "Assigned to" })).getByRole("button", { name: /^Unassigned/ }));
     expect(optionTitles(second.list)).not.toContain("Mescaline");
   });
 
@@ -305,7 +307,7 @@ describe("InboxTab", () => {
 
     // A proposal is decided in Change Review, with its own confirm.
     await user.keyboard("a");
-    expect(screen.getByText("Change Review makes this decision. Open it from the review pane.")).toBeInTheDocument();
+    expect(screen.getByText("Change Review makes this decision. Use Open in Change Review.")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("/approve"), expect.anything());
 
     // k back to site feedback: r asks, then rejects it out of the Inbox.
@@ -361,6 +363,23 @@ describe("InboxTab", () => {
     expect(server.claims).toEqual([expect.objectContaining({ item_id: "prop-1", claimed_by: BEN })]);
   });
 
+  it("names a citation row by its article title once the corpus has loaded", async () => {
+    stubServer(freshServer(), () => ADA);
+    const library = {
+      ...getEmptyEditorLibrary(),
+      allSubstanceRecords: [{ slug: "lsd", name: "LSD" }],
+    } as unknown as Parameters<typeof SubstanceIndexProvider>[0]["libraryData"];
+    render(
+      <SubstanceIndexProvider libraryData={library}>
+        <InboxTab actorEmail={ADA} />
+      </SubstanceIndexProvider>,
+    );
+    const list = await screen.findByRole("listbox", { name: "Inbox items" });
+    await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
+    expect(within(list).getByText("LSD")).toBeInTheDocument();
+    expect(within(list).queryByText("lsd")).not.toBeInTheDocument();
+  });
+
   it("shows an expired claim as unclaimed, with who held it", async () => {
     const server = freshServer();
     server.claims.push({ source: "citations", item_id: "lsd", claimed_by: ADA, claimed_at: "2026-09-20T00:00:00.000Z", expired: true });
@@ -374,5 +393,47 @@ describe("InboxTab", () => {
     expect(screen.queryByRole("button", { name: "Take over" })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Claim" }));
     expect(await screen.findByText("You are reviewing this.")).toBeInTheDocument();
+  });
+
+  it("undoes the last decision with u, through the same status route", async () => {
+    const server = freshServer();
+    const fetchMock = stubServer(server, () => actor);
+    const { list } = await openInbox(ADA);
+    const user = userEvent.setup();
+
+    await user.keyboard("j");
+    expect(selectedTitle(list)).toBe("Website technical issue");
+    await user.keyboard("a");
+    await waitFor(() => expect(optionTitles(list)).not.toContain("Website technical issue"));
+    expect(await screen.findByRole("button", { name: "Undo" })).toBeInTheDocument();
+
+    await user.keyboard("u");
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/site-feedback/sf-1/status",
+      expect.objectContaining({ method: "POST", body: JSON.stringify({ status: "reviewing" }) }),
+    );
+    await waitFor(() => expect(selectedTitle(list)).toBe("Website technical issue"));
+    expect(screen.getByText(/^Undone\./)).toBeInTheDocument();
+  });
+
+  it("offers a way back when the filters hide everything", async () => {
+    stubServer(freshServer(), () => actor);
+    const { list } = await openInbox(ADA);
+    const user = userEvent.setup();
+
+    await user.click(within(screen.getByRole("group", { name: "Assigned to" })).getByRole("button", { name: /^Mine/ }));
+    expect(within(list).queryAllByRole("option")).toHaveLength(0);
+    expect(screen.getByText("Nothing matches these filters.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Show everything" }));
+    await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
+  });
+
+  it("folds every failed queue into one error with one retry", async () => {
+    const fetchMock = vi.fn(async () => Response.json({ error: "Database unavailable." }, { status: 500 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<InboxTab actorEmail={ADA} />);
+
+    expect(await screen.findByText("Could not load the Inbox")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Try again" })).toHaveLength(1);
   });
 });

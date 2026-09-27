@@ -148,7 +148,33 @@ export function PlaylistsPanel({
       }
     >
       {feedback ? (
-        <Notice placement="inline" tone={feedback.tone} dismiss={() => controller.setFeedback(null)}>
+        <Notice
+          placement="inline"
+          tone={feedback.tone}
+          dismiss={() => controller.setFeedback(null)}
+          actions={
+            feedback.conflictKey ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isSaving}
+                onClick={() => {
+                  const key = feedback.conflictKey as string;
+                  confirm({
+                    title: `Load the latest “${draft?.title.trim() || key}”?`,
+                    description: "The stored playlist opens in place of your draft, and your unsaved changes to it are dropped.",
+                    confirmLabel: "Load the latest version",
+                    destructive: true,
+                    onConfirm: () => controller.reload(key),
+                  });
+                }}
+              >
+                Load the latest version
+              </Button>
+            ) : undefined
+          }
+        >
           {feedback.message}
         </Notice>
       ) : null}
@@ -159,14 +185,14 @@ export function PlaylistsPanel({
             <h4 id="saved-playlists-heading" className="theme-text-primary text-sm font-semibold">Saved playlists</h4>
             <p className="theme-text-muted text-xs">Open one to edit its order or apply it to drugs.</p>
           </div>
-          <Button type="button" variant="ghost" size="sm" disabled={isSaving} onClick={controller.reload}>
+          <Button type="button" variant="ghost" size="sm" disabled={isSaving} onClick={() => controller.reload()}>
             <Icon icon="lucide:refresh-cw" size={15} />
-            Reload
+            Refresh
           </Button>
         </div>
 
         {!loaded ? (
-          <p className="theme-text-muted py-3 text-sm">Loading playlists…</p>
+          <p className="theme-text-muted py-3 text-sm">Loading playlists</p>
         ) : playlists.length === 0 ? (
           <EmptyStateSurface padding="sm" radius="lg" className="space-y-1 text-sm">
             <p className="theme-text-primary font-medium">No saved playlists yet.</p>
@@ -194,7 +220,7 @@ export function PlaylistsPanel({
         <section aria-labelledby="playlist-editor-heading" className="space-y-4 border-t border-[color:var(--editor-panel-border)] pt-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[min(100%,18rem)] flex-1 space-y-1">
-              <label htmlFor={titleFieldId} className="theme-text-muted block text-[11px] uppercase tracking-[0.24em]">
+              <label htmlFor={titleFieldId} className="theme-text-secondary block text-sm font-medium">
                 Playlist name
               </label>
               <Input

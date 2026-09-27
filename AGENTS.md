@@ -42,6 +42,11 @@ The site and dataset continue to evolve toward 1.0. Check back for updates, or [
 9. Write links as App Paths; a local source change is not a deployed change, so never claim production state without deployment evidence.
 10. Em dashes are banned in all text.
 
+## Working style
+
+When a step doesn't need my input, keep going. Put status notes in the same message as your next action.
+Stop and ask only when you can't continue without me, or before anything destructive: deleting data, force-pushing, or changing anything outside this repository.
+
 ## Where to read next
 
 - Before any non-trivial change, read [docs/glossary.md](docs/glossary.md) for the vocabulary and [ARCHITECTURE.md](ARCHITECTURE.md) for the layout.
@@ -51,3 +56,13 @@ The site and dataset continue to evolve toward 1.0. Check back for updates, or [
 - For UI work, read [docs/design/ui-kit.md](docs/design/ui-kit.md) and [docs/design/visual-style-guide.md](docs/design/visual-style-guide.md).
 - For molecule editing or rendering, read [docs/design/molecule-editor.md](docs/design/molecule-editor.md) and [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md).
 - For datasets and prose, read [data/README.md](data/README.md) and [content/README.md](content/README.md).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -4,6 +4,9 @@ import { COPY_BLOCK_DEFAULTS } from "@/data/content/copyBlocks";
 import {
   buildCopyStudioBlocks,
   canResetToDefault,
+  copyBlockTwin,
+  copyLengthGuide,
+  copySearchMatch,
   countPlaceholders,
   draftFromBlock,
   draftToText,
@@ -11,6 +14,8 @@ import {
   groupCopyStudioBlocks,
   sectionCopyStudioGroups,
   isDraftDirty,
+  openCopyProposals,
+  placeholderChanges,
   resolveCopyPlaceholders,
   type CopyBlockRow,
 } from "./copyStudioUtils";
@@ -164,5 +169,48 @@ describe("copy studio placeholders", () => {
     expect(resolveCopyPlaceholders("{{count}} of {{missing}}", { count: "7" })).toBe(
       "7 of {{missing}}",
     );
+  });
+});
+
+describe("copy studio pairing, search and checks", () => {
+  it("lists an Effect Index block straight after the block it rewords, and links the two", () => {
+    const blocks = buildCopyStudioBlocks([]);
+    const home = groupCopyStudioBlocks(blocks).find((entry) => entry.group === "Home")!.blocks.map((block) => block.key);
+    expect(home.indexOf("home-hero-tagline-effect-index")).toBe(home.indexOf("home-hero-tagline") + 1);
+    const base = blocks.find((block) => block.key === "footer-tagline")!;
+    const twin = blocks.find((block) => block.key === "footer-tagline-effect-index")!;
+    expect(copyBlockTwin(base, blocks)?.key).toBe(twin.key);
+    expect(copyBlockTwin(twin, blocks)?.key).toBe(base.key);
+  });
+
+  it("finds a stored block the catalogue lists without text by its default wording", () => {
+    const [block] = buildCopyStudioBlocks([{ key: "footer-tagline", kind: "plain", label: "Footer tagline", group: "Footer" }])
+      .filter((entry) => entry.key === "footer-tagline");
+    expect(copySearchMatch(block, "does not endorse")).toBe("default");
+    expect(copySearchMatch(block, "footer tag")).toBe("name");
+    expect(filterCopyStudioBlocks([block], "does not endorse")).toHaveLength(1);
+  });
+
+  it("names the placeholders a draft drops or adds", () => {
+    expect(placeholderChanges("Browse {{substanceCount}} in {{siteName}}.", "Browse {{count}} in {{siteName}}.")).toEqual({
+      removed: ["substanceCount"],
+      added: ["count"],
+    });
+  });
+
+  it("keys open copy proposals by block, newest first, and skips settled ones", () => {
+    const open = openCopyProposals([
+      { _id: "p-old", status: "submitted", createdAt: "2026-01-01T00:00:00Z", proposerName: "Ada", targets: [{ kind: "copyBlock", key: "footer-tagline" }] },
+      { _id: "p-new", status: "changes_requested", createdAt: "2026-01-02T00:00:00Z", isAuthor: true, targets: [{ kind: "copyBlock", key: "footer-tagline" }] },
+      { _id: "p-done", status: "approved", targets: [{ kind: "copyBlock", key: "home-hero-tagline" }] },
+      { _id: "p-writing", status: "submitted", targets: [{ kind: "writing", key: "about" }] },
+    ]);
+    expect([...open.keys()]).toEqual(["footer-tagline"]);
+    expect(open.get("footer-tagline")).toEqual({ id: "p-new", mine: true, by: "Someone" });
+  });
+
+  it("guides SEO text lengths only", () => {
+    expect(copyLengthGuide({ key: "seo-contact-description", group: "SEO", kind: "plain" })?.target).toBe(155);
+    expect(copyLengthGuide({ key: "footer-tagline", group: "Footer", kind: "plain" })).toBeUndefined();
   });
 });

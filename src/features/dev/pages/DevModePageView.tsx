@@ -11,7 +11,8 @@ import {
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
 import { findDevTab } from "./devTabRegistry";
-import { DevToolSaveLine } from "./DevToolSaveLine";
+import { LoadErrorState } from "../components";
+import { DevWriteStatus } from "./DevToolSaveLine";
 import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
 
 /**
@@ -116,7 +117,7 @@ type DevModePageViewProps = {
  * addressable so a deep link explains itself instead of bouncing; the tool's
  * chunk is never loaded and none of its reads start.
  */
-function DevToolLockedPanel({ label, reason }: { label: string; reason: string }) {
+function DevToolLockedPanel({ label, reason, onGoHome }: { label: string; reason: string; onGoHome?: () => void }) {
   return (
     <div className="mx-auto mt-10 max-w-xl">
       <StateCard
@@ -125,6 +126,7 @@ function DevToolLockedPanel({ label, reason }: { label: string; reason: string }
         align="center"
         title={reason}
         description={`${label} is closed to your role. Ask an admin if you need it.`}
+        actions={onGoHome ? <Button type="button" variant="outline" size="sm" onClick={onGoHome}>Go to Home</Button> : undefined}
       />
     </div>
   );
@@ -138,22 +140,27 @@ function IndexLayoutReadinessPanel({
 }) {
   if (readiness.status === "error") {
     return (
-      <StateCard
-        compact
-        tone="danger"
-        title="Unable to load editor layouts"
-        description={readiness.error}
-        actions={<Button variant="secondary" onClick={onRetry}>Retry loading editor layouts</Button>}
-      />
+      <div className="mx-auto mt-10 max-w-xl">
+        <LoadErrorState
+          what="the index layouts"
+          message={`${readiness.error ?? "The server did not send them."} Nothing can be arranged until they load.`}
+          onRetry={onRetry}
+        />
+      </div>
     );
   }
-  return <DevToolLoadingPanel label="Loading editor layouts" />;
+  return <DevToolLoadingPanel label="Loading the index layouts" />;
 }
 
 export function DevModePageView({ controller }: DevModePageViewProps) {
   const activeDescriptor = findDevTab(controller.activeTab);
   const isWaitingOnLibrary =
     controller.isLibraryLoading && LIBRARY_DEPENDENT_TABS.has(controller.activeTab);
+  const isWaitingOnLayouts =
+    controller.activeTab === "index-layout" && controller.indexLayoutsReadiness.status !== "ready";
+  // The write status describes a save the editor can make now: never over a
+  // locked tool or a loading panel.
+  const toolReady = controller.activeTabLockReason === null && !isWaitingOnLibrary && !isWaitingOnLayouts;
 
   return (
     <main
@@ -178,9 +185,10 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
         onLeave={controller.onLeave}
       />
 
+      <DevWriteStatus tab={activeDescriptor} canApprove={controller.canApprove} ready={toolReady} />
+
       {/* Keyed so a Cmd+K record remounts the open tool on the record it names. */}
       <div key={controller.toolMountKey} className={controller.contentWrapperClass}>
-        <DevToolSaveLine tab={activeDescriptor} canApprove={controller.canApprove} />
         {controller.canDraft ? (
           <StagedArticlesRecoveryNotice
             recovery={controller.stagedRecovery}
@@ -188,20 +196,29 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           />
         ) : null}
         {controller.activeTabLockReason !== null ? (
-          <DevToolLockedPanel label={activeDescriptor.label} reason={controller.activeTabLockReason} />
+          <DevToolLockedPanel
+            label={activeDescriptor.label}
+            reason={controller.activeTabLockReason}
+            onGoHome={controller.activeTab === "home" ? undefined : () => controller.onTabChange("home")}
+          />
         ) : controller.activeTab === "index-layout"
           && controller.indexLayoutsReadiness.status !== "ready" ? (
           <IndexLayoutReadinessPanel
             readiness={controller.indexLayoutsReadiness}
             onRetry={controller.retryIndexLayouts}
           />
+        ) : isWaitingOnLibrary && controller.libraryError ? (
+          <LoadErrorState what="the articles" message={controller.libraryError} onRetry={controller.retryLibrary} />
         ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
         ) : controller.activeTab === "change-log" ? (
-          <DevModeChangeLogTab controller={controller.changeLog} />
+          <DevModeChangeLogTab
+            controller={controller.changeLog}
+            contributorProfiles={controller.contributorDirectory.profiles}
+          />
         ) : controller.activeTab === "index-layout" ? (
           <IndexLayoutTab
-            enableStickyPanels={controller.enableStickyPanels}
+            {...controller.indexLayoutTabProps}
             commitPanel={controller.commitPanel}
           />
         ) : controller.activeTab === "writing" ? (
@@ -219,6 +236,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             canApprove={controller.canApprove}
             onLoadIntoEditor={controller.onLoadProposal}
             initialProposalId={controller.queueInitialId}
+            actorEmail={controller.userEmail ?? null}
           />
         ) : controller.activeTab === "home" ? (
           <HomeTab role={controller.role} profileKey={controller.sessionProfileKey} />
@@ -231,16 +249,28 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
             canEdit={controller.canDraft}
             canApprove={controller.canApprove}
             sessionProfileKey={controller.sessionProfileKey}
+            viewerEmail={controller.userEmail}
             initialScope={controller.initialFilter}
+            initialKey={controller.contributorsInitialKey}
           />
         ) : controller.activeTab === "playlists" ? (
           <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />
         ) : controller.activeTab === "citation-review" ? (
-          <CitationReviewTab initialSlug={controller.citationReviewInitialSlug} />
+          <CitationReviewTab
+            initialSlug={controller.citationReviewInitialSlug}
+            actorEmail={controller.userEmail ?? null}
+          />
         ) : controller.activeTab === "trip-report-submissions" ? (
-          <TripReportPortalTab initialSubmissionId={controller.tripReportsInitialId} />
+          <TripReportPortalTab
+            initialSubmissionId={controller.tripReportsInitialId}
+            actorEmail={controller.userEmail ?? null}
+          />
         ) : controller.activeTab === "article-feedback" ? (
-          <FeedbackTab initialSource={controller.initialFilter} initialId={controller.feedbackInitialId} />
+          <FeedbackTab
+            initialSource={controller.initialFilter}
+            initialId={controller.feedbackInitialId}
+            actorEmail={controller.userEmail ?? null}
+          />
         ) : controller.activeTab === "tag-editor" ? (
           <TagEditorTab {...controller.tagEditorTabProps} />
         ) : controller.activeTab === "molecule-editor" ? (

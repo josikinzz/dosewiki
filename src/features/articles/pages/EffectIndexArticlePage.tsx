@@ -50,6 +50,13 @@ interface EffectIndexArticlePageProps {
    * byline renders at all — the same as before the backfill.
    */
   bylineAuthors?: ArticleBylineAuthor[];
+  /**
+   * Drawn inside another page (the Writing editor's live preview): no `main`
+   * landmark or page id, no viewport-wide contents strip, and one column with
+   * the contents listed above the article, since the preview column is far
+   * narrower than the viewport the page's breakpoints read.
+   */
+  embedded?: boolean;
 }
 
 /** Keep narrative measure independent of the full-width shared effect panels. */
@@ -118,6 +125,7 @@ export function EffectIndexArticlePage({
   bylineAuthors = [],
   locale = "en",
   t,
+  embedded = false,
 }: EffectIndexArticlePageProps) {
   // A date is not a tag: it gets a `<time>` of its own, set in figures rather
   // than in the tracked-out caps a tag wears, so the row reads as "published
@@ -145,19 +153,8 @@ export function EffectIndexArticlePage({
   // the same sequence, so the rail's anchors are the ones the DOM carries.
   const assignHeadingId = createVCodeHeadingIdAssigner(model.sectionIds);
 
-  return (
-    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
-      <StickyTocLayout
-        toc={tocNode}
-        maxWidthClass="max-w-6xl"
-        contentClassName="min-w-0 gap-10"
-        className="theme-toc-strip-scope"
-      >
-        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
-        {tocNode ? <PublicTocStrip items={model.tocItems} /> : null}
-
+  const content = (
+      <>
         <div className="flex flex-col gap-4">
           {/* The effect page's title: one size ramp, the glyph hanging off the
               text run. An article's glyph is the archive's own. */}
@@ -303,6 +300,35 @@ export function EffectIndexArticlePage({
         })}
 
         <EffectCitationsSection citations={article.citations} />
+      </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="theme-page-shell flex min-w-0 flex-col gap-10">
+        {tocNode ? (
+          <nav aria-label={t("On this page")} className="pb-2">
+            {tocNode}
+          </nav>
+        ) : null}
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <main id="main-content" tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
+      <StickyTocLayout
+        toc={tocNode}
+        maxWidthClass="max-w-6xl"
+        contentClassName="min-w-0 gap-10"
+        className="theme-toc-strip-scope"
+      >
+        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
+            the site header from the very first scroll; replaced by the sticky
+            gutter TOC at >=1200px. */}
+        {tocNode ? <PublicTocStrip items={model.tocItems} /> : null}
+        {content}
       </StickyTocLayout>
     </main>
   );

@@ -41,7 +41,6 @@ type AboutCopyEditorsProps = {
   subtitleTextareaRef: React.RefObject<HTMLTextAreaElement | null>;
   copyNotice?: AboutCopyNotice | null;
   onDismissCopyNotice?: () => void;
-  contextual?: boolean;
 };
 
 function copyResult(copyNotice: AboutCopyNotice | null | undefined, target: AboutCopyNotice["target"], onDismiss?: () => void) {
@@ -55,6 +54,11 @@ function copyResult(copyNotice: AboutCopyNotice | null | undefined, target: Abou
   );
 }
 
+/**
+ * The About page's Markdown and subtitle fields in the public page's
+ * contextual editor panel (`AboutBlock.editor.tsx`). The /dev Writing tool
+ * draws its own About pane, so this is the panel's layout only.
+ */
 export function AboutCopyEditors({
   aboutMarkdown,
   onMarkdownChange,
@@ -71,14 +75,13 @@ export function AboutCopyEditors({
   subtitleTextareaRef,
   copyNotice,
   onDismissCopyNotice,
-  contextual = false,
 }: AboutCopyEditorsProps) {
   const [tokensOpen, setTokensOpen] = useState(false);
   const tokensId = useId();
   return (
     <>
       <EditorSection
-        headingLevel={contextual ? "h3" : "h2"}
+        headingLevel="h3"
         icon="lucide:file-text"
         title="About copy"
         description="Edit one Markdown document. Text before the section headings appears in Introduction. Use ## Sources and review for the sources section and ## Project history for the history above contributor cards. Check the rendered preview before publishing."
@@ -89,26 +92,26 @@ export function AboutCopyEditors({
         )}
       >
         <div className="space-y-6">
-          {contextual ? <ExpandButton variant="inline" isExpanded={tokensOpen} onToggle={() => setTokensOpen(value => !value)} ariaControls={tokensId} ariaLabel="Live count placeholders" label="Live count placeholders" /> : null}
-          <div id={tokensId} className={contextual && !tokensOpen ? "hidden" : "flex flex-wrap gap-2 text-[11px] theme-text-muted"}>
+          <ExpandButton variant="inline" isExpanded={tokensOpen} onToggle={() => setTokensOpen(value => !value)} ariaControls={tokensId} ariaLabel="Live count placeholders" label="Live count placeholders" />
+          <div id={tokensId} className={tokensOpen ? "flex flex-wrap gap-2 text-xs theme-text-muted" : "hidden"}>
             {PLACEHOLDER_TOKENS.map((token) => (
               <TagToken
                 key={token.key}
                 variant="readonly"
                 label={(
                   <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 whitespace-normal">
-                    <code className="font-mono text-[0.7rem] theme-text-secondary">{`{{${token.key}}}`}</code>
+                    <code className="font-mono text-xs theme-text-secondary">{`{{${token.key}}}`}</code>
                     <span className="theme-text-faint">{token.label}</span>
                   </span>
                 )}
               />
             ))}
           </div>
-          <EditorField label="Markdown source" htmlFor="about-markdown-editor" description={contextual ? "Markdown formatting and live count placeholders render in Local preview." : undefined}>
+          <EditorField label="Markdown source" htmlFor="about-markdown-editor" description="Markdown formatting and live count placeholders render in Local preview.">
             {(control) => <Textarea
               {...control}
               ref={textareaRef}
-              className={contextual ? "min-h-[240px] resize-y whitespace-pre-wrap font-mono" : "min-h-[240px] resize-none whitespace-pre-wrap font-mono"}
+              className="min-h-[240px] resize-y whitespace-pre-wrap font-mono"
               value={aboutMarkdown}
               onChange={onMarkdownChange}
             />}
@@ -134,7 +137,7 @@ export function AboutCopyEditors({
       </EditorSection>
 
       <EditorSection
-        headingLevel={contextual ? "h3" : "h2"}
+        headingLevel="h3"
         icon="lucide:type"
         title="Subtitle and meta description"
         description="Appears beneath the About heading and in search metadata. Supports the same placeholder tokens."
@@ -143,16 +146,16 @@ export function AboutCopyEditors({
             <EditorStatusPill tone={isSubtitleDirty ? "warning" : "success"}>
               {isSubtitleDirty ? "Changed" : "Clean"}
             </EditorStatusPill>
-            <EditorStatusPill tone="neutral">{`${subtitleLength.toLocaleString()} ${contextual ? "source characters" : "characters"}`}</EditorStatusPill>
+            <EditorStatusPill tone="neutral">{`${subtitleLength.toLocaleString()} source characters`}</EditorStatusPill>
           </>
         )}
       >
         <div className="space-y-6">
-          <EditorField label={contextual ? "Subtitle and meta description source" : "Meta description source"} htmlFor="about-subtitle-editor" description={contextual ? `${subtitleLength.toLocaleString()} source characters. Live count placeholders resolve in the public subtitle and search description.` : undefined}>
+          <EditorField label="Subtitle and meta description source" htmlFor="about-subtitle-editor" description={`${subtitleLength.toLocaleString()} source characters. Live count placeholders resolve in the public subtitle and search description.`}>
             {(control) => <Textarea
               {...control}
               ref={subtitleTextareaRef}
-              className={contextual ? "min-h-[80px] resize-y whitespace-pre-wrap" : "min-h-[80px] resize-none whitespace-pre-wrap font-mono"}
+              className="min-h-[80px] resize-y whitespace-pre-wrap"
               value={aboutSubtitle}
               onChange={onSubtitleChange}
             />}

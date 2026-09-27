@@ -4,15 +4,21 @@
  * person to check in this language, most first. Counts come from the
  * translator-readable coverage audit (missing, outdated and rejected
  * paragraphs, glossary disagreements, doubled punctuation, English left in),
- * read once when the view opens; it is never polled.
+ * read once when the view opens; it is never polled. Rows are link rows: the
+ * first leads, the list folds after five.
  */
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { StateCard } from "@/components/common/StateCard";
+import { ExpandButton } from "@/components/common/ExpandButton";
+import { Icon } from "@/components/common/Icon";
+import { LoadErrorState } from "@/features/dev/components";
+import { cn } from "@/lib/utils";
 import type { TranslationCoveragePage, TranslationCoverageResponse } from "@lib/translation/translationCoverageTypes";
 import { count } from "./glossaryModel";
+import { RowSkeletons } from "./workbenchParts";
 
 const SHOWN = 12;
+/** How many rows show before "Show all" (the log's long-list cap). */
+const CAP = 5;
 
 /** How much a page holds for a person to check, across every finding the audit counts. */
 export function openWork(page: TranslationCoveragePage): number {
@@ -25,21 +31,22 @@ export function rankArticles(pages: readonly TranslationCoveragePage[]): Transla
 }
 
 function breakdown(page: TranslationCoveragePage): string {
-  const parts: [number, string][] = [
-    [page.rejected, "rejected"],
-    [page.stale, "outdated"],
-    [page.missing, "not translated"],
-    [page.glossaryMisses, "glossary disagreements"],
-    [page.leftoverLatin, "English left in"],
-    [page.repeatedPunctuation, "doubled punctuation"],
+  const parts: [number, string, string][] = [
+    [page.rejected, "rejected", "rejected"],
+    [page.stale, "outdated", "outdated"],
+    [page.missing, "not translated", "not translated"],
+    [page.glossaryMisses, "glossary disagreement", "glossary disagreements"],
+    [page.leftoverLatin, "with English left in", "with English left in"],
+    [page.repeatedPunctuation, "doubled punctuation", "doubled punctuation"],
   ];
-  return parts.filter(([n]) => n > 0).map(([n, label]) => `${n} ${label}`).join(" · ");
+  return parts.filter(([n]) => n > 0).map(([n, one, many]) => count(n, one, many)).join(" · ");
 }
 
 export function ArticlesToReview({ locale, disabled, onOpen }: { locale: string; disabled: boolean; onOpen: (slug: string) => void }) {
   const [pages, setPages] = useState<{ ranked: TranslationCoveragePage[]; checked: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   useEffect(() => {
     let live = true;
     setError(null);
@@ -57,18 +64,45 @@ export function ArticlesToReview({ locale, disabled, onOpen }: { locale: string;
     return () => { live = false; };
   }, [locale, attempt]);
 
-  if (error) return <StateCard compact tone="danger" title="Articles needing review could not be listed" description={error} actions={<Button size="sm" variant="outline" onClick={() => setAttempt((n) => n + 1)}>Retry</Button>} />;
-  if (!pages) return <StateCard compact loading title="Finding articles needing review" />;
-  if (pages.ranked.length === 0) return <p className="theme-text-secondary text-sm">No article has open work in this language. Find one below to read it anyway.</p>;
+  const heading = <h3 id={`articles-to-review-${locale}`} className="type-meta-label theme-text-muted">Articles needing review</h3>;
+  if (error) return <div className="space-y-2">{heading}<LoadErrorState what="the articles needing review" message={error} onRetry={() => setAttempt((n) => n + 1)} /></div>;
+  if (!pages) return <div className="space-y-2">{heading}<RowSkeletons rows={4} label="articles needing review" /></div>;
+  if (pages.ranked.length === 0) {
+    return (
+      <div className="space-y-2">
+        {heading}
+        <p className="theme-text-secondary flex items-center gap-2 text-sm"><Icon icon="lucide:check-check" size={16} className="text-[color:var(--theme-success-text)]" />No article has open work in this language. Find one to read it anyway.</p>
+      </div>
+    );
+  }
+  const listed = pages.ranked.slice(0, SHOWN);
+  const visible = showAll ? listed : listed.slice(0, CAP);
   return <section aria-labelledby={`articles-to-review-${locale}`} className="space-y-2">
-    <h3 id={`articles-to-review-${locale}`} className="theme-text-primary font-medium">Articles needing review</h3>
-    <ol aria-label="Articles needing review" className="space-y-1">
-      {pages.ranked.slice(0, SHOWN).map((page) => <li key={page.slug} className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
-        <Button type="button" size="sm" variant="quiet" disabled={disabled} onClick={() => onOpen(page.slug)}>{page.slug}</Button>
-        <span className="theme-text-secondary text-sm tabular-nums">{openWork(page)} to check</span>
-        <span className="theme-text-faint text-xs">{breakdown(page)}</span>
+    <div className="flex items-baseline justify-between gap-3">
+      {heading}
+      <span className="theme-text-muted text-xs tabular-nums">{count(pages.ranked.length, "article")}</span>
+    </div>
+    <ol id={`articles-to-review-list-${locale}`} aria-label="Articles needing review" className="theme-dev-link-list -mx-2.5">
+      {visible.map((page, index) => <li key={page.slug}>
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={`${page.slug}, ${openWork(page)} to check`}
+          onClick={() => onOpen(page.slug)}
+          className={cn("theme-dev-link-row flex w-full min-w-0 items-center gap-3 rounded-control px-2.5 py-2.5 text-left transition-colors disabled:opacity-60", index === 0 && "theme-dev-link-lead")}
+        >
+          <span className="min-w-0 flex-1 space-y-0.5">
+            <span className="theme-text-primary block text-sm font-medium">{page.slug}</span>
+            <span className="theme-text-muted block text-xs">{breakdown(page)}</span>
+          </span>
+          <span className="theme-dev-link-count shrink-0 text-sm font-medium tabular-nums">{openWork(page)}<span className="theme-text-muted text-xs font-normal"> to check</span></span>
+          <Icon icon="lucide:chevron-right" size={14} className="theme-dev-link-row-chevron shrink-0" />
+        </button>
       </li>)}
     </ol>
+    {listed.length > CAP ? (
+      <ExpandButton variant="count" isExpanded={showAll} onToggle={() => setShowAll(!showAll)} ariaControls={`articles-to-review-list-${locale}`} label={showAll ? "Show fewer" : "Show all"} count={listed.length - CAP} />
+    ) : null}
     {pages.ranked.length > SHOWN ? <p className="theme-text-faint text-xs">Showing the {SHOWN} with the most to check of {count(pages.ranked.length, "article")}.</p> : null}
     {pages.total > pages.checked ? <p className="theme-text-faint text-xs">Ranked from the first {pages.checked} of {count(pages.total, "page")} with open work.</p> : null}
   </section>;

@@ -42,7 +42,7 @@ function ConflictList({
             const changed = other[index] !== slug;
             return (
               <li key={slug} className="flex items-center gap-2">
-                <span className="theme-text-faint w-5 shrink-0 text-right font-mono text-xs tabular-nums">
+                <span className="theme-text-faint w-5 shrink-0 text-right text-xs tabular-nums">
                   {index + 1}
                 </span>
                 {work ? (

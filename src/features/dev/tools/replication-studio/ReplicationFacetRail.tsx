@@ -78,11 +78,11 @@ function FacetSection({
         onClick={() => setOpen((value) => !value)}
         className="theme-replication-facet-heading flex w-full items-center gap-2 px-4 py-2.5 text-left"
       >
-        <h3 className="theme-section-heading flex-1 text-xs font-semibold uppercase tracking-[0.18em]">
+        <h3 className="type-meta-label theme-section-heading flex-1">
           {title}
         </h3>
         {active.length > 0 ? (
-          <span className="theme-accent-emphasis font-mono text-xs tabular-nums">
+          <span className="theme-accent-emphasis text-xs tabular-nums">
             {active.length} on
           </span>
         ) : null}
@@ -95,7 +95,7 @@ function FacetSection({
               type="search"
               inputSize="sm"
               aria-label={`Filter ${title.toLowerCase()} list`}
-              placeholder={`Filter ${entries.length} ${title.toLowerCase()}s…`}
+              placeholder={`Filter ${entries.length} ${title.toLowerCase()}s`}
               autoComplete="off"
               value={needle}
               onChange={(event) => setNeedle(event.target.value)}
@@ -119,7 +119,7 @@ function FacetSection({
                       onChange={() => onToggleFacet(kind, entry.key)}
                     />
                     <span className="min-w-0 flex-1 truncate">{entry.label}</span>
-                    <span className="theme-text-faint font-mono text-xs tabular-nums">{count}</span>
+                    <span className="theme-text-faint text-xs tabular-nums">{count}</span>
                   </label>
                 </li>
               );
@@ -184,18 +184,18 @@ export function ReplicationFacetRail({
             type="search"
             inputSize="sm"
             aria-label="Search replications"
-            placeholder="Title, artist, slug…"
+            aria-keyshortcuts="/"
+            placeholder="Title, artist, slug"
             autoComplete="off"
             className="pl-9 pr-8"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
           />
-          <kbd
-            aria-hidden="true"
-            className="theme-text-faint pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-[color:var(--editor-panel-border)] px-1.5 font-mono text-xs"
-          >
-            /
-          </kbd>
+          {query ? null : (
+            <span aria-hidden className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 [@media(pointer:coarse)]:hidden">
+              <kbd className="theme-dev-kbd">/</kbd>
+            </span>
+          )}
         </div>
       </div>
       <div className="border-t border-[color:var(--editor-panel-border)]">

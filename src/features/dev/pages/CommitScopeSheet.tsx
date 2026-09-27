@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 import { DiffPreview } from "../components/DiffPreview";
@@ -14,14 +14,18 @@ import type { CommitScopeDataset } from "./commitScope";
  */
 export function CommitScopeSheet({
   scope,
+  lead,
   onNoteChange,
 }: {
   scope: CommitScopeDataset[];
+  /** What the change means in the tool's own terms, above the datasets (Tags lists its tag changes). */
+  lead?: ReactNode;
   onNoteChange: (note: string) => void;
 }) {
   const noteId = useId();
   return (
     <div className="space-y-4">
+      {lead}
       <ul className="max-h-[50vh] space-y-2 overflow-y-auto" aria-label="Datasets in this commit">
         {scope.map((dataset) => (
           <li

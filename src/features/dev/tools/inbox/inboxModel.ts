@@ -160,3 +160,76 @@ export function countByChip(items: readonly InboxItem[]): Record<InboxChip, numb
   for (const item of items) counts[CHIP_OF_SOURCE[item.source]] += 1;
   return counts;
 }
+
+/** How many items each assignment view would show under the current source chip. */
+export function countByAssignment(
+  items: readonly InboxItem[],
+  { chip, actor }: { chip: InboxChip | null; actor: string | null },
+): Record<InboxAssignment, number> {
+  const counts: Record<InboxAssignment, number> = { mine: 0, unassigned: 0, everyone: 0 };
+  for (const item of items) {
+    if (chip !== null && CHIP_OF_SOURCE[item.source] !== chip) continue;
+    for (const option of INBOX_ASSIGNMENTS) {
+      if (matchesAssignment(item, option.value, actor)) counts[option.value] += 1;
+    }
+  }
+  return counts;
+}
+
+/**
+ * The pill tone for an urgency, one rule for rows and the pane: critical is
+ * danger, high is caution (the Feedback tool's own tones), low steps back.
+ * Normal draws no pill.
+ */
+export function urgencyTone(urgency: InboxUrgency): "danger" | "caution" | "neutral" | null {
+  switch (urgency) {
+    case "critical":
+      return "danger";
+    case "high":
+      return "caution";
+    case "low":
+      return "neutral";
+    case "normal":
+      return null;
+  }
+}
+
+/** What one part of the Inbox read said when it failed. */
+export type InboxLoadFailure = { source: string; message: string };
+
+const TRAILING_TRY_AGAIN = /\s*Try again\.?\s*$/i;
+
+/** "A", "A and B", "A, B and C". */
+export function joinWords(words: readonly string[]): string {
+  if (words.length <= 1) return words[0] ?? "";
+  return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
+}
+
+/**
+ * One error for one read: the Inbox loads every queue at once, so every
+ * failure folds into a single title and message with a single retry.
+ * `everyQueueFailed` is true when no queue answered at all.
+ */
+export function describeLoadFailures(
+  failures: readonly InboxLoadFailure[],
+  everyQueueFailed: boolean,
+): { what: string; message: string } | null {
+  if (failures.length === 0) return null;
+  const queues = failures.filter((failure) => failure.source !== "Claims");
+  const claimsFailed = queues.length < failures.length;
+  const messages = [...new Set(failures.map((failure) => failure.message.replace(TRAILING_TRY_AGAIN, "").trim()))]
+    .filter(Boolean)
+    .map((message) => (/[.!?]$/.test(message) ? message : `${message}.`));
+  const consequences: string[] = [];
+  if (everyQueueFailed) return { what: "the Inbox", message: messages.join(" ") };
+  if (queues.length > 0) {
+    consequences.push(`Items from ${joinWords(queues.map((failure) => failure.source))} are missing from the list below; everything else loaded.`);
+  }
+  if (claimsFailed) consequences.push("Until claims load, every item shows as unclaimed.");
+  const what = everyQueueFailed
+    ? "the Inbox"
+    : queues.length > 0
+      ? joinWords([...queues.map((failure) => failure.source), ...(claimsFailed ? ["claims"] : [])])
+      : "who is working on what";
+  return { what, message: [...messages, ...consequences].join(" ") };
+}

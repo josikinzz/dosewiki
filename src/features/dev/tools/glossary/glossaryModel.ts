@@ -10,6 +10,7 @@ import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch }
 import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 import { devFetch } from "@/features/dev/tools/devFetch";
+import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreezeRefusal";
 
 export type GlossaryRow = GlossaryListResponse["rows"][number];
 
@@ -217,6 +218,27 @@ export function parseGlossaryCsv(text: string): GlossaryCsvRow[] {
 
 const BASE_PATH = "/api/dev/translation-glossary";
 
+/**
+ * A refused glossary write the workbench can say more about: writes are
+ * paused (503 with the freeze code), or someone saved the row after the
+ * reviewer opened it (409 with the review conflict code).
+ */
+export class GlossaryWriteRefusal extends Error {
+  constructor(message: string, readonly frozen: boolean, readonly conflict: boolean) {
+    super(message);
+    this.name = "GlossaryWriteRefusal";
+  }
+}
+
+/** The words a refusal shows: the freeze in the editor's own sentence, anything else as the route said it. */
+export function describeWriteRefusal(error: unknown, fallback: string): { message: string; frozen: boolean; conflict: boolean } {
+  const message = error instanceof Error ? error.message : fallback;
+  const code = error && typeof error === "object" ? (error as { code?: unknown }).code : undefined;
+  const frozen = (error instanceof GlossaryWriteRefusal && error.frozen) || code === "DATA_WRITES_FROZEN";
+  const conflict = (error instanceof GlossaryWriteRefusal && error.conflict) || code === "TRANSLATION_REVIEW_CONFLICT";
+  return { message: frozen ? "Writes are paused, so that was not saved." : message, frozen, conflict };
+}
+
 /** A collision refusal is data for a reviewer, not an automatic retry. */
 export class GlossaryReviewCollision extends Error {
   constructor(message: string, readonly collisions: GlossaryCollision[], readonly collisionConfirmation: string) {
@@ -371,6 +393,8 @@ function requestJson(
         })) {
         return new GlossaryReviewCollision(message, payload.collisions as GlossaryCollision[], payload.collisionConfirmation);
       }
+      if (isWriteFreezeRefusal(status, payload)) return new GlossaryWriteRefusal(message, true, false);
+      if (status === 409 && payload.code === "TRANSLATION_REVIEW_CONFLICT") return new GlossaryWriteRefusal(message, false, true);
       return undefined;
     },
   });

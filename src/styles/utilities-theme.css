@@ -1751,10 +1751,11 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
+/* Reduced motion drops the fade, not the wait: the hint still appears only
+   once loading has gone on long enough to need it. */
 @media (prefers-reduced-motion: reduce) {
   .theme-loading-stalled-label {
-    animation: none;
-    opacity: 1;
+    animation-duration: 1ms;
   }
 }
 
@@ -2147,6 +2148,21 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
       0 16px 32px -14px color-mix(in srgb, var(--theme-accent) 72%, transparent),
       inset 0 1px 0 rgba(255, 255, 255, 0.32);
   }
+}
+
+/* An accent action that cannot run steps down to the outline recipe: at half
+     opacity the magenta fill still reads as live on the light canvas. The
+     declarations are !important because the unlayered visual-style sheets
+     (pro-theme.css, fun-flat-glow.css) restate the fill and bloom, and an
+     important layered declaration is the one thing that outranks them. */
+.theme-cta-accent:disabled,
+.theme-cta-accent[aria-disabled="true"] {
+  color: var(--theme-text-secondary) !important;
+  background: transparent !important;
+  border-color: var(--theme-border-subtle) !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4554,8 +4570,10 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 
 /* Editor-kit semantic classes. They live in the token layer so dev tool
    components never name a theme variable directly (theme:tokens:check). */
+/* Changed since review reads as information, never as the accent that
+   marks the current choice and the tick. */
 .theme-review-status-stale {
-  background-color: var(--theme-accent-strong);
+  background-color: var(--theme-semantic-info-badge-text);
 }
 
 .theme-list-tick {
@@ -4572,10 +4590,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 .theme-danger-panel {
   border-color: var(--theme-danger-border);
   background-color: var(--theme-danger-bg);
-}
-
-.theme-ring-accent-strong {
-  --tw-ring-color: var(--theme-accent-strong);
 }
 
 /* Thin progress track with a hairline inset edge (glossary coverage bars). */

@@ -60,10 +60,17 @@ const HANDLER_OF: Record<TriageAction, keyof TriageShortcutHandlers> = {
 };
 
 /** One quiet line under a queue so the keys can be found; pointer-only screens skip it. */
-export function TriageShortcutHint({ className }: { className?: string }) {
+/**
+ * The key line under a triage list, in the one wording every list uses:
+ * the keys the tool leads with (`children`, such as "j k move"), then
+ * "? every key". Fine pointers only.
+ */
+export function TriageShortcutHint({ className, children }: { className?: string; children?: ReactNode }) {
   return (
     <p className={`theme-text-faint text-xs [@media(pointer:coarse)]:hidden ${className ?? ""}`}>
-      Press <kbd className="font-mono">?</kbd> for keyboard shortcuts.
+      {children}
+      {children ? ", " : null}
+      <kbd className="theme-dev-kbd">?</kbd> every key
     </p>
   );
 }

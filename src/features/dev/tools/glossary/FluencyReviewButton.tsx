@@ -39,7 +39,7 @@ export function FluencyReviewButton({ locale, slug }: { locale: string; slug: st
     <Button size="sm" variant="outline" disabled={busy} onClick={() => void start()}>{busy ? "Reviewing fluency" : "Review fluency"}</Button>
     {error ? <p role="alert" className="theme-text-secondary text-sm">{error}</p> : null}
     {run ? <p role="status" className="theme-text-secondary text-sm">
-      {run.stored} {run.stored === 1 ? "suggestion" : "suggestions"} sent to the Inbox{droppedText(run)}. Reviewed {run.reviewed} paragraphs{run.skipped ? `; ${run.skipped} over the request cap were not reviewed` : ""}.
+      {run.stored} {run.stored === 1 ? "suggestion" : "suggestions"} sent to Waiting{droppedText(run)}. Reviewed {run.reviewed} paragraphs{run.skipped ? `; ${run.skipped} over the request cap were not reviewed` : ""}.
       {" "}{run.model} · prompt {run.promptVersion} · {run.usage.prompt + run.usage.completion} tokens in {run.usage.requests} {run.usage.requests === 1 ? "request" : "requests"}.
     </p> : null}
   </div>;

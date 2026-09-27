@@ -23,6 +23,9 @@ const secondAdmin: Row = { ...admin, _id: "m2", email: "second@example.com" };
 
 beforeEach(() => {
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
+  // CI runs the suite with DATA_WRITES_FROZEN=1; these claims are writes, so
+  // start each test unfrozen and let a freeze test set the flag itself.
+  delete process.env.DATA_WRITES_FROZEN;
 });
 
 afterEach(() => {

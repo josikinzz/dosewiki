@@ -91,6 +91,11 @@ export interface EditorStatusPillProps
   loading?: boolean;
   live?: boolean;
   icon?: IconName;
+  /**
+   * Render as a `span` rather than the Badge's `div`, for a pill inside
+   * phrasing content (a row button, a sentence) where a block is invalid.
+   */
+  inline?: boolean;
   children: ReactNode;
 }
 
@@ -114,18 +119,35 @@ export function EditorStatusPill({
   loading = false,
   live = false,
   icon,
+  inline = false,
   className,
   children,
   ...props
 }: EditorStatusPillProps) {
+  const content = (
+    <>
+      {loading ? (
+        <Icon icon="lucide:loader-2" size={13} className="shrink-0 animate-spin" />
+      ) : icon ? (
+        <Icon icon={icon} size={13} className="shrink-0" />
+      ) : null}
+      {children}
+    </>
+  );
   return (
     <Badge
+      asChild={inline}
       variant="outline"
       data-badge-tone={statusPillBadgeTone[tone]}
       className={cn(
         // A 24px pill on one line; on a phone a long status (a save line)
         // wraps inside a taller capsule instead of spilling out of it.
-        "theme-status-badge h-auto min-h-6 max-w-full gap-1.5 border-transparent py-0.5 normal-case tracking-normal",
+        // A status pill carries a sentence ("Saved", "Each save goes live
+        // right away."), so it sets sentence type. The Badge recipe's
+        // `type-chip-label` sits later in the same cascade layer than
+        // Tailwind's case and tracking utilities, so plain `normal-case`
+        // loses to it; the important modifier is what makes these stick.
+        "theme-status-badge h-auto min-h-6 max-w-full gap-1.5 border-transparent py-0.5 text-xs! font-medium! normal-case! leading-snug! tracking-normal!",
         className,
       )}
       role={live ? "status" : undefined}
@@ -133,12 +155,7 @@ export function EditorStatusPill({
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading ? (
-        <Icon icon="lucide:loader-2" size={13} className="shrink-0 animate-spin" />
-      ) : icon ? (
-        <Icon icon={icon} size={13} className="shrink-0" />
-      ) : null}
-      {children}
+      {inline ? <span>{content}</span> : content}
     </Badge>
   );
 }

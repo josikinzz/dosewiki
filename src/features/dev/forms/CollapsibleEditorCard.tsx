@@ -36,6 +36,8 @@ export interface CollapsibleEditorCardProps extends PropsWithChildren {
    * sit inside an already-headed editor tab, so `h2` would duplicate that tier.
    */
   headingLevel?: "h2" | "h3" | "h4";
+  /** Colour for the leading icon when the section carries a meaning of its own (a severity); defaults to the accent. */
+  iconClassName?: string;
   className?: string;
 }
 
@@ -64,6 +66,7 @@ export function CollapsibleEditorCard({
   pairedIndicator = false,
   keepMounted = false,
   headingLevel: Heading = "h3",
+  iconClassName,
   className,
   children,
 }: CollapsibleEditorCardProps) {
@@ -106,7 +109,7 @@ export function CollapsibleEditorCard({
               <span
                 className={cn(
                   "shrink-0",
-                  hasError ? "theme-danger-text" : "theme-icon-accent",
+                  hasError ? "theme-danger-text" : iconClassName ?? "theme-icon-accent",
                 )}
               >
                 {icon}

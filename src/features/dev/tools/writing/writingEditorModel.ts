@@ -207,3 +207,120 @@ export function sortWritingEntries(entries: readonly WritingListEntry[]): Writin
     return b.creationTime - a.creationTime;
   });
 }
+
+/** What each draft field is called in sentences, confirms and merge reviews. */
+export const WRITING_FIELD_LABELS: Record<keyof WritingDraft, string> = {
+  title: "Title", slug: "Address", teaser: "Teaser", coverImageUrl: "Cover image",
+  body: "Body", bodyFormat: "Body format", tags: "Tags", authorProfileKeys: "Byline",
+  status: "Publication state", publicationDate: "Publication date",
+};
+
+/** The public address a row of this kind lives at. */
+export function writingAddress(kind: WritingKind, slug: string): string {
+  return `${kind === "blog" ? "/blog" : "/articles"}/${slug || "<address>"}`;
+}
+
+/** "article" or "blog post", for sentences. */
+export function writingKindNoun(kind: WritingKind): string {
+  return kind === "blog" ? "blog post" : "article";
+}
+
+/** The fields a draft changed against what it was loaded from, in form order. */
+export function changedWritingFields(baseline: WritingDraft, draft: WritingDraft): Array<keyof WritingDraft> {
+  return (Object.keys(WRITING_FIELD_LABELS) as Array<keyof WritingDraft>).filter(
+    (key) => JSON.stringify(draft[key]) !== JSON.stringify(baseline[key]),
+  );
+}
+
+/** A list in words: "the title, the body and the tags". */
+export function joinWords(parts: readonly string[]): string {
+  if (parts.length <= 1) return parts[0] ?? "";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+/** "You changed the title and the body." for a publish confirm; empty when nothing changed. */
+export function describeWritingChanges(keys: readonly (keyof WritingDraft)[]): string {
+  if (keys.length === 0) return "";
+  return `You changed ${joinWords(keys.map((key) => `the ${WRITING_FIELD_LABELS[key].toLowerCase()}`))}.`;
+}
+
+/**
+ * What an admin's save does, from where the page is going and where it was:
+ * the dock button, the confirm's title and its consequence sentence.
+ */
+export function writingSaveAction({
+  status,
+  wasPublished,
+  isNew,
+  title,
+  address,
+}: {
+  status: WritingStatus;
+  wasPublished: boolean;
+  isNew: boolean;
+  title: string;
+  address: string;
+}): { label: string; confirmTitle: string; consequence: string; tone: "live" | "private" } {
+  const name = `“${title.trim() || "Untitled"}”`;
+  if (status === "published") {
+    return wasPublished
+      ? { label: "Publish changes", confirmTitle: `Publish changes to ${name}?`, consequence: `Readers see them at ${address} as soon as it saves.`, tone: "live" }
+      : { label: "Publish", confirmTitle: `Publish ${name}?`, consequence: `It goes live at ${address} as soon as it saves.`, tone: "live" };
+  }
+  if (wasPublished) {
+    return { label: "Unpublish", confirmTitle: `Take ${name} off the site?`, consequence: `It is saved as a draft, and ${address} stops showing it.`, tone: "live" };
+  }
+  return {
+    label: "Save draft",
+    confirmTitle: isNew ? `Save ${name} as a new draft?` : `Save ${name} as a draft?`,
+    consequence: "It stays off the public site until you publish it.",
+    tone: "private",
+  };
+}
+
+/** The one reason the open page cannot be saved right now, or null when it can. */
+export function writingSaveBlocker({
+  draft,
+  slugAvailability,
+  dateError,
+  coverError,
+  bodyError,
+}: {
+  draft: WritingDraft;
+  slugAvailability: SlugAvailability;
+  dateError: string | null;
+  coverError: string | null;
+  bodyError: string | null;
+}): string | null {
+  if (!draft.title.trim()) return "Add a title before saving.";
+  if (slugAvailability.state === "empty") return "Add an address before saving.";
+  if (slugAvailability.state === "invalid") return `Address: ${slugAvailability.message}`;
+  if (slugAvailability.state === "taken") return `Address: ${slugAvailability.message} Pick another.`;
+  if (bodyError) return "Fix the body markup before saving.";
+  if (coverError) return `Cover image: ${coverError}`;
+  if (dateError) return `Publication date: ${dateError}`;
+  return null;
+}
+
+/** Entries split for the list: drafts (work outstanding) first, then the live ones. */
+export function groupWritingEntries(entries: readonly WritingListEntry[]): { drafts: WritingListEntry[]; live: WritingListEntry[] } {
+  const sorted = sortWritingEntries(entries);
+  return { drafts: sorted.filter((entry) => entry.status === "draft"), live: sorted.filter((entry) => entry.status !== "draft") };
+}
+
+/** Whether an entry matches the list filter: title, address, teaser or tags. */
+export function writingEntryMatches(entry: WritingListEntry, query: string): boolean {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const haystack = `${entry.title} ${entry.slug} ${entry.teaser ?? ""} ${(entry.tags ?? []).join(" ")}`.toLowerCase();
+  return words.every((word) => haystack.includes(word));
+}
+
+/** A stored publication date written out ("2 Nov 2025"), read in UTC; null when there is none. */
+export function formatPublicationDate(value: string | undefined): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec((value ?? "").trim());
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}

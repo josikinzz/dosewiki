@@ -28,8 +28,10 @@ import type {
   ReviewStatusOverrides,
 } from "./reviewQueue";
 import { crossedMilestone } from "./reviewSettings";
+import { describeReviewRefusal, ReviewWriteRefusal, type ReviewRefusalKind } from "./reviewDockModel";
 
-const UNDO_WINDOW_MS = 8000;
+/** Long enough to notice a slip after moving on; a later change replaces it. */
+const UNDO_WINDOW_MS = 30_000;
 const MILESTONE_MS = 4000;
 /** How long a finished chemical-class subsection holds its toast. */
 const SECTION_CELEBRATION_MS = 4500;
@@ -72,6 +74,8 @@ interface ReviewLastTick {
 export interface ReviewStatusWrites {
   isTicking: boolean;
   tickError: string | null;
+  /** Why the last write was refused, when the answer said: the freeze, a lapsed sign-in, the admin floor. */
+  tickRefusal: ReviewRefusalKind | null;
   clearTickError: () => void;
   lastTick: ReviewLastTick | null;
   /** Whether this role may mark an article reviewed (admins only). */
@@ -127,7 +131,12 @@ export function useReviewStatusWrites({
   publishedRevisions?: PublishedRevisions | null;
 }): ReviewStatusWrites {
   const [isTicking, setIsTicking] = useState(false);
-  const [tickError, setTickError] = useState<string | null>(null);
+  const [tickError, setTickErrorText] = useState<string | null>(null);
+  const [tickRefusal, setTickRefusal] = useState<ReviewRefusalKind | null>(null);
+  const setTickError = useCallback((message: string | null, kind: ReviewRefusalKind | null = null) => {
+    setTickErrorText(message);
+    setTickRefusal(message ? kind ?? "failed" : null);
+  }, []);
   const [lastTick, setLastTick] = useState<ReviewLastTick | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
   // The bucket the last tick finished off, if any. Fire-and-forget by design:
@@ -156,7 +165,7 @@ export function useReviewStatusWrites({
     [],
   );
 
-  const clearTickError = useCallback(() => setTickError(null), []);
+  const clearTickError = useCallback(() => setTickError(null), [setTickError]);
 
   const setReviewStatus = useCallback(
     async (
@@ -185,10 +194,11 @@ export function useReviewStatusWrites({
           editorial_review?: SubstanceArticle["editorial_review"];
         } | null;
         if (!response.ok) {
-          throw new Error(
-            payload?.error ??
-              "Unable to update the review status. Are you signed in as an editor?",
-          );
+          throw new ReviewWriteRefusal(describeReviewRefusal(
+            response.status,
+            payload,
+            "Unable to update the review status. Are you signed in as an editor?",
+          ));
         }
         const persistedReview = payload?.editorial_review;
         setOverrides((previous) => ({
@@ -256,12 +266,13 @@ export function useReviewStatusWrites({
           error instanceof Error
             ? error.message
             : "Failed to update review status.",
+          error instanceof ReviewWriteRefusal ? error.kind : "failed",
         );
       } finally {
         setIsTicking(false);
       }
     },
-    [queueGroups, reviewedCount, setOverrides],
+    [queueGroups, reviewedCount, setOverrides, setTickError],
   );
 
   /**
@@ -342,18 +353,21 @@ export function useReviewStatusWrites({
       } | null;
       const recommendation = payload?.editorial_review?.recommendation;
       if (!response.ok || !recommendation) {
-        throw new Error(payload?.error ?? "Unable to record the recommendation. Are you signed in as an editor?");
+        throw new ReviewWriteRefusal(describeReviewRefusal(response.status, payload, "Unable to record the recommendation. Are you signed in as an editor?"));
       }
       setRecommendations((previous) => ({ ...previous, [slug]: recommendation }));
       setLastRecommended(name);
       if (recommendTimerRef.current !== null) window.clearTimeout(recommendTimerRef.current);
       recommendTimerRef.current = window.setTimeout(() => setLastRecommended(null), UNDO_WINDOW_MS);
     } catch (error) {
-      setTickError(error instanceof Error ? error.message : "Unable to record the recommendation.");
+      setTickError(
+        error instanceof Error ? error.message : "Unable to record the recommendation.",
+        error instanceof ReviewWriteRefusal ? error.kind : "failed",
+      );
     } finally {
       setIsTicking(false);
     }
-  }, [canRecommend, current, currentHydrated, isTicking, publishedRevisions]);
+  }, [canRecommend, current, currentHydrated, isTicking, publishedRevisions, setTickError]);
 
   const dismissCelebration = useCallback(() => {
     if (celebrationTimerRef.current !== null) {
@@ -384,6 +398,7 @@ export function useReviewStatusWrites({
   return {
     isTicking,
     tickError,
+    tickRefusal,
     clearTickError,
     lastTick,
     canSignOff,

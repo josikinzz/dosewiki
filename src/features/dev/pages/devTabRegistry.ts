@@ -46,6 +46,12 @@ export type DevSaveModel = "record" | "batch" | "instant";
 type DevTabDescriptorOf<Id extends string> = {
   id: Id;
   label: string;
+  /**
+   * The tool's glyph, an Iconify name for `Icon`. The phone bar, the tool
+   * sheet and the Cmd+K palette draw it beside the label so a tool is
+   * recognised before it is read.
+   */
+  icon: string;
   group: DevToolGroup | "chrome";
   /** Route path segments, other than `id`, that resolve to this tab. */
   aliases: readonly string[];
@@ -92,7 +98,6 @@ type DevTabDescriptorOf<Id extends string> = {
 };
 
 const NO_DATA: ReadonlySet<DevTabDataNeed> = new Set();
-const CORPUS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>(["library", "contributors"]);
 const CORPUS_WITH_LAYOUTS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>([
   "library",
   "contributors",
@@ -108,6 +113,7 @@ const REGISTRY = [
   {
     id: "home",
     label: "Home",
+    icon: "lucide:house",
     group: "entry",
     aliases: [],
     // Each member's own work, by role: counts and cards that link to the exact
@@ -123,12 +129,15 @@ const REGISTRY = [
   {
     id: "inbox",
     label: "Inbox",
+    icon: "lucide:inbox",
     group: "entry",
     aliases: [],
     // Everything that waits on an admin, from every intake tool, in one list.
     // The owning tools keep their tabs and open from here for the full review.
     role: "admin",
-    data: NO_DATA,
+    // The corpus names the citation queue's articles (slugs until it lands);
+    // the Inbox never waits for it.
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveModel: "instant",
     // Claims and intake decisions, one item at a time; publishing stays in the owning tools.
     saveLine: "none",
@@ -139,6 +148,7 @@ const REGISTRY = [
   {
     id: "articles",
     label: "Substances",
+    icon: "lucide:flask-conical",
     group: "content",
     aliases: ["generator", "gen"],
     keywords: ["articles", "drugs"],
@@ -146,12 +156,15 @@ const REGISTRY = [
     data: CORPUS_WITH_LAYOUTS,
     saveModel: "record",
     withoutApproval: "submits-for-review",
-    layout: "shell",
+    // The article pane's save dock says where a save lands, beside Save draft and Review.
+    saveLine: "in-tool",
+    layout: "full-bleed",
     destination: SHELL,
   },
   {
     id: "review",
     label: "Review",
+    icon: "lucide:list-checks",
     group: "content",
     aliases: [],
     role: "editor",
@@ -164,12 +177,18 @@ const REGISTRY = [
   {
     id: "citation-review",
     label: "Citations",
+    icon: "lucide:quote",
     group: "intake",
     aliases: ["citations"],
     keywords: ["references", "sources"],
     role: "admin",
-    data: NO_DATA,
+    // The corpus names each queued article and lets the open article load
+    // whole for its marker checks; the queue itself does not wait for it.
+    data: new Set<DevTabDataNeed>(["library-deferred"]),
     saveModel: "instant",
+    // Decisions write one row or article at a time and the dock says so, with
+    // the freeze line; no save sentence fits (as Feedback).
+    saveLine: "none",
     layout: "shell",
     destination: SHELL,
     badge: "citations",
@@ -177,6 +196,7 @@ const REGISTRY = [
   {
     id: "trip-report-submissions",
     label: "Trip reports",
+    icon: "lucide:notebook-pen",
     group: "intake",
     aliases: ["trip-reports"],
     role: "admin",
@@ -185,10 +205,13 @@ const REGISTRY = [
     layout: "full-bleed",
     destination: SHELL,
     badge: "trip-reports",
+    // Decisions say what they do in the review dock; a report's save states its model beside Save.
+    saveLine: "in-tool",
   },
   {
     id: "article-feedback",
     label: "Feedback",
+    icon: "lucide:message-square-text",
     group: "intake",
     aliases: ["feedback"],
     role: "admin",
@@ -197,12 +220,15 @@ const REGISTRY = [
     layout: "shell",
     destination: SHELL,
     badge: "feedback",
+    // Decisions write one item at a time and the review dock says so; no save sentence fits.
+    saveLine: "none",
     // Site feedback folded in as the source filter; `/dev/site-feedback` still opens that queue.
     filter: DEV_ROUTE_FILTERS["article-feedback"],
   },
   {
     id: "tag-editor",
     label: "Tags",
+    icon: "lucide:tags",
     group: "content",
     aliases: ["tag"],
     role: "editor",
@@ -215,18 +241,23 @@ const REGISTRY = [
   {
     id: "molecule-editor",
     label: "Molecules",
+    icon: "lucide:hexagon",
     group: "content",
     aliases: ["molecules"],
     role: "admin",
     data: NO_DATA,
     saveModel: "instant",
     nestedSlug: true,
-    layout: "shell",
+    // The canvas wants the width beside its list column.
+    layout: "full-bleed",
     destination: SHELL,
+    // Substance and class saves go live, template saves publish nothing; the dock says which.
+    saveLine: "in-tool",
   },
   {
     id: "banners",
     label: "Banners",
+    icon: "lucide:triangle-alert",
     group: "content",
     // `/dev/warnings` is the wording an editor reaching for this from an
     // article is likely to type; the tool itself is named Banners per the
@@ -242,6 +273,7 @@ const REGISTRY = [
   {
     id: "replications",
     label: "Replications",
+    icon: "lucide:images",
     group: "content",
     aliases: ["replication-studio"],
     keywords: ["gallery", "images"],
@@ -255,6 +287,7 @@ const REGISTRY = [
   {
     id: "writing",
     label: "Writing",
+    icon: "lucide:pen-line",
     group: "site",
     aliases: [],
     keywords: ["blog", "effects"],
@@ -262,7 +295,12 @@ const REGISTRY = [
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "record",
     withoutApproval: "submits-for-review",
-    layout: "shell",
+    // The pane's dock says it: a post can stay a draft or publish, and About
+    // publishes at once, which one frame sentence cannot both say.
+    saveLine: "in-tool",
+    // The list, the fields and a live preview of the public page sit side by
+    // side; the tool caps its own width.
+    layout: "full-bleed",
     destination: SHELL,
     // Blog folded in as the kind filter; `/dev/blog/<slug>` still opens the post.
     filter: DEV_ROUTE_FILTERS.writing,
@@ -270,18 +308,23 @@ const REGISTRY = [
   {
     id: "copy-studio",
     label: "Copy",
+    icon: "lucide:type",
     group: "site",
     aliases: ["copy"],
     role: "editor",
     data: NO_DATA,
     saveModel: "record",
     withoutApproval: "submits-for-review",
+    // The pane's dock says it: an admin's Publish goes live with no draft step,
+    // which the frame's "record" sentence would misstate.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },
   {
     id: "queue",
     label: "Change Review",
+    icon: "lucide:git-pull-request-arrow",
     group: "intake",
     aliases: ["proposals"],
     keywords: ["submissions"],
@@ -297,6 +340,7 @@ const REGISTRY = [
   {
     id: "contributors",
     label: "Contributors",
+    icon: "lucide:users",
     group: "site",
     aliases: ["contributor"],
     // The one people editor: a contributor opens it on their own record, so
@@ -305,6 +349,8 @@ const REGISTRY = [
     role: "contributor",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "instant",
+    // The profile save dock says it beside Save; each order panel says it saves on its own.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
     // Profile folded in as the self scope; `/dev/profile` still lands there.
@@ -313,6 +359,7 @@ const REGISTRY = [
   {
     id: "playlists",
     label: "Playlists",
+    icon: "lucide:list-video",
     group: "site",
     aliases: [],
     // A member's own replication playlists: the descriptor sits at the
@@ -321,12 +368,16 @@ const REGISTRY = [
     role: "contributor",
     data: NO_DATA,
     saveModel: "instant",
+    // A save stores the playlist and publishes nothing, which the instant
+    // sentence would misstate; the tool says so beside Save instead.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },
   {
     id: "people",
     label: "People",
+    icon: "lucide:user-cog",
     group: "site",
     // Members folded in: `/dev/members` and `/dev/members/<email>` still open here.
     aliases: ["members"],
@@ -338,21 +389,32 @@ const REGISTRY = [
     role: "admin",
     data: new Set<DevTabDataNeed>(["contributors"]),
     saveModel: "instant",
+    // Account changes apply on the member's next request after a confirm;
+    // profile saves go live at once. Each block of the person pane says which,
+    // so one shell sentence would misstate half of it.
+    saveLine: "none",
     layout: "shell",
     destination: SHELL,
   },
   {
     id: "glossary",
     label: "Glossary",
+    icon: "lucide:languages",
     group: "site",
     aliases: ["translation-glossary"],
-    keywords: ["translation", "languages", "locales"],
+    // The tool's heading and docs call it the Glossary; the palette still finds
+    // it by the job (the translation workbench).
+    keywords: ["translation", "translations", "i18n", "workbench", "languages", "locales"],
     // The locale mirrors' term list. Approving a rendering changes every prompt
     // but spends nothing, so translators own it; the paid actions (drafting,
     // retranslating, the main run) stay admin inside the tab and their routes.
     role: "translator",
     data: NO_DATA,
     saveModel: "instant",
+    // The workbench has two saves (Save draft keeps a rendering for another
+    // reviewer, Save and approve puts it in use). Its header carries its own
+    // SaveLine sentence, which the write freeze still replaces.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
     // Reader feedback on the renderings waits here, per language the reviewer holds.
@@ -361,18 +423,22 @@ const REGISTRY = [
   {
     id: "my-reports",
     label: "My reports",
+    icon: "lucide:book-open-text",
     group: "site",
     aliases: [],
     // A member's own published trip reports; ownership is checked per row in Postgres.
     role: "contributor",
     data: NO_DATA,
     saveModel: "instant",
+    // The sentence sits in the editor's save dock and its idle pane, beside Save.
+    saveLine: "in-tool",
     layout: "shell",
     destination: SHELL,
   },
   {
     id: "index-layout",
     label: "Index layout",
+    icon: "lucide:layout-grid",
     group: "content",
     aliases: ["index"],
     role: "editor",
@@ -385,10 +451,13 @@ const REGISTRY = [
   {
     id: "change-log",
     label: "Change log",
+    icon: "lucide:history",
     group: "chrome",
     aliases: ["changelog"],
+    keywords: ["history", "diff", "saves"],
     role: "editor",
-    data: new Set<DevTabDataNeed>(["changelog"]),
+    // The directory names who made each save instead of its stamped key.
+    data: new Set<DevTabDataNeed>(["changelog", "contributors"]),
     saveModel: "instant",
     layout: "shell",
     destination: SHELL,

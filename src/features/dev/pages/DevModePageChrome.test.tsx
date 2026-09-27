@@ -3,7 +3,10 @@ import { fireEvent, render, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 const { badgeState } = vi.hoisted(() => ({
-  badgeState: { counts: {} as Record<string, number | undefined> },
+  badgeState: {
+    counts: {} as Record<string, number | undefined>,
+    readings: {} as Record<string, { failed: boolean; count?: number | null } | undefined>,
+  },
 }));
 
 vi.mock("next-auth/react", () => ({
@@ -16,6 +19,7 @@ vi.mock("@/components/common/Icon", () => ({
 
 vi.mock("./useDevRailBadges", () => ({
   useDevRailBadges: () => badgeState.counts,
+  useDevRailBadgeReadings: () => badgeState.readings,
 }));
 
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
@@ -47,7 +51,7 @@ function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
       onLeave={vi.fn()}
     />,
   );
-  const nav = utils.getByRole("navigation", { name: "Dev mode tools" });
+  const nav = utils.getByRole("navigation", { name: "Editor tools" });
   return { ...utils, nav };
 }
 
@@ -55,6 +59,12 @@ function renderChrome(activeTab: DevModeTab, role: AppRole | null = "editor") {
 function openMenu(trigger: HTMLElement) {
   fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
   return document.body.querySelector('[role="menu"]') as HTMLElement;
+}
+
+/** The Locked list is a popover of text, not a menu: it opens on click. */
+function openLocked(trigger: HTMLElement) {
+  fireEvent.click(trigger);
+  return document.body.querySelector('[role="dialog"][aria-label="Locked tools"]') as HTMLElement;
 }
 
 describe("DevModePageChrome rail", () => {
@@ -163,7 +173,7 @@ describe("DevModePageChrome rail", () => {
   it("marks the menu trigger active when the current tool lives inside it", () => {
     const { nav } = renderChrome("queue", "admin");
 
-    const intakeTrigger = within(nav).getByRole("button", { name: "Intake" });
+    const intakeTrigger = within(nav).getByRole("button", { name: "Intake, current tool Change Review" });
     expect(intakeTrigger.hasAttribute("data-active")).toBe(true);
     expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(0);
   });
@@ -203,17 +213,17 @@ describe("DevModePageChrome rail", () => {
   });
 
   it("leaves every tab reachable for an admin session and labels the role", () => {
-    const { nav, getByText } = renderChrome("articles", "admin");
+    const { nav, getByRole } = renderChrome("articles", "admin");
 
     for (const pill of Array.from(nav.querySelectorAll("button"))) {
       expect(pill.hasAttribute("disabled")).toBe(false);
     }
     expect(within(nav).queryByRole("button", { name: /Locked/ })).toBeNull();
-    expect(getByText("Admin")).toBeInTheDocument();
+    expect(getByRole("button", { name: "Signed in as Member, Admin" })).toBeInTheDocument();
   });
 
   it("moves admin tools into the Locked menu with reasons for an editor", () => {
-    const { nav, getByText } = renderChrome("articles", "editor");
+    const { nav, getByRole } = renderChrome("articles", "editor");
 
     // Content keeps only the editor-floor tools inline; Intake includes Change Review.
     const content = within(nav).getByRole("group", { name: "Content" });
@@ -223,13 +233,14 @@ describe("DevModePageChrome rail", () => {
     expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
 
     const lockedTrigger = within(nav).getByRole("button", { name: /^Locked,/ });
-    const menu = openMenu(lockedTrigger);
-    expect(within(menu).getByText("Glossary")).toBeTruthy();
-    expect(within(menu).getByText("People")).toBeTruthy();
-    for (const item of within(menu).getAllByRole("menuitem")) {
-      expect(item.getAttribute("aria-disabled")).toBe("true");
-    }
-    expect(getByText("Editor")).toBeInTheDocument();
+    const panel = openLocked(lockedTrigger);
+    // Grouped by what each tool needs, as readable text a keyboard reaches.
+    const admin = within(panel).getByRole("region", { name: "Admin role required" });
+    expect(within(admin).getByText("People")).toBeTruthy();
+    const translator = within(panel).getByRole("region", { name: "Translator role required" });
+    expect(within(translator).getByText("Glossary")).toBeTruthy();
+    expect(within(panel).queryAllByRole("menuitem")).toHaveLength(0);
+    expect(getByRole("button", { name: "Signed in as Member, Editor" })).toBeInTheDocument();
   });
 
   it("shows a contributor only their own tools flat, with everything else in Locked", () => {
@@ -248,15 +259,15 @@ describe("DevModePageChrome rail", () => {
     const ownTools = Array.from(site.querySelectorAll("button")).map((el) => el.textContent?.trim());
     expect(ownTools).toEqual(["Contributors", "Playlists", "My reports"]);
 
-    // Every locked tool, Change log included, says why in text inside the menu.
+    // Every locked tool, Change log included, says why in text inside the list.
     const lockedTrigger = within(nav).getByRole("button", { name: "Locked, 17 locked" });
-    const menu = openMenu(lockedTrigger);
-    const items = within(menu).getAllByRole("menuitem");
-    expect(items).toHaveLength(17);
-    expect(within(menu).getByText("Substances").parentElement?.textContent).toContain("Editor role required");
-    expect(within(menu).getByText("Review").parentElement?.textContent).toContain("Editor role required");
-    expect(within(menu).getByText("Change log").parentElement?.textContent).toContain("Editor role required");
-    expect(within(menu).getByText("People").parentElement?.textContent).toContain("Admin role required");
+    const panel = openLocked(lockedTrigger);
+    expect(within(panel).getAllByRole("listitem")).toHaveLength(17);
+    const editorFloor = within(panel).getByRole("region", { name: "Editor role required" });
+    for (const label of ["Substances", "Review", "Change log"]) {
+      expect(within(editorFloor).getByText(label)).toBeTruthy();
+    }
+    expect(within(within(panel).getByRole("region", { name: "Admin role required" })).getByText("People")).toBeTruthy();
 
     expect(queryByRole("button", { name: "Change log" })).toBeNull();
     expect(queryByRole("button", { name: "Utilities" })).toBeNull();
@@ -267,11 +278,59 @@ describe("DevModePageChrome rail", () => {
 
     const lockedTrigger = within(nav).getByRole("button", { name: /^Locked,/ });
     expect(lockedTrigger.querySelector('[data-icon="lucide:lock"]')).not.toBeNull();
-    expect(lockedTrigger.querySelector(".theme-portal-count-badge")).toBeNull();
+    expect(lockedTrigger.querySelector(".theme-dev-count-badge")).toBeNull();
   });
 
-  it("offers the kit and theme utilities only to roles that can open them", () => {
-    expect(renderChrome("articles", "editor").getByRole("button", { name: "Utilities" })).toBeTruthy();
+  it("offers the kit and theme utilities, the keys sheet and sign out from the account menu", () => {
+    const { getByRole } = renderChrome("articles", "editor");
+    const menu = openMenu(getByRole("button", { name: /^Signed in as Member/ }));
+    expect(within(menu).getByRole("menuitem", { name: /^UI kit/ })).toHaveAttribute("href", "/dev/kit");
+    expect(within(menu).getByRole("menuitem", { name: /^Theme lab/ })).toHaveAttribute("href", "/dev/themes");
+    expect(within(menu).getByRole("menuitem", { name: /Keyboard shortcuts/ })).toBeTruthy();
+    expect(within(menu).getByRole("menuitem", { name: "Sign out" })).toBeTruthy();
+  });
+
+  it("keeps the utilities out of a contributor's account menu", () => {
+    const { getByRole } = renderChrome("contributors", "contributor");
+    const menu = openMenu(getByRole("button", { name: /^Signed in as Member/ }));
+    expect(within(menu).queryByRole("menuitem", { name: /^UI kit/ })).toBeNull();
+    expect(within(menu).getByRole("menuitem", { name: "Sign out" })).toBeTruthy();
+  });
+
+  it("reads an Inbox sum with a count that never loaded as a floor, the way Home says it", () => {
+    badgeState.counts = { inbox: 13, feedback: 13 };
+    badgeState.readings = { feedback: { failed: false, count: 13 }, "trip-reports": { failed: true, count: null } };
+    try {
+      const { nav } = renderChrome("articles", "admin");
+      const inbox = within(nav).getByRole("button", { name: "Inbox, at least 13 awaiting review" });
+      const badge = within(inbox).getByTitle("At least 13 awaiting review. One of the counts did not load.");
+      expect(badge.textContent).toBe("13+");
+      // A floor is not a stale count: the badge stays filled.
+      expect(badge.hasAttribute("data-stale")).toBe(false);
+    } finally {
+      badgeState.counts = {};
+      badgeState.readings = {};
+    }
+  });
+
+  it("marks a count whose refresh failed as possibly out of date", () => {
+    badgeState.counts = { proposals: 2 };
+    badgeState.readings = { proposals: { failed: true } };
+    try {
+      const { nav } = renderChrome("articles", "editor");
+      const trigger = within(nav).getByRole("button", { name: "Intake, 2 awaiting review, may be out of date" });
+      expect(trigger.querySelector("[data-stale]")).not.toBeNull();
+    } finally {
+      badgeState.counts = {};
+      badgeState.readings = {};
+    }
+  });
+
+  it("names the open tool beside its group menu", () => {
+    const { nav } = renderChrome("writing", "editor");
+    const site = within(nav).getByRole("button", { name: "Site, current tool Writing" });
+    expect(site.hasAttribute("data-active")).toBe(true);
+    expect(site.textContent).toContain("Writing");
   });
 
   it("asks a signed-out session to sign in behind the Locked menu", () => {
@@ -288,15 +347,13 @@ describe("DevModePageChrome rail", () => {
         onLeave={vi.fn()}
       />,
     );
-    const nav = getByRole("navigation", { name: "Dev mode tools" });
+    const nav = getByRole("navigation", { name: "Editor tools" });
 
     // Every tool, the Review launcher and Change log included, sits in Locked.
     expect(within(nav).queryByRole("link", { name: /Review/ })).toBeNull();
-    const menu = openMenu(within(nav).getByRole("button", { name: `Locked, ${TOOL_TABS.length + 1} locked` }));
-    for (const item of within(menu).getAllByRole("menuitem")) {
-      expect(item.getAttribute("aria-disabled")).toBe("true");
-      expect(within(item).getByText("Sign in required")).toBeTruthy();
-    }
+    const panel = openLocked(within(nav).getByRole("button", { name: `Locked, ${TOOL_TABS.length + 1} locked` }));
+    const signIn = within(panel).getByRole("region", { name: "Sign in required" });
+    expect(within(signIn).getAllByRole("listitem")).toHaveLength(TOOL_TABS.length + 1);
     expect(getByRole("button", { name: "Sign in" })).toBeEnabled();
   });
 
@@ -314,7 +371,7 @@ describe("DevModePageChrome rail", () => {
         onLeave={vi.fn()}
       />,
     );
-    const nav = getByRole("navigation", { name: "Dev mode tools" });
+    const nav = getByRole("navigation", { name: "Editor tools" });
 
     // Same groups as a full-access rail, no Locked overflow, nothing clickable yet.
     expect(within(nav).getAllByRole("group").map((g) => g.getAttribute("aria-label"))).toEqual([
@@ -358,12 +415,13 @@ describe("DevModePageChrome phone sheet", () => {
     return { ...utils, onTabChange, onPrimaryTabChange, onLeave };
   }
 
-  it("names the current tool on the bar and uses the shared disclosure cue", () => {
+  it("names the current tool on the bar and uses the menu chevron, as the rail's group menus do", () => {
     const { getByRole, queryByRole } = renderPhone();
     expect(queryByRole("dialog")).toBeNull();
 
     const trigger = getByRole("button", { name: "Tools menu, current tool Tags" });
-    expect(trigger.querySelector("[data-expand-indicator]")).not.toBeNull();
+    expect(trigger.querySelector('[data-icon="lucide:chevron-down"]')).not.toBeNull();
+    expect(trigger.querySelector("[data-expand-indicator]")).toBeNull();
   });
 
   it("opens with a header, scrolling groups, and a sticky footer with the way out", () => {
@@ -374,17 +432,27 @@ describe("DevModePageChrome phone sheet", () => {
     expect(within(sheet).getByText("Tools")).toBeTruthy();
     expect(within(sheet).getByRole("button", { name: "Close tools menu" })).toBeTruthy();
 
-    const menu = within(sheet).getByRole("navigation", { name: "Dev mode tools menu" });
+    const menu = within(sheet).getByRole("navigation", { name: "Editor tools menu" });
     const groups = within(menu).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
-    // The site sections scroll with the tools; only the session line is pinned.
-    expect(groups).toEqual(["Start", "Content", "Intake", "Site", "Site sections"]);
+    // The site sections scroll with the tools; locked tools fold at the end;
+    // only the session line is pinned.
+    expect(groups).toEqual(["Start", "Content", "Intake", "Site", "Site sections", "Locked tools"]);
+    expect(within(menu).getByRole("button", { name: "Search tools and records" })).toBeTruthy();
 
-    // Every tool is listed; locked ones carry their reason inline.
+    // Every tool the role opens is a tile; the rest sit folded under Locked
+    // with their reason as text.
+    const locked = within(menu).getByRole("group", { name: "Locked tools" });
+    const lockedToggle = within(locked).getByRole("button", { name: /^Locked,/ });
+    expect(lockedToggle.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(lockedToggle);
+    expect(lockedToggle.getAttribute("aria-expanded")).toBe("true");
     for (const tab of SHELL_TABS) {
-      const row = within(menu).getByRole("button", { name: new RegExp(`^${tab.id === "queue" ? "My submissions" : tab.label}`) });
-      expect(row.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
-      if (!roleMeetsFloor("editor", tab.role)) {
-        expect(row).toBeDisabled();
+      const label = tab.id === "queue" ? "My submissions" : tab.label;
+      if (roleMeetsFloor("editor", tab.role)) {
+        const row = within(menu).getByRole("button", { name: new RegExp(`^${label}`) });
+        expect(row.getAttribute("data-state")).toBe(tab.id === "tag-editor" ? "active" : "inactive");
+      } else {
+        expect(within(locked).getByText(label)).toBeTruthy();
       }
     }
     expect(within(menu).getByRole("link", { name: /Review/ }).getAttribute("href")).toBe("/review");
@@ -404,9 +472,11 @@ describe("DevModePageChrome phone sheet", () => {
     expect(within(sheet).queryByRole("link", { name: "UI kit" })).toBeNull();
     expect(within(sheet).queryByRole("link", { name: "Theme lab" })).toBeNull();
     expect(within(sheet).queryByRole("link", { name: /Review/ })).toBeNull();
-    const changeLog = within(sheet).getByRole("button", { name: /^Change log/ });
-    expect(changeLog).toBeDisabled();
-    expect(changeLog.textContent).toContain("Editor role required");
+    // A Change log the role cannot open joins the folded Locked list, with its reason.
+    expect(within(sheet).queryByRole("button", { name: /^Change log/ })).toBeNull();
+    const locked = within(sheet).getByRole("group", { name: "Locked tools" });
+    fireEvent.click(within(locked).getByRole("button", { name: /^Locked,/ }));
+    expect(within(within(locked).getByRole("region", { name: "Editor role required" })).getByText("Change log")).toBeTruthy();
   });
 
   it("focuses and reveals the active row on open instead of the first row", () => {
@@ -437,11 +507,12 @@ describe("DevModePageChrome phone sheet", () => {
     expect(queryByRole("dialog")).toBeNull();
   });
 
-  it("carries badges into the sheet with a full accessible name", () => {
-    badgeState.counts = { "trip-reports": 4 };
+  it("carries the roll-up count and unsaved state onto the bar, and badges into the sheet", () => {
+    badgeState.counts = { "trip-reports": 4, inbox: 4 };
     try {
       const { getByRole } = renderPhone("admin");
-      fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags" }));
+      // The bar shows the Inbox's one count: every queue, summed once.
+      fireEvent.click(getByRole("button", { name: "Tools menu, current tool Tags, 4 awaiting review" }));
       const sheet = getByRole("dialog");
       expect(within(sheet).getByRole("button", { name: "Trip reports, 4 awaiting review" })).toBeTruthy();
     } finally {

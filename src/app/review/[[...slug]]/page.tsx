@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getRequestSession } from "@server/next/requestSession";
+import { getDevShellSession } from "@server/next/devShellSession";
 import {
   getEditorTargetAlignment,
 } from "@server/data/serverWriteHealth";
@@ -33,13 +33,14 @@ type ReviewPageProps = {
  * This is the flip-through surface an editor lives in for a 250-article pass,
  * so it renders without the public site chrome or the dev-tools tab shell —
  * one sticky command bar over one article. Access is gated exactly like /dev:
- * the reviewer is an editor working on unpublished review state.
+ * the reviewer is an editor working on unpublished review state, and the local
+ * screenshot viewer renders it under the same loopback and env gate.
  */
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const resolvedParams = await params;
   const initialSlug = resolvedParams.slug?.[0];
 
-  const session = await getRequestSession();
+  const { session } = await getDevShellSession();
   const email = session?.user?.email ?? null;
   const role = session?.user?.role ?? null;
   const decision = getDevRouteDecision({ pathname: STATUS_PAGE_PATHS.dev, email, role, floor: "editor" });

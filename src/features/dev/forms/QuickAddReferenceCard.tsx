@@ -236,7 +236,7 @@ export function QuickAddReferenceCard({ references, embedded = false }: QuickAdd
         </>
       ) : null}
 
-      {isLoading ? <p className="theme-text-faint text-xs" role="status">Loading metadata…</p> : null}
+      {isLoading ? <p className="theme-text-faint text-xs" role="status">Loading metadata</p> : null}
       {note ? <p className="theme-text-faint text-xs" role="status">{note}</p> : null}
 
       {existingReference && detection && !addedId ? (

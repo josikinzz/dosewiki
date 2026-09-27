@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -72,6 +72,11 @@ export interface EditorNavTabsProps {
   className?: string;
 }
 
+/**
+ * The WAI-ARIA tabs pattern: one tab in the Tab order (the selected one), and
+ * Arrow keys, Home and End move between tabs and select as they go, the same
+ * way a click would.
+ */
 export function EditorNavTabs({
   label,
   options,
@@ -80,20 +85,42 @@ export function EditorNavTabs({
   className,
 }: EditorNavTabsProps) {
   const strip = useScrollStrip(value);
+  const enabled = options.filter((option) => !option.disabled);
+  const selectedEnabled = enabled.some((option) => option.value === value);
+
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const current = enabled.findIndex((option) => option.value === value);
+    let next: number | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = current < 0 ? 0 : (current + 1) % enabled.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = current < 0 ? enabled.length - 1 : (current - 1 + enabled.length) % enabled.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = enabled.length - 1;
+    if (next === null || enabled.length === 0) return;
+    event.preventDefault();
+    const target = enabled[next];
+    onChange(target.value);
+    const tabs = strip.ref.current?.querySelectorAll<HTMLElement>("[data-tab-value]") ?? [];
+    Array.from(tabs).find((tab) => tab.dataset.tabValue === target.value)?.focus();
+  };
+
   return (
     <div
       ref={strip.ref}
       role="tablist"
       aria-label={label}
+      aria-orientation="horizontal"
       data-fade={strip.fade}
       className={cn(
         STRIP_CLASS,
-        "gap-2 rounded-xl border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1",
+        "gap-2 rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1",
         className,
       )}
     >
       {options.map((option) => {
         const selected = option.value === value;
+        // Roving focus: the selected tab, or the first enabled tab when the
+        // value names none, is the one stop in the Tab order.
+        const tabStop = selected || (!selectedEnabled && option === enabled[0]);
 
         return (
           <Button
@@ -102,12 +129,15 @@ export function EditorNavTabs({
             role="tab"
             aria-selected={selected}
             data-selected={selected || undefined}
+            data-tab-value={option.value}
+            tabIndex={tabStop ? 0 : -1}
+            onKeyDown={onKeyDown}
             aria-controls={option.controls}
             disabled={option.disabled}
             variant={selected ? "secondary" : "ghost"}
             size="sm"
             className={cn(
-              "shrink-0 rounded-lg",
+              "shrink-0 rounded-control",
               selected
                 ? "theme-text-primary border-[color:var(--editor-panel-border-strong)] bg-[var(--editor-panel-bg)]"
                 : "theme-text-muted",

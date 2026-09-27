@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { dataState } = vi.hoisted(() => ({
   dataState: {
     lastArgs: undefined as undefined | "skip" | { limit: number },
+    error: null as string | null,
+    retry: undefined as undefined | (() => void),
     entries: undefined as
       | undefined
       | Array<{
@@ -18,9 +20,14 @@ const { dataState } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/useEditorRead", () => ({
-  useEditorRead: (_name: unknown, args: "skip" | { limit: number }) => {
+  useEditorReadState: (_name: unknown, args: "skip" | { limit: number }) => {
     dataState.lastArgs = args;
-    return dataState.entries;
+    return {
+      data: dataState.entries,
+      error: args === "skip" ? null : dataState.error,
+      fetching: false,
+      retry: dataState.retry ?? (() => {}),
+    };
   },
 }));
 
@@ -77,6 +84,40 @@ describe("useDevChangelogFeed", () => {
   beforeEach(() => {
     dataState.entries = undefined;
     dataState.lastArgs = undefined;
+    dataState.error = null;
+    dataState.retry = undefined;
+  });
+
+  it("reports a failed first page as an error with a retry, never as loading", () => {
+    dataState.error = "Editor read failed (500).";
+    const retry = vi.fn();
+    dataState.retry = retry;
+
+    const { result } = renderHook(() => useDevChangelogFeed({}));
+
+    expect(result.current.feedWindow).toMatchObject({
+      error: "Editor read failed (500).",
+      loading: false,
+      loadedCount: 0,
+    });
+    // The bundled saves stay listed under the error.
+    expect(result.current.changeLogEntries.length).toBe(3);
+    act(() => {
+      result.current.feedWindow.retry();
+    });
+    expect(retry).toHaveBeenCalledTimes(1);
+    // A failed page is retried, never skipped for a wider one.
+    act(() => {
+      result.current.feedWindow.loadMore();
+    });
+    expect(dataState.lastArgs).toEqual({ limit: CHANGELOG_FEED_PAGE_SIZE });
+  });
+
+  it("reads nothing and reports no error while inactive", () => {
+    dataState.error = "Editor read failed (500).";
+    const { result } = renderHook(() => useDevChangelogFeed({ active: false }));
+    expect(dataState.lastArgs).toBe("skip");
+    expect(result.current.feedWindow).toMatchObject({ error: null, loading: false });
   });
 
   it("starts with sorted static entries", () => {

@@ -17,10 +17,10 @@ export interface EditorSectionProps extends Omit<HTMLAttributes<HTMLElement>, "t
   animate?: boolean;
   /**
    * Heading tag for the section title. Defaults to `h2` (top-level dev/public
-   * sections); drop to `h3`/`h4` when the section is nested inside an
+   * sections); drop to `h3`/`h4`/`h5` when the section is nested inside an
    * already-headed region so the document outline stays ordered.
    */
-  headingLevel?: "h2" | "h3" | "h4";
+  headingLevel?: "h2" | "h3" | "h4" | "h5";
   headerClassName?: string;
 }
 
@@ -83,7 +83,8 @@ export function EditorSection({
               <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
             ) : null}
           </div>
-          {description ? <p className="theme-text-faint text-sm">{description}</p> : null}
+          {/* A readable measure: a one-line description never runs the full width of a wide frame. */}
+          {description ? <p className="theme-text-faint max-w-[75ch] text-sm">{description}</p> : null}
         </div>
       ) : null}
       {children}

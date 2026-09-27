@@ -31,23 +31,22 @@ export type DevCommitRebase = {
 const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
 /**
- * The one place the save model is spelled out. `eyebrow` names where the
- * draft goes, `title` is the verb on the button, `description` says what the
- * editor sees next. Tabs never add a second explanation.
+ * The one place the save model is spelled out. `title` is the verb on the
+ * button, `description` says what the editor sees next. Tabs never add a
+ * second explanation. (The "Live site" / "Review queue" eyebrow is gone: the
+ * title already says where the draft goes.)
  */
 const DESTINATION_COPY: Record<
   DevCommitDestination,
-  { eyebrow: string; title: string; description: string; idle: string }
+  { title: string; description: string; idle: string }
 > = {
   production: {
-    eyebrow: "Live site",
     title: "Commit to production",
     description:
       "Edits from Tags and Index layout collect in one draft. Commit lists every change and asks once before any of it goes live.",
     idle: "Nothing is published until you commit.",
   },
   proposal: {
-    eyebrow: "Review queue",
     title: "Submit for review",
     description:
       "Edits from Tags and Index layout collect in one draft. Submit sends all of it to an admin, who reviews it before anything goes live.",
@@ -102,12 +101,7 @@ export function DevCommitCard({
   return (
     <EditorSection
       icon="lucide:shield-check"
-      title={
-        <span className="flex flex-col gap-0.5">
-          <span className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.35em]">{copy.eyebrow}</span>
-          {copy.title}
-        </span>
-      }
+      title={copy.title}
       description={description ?? copy.description}
     >
       {rebase ? (

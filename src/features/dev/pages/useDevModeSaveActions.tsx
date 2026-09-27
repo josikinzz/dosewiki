@@ -21,7 +21,7 @@ import {
   type ChangelogSources,
   type SaveOrchestratorEffect,
 } from "../save-orchestrator";
-import { buildCommitScope } from "./commitScope";
+import { buildCommitScope, type CommitScopeDataset } from "./commitScope";
 import { CommitScopeSheet } from "./CommitScopeSheet";
 import { DevModeCommitPanel } from "./DevModeCommitPanel";
 import {
@@ -63,9 +63,38 @@ type UseDevModeSaveActionsArgs = {
   onDiscardActiveProposal: () => void;
 };
 
+/**
+ * The commit panel's parts, for a tool that lays out its own working-changes
+ * surface (Tags) instead of rendering `commitPanel`. The same state, button
+ * rules and confirm sheet; `dialog` must be rendered wherever these are used.
+ */
+export type DevCommitControls = {
+  destination: "production" | "proposal";
+  notice: ChangeNotice | null;
+  dismissNotice: () => void;
+  rebase: DevCommitRebase | null;
+  isSaving: boolean;
+  hasPendingChanges: boolean;
+  /** Why the commit button is off while there are changes, or null. */
+  blockedReason: string | null;
+  canCommit: boolean;
+  /**
+   * Opens the scope confirm for an admin; an editor's proposal goes straight
+   * out. `lead` is drawn at the top of the confirm (Tags lists its tag changes).
+   */
+  requestCommit: (lead?: ReactNode) => void;
+  /** Every dataset the working set changes, with counts and diffs. */
+  scope: CommitScopeDataset[];
+  /** The server check beside the button, when it has something to say (admins). */
+  health: ReactNode;
+  dialog: ReactNode;
+};
+
 type UseDevModeSaveActionsResult = {
-  /** The one commit panel; Tags and Index layout both render it at the top. */
+  /** The one commit panel; Index layout renders it at the top. */
   commitPanel: ReactNode;
+  /** The same commit, in parts, for Tags' own working-changes panel. */
+  commitControls: DevCommitControls;
   clearSaveNotices: () => void;
 };
 
@@ -117,10 +146,10 @@ function CommitButton({
         <Icon icon={canApprove ? "lucide:upload" : "lucide:send"} size={16} />
         {canApprove
           ? isSaving
-            ? "Committing..."
+            ? "Committing"
             : "Commit to production"
           : isSaving
-            ? "Submitting..."
+            ? "Submitting"
             : "Submit for review"}
       </Button>
     </div>
@@ -381,7 +410,7 @@ export function useDevModeSaveActions({
   // set changes, with counts and diffs, then one confirm. Nothing is written
   // until that confirm. A proposal goes to review, so it submits directly.
   const { confirm, dialog: commitSheet } = useConfirm();
-  const requestCommit = useCallback(() => {
+  const requestCommit = useCallback((lead?: ReactNode) => {
     if (!canApprove) {
       void handleCommit();
       return;
@@ -393,10 +422,13 @@ export function useDevModeSaveActions({
       title: "Commit to production?",
       description:
         scope.length === 1
-          ? "This dataset goes live together as soon as you commit."
-          : `These ${scope.length} datasets go live together as soon as you commit.`,
-      body: <CommitScopeSheet scope={scope} onNoteChange={(value) => { note = value; }} />,
-      confirmLabel: `Commit ${total} ${total === 1 ? "change" : "changes"}`,
+          ? "It goes live on dose.wiki as soon as you commit."
+          : `These ${scope.length} datasets go live on dose.wiki together as soon as you commit.`,
+      body: <CommitScopeSheet scope={scope} lead={lead} onNoteChange={(value) => { note = value; }} />,
+      // One unit on the button: the articles when only articles changed.
+      confirmLabel: scope.length === 1 && scope[0].id === "articles"
+        ? `Commit changes to ${scope[0].countLabel}`
+        : `Commit ${total} ${total === 1 ? "change" : "changes"}`,
       wide: true,
       onConfirm: () => handleCommit(note),
     });
@@ -428,7 +460,7 @@ export function useDevModeSaveActions({
         isSaving={isSaving}
         hasPendingChanges={hasPendingChanges}
         isCommitBlocked={isCommitBlocked}
-        onCommit={requestCommit}
+        onCommit={() => requestCommit()}
       />
     ),
     [
@@ -464,8 +496,38 @@ export function useDevModeSaveActions({
     </>
   );
 
+  const scope = useMemo(() => buildCommitScope(draft), [draft]);
+  const health = canApprove && dataServerHealth.status !== "healthy" && dataServerHealth.status !== "idle" ? (
+    <EditorServerHealthIndicator
+      health={dataServerHealth}
+      onRefresh={() => {
+        void refreshDataServerHealth();
+      }}
+    />
+  ) : null;
+  const blockedReason = !canDraft
+    ? "Editor role required."
+    : canApprove && isCommitBlocked
+      ? `The server cannot write to the database right now (${dataServerHealth.summary || "server issue"}).`
+      : null;
+  const commitControls: DevCommitControls = {
+    destination,
+    notice,
+    dismissNotice: clearSaveNotices,
+    rebase,
+    isSaving,
+    hasPendingChanges,
+    blockedReason,
+    canCommit: canDraft && !isSaving && hasPendingChanges && !(canApprove && isCommitBlocked),
+    requestCommit,
+    scope,
+    health,
+    dialog: commitSheet,
+  };
+
   return {
     commitPanel,
+    commitControls,
     clearSaveNotices,
   };
 }

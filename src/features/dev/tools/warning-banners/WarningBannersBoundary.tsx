@@ -20,9 +20,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { Icon } from "@/components/common/Icon";
-import { Button } from "@/components/ui/button";
-import { EditorSection } from "@/features/dev/components";
+import { EditorSection, LoadErrorState } from "@/features/dev/components";
 
 type WarningBannersBoundaryProps = {
   children: ReactNode;
@@ -56,34 +54,24 @@ export class WarningBannersBoundary extends Component<
       return this.props.children;
     }
 
+    // Try again clears the boundary, which re-renders the studio and so
+    // re-reads the display setting.
     return (
-      <EditorSection
-        icon="lucide:octagon-alert"
-        title="The Banner Studio could not load"
-        description="Nothing was changed, and no banner state was touched."
-      >
-        <div className="grid gap-4">
-          <p className="max-w-[72ch] text-sm leading-relaxed text-dose-text-secondary">
-            The preset list could not be read from Postgres. Check the server's
-            database configuration and application logs, then try again.
-            No banner settings were changed by this failed read.
-          </p>
-          <p className="max-w-[72ch] font-mono text-xs leading-relaxed text-dose-text-ghost">
-            {message}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => this.setState({ message: null })}
-            >
-              <Icon icon="lucide:refresh-cw" size={15} />
-              Try again
-            </Button>
+      <div>
+        <EditorSection icon="lucide:triangle-alert" title="Banners">
+          <div className="max-w-3xl space-y-3">
+            <LoadErrorState
+              what="the banner display settings"
+              message={message}
+              onRetry={() => this.setState({ message: null })}
+            />
+            <p className="theme-text-muted text-sm">
+              Nothing was changed, and no banner was touched. If this follows a deploy, the
+              server may not have the display setting yet; its logs say more.
+            </p>
           </div>
-        </div>
-      </EditorSection>
+        </EditorSection>
+      </div>
     );
   }
 }

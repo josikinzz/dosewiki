@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 vi.mock("../members/InviteCodesPanel", () => ({
   default: () => <div data-testid="invite-codes-panel">invite codes</div>,
 }));
@@ -146,7 +146,7 @@ describe("PeopleTab", () => {
     stubApi();
     renderTab();
 
-    await user.click(await screen.findByRole("button", { name: "Needs a link" }));
+    await user.click(await screen.findByRole("button", { name: /^Needs a link/ }));
     const zed = await list().findByRole("option", { name: /Zed Artist/ });
     expect(zed).toHaveTextContent("Unlinked profile");
     expect(list().getByRole("option", { name: /^bob/ })).toHaveTextContent("No public profile");
@@ -213,7 +213,7 @@ describe("PeopleTab", () => {
 
     renderTab({ initialPerson: "zed" });
     await waitFor(() => expect(list().getByRole("option", { name: /Zed Artist/ })).toHaveAttribute("aria-selected", "true"));
-    expect(screen.getByRole("button", { name: "Everyone" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^Everyone/ })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("says in text why an admin account or the admin's own account takes no actions", async () => {
@@ -242,22 +242,37 @@ describe("PeopleTab", () => {
     expect(await screen.findByText("ada is banned.")).toBeTruthy();
   });
 
-  it("posts unban at once and shows a reset link once", async () => {
+  it("asks before an unban and a reset, writes nothing on cancel, and shows a reset link once", async () => {
     const user = userEvent.setup();
     const { calls } = stubApi();
     renderTab();
 
     await openPerson(user, /^bob/);
     await user.click(accountPanel().getByRole("button", { name: "Unban" }));
+    const unban = await screen.findByRole("dialog", { name: "Unban bob?" });
+    expect(unban).toHaveTextContent("can sign in again at once, with the Contributor permissions");
+    await user.click(within(unban).getByRole("button", { name: "Cancel" }));
+    expect(calls).toHaveLength(0);
+    await user.click(accountPanel().getByRole("button", { name: "Unban" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Unban bob?" })).getByRole("button", { name: "Unban" }));
     await waitFor(() => expect(calls).toHaveLength(1));
     expect(calls[0]).toEqual({ path: "/api/dev/members/unban", body: { email: "bob@example.com" } });
 
     await openPerson(user, /^ada/);
     await user.click(accountPanel().getByRole("button", { name: "Reset password" }));
+    const reset = await screen.findByRole("dialog", { name: "Issue a password reset link for ada?" });
+    expect(reset).toHaveTextContent("Their current password keeps working until they use it");
+    await user.click(within(reset).getByRole("button", { name: "Cancel" }));
+    expect(calls).toHaveLength(1);
+    await user.click(accountPanel().getByRole("button", { name: "Reset password" }));
+    await user.click(within(await screen.findByRole("dialog", { name: /password reset link for ada/ })).getByRole("button", { name: "Issue reset link" }));
     await waitFor(() => expect(calls).toHaveLength(2));
     expect(calls[1]).toEqual({ path: "/api/dev/members/reset", body: { email: "ada@example.com" } });
-    expect((await screen.findByTestId("reset-link")).textContent).toBe("https://dev.dose.wiki/reset-password?token=abc123");
-    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    // The link lands in ada's Account block, under the button that issued it.
+    expect((await accountPanel().findByTestId("reset-link")).textContent).toBe("https://dev.dose.wiki/reset-password?token=abc123");
+    // Not copied yet, so Dismiss asks first; the link is never shown again.
+    await user.click(accountPanel().getByRole("button", { name: "Dismiss" }));
+    await user.click(accountPanel().getByRole("button", { name: "Close it" }));
     expect(screen.queryByTestId("reset-link")).toBeNull();
   });
 
@@ -281,6 +296,48 @@ describe("PeopleTab", () => {
       path: "/api/dev/members/role",
       body: { email: "ada@example.com", role: "editor_translator", glossaryLocales: ["nl"] },
     });
+  });
+
+  it("names the grant it is changing and never says 'No role selected' under a ticked box", async () => {
+    const user = userEvent.setup();
+    stubApi();
+    renderTab();
+    await openPerson(user, /^ada/);
+
+    expect(accountPanel().getByRole("checkbox", { name: "Editor" })).toBeChecked();
+    expect(accountPanel().queryByText(/No role selected/)).toBeNull();
+    await user.click(accountPanel().getByRole("checkbox", { name: "Editor" }));
+    expect(accountPanel().getByText(/No role selected/)).toBeTruthy();
+    expect(accountPanel().getByText("From Editor to Contributor, once you confirm.")).toBeTruthy();
+    await user.click(accountPanel().getByRole("button", { name: "Save permissions" }));
+    expect(await screen.findByRole("dialog", { name: "Change permissions for ada?" })).toHaveTextContent("ada goes from Editor to Contributor.");
+  });
+
+  it("keeps a result with the account it is about", async () => {
+    const user = userEvent.setup();
+    stubApi();
+    renderTab();
+    await openPerson(user, /^ada/);
+    await user.click(accountPanel().getByRole("button", { name: "Ban" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Ban ada?" })).getByRole("button", { name: "Ban" }));
+    expect(await accountPanel().findByText("ada is banned.")).toBeTruthy();
+
+    await openPerson(user, /^bob/);
+    await waitFor(() => expect(accountPanel().getByText("bob@example.com")).toBeTruthy());
+    expect(screen.queryByText("ada is banned.")).toBeNull();
+  });
+
+  it("reads a refused write under the freeze as the freeze", async () => {
+    const user = userEvent.setup();
+    stubApi();
+    renderTab();
+    await openPerson(user, /^ada/);
+    vi.mocked(fetch).mockImplementationOnce(async () =>
+      Response.json({ error: "Data writes are frozen (DATA_WRITES_FROZEN).", code: "DATA_WRITES_FROZEN" }, { status: 503 }),
+    );
+    await user.click(accountPanel().getByRole("button", { name: "Ban" }));
+    await user.click(within(await screen.findByRole("dialog", { name: "Ban ada?" })).getByRole("button", { name: "Ban" }));
+    expect(await accountPanel().findByText("Writes are paused, so that was not saved.")).toBeTruthy();
   });
 
   describe("in the dev shell", () => {

@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  */
 
 const HEADER_CELL_CLASS =
-  "theme-text-faint px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em]";
+  "type-meta-label theme-text-faint px-3 py-2";
 
 export type EditorTableProps = {
   children: ReactNode;
@@ -90,7 +90,7 @@ export function EditorTableCell({ label, wide = false, className, children, ...r
       {...rest}
     >
       {label ? (
-        <span className="theme-text-faint mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] md:hidden">
+        <span className="type-meta-label theme-text-faint mb-1 block md:hidden">
           {label}
         </span>
       ) : null}

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { SITE_FLAVOR, SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { buildZodJitlessBootstrapScript } from "@server/next/zodBrowserPolicy";
@@ -140,14 +139,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             and so cannot be a *pre*-paint restore. This script is the only thing standing
             between a reader with a saved preference and a frame of the wrong appearance. */}
         <script id="theme-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        {/* Raw inline too, and before any application chunk runs. `next/script` would
+            stamp the /dev CSP nonce on the server render only (the client context has no
+            nonce), which React reports as a hydration mismatch on every /dev page. The
+            script needs no nonce: /dev allows it by its sha256 hash
+            (ZOD_JITLESS_BOOTSTRAP_CSP_HASH) and public pages allow inline scripts. */}
+        <script id="zod-jitless-bootstrap" dangerouslySetInnerHTML={{ __html: zodJitlessBootstrap }} />
         {SITE_FLAVOR === "dosewiki" ? (
           <script id="theme-lab-bootstrap" dangerouslySetInnerHTML={{ __html: themeLabBootstrap.script }} />
         ) : null}
       </head>
       <body className="app-container theme-page-shell relative">
-        <Script id="zod-jitless-bootstrap" strategy="beforeInteractive">
-          {zodJitlessBootstrap}
-        </Script>
         <DocumentRuntime>{children}</DocumentRuntime>
       </body>
     </html>

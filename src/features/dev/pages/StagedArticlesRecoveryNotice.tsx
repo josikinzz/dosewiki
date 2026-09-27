@@ -2,11 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Notice } from "../components/Notice";
+import { useConfirm } from "../components/ConfirmDialog";
 import { formatCheckpointTime } from "../recovery/draftRecovery";
 import { MergeConflictChoices } from "../components/MergeConflictChoices";
 import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
 import { mergePlaceWords } from "@/features/article/editing/ArticleMergeReview";
 import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
+
+/** Top-level article keys in words, for the held rows ("index_categories" reads "index categories"). */
+function fieldWords(keys: readonly string[]): string {
+  if (keys.length === 0) return "no fields";
+  return keys.map((key) => key.replace(/_/g, " ")).join(", ");
+}
 
 function articleCount(count: number): string {
   return `${count} ${count === 1 ? "article" : "articles"}`;
@@ -26,6 +33,15 @@ export function StagedArticlesRecoveryNotice({
   showSaveTime: boolean;
 }) {
   const { offer, held } = recovery;
+  // Discarding deletes this browser's only copy of the edits, so it asks.
+  const { confirm, dialog } = useConfirm();
+  const confirmDiscard = (count: number, discard: () => void) => confirm({
+    title: `Discard ${articleCount(count)} of recovered edits?`,
+    description: "This browser's copy is deleted and cannot be restored.",
+    confirmLabel: "Discard",
+    destructive: true,
+    onConfirm: discard,
+  });
   if (offer) {
     const count = offer.draft.changes.length;
     return (
@@ -39,14 +55,15 @@ export function StagedArticlesRecoveryNotice({
             )} actions={(
               <span className="flex gap-2">
                 <Button type="button" variant="accent" size="sm" disabled={recovery.restoring} aria-busy={recovery.restoring || undefined} onClick={() => void recovery.restore()}>
-                  {recovery.restoring ? "Restoring…" : "Restore"}
+                  {recovery.restoring ? "Restoring" : "Restore"}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" disabled={recovery.restoring} onClick={recovery.discardOffer}>
+                <Button type="button" variant="ghost" size="sm" disabled={recovery.restoring} onClick={() => confirmDiscard(count, recovery.discardOffer)}>
                   Discard
                 </Button>
               </span>
             )}
         />
+        {dialog}
       </section>
     );
   }
@@ -64,8 +81,8 @@ export function StagedArticlesRecoveryNotice({
                   {held.map(({ change, current, merge, choices }) => (
                     <li key={change.slug} className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="min-w-0 flex-1 truncate">
-                          {`${change.slug}: ${Object.keys(change.set).concat(change.unset).join(", ") || "no fields"}`}
+                        <span className="min-w-0 flex-1">
+                          {`${current?.title?.trim() || change.slug}: ${fieldWords(Object.keys(change.set).concat(change.unset))}`}
                         </span>
                         {current ? (
                           <Button type="button" variant="outline" size="sm" disabled={!!merge && merge.unresolved.length > 0} aria-label={`Apply my edits to ${change.slug}`} onClick={() => recovery.applyHeld(change.slug)}>
@@ -87,11 +104,12 @@ export function StagedArticlesRecoveryNotice({
                 </ul>
               </>
             )} actions={(
-              <Button type="button" variant="ghost" size="sm" onClick={recovery.dismissHeld}>
+              <Button type="button" variant="ghost" size="sm" onClick={() => confirmDiscard(held.length, recovery.dismissHeld)}>
                 Discard the rest
               </Button>
             )}
         />
+        {dialog}
       </section>
     );
   }

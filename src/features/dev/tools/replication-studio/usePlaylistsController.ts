@@ -12,7 +12,8 @@ import {
 
 const PLAYLISTS_API = "/api/dev/replications/playlists";
 
-type Feedback = { tone: "success" | "warning" | "danger"; message: string };
+/** `conflictKey`: a save refused by the revision check, whose way forward is loading the stored playlist. */
+type Feedback = { tone: "success" | "warning" | "danger"; message: string; conflictKey?: string };
 type DraftTransition =
   | { kind: "close" }
   | { kind: "new" }
@@ -133,6 +134,19 @@ export function usePlaylistsController({
     requestTransition({ kind: "open", playlist });
   }, [draft?.key, requestTransition]);
   const startNewPlaylist = useCallback(() => requestTransition({ kind: "new" }), [requestTransition]);
+  /**
+   * Reloads the saved list, or with a key (after a revision conflict) drops the
+   * draft and opens that playlist as stored, as the Playlists tool's "Load the
+   * latest version" does.
+   */
+  const reload = useCallback((key?: string) => {
+    if (key === undefined) {
+      setToken((value) => value + 1);
+      return;
+    }
+    if (savingRef.current) return;
+    void openStoredPlaylist({ key } as ReplicationPlaylistSummary);
+  }, [openStoredPlaylist]);
   const closeDraft = useCallback(() => requestTransition({ kind: "close" }), [requestTransition]);
   const discardPendingTransition = useCallback(() => {
     if (savingRef.current || !pendingTransition) return;
@@ -180,7 +194,11 @@ export function usePlaylistsController({
       });
       if (response.status === 409) {
         setSaveState("idle");
-        setFeedback({ tone: "warning", message: `"${draft.title}" changed since you opened it. Reload the playlists to see the stored version before saving again.` });
+        setFeedback({
+          tone: "warning",
+          message: `Someone saved “${draft.title}” after you opened it, so nothing was saved. Load the latest version to see theirs; your changes here are dropped.`,
+          conflictKey: draft.key,
+        });
         return false;
       }
       if (!response.ok) {
@@ -236,7 +254,7 @@ export function usePlaylistsController({
   return {
     playlists, loaded, draft, savedSlugs, isDirty, deletingKeys, saveState,
     isSaving: saveState === "saving", feedback, setFeedback, openPlaylist, startNewPlaylist,
-    closeDraft, setDraftTitle, setDraftSlugs, resetDraft, save, remove, reload: () => setToken((value) => value + 1),
+    closeDraft, setDraftTitle, setDraftSlugs, resetDraft, save, remove, reload,
     /** A switch that waits on discarding the open draft, and its two answers. */
     transition: {
       pending: pendingTransition,

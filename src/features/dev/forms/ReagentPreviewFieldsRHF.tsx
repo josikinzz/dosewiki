@@ -108,7 +108,7 @@ export function ReagentPreviewFieldsRHF({ idPrefix }: ReagentPreviewFieldsRHFPro
         {substanceName && isLoading && (
           <div className="theme-text-muted flex items-center gap-2 text-sm">
             <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin" size={16} />
-            <span>Fetching reagent data for "{substanceName}"...</span>
+            <span>Fetching reagent data for “{substanceName}”</span>
           </div>
         )}
 

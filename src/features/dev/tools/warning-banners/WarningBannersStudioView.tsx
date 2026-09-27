@@ -3,28 +3,21 @@
 import type { ReactNode } from "react";
 
 import {
+  MAX_BANNERS_PER_ARTICLE,
   WARNING_BANNER_TONES,
-  type WarningBannerPreset,
   type WarningBannerTarget,
   type WarningBannerTone,
 } from "@/data/substanceWarningBanners";
 import {
   EditorNavTabs,
-  Notice,
   EditorSection,
-  EditorStatusPill,
   LoadErrorState,
-  type EditorActionStatusState,
-  type NoticeMessage,
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
-import type { BannerCoverage } from "./bannerCoverage";
-import { CoverageView } from "./CoverageView";
-import {
-  PresetsView,
-  type BannerIconSizeControl,
-  type PresetsViewProps,
-} from "./PresetsView";
+import type { BannerCoverage, CapSuppression } from "./bannerCoverage";
+import { countNoun, TONE_LABEL } from "./bannerLabels";
+import { CoverageView, type CoverageViewProps } from "./CoverageView";
+import { PresetsView, type PresetsViewProps } from "./PresetsView";
 
 /**
  * The same tone tokens the banner itself renders with, so the readout and the
@@ -43,72 +36,70 @@ const TONE_INK_CLASS: Record<WarningBannerTone, string> = {
 };
 
 /**
- * The rollout readout. Deliberately the largest type in the tool: no other
- * /dev surface leads with the blast radius of its own data, and it stays at
- * zero until an editor acts (design brief §2). One figure per tone, because
- * "577 of 577 show a banner" was true and useless once a sitewide caution
- * notice existed; sitewide presets are named as such rather than counted as
- * every slug in the corpus.
+ * The rollout readout, and the loudest thing in the tool: no other /dev
+ * surface leads with the blast radius of its own data, and it stays at zero
+ * until an editor acts. One figure per tone, because "577 of 577 show a
+ * banner" was true and useless once a sitewide caution notice existed;
+ * sitewide presets are named as such rather than counted as every slug in the
+ * corpus. One strip of three, so it reads at a glance on a phone too.
  */
 function CoverageReadout({
   coverage,
+  capped,
   targetCount,
 }: {
   coverage: BannerCoverage;
+  capped: CapSuppression;
   targetCount: number;
 }) {
   const nothingLive = coverage.listed.size === 0 && coverage.sitewide === 0;
-  const corpus = targetCount > 0 ? `of ${targetCount} substances` : "substances";
+  const corpus = targetCount > 0 ? `of ${countNoun(targetCount, "substance")}` : "substances";
 
   return (
-    <div className="space-y-3">
-      <dl className="grid gap-2 sm:grid-cols-3">
+    <div className="space-y-2.5">
+      <dl
+        aria-label="Where banners render, by tone"
+        className="grid grid-cols-3 divide-x divide-dose-divider rounded-card border border-dose-border"
+      >
         {WARNING_BANNER_TONES.map((tone) => {
           const reach = coverage.byTone[tone];
           const sitewide = reach.sitewide > 0;
           const count = reach.listed.size;
           return (
-            <div
-              key={tone}
-              className="space-y-1.5 rounded-xl border border-dose-border px-3 py-2.5"
-            >
+            <div key={tone} data-tone={tone} className="min-w-0 space-y-1.5 px-3 py-3 sm:px-4">
               <dt>
-                <span
-                  className={cn(
-                    "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-[0.14em]",
-                    TONE_CHIP_CLASS[tone],
-                  )}
-                >
-                  {tone}
+                <span className={cn("type-chip-label inline-flex h-5 items-center rounded-pill px-2", TONE_CHIP_CLASS[tone])}>
+                  {TONE_LABEL[tone]}
                 </span>
               </dt>
-              <dd className="flex flex-wrap items-baseline gap-x-2">
+              <dd className="flex flex-wrap items-baseline gap-x-1.5">
                 <span
                   className={cn(
-                    "font-display text-[22px] font-semibold tabular-nums",
+                    "font-display text-2xl font-semibold leading-none tabular-nums",
                     sitewide || count > 0 ? TONE_INK_CLASS[tone] : "theme-text-faint",
                   )}
                 >
-                  {sitewide ? "Every article" : count}
+                  {sitewide ? "All" : count}
                 </span>
-                <span className="theme-text-secondary text-sm">
-                  {sitewide
-                    ? `${reach.sitewide} sitewide preset${reach.sitewide === 1 ? "" : "s"}`
-                    : corpus}
+                <span className="theme-text-secondary text-xs sm:text-sm">
+                  {sitewide ? `articles, ${countNoun(reach.sitewide, "sitewide preset")}` : corpus}
                 </span>
               </dd>
             </div>
           );
         })}
       </dl>
-      <p className="theme-text-secondary text-sm">
+      <p className="theme-text-secondary max-w-[75ch] text-sm">
         {nothingLive
           ? "No preset is live. Nothing on the public site shows a banner."
           : `${coverage.listed.size} ${corpus} are on a banner list.${
               coverage.sitewide > 0
-                ? ` ${coverage.sitewide} sitewide preset${coverage.sitewide === 1 ? " reaches" : "s reach"} every article, including ones published later.`
+                ? ` ${countNoun(coverage.sitewide, "sitewide preset")} ${coverage.sitewide === 1 ? "reaches" : "reach"} every article, including ones published later.`
                 : ""
             }`}
+        {capped.articles > 0
+          ? ` An article shows at most ${MAX_BANNERS_PER_ARTICLE} (danger, then unsafe, then caution); ${countNoun(capped.articles, "article")} ${capped.articles === 1 ? "hits" : "hit"} that cap.`
+          : ""}
       </p>
     </div>
   );
@@ -117,37 +108,18 @@ function CoverageReadout({
 export type WarningBannersStudioViewMode = "presets" | "coverage";
 
 type WarningBannersStudioViewProps = {
-  initialSubstanceSlug?: string;
-  presets: WarningBannerPreset[];
+  presetCount: number;
+  capped: CapSuppression;
   targets: WarningBannerTarget[];
   targetsError: string | null;
   coverage: BannerCoverage;
   view: WarningBannersStudioViewMode;
-  coverageSlug: string;
-  openKey: string | null;
-  draft: WarningBannerPreset | null;
-  isNew: boolean;
-  isDirty: boolean;
-  saveState: EditorActionStatusState | "idle";
-  notice: NoticeMessage | null;
-  iconSizeNotice: NoticeMessage | null;
-  iconSizeControl: BannerIconSizeControl;
-  iconValid: boolean;
-  /** The `useConfirm` dialog, rendered once here for every guarded write. */
+  /** The `useConfirm` and dirty-guard dialogs, rendered once here for every guarded write. */
   confirmDialog: ReactNode;
   onRetryTargets: () => void;
   onViewChange: (view: WarningBannersStudioViewMode) => void;
-  onIconValidityChange: (valid: boolean) => void;
-  onDraftChange: (draft: WarningBannerPreset) => void;
-  onOpen: (preset: WarningBannerPreset | null) => void;
-  onCreate: () => void;
-  onSave: () => void;
-  onDiscard: () => void;
-  onRequestEnablement: PresetsViewProps["onRequestEnablement"];
-  onRequestDelete: (preset: WarningBannerPreset) => void;
-  onInspectCoverage: (slug: string) => void;
-  onCoverageSlugChange: (slug: string) => void;
-  onEditCoveragePreset: (preset: WarningBannerPreset) => void;
+  presetsProps: PresetsViewProps;
+  coverageProps: CoverageViewProps;
 };
 
 /**
@@ -155,119 +127,48 @@ type WarningBannersStudioViewProps = {
  * switching between Presets and Coverage cannot fork state or save feedback.
  */
 export function WarningBannersStudioView({
-  initialSubstanceSlug,
-  presets,
+  presetCount,
+  capped,
   targets,
   targetsError,
   coverage,
   view,
-  coverageSlug,
-  openKey,
-  draft,
-  isNew,
-  isDirty,
-  saveState,
-  notice,
-  iconSizeNotice,
-  iconSizeControl,
-  iconValid,
+  confirmDialog,
   onRetryTargets,
   onViewChange,
-  onIconValidityChange,
-  onDraftChange,
-  onOpen,
-  onCreate,
-  onSave,
-  onDiscard,
-  onRequestEnablement,
-  onRequestDelete,
-  onInspectCoverage,
-  onCoverageSlugChange,
-  onEditCoveragePreset,
-  confirmDialog,
+  presetsProps,
+  coverageProps,
 }: WarningBannersStudioViewProps) {
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
+    <div>
       <EditorSection
         icon="lucide:triangle-alert"
-        title="Banner Studio"
-        description="Warnings at the top of substance articles. Each enabled preset targets an explicit substance list or, by deliberate choice, every substance article, never a classification rule."
-        actions={
-          <EditorStatusPill tone="neutral">
-            {`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
-          </EditorStatusPill>
-        }
+        title="Banners"
+        description="Warnings at the top of substance articles. A preset shows on the substances you list, or on every article when you choose that; never by classification."
       >
-        <CoverageReadout coverage={coverage} targetCount={targets.length} />
+        <CoverageReadout coverage={coverage} capped={capped} targetCount={targets.length} />
 
         {targetsError ? (
           <LoadErrorState
-            message={`${targetsError} Substance search and the Coverage rail stay empty until it loads.`}
+            what="the substance list"
+            message={`${targetsError} Substance search and the Coverage list stay empty until it loads.`}
             onRetry={onRetryTargets}
           />
         ) : null}
 
-        {notice ? <Notice {...notice} /> : null}
-        {/* A second, separate notice. Sharing one would let a preset save and a
-            size save overwrite each other's outcome on screen. */}
-        {iconSizeNotice ? <Notice {...iconSizeNotice} /> : null}
-
         <EditorNavTabs
-          label="Banner Studio views"
+          label="Banners views"
           value={view}
           onChange={(next) => onViewChange(next === "coverage" ? "coverage" : "presets")}
           options={[
-            { value: "presets", label: "Presets", icon: "lucide:layers", badge: presets.length },
-            {
-              value: "coverage",
-              label: "Coverage",
-              icon: "lucide:list-checks",
-              badge: coverage.listed.size,
-            },
+            { value: "presets", label: "Presets", icon: "lucide:layers", badge: presetCount },
+            { value: "coverage", label: "Coverage", icon: "lucide:list-checks" },
           ]}
         />
 
-        {initialSubstanceSlug ? (
-          <p className="theme-text-faint text-xs">
-            {"Coverage started on "}
-            <span className="font-mono">{`/dev/banners/${initialSubstanceSlug}`}</span>
-            {", the substance this link opened."}
-          </p>
-        ) : null}
-
-        {view === "presets" ? (
-          <PresetsView
-            presets={presets}
-            targets={targets}
-            iconSizeControl={iconSizeControl}
-            openKey={openKey}
-            draft={draft}
-            isNew={isNew}
-            isDirty={isDirty}
-            saveState={saveState}
-            iconValid={iconValid}
-            onIconValidityChange={onIconValidityChange}
-            onDraftChange={onDraftChange}
-            onOpen={onOpen}
-            onCreate={onCreate}
-            onSave={onSave}
-            onDiscard={onDiscard}
-            onRequestEnablement={onRequestEnablement}
-            onRequestDelete={onRequestDelete}
-            onInspectCoverage={onInspectCoverage}
-          />
-        ) : (
-          <CoverageView
-            presets={presets}
-            targets={targets}
-            iconSize={iconSizeControl.size}
-            activeSlug={coverageSlug}
-            onActiveSlugChange={onCoverageSlugChange}
-            saveState={saveState}
-            onRequestEnablement={onRequestEnablement}
-            onEditPreset={onEditCoveragePreset}
-          />
-        )}
+        <div className="pt-1">
+          {view === "presets" ? <PresetsView {...presetsProps} /> : <CoverageView {...coverageProps} />}
+        </div>
       </EditorSection>
 
       {confirmDialog}

@@ -209,7 +209,7 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
             <pre className="my-3 max-h-48 overflow-auto whitespace-pre-wrap break-words text-xs">{JSON.stringify(pendingWarning(uncertainKey)?.body, null, 2)}</pre>
             <Button variant="secondary" disabled={saving || loading} onClick={reconcile}>Retry to confirm</Button>
           </Surface> : null}
-          {loading ? <p role="status">Loading current warnings and history…</p> : null}
+          {loading ? <p role="status">Loading current warnings and history</p> : null}
           {!loading && !error && presets.length === 0 ? <p>No warning presets are available. Preset creation and bulk coverage remain in the Banners workbench.</p> : null}
           {presets.length > 0 ? <fieldset disabled={blocked || loading} className="space-y-6">
             <EditorField label="Warning preset">
@@ -223,7 +223,7 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
                 <h3 className="font-semibold">{scope === "assignment" ? "Local assignment" : "Shared preset impact"}</h3>
                 <p className="theme-text-secondary text-sm">Publications: dose.wiki and Effect Index. {scope === "assignment" ? "Shared wording and every other article stay unchanged." : draft.allSubstances ? "Every current and future substance article. Current articles are listed below." : "Wording is shared by all assignments listed below. Bulk coverage is not editable here."}</p>
                 {!draft.enabled ? <p className="theme-text-secondary text-sm">This preset is disabled. Assignment or wording changes do not turn it on.</p> : null}
-                {impact ? <ul className="mt-2 max-h-40 overflow-y-auto text-sm">{impact.map((item) => <li key={item}>{item}</li>)}</ul> : <p role="status">Loading the full shared impact list…</p>}
+                {impact ? <ul className="mt-2 max-h-40 overflow-y-auto text-sm">{impact.map((item) => <li key={item}>{item}</li>)}</ul> : <p role="status">Loading the full shared impact list</p>}
                 {impact?.length === 0 ? <p>No articles are assigned to this preset.</p> : null}
               </Surface>
               {scope === "assignment" ? <>

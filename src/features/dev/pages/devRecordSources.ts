@@ -222,6 +222,21 @@ const SOURCES: readonly DevRecordSource[] = [
     },
   },
   {
+    tab: "copy-studio",
+    // No read: every block has a checked-in default, loaded only when the palette opens.
+    load: async () => {
+      const { COPY_BLOCK_DEFAULTS } = await import("@/data/content/copyBlocks");
+      return COPY_BLOCK_DEFAULTS.map((block): PaletteRecord => ({
+        key: `copy-studio:${block.key}`,
+        tab: "copy-studio",
+        title: block.label,
+        detail: `Copy · ${block.group}${block.flavor ? " · Effect Index" : ""} · ${block.key}`,
+        href: devHref({ type: "dev", tab: "copy-studio", slug: block.key }),
+        terms: recordTerms(block.label, block.key, block.group, "copy"),
+      }));
+    },
+  },
+  {
     tab: "people",
     load: async () => {
       const payload = await cached("people", () =>

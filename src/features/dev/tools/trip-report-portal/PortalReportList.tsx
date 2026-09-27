@@ -2,23 +2,30 @@
 
 import { useMemo } from "react";
 
-import { EditorList, EditorStatusPill } from "@/features/dev/components";
+import { EditorList, EditorListRow, EditorStatusPill } from "@/features/dev/components";
+import { describeDay } from "@/features/dev/tools/home/homeModel";
 import { INTAKE_STATUS_TONE } from "@/features/intake/intakeStatus";
+import { cn } from "@/lib/utils";
+import { formatTripDate } from "../my-reports/myReportsModel";
 import { portalStatusLabel, type PortalGroup, type PortalRow } from "./tripReportPortalModel";
 
 type ListEntry =
   | { kind: "group"; key: string; name: string; count: number }
   | { kind: "row"; key: string; row: PortalRow };
 
+/** Every row and group heading shares this pitch; the windowed list sizes itself from one row. */
+const ROW_HEIGHT_CLASS = "h-[3.75rem]";
+const ROW_PITCH = 64;
+
 /**
  * The corpus index, on the shared triage list: one listbox the arrow keys
  * move through (and j/k from the tab), with group headings sitting between
- * rows as dividers the keys skip. Flat hairline rows, no per-row card,
- * because a homogeneous index reads faster as a list than as a grid of slabs.
+ * rows at a row's pitch, which the keys skip.
  *
- * `compact` is the state the list collapses to while the editor is open: the
- * same rows, reduced to title and status so the column can hand its width to
- * the editor without the selection disappearing.
+ * A row reads in two lines: the title (and its status when the list spans
+ * statuses), then the byline, the first substance and its dose, and when the
+ * row arrived (a submission) or the trip happened (a report). A submission
+ * that became a report says so, so it is never mistaken for the report.
  *
  * Submissions a bulk decision can move carry a checkbox; the tab owns the
  * ticked set and the bulk bar.
@@ -26,21 +33,25 @@ type ListEntry =
 export function PortalReportList({
   checkedIds,
   canCheck,
-  compact,
   groups,
   maxHeight,
   onSelect,
   onToggleChecked,
   selectedId,
+  showStatus,
+  dirtyId,
 }: {
   checkedIds: ReadonlySet<string>;
   canCheck: (row: PortalRow) => boolean;
-  compact: boolean;
   groups: readonly PortalGroup[];
   maxHeight?: string;
   onSelect: (row: PortalRow) => void;
   onToggleChecked: (id: string) => void;
   selectedId: string | null;
+  /** Whether each row carries its status pill (the list spans statuses). */
+  showStatus: boolean;
+  /** The open report with unsaved edits, marked with the unsaved dot. */
+  dirtyId?: string | null;
 }) {
   const entries = useMemo<ListEntry[]>(
     () =>
@@ -75,7 +86,7 @@ export function PortalReportList({
         if (row) onSelect(row);
       }}
       maxHeight={maxHeight}
-      estimateRowHeight={compact ? 34 : 56}
+      estimateRowHeight={ROW_PITCH}
       emptyText="No reports match these filters."
       multiSelect={{
         checkedKeys,
@@ -88,76 +99,89 @@ export function PortalReportList({
       }}
       renderItem={(entry, { selected }) =>
         entry.kind === "group" ? (
-          <div className="theme-portal-rule flex items-baseline gap-2.5 border-b px-1 pb-1.5">
-            <h3 className="theme-portal-group-heading font-display text-xs font-semibold uppercase tracking-[0.16em]">
-              {entry.name}
-            </h3>
-            <span className="text-dose-text-ghost font-mono text-[11px] tabular-nums">{entry.count}</span>
+          <div className={cn("theme-portal-rule flex items-end gap-2.5 border-b px-1 pb-1.5", ROW_HEIGHT_CLASS)}>
+            <h3 className="type-meta-label theme-text-muted min-w-0 truncate">{entry.name}</h3>
+            <span className="theme-text-faint text-xs tabular-nums">
+              <span className="sr-only">, </span>
+              {entry.count}
+            </span>
           </div>
         ) : (
-          <PortalRowView row={entry.row} compact={compact} selected={selected} />
+          <PortalRowView
+            row={entry.row}
+            selected={selected}
+            showStatus={showStatus}
+            dirty={dirtyId === entry.row.id}
+          />
         )
       }
     />
   );
 }
 
-function PortalRowView({ compact, row, selected }: { compact: boolean; row: PortalRow; selected: boolean }) {
+function PortalRowView({
+  row,
+  selected,
+  showStatus,
+  dirty,
+}: {
+  row: PortalRow;
+  selected: boolean;
+  showStatus: boolean;
+  dirty: boolean;
+}) {
   const primary = row.substances[0];
   const extra = row.substances.length - 1;
+  const submission = row.origin === "submission";
+  const waiting = submission && (row.statusKind === "needs" || row.statusKind === "accepted");
+  const day = submission ? describeDay(row.receivedAt) : null;
+  const tripDate = row.subject.trip_date;
+  const substance = primary
+    ? `${primary.name}${primary.dose ? ` ${primary.dose}` : ""}${extra > 0 ? ` +${extra}` : ""}`
+    : "No substance listed";
+  const byline = row.subject.name.trim() || "No byline";
 
   return (
-    <div
-      data-state={selected ? "active" : "idle"}
-      className={`theme-portal-row theme-portal-rule grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b text-left transition-colors ${
-        compact ? "px-1.5 py-1.5" : "px-1.5 py-2"
-      }`}
-    >
-      <span className="flex min-w-0 items-center gap-2">
-        {row.statusKind === "needs" ? (
-          <span className="theme-portal-needs-dot h-1.5 w-1.5 shrink-0 rounded-full" aria-hidden="true" />
-        ) : null}
-        <span
-          className={`theme-portal-row-title min-w-0 truncate font-semibold leading-snug ${
-            compact ? "text-[13px]" : "text-sm"
-          }`}
-        >
-          {row.title}
-        </span>
-      </span>
-
-      <span className="flex items-center justify-end gap-1.5">
-        <EditorStatusPill tone={INTAKE_STATUS_TONE[row.intakeStatus]}>{portalStatusLabel(row)}</EditorStatusPill>
-      </span>
-
-      {compact ? null : (
-        <span className="theme-text-faint col-start-1 flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs">
-          <span className="truncate">{row.subject.name}</span>
-          <span className="text-dose-text-ghost">·</span>
-          <span className="text-dose-accent-soft truncate">{primary ? primary.name : "–"}</span>
-          {primary?.dose ? (
-            <span className="theme-text-muted font-mono text-[11px]">
-              {primary.dose}
-              {primary.roa ? ` · ${primary.roa}` : ""}
+    <EditorListRow active={selected} className={cn(ROW_HEIGHT_CLASS, "items-start overflow-hidden py-2")}>
+      <span className="min-w-0 flex-1 space-y-1">
+        <span className="flex items-center justify-between gap-3">
+          <span
+            className={cn(
+              "flex min-w-0 items-center gap-1.5 truncate text-sm font-semibold",
+              selected ? "theme-accent-heading" : "theme-text-primary",
+            )}
+          >
+            {dirty ? <span aria-hidden className="theme-dev-unsaved-dot inline-block size-1.5 shrink-0 rounded-full" /> : null}
+            <span className="truncate">{row.title || "Untitled report"}</span>
+            {dirty ? <span className="sr-only">, unsaved changes</span> : null}
+          </span>
+          {showStatus || (submission && row.status === "exported") ? (
+            <span className="shrink-0">
+              <span className="sr-only">, </span>
+              <EditorStatusPill inline tone={INTAKE_STATUS_TONE[row.intakeStatus]}>
+                {portalStatusLabel(row)}
+              </EditorStatusPill>
             </span>
           ) : null}
-          {extra > 0 ? <span className="text-dose-text-ghost">+{extra}</span> : null}
-          {row.sortDate ? (
+        </span>
+        <span className="theme-text-muted block truncate text-xs">
+          <span className="sr-only">, </span>
+          {submission && row.status === "exported" ? <span className="theme-text-secondary">Submission · </span> : null}
+          <span className="theme-text-secondary font-medium">{byline}</span>
+          {` · ${substance}`}
+          {day ? (
             <>
-              <span className="text-dose-text-ghost">·</span>
-              <span className="font-mono text-[11px] tabular-nums">{row.sortDate}</span>
+              {" · "}
+              {waiting ? "Waiting since " : "Received "}
+              <time dateTime={row.receivedAt} title={day.full}>
+                {day.relative}
+              </time>
             </>
+          ) : tripDate ? (
+            ` · Trip ${formatTripDate(tripDate)}`
           ) : null}
-          {row.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="theme-portal-rule theme-text-muted rounded-full border px-1.5 py-px text-[11px]"
-            >
-              {tag}
-            </span>
-          ))}
         </span>
-      )}
-    </div>
+      </span>
+    </EditorListRow>
   );
 }

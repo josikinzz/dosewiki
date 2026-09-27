@@ -35,7 +35,7 @@ async function requestRecord(url: string, fallback: string): Promise<Record<stri
     throw new Error(typeof record?.error === "string" ? record.error : fallback);
   }
   if (!record) {
-    throw new Error("The server returned an unreadable response. Try again.");
+    throw new Error("The server returned an unreadable response.");
   }
   return record;
 }
@@ -43,7 +43,7 @@ async function requestRecord(url: string, fallback: string): Promise<Record<stri
 export async function fetchMyWork(): Promise<MyWork> {
   const payload = await requestRecord("/api/dev/my-work", "Unable to load your drafts and proposals.");
   if (!Array.isArray(payload.drafts) || !Array.isArray(payload.proposals)) {
-    throw new Error("The server returned an unreadable response. Try again.");
+    throw new Error("The server returned an unreadable response.");
   }
   return { drafts: payload.drafts as MyDraft[], proposals: payload.proposals as ProposalSummary[] };
 }
@@ -55,7 +55,7 @@ export async function fetchLocaleInboxTotal(locale: string): Promise<number> {
     "Unable to load this language's inbox.",
   );
   if (typeof payload.total !== "number") {
-    throw new Error("The server returned an unreadable response. Try again.");
+    throw new Error("The server returned an unreadable response.");
   }
   return payload.total;
 }
@@ -67,7 +67,7 @@ export async function fetchOwnProfile(profileKey: string): Promise<HomeProfile> 
   );
   const profile = payload.profile;
   if (!profile || typeof profile !== "object") {
-    throw new Error("The server returned an unreadable response. Try again.");
+    throw new Error("The server returned an unreadable response.");
   }
   return profile as HomeProfile;
 }

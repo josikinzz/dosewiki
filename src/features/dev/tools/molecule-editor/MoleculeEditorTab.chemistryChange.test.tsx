@@ -16,7 +16,6 @@ const SAVED_REVISION = "2026-07-12T00:00:00.000Z";
 async function openExampleWithEdit() {
   render(<MoleculeEditorTab />);
   const user = userEvent.setup();
-  await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
   await user.click(await screen.findByText("Example"));
   await waitFor(() =>
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
@@ -71,6 +70,10 @@ describe("MoleculeEditorTab changed chemistry", () => {
     expect(publish).toBeEnabled();
 
     await user.click(publish);
+    // A live save asks first, destructively when the chemistry changed.
+    expect(saveBodies(fetchSpy)).toHaveLength(0);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Publish changed chemistry" }));
     await waitFor(() => expect(saveBodies(fetchSpy)).toHaveLength(1));
     expect(saveBodies(fetchSpy)[0]).toMatchObject({
       slug: "example",
@@ -89,6 +92,9 @@ describe("MoleculeEditorTab changed chemistry", () => {
     const save = await screen.findByRole("button", { name: "Save depiction" });
     await waitFor(() => expect(save).toBeEnabled());
     await user.click(save);
+    expect(saveBodies(fetchSpy)).toHaveLength(0);
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Publish depiction" }));
     await waitFor(() => expect(saveBodies(fetchSpy)).toHaveLength(1));
     expect(saveBodies(fetchSpy)[0]).toMatchObject({ expectedUpdatedAt: SAVED_REVISION });
   });
@@ -117,8 +123,10 @@ describe("MoleculeEditorTab changed chemistry", () => {
     const save = await screen.findByRole("button", { name: "Save depiction" });
     await waitFor(() => expect(save).toBeEnabled());
     await user.click(save);
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Publish depiction" }));
 
     expect(await screen.findByText("Someone saved first")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Load the latest version" })).toBeInTheDocument();
     expect(screen.getByText(/OTHER saved this depiction/)).toBeInTheDocument();
     expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
   });

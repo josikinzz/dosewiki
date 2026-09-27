@@ -76,9 +76,8 @@ function renderTab(props: Partial<Parameters<typeof WritingTab>[0]> = {}) {
 
 /** Titles of the rail's entries, pinned entry included, in render order. */
 function railTitles(): string[] {
-  return within(screen.getByRole("group", { name: "Entries" }))
-    .getAllByRole("button")
-    .map((item) => item.querySelector("span > span")?.textContent ?? "");
+  return Array.from(screen.getByRole("group", { name: "Entries" }).querySelectorAll("[data-entry-title]"))
+    .map((item) => item.textContent ?? "");
 }
 
 function kindFilter() {
@@ -106,19 +105,19 @@ describe("WritingTab", () => {
     renderTab();
 
     await screen.findByText("Field notes");
-    expect(railTitles()).toEqual(["About", "Archive page", "Field notes"]);
-    expect(kindFilter().getByRole("button", { name: "Article" })).toHaveAttribute("aria-pressed", "true");
+    expect(railTitles()).toEqual(["About page", "Archive page", "Field notes"]);
+    expect(kindFilter().getByRole("button", { name: /^Articles/ })).toHaveAttribute("aria-pressed", "true");
     expect(replaceState).not.toHaveBeenCalled();
 
-    await user.click(kindFilter().getByRole("button", { name: "Blog" }));
+    await user.click(kindFilter().getByRole("button", { name: /^Blog posts/ }));
 
-    expect(railTitles()).toEqual(["About", "Launch post"]);
+    expect(railTitles()).toEqual(["About page", "Launch post"]);
     expect(screen.getByTestId("about-editor")).toBeInTheDocument();
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about?kind=blog");
 
-    await user.click(kindFilter().getByRole("button", { name: "Article" }));
+    await user.click(kindFilter().getByRole("button", { name: /^Articles/ }));
 
-    expect(railTitles()).toEqual(["About", "Archive page", "Field notes"]);
+    expect(railTitles()).toEqual(["About page", "Archive page", "Field notes"]);
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about");
   });
 
@@ -132,10 +131,10 @@ describe("WritingTab", () => {
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/field-notes");
 
-    await user.click(screen.getByRole("button", { name: "New" }));
+    await user.click(screen.getByRole("button", { name: "New article" }));
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing");
 
-    await user.click(screen.getByRole("button", { name: /About/ }));
+    await user.click(screen.getByRole("button", { name: /^About page/ }));
     expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/about");
   });
 
@@ -147,10 +146,10 @@ describe("WritingTab", () => {
     await user.click(screen.getByRole("button", { name: /Field notes/ }));
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Field notes"));
     const rail = within(screen.getByRole("group", { name: "Entries" }));
-    expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
+    expect(rail.queryByText("Editing, unsaved")).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Title"), " extra");
-    expect(rail.getByText("Unsaved")).toBeInTheDocument();
+    expect(rail.getByText("Editing, unsaved")).toBeInTheDocument();
 
     // Keep editing: nothing moves.
     await user.click(screen.getByRole("button", { name: /Archive page/ }));
@@ -160,17 +159,17 @@ describe("WritingTab", () => {
     expect(screen.getByLabelText("Title")).toHaveValue("Field notes extra");
 
     // The kind filter would drop the row too, so it asks as well.
-    await user.click(kindFilter().getByRole("button", { name: "Blog" }));
+    await user.click(kindFilter().getByRole("button", { name: /^Blog posts/ }));
     await screen.findByRole("dialog", { name: "Discard changes to Field notes extra?" });
     await user.click(screen.getByRole("button", { name: "Keep editing" }));
-    expect(kindFilter().getByRole("button", { name: "Article" })).toHaveAttribute("aria-pressed", "true");
+    expect(kindFilter().getByRole("button", { name: /^Articles/ })).toHaveAttribute("aria-pressed", "true");
 
     // Discard: the other row opens and the pill goes.
-    await user.click(screen.getByRole("button", { name: /About/ }));
+    await user.click(screen.getByRole("button", { name: /^About page/ }));
     await screen.findByRole("dialog");
     await user.click(screen.getByRole("button", { name: "Discard changes" }));
     expect(await screen.findByTestId("about-editor")).toBeInTheDocument();
-    expect(rail.queryByText("Unsaved")).not.toBeInTheDocument();
+    expect(rail.queryByText("Editing, unsaved")).not.toBeInTheDocument();
   });
 
   it("reports an unsaved draft to the shell, whose Discard restores it and moves on", async () => {
@@ -225,8 +224,8 @@ describe("WritingTab", () => {
     renderTab({ initialKind: "blog" });
 
     await screen.findByText("Launch post");
-    expect(railTitles()).toEqual(["About", "Launch post"]);
-    expect(kindFilter().getByRole("button", { name: "Blog" })).toHaveAttribute("aria-pressed", "true");
+    expect(railTitles()).toEqual(["About page", "Launch post"]);
+    expect(kindFilter().getByRole("button", { name: /^Blog posts/ })).toHaveAttribute("aria-pressed", "true");
     expect(replaceState).not.toHaveBeenCalled();
   });
 
@@ -237,7 +236,7 @@ describe("WritingTab", () => {
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
     // The kind flip and the URL write land in an effect after the row renders.
     await waitFor(() => {
-      expect(kindFilter().getByRole("button", { name: "Blog" })).toHaveAttribute("aria-pressed", "true");
+      expect(kindFilter().getByRole("button", { name: /^Blog posts/ })).toHaveAttribute("aria-pressed", "true");
       expect(replaceState).toHaveBeenLastCalledWith(null, "", "/dev/writing/launch-post?kind=blog");
     });
   });
@@ -247,26 +246,29 @@ describe("WritingTab", () => {
     renderTab();
     await screen.findByText("Field notes");
 
-    await user.click(screen.getByRole("button", { name: "New" }));
+    await user.click(screen.getByRole("button", { name: "New article" }));
     expect(screen.getByLabelText("Title")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Cover image URL")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Cover image")).not.toBeInTheDocument();
 
-    await user.click(kindFilter().getByRole("button", { name: "Blog" }));
-    expect(screen.getByLabelText("Cover image URL")).toBeInTheDocument();
+    await user.click(kindFilter().getByRole("button", { name: /^Blog posts/ }));
+    expect(screen.getByLabelText("Cover image")).toBeInTheDocument();
   });
 
-  it("allows local VCode editing and blocks review of malformed markup", async () => {
+  it("allows local VCode editing and blocks publishing malformed markup", async () => {
     const user = userEvent.setup();
     renderTab({ initialSlug: "archive-page" });
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Archive page"));
     await user.clear(screen.getByLabelText("Body"));
     await user.paste("[p]Unclosed");
-    expect(screen.getByRole("button", { name: "Review changes" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Publish changes" })).toBeDisabled();
+    expect(screen.getByText("Fix the body markup before saving.")).toBeInTheDocument();
     await user.paste("[/p]");
-    expect(screen.getByRole("button", { name: "Review changes" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "Confirm publication" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review changes" }));
-    expect(screen.getByRole("button", { name: "Confirm publication" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Publish changes" })).toBeEnabled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Publish changes" }));
+    const dialog = screen.getByRole("dialog", { name: "Publish changes to “Archive page”?" });
+    expect(within(dialog).getByText(/You changed the body\./)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Publish changes" })).toBeEnabled();
   });
 
   it("lets an editor submit a post for review as a proposal, never a direct save", async () => {
@@ -283,7 +285,7 @@ describe("WritingTab", () => {
     await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Launch post"));
 
     // No tooltip-only refusal: the editor has a real action instead.
-    expect(screen.queryByRole("button", { name: "Review changes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^(Publish|Publish changes|Save draft)$/ })).not.toBeInTheDocument();
     expect(screen.queryByTitle("Admin role required")).not.toBeInTheDocument();
     const submit = screen.getByRole("button", { name: "Submit for review" });
     expect(submit).toBeDisabled();
@@ -333,8 +335,11 @@ describe("WritingTab", () => {
     await user.type(screen.getByLabelText("Body"), " Fresh line");
     expect(within(preview).getByTestId("preview")).toHaveTextContent("Post. Fresh line");
 
-    await user.click(screen.getByRole("button", { name: "Live preview" }));
+    await user.click(within(screen.getByRole("group", { name: "View" })).getByRole("button", { name: "Write" }));
     expect(screen.queryByRole("region", { name: "Preview" })).not.toBeInTheDocument();
+    await user.click(within(screen.getByRole("group", { name: "View" })).getByRole("button", { name: "Preview" }));
+    expect(screen.getByRole("region", { name: "Preview" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Body")).not.toBeInTheDocument();
   });
 
   it("blocks saving an invalid publication date with a field error", async () => {
@@ -358,9 +363,9 @@ describe("WritingTab", () => {
     const user = userEvent.setup();
     renderTab({ initialKind: "blog" });
     await screen.findByText("Launch post");
-    await user.click(screen.getByRole("button", { name: "New" }));
+    await user.click(screen.getByRole("button", { name: "New post" }));
 
-    await user.type(screen.getByLabelText("Cover image URL"), "/images/cover.png");
+    await user.type(screen.getByLabelText("Cover image"), "/images/cover.png");
     expect(screen.getByRole("img", { name: "Cover preview" })).toHaveAttribute("src", "/images/cover.png");
 
     const tags = screen.getByRole("combobox", { name: /Tags/ });
@@ -368,7 +373,7 @@ describe("WritingTab", () => {
     expect(screen.getByText("Harm Reduction")).toBeInTheDocument();
   });
 
-  it("keeps the admin path: Review changes, then a confirmed direct save", async () => {
+  it("keeps the admin path: a confirm that names the changes, then a direct save", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -381,8 +386,10 @@ describe("WritingTab", () => {
     expect(screen.queryByRole("button", { name: "Submit for review" })).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Body"), " More.");
-    await user.click(screen.getByRole("button", { name: "Review changes" }));
-    await user.click(screen.getByRole("button", { name: "Confirm save as unpublished" }));
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+    const dialog = screen.getByRole("dialog", { name: "Save “Launch post” as a draft?" });
+    await user.click(within(dialog).getByRole("button", { name: "Save draft" }));
 
     await waitFor(() => expect(fetchMock.mock.calls.some(([, init]) => init?.method === "POST")).toBe(true));
     const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");

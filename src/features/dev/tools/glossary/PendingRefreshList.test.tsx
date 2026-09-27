@@ -19,7 +19,7 @@ async function openFilter(catalogRefreshed: boolean) {
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ ok: true, locale: "zh-Hans", locales: ["zh-Hans"], rows, catalogRefreshed })));
   const user = userEvent.setup();
   render(<UiTranslationWorkbench locale="zh-Hans" />);
-  await user.click(await screen.findByRole("button", { name: "Waiting for glossary refresh (2)" }));
+  await user.click(await screen.findByRole("button", { name: "Waiting for glossary refresh, 2" }));
   return user;
 }
 
@@ -41,7 +41,7 @@ describe("waiting for glossary refresh", () => {
     const user = await openFilter(true);
     expect(screen.queryByText(/could not refresh these strings because it ran offline/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Review Back to replications" }));
-    expect(screen.getByRole("button", { name: "One at a time" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /^One at a time/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("textbox", { name: "Translation for gallery.back" })).toHaveValue("返回复现");
     expect(screen.queryByRole("textbox", { name: "Translation for appearance.light" })).not.toBeInTheDocument();
   });

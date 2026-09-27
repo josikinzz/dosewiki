@@ -83,3 +83,29 @@ describe("useLayoutHistory", () => {
     expect(hook.result.current.canRedo).toBe(false);
   });
 });
+
+describe("useLayoutHistory labels", () => {
+  it("names the step Undo and Redo would take and reports whether an edit changed anything", () => {
+    const { hook } = renderHistory();
+    let changed = false;
+    act(() => {
+      changed = hook.result.current.edit((manual) => manualWith([...manual.categories[0].drugs, "dmt"]), "Added DMT to Psychedelic");
+    });
+    expect(changed).toBe(true);
+    expect(hook.result.current.undoLabel).toBe("Added DMT to Psychedelic");
+
+    let noop = true;
+    act(() => {
+      noop = hook.result.current.edit((manual) => manual, "Nothing");
+    });
+    expect(noop).toBe(false);
+
+    let undone: string | null = null;
+    act(() => {
+      undone = hook.result.current.undo();
+    });
+    expect(undone).toBe("Added DMT to Psychedelic");
+    expect(hook.result.current.redoLabel).toBe("Added DMT to Psychedelic");
+    expect(hook.result.current.undoLabel).toBeNull();
+  });
+});

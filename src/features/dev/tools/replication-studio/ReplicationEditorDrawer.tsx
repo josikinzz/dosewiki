@@ -502,9 +502,7 @@ export function KeyboardHints() {
     <ul className="space-y-1.5">
       {REPLICATION_STUDIO_SHORTCUTS.map(({ keys: key, label: description }) => (
         <li key={key} className="flex items-center gap-2 text-sm">
-          <kbd className="theme-replication-muted-panel theme-text-secondary rounded-md border border-[color:var(--editor-panel-border)] px-1.5 py-0.5 font-mono text-xs">
-            {key}
-          </kbd>
+          <kbd className="theme-dev-kbd">{key}</kbd>
           <span className="theme-text-faint">{description}</span>
         </li>
       ))}
@@ -802,7 +800,7 @@ export function ReplicationEditorDrawer({
             disabled={busy || !dirty || Boolean(sourceError(draft.source_url))}
             onClick={() => onSaveSingle(single, draft)}
           >
-            {busy ? "Saving…" : "Save"}
+            {busy ? "Saving" : "Save"}
           </Button>
           <Button type="button" variant="ghost" size="sm" disabled={busy || !dirty} onClick={() => setDraft(draftOf(single))}>
             Revert

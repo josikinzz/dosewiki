@@ -11,6 +11,7 @@ import { orderIndexSections, sectionConventionRank } from "@/data/builders/index
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { slugify } from "@/utils/slug";
 import type { LayoutSlot } from "./layoutOps";
+import { normalizeManual } from "./layoutModel";
 import type { ManualIndexConfig, SlugIssue } from "./types";
 
 export type BoardItem = {
@@ -75,7 +76,8 @@ export function buildBoard(
   manual: ManualIndexConfig,
   library: ReadonlyMap<string, BoardRecord>,
 ): BoardCategory[] {
-  return manual.categories.map((category) => {
+  // A stored layout may leave a list out; the board reads it as empty.
+  return normalizeManual(manual).categories.map((category) => {
     const describe = (slug: string) => describeItem(slug, library);
     const topLevel = category.drugs.map(describe);
     const named = category.sections.map((section) => {

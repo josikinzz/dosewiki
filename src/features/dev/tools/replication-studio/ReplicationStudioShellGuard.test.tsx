@@ -6,7 +6,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import {
   expectRailMarksUnsaved,

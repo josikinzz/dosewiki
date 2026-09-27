@@ -66,7 +66,7 @@ export function ApplyPlaylistMenu({ corpusRows: _corpusRows, onApply }: ApplyPla
           </div>
         ) : null}
         {!loaded ? (
-          <p className="theme-text-muted text-sm">Loading playlists…</p>
+          <p className="theme-text-muted text-sm">Loading playlists</p>
         ) : playlists.length === 0 ? (
           <p className="theme-text-muted text-sm">
             No playlists yet. Build one in the studio&apos;s Playlists panel.
@@ -96,7 +96,7 @@ export function ApplyPlaylistMenu({ corpusRows: _corpusRows, onApply }: ApplyPla
                 >
                   <span className="min-w-0 flex-1 truncate text-left">{playlist.title}</span>
                   <span className="theme-text-faint shrink-0 font-mono text-xs">
-                    {loadingKey === playlist.key ? "Loading…" : `${playlist.work_count} works`}
+                    {loadingKey === playlist.key ? "Loading" : `${playlist.work_count} works`}
                   </span>
                 </Button>
               </li>

@@ -33,6 +33,7 @@ export function TemplateInitialization({
   memberReady,
   classStructureReady,
   busy,
+  membersLoading = false,
 }: {
   onUseClassStructure: () => void;
   smiles: string;
@@ -45,9 +46,16 @@ export function TemplateInitialization({
   memberReady: boolean;
   classStructureReady: boolean;
   busy: boolean;
+  /** The class member read is still in flight. */
+  membersLoading?: boolean;
 }) {
   return (
-    <Surface variant="muted" padding="sm" radius="lg" className="mt-4 grid gap-4 lg:grid-cols-3">
+    <section aria-label="Start the template" className="space-y-3">
+    <div className="space-y-1">
+      <p className="theme-text-primary text-base font-semibold">Start the template</p>
+      <p className="theme-text-muted max-w-[70ch] text-sm">Choose where its scaffold starts; nothing is saved until you press Save template.</p>
+    </div>
+    <Surface variant="muted" padding="sm" radius="lg" className="grid gap-4 xl:grid-cols-3">
       <div className="space-y-2">
         <div>
           <p className="theme-text-primary text-sm font-medium">Start from the class structure</p>
@@ -65,12 +73,16 @@ export function TemplateInitialization({
           <p className="theme-text-primary text-sm font-medium">Start from SMILES</p>
           <p className="theme-text-muted text-xs">Paste a plain scaffold, then generate its editable layout.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             value={smiles}
             onChange={(event) => onSmilesChange(event.target.value)}
-            placeholder="Paste scaffold SMILES…"
+            placeholder="Paste scaffold SMILES"
             aria-label="Template scaffold SMILES"
+            autoComplete="off"
+            spellCheck={false}
+            inputSize="sm"
+            className="font-mono"
             disabled={busy}
           />
           <Button variant="outline" onClick={onUseSmiles} disabled={busy || !smiles.trim()}>
@@ -85,7 +97,7 @@ export function TemplateInitialization({
           <p className="theme-text-muted text-xs">Load a class member&apos;s current depiction.</p>
         </div>
         {members.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <SubstanceCombobox
               label="Select a class member"
               molecules={members}
@@ -93,19 +105,22 @@ export function TemplateInitialization({
               onSelect={onSelectMember}
               loadTimedOut={false}
               mode="substances"
-              placeholder="Select a member…"
-              searchPlaceholder="Search class members…"
+              placeholder="Select a member"
+              searchPlaceholder="Search class members"
             />
             <Button variant="outline" onClick={onUseMember} disabled={busy || !memberReady}>
               <Icon icon={busy ? "lucide:loader-2" : "lucide:copy"} size={15} className={busy ? "animate-spin" : undefined} />
               Load member
             </Button>
           </div>
+        ) : membersLoading ? (
+          <p role="status" className="theme-text-faint text-sm">Loading the class members</p>
         ) : (
           <p className="theme-text-faint text-sm">No class members with stored MOL blocks are available.</p>
         )}
       </div>
     </Surface>
+    </section>
   );
 }
 
@@ -134,14 +149,14 @@ export function SubstanceCombobox({
   const label = !molecules
     ? loadTimedOut
       ? `${mode === "classes" ? "Classes" : "Substances"} unavailable`
-      : `Loading ${mode}…`
+      : `Loading ${mode}`
     : current
       ? current.title
       : placeholder
         ? placeholder
         : mode === "classes" || mode === "templates"
-          ? "Select a class…"
-          : "Select a substance…";
+          ? "Select a class"
+          : "Select a substance";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -181,8 +196,8 @@ export function SubstanceCombobox({
             placeholder={
               searchPlaceholder ??
               (mode === "classes" || mode === "templates"
-                ? "Search by label or key…"
-                : "Search by name or slug…")
+                ? "Search by label or key"
+                : "Search by name or slug")
             }
           />
           <CommandList>

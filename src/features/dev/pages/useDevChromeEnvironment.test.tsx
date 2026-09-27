@@ -104,11 +104,11 @@ describe("useDevChromeEnvironment", () => {
     };
     const { result, rerender } = renderHook(
       ({ activeTab }) => useDevChromeEnvironment({ activeTab, ...props }),
-      { initialProps: { activeTab: "articles" as DevModeTab } },
+      { initialProps: { activeTab: "home" as DevModeTab } },
     );
 
     expect(result.current.mainClassName).not.toContain("max-w-");
-    expect(result.current.contentWrapperClass).toBe("mx-auto mt-6 w-full max-w-6xl");
+    expect(result.current.contentWrapperClass).toBe("mx-auto mt-5 w-full max-w-6xl");
 
     // The width follows the descriptor's `layout`, never a list of tab ids.
     for (const tab of DEV_TAB_REGISTRY) {
@@ -116,13 +116,16 @@ describe("useDevChromeEnvironment", () => {
 
       expect(result.current.mainClassName).not.toContain("max-w-");
       expect(result.current.contentWrapperClass).toBe(
-        tab.layout === "full-bleed" ? "mt-6 w-full" : "mx-auto mt-6 w-full max-w-6xl",
+        tab.layout === "full-bleed" ? "mt-5 w-full" : "mx-auto mt-5 w-full max-w-6xl",
       );
     }
     expect(DEV_TAB_REGISTRY.filter((tab) => tab.layout === "full-bleed").map((tab) => tab.id)).toEqual([
+      "articles",
       "trip-report-submissions",
+      "molecule-editor",
       "banners",
       "replications",
+      "writing",
       "index-layout",
     ]);
   });

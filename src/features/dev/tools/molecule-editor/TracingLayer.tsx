@@ -159,7 +159,7 @@ export function TracingControls({
 
   return (
     <div className="space-y-2">
-      <p className="theme-text-faint text-xs font-medium uppercase tracking-wide">
+      <p className="type-meta-label theme-text-muted">
         Tracing image
       </p>
       <input
@@ -183,7 +183,7 @@ export function TracingControls({
             title="Show a see-through reference image over the canvas so you can draw on top of it"
           >
             <Icon icon="lucide:image-plus" size={15} />
-            Trace an image…
+            Trace an image
           </Button>
           <p className="theme-text-faint text-xs">
             Or drag an image onto the canvas. It stays on this screen only and is never saved.

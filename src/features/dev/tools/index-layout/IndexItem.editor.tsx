@@ -6,7 +6,7 @@ import type { SubstanceArticle, SubstancePriority } from "@/schema";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { ArticleDisplayNameInput, ArticlePrioritySelect } from "@/features/dev/forms/ArticleDisplayFields";
-import { EditorField, Notice, useConfirm } from "@/features/dev/components";
+import { EditorField, Notice, isWriteFreezeRefusal, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { buildTextChangelog } from "@/utils/data/changelog";
 import { proposalSubmittedNotice } from "../proposalSubmission";
@@ -40,7 +40,7 @@ function ItemSession({ slug, returnFocusTarget, close }: { slug: string; returnF
     }).catch((failure) => { if (!abort.signal.aborted) setError(failure instanceof Error ? failure.message : "Could not load this index item."); });
     return () => abort.abort();
   }, [slug]);
-  return source ? <ItemBody initial={source} slug={slug} returnFocusRef={returnFocusRef} close={close} /> : <ContextualEditorPanel title="Load index item" open returnFocusRef={returnFocusRef} onOpenChange={close}><p role="status">{error || "Loading the selected canonical article…"}</p><Button variant="secondary" onClick={close}>Close</Button></ContextualEditorPanel>;
+  return source ? <ItemBody initial={source} slug={slug} returnFocusRef={returnFocusRef} close={close} /> : <ContextualEditorPanel title={error ? "Could not load this index item" : "Loading the index item"} open returnFocusRef={returnFocusRef} onOpenChange={close}><p role="status">{error || "Loading the article behind this index row."}</p><Button variant="secondary" onClick={close}>Close</Button></ContextualEditorPanel>;
 }
 function ItemBody({ initial, slug, returnFocusRef, close }: { initial: Source; slug: string; returnFocusRef: RefObject<HTMLElement | null>; close: () => void }) {
   const [source, setSource] = useState(initial);
@@ -74,7 +74,7 @@ function ItemBody({ initial, slug, returnFocusRef, close }: { initial: Source; s
     try {
       const response = await fetch("/api/dev/article-lifecycle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, changeId: pending.current.changeId }) });
       const data = await response.json();
-      if (!response.ok) { if (response.status >= 400 && response.status < 500) setUncertain(false); throw new Error(data.error ?? "Publication failed. Your draft is preserved."); }
+      if (!response.ok) { const frozen = isWriteFreezeRefusal(response.status, data); if ((response.status >= 400 && response.status < 500) || frozen) setUncertain(false); throw new Error(frozen ? "Writes are paused, so your change was not published. Your draft is kept." : data.error ?? "Publication failed. Your draft is kept."); }
       if (!canApprove) {
         if (typeof data.proposalId !== "string" || !data.proposalId || data.changeId !== pending.current.changeId) throw new Error("The submission was not confirmed. Retry the same submission before closing.");
         setUncertain(false); setProposalId(data.proposalId);
@@ -90,8 +90,8 @@ function ItemBody({ initial, slug, returnFocusRef, close }: { initial: Source; s
   return <ContextualEditorPanel title={`Edit ${currentName} display metadata`} description={`Canonical article ${source.article.id ?? slug}; /${slug}. The open editor keeps this identity when the index is filtered or sorted.`} open returnFocusRef={returnFocusRef} onOpenChange={cancel}>
     <div className="space-y-6">
       {source.draft ? <p role="alert">A private article draft already exists. Publish index changes only after publishing or discarding that draft in the article editor; its content is not loaded or overwritten here.</p> : null}
-      <EditorField label="Display Name / Title" htmlFor="index-item-name"><ArticleDisplayNameInput id="index-item-name" value={name} disabled={busy || uncertain} onChange={(event) => setName(event.target.value)} /></EditorField>
-      <section aria-label="Local name preview"><h3>Local preview</h3><p>{name}</p><p className="theme-text-faint text-sm">Canonical URL unchanged: /{slug}</p></section>
+      <EditorField label="Display name" htmlFor="index-item-name"><ArticleDisplayNameInput id="index-item-name" value={name} disabled={busy || uncertain} onChange={(event) => setName(event.target.value)} /></EditorField>
+      <section aria-label="Local name preview" className="space-y-1"><h3 className="type-meta-label theme-text-muted">Preview</h3><p>{name}</p><p className="theme-text-faint text-sm">Canonical URL unchanged: /{slug}</p></section>
       <DiffPreview diffText={buildTextChangelog("Display name", currentName, name).markdown} />
       <Button disabled={!nameDirty || !name.trim() || busy || !!source.draft || (uncertain && pending.current?.kind !== "name")} onClick={() => canApprove ? confirm({ title: "Publish display name?", description: "Changes the article title, index rows, search results, and metadata on both publications. Visibility, Reviewed status, and Review Flags do not change.", confirmLabel: "Publish display name", onConfirm: () => publish("name") }) : void publish("name")}>{canApprove ? "Publish display name" : "Submit display name for review"}</Button>
       <EditorField label="Priority and listing visibility" htmlFor="index-item-priority"><ArticlePrioritySelect id="index-item-priority" value={priority} disabled={busy || uncertain} onChange={setPriority} /></EditorField>

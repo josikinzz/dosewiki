@@ -26,6 +26,8 @@ export function useDevModePageController({
   initialFilter,
   initialProfileKey,
   isLibraryLoading = false,
+  libraryError = null,
+  onRetryLibrary,
   onTabChange,
   onOpenPath,
   toolMountKey = 0,
@@ -131,6 +133,7 @@ export function useDevModePageController({
 
   const {
     commitPanel,
+    commitControls,
     clearSaveNotices,
   } = useDevModeSaveActions({
     articles,
@@ -161,8 +164,9 @@ export function useDevModePageController({
     clearSaveNoticesRef.current = clearSaveNotices;
   }, [clearSaveNotices]);
 
-  const { tagEditorTabProps } = useDevSupportTabsController({
+  const { tagEditorTabProps, indexLayoutTabProps } = useDevSupportTabsController({
     commitPanel,
+    commitControls,
     combinedChangelogMarkdown: changelogState.combinedChangelogMarkdown,
     hasPendingChanges: changelogState.hasPendingChanges,
   });
@@ -217,6 +221,8 @@ export function useDevModePageController({
     indexLayoutsReadiness,
     retryIndexLayouts,
     isLibraryLoading: isLibraryLoading || articles.length === 0,
+    libraryError: isLibraryLoading ? libraryError : null,
+    retryLibrary: () => onRetryLibrary?.(),
     activeTab,
     changeLog,
     commitPanel,
@@ -230,12 +236,14 @@ export function useDevModePageController({
     copyStudioInitialKey: initialArticleSlug,
     playlistsInitialKey: initialArticleSlug,
     peopleInitialKey: initialArticleSlug,
+    contributorsInitialKey: initialArticleSlug,
     toolMountKey,
     tripReportsInitialId: initialArticleSlug,
     queueInitialId: initialArticleSlug,
     feedbackInitialId: initialArticleSlug,
     initialFilter,
     tagEditorTabProps,
+    indexLayoutTabProps,
     contributorDirectory,
     onPrimaryTabChange: routeAccess.onPrimaryTabChange,
     onTabChange: routeAccess.onTabChange,

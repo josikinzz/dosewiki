@@ -69,6 +69,7 @@ import { publicSegmentedTabsStory } from "../stories/public-segmented-tabs.story
 
 // Editor kit: src/features/dev/components
 import { editorKitStories } from "../stories/editor-kit.story";
+import { editorShellStories } from "../stories/editor-shell.story";
 
 /**
  * Every shared-kit story is registered here. Add a story file under
@@ -146,6 +147,7 @@ export const stories: StoryDef[] = [
 
   // Editor kit: src/features/dev/components
   ...editorKitStories,
+  ...editorShellStories,
 ];
 
 export function storiesByTier(tier: KitTier): StoryDef[] {

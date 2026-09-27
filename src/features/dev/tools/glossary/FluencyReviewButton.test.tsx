@@ -32,7 +32,7 @@ async function open(canAdmin: boolean) {
 it("lets an admin ask for a fluency review of the open article and reports where the suggestions went", async () => {
   const { user, posts } = await open(true);
   await user.click(screen.getByRole("button", { name: "Review fluency" }));
-  expect(await screen.findByText(/2 suggestions sent to the Inbox, 1 dropped \(1 validator\)/)).toHaveTextContent("1290 tokens in 1 request");
+  expect(await screen.findByText(/2 suggestions sent to Waiting, 1 dropped \(1 validator\)/)).toHaveTextContent("1290 tokens in 1 request");
   expect(posts).toEqual([{ url: "/api/dev/translation-fluency", body: { locale: "zh-Hans", slug: "sample" } }]);
   // Nothing on the page changes.
   expect(screen.getByText("机器翻译")).toBeInTheDocument();

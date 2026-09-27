@@ -64,16 +64,17 @@ export function planEnablementChange(
       nextSlugs,
       summary:
         count === 1
-          ? `Disabled ${preset.key} on ${first}.`
+          ? `Disabled ${preset.key} on ${firstTitle}.`
           : `Disabled ${preset.key} on ${plural(count, "substance")}.`,
       request: {
         title: `Disable ${preset.key} on ${target}?`,
         description: readerFacing
           ? `Readers of ${count === 1 ? firstTitle : "these articles"} stop seeing this banner as soon as you confirm.${remaining}${draftNote}`
           : `${noVisibleChange}${draftNote}`,
-        confirmLabel: count === 1 ? `Disable on ${first}` : `Disable on ${plural(count, "substance")}`,
+        confirmLabel: count === 1 ? `Disable on ${firstTitle}` : `Disable on ${plural(count, "substance")}`,
         destructive: true,
         affected: count > 1 ? affected : undefined,
+        affectedLabel: count > 1 ? `Stops showing on ${plural(count, "substance")}` : undefined,
       },
     };
   }
@@ -87,8 +88,9 @@ export function planEnablementChange(
       description: readerFacing
         ? `Readers of ${count === 1 ? firstTitle : "these articles"} see this banner at the top of the page as soon as you confirm.${draftNote}`
         : `${noVisibleChange}${draftNote}`,
-      confirmLabel: count === 1 ? `Enable on ${first}` : `Enable on ${plural(count, "substance")}`,
+      confirmLabel: count === 1 ? `Enable on ${firstTitle}` : `Enable on ${plural(count, "substance")}`,
       affected: count > 1 ? affected : undefined,
+      affectedLabel: count > 1 ? `Starts showing on ${plural(count, "substance")}` : undefined,
     },
   };
 }

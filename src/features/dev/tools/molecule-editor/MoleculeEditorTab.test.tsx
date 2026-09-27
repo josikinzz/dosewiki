@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { DESKTOP_ONLY_NOTICE } from "@/features/dev/components";
 import {
   installMoleculeEditorTestHarness,
   seedExampleSubstance,
@@ -18,7 +17,7 @@ describe("MoleculeEditorTab modes", () => {
     useQueryMock.mockReturnValue(undefined);
     render(<MoleculeEditorTab />);
     await waitFor(() =>
-      expect(screen.getByText("Molecule depiction editor")).toBeInTheDocument(),
+      expect(screen.getByRole("heading", { name: "Molecules" })).toBeInTheDocument(),
     );
   });
 
@@ -47,26 +46,25 @@ describe("MoleculeEditorTab modes", () => {
     });
 
     render(<MoleculeEditorTab />);
-    expect(
-      await screen.findByText("2 substances · 1 saved depictions · 1 published articles"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("2 substances, 1 edited")).toBeInTheDocument();
 
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
-
-    // The listed article leads the list under its category heading, carrying only
-    // the article pill; the unlisted one carries only the depiction pill.
+    // The listed article leads the list under its category heading; the unlisted
+    // one says so. Publication and the depiction's state are separate marks.
     expect(await screen.findByText("Psychedelic")).toBeInTheDocument();
     expect(screen.getByText("Stimulant · not publicly listed")).toBeInTheDocument();
-    expect(screen.getByText("published")).toBeInTheDocument();
-    expect(screen.getByText("saved")).toBeInTheDocument();
+    const listed = screen.getByRole("button", { name: /^Listed No Depiction/ });
+    expect(listed).toHaveTextContent("No depiction");
+    expect(listed).not.toHaveTextContent("Not publicly listed");
+    const unlisted = screen.getByRole("button", { name: /^Unlisted With Depiction/ });
+    expect(unlisted).toHaveTextContent("Saved");
+    expect(unlisted).toHaveTextContent("Not publicly listed");
   });
 
   it("shows the substance loading state while server data is pending", () => {
     useQueryMock.mockReturnValue(undefined);
     vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
     render(<MoleculeEditorTab />);
-    expect(screen.getByText("Loading substances…")).toBeInTheDocument();
+    expect(screen.getByText("Loading substances")).toBeInTheDocument();
   });
 
   it("loads 1,4-Butanediol without evaluating class-template membership", async () => {
@@ -99,7 +97,6 @@ describe("MoleculeEditorTab modes", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("1,4-Butanediol"));
 
     await waitFor(() =>
@@ -137,7 +134,7 @@ describe("MoleculeEditorTab modes", () => {
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "up-down");
   });
 
-  it("keeps the drawing surface desktop-only while the picker and transforms work on a coarse pointer", async () => {
+  it("locks the canvas on a coarse pointer until Draw, while the picker and transforms work by touch", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query === "(pointer: coarse)",
       media: query,
@@ -152,22 +149,18 @@ describe("MoleculeEditorTab modes", () => {
     stubOverrideFetch();
 
     render(<MoleculeEditorTab />);
-    expect(screen.getByText(DESKTOP_ONLY_NOTICE)).toBeInTheDocument();
-
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
     );
 
-    // The notice stays in place of the toolbar; canvas-click modes and drawing
-    // settings are gone, while the whole-depiction transforms still route to OCL.
-    expect(screen.getByText(DESKTOP_ONLY_NOTICE)).toBeInTheDocument();
+    // Until Draw, a swipe scrolls the page: canvas-click modes and tracing wait.
+    expect(screen.getByText(/The canvas is locked so the page scrolls/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Set bond vertical" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Bold bonds" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: "Fine rotation" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Trace an image…" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Trace an image" })).toBeDisabled();
+    expect(screen.getByRole("checkbox", { name: "Fine rotation" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Select a structure to import" })).toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Straighten" })).toBeEnabled(),
@@ -176,9 +169,15 @@ describe("MoleculeEditorTab modes", () => {
 
     await user.click(screen.getByRole("button", { name: "Flip left/right" }));
     expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-mirror-direction", "left-right");
+
+    // Draw unlocks the canvas and the bond-picking modes, which work by tap.
+    await user.click(screen.getByRole("button", { name: "Draw on the canvas" }));
+    expect(screen.getByRole("button", { name: "Done drawing" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Set bond vertical" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Bold bonds" })).toBeInTheDocument();
   });
 
-  it("shows no desktop notice on a fine pointer", async () => {
+  it("draws straight away on a fine pointer", async () => {
     vi.stubGlobal("matchMedia", (query: string) => ({
       matches: query === "(pointer: fine)",
       media: query,
@@ -194,13 +193,12 @@ describe("MoleculeEditorTab modes", () => {
 
     render(<MoleculeEditorTab />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
     );
 
-    expect(screen.queryByText(DESKTOP_ONLY_NOTICE)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Draw on the canvas" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Set bond vertical" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "Fine rotation" })).toBeInTheDocument();
   });

@@ -6,15 +6,17 @@
  * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
  * when the automatic layout draws them badly.
  *
- * This component owns only what outlives one open structure: the mode and
- * selection (mirrored into `/dev/molecule-editor/<mode>/<slug>`), the picker
- * data, the chemistry engines and the canvas settings. Everything about the
- * open structure lives in `MoleculeEditorSession`, keyed on `mode:selected`,
- * so switching selection starts a fresh session in one step.
+ * The editor workspace: the list column (kind of structure, what state each
+ * drawing is in, search, the records) on the left, the open structure's pane
+ * on the right. This component owns only what outlives one open structure:
+ * the mode and selection (mirrored into `/dev/molecule-editor/<mode>/<slug>`),
+ * the list data, the chemistry engines and the canvas settings. Everything
+ * about the open structure lives in `MoleculeEditorSession`, keyed on
+ * `mode:selected`, so switching selection starts a fresh session in one step.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditorRead } from "@/hooks/useEditorRead";
-import { useConfirm } from "@/features/dev/components";
+import { useEditorReadState } from "@/hooks/useEditorRead";
+import { EditorSection, isTextEntryTarget, useConfirm, useDevShortcuts, useScrollToDetail } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
@@ -24,7 +26,7 @@ import {
   buildSubstancePickerItems,
   type MoleculePickerItem,
 } from "./moleculePickerOrdering";
-import { useMoleculePickerRead } from "./useMoleculePickerRead";
+import { useMoleculePickerReadState } from "./useMoleculePickerRead";
 import {
   isEditorMode,
   moleculeEditorSlug,
@@ -32,11 +34,22 @@ import {
   type MoleculeEditorSelection,
 } from "./moleculeEditorRoute";
 import { MoleculeEditorSession } from "./MoleculeEditorSession";
+import { MoleculeListColumn } from "./MoleculeListColumn";
+import type { MoleculePaneRecord } from "./MoleculeEditorWorkbench";
+import {
+  depictionStateOf,
+  type MoleculeListFilter,
+  type MoleculeListRow,
+  type OverrideSummary,
+} from "./moleculeListModel";
+import type { EditorMode } from "./moleculeEditorTypes";
 
 const TEMPLATE_API = "/api/dev/molecule-class-template";
 
-/** If server data has not arrived after this long, stop promising "Loading…". */
+/** If server data has not arrived after this long, stop promising it is on its way. */
 const LOAD_TIMEOUT_MS = 8000;
+
+const LIST_SHORTCUTS = [{ keys: "/", label: "Find a structure in the list" }] as const;
 
 function psychoactiveClasses(classification: unknown): string[] {
   if (!classification || typeof classification !== "object" || !("psychoactive_class" in classification)) {
@@ -57,29 +70,42 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const [fineRotation, setFineRotation] = useState(true);
   // OpenChemLib renders the preview + published SVG (same engine as the canvas);
   // RDKit remains for the InChI/canonical-SMILES guards and class layout. Idle
-  // picker visits do not initialize either engine; selection activates both.
+  // visits do not initialize either engine; selection activates both.
   const enginesEnabled = selected !== null;
   const { ocl, error: oclError } = useOcl(enginesEnabled);
   const { rdkit, error: rdkitError } = useRdkit(enginesEnabled);
 
   // Mirror the selection into the address so the open structure can be shared.
+  // Next's history state is kept, or the router treats the swap as a navigation.
   const urlSlugRef = useRef(initialSlug);
   useEffect(() => {
     const slug = moleculeEditorSlug(selection);
     if (slug === urlSlugRef.current) return;
     urlSlugRef.current = slug;
-    window.history.replaceState(null, "", viewToPath({ type: "dev", tab: "molecule-editor", slug }));
+    window.history.replaceState(window.history.state, "", viewToPath({ type: "dev", tab: "molecule-editor", slug }));
   }, [selection]);
 
   // The open session reports whether it holds unsaved work, so a switch can ask first.
   const sessionDirtyRef = useRef(false);
+  const [sessionDirty, setSessionDirty] = useState(false);
   const onSessionDirtyChange = useCallback((dirty: boolean) => {
     sessionDirtyRef.current = dirty;
+    setSessionDirty(dirty);
   }, []);
   const { confirm, dialog: confirmDialog } = useConfirm();
+  const listRef = useRef<HTMLElement>(null);
+  const paneRef = useRef<HTMLDivElement>(null);
+  const paneTitleRef = useRef<HTMLHeadingElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  /** Set when a row opens a structure, so the pane's heading takes focus once it has rendered. */
+  const focusPaneOnOpen = useRef(false);
+
   const switchTo = useCallback(
     (next: MoleculeEditorSelection, description: string) => {
-      const run = () => setSelection(next);
+      const run = () => {
+        focusPaneOnOpen.current = next.selected !== null;
+        setSelection(next);
+      };
       if (!sessionDirtyRef.current) {
         run();
         return;
@@ -96,7 +122,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   );
   const onSelect = useCallback(
     (slug: string) => {
-      if (slug === selected) return;
+      if (slug === selected) {
+        paneTitleRef.current?.focus();
+        return;
+      }
       switchTo(
         { mode, selected: slug },
         mode === "substances"
@@ -106,6 +135,12 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     },
     [mode, selected, switchTo],
   );
+  const onClose = useCallback(() => {
+    switchTo({ mode, selected: null }, "Closing this structure will discard the unsaved changes to its depiction.");
+  }, [mode, switchTo]);
+
+  const [filters, setFilters] = useState<Record<EditorMode, MoleculeListFilter>>({ substances: "all", classes: "all", templates: "all" });
+  const [queries, setQueries] = useState<Record<EditorMode, string>>({ substances: "", classes: "", templates: "" });
   const onModeChange = useCallback(
     (nextMode: string) => {
       if (!isEditorMode(nextMode) || nextMode === mode) return;
@@ -117,44 +152,51 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     [mode, switchTo],
   );
 
-  // Saved template keys, offered as import sources outside substances mode.
-  const [templateKeys, setTemplateKeys] = useState<string[]>([]);
+  // Saved template keys: the Class templates list and import sources outside substances mode.
+  const [templateSummaries, setTemplateSummaries] = useState<Map<string, OverrideSummary> | null>(null);
+  const [templateListError, setTemplateListError] = useState<string | null>(null);
+  const [templateReload, setTemplateReload] = useState(0);
   useEffect(() => {
-    if (mode === "substances") return;
     let cancelled = false;
+    setTemplateListError(null);
     void fetch(`${TEMPLATE_API}?list=1`)
       .then(async (response) => {
         const body = (await response.json().catch(() => ({}))) as {
-          templates?: Array<{ classKey: string }>;
+          error?: string;
+          templates?: Array<{ classKey: string; updatedAt?: number }>;
         };
-        if (!cancelled && response.ok) {
-          setTemplateKeys((body.templates ?? []).map((row) => row.classKey));
+        if (!response.ok) throw new Error(body.error ?? `The template list could not be read (${response.status}).`);
+        if (!cancelled) {
+          setTemplateSummaries(new Map((body.templates ?? []).map((row) => [row.classKey, { source: "saved", updatedAt: row.updatedAt ?? null }])));
         }
       })
-      .catch(() => {
-        /* the picker simply omits templates when the list is unavailable */
+      .catch((error: unknown) => {
+        if (!cancelled) setTemplateListError(error instanceof Error ? error.message : String(error));
       });
     return () => {
       cancelled = true;
     };
-  }, [mode]);
+  }, [templateReload]);
+  const templateKeys = useMemo(() => Array.from(templateSummaries?.keys() ?? []), [templateSummaries]);
 
-  // --- live picker data -----------------------------------------------------
-  const pickerRows = useMoleculePickerRead(true);
-  const overrideList = useEditorRead("moleculeOverrides:listSlugs", {}, "list");
+  // --- live list data -------------------------------------------------------
+  const pickerRead = useMoleculePickerReadState(true);
+  const pickerRows = pickerRead.data;
+  const overrideListRead = useEditorReadState("moleculeOverrides:listSlugs", {}, "list");
+  const overrideList = overrideListRead.data;
+  const overrideSummaries = useMemo(() => {
+    const map = new Map<string, OverrideSummary>();
+    for (const row of (overrideList ?? []) as Array<{ slug: string; source?: string; updatedAt?: string | number }>) {
+      map.set(row.slug, { source: row.source ?? null, updatedAt: row.updatedAt ?? null });
+    }
+    return map;
+  }, [overrideList]);
   const overrideSet = useMemo(
     () => new Set([
-      ...(overrideList ?? []).map((row) => row.slug),
+      ...overrideSummaries.keys(),
       ...(pickerRows ?? []).filter((row) => row.hasOverride).map((row) => row.slug),
     ]),
-    [overrideList, pickerRows],
-  );
-  const overrideCount = useMemo(
-    () =>
-      mode === "classes"
-        ? Array.from(overrideSet).filter((slug) => slug.startsWith("class:")).length
-        : Array.from(overrideSet).filter((slug) => !slug.startsWith("class:")).length,
-    [mode, overrideSet],
+    [overrideSummaries, pickerRows],
   );
   const molecules = useMemo<MoleculePickerItem[] | null>(
     () => pickerRows
@@ -173,10 +215,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       : null,
     [overrideSet, pickerRows],
   );
-  const publishedCount = useMemo(
-    () => (molecules ?? []).filter((item) => item.publiclyListed).length,
-    [molecules],
-  );
   const classStructures = useMemo<MoleculePickerItem[]>(
     () =>
       CLASS_STRUCTURES.map((item) => ({
@@ -191,9 +229,9 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       CLASS_TEMPLATE_OPTIONS.map((item) => ({
         slug: item.key,
         title: item.label,
-        hasOverride: false,
+        hasOverride: templateKeys.includes(item.key),
       })),
-    [],
+    [templateKeys],
   );
   // Import sources: any saved depiction other than the one being edited. Class
   // and template modes also offer the saved class overrides (their Postgres slugs
@@ -224,44 +262,146 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       }));
     return [...templateSources, ...classSources, ...substanceSources];
   }, [molecules, classStructures, classTemplates, templateKeys, mode, selected]);
-  const pickerItems =
-    mode === "classes" ? classStructures : mode === "templates" ? classTemplates : molecules;
 
-  // If Postgres never resolves, stop showing an indefinite "Loading…".
+  // The list column's rows for the open mode, each with where its drawing comes from.
+  const rows = useMemo<MoleculeListRow[] | null>(() => {
+    if (mode === "substances") {
+      if (!molecules) return null;
+      return molecules.map((item) => {
+        const summary = overrideSummaries.get(item.slug);
+        return { ...item, depiction: depictionStateOf(summary, item.hasOverride), updatedAt: summary?.updatedAt ?? null };
+      });
+    }
+    if (mode === "classes") {
+      return classStructures.map((item) => {
+        const summary = overrideSummaries.get(`class:${item.slug}`);
+        return { ...item, depiction: summary ? "editor" : depictionStateOf(undefined, item.hasOverride), updatedAt: summary?.updatedAt ?? null };
+      });
+    }
+    if (!templateSummaries && !templateListError) return null;
+    return classTemplates.map((item) => {
+      const summary = templateSummaries?.get(item.slug);
+      return { ...item, depiction: summary ? "saved" : "none", updatedAt: summary?.updatedAt ?? null };
+    });
+  }, [mode, molecules, overrideSummaries, classStructures, classTemplates, templateSummaries, templateListError]);
+  const listError =
+    mode === "substances" ? pickerRead.error : mode === "templates" ? (templateSummaries ? null : templateListError) : null;
+  const retryList = useCallback(() => {
+    pickerRead.retry();
+    overrideListRead.retry();
+    setTemplateReload((key) => key + 1);
+  }, [pickerRead, overrideListRead]);
+
+  // If Postgres never resolves, stop showing an indefinite skeleton.
   const [loadTimedOut, setLoadTimedOut] = useState(false);
   useEffect(() => {
-    if (pickerItems) {
+    if (rows) {
       setLoadTimedOut(false);
       return;
     }
     const id = setTimeout(() => setLoadTimedOut(true), LOAD_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [pickerItems]);
+  }, [rows]);
+
+  const listRecord = useMemo<MoleculePaneRecord | null>(() => {
+    const row = rows?.find((item) => item.slug === selected);
+    return row
+      ? { title: row.title, slug: row.slug, depiction: row.depiction, savedAt: row.updatedAt ?? null, publiclyListed: row.publiclyListed }
+      : null;
+  }, [rows, selected]);
+
+  // Phones: an open structure scrolls into view; its heading takes focus once rendered.
+  useScrollToDetail(paneRef, selected ? `${mode}:${selected}` : null);
+  useEffect(() => {
+    if (!selected || !focusPaneOnOpen.current) return;
+    focusPaneOnOpen.current = false;
+    paneTitleRef.current?.focus({ preventScroll: true });
+  }, [selected, mode]);
+  // A deep link on a phone lands on the pane, not the top of the list, once the list is in.
+  const deepLinked = useRef(selection.selected);
+  useEffect(() => {
+    if (!deepLinked.current || !rows) return;
+    deepLinked.current = null;
+    if (typeof window.matchMedia === "function" && window.matchMedia("(max-width: 1023.98px)").matches) {
+      paneRef.current?.scrollIntoView({ block: "start" });
+    }
+    paneTitleRef.current?.focus({ preventScroll: true });
+  }, [rows]);
+  const onBackToList = useCallback(() => {
+    listRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    const open = listRef.current?.querySelector<HTMLElement>('[aria-current="true"]');
+    (open ?? searchRef.current)?.focus({ preventScroll: true });
+  }, []);
+
+  // `/` finds a structure in the list.
+  useDevShortcuts(LIST_SHORTCUTS);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTextEntryTarget(event.target)) return;
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const modeCounts: Record<EditorMode, number | null> = {
+    substances: molecules?.length ?? null,
+    classes: CLASS_STRUCTURES.length,
+    templates: CLASS_TEMPLATE_OPTIONS.length,
+  };
 
   return (
-    <div className="mt-6 space-y-8 md:mt-8">
-      <MoleculeEditorSession
-        key={`${mode}:${selected ?? ""}`}
-        mode={mode}
-        selected={selected}
-        onSelect={onSelect}
-        onModeChange={onModeChange}
-        onDirtyChange={onSessionDirtyChange}
-        engines={{ ocl, oclError, rdkit, rdkitError }}
-        fineRotation={fineRotation}
-        onFineRotationChange={setFineRotation}
-        picker={{
-          items: pickerItems,
-          loadTimedOut,
-          loadedCount: pickerItems?.length ?? 0,
-          overrideCount,
-          publishedCount,
-        }}
-        molecules={molecules}
-        classTemplates={classTemplates}
-        importableMolecules={importableMolecules}
-        overrideSet={overrideSet}
-      />
+    <div className="mx-auto w-full max-w-[100rem]">
+      <EditorSection
+        icon="lucide:hexagon"
+        title="Molecules"
+        description="How each structure is drawn: atom positions, wedge and hash bonds, bold bonds. Substance and class depictions go live when you save; class templates stay private."
+      >
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(17rem,21rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
+          <MoleculeListColumn
+            ref={listRef}
+            mode={mode}
+            onModeChange={onModeChange}
+            modeCounts={modeCounts}
+            rows={rows}
+            error={listError}
+            onRetry={retryList}
+            loadTimedOut={loadTimedOut}
+            selected={selected}
+            dirty={sessionDirty}
+            onSelect={onSelect}
+            filter={filters[mode]}
+            onFilterChange={(filter) => setFilters((current) => ({ ...current, [mode]: filter }))}
+            query={queries[mode]}
+            onQueryChange={(query) => setQueries((current) => ({ ...current, [mode]: query }))}
+            searchRef={searchRef}
+          />
+          <div ref={paneRef} className="min-w-0 scroll-mt-24">
+            <MoleculeEditorSession
+              key={`${mode}:${selected ?? ""}`}
+              mode={mode}
+              selected={selected}
+              listRecord={listRecord}
+              listLoading={!rows && !listError}
+              onClose={onClose}
+              onBackToList={onBackToList}
+              titleRef={paneTitleRef}
+              onDirtyChange={onSessionDirtyChange}
+              engines={{ ocl, oclError, rdkit, rdkitError }}
+              fineRotation={fineRotation}
+              onFineRotationChange={setFineRotation}
+              loadTimedOut={loadTimedOut}
+              molecules={molecules}
+              classTemplates={classTemplates}
+              importableMolecules={importableMolecules}
+              overrideSet={overrideSet}
+            />
+          </div>
+        </div>
+      </EditorSection>
       {confirmDialog}
     </div>
   );

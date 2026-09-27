@@ -114,6 +114,21 @@ const applyMove = (article: ArticleRecord, mutation: TagMoveMutation) => {
   const sourceBefore = readFieldValues(article, mutation.sourceField);
   const targetBefore = readFieldValues(article, mutation.targetField);
   const tagKey = toTagKey(normalizedTag);
+
+  // Only an article that carries the tag moves it; every other article is
+  // left alone (without this, a move added the label to the whole corpus).
+  if (!sourceBefore.some((value) => toTagKey(value) === tagKey)) {
+    return {
+      article,
+      sourceBefore,
+      sourceAfter: sourceBefore,
+      targetBefore,
+      targetAfter: targetBefore,
+      sourceChanged: false,
+      targetChanged: false,
+      changed: false,
+    };
+  }
   const keepCopy = Boolean(mutation.keepSourceCopy);
 
   let sourceAfter = sourceBefore;

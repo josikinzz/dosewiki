@@ -13,8 +13,6 @@ import {
 import type { BoardCategory, BoardSection } from "./boardModel";
 import { LayoutDrugRow, rowId } from "./LayoutDrugRow";
 
-
-
 /** The substances of one slot: a drop target, its rows, and the add row. */
 function SlotList({
   category,
@@ -26,6 +24,7 @@ function SlotList({
   actions: BoardActions;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: section.id });
+  const listLabel = actions.listName(section.slot);
 
   return (
     <>
@@ -40,10 +39,12 @@ function SlotList({
             "-mb-1 min-h-[2.25rem] space-y-0.5 rounded-xl pb-1 transition-colors",
             isOver && "bg-dose-surface-muted ring-1 ring-dose-accent-strong",
           )}
-          aria-label={section.label ? `${section.label} substances` : `${category.label} substances`}
+          aria-label={`${listLabel}, ${section.items.length} ${section.items.length === 1 ? "substance" : "substances"}`}
         >
           {section.items.length === 0 ? (
-            <li className="theme-text-faint px-3 py-2 text-sm italic">Drop a substance here</li>
+            <li className="theme-text-faint px-3 py-2 text-sm">
+              Empty. Drop a substance here or add one below.
+            </li>
           ) : null}
           {section.items.map((item, index) => (
             <LayoutDrugRow
@@ -52,10 +53,12 @@ function SlotList({
               item={item}
               index={index}
               count={section.items.length}
-              destinations={actions.destinations}
+              listLabel={listLabel}
               onBump={actions.onBump}
-              onMove={actions.onMove}
+              onPlace={actions.onPlace}
+              onRequestMove={actions.onRequestMove}
               onRemove={actions.onRemoveSlug}
+              changed={actions.isChanged?.(section.slot, item.slug) ?? false}
             />
           ))}
         </ul>
@@ -137,6 +140,7 @@ export function IndexLayoutCard({
         single ? (
           <SectionMenu
             categoryKey={category.key}
+            categoryLabel={category.label}
             section={single}
             previous={singleIndex > 0 ? siblings[singleIndex - 1] : null}
             next={singleIndex >= 0 && singleIndex < siblings.length - 1 ? siblings[singleIndex + 1] : null}
@@ -156,17 +160,16 @@ export function IndexLayoutCard({
                   <span className="min-w-0 break-words">{section.label}</span>
                   <IndexCardCountBadge count={section.items.length} size="sm" />
                   {section.hiddenOnSite ? (
-                    <span
-                      className="theme-text-faint normal-case tracking-normal"
-                      title="A section with nothing visible in it does not render on the site"
-                    >
-                      not shown
+                    <span className="theme-text-faint text-xs font-normal normal-case tracking-normal">
+                      <span className="sr-only">, </span>
+                      not on the site, nothing visible
                     </span>
                   ) : null}
                 </p>
                 <span className="ml-auto flex shrink-0 items-center">
                   <SectionMenu
                     categoryKey={category.key}
+                    categoryLabel={category.label}
                     section={section}
                     previous={index > 0 ? sections[index - 1] : null}
                     next={index < sections.length - 1 ? sections[index + 1] : null}

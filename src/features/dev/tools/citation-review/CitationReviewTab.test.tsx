@@ -139,10 +139,8 @@ describe("CitationReviewTab", () => {
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith("/api/citation-evidence/queue?status=approved", undefined),
     );
-    expect(await screen.findByText("No evidence rows match this filter")).toBeInTheDocument();
-    expect(
-      screen.getByText(/No articles have evidence rows matching the accepted filter/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("No article has every evidence row accepted yet.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show the open articles" })).toBeInTheDocument();
 
     // The filter control survives the empty state so the reviewer can switch back.
     const emptyFilter = screen.getByRole("group", { name: "Queue filter" });
@@ -182,12 +180,13 @@ describe("CitationReviewTab", () => {
   it("keeps the article-wide approval locked until a row is opened, then confirms with the sections touched", async () => {
     const user = userEvent.setup();
     const posts: StatusPost[] = [];
-    stubQueue({ open: [openSummary] }, { posts });
+    // A server that keeps what it is told, so the undo's read-first check sees the approval.
+    stubServer({ queue: [openSummary], rowsBySlug: { lsd: rows }, posts });
     render(<CitationReviewTab />);
 
     const approveAll = await screen.findByRole("button", { name: "Approve 1 ready row" });
     expect(approveAll).toBeDisabled();
-    expect(screen.getByText(/Open each ready row above before approving the set/)).toBeInTheDocument();
+    expect(screen.getByText(/Open each ready row before approving the set \(0 of 1 opened\)/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Ready claim/ }));
     expect(approveAll).toBeEnabled();
@@ -281,7 +280,7 @@ describe("CitationReviewTab", () => {
     );
     render(<CitationReviewTab />);
 
-    expect(await screen.findByText("Could not load this data")).toBeInTheDocument();
+    expect(await screen.findByText("Could not load the citation queue")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open Review portal" })).toHaveAttribute("href", "/review");
     stubQueue({ open: [openSummary] });
 
@@ -310,7 +309,17 @@ function stubServer(options: {
   posts?: StatusPost[];
   holdDetail?: Record<string, Deferred>;
   holdPost?: Deferred;
+  /** Another admin decides this row right after the first read of its article. */
+  concurrent?: { slug: string; claimKey: string; status: CitationEvidenceRow["status"] };
+  /** Status writes answer the server's write-freeze refusal. */
+  frozen?: boolean;
+  /** Claims in the Inbox's claim table, and the claim writes. */
+  claims?: Array<{ source: string; item_id: string; claimed_by: string; claimed_at: string }>;
+  claimPosts?: unknown[];
+  /** The queue drops articles whose rows are all accepted, as the Open filter does. */
+  drainAccepted?: boolean;
 }) {
+  let reads = 0;
   const store = new Map(
     Object.entries(options.rowsBySlug).map(([slug, slugRows]) => [slug, slugRows.map((row) => ({ ...row }))]),
   );
@@ -319,7 +328,19 @@ function stubServer(options: {
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = new URL(String(input), "https://dose.wiki");
       if (url.pathname === "/api/citation-evidence/queue") {
-        return Response.json({ ok: true, queue: options.queue });
+        const queue = options.drainAccepted
+          ? options.queue.filter((entry) => (store.get(entry.slug) ?? []).some((row) => row.status !== "approved"))
+          : options.queue;
+        return Response.json({ ok: true, queue });
+      }
+      if (url.pathname === "/api/dev/inbox/claims") {
+        if (!options.claims) return Response.json({ error: "unexpected" }, { status: 500 });
+        if (init?.method === "POST") {
+          const body = JSON.parse(String(init.body)) as { action: string; id: string };
+          options.claimPosts?.push(body);
+          return Response.json({ ok: true, claim: { source: "citations", item_id: body.id, claimed_by: "ada@example.com", claimed_at: "2026-05-02T00:00:00.000Z" } });
+        }
+        return Response.json({ ok: true, claims: options.claims });
       }
       if (url.pathname === "/api/citation-evidence") {
         const slug = url.searchParams.get("slug") ?? "";
@@ -328,11 +349,20 @@ function stubServer(options: {
           delete options.holdDetail?.[slug];
           await hold.promise;
         }
-        return Response.json({ ok: true, rows: store.get(slug) ?? [] });
+        const answer = Response.json({ ok: true, rows: (store.get(slug) ?? []).map((row) => ({ ...row })) });
+        reads += 1;
+        if (options.concurrent && options.concurrent.slug === slug && reads === 1) {
+          const { claimKey, status } = options.concurrent;
+          store.set(slug, (store.get(slug) ?? []).map((row) => (row.claimKey === claimKey ? { ...row, status, updatedAt: "2026-05-02T00:00:00.000Z" } : row)));
+        }
+        return answer;
       }
       if (url.pathname === "/api/citation-evidence/status" && init?.method === "POST") {
         const post = JSON.parse(String(init.body)) as StatusPost;
         options.posts?.push(post);
+        if (options.frozen) {
+          return Response.json({ error: "Data writes are frozen.", code: "DATA_WRITES_FROZEN" }, { status: 503 });
+        }
         if (options.holdPost) {
           const hold = options.holdPost;
           options.holdPost = undefined;
@@ -450,13 +480,13 @@ describe("CitationReviewTab decisions refresh in place", () => {
     expect(approveAll).toBeEnabled();
   });
 
-  it("gates and confirms 'Approve section-ready rows' like the article-wide approval", async () => {
+  it("gates and confirms a section's own approval like the article-wide approval", async () => {
     const user = userEvent.setup();
     const posts: StatusPost[] = [];
     stubServer({ queue: [openSummary], rowsBySlug: { lsd: twoReadyRows }, posts });
     render(<CitationReviewTab />);
 
-    const approveSection = await screen.findByRole("button", { name: "Approve section-ready rows" });
+    const approveSection = await screen.findByRole("button", { name: "Approve 2 in Summary" });
     expect(approveSection).toBeDisabled();
     await user.click(screen.getByRole("button", { name: /First claim/ }));
     await user.click(screen.getByRole("button", { name: /Second claim/ }));
@@ -535,3 +565,118 @@ describe("CitationReviewTab decisions refresh in place", () => {
   });
 });
 
+
+describe("CitationReviewTab guards and workspace", () => {
+  it("reads before deciding and refuses rows someone else changed since they were shown", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    stubServer({
+      queue: [openSummary],
+      rowsBySlug: { lsd: twoReadyRows },
+      posts,
+      concurrent: { slug: "lsd", claimKey: "summary:first", status: "approved" },
+    });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /First claim/ }));
+    await user.click(within(evidenceRow("First claim")).getByRole("button", { name: "Approve" }));
+
+    expect(await screen.findByText("Changed by someone else")).toBeInTheDocument();
+    expect(screen.getByText(/Someone changed one of these rows after you opened it, so nothing was saved/)).toBeInTheDocument();
+    expect(posts).toHaveLength(0);
+    // The latest is on screen: the row now reads as accepted.
+    expect(within(evidenceRow("First claim")).getByText("Accepted")).toBeInTheDocument();
+  });
+
+  it("asks before approving a rejected row and quotes its reason", async () => {
+    const user = userEvent.setup();
+    const posts: StatusPost[] = [];
+    stubServer({
+      queue: [openSummary],
+      rowsBySlug: { lsd: [createRow({ claimKey: "summary:no", claimText: "Rejected claim", status: "rejected", statusReason: "Wrong source" })] },
+      posts,
+    });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /Rejected claim/ }));
+    await user.click(within(evidenceRow("Rejected claim")).getByRole("button", { name: "Approve" }));
+    const dialog = await screen.findByRole("dialog", { name: "Approve a rejected row?" });
+    expect(within(dialog).getByText(/was rejected: “Wrong source”/)).toBeInTheDocument();
+    expect(posts).toHaveLength(0);
+    await user.click(within(dialog).getByRole("button", { name: "Approve row" }));
+    await waitFor(() => expect(posts).toEqual([{ slug: "lsd", claimKeys: ["summary:no"], status: "approved" }]));
+  });
+
+  it("says a refused write under the freeze was not saved", async () => {
+    const user = userEvent.setup();
+    stubServer({ queue: [openSummary], rowsBySlug: { lsd: twoReadyRows }, frozen: true });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /First claim/ }));
+    await user.click(within(evidenceRow("First claim")).getByRole("button", { name: "Approve" }));
+    expect(await screen.findByText(/Writes are paused, so that was not saved/)).toBeInTheDocument();
+    expect(within(evidenceRow("First claim")).queryByRole("button", { name: "Undo" })).not.toBeInTheDocument();
+  });
+
+  it("shows who holds the article and claims it through the Inbox's claim table", async () => {
+    const user = userEvent.setup();
+    const claimPosts: unknown[] = [];
+    const mdmaSummary = { ...openSummary, slug: "mdma", articleId: 2 };
+    stubServer({
+      queue: [openSummary, mdmaSummary],
+      rowsBySlug: { lsd: twoReadyRows, mdma: twoReadyRows },
+      claims: [{ source: "citations", item_id: "mdma", claimed_by: "ben@example.com", claimed_at: "2026-05-01T00:00:00.000Z" }],
+      claimPosts,
+    });
+    render(<CitationReviewTab actorEmail="ada@example.com" />);
+
+    expect(await screen.findByText("Nobody is reviewing this yet.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Claim" }));
+    await waitFor(() => expect(claimPosts).toEqual([{ action: "claim", source: "citations", id: "lsd" }]));
+    expect(await screen.findByText(/You are reviewing this/)).toBeInTheDocument();
+
+    await user.keyboard("j");
+    // The row and the dock both name the holder.
+    expect(await screen.findByText(/Claimed by ben@example.com, .*Claims are advisory/)).toBeInTheDocument();
+  });
+
+  it("keeps a drained article open with its result and offers the next one", async () => {
+    const user = userEvent.setup();
+    const mdmaSummary = { ...openSummary, slug: "mdma", articleId: 2 };
+    stubServer({
+      queue: [openSummary, mdmaSummary],
+      rowsBySlug: { lsd: [createRow({ claimKey: "summary:only", claimText: "Only claim" })], mdma: twoReadyRows },
+      drainAccepted: true,
+    });
+    render(<CitationReviewTab />);
+
+    await user.click(await screen.findByRole("button", { name: /Only claim/ }));
+    await user.click(within(evidenceRow("Only claim")).getByRole("button", { name: "Approve" }));
+
+    expect(await screen.findByText(/so it left the Open list/)).toBeInTheDocument();
+    expect(within(evidenceRow("Only claim")).getByRole("button", { name: "Undo" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Next waiting: mdma" }));
+    expect(await screen.findByText("First claim")).toBeInTheDocument();
+  });
+
+  it("says when a deep link names an article the list does not hold", async () => {
+    stubServer({ queue: [openSummary], rowsBySlug: { lsd: twoReadyRows } });
+    render(<CitationReviewTab initialSlug="gone" />);
+
+    expect(await screen.findByText(/The link named “gone”, which has no open evidence/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Look under All" })).toBeInTheDocument();
+  });
+
+  it("opens the next unread ready row with o, which unlocks the set", async () => {
+    const user = userEvent.setup();
+    stubServer({ queue: [openSummary], rowsBySlug: { lsd: twoReadyRows } });
+    render(<CitationReviewTab />);
+
+    const approveAll = await screen.findByRole("button", { name: "Approve 2 ready rows" });
+    expect(approveAll).toBeDisabled();
+    await user.keyboard("o");
+    await waitFor(() => expect(screen.getByRole("button", { name: /First claim/ })).toHaveAttribute("aria-expanded", "true"));
+    await user.click(screen.getByRole("button", { name: "Open the next unread row" }));
+    await waitFor(() => expect(approveAll).toBeEnabled());
+  });
+});

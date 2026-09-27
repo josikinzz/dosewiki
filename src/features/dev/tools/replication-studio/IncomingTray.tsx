@@ -126,7 +126,7 @@ export function IncomingTray({
   }
 
   const effectOptions = [
-    { value: "", label: "Effect…" },
+    { value: "", label: "Effect" },
     ...effects.map((effect) => ({ value: effect.slug, label: effect.name })),
   ];
 
@@ -285,7 +285,7 @@ export function IncomingTray({
                   disabled={!incomingReady(item)}
                   onClick={() => onAdd(item)}
                 >
-                  {itemBusy ? "Uploading…" : "Upload"}
+                  {itemBusy ? "Uploading" : "Upload"}
                 </Button>
                 <Button
                   type="button"

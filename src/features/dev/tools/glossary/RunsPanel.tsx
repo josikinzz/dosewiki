@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +15,7 @@ import { TranslationProgress } from "./TranslationProgress";
  * pages. Every button calls the model, so the workbench renders this only for
  * admins. The actions themselves live in the workbench and are unchanged.
  */
-export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, starting, refreshError, onRefresh, onStart, onRetranslate, onRetryExhausted }: {
+export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, starting, refreshError, onRefresh, onStart, onRetranslate, onRetryExhausted, result }: {
   data: GlossaryList;
   /** Approved terms the stored translations have not been redone for. */
   pending: readonly string[];
@@ -27,6 +29,8 @@ export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, s
   onStart: () => void;
   onRetranslate: () => void;
   onRetryExhausted: () => void;
+  /** The last run write's result and what is running, placed under the buttons that made it. */
+  result?: ReactNode;
 }) {
   const nothingTranslatedYet = data.segments.total === 0;
   const running = data.jobs.active > 0;
@@ -55,9 +59,10 @@ export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, s
           </Button>
         )}
       </div>
+      {result ? <div aria-live="polite" className="space-y-2 empty:hidden">{result}</div> : null}
       {!reviewComplete && data.rows.length > 0 ? (
         <p className="theme-text-faint text-xs">
-          The main translation can start once every term is reviewed: {count(draftCount, "term")} still {draftCount === 1 ? "needs" : "need"} a decision.
+          The main translation can start once every term is reviewed: {count(draftCount, "term")} still {draftCount === 1 ? "needs" : "need"} a decision in Terms.
         </p>
       ) : null}
       {nothingTranslatedYet ? (

@@ -61,6 +61,8 @@ export const ARTICLE_PREVIEW_WIDTHS: Record<ArticlePreviewWidth, number> = {
 };
 
 const FRAME_HEIGHT = 760;
+/** The smallest frame while there is no article to draw (none picked, or it failed). */
+const FALLBACK_MIN_HEIGHT = 120;
 
 export type ArticlePreviewSlugOption = { slug: string; title: string };
 
@@ -87,6 +89,8 @@ export type ArticlePreviewFrameProps = {
   overrides?: Partial<Omit<ArticleLayoutProps, "article">>;
   /** Names the frame for assistive tech and tests. */
   label?: string;
+  /** The width the frame opens at; the editor can still switch. Defaults to desktop. */
+  defaultWidth?: ArticlePreviewWidth;
 };
 
 /* ------------------------------------------------------------------ */
@@ -280,9 +284,10 @@ export function ArticlePreviewFrame({
   draft,
   overrides,
   label = "Article preview",
+  defaultWidth = "desktop",
 }: ArticlePreviewFrameProps) {
   const [scheme, setScheme] = useState<ColorScheme>(hostScheme);
-  const [width, setWidth] = useState<ArticlePreviewWidth>("desktop");
+  const [width, setWidth] = useState<ArticlePreviewWidth>(defaultWidth);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const body = useFrameBody(iframeRef, scheme);
@@ -290,6 +295,27 @@ export function ArticlePreviewFrame({
   const scale = useFitScale(viewportRef, frameWidth);
   const load = usePreviewArticle(slug);
   const article = load.article;
+  // Without an article the frame holds only the banner stack (or nothing), so
+  // it shrinks to what it shows instead of keeping an article's height. The
+  // stack is measured inside the frame's own window, where it lays out.
+  const fallbackRef = useRef<HTMLElement>(null);
+  const [fallbackHeight, setFallbackHeight] = useState<number | null>(null);
+  const compact = !article && load.status !== "loading";
+  useLayoutEffect(() => {
+    const node = fallbackRef.current;
+    if (!compact || !node) {
+      setFallbackHeight(null);
+      return;
+    }
+    const measure = () => setFallbackHeight(Math.ceil(node.getBoundingClientRect().height));
+    measure();
+    const FrameResizeObserver = node.ownerDocument.defaultView?.ResizeObserver;
+    if (!FrameResizeObserver) return;
+    const observer = new FrameResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [compact, body]);
+  const frameHeight = compact ? Math.min(FRAME_HEIGHT, Math.max(FALLBACK_MIN_HEIGHT, fallbackHeight ?? FALLBACK_MIN_HEIGHT)) : FRAME_HEIGHT;
 
   // The saved depiction, versioned the way the substance route versions it.
   const moleculeMeta = useEditorRead(
@@ -387,9 +413,9 @@ export function ArticlePreviewFrame({
       />
     </main>
   ) : (
-    <main className="theme-page-shell min-h-screen space-y-4 p-6">
+    <main ref={fallbackRef} className={`theme-page-shell space-y-4 p-6${compact ? "" : " min-h-screen"}`}>
       {load.status === "loading" ? (
-        <p className="theme-text-faint text-sm">{`Loading ${title}…`}</p>
+        <p className="theme-text-faint text-sm">{`Loading ${title}`}</p>
       ) : null}
       <SubstanceWarningBanners banners={warningBanners ?? []} iconSize={iconSize} />
     </main>
@@ -443,7 +469,7 @@ export function ArticlePreviewFrame({
       <div
         ref={viewportRef}
         className="overflow-hidden rounded-xl border border-dose-border"
-        style={{ height: FRAME_HEIGHT * scale }}
+        style={{ height: frameHeight * scale }}
       >
         <iframe
           ref={iframeRef}
@@ -453,7 +479,7 @@ export function ArticlePreviewFrame({
           className="block border-0"
           style={{
             width: frameWidth,
-            height: FRAME_HEIGHT,
+            height: frameHeight,
             margin: width === "phone" ? "0 auto" : undefined,
             transform: scale < 1 ? `scale(${scale})` : undefined,
             transformOrigin: "0 0",

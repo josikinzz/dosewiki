@@ -10,16 +10,15 @@
  * written here.
  */
 import { useCallback, useEffect, useId, useState } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Surface } from "@/components/ui/surface";
-import { StateCard } from "@/components/common/StateCard";
-import { useUnsavedWork } from "@/features/dev/components";
+import { EditorField, EditorPanel, EditorStatusPill, LoadErrorState, Notice, useUnsavedWork } from "@/features/dev/components";
 import { formatReviewReason } from "../../../../../lib/translation/reviewReason";
 import { ApprovalActions, EMPTY_REASON, ReasonPicker, reasonFor, type ReasonDraft } from "./CorrectionReason";
 import { languageLabel } from "./glossaryModel";
+import { PaneDock, RowSkeletons, When } from "./workbenchParts";
 import { EMPTY_STYLE_GUIDE, STYLE_GUIDE_LIMITS, type StyleGuideDocument, type StyleGuideExample, type StyleGuidePacket } from "../../../../../lib/translation/styleGuideTypes";
 
 const ENDPOINT = "/api/dev/translation-style-guide";
@@ -41,13 +40,13 @@ const sameDocument = (a: ReturnType<typeof documentOf>, b: StyleGuideDocument | 
 
 function ExampleView({ example, locale }: { example: NewExample; locale: string }) {
   return (
-    <div className="min-w-0 space-y-1 break-words text-sm">
-      {example.source ? <p lang="en" className="theme-text-secondary">English: {example.source}</p> : null}
-      <p className="theme-text-secondary">Before: <span lang={locale} dir="auto">{example.before}</span></p>
-      <p className="theme-text-primary">After: <span lang={locale} dir="auto">{example.after}</span></p>
-      <p className="theme-text-secondary">Why: {example.why}</p>
-      {example.origin ? <p className="theme-text-faint text-xs">Promoted from {example.origin.slug}, correction revision {example.origin.revision}</p> : null}
-    </div>
+    <dl className="grid min-w-0 flex-1 grid-cols-[4.5rem_minmax(0,1fr)] gap-x-3 gap-y-1 break-words text-sm">
+      {example.source ? <><dt className="theme-text-muted">English</dt><dd lang="en" className="theme-text-secondary">{example.source}</dd></> : null}
+      <dt className="theme-text-muted">Before</dt><dd lang={locale} dir="auto" className="theme-text-secondary line-through decoration-[var(--theme-text-faint)]">{example.before}</dd>
+      <dt className="theme-text-muted">After</dt><dd lang={locale} dir="auto" className="theme-text-primary">{example.after}</dd>
+      <dt className="theme-text-muted">Why</dt><dd className="theme-text-secondary">{example.why}</dd>
+      {example.origin ? <dd className="theme-text-faint col-span-2 text-xs">Promoted from a correction in {example.origin.slug}</dd> : null}
+    </dl>
   );
 }
 
@@ -133,63 +132,107 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   });
   const canAdd = adding.before.trim() && adding.after.trim() && adding.why.trim() && adding.before.trim() !== adding.after.trim();
 
-  if (!packet) return error ? <StateCard compact tone="danger" title="Style guide unavailable" description={error} /> : <p className="theme-text-secondary text-sm">Loading the style guide.</p>;
+  if (!packet) return error ? <LoadErrorState what="the style guide" message={error} onRetry={() => { setError(null); void load(); }} /> : <RowSkeletons rows={3} label="the style guide" />;
+  const stateLine = unsaved
+    ? "Unsaved changes"
+    : packet.draft
+      ? "A saved draft waits for approval"
+      : packet.approved ? "No changes yet" : "Nothing approved yet";
   return (
     <section aria-label="Style guide" className="min-w-0 space-y-4">
-      <p className="theme-text-secondary text-sm">
-        Rules and example corrections for {languageLabel(locale)}. Translations follow the approved guide: every rule, and up to five examples that share words with the text being translated.
-      </p>
-      <div className="flex flex-wrap items-center gap-2">
-        {packet.approved ? <Badge variant="success">Approved · version {packet.approvedRevision || "empty"}</Badge> : <Badge variant="outline">Nothing approved yet</Badge>}
-        {packet.draft ? <Badge variant="secondary">Draft waiting for approval</Badge> : null}
-        {unsaved ? <Badge variant="default">Unsaved changes</Badge> : null}
+      <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+        <p className="theme-text-secondary max-w-prose text-sm">
+          Rules and example corrections for {languageLabel(locale)}. Translations follow the approved guide: every rule, and up to five examples that share words with the text being translated.
+        </p>
+        <p className="theme-text-muted flex flex-wrap items-center gap-2 text-xs">
+          {packet.approved ? <><EditorStatusPill tone="success" inline>Approved</EditorStatusPill><span className="break-all">Approved · version {packet.approvedRevision || "empty"}</span></> : <EditorStatusPill tone="neutral" inline>Nothing approved yet</EditorStatusPill>}
+          {packet.draft ? <EditorStatusPill tone="warning" inline>Draft waiting</EditorStatusPill> : null}
+        </p>
       </div>
-      {error ? <StateCard compact tone="danger" title="Style guide failed" description={error} /> : null}
-      {notice ? <p role="status" className="theme-text-secondary text-sm">{notice}</p> : null}
 
-      <Surface variant="subtle" padding="sm" radius="lg" className="min-w-0 space-y-3">
-        <label htmlFor={`${formId}-rules`} className="block">Rules, one per line
-          <Textarea id={`${formId}-rules`} lang={locale} dir="auto" value={value.rulesText} disabled={busy} rows={5}
-            onChange={(e) => setValue((current) => ({ ...current, rulesText: e.target.value }))} />
-        </label>
-        <p className="theme-text-faint text-xs">At most {STYLE_GUIDE_LIMITS.rules} rules of {STYLE_GUIDE_LIMITS.ruleChars} characters each.</p>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] xl:items-start">
+        <EditorPanel className="overflow-visible">
+          <div className="space-y-6 px-4 py-5 sm:px-5 [&_:is(input,textarea,button)]:scroll-mb-48 [&_:is(input,textarea,button)]:scroll-mt-28">
+            <EditorField htmlFor={`${formId}-rules`} label="Rules, one per line" description={`At most ${STYLE_GUIDE_LIMITS.rules} rules of ${STYLE_GUIDE_LIMITS.ruleChars} characters each.`}>
+              <Textarea id={`${formId}-rules`} lang={locale} dir="auto" value={value.rulesText} disabled={busy} rows={5} className="[field-sizing:content] max-h-[70vh] min-h-32 text-[16px] md:text-sm"
+                onChange={(e) => setValue((current) => ({ ...current, rulesText: e.target.value }))} />
+            </EditorField>
 
-        <h4 className="theme-text-primary font-medium">Examples ({value.examples.length})</h4>
-        {value.examples.length === 0 ? <p className="theme-text-secondary text-sm">No examples yet. Promote a Fluency correction from the article reader, or add one below.</p> : null}
-        <ul className="space-y-3">
-          {value.examples.map((example, index) => (
-            <li key={example.id ?? `new-${index}`} className="flex min-w-0 items-start justify-between gap-3">
-              <ExampleView example={example} locale={locale} />
-              <Button size="sm" variant="outline" disabled={busy} aria-label={`Remove example ${index + 1}`}
-                onClick={() => setValue((current) => ({ ...current, examples: current.examples.filter((_, at) => at !== index) }))}>Remove</Button>
-            </li>
-          ))}
-        </ul>
+            <div className="space-y-3">
+              <h4 className="theme-text-primary flex items-baseline gap-2 font-medium">Examples <span className="theme-text-muted text-sm font-normal tabular-nums">{value.examples.length}</span></h4>
+              {value.examples.length === 0 ? <p className="theme-text-secondary text-sm">No examples yet. Promote a Fluency correction from the article reader, or add one below.</p> : null}
+              <ol className="theme-dev-link-list">
+                {value.examples.map((example, index) => (
+                  <li key={example.id ?? `new-${index}`} className="flex min-w-0 items-start justify-between gap-3 py-3">
+                    <ExampleView example={example} locale={locale} />
+                    <Button size="sm" variant="ghost" disabled={busy} aria-label={`Remove example ${index + 1}`}
+                      onClick={() => setValue((current) => ({ ...current, examples: current.examples.filter((_, at) => at !== index) }))}>
+                      <Icon icon="lucide:trash-2" size={14} /><span className="hidden sm:inline">Remove</span>
+                    </Button>
+                  </li>
+                ))}
+              </ol>
+            </div>
 
-        <fieldset className="space-y-2" disabled={busy}>
-          <legend className="theme-text-primary font-medium">Add an example</legend>
-          <label htmlFor={`${formId}-source`} className="block">English (optional)<Input id={`${formId}-source`} lang="en" value={adding.source ?? ""} onChange={(e) => setAdding({ ...adding, source: e.target.value })} /></label>
-          <label htmlFor={`${formId}-before`} className="block">Before<Input id={`${formId}-before`} lang={locale} dir="auto" value={adding.before} onChange={(e) => setAdding({ ...adding, before: e.target.value })} /></label>
-          <label htmlFor={`${formId}-after`} className="block">After<Input id={`${formId}-after`} lang={locale} dir="auto" value={adding.after} onChange={(e) => setAdding({ ...adding, after: e.target.value })} /></label>
-          <label htmlFor={`${formId}-why`} className="block">Why<Input id={`${formId}-why`} value={adding.why} maxLength={STYLE_GUIDE_LIMITS.whyChars} onChange={(e) => setAdding({ ...adding, why: e.target.value })} /></label>
-          <Button size="sm" variant="outline" disabled={!canAdd} onClick={() => {
-            const next: NewExample = { before: adding.before.trim(), after: adding.after.trim(), why: adding.why.trim() };
-            if (adding.source?.trim()) next.source = adding.source.trim();
-            setValue((current) => ({ ...current, examples: [...current.examples, next] }));
-            setAdding({ source: "", before: "", after: "", why: "" });
-          }}>Add example to draft</Button>
-        </fieldset>
+            <fieldset className="space-y-3 rounded-card border border-[color:var(--editor-panel-border)] p-4" disabled={busy}>
+              <legend className="theme-text-primary px-1 font-medium">Add an example</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <EditorField htmlFor={`${formId}-source`} label="English (optional)" className="sm:col-span-2"><Input id={`${formId}-source`} lang="en" value={adding.source ?? ""} onChange={(e) => setAdding({ ...adding, source: e.target.value })} /></EditorField>
+                <EditorField htmlFor={`${formId}-before`} label="Before"><Input id={`${formId}-before`} lang={locale} dir="auto" value={adding.before} onChange={(e) => setAdding({ ...adding, before: e.target.value })} /></EditorField>
+                <EditorField htmlFor={`${formId}-after`} label="After"><Input id={`${formId}-after`} lang={locale} dir="auto" value={adding.after} onChange={(e) => setAdding({ ...adding, after: e.target.value })} /></EditorField>
+                <EditorField htmlFor={`${formId}-why`} label="Why" className="sm:col-span-2"><Input id={`${formId}-why`} value={adding.why} maxLength={STYLE_GUIDE_LIMITS.whyChars} onChange={(e) => setAdding({ ...adding, why: e.target.value })} /></EditorField>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button size="sm" variant="outline" disabled={!canAdd} onClick={() => {
+                  const next: NewExample = { before: adding.before.trim(), after: adding.after.trim(), why: adding.why.trim() };
+                  if (adding.source?.trim()) next.source = adding.source.trim();
+                  setValue((current) => ({ ...current, examples: [...current.examples, next] }));
+                  setAdding({ source: "", before: "", after: "", why: "" });
+                }}>Add example to draft</Button>
+                {!canAdd && (adding.before || adding.after || adding.why) ? <span className="theme-text-muted text-xs">{adding.before.trim() && adding.before.trim() === adding.after.trim() ? "Before and After are the same." : "Before, After and Why are needed."}</span> : null}
+              </div>
+            </fieldset>
 
-        <ReasonPicker value={reason} onChange={setReason} disabled={busy} needed={unsaved} />
-        <ApprovalActions changed={unsaved} approvable={approvable} busy={busy} blocked={!reason.kind}
-          onSave={() => void mutate("save")} onSaveAndApprove={() => void mutate("save-approve")} onApprove={() => void mutate("approve")} />
-      </Surface>
+            <div className="space-y-2">
+              <h4 className="theme-text-primary font-medium">Why you are changing it</h4>
+              <ReasonPicker value={reason} onChange={setReason} disabled={busy} needed={unsaved} />
+            </div>
+          </div>
 
-      {packet.history?.length ? <>
-        <h4 className="theme-text-primary font-medium">Style guide history</h4>
-        {unsaved ? <p className="theme-text-faint text-xs">Save your changes first to restore an earlier revision.</p> : null}
-        <ul className="space-y-2">{packet.history.map((h) => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)} <Button size="sm" variant="outline" disabled={busy || unsaved} aria-label={`Restore revision ${h.revision} as draft`} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
-      </> : null}
+          <PaneDock label="Save">
+            {error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
+            {notice ? <Notice tone="success" placement="inline" message={notice} dismiss={() => setNotice("")} /> : null}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <ApprovalActions changed={unsaved} approvable={approvable} busy={busy} blocked={!reason.kind}
+                onSave={() => void mutate("save")} onSaveAndApprove={() => void mutate("save-approve")} onApprove={() => void mutate("approve")} />
+              <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs" aria-live="polite">
+                {unsaved ? <span aria-hidden className="size-1.5 rounded-full bg-[var(--theme-accent)]" /> : null}
+                {busy ? "Saving" : stateLine}
+              </span>
+              {unsaved && !reason.kind && !busy ? <span className="theme-text-muted text-xs">Choose why above to save them.</span> : null}
+            </div>
+          </PaneDock>
+        </EditorPanel>
+
+        <aside aria-labelledby={`${formId}-history`} className="space-y-3 xl:sticky xl:top-24">
+          <h4 id={`${formId}-history`} className="type-meta-label theme-text-muted">Style guide history</h4>
+          {unsaved && packet.history?.length ? <p className="theme-text-muted text-xs">Save your changes first to restore an earlier revision.</p> : null}
+          {packet.history?.length ? (
+            <ol className="theme-dev-link-list">
+              {packet.history.map((h) => (
+                <li key={h.revision} className="space-y-1.5 py-2.5 text-sm">
+                  <p className="theme-text-secondary">
+                    <span className="theme-text-primary font-medium">Revision {h.revision}</span>{" "}
+                    {h.action === "approve" ? "approved" : h.action === "restore" ? "restored as a draft" : "saved as a draft"} by {h.actor}, <When at={h.createdAt} />.
+                  </p>
+                  <p className="theme-text-muted text-xs">{formatReviewReason(h.reason)}</p>
+                  <Button size="sm" variant="outline" disabled={busy || unsaved} aria-label={`Restore revision ${h.revision} as draft`} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="theme-text-muted text-sm">No saved revisions yet.</p>}
+        </aside>
+      </div>
     </section>
   );
 }

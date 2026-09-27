@@ -44,24 +44,100 @@ export interface EditorListMultiSelect<T> {
   canCheck?: (item: T) => boolean;
 }
 
+/** How many times a pending reveal may correct itself as rows get measured. */
+const MAX_REVEAL_CORRECTIONS = 4;
+
+/** The first index whose row ends below `top` (binary search over prefix offsets). */
+function rowAt(offsets: Float64Array, count: number, top: number): number {
+  let low = 0;
+  let high = count;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (offsets[mid + 1] <= top) low = mid + 1;
+    else high = mid;
+  }
+  return low;
+}
+
 /**
- * Windowed list state: which slice of `count` rows is visible in a scroll box
- * of `viewport` pixels. Row heights are measured from the first mounted row
- * and fall back to `estimate`; the range carries `OVERSCAN_ROWS` on each side.
+ * Windowed list state: which slice of `keys` is visible in a scroll box of
+ * `viewport` pixels. Each row's height is measured once it mounts and kept by
+ * key; rows not measured yet count at the first measured option's height (or
+ * `estimate`), and rows that divide the list (`fixed`) keep that pitch. The
+ * range carries `OVERSCAN_ROWS` on each side. Rows of different heights are
+ * fine: offsets are prefix sums, so no single measurement sets every row's
+ * position (the old shared pitch flipped between rows and looped).
  */
-function useWindow(count: number, estimate: number, scrollRef: RefObject<HTMLDivElement | null>) {
+function useWindow(
+  keys: readonly string[],
+  fixed: (index: number) => boolean,
+  estimate: number,
+  scrollRef: RefObject<HTMLDivElement | null>,
+) {
+  const count = keys.length;
   const [scrollTop, setScrollTop] = useState(0);
   const [viewport, setViewport] = useState(0);
-  const [rowHeight, setRowHeight] = useState(estimate);
+  const heights = useRef(new Map<string, number>());
+  const [baseline, setBaseline] = useState(estimate);
+  const [measured, setMeasured] = useState(0);
+  const observer = useRef<ResizeObserver | null>(null);
 
   useLayoutEffect(() => {
     const box = scrollRef.current;
     if (!box) return;
     setViewport(box.clientHeight);
-    const observer = new ResizeObserver(() => setViewport(box.clientHeight));
-    observer.observe(box);
-    return () => observer.disconnect();
+    const boxObserver = new ResizeObserver(() => setViewport(box.clientHeight));
+    boxObserver.observe(box);
+    return () => boxObserver.disconnect();
   }, [scrollRef]);
+
+  const record = useCallback((node: HTMLElement) => {
+    const key = node.dataset.rowKey;
+    if (!key) return;
+    const height = node.getBoundingClientRect().height;
+    if (height <= 0) return;
+    const known = heights.current.get(key);
+    if (known !== undefined && Math.abs(known - height) < 1) return;
+    heights.current.set(key, height);
+    if (node.dataset.rowOption === "true") setBaseline((prev) => (prev === estimate ? height : prev));
+    setMeasured((version) => version + 1);
+  }, [estimate]);
+
+  // Later size changes (a font landing, a pill appearing) arrive on their own
+  // task through one observer, never inside React's commit.
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const rows = new ResizeObserver((entries) => {
+      for (const entry of entries) record(entry.target as HTMLElement);
+    });
+    observer.current = rows;
+    return () => {
+      rows.disconnect();
+      observer.current = null;
+    };
+  }, [record]);
+
+  const measureRow = useCallback(
+    (node: HTMLElement | null) => {
+      if (!node) return;
+      record(node);
+      observer.current?.observe(node);
+      return () => observer.current?.unobserve(node);
+    },
+    [record],
+  );
+
+  const offsets = useMemo(() => {
+    const next = new Float64Array(count + 1);
+    for (let index = 0; index < count; index += 1) {
+      const height = fixed(index) ? baseline : (heights.current.get(keys[index]) ?? baseline);
+      next[index + 1] = next[index] + height;
+    }
+    return next;
+    // `measured` versions the height cache, which lives in a ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keys, count, fixed, baseline, measured]);
+  const total = offsets[count];
 
   const onScroll = useCallback(() => {
     const box = scrollRef.current;
@@ -75,26 +151,22 @@ function useWindow(count: number, estimate: number, scrollRef: RefObject<HTMLDiv
     (top: number) => {
       const box = scrollRef.current;
       if (!box) return;
-      const clamped = Math.max(0, Math.min(top, count * rowHeight - viewport));
+      const clamped = Math.max(0, Math.min(top, total - viewport));
       box.scrollTop = clamped;
       setScrollTop(clamped);
     },
-    [scrollRef, count, rowHeight, viewport],
+    [scrollRef, total, viewport],
   );
-
-  const measureRow = useCallback((node: HTMLElement | null) => {
-    if (!node) return;
-    const measured = node.getBoundingClientRect().height;
-    if (measured > 0) setRowHeight((prev) => (Math.abs(prev - measured) < 1 ? prev : measured));
-  }, []);
 
   // With no measured viewport yet (first paint, or jsdom) fall back to a
   // window sized like the default box so the initial render is still bounded.
-  const visibleRows = Math.ceil((viewport || 640) / rowHeight);
-  const start = Math.max(0, Math.floor(scrollTop / rowHeight) - OVERSCAN_ROWS);
-  const end = Math.min(count, start + visibleRows + OVERSCAN_ROWS * 2);
+  const span = viewport || 640;
+  const first = count === 0 ? 0 : rowAt(offsets, count, scrollTop);
+  const last = count === 0 ? 0 : rowAt(offsets, count, scrollTop + span);
+  const start = Math.max(0, first - OVERSCAN_ROWS);
+  const end = Math.min(count, last + 1 + OVERSCAN_ROWS);
 
-  return { start, end, rowHeight, viewport, onScroll, scrollTo, measureRow };
+  return { start, end, offsets, viewport, layoutVersion: `${measured}:${baseline}`, onScroll, scrollTo, measureRow };
 }
 
 /**
@@ -113,8 +185,9 @@ function useWindow(count: number, estimate: number, scrollRef: RefObject<HTMLDiv
  * scrolls it out of the window, so the active descendant always resolves, and
  * each option carries aria-posinset and aria-setsize against the whole list.
  *
- * Rows must share one height. `isOption` lets group headings sit in the list
- * at a row's pitch without becoming options, and `multiSelect` adds a tick box
+ * Rows may differ in height: each is measured as it mounts and kept by key,
+ * and positions are prefix sums. `isOption` lets group headings sit in the
+ * list at the first option's pitch without becoming options, and `multiSelect` adds a tick box
  * per row for bulk actions. The ticks are aria-checked on the option, apart
  * from aria-selected, which marks the one current row. The intake queues pair
  * this list with `useTriageShortcuts`.
@@ -144,32 +217,70 @@ export function EditorList<T>({
     return items.filter((item) => search.matches(item, trimmed));
   }, [items, query, search]);
 
-  const { start, end, rowHeight, viewport, onScroll, scrollTo, measureRow } = useWindow(
-    visible.length,
+  const keys = useMemo(() => visible.map(getKey), [visible, getKey]);
+  const optionAt = useCallback((index: number) => !isOption || isOption(visible[index]), [isOption, visible]);
+  const headingAt = useCallback((index: number) => !optionAt(index), [optionAt]);
+
+  const { start, end, offsets, viewport, layoutVersion, onScroll, scrollTo, measureRow } = useWindow(
+    keys,
+    headingAt,
     estimateRowHeight,
     scrollRef,
   );
 
   const selectedIndex = useMemo(
-    () => (selectedKey === null ? -1 : visible.findIndex((item) => getKey(item) === selectedKey)),
-    [visible, getKey, selectedKey],
+    () => (selectedKey === null ? -1 : keys.indexOf(selectedKey)),
+    [keys, selectedKey],
   );
 
   // Keep the selected row inside the box when the selection changes from
-  // outside (URL restore, keyboard step, another pane picking a record).
-  useEffect(() => {
+  // outside (URL restore, keyboard step, another pane picking a record) or the
+  // box resizes. Measuring the rows around it can move it a little, so the
+  // reveal corrects itself a bounded number of times, and a scroll by the
+  // reader ends it.
+  const reveal = useRef<{ index: number; corrections: number } | null>(null);
+  const revealSelected = () => {
     const box = scrollRef.current;
-    if (!box || selectedIndex < 0) return;
-    const top = selectedIndex * rowHeight;
-    const bottom = top + rowHeight;
-    if (top < box.scrollTop) {
-      scrollTo(top);
-    } else if (bottom > box.scrollTop + viewport) {
-      scrollTo(bottom - viewport);
+    const pending = reveal.current;
+    if (!box || !pending) return;
+    if (pending.corrections >= MAX_REVEAL_CORRECTIONS) {
+      reveal.current = null;
+      return;
     }
-  }, [selectedIndex, rowHeight, viewport, scrollTo]);
+    const top = offsets[pending.index];
+    const bottom = offsets[pending.index + 1];
+    const view = viewport || box.clientHeight;
+    if (top < box.scrollTop) scrollTo(top);
+    else if (view > 0 && bottom > box.scrollTop + view) scrollTo(bottom - view);
+    else return;
+    pending.corrections += 1;
+  };
 
-  const optionAt = useCallback((index: number) => !isOption || isOption(visible[index]), [isOption, visible]);
+  // Only a new selection or a new box size starts a reveal; measurements continue it.
+  useEffect(() => {
+    reveal.current = selectedIndex >= 0 ? { index: selectedIndex, corrections: 0 } : null;
+    revealSelected();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex, viewport]);
+
+  useEffect(() => {
+    revealSelected();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layoutVersion]);
+
+  const handleScroll = () => {
+    const box = scrollRef.current;
+    const pending = reveal.current;
+    // A scroll that did not come from the reveal (the reader's wheel or finger) ends it.
+    if (box && pending && pending.corrections > 0) {
+      const top = offsets[pending.index];
+      const bottom = offsets[pending.index + 1];
+      const view = viewport || box.clientHeight;
+      const inView = top >= box.scrollTop - 1 && bottom <= box.scrollTop + view + 1;
+      if (!inView) reveal.current = null;
+    }
+    onScroll();
+  };
 
   // 1-based position of each option among the options (headings excluded),
   // so windowed rows can report aria-posinset and aria-setsize.
@@ -225,14 +336,12 @@ export function EditorList<T>({
   };
 
   const rows = visible.slice(start, end);
-  // Row heights are measured from an option, never from a heading.
-  const measuredOffset = rows.findIndex((_, offset) => optionAt(start + offset));
   const activeId = selectedIndex >= 0 ? `${id}-option-${selectedIndex}` : undefined;
   // A pointer scroll can carry the selected row out of the window. It stays
   // mounted at its own offset so aria-activedescendant never dangles.
   const selectedOutside = selectedIndex >= 0 && (selectedIndex < start || selectedIndex >= end);
 
-  const renderOption = (item: T, index: number, measure: boolean) => {
+  const renderOption = (item: T, index: number) => {
     const key = getKey(item);
     const selected = index === selectedIndex;
     const checkable = multiSelect !== undefined && (!multiSelect.canCheck || multiSelect.canCheck(item));
@@ -247,13 +356,16 @@ export function EditorList<T>({
         aria-checked={checkable ? multiSelect.checkedKeys.has(key) : undefined}
         aria-posinset={positions[index]}
         aria-setsize={optionCount}
-        ref={measure ? measureRow : undefined}
+        data-row-key={key}
+        data-row-option="true"
+        ref={measureRow}
         onClick={onSelect ? () => onSelect(key) : undefined}
         className={multiSelect ? "flex items-center gap-2 pb-1" : "pb-1"}
       >
         {multiSelect ? (
           <>
-            <span className="flex w-5 shrink-0 justify-center">
+            {/* A 44px column under a coarse pointer, so the tick is a finger-sized target of its own. */}
+            <span className="flex w-5 shrink-0 justify-center [@media(pointer:coarse)]:w-11">
               {checkable ? <TickBox item={item} itemKey={key} multiSelect={multiSelect} /> : null}
             </span>
             <div className="min-w-0 flex-1">{renderItem(item, { selected })}</div>
@@ -285,31 +397,36 @@ export function EditorList<T>({
         aria-label={label}
         aria-activedescendant={activeId}
         tabIndex={0}
-        onScroll={onScroll}
+        onScroll={handleScroll}
         onKeyDown={handleKeyDown}
         style={{ maxHeight }}
-        className="min-h-0 overflow-y-auto overscroll-contain rounded-xl theme-focus-ring"
+        className="theme-dev-listbox min-h-0 overflow-y-auto overscroll-contain rounded-xl theme-focus-ring"
       >
         {visible.length === 0 ? (
           <p className="theme-text-muted px-3 py-6 text-center text-sm">{emptyText}</p>
         ) : (
-          <div style={{ height: visible.length * rowHeight, position: "relative" }}>
-            <div style={{ transform: `translateY(${start * rowHeight}px)` }}>
+          <div style={{ height: offsets[visible.length], position: "relative" }}>
+            <div style={{ transform: `translateY(${offsets[start]}px)` }}>
               {rows.map((item, offset) => {
                 const index = start + offset;
                 if (!optionAt(index)) {
                   return (
-                    <div key={getKey(item)} aria-hidden="true" style={{ height: rowHeight }} className="flex flex-col justify-end">
+                    <div
+                      key={getKey(item)}
+                      aria-hidden="true"
+                      style={{ height: offsets[index + 1] - offsets[index] }}
+                      className="flex flex-col justify-end"
+                    >
                       {renderItem(item, { selected: false })}
                     </div>
                   );
                 }
-                return <Fragment key={getKey(item)}>{renderOption(item, index, offset === measuredOffset)}</Fragment>;
+                return <Fragment key={getKey(item)}>{renderOption(item, index)}</Fragment>;
               })}
             </div>
             {selectedOutside ? (
-              <div style={{ position: "absolute", top: selectedIndex * rowHeight, left: 0, right: 0 }}>
-                {renderOption(visible[selectedIndex], selectedIndex, false)}
+              <div style={{ position: "absolute", top: offsets[selectedIndex], left: 0, right: 0 }}>
+                {renderOption(visible[selectedIndex], selectedIndex)}
               </div>
             ) : null}
           </div>
@@ -335,7 +452,7 @@ function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; 
         event.stopPropagation();
         multiSelect.onToggle(itemKey);
       }}
-      className="flex h-5 w-5 cursor-pointer items-center justify-center"
+      className="flex h-5 w-5 cursor-pointer items-center justify-center [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
     >
       {/* Drawn, not a native input, so nothing inside the listbox can take focus. */}
       <span

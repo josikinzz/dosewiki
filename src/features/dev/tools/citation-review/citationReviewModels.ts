@@ -318,16 +318,27 @@ function citationSectionRank(section: string): number {
   return ARTICLE_SECTION_RANK.get(section) ?? Number.MAX_SAFE_INTEGER;
 }
 
+const ARTICLE_SECTION_LABEL = new Map<string, string>(
+  getCatalogSectionPromptDescriptors().map((descriptor) => [descriptor.sectionKey, descriptor.label]),
+);
+
+/** A section key in the reader's words, sentence case ("Harm potential", "History & culture"). */
 export function formatCitationSectionLabel(section: string): string {
-  return section
-    .split(/[_-]/g)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
+  const label =
+    ARTICLE_SECTION_LABEL.get(section) ??
+    section
+      .split(/[_-]/g)
+      .filter(Boolean)
+      .join(" ");
+  const lower = label.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
+/** A row can be approved only when at least one support carries a quote verified against its source. */
 export function canApproveCitationEvidence(row: CitationEvidenceRow): boolean {
-  return (row.supports?.length ?? 0) > 0;
+  return (row.supports ?? []).some(
+    (support) => support.supportingQuote.trim().length > 0 && Boolean(support.verifiedQuote?.sourceId),
+  );
 }
 
 function isReadyCitationEvidence(row: CitationEvidenceRow): boolean {
@@ -439,13 +450,13 @@ export function buildCitationReviewChecklist(
       ? "No blocking citation gaps are open."
       : `${formatCitationCount(blockingIssues, "blocking row")} still ${
           blockingIssues === 1 ? "needs" : "need"
-        } source or reviewer resolution.`;
+        } a source or a decision before the article's citations are complete.`;
   const approvalsDetail =
     pendingApprovals === 0
-      ? "No supported rows are waiting for approval."
-      : `${formatCitationCount(pendingApprovals, "supported row")} ${
-          pendingApprovals === 1 ? "is" : "are"
-        } waiting for reviewer approval.`;
+      ? "No row with a verified quote is waiting."
+      : `${formatCitationCount(pendingApprovals, "row")} with a verified quote ${
+          pendingApprovals === 1 ? "waits" : "wait"
+        } for your decision.`;
 
   if (!article) {
     return [
@@ -457,14 +468,14 @@ export function buildCitationReviewChecklist(
       },
       {
         id: "approvals",
-        label: "Ready approvals",
+        label: "Ready to approve",
         detail: approvalsDetail,
         tone: pendingApprovals === 0 ? "complete" : "pending",
       },
       {
         id: "article-diagnostics",
-        label: "Draft reference linkage",
-        detail: "The current dev draft is not loaded, so inline and route reference diagnostics are unavailable.",
+        label: "Markers in the article text",
+        detail: "The article has not loaded yet, so its markers cannot be checked.",
         tone: "pending",
       },
     ];
@@ -486,30 +497,28 @@ export function buildCitationReviewChecklist(
     },
     {
       id: "approvals",
-      label: "Ready approvals",
+      label: "Ready to approve",
       detail: approvalsDetail,
       tone: pendingApprovals === 0 ? "complete" : "pending",
     },
     {
       id: "non-blocking-gaps",
-      label: "Non-blocking gaps",
+      label: "Other gaps",
       detail:
         nonBlockingIssues === 0
-          ? "No non-blocking citation gaps are open."
+          ? "No non-blocking gaps are open."
           : `${formatCitationCount(nonBlockingIssues, "non-blocking row")} still ${
               nonBlockingIssues === 1 ? "needs" : "need"
-            } cleanup.`,
+            } a source, without blocking the article.`,
       tone: nonBlockingIssues === 0 ? "complete" : "pending",
     },
     {
       id: "article-diagnostics",
-      label: "Draft reference linkage",
+      label: "Markers in the article text",
       detail:
         linkageProblems === 0
-          ? "Inline citation tokens and route reference IDs are aligned with structured references."
-          : `${formatCitationCount(linkageProblems, "reference-linking warning")} ${
-              linkageProblems === 1 ? "remains" : "remain"
-            } in the current article draft.`,
+          ? "Every citation marker and route reference points at a stored reference."
+          : `${formatCitationCount(linkageProblems, "marker warning")} in the article text.`,
       tone: linkageProblems === 0 ? "complete" : "attention",
     },
   ];

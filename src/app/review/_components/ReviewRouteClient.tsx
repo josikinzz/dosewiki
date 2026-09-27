@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSectionLoadingModel, RouteLoading } from "@/app/_components/RouteLoading";
 import { StateCard } from "@/components/common/StateCard";
 import { LoadErrorState } from "@/features/dev/components/LoadErrorState";
+import { useWriteFreezeObserver } from "@/features/dev/components/writeFreeze";
 import { LightweightDataProvider, type SubstanceLookupEntry } from "@/data/LightweightDataProvider";
 import { SubstanceIndexProvider } from "@/data/SubstanceIndexProvider";
 import { useLazyLibrary } from "@/hooks/useLazyLibrary";
@@ -114,7 +116,12 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
     return (
       <main className="theme-page-shell min-h-screen p-8">
         <div className="mx-auto max-w-xl pt-16">
-          <LoadErrorState message={libraryError} onRetry={retryLibrary} />
+          <LoadErrorState
+            what="the review queue"
+            message={libraryError}
+            onRetry={retryLibrary}
+            secondary={<Link href="/dev" className="text-dose-accent-strong theme-accent-underline text-sm underline-offset-4 hover:underline">Back to the editor</Link>}
+          />
         </div>
       </main>
     );
@@ -140,10 +147,16 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
 
   if (!layout) {
     return (
-      <div className="theme-page-shell fixed inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="text-2xl font-bold text-red-400">Failed to load review data</div>
-        <div className="theme-text-muted text-sm">Category layout is missing from the server.</div>
-      </div>
+      <main className="theme-page-shell min-h-screen p-8">
+        <div className="mx-auto max-w-xl pt-16">
+          <LoadErrorState
+            what="the review queue"
+            message="The category layout the queue is grouped by is missing from the server. Index layout can publish one."
+            onRetry={() => window.location.reload()}
+            secondary={<Link href="/dev/index-layout" className="text-dose-accent-strong theme-accent-underline text-sm underline-offset-4 hover:underline">Open Index layout</Link>}
+          />
+        </div>
+      </main>
     );
   }
 
@@ -163,5 +176,8 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
  * Query client, mirroring the /dev shell (see NextDevRouteClient).
  */
 export function ReviewRouteClient({ initialSlug }: ReviewRouteClientProps) {
+  // Outside the /dev shell, so the workbench watches its own writes for the
+  // write freeze; the review dock reads it.
+  useWriteFreezeObserver();
   return <ReviewDataLoader initialSlug={initialSlug} />;
 }

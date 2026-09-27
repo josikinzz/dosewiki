@@ -202,3 +202,122 @@ export function formatProposalDate(iso: string | undefined): string {
   }
   return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
+
+export const TARGET_KIND_LABELS: Record<ProposalTargetKind, string> = {
+  article: "Article",
+  indexLayout: "Index layout",
+  about: "About",
+  copyBlock: "Copy block",
+  writing: "Writing",
+};
+
+const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
+
+/** What a row says it changes: the one item by name, or the first and how many more. */
+export function describeTargets(targets: readonly Pick<ProposalTarget, "kind" | "key">[]): string {
+  if (targets.length === 0) return "No items";
+  const [first] = targets;
+  const name = `${TARGET_KIND_LABELS[first.kind]} ${first.key}`;
+  return targets.length === 1 ? name : `${name} and ${targets.length - 1} more`;
+}
+
+/** Whether a proposal still waits on someone: an admin's review, or the proposer's revision. */
+export function isOpenProposal(status: ProposalStatus): boolean {
+  return status === "submitted" || status === "changes_requested";
+}
+
+/** The list's count line: waiting work first, then history. */
+export function describeQueueCount(rows: readonly Pick<ProposalSummary, "status">[]): string {
+  const open = rows.filter((row) => isOpenProposal(row.status)).length;
+  const history = rows.length - open;
+  if (rows.length === 0) return "None yet";
+  return `${open} open, ${history} in history`;
+}
+
+/** Words a search matches: the summary, the proposer, and every target's kind and key. */
+export function proposalMatches(row: Pick<ProposalSummary, "summary" | "proposerName" | "targets">, query: string): boolean {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+  const haystack = [
+    row.summary,
+    row.proposerName,
+    ...row.targets.flatMap((target) => [target.key, TARGET_KIND_LABELS[target.kind]]),
+  ].join(" ").toLowerCase();
+  return words.every((word) => haystack.includes(word));
+}
+
+/**
+ * Where the proposal stands and what happens next, by status and by who is
+ * reading: an admin reviewing, an admin reading their own, or the proposer.
+ */
+export function nextStepFor(
+  status: ProposalStatus,
+  viewer: { canApprove: boolean; isAuthor: boolean },
+): string {
+  const { canApprove, isAuthor } = viewer;
+  return {
+    submitted: canApprove
+      ? isAuthor
+        ? "Not published. Another admin must review and approve your submission."
+        : "Not published. Review every change below, then approve the whole proposal or reject it with a note."
+      : "Not published. An admin will review your submission. You can discuss it here or revise it while you wait.",
+    changes_requested: canApprove && !isAuthor
+      ? "Not published. The author needs to update this proposal against the latest live content and submit a revision before it can be approved."
+      : "Not published. Read the feedback, update your changes against the latest live content, and submit again for review.",
+    applied: canApprove
+      ? "Published at the time shown below. Revert restores the previous content only if no newer edits have changed these items."
+      : "Your changes were published at the time shown below. To make further changes, start a new submission from the relevant editor.",
+    rejected: "Not published. This submission is closed. Use the feedback to prepare a new submission in the relevant editor; this one cannot be reopened.",
+    superseded: "This submission was replaced by a newer revision. Select that revision in the list to follow its review.",
+    reverted: "This publication was undone. Further changes need a new submission from the relevant editor.",
+  }[status];
+}
+
+/**
+ * Why Approve is off, in one sentence, or null when it can be pressed. The
+ * server makes the same refusals; this only says them before the click.
+ */
+export function approveBlocker(proposal: Pick<ProposalDetail, "isAuthor" | "diff" | "comparisonMode">): string | null {
+  if (proposal.isAuthor) return "You cannot approve your own proposal. Another admin must.";
+  // An older proposal with no verifiable comparison cannot be read in full, so
+  // it is not approved blind; the proposer prepares a new submission instead.
+  if (proposal.comparisonMode === "unavailable") return "There is no verifiable comparison, so it cannot be approved here.";
+  if (!proposal.diff.trim()) return "There is no text comparison to review, so it cannot be approved here.";
+  return null;
+}
+
+/**
+ * What approving would do given the live content: publish, or come back as
+ * changes requested because a target moved. Null when nothing has moved.
+ */
+export function describeDrift(targets: readonly TargetDrift[]): string | null {
+  const moved = targets.filter((target) => target.drifted).length;
+  if (moved === 0) return null;
+  const share = targets.length === 1 ? "The live content" : `${moved} of ${plural(targets.length, "item")}`;
+  return `${share} changed since submission. Approving will return it for revision instead of publishing, unless the live content matches again.`;
+}
+
+/** Who holds a waiting proposal in the Inbox's claim table. */
+export type ProposalHold =
+  | { kind: "open" }
+  | { kind: "mine"; at: string | null }
+  | { kind: "other"; by: string; at: string | null }
+  | { kind: "unknown" };
+
+export type ProposalClaim = { claimed_by: string; claimed_at?: string | null; expired?: boolean };
+
+/** A claim that has lapsed reads as open, as the Inbox shows it. */
+export function proposalHoldOf(
+  claim: ProposalClaim | null | undefined,
+  actorEmail: string | null,
+  claimsKnown: boolean,
+): ProposalHold {
+  if (!claimsKnown) return { kind: "unknown" };
+  if (!claim || claim.expired) return { kind: "open" };
+  const at = claim.claimed_at ?? null;
+  if (actorEmail && claim.claimed_by.trim().toLowerCase() === actorEmail.trim().toLowerCase()) return { kind: "mine", at };
+  return { kind: "other", by: claim.claimed_by, at };
+}
+
+/** The history groups a list folds after this many rows. */
+export const QUEUE_HISTORY_CAP = 5;

@@ -9,7 +9,7 @@ vi.mock("next-auth/react", () => ({ signOut: signOutMock }));
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} />,
 }));
-vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("./useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import { UnsavedWorkProvider, useUnsavedWork } from "../components/unsavedWork";
 import { createDraftRecoveryStore, recoveryActorKey } from "../recovery/draftRecovery";
@@ -58,12 +58,18 @@ function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publ
       <FakeWritingTool save={save} publishesLive={publishesLive} />
     </UnsavedWorkProvider>,
   );
-  const nav = screen.getByRole("navigation", { name: "Dev mode tools" });
+  const nav = screen.getByRole("navigation", { name: "Editor tools" });
   return { onTabChange, onLeave, nav };
 }
 
 function makeDirty() {
   fireEvent.change(screen.getByRole("textbox", { name: "Draft" }), { target: { value: "New intro" } });
+}
+
+/** Sign out lives in the rail's account menu; Radix menus open on pointerdown. */
+function openAccountMenuItem(name: string) {
+  fireEvent.pointerDown(screen.getByRole("button", { name: /^Signed in as / }), { button: 0, ctrlKey: false });
+  fireEvent.click(within(screen.getByRole("menu")).getByRole("menuitem", { name }));
 }
 
 describe("the shell's unsaved-work registry", () => {
@@ -150,7 +156,7 @@ describe("the shell's unsaved-work registry", () => {
     renderShell();
     makeDirty();
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    openAccountMenuItem("Sign out");
 
     expect(screen.getByRole("dialog")).toBeTruthy();
     expect(signOutMock).not.toHaveBeenCalled();
@@ -163,8 +169,12 @@ describe("the shell's unsaved-work registry", () => {
     const store = createDraftRecoveryStore(recoveryActorKey("admin@example.com")!);
     store.write({ tool: "writing", record: "row:field-notes", baseline: "a", draft: { title: "Mine" } });
     renderShell();
+    signOutMock.mockClear();
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    openAccountMenuItem("Sign out");
+    // With nothing unsaved, sign-out still asks once: the recovery copies go too.
+    expect(signOutMock).not.toHaveBeenCalled();
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Sign out of the editor?" })).getByRole("button", { name: "Sign out" }));
 
     expect(signOutMock).toHaveBeenCalled();
     expect(store.read("writing", "row:field-notes")).toBeNull();
@@ -184,13 +194,13 @@ describe("the shell's unsaved-work registry", () => {
 
   it("marks the dirty tab in the rail with a name that says so", () => {
     const { nav } = renderShell();
-    expect(within(nav).getByRole("button", { name: "Site" })).toBeTruthy();
+    expect(within(nav).getByRole("button", { name: "Site, current tool Writing" })).toBeTruthy();
 
     makeDirty();
 
     // Writing sits in the Site menu for an editor: the menu says so, and so
     // does the tab inside it.
-    const trigger = within(nav).getByRole("button", { name: "Site, unsaved changes" });
+    const trigger = within(nav).getByRole("button", { name: "Site, current tool Writing, unsaved changes" });
     fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
     const menu = screen.getByRole("menu");
     expect(within(menu).getByRole("menuitem", { name: "Writing, unsaved changes" })).toBeTruthy();

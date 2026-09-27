@@ -65,6 +65,14 @@ export const collectDiff = (original: unknown, updated: unknown, segments: strin
 };
 const ensureTrailingNewline = (value: string) => (value.endsWith("\n") ? value : `${value}\n`);
 
+/**
+ * Prose ends in exactly one newline for a text diff. Blank lines at the end
+ * render as nothing, so a draft that drops them (a textarea trims them) must
+ * not show a bare removed line under the paragraph it inserted. Trailing
+ * spaces stay: two of them are a Markdown line break.
+ */
+const endWithOneNewline = (value: string) => `${value.replace(/\r\n/g, "\n").replace(/\n+$/, "")}\n`;
+
 const stringifyForDiff = (value: unknown) => {
   if (value === undefined) {
     return "";
@@ -144,8 +152,8 @@ export const buildArticleChangelog = (heading: string, original: unknown, update
 
 export const buildTextChangelog = (heading: string, original: string, updated: string) => {
   const normalizedHeading = heading.trim() || "Text";
-  const baseline = ensureTrailingNewline(typeof original === "string" ? original : "");
-  const next = ensureTrailingNewline(typeof updated === "string" ? updated : "");
+  const baseline = endWithOneNewline(typeof original === "string" ? original : "");
+  const next = endWithOneNewline(typeof updated === "string" ? updated : "");
 
   if (baseline === next) {
     return {
@@ -155,7 +163,7 @@ export const buildTextChangelog = (heading: string, original: string, updated: s
   }
 
   const patch = createPatch(`${toDiffFileName(normalizedHeading)}.md`, baseline, next, "", "", { context: 0 });
-  const trimmedPatch = patch.trimEnd();
+  const trimmedPatch = patch.replace(/\n+$/, "");
   const meaningfulLines = trimmedPatch
     .split("\n")
     .filter((line) => {

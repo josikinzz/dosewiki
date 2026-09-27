@@ -10,12 +10,20 @@ import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
 
 interface WritingBlogPostPageProps {
   post: WritingBlogPost;
+  /**
+   * Drawn inside another page (the Writing editor's live preview): a plain
+   * block with no `main` landmark, page id or page padding.
+   */
+  embedded?: boolean;
 }
 
 /** One writing-system blog post, rendered in its stored language. */
-export function WritingBlogPostPage({ post }: WritingBlogPostPageProps) {
+export function WritingBlogPostPage({ post, embedded = false }: WritingBlogPostPageProps) {
   return (
-    <PublicContentShell width="narrow" focusTarget>
+    <PublicContentShell
+      width="narrow"
+      {...(embedded ? { as: "div" as const, className: "min-h-0 px-0 pb-0 pt-0 md:px-0" } : { focusTarget: true })}
+    >
       <PageHeader
         align="left"
         className="mb-0"

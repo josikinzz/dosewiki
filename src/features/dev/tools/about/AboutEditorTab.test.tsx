@@ -90,19 +90,19 @@ describe("AboutEditorTab", () => {
 
     render(<AboutEditorTab availableProfiles={[]} canApprove />);
 
-    const saveButton = screen.getByRole("button", { name: "Save About page" });
+    const saveButton = screen.getByRole("button", { name: "Publish About page" });
     expect(saveButton).toBeDisabled();
 
     await userEvent.type(screen.getByLabelText("Markdown source"), " Edited.");
-    expect(screen.getByText("1 section changed")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes: the page text", { exact: false })).toBeTruthy();
     expect(saveButton).toBeEnabled();
 
     await userEvent.click(saveButton);
     expect(fetchMock).not.toHaveBeenCalled();
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish the About page?" })).getByRole("button", { name: "Publish About page" }));
 
     expect(await screen.findByText("Saved. The public About page is rebuilding with it now.")).toBeTruthy();
-    expect(screen.getByText("No pending changes.")).toBeTruthy();
+    expect(screen.getByText(/^No changes yet\. Edit any part above/)).toBeTruthy();
     expect(saveButton).toBeDisabled();
   });
 
@@ -134,7 +134,7 @@ describe("AboutEditorTab", () => {
     fireEvent.click(await screen.findByRole("option", { name: /Ava Lane/ }));
 
     expect(founders().getAllByRole("listitem")).toHaveLength(2);
-    expect(screen.getByText("1 section changed")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes: the founders", { exact: false })).toBeTruthy();
 
     fireEvent.click(founders().getByRole("button", { name: "Remove Josie Kins" }));
     expect(founders().getAllByRole("listitem")).toHaveLength(1);
@@ -151,11 +151,11 @@ describe("AboutEditorTab", () => {
 
     render(<AboutEditorTab availableProfiles={[]} canApprove />);
     const markdown = screen.getByLabelText("Markdown source");
-    const saveButton = screen.getByRole("button", { name: "Save About page" });
+    const saveButton = screen.getByRole("button", { name: "Publish About page" });
 
     await userEvent.type(markdown, " Edited.");
     await userEvent.click(saveButton);
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish the About page?" })).getByRole("button", { name: "Publish About page" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     await userEvent.type(markdown, " Later.");
@@ -176,7 +176,7 @@ describe("AboutEditorTab", () => {
 
     expect(await screen.findByText("Saved. The public About page is rebuilding with it now.")).toBeTruthy();
     expect(markdown).toHaveValue("We index {{compoundCount}} compounds. Edited. Later.");
-    expect(screen.getByText("1 section changed")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes: the page text", { exact: false })).toBeTruthy();
     expect(saveButton).toBeEnabled();
   });
 
@@ -191,12 +191,12 @@ describe("AboutEditorTab", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     render(<AboutEditorTab availableProfiles={[]} canApprove />);
-    await userEvent.type(screen.getByLabelText("Meta description source"), "!");
-    await userEvent.click(screen.getByRole("button", { name: "Save About page" }));
-    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
+    await userEvent.type(screen.getByLabelText("Subtitle and search description"), "!");
+    await userEvent.click(screen.getByRole("button", { name: "Publish About page" }));
+    await userEvent.click(within(screen.getByRole("dialog", { name: "Publish the About page?" })).getByRole("button", { name: "Publish About page" }));
 
     expect(await screen.findByText("The subtitle must be 2000 characters or fewer.")).toBeTruthy();
-    expect(screen.getByText("1 section changed")).toBeTruthy();
+    expect(screen.getByText("Unpublished changes: the subtitle", { exact: false })).toBeTruthy();
   });
 
   it("submits an editor's document and keeps the draft pending", async () => {
@@ -207,12 +207,12 @@ describe("AboutEditorTab", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     render(<AboutEditorTab availableProfiles={[]} canApprove={false} />);
-    expect(screen.queryByRole("button", { name: "Save About page" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Publish About page" })).not.toBeInTheDocument();
     const submitButton = screen.getByRole("button", { name: "Submit for review" });
     expect(submitButton).toBeDisabled();
 
     await userEvent.type(screen.getByLabelText("Markdown source"), " Edited.");
-    expect(screen.getByText("Changes to propose")).toBeTruthy();
+    expect(screen.getByText("Changes to propose: the page text", { exact: false })).toBeTruthy();
     await userEvent.click(submitButton);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
@@ -234,7 +234,7 @@ describe("AboutEditorTab", () => {
     expect(await screen.findByText("Submitted for review")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open in Change Review" })).toHaveAttribute("href", "/dev/queue");
     // Production is untouched, so the edit is still pending against it.
-    expect(screen.getByText("1 section changed")).toBeTruthy();
+    expect(screen.getByText("Changes to propose: the page text", { exact: false })).toBeTruthy();
   });
 
   it("preserves a stale draft and its loaded baseline across a production refresh and rejection", async () => {
@@ -284,10 +284,10 @@ describe("AboutEditorTab", () => {
         section.getByLabelText("Contribution for Vacue"),
         "Chinese localization, terminology review, and localization workflow feedback",
       );
-      expect(screen.getByText("1 section changed")).toBeTruthy();
+      expect(screen.getByText("Unpublished changes: the translation credits", { exact: false })).toBeTruthy();
 
-      await userEvent.click(screen.getByRole("button", { name: "Save About page" }));
-      await userEvent.click(within(screen.getByRole("dialog", { name: "Publish About copy?" })).getByRole("button", { name: "Publish About copy" }));
+      await userEvent.click(screen.getByRole("button", { name: "Publish About page" }));
+      await userEvent.click(within(screen.getByRole("dialog", { name: "Publish the About page?" })).getByRole("button", { name: "Publish About page" }));
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
       const body = JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
@@ -311,7 +311,7 @@ describe("AboutEditorTab", () => {
       expect(section.getByLabelText("Contribution for Vacue")).toHaveValue("Chinese localization");
       fireEvent.click(section.getByRole("button", { name: "Remove Vacue" }));
       expect(section.queryByLabelText("Contribution for Vacue")).not.toBeInTheDocument();
-      expect(screen.getByText("1 section changed")).toBeTruthy();
+      expect(screen.getByText("Unpublished changes: the translation credits", { exact: false })).toBeTruthy();
     });
 
     it("hides credit editing from editors but carries the stored credits in their proposal", async () => {

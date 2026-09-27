@@ -1,23 +1,41 @@
 "use client";
 
+/**
+ * A report body on the phase rail the public page draws: the introduction,
+ * timestamped Onset, Peak and Offset entries, and the conclusion. Shared by
+ * the Trip reports editing pane, My reports and the public correction panel.
+ *
+ * Each phase adds entries from one place (the button under its last entry, or
+ * the phase's own button while it is empty), and every text box grows with
+ * its words, so a long account never scrolls inside a small box.
+ */
+
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TOUCH_ICON } from "@/components/ui/touchTargets";
+import { cn } from "@/lib/utils";
 import type {
   TripReportEditableFields,
   TripReportTimelinePhase,
 } from "../../../../../server/lib/tripReportEditing";
 
-const PHASES: {
+type Phase = {
   key: keyof TripReportEditableFields;
   label: string;
+  /** What the empty phase's button adds, in words ("Add a conclusion"). */
+  addLabel: string;
   kind: "prose" | "timeline";
   dot: string;
   text: string;
-}[] = [
+};
+
+const PHASES: readonly Phase[] = [
   {
     key: "introduction",
     label: "Introduction",
+    addLabel: "Add an introduction",
     kind: "prose",
     dot: "theme-portal-prose-phase-dot",
     text: "theme-portal-prose-phase-text",
@@ -25,6 +43,7 @@ const PHASES: {
   {
     key: "onset",
     label: "Onset",
+    addLabel: "Add an onset entry",
     kind: "timeline",
     dot: "theme-report-phase-onset-dot",
     text: "theme-report-phase-onset-text",
@@ -32,6 +51,7 @@ const PHASES: {
   {
     key: "peak",
     label: "Peak",
+    addLabel: "Add a peak entry",
     kind: "timeline",
     dot: "theme-report-phase-peak-dot",
     text: "theme-report-phase-peak-text",
@@ -39,18 +59,25 @@ const PHASES: {
   {
     key: "offset",
     label: "Offset",
+    addLabel: "Add an offset entry",
     kind: "timeline",
     dot: "theme-report-phase-offset-dot",
     text: "theme-report-phase-offset-text",
   },
   {
+    // The public page heads this part "Conclusion / Aftermath"; the editor
+    // names it once, as the submission review and the save confirm do.
     key: "conclusion",
-    label: "Conclusion / Aftermath",
+    label: "Conclusion",
+    addLabel: "Add a conclusion",
     kind: "prose",
     dot: "theme-portal-prose-phase-dot",
     text: "theme-portal-prose-phase-text",
   },
 ];
+
+/** Text boxes grow with their words (up to most of the screen), so nothing scrolls inside a small box. */
+const GROWING_TEXT = "[field-sizing:content] max-h-[70vh] text-[16px] leading-6 md:text-sm";
 
 export function PortalReportTimelineEditor({
   draft,
@@ -71,23 +98,19 @@ export function PortalReportTimelineEditor({
   }
 
   return (
-    <div className="theme-report-rail relative space-y-2 pl-8">
+    <div className="theme-report-rail relative space-y-1 pl-8">
       {PHASES.map((phase) =>
         phase.kind === "prose" ? (
           <ProseBlock
             key={phase.key}
-            label={phase.label}
-            dot={phase.dot}
-            text={phase.text}
+            phase={phase}
             value={(draft[phase.key] as string | undefined) ?? null}
             onChange={(value) => patch({ [phase.key]: value } as Partial<TripReportEditableFields>)}
           />
         ) : (
           <TimelineBlock
             key={phase.key}
-            label={phase.label}
-            dot={phase.dot}
-            text={phase.text}
+            phase={phase}
             entries={draft[phase.key as TripReportTimelinePhase]}
             onChange={(entries) => patchTimeline(phase.key as TripReportTimelinePhase, entries)}
           />
@@ -106,50 +129,62 @@ function PhaseMarker({ tone }: { tone: string }) {
   );
 }
 
-function GhostPill({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+/** Adds to a phase: a quiet dashed pill with a drawn plus, named in words. */
+function AddButton({ children, onClick, label }: { children: React.ReactNode; onClick: () => void; label?: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="theme-portal-ghost-pill inline-flex items-center gap-1.5 rounded-full border border-dashed px-3 py-1 text-xs transition-colors [@media(pointer:coarse)]:min-h-11"
+      aria-label={label}
+      className="theme-portal-ghost-pill theme-focus-ring inline-flex min-h-8 items-center gap-1.5 rounded-pill border border-dashed px-3 py-1 text-xs font-medium transition-colors [@media(pointer:coarse)]:min-h-11"
     >
+      <Icon icon="lucide:plus" size={13} className="shrink-0" />
       {children}
     </button>
   );
 }
 
+function PhaseHeading({ phase, count }: { phase: Phase; count?: number }) {
+  return (
+    <div className="relative flex items-center gap-2">
+      <PhaseMarker tone={phase.dot} />
+      <h4 className={`font-display text-base font-semibold ${phase.text}`}>{phase.label}</h4>
+      {count !== undefined ? (
+        <span className="theme-text-faint text-xs tabular-nums">
+          <span className="sr-only">, </span>
+          {count} {count === 1 ? "entry" : "entries"}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
 function ProseBlock({
-  dot,
-  label,
+  phase,
   onChange,
-  text,
   value,
 }: {
-  dot: string;
-  label: string;
+  phase: Phase;
   onChange: (value: string | undefined) => void;
-  text: string;
   value: string | null;
 }) {
   if (value === null || value === undefined) {
     return (
-      <div className="relative py-1.5">
-        <PhaseMarker tone={dot} />
-        <GhostPill onClick={() => onChange("")}>+ {label}</GhostPill>
+      <div className="relative py-2">
+        <PhaseMarker tone={phase.dot} />
+        <AddButton onClick={() => onChange("")}>{phase.addLabel}</AddButton>
       </div>
     );
   }
 
   return (
     <div className="relative py-2.5">
-      <div className="relative flex items-center gap-2">
-        <PhaseMarker tone={dot} />
-        <h4 className={`font-display text-base font-semibold ${text}`}>{label}</h4>
-      </div>
+      <PhaseHeading phase={phase} />
       <Textarea
-        aria-label={label}
+        aria-label={phase.label}
         value={value}
-        className="mt-2 min-h-28"
+        rows={4}
+        className={cn("mt-2 min-h-28", GROWING_TEXT)}
         onChange={(event) => onChange(event.target.value)}
       />
     </div>
@@ -157,58 +192,46 @@ function ProseBlock({
 }
 
 function TimelineBlock({
-  dot,
+  phase,
   entries,
-  label,
   onChange,
-  text,
 }: {
-  dot: string;
+  phase: Phase;
   entries: TripReportEditableFields["onset"];
-  label: string;
   onChange: (entries: TripReportEditableFields["onset"]) => void;
-  text: string;
 }) {
+  const label = phase.label;
   function addEntry() {
     onChange([...entries, { description: "" }]);
   }
 
   if (entries.length === 0) {
     return (
-      <div className="relative py-1.5">
-        <PhaseMarker tone={dot} />
-        <GhostPill onClick={addEntry}>+ {label}</GhostPill>
+      <div className="relative py-2">
+        <PhaseMarker tone={phase.dot} />
+        <AddButton onClick={addEntry}>{phase.addLabel}</AddButton>
       </div>
     );
   }
 
   return (
     <div className="relative py-2.5">
-      <div className="relative flex items-center gap-2">
-        <PhaseMarker tone={dot} />
-        <h4 className={`font-display text-base font-semibold ${text}`}>{label}</h4>
-        <span className="text-dose-text-ghost font-mono text-[11px]">
-          {entries.length} {entries.length === 1 ? "entry" : "entries"}
-        </span>
-        <span className="flex-1" />
-        <Button type="button" variant="ghost" size="sm" onClick={addEntry}>
-          + entry
-        </Button>
-      </div>
+      <PhaseHeading phase={phase} count={entries.length} />
 
-      <div className="mt-2 space-y-3">
+      <ol className="mt-2 space-y-4">
         {entries.map((entry, index) => (
-          <div key={index} className="relative">
+          <li key={index} className="relative">
             <span
               aria-hidden="true"
-              className={`theme-report-rail-marker theme-report-rail-marker-sm absolute top-[0.55rem] h-2 w-2 rounded-full ${dot}`}
+              className={`theme-report-rail-marker theme-report-rail-marker-sm absolute top-[1.1rem] h-2 w-2 rounded-full ${phase.dot}`}
             />
-            <div className="mb-1.5 flex items-center gap-1.5">
+            <div className="mb-1.5 flex items-center gap-1">
               <Input
                 aria-label={`${label} entry ${index + 1} timestamp`}
                 value={entry.time ?? ""}
                 placeholder="T+0:00"
-                className="w-full md:w-28 font-mono"
+                inputSize="sm"
+                className="w-28 font-mono tabular-nums"
                 onChange={(event) =>
                   onChange(
                     entries.map((item, at) =>
@@ -223,38 +246,43 @@ function TimelineBlock({
                 type="button"
                 variant="iconGhost"
                 size="icon"
+                className={cn("size-8", TOUCH_ICON)}
                 disabled={index === 0}
                 aria-label={`Move ${label} entry ${index + 1} earlier`}
                 title="Move earlier"
                 onClick={() => onChange(swap(entries, index, index - 1))}
               >
-                ↑
+                <Icon icon="lucide:arrow-up" size={16} />
               </Button>
               <Button
                 type="button"
                 variant="iconGhost"
                 size="icon"
+                className={cn("size-8", TOUCH_ICON)}
                 disabled={index === entries.length - 1}
                 aria-label={`Move ${label} entry ${index + 1} later`}
                 title="Move later"
                 onClick={() => onChange(swap(entries, index, index + 1))}
               >
-                ↓
+                <Icon icon="lucide:arrow-down" size={16} />
               </Button>
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
+                variant="iconGhost"
+                size="icon"
+                className={cn("size-8", TOUCH_ICON)}
                 aria-label={`Remove ${label} entry ${index + 1}`}
+                title="Remove entry"
                 onClick={() => onChange(entries.filter((_, at) => at !== index))}
               >
-                Remove
+                <Icon icon="lucide:trash-2" size={15} />
               </Button>
             </div>
             <Textarea
               aria-label={`${label} entry ${index + 1} text`}
               value={entry.description}
-              className="min-h-28"
+              rows={2}
+              className={cn("min-h-16", GROWING_TEXT)}
               onChange={(event) =>
                 onChange(
                   entries.map((item, at) =>
@@ -263,9 +291,13 @@ function TimelineBlock({
                 )
               }
             />
-          </div>
+          </li>
         ))}
-        <GhostPill onClick={addEntry}>+ entry</GhostPill>
+      </ol>
+      <div className="mt-3">
+        <AddButton onClick={addEntry} label={`Add entry to ${label}`}>
+          Add entry
+        </AddButton>
       </div>
     </div>
   );

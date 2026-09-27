@@ -15,6 +15,9 @@ export type DevModePageProps = {
   initialProfileKey?: string;
   /** True while the editor corpus is still draining behind the shell. */
   isLibraryLoading?: boolean;
+  /** Why the corpus could not load, when it failed; the waiting tools show it with Try again. */
+  libraryError?: string | null;
+  onRetryLibrary?: () => void;
   onTabChange: (tab: DevModeTab) => void;
   /**
    * Opens an App Path inside the shell (a Cmd+K record). The route client
@@ -55,6 +58,8 @@ export type DevModePageControllerState = {
   glossaryLocales?: readonly string[];
   articlesLength: number;
   isLibraryLoading: boolean;
+  libraryError: string | null;
+  retryLibrary: () => void;
   indexLayoutsReadiness: DevIndexLayoutsReadiness;
   retryIndexLayouts: () => void;
   activeTab: DevModeTab;
@@ -87,6 +92,8 @@ export type DevModePageControllerState = {
   playlistsInitialKey?: string;
   /** `/dev/people/<email or profile key>` (and `/dev/members/<email>`): the person People opens on. */
   peopleInitialKey?: string;
+  /** `/dev/contributors/<key or alias>`: the profile Contributors opens on. */
+  contributorsInitialKey?: string;
   /** Keys the tool subtree; see `DevModePageProps.toolMountKey`. */
   toolMountKey: number;
   /**
@@ -96,6 +103,8 @@ export type DevModePageControllerState = {
    */
   initialFilter?: string;
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];
+  /** Index layout's Working changes panel parts (the same commit, diff and copy as Tags). */
+  indexLayoutTabProps?: ReturnType<typeof useDevSupportTabsController>["indexLayoutTabProps"];
   /**
    * The signed-in user's own contributor key, for the Contributors tab's
    * "Just me" scope: the canonical owned key once the server resolves it,

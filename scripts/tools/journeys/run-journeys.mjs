@@ -223,7 +223,7 @@ async function openWritingRow(session) {
   await session.expectValue(title, "Launch post");
   // The selected record is the one the address names.
   const selected = session.page.getByRole("group", { name: "Entries" }).getByRole("button", { name: /Launch post/ });
-  await eventually(async () => assert.equal(await selected.getAttribute("aria-pressed"), "true", "the row the address names is selected"));
+  await eventually(async () => assert.equal(await selected.getAttribute("aria-current"), "true", "the row the address names is open"));
   return { title, body: session.page.getByLabel("Body", { exact: true }), revision: session.fixture.writing.get("launch-post").baseRevision };
 }
 
@@ -317,7 +317,8 @@ const JOURNEYS = {
     const row = page.getByRole("button", { name: /Update blog post “Launch post revised”/ });
     await session.press(row, "Enter");
     await eventually(async () => assert.equal(await row.getAttribute("aria-pressed"), "true", "the chosen submission is selected"));
-    await page.getByRole("heading", { name: "Submission details" }).waitFor();
+    // The pane names the open proposal in its heading.
+    await page.getByRole("heading", { name: /Update blog post “Launch post revised”/ }).waitFor();
     const opened = await session.lastRequest("GET", `/api/dev/proposals/${proposalId}`);
     assert.equal(opened.status, 200);
 
@@ -329,7 +330,7 @@ const JOURNEYS = {
       await reviewer.open(`/dev/queue/${proposalId}`);
       const reopened = reviewer.page.getByRole("button", { name: /Update blog post “Launch post revised”/ });
       await eventually(async () => assert.equal(await reopened.getAttribute("aria-pressed"), "true", "the linked submission is selected after a fresh load"));
-      await reviewer.page.getByRole("heading", { name: "Review", exact: true }).waitFor();
+      await reviewer.page.getByRole("heading", { name: /Update blog post “Launch post revised”/ }).waitFor();
       await reviewer.visible(reviewer.page.getByRole("button", { name: /Approve/ })).waitFor({ timeout: STEP_TIMEOUT });
       const reread = await session.lastRequest("GET", `/api/dev/proposals/${proposalId}`, { count: 2 });
       assert.equal(reread.status, 200);
@@ -348,10 +349,11 @@ const JOURNEYS = {
     await session.typeAtEnd(title, " mine");
     const theirs = session.fixture.simulateConcurrentEdit("launch-post", { title: "Launch post theirs" });
 
-    await session.activate(session.visible(page.getByRole("button", { name: "Review changes" })));
-    const review = page.getByLabel("Review document changes");
-    await eventually(async () => assert.equal((await session.focused())?.label, "Review document changes", "focus moves to the review"));
-    await session.activate(review.getByRole("button", { name: "Confirm save as unpublished" }));
+    await session.activate(session.visible(page.getByRole("button", { name: "Save draft" })));
+    const review = page.getByRole("dialog", { name: /as a draft\?/ });
+    await review.getByLabel("Review document changes").waitFor();
+    await eventually(async () => assert.equal((await session.focused())?.inDialog, true, "focus moves into the confirm"));
+    await session.activate(review.getByRole("button", { name: "Save draft" }));
     const refused = await session.lastRequest("POST", "/api/dev/writing-article");
     assert.equal(refused.status, 409);
     assert.equal(refused.body.expectedRevision, revision);
@@ -372,8 +374,8 @@ const JOURNEYS = {
     await session.activate(done);
     await merge.waitFor({ state: "hidden" });
 
-    await session.activate(session.visible(page.getByRole("button", { name: "Review changes" })));
-    await session.activate(review.getByRole("button", { name: "Confirm save as unpublished" }));
+    await session.activate(session.visible(page.getByRole("button", { name: "Save draft" })));
+    await session.activate(review.getByRole("button", { name: "Save draft" }));
     const saved = await session.lastRequest("POST", "/api/dev/writing-article", { count: 2 });
     assert.equal(saved.status, 200);
     assert.equal(saved.body.expectedRevision, theirs);
@@ -387,9 +389,9 @@ const JOURNEYS = {
 const STATE_EXPECTATIONS = {
   loaded: { writing: /Field notes/, queue: /Update article “Field notes”/ },
   empty: { writing: /Nothing written here yet\./, queue: /No submissions to review\./ },
-  failed: { writing: /The fixture server could not load this/, queue: /Submissions could not be refreshed/ },
+  failed: { writing: /The fixture server could not load this/, queue: /Could not load proposals/ },
   "session-expired": { writing: /Authentication required\./, queue: /Authentication required\./ },
-  frozen: { writing: /Field notes/, queue: /Update article “Field notes”/, save: 503, message: /Data writes are frozen/ },
+  frozen: { writing: /Field notes/, queue: /Update article “Field notes”/, save: 503, message: /Writes are paused, so your changes were not published\./ },
   conflicted: { writing: /Field notes/, queue: /Update article “Field notes”/, save: 409, message: /Someone saved this article after you loaded it\./ },
 };
 
@@ -405,8 +407,8 @@ async function runStateMatrix(browser, variantName) {
         if (expected.save) {
           const { title } = await openWritingRow(session);
           await session.typeAtEnd(title, " kept");
-          await session.activate(session.visible(session.page.getByRole("button", { name: "Review changes" })));
-          await session.activate(session.page.getByLabel("Review document changes").getByRole("button", { name: "Confirm save as unpublished" }));
+          await session.activate(session.visible(session.page.getByRole("button", { name: "Save draft" })));
+          await session.activate(session.page.getByRole("dialog").getByRole("button", { name: "Save draft" }));
           const refused = await session.lastRequest("POST", "/api/dev/writing-article");
           assert.equal(refused.status, expected.save);
           await session.page.getByText(expected.message).first().waitFor({ timeout: STEP_TIMEOUT });
@@ -427,7 +429,7 @@ async function runStateMatrix(browser, variantName) {
 
 /** What each role finds on Writing: an admin saves, an editor submits, the rest are told why they cannot. */
 const ROLE_EXPECTATIONS = {
-  admin: { button: "Review changes" },
+  admin: { button: "Save draft" },
   editor_translator: { button: "Submit for review" },
   editor: { button: "Submit for review" },
   translator: { text: /Editor role required/ },

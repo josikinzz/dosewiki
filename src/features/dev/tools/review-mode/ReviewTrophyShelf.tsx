@@ -61,7 +61,7 @@ export function ReviewTrophyShelf({
           type="button"
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
-          className="theme-focus-ring-inset -mx-1 flex w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-xl px-1 text-left transition hover:bg-dose-surface-muted [@media(pointer:coarse)]:min-h-11"
+          className="theme-focus-ring-inset -mx-1 flex w-[calc(100%+0.5rem)] items-center justify-between gap-2 rounded-control px-1 text-left transition hover:bg-dose-surface-muted [@media(pointer:coarse)]:min-h-11"
         >
           <span className="flex items-center gap-1.5">
             <Icon
@@ -69,20 +69,20 @@ export function ReviewTrophyShelf({
               size={14}
               className="theme-text-faint shrink-0"
             />
-            <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-[0.12em]">
+            <h2 className="type-meta-label theme-text-muted">
               Class trophies
             </h2>
           </span>
-          <span className="theme-text-faint text-[11px] tabular-nums">
+          <span className="theme-text-faint text-xs tabular-nums">
             {earned} of {shelf.length} earned
           </span>
         </button>
       ) : (
         <div className="flex items-baseline justify-between">
-          <h2 className="theme-text-faint text-xs font-semibold uppercase tracking-[0.12em]">
+          <h2 className="type-meta-label theme-text-muted">
             Class trophies
           </h2>
-          <span className="theme-text-faint text-[11px] tabular-nums">
+          <span className="theme-text-faint text-xs tabular-nums">
             {earned} of {shelf.length} earned
           </span>
         </div>
@@ -102,7 +102,7 @@ export function ReviewTrophyShelf({
                 </span>
                 <span
                   className={cn(
-                    "min-w-0 flex-1 truncate text-[13px] font-medium",
+                    "min-w-0 flex-1 truncate text-sm font-medium",
                     trophy.earned ? "theme-text-primary" : "theme-text-secondary",
                   )}
                 >
@@ -110,21 +110,21 @@ export function ReviewTrophyShelf({
                 </span>
                 {trophy.earned ? (
                   <span
-                    className="theme-review-seal inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[10px] font-semibold tabular-nums"
+                    className="theme-review-seal inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-xs font-semibold tabular-nums"
                     title={`All ${trophy.total} reviewed`}
                   >
                     <Icon icon="lucide:check" size={10} />
                     {trophy.total}
                   </span>
                 ) : (
-                  <span className="theme-text-faint shrink-0 text-[11px] tabular-nums">
+                  <span className="theme-text-faint shrink-0 text-xs tabular-nums">
                     {trophy.reviewed}/{trophy.total}
                   </span>
                 )}
               </li>
             ))}
           </ul>
-          <p className="theme-text-faint text-[11px] leading-tight">
+          <p className="theme-text-faint text-xs leading-tight">
             A trophy lights up when every article in its class is reviewed.
           </p>
         </>

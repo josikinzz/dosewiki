@@ -46,7 +46,7 @@ describe("SubstanceTargetPicker", () => {
     );
 
     await user.click(screen.getByRole("combobox", { name: "Drug targets. 0 selected" }));
-    const search = screen.getByPlaceholderText("Search every drug by name or slug…");
+    const search = screen.getByPlaceholderText("Search every drug by name or slug");
     await user.type(search, "psilo");
     expect(screen.queryByText("LSD")).not.toBeInTheDocument();
     await user.keyboard("{ArrowDown}{Enter}");
@@ -102,7 +102,7 @@ describe("SubstanceTargetPicker", () => {
     expect(screen.getByText("Showing the first 40 of 45. Type to narrow the list.")).toBeInTheDocument();
     expect(screen.queryByText("Drug 44")).not.toBeInTheDocument();
 
-    await user.type(screen.getByPlaceholderText("Search every drug by name or slug…"), "Drug 44");
+    await user.type(screen.getByPlaceholderText("Search every drug by name or slug"), "Drug 44");
     expect(screen.getByText("Drug 44")).toBeInTheDocument();
   });
 });

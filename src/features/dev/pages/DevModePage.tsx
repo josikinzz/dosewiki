@@ -1,5 +1,6 @@
 import { DevShortcutsProvider } from "../components/devShortcuts";
 import { UnsavedWorkProvider } from "../components/unsavedWork";
+import { useWriteFreezeObserver } from "../components/writeFreeze";
 import { SessionDraftRecoveryProvider } from "../recovery/DraftRecoveryContext";
 import { DevModePageView } from "./DevModePageView";
 import type { DevModePageProps } from "./devModePageTypes";
@@ -7,6 +8,9 @@ import { useDevModePageController } from "./useDevModePageController";
 
 function DevModePageContent(props: DevModePageProps) {
   const controller = useDevModePageController(props);
+  // Once, at the shell root: learn about the write freeze from the first
+  // refused write, so the frame can say so on every tool.
+  useWriteFreezeObserver();
   return <DevModePageView controller={controller} />;
 }
 

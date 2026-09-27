@@ -75,7 +75,7 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, status }: Gal
 
   const triggerLabel =
     status === "loading"
-      ? "Loading substances…"
+      ? "Loading substances"
       : status === "error"
         ? "Substance list unavailable"
         : (current?.title ?? "Choose a substance");
@@ -130,7 +130,7 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, status }: Gal
       </PopoverTrigger>
       <PopoverContent className="w-[calc(100vw-1rem)] p-0 sm:w-[24rem]" align="start" collisionPadding={8}>
         <Command shouldFilter={false}>
-          <CommandInput value={query} onValueChange={setQuery} placeholder="Search by name or slug…" />
+          <CommandInput value={query} onValueChange={setQuery} placeholder="Search by name or slug" />
           <div className="flex items-center gap-2 border-b border-[color:var(--editor-panel-border)] px-2 py-1.5">
             <Button
               type="button"

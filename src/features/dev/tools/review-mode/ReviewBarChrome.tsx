@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { DevShortcut } from "../../components/devShortcuts";
@@ -16,19 +16,16 @@ export const MOLECULE_PANEL_ID = "review-molecule-panel";
 export const CITATION_PANEL_ID = "review-citation-panel";
 
 /**
- * Keycap glyph rendered inside the button that owns the shortcut.
- *
- * Fine pointers only: on a touch device the keycap labels a key that does not
- * exist, in a bar that is already fighting for horizontal room.
+ * Keycap drawn inside the button that owns the key, on fine pointers only:
+ * a touch screen has no key to press. The cap is `aria-hidden`; the button
+ * carries the key in `aria-keyshortcuts`. The media class sits on a wrapper
+ * because `theme-dev-kbd` sets its own display.
  */
-export function Kbd({ children }: { children: string }) {
+export function Kbd({ children, className }: { children: string; className?: string }) {
   return (
-    <kbd
-      aria-hidden
-      className="ml-0.5 hidden h-4 min-w-4 items-center justify-center rounded border border-current/25 px-1 font-sans text-[10px] leading-none opacity-60 [@media(pointer:fine)]:inline-flex"
-    >
-      {children}
-    </kbd>
+    <span aria-hidden className={cn("[@media(pointer:coarse)]:hidden", className)}>
+      <kbd className="theme-dev-kbd !text-current opacity-70">{children}</kbd>
+    </span>
   );
 }
 
@@ -36,7 +33,7 @@ export function Kbd({ children }: { children: string }) {
  * A one-shot progress-bar flourish, keyed so a repeat re-runs the animation.
  * "sweep" is one highlight pass (a subsection finished); "lap" runs the same
  * pass twice (a whole category finished). Purely decorative: `aria-hidden`,
- * and the reduced-motion block in utilities-theme.css zeroes it out.
+ * and the reduced-motion block in dev-tools.css zeroes it out.
  */
 export interface ProgressFlourish {
   id: number;
@@ -54,20 +51,15 @@ export function ProgressStrip({
   total: number;
   /**
    * "hairline" is the bar treatment at every width: the same track,
-   * unlabelled, welded to the bar's bottom edge, so progress stays visible
-   * without spending any of the row height the one-row layout is protecting.
-   * "full" is the labelled strip in the overflow sheet, where the numbers
-   * live.
+   * unlabelled, welded to the bar's bottom edge. "full" is the labelled strip
+   * in the More sheet.
    */
   variant?: "full" | "hairline";
   flourish?: ProgressFlourish | null;
 }) {
   const percent = total === 0 ? 0 : Math.round((reviewed / total) * 100);
-  // A tick makes the fill's leading edge bloom once. Local per instance:
-  // each mounted strip watches its own `reviewed` prop, so the hairline and
-  // the labelled strip glow independently and an undo (a decrease) stays
-  // silent. The ref update runs in an effect, after the render that compared
-  // against it.
+  // A tick makes the fill's leading edge bloom once. Local per instance: an
+  // undo (a decrease) stays silent.
   const previousReviewedRef = useRef(reviewed);
   const [bloom, setBloom] = useState(0);
   useEffect(() => {
@@ -84,9 +76,8 @@ export function ProgressStrip({
       aria-valuemin={0}
       aria-valuemax={total}
       aria-valuenow={reviewed}
+      aria-valuetext={`${reviewed.toLocaleString()} of ${total.toLocaleString()} reviewed`}
       aria-label="Articles reviewed"
-      // The hairline is the only progress surface from `2xl`, where the
-      // overflow sheet (and its labelled numbers) is gone. Hover fills in.
       title={
         variant === "hairline"
           ? `${reviewed.toLocaleString()} of ${total.toLocaleString()} reviewed, ${(total - reviewed).toLocaleString()} to go`
@@ -124,10 +115,8 @@ export function ProgressStrip({
   if (variant === "hairline") return track;
 
   return (
-    // 10rem until xl: the strip is the one element in the bar that loses
-    // nothing when narrower, so it absorbs the squeeze first.
-    <div className="w-[10rem] shrink-0 xl:w-[15rem]">
-      <div className="theme-text-faint mb-1 flex items-baseline justify-between text-[11px] leading-none tabular-nums">
+    <div className="w-full">
+      <div className="theme-text-muted mb-1.5 flex items-baseline justify-between text-xs tabular-nums">
         <span>
           {reviewed.toLocaleString()} of {total.toLocaleString()} reviewed
         </span>
@@ -138,35 +127,11 @@ export function ProgressStrip({
   );
 }
 
-/** Transient bottom-right toast for tick confirmations and milestones. */
-export function ReviewToast({
-  tone,
-  children,
-}: {
-  tone: "success" | "milestone";
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      role="status"
-      className={cn(
-        "fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-sm shadow-[var(--theme-elevation-xl)] backdrop-blur-[14px]",
-        "motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
-        tone === "success" ? "theme-review-toast-success" : "theme-review-toast-neutral",
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
 /**
  * The lucide `badge-check` glyph, inlined so the tick's check stroke can draw
- * itself in. Rendered only for the tick that just happened (`lastTick` still
- * holds the slug on screen); every other reviewed state keeps the static
- * iconify icon, so revisiting an already-reviewed article stays quiet. The
- * badge pops, then the check draws, both one-shot, both zeroed out by the
- * reduced-motion block in utilities-theme.css.
+ * itself in. Rendered only for the tick that just happened; every other
+ * reviewed state keeps the static icon, so revisiting a reviewed article stays
+ * quiet. Both one-shot animations stop under reduced motion.
  */
 function TickedBadgeCheck() {
   return (
@@ -188,34 +153,30 @@ function TickedBadgeCheck() {
   );
 }
 
-/** The "Open this article in…" menu body, shared by the bar and the sheet. */
-export function OpenElsewhereItems({ slug }: { slug: string | undefined }) {
+/** The "Open this article in" menu body, shared by the bar and the More sheet. */
+export function OpenElsewhereItems({ slug, label = false }: { slug: string | undefined; label?: boolean }) {
   return (
     <>
+      {label ? <DropdownMenuLabel className="theme-menu-label">Open {slug ? "this article" : ""} in a new tab</DropdownMenuLabel> : null}
       <DropdownMenuItem asChild>
         <a href={`/${slug}`} target="_blank" rel="noreferrer">
           <Icon icon="lucide:globe" size={15} />
           Live article
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
-        <a
-          href={`/dev/articles/${slug}`}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a href={`/dev/articles/${slug}`} target="_blank" rel="noreferrer">
           <Icon icon="lucide:pencil" size={15} />
-          Full substance editor
+          Substances editor
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
       </DropdownMenuItem>
       <DropdownMenuItem asChild>
-        <a
-          href={`/dev/molecule-editor/substances/${slug}`}
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a href={`/dev/molecule-editor/substances/${slug}`} target="_blank" rel="noreferrer">
           <Icon icon="lucide:hexagon" size={15} />
-          Full molecule editor
+          Molecules editor
+          <span className="sr-only"> (opens in a new tab)</span>
         </a>
       </DropdownMenuItem>
     </>
@@ -223,10 +184,11 @@ export function OpenElsewhereItems({ slug }: { slug: string | undefined }) {
 }
 
 /**
- * The verdict control. Icon-only below `sm`: the phone row's width goes to
- * the drug name, and the verdict stays legible as the bar's only
- * accent/success control. The labels leave the accessibility tree with
- * `hidden`, so both states carry an explicit aria-label.
+ * The verdict, the dock's one accent. Labelled at every width: it is the
+ * decision this whole surface exists for, so it never shrinks to a glyph.
+ * The accessible names are the tested ones ("Mark as reviewed",
+ * "Reviewed: undo", "Recommend as reviewed", "Recommended reviewed: awaiting
+ * an admin"), and each visible label starts them.
  */
 export function MarkReviewedControl({
   isCurrentReviewed,
@@ -235,106 +197,99 @@ export function MarkReviewedControl({
   isTicking,
   canSignOff,
   recommendation = null,
+  confirm = false,
   toggleReviewed,
 }: {
+  /** A changed article whose changes are open: the press now signs it off, so it says Confirm reviewed. */
+  confirm?: boolean;
   isCurrentReviewed: boolean;
   /** The tick that just happened is this article's, so the check draws in. */
   justTicked: boolean;
-  /** An article is selected and its body has loaded. */
+  /** An article is selected, its body has loaded and it drew. */
   hasCurrent: boolean;
   isTicking: boolean;
-  /** False for roles the route refuses; the bar says why in visible text. */
+  /** False for roles the route refuses; the dock says why in visible text. */
   canSignOff: boolean;
   /**
    * Set for editors, who recommend instead of signing off: `none` offers
-   * Recommend reviewed, `pending` shows a recommendation awaiting an admin,
-   * and `stale` offers to recommend the newer version again.
+   * Recommend as reviewed, `pending` shows a recommendation awaiting an
+   * admin, and `stale` offers to recommend the newer version again.
    */
   recommendation?: "none" | "pending" | "stale" | null;
   toggleReviewed: () => void;
 }) {
+  const base = cn("gap-2 whitespace-nowrap max-sm:px-3", TOUCH_PILL);
   if (recommendation && !isCurrentReviewed) {
     return recommendation === "pending" ? (
       <Button
         variant="outline"
-        size="pill"
-        className={cn("rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5", TOUCH_PILL)}
+        className={base}
         disabled
         aria-label="Recommended reviewed: awaiting an admin"
       >
         <Icon icon="lucide:send" size={16} />
-        <span className="hidden sm:inline">Recommended</span>
+        Recommended
       </Button>
     ) : (
       <Button
-        variant="accent"
-        size="pill"
-        className={cn("rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-4", TOUCH_PILL)}
+        variant={hasCurrent ? "accent" : "outline"}
+        className={base}
         onClick={toggleReviewed}
         disabled={!hasCurrent || isTicking}
         aria-label="Recommend as reviewed"
-        title="Recommend as reviewed (R)"
+        aria-keyshortcuts="r"
       >
         <Icon
           icon={isTicking ? "lucide:loader-2" : "lucide:send"}
           size={16}
-          className={isTicking ? "animate-spin" : undefined}
+          className={isTicking ? "animate-spin motion-reduce:animate-none" : undefined}
         />
-        <span className="hidden sm:inline">Recommend reviewed</span>
+        {isTicking ? "Recommending" : recommendation === "stale" ? "Recommend again" : "Recommend as reviewed"}
         <Kbd>R</Kbd>
       </Button>
     );
   }
   return isCurrentReviewed ? (
-    <span className="flex items-center justify-center gap-1.5">
+    <span className="flex items-center gap-1">
       <Button
         variant="success"
-        size="pill"
-        className={cn(
-          "rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-3.5",
-          TOUCH_PILL,
-        )}
+        className={base}
         onClick={toggleReviewed}
         disabled={isTicking || !canSignOff}
         aria-label="Reviewed: undo"
-        title="Reviewed: click to undo (R)"
+        aria-keyshortcuts="r"
+        title="Reviewed. Press to mark it not reviewed (R)"
       >
-        {justTicked ? (
-          <TickedBadgeCheck />
-        ) : (
-          <Icon icon="lucide:badge-check" size={16} />
-        )}
-        <span className="hidden sm:inline">Reviewed</span>
+        {justTicked ? <TickedBadgeCheck /> : <Icon icon="lucide:badge-check" size={16} />}
+        Reviewed
       </Button>
-      <Button
-        variant="textLink"
-        size="auto"
-        className="hidden px-1 sm:inline-flex"
-        onClick={toggleReviewed}
-        disabled={isTicking || !canSignOff}
-      >
-        Undo
-      </Button>
+      {canSignOff ? (
+        <Button
+          variant="link"
+          size="quiet"
+          className="hidden px-2 sm:inline-flex"
+          onClick={toggleReviewed}
+          disabled={isTicking}
+        >
+          Mark not reviewed
+        </Button>
+      ) : null}
     </span>
   ) : (
     <Button
-      variant="accent"
-      size="pill"
-      className={cn(
-        "rounded-full px-2.5 [@media(pointer:coarse)]:min-w-11 sm:px-4",
-        TOUCH_PILL,
-      )}
+      variant={hasCurrent && canSignOff ? "accent" : "outline"}
+      className={base}
       onClick={toggleReviewed}
       disabled={!hasCurrent || isTicking || !canSignOff}
-      aria-label="Mark as reviewed"
-      title="Mark as reviewed (R)"
+      aria-label={confirm ? "Confirm reviewed" : "Mark as reviewed"}
+      aria-keyshortcuts="r"
     >
       <Icon
         icon={isTicking ? "lucide:loader-2" : "lucide:badge-check"}
         size={16}
-        className={isTicking ? "animate-spin" : undefined}
+        className={isTicking ? "animate-spin motion-reduce:animate-none" : undefined}
       />
-      <span className="hidden sm:inline">Mark reviewed</span>
+      {isTicking ? "Saving" : confirm ? "Confirm reviewed" : "Mark as reviewed"}
       <Kbd>R</Kbd>
     </Button>
   );
@@ -352,63 +307,63 @@ const REVIEW_CRITERIA = [
  * /review runs outside the /dev shell, so this panel is its one `?` sheet.
  */
 export const REVIEW_SHORTCUTS: readonly DevShortcut[] = [
-  { keys: "←", label: "Previous article" },
-  { keys: "→", label: "Next article" },
-  { keys: "R", label: "Toggle reviewed (editors: recommend reviewed)" },
-  { keys: "F", label: "Notes and flags" },
+  { keys: "← / →", label: "Previous or next article" },
+  { keys: "k / j", label: "Previous or next article" },
+  { keys: "N", label: "Next article waiting for review" },
+  { keys: "/", label: "Find an article" },
+  { keys: "R", label: "Mark reviewed, or mark not reviewed (editors: recommend)" },
   { keys: "U", label: "Undo the last status change" },
+  { keys: "H", label: "Hold, or release a hold" },
+  { keys: "F", label: "Notes and flags" },
   { keys: "M", label: "Molecule depiction panel" },
   { keys: "C", label: "Citation palette" },
-  { keys: "E", label: "Toggle inline editing" },
+  { keys: "E", label: "Inline editing" },
   { keys: "?", label: "This panel" },
+  { keys: "Esc", label: "Close notes, a menu or this panel" },
 ];
 
-/** "What counts as reviewed" plus the keyboard map. Shared with the sheet. */
-export function ReviewHelpPanel() {
+/** "What counts as reviewed" plus the keyboard map. Shared with the More sheet. */
+export function ReviewHelpPanel({ recommend = false }: { recommend?: boolean } = {}) {
+  // The R line says what R does for the viewer's own role.
+  const shortcuts = REVIEW_SHORTCUTS.map((shortcut) =>
+    shortcut.keys === "R"
+      ? { ...shortcut, label: recommend ? "Recommend as reviewed, for an admin to approve" : "Mark reviewed, or mark not reviewed" }
+      : shortcut,
+  );
   return (
     <div className="space-y-4 text-sm">
-      <div>
-        <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-          What counts as reviewed
-        </h2>
-        <ul className="theme-text-secondary space-y-1.5 text-[13px]">
+      <section>
+        <h2 className="type-meta-label theme-text-muted mb-2">What counts as reviewed</h2>
+        <ul className="theme-text-secondary space-y-1.5 text-sm">
           {REVIEW_CRITERIA.map((item) => (
             <li key={item} className="flex gap-2">
-              <Icon
-                icon="lucide:check"
-                size={14}
-                className="theme-review-success-text mt-0.5 shrink-0"
-              />
+              <Icon icon="lucide:check" size={14} className="theme-review-success-text mt-1 shrink-0" />
               <span>{item}</span>
             </li>
           ))}
         </ul>
-        <p className="theme-text-faint mt-2 text-[12px]">
-          Can&rsquo;t finish one? Hold it{" "}
-          <Icon icon="lucide:hand" size={12} className="inline" />, note why
-          under Notes and flags (F), and move on; it stays in the queue.
+        <p className="theme-text-muted mt-2 text-xs leading-5">
+          Cannot finish one? Hold it, say why under Notes and flags, and move on. It stays in the queue.
         </p>
-      </div>
-      <div className="hidden [@media(pointer:fine)]:block">
-        <h2 className="theme-text-faint mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-          Keyboard
-        </h2>
-        <dl className="theme-text-secondary grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
-          {REVIEW_SHORTCUTS.map(({ keys: key, label }) => (
-            <Fragment key={key}>
-              <dt>
-                <kbd
-                  aria-hidden
-                  className="inline-flex h-4 min-w-4 items-center justify-center rounded border border-current/25 px-1 font-sans text-[10px] leading-none opacity-60"
-                >
-                  {key}
-                </kbd>
+      </section>
+      <section className="hidden [@media(pointer:fine)]:block">
+        <h2 className="type-meta-label theme-text-muted mb-2">Keyboard</h2>
+        <dl className="theme-text-secondary grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-1.5 text-sm">
+          {shortcuts.map(({ keys, label }) => (
+            <Fragment key={keys}>
+              <dt className="flex items-center gap-1">
+                {keys.split(" / ").map((key, index) => (
+                  <Fragment key={key}>
+                    {index > 0 ? <span aria-hidden className="theme-text-faint text-xs">/</span> : null}
+                    <kbd className="theme-dev-kbd">{key}</kbd>
+                  </Fragment>
+                ))}
               </dt>
               <dd>{label}</dd>
             </Fragment>
           ))}
         </dl>
-      </div>
+      </section>
     </div>
   );
 }

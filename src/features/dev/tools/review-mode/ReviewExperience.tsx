@@ -1,29 +1,37 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 import { useEditorRead } from "@/hooks/useEditorRead";
 
 import { Icon } from "@/components/common/Icon";
+import { StateCard } from "@/components/common/StateCard";
+import { Button } from "@/components/ui/button";
+import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { useLightweightData } from "@/data/LightweightDataProvider";
 import { moleculeOverrideImageUrl } from "@/data/mappings/moleculeOverrideUrl";
-import { Notice, useConfirm, useDirtyGuard } from "@/features/dev/components";
+import { EditorField, EditorStatusPill, Notice, useConfirm, useDirtyGuard, useWriteFreeze } from "@/features/dev/components";
+import { RelativeDay } from "@/features/dev/tools/home/homeParts";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
 import { canApprove, canDraft, resolveSessionRole, roleMeetsFloor } from "@/lib/auth/roles";
+import { cn } from "@/lib/utils";
 import type { ReviewFlag, SubstanceArticle } from "@/schema";
 import { useDevMode } from "../../context/DevModeContext";
-import type { ReviewStatus, SubstanceEditorTabProps } from "../substance-editor/types";
+import type { SubstanceEditorTabProps } from "../substance-editor/types";
 import { applyReviewArticleOverlay } from "./reviewArticleOverlay";
 import { ReviewArticleView } from "./ReviewArticleView";
 import { ReviewChangesSinceReview } from "./ReviewChangesSinceReview";
-import { Kbd, ReviewToast } from "./ReviewBarChrome";
+import { Kbd, MarkReviewedControl } from "./ReviewBarChrome";
 import { ReviewClassCelebration } from "./ReviewClassCelebration";
 import { ReviewCommandBar } from "./ReviewCommandBar";
-import { ReviewNotesPanel } from "./ReviewNotesPanel";
-import { resolveOverriddenEditorialReview } from "./reviewQueue";
+import { ReviewDock } from "./ReviewDock";
+import { describeReviewRole, describeStatusChange } from "./reviewDockModel";
+import { isEmptyNotesDraft, NOTES_PANEL_ID, ReviewNotesPanel, type NotesDraft } from "./ReviewNotesPanel";
+import { resolveOverriddenEditorialReview, signOffCredit } from "./reviewQueue";
 import { STATUS_DOT } from "./ReviewSubstancePicker";
 import { useReviewQueue } from "./useReviewQueue";
 import { usePublishedRevisions } from "./useReviewRevisions";
@@ -45,13 +53,6 @@ function isWidgetTarget(target: EventTarget | null): boolean {
   );
 }
 
-/** Past-tense toast copy for a status change, by the status it set. */
-const STATUS_CHANGE_COPY: Record<ReviewStatus, { lead: string; tail: string }> = {
-  completed: { lead: "Marked", tail: "reviewed" },
-  needed: { lead: "Marked", tail: "not reviewed" },
-  in_progress: { lead: "Held", tail: "" },
-};
-
 /** True when a key event originates inside a form control the user is typing in. */
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -69,16 +70,19 @@ type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "initialSlug">;
 /**
  * The full-bleed review workbench (`/review/[slug]`).
  *
- * One sticky command bar over one article. The tick persists through
- * `/api/dev/editorial-review` (never the full save flow) and stays in sync
- * with the editor form's own review fields in both directions — see
- * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← previous,
- * → next, R toggle reviewed, U undo the last status change, F notes and flags, M the molecule panel,
- * C the citation palette, E inline editing.
+ * A sticky bar over one article (where you are, how to move, the tools) and a
+ * review dock under it (where this article's review stands, hold, notes, the
+ * tick and the result of the last change, with Undo). The tick persists
+ * through `/api/dev/editorial-review` (never the full save flow) and stays in
+ * sync with the editor form's own review fields in both directions; see
+ * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← / k
+ * previous, → / j next, R toggle reviewed, U undo the last status change, H
+ * hold, F notes and flags, M the molecule panel, C the citation palette, E
+ * inline editing, ? help.
  *
  * This file only composes: settings and history live in `useReviewSettings`,
  * the queue in `useReviewQueue`, the direct writes in `useReviewWrites`, and
- * the chrome in `ReviewCommandBar` and `ReviewArticleView`.
+ * the chrome in `ReviewCommandBar`, `ReviewDock` and `ReviewArticleView`.
  */
 export const ReviewExperience = memo(function ReviewExperience({
   initialSlug,
@@ -88,6 +92,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     articleHydration,
     articlesRefreshConflict,
   } = useDevMode();
+  const router = useRouter();
 
   // The queue, picker, and chrome read only slim library rows (reference
   // counts arrive projected as `reference_count`), so the workbench renders as
@@ -164,25 +169,37 @@ export const ReviewExperience = memo(function ReviewExperience({
     }
   }, [current, hydratedSlugs, isArticleHydrated, position, requestArticle, visibleQueue]);
 
-  // Until the body lands, only the article area waits: the command bar, queue
-  // position, and picker all read slim rows and stay interactive. A failed
-  // request is its own state so the area offers a retry instead of a spinner
-  // that never resolves.
+  // Until the body lands, only the article area waits: the bar, the queue
+  // position, and the picker read slim rows and stay interactive. A failed
+  // request is its own state so the area offers a retry.
   const currentArticleHydrated = current ? isArticleHydrated(current.slug) : false;
   const currentArticleFailed =
     current !== null && !currentArticleHydrated && failedSlugs.has(current.slug);
   const retryCurrentArticle = useCallback(() => {
     requestArticle(currentSlugRef.current);
   }, [currentSlugRef, requestArticle]);
+  // An article the renderer could not draw was not read, so it cannot be
+  // signed off here either. Keyed by slug, so moving on forgets it.
+  const [drawFailedSlug, setDrawFailedSlug] = useState<string | null>(null);
+  const currentDrawFailed = current !== null && drawFailedSlug === current.slug;
+  const currentReadable = currentArticleHydrated && !currentDrawFailed;
+  const reportDrawFailed = useCallback((failed: boolean) => {
+    setDrawFailedSlug(failed ? currentSlugRef.current : null);
+  }, [currentSlugRef]);
 
   // Deliberately not persisted: the panel is a per-article detour, and a stored
   // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
   const [citationPanelOpen, setCitationPanelOpen] = useState(false);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
-  // Controlled so `?` can open it; the mobile sheet needs the same treatment
-  // because selecting anything inside it should close it.
+  // Controlled so `?` can open it.
   const [helpOpen, setHelpOpen] = useState(false);
+  // Controlled so `/` can open the article list with its search focused.
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // What the reviewer typed in the notes panel and has not added yet, per
+  // article, so closing the panel or moving on never drops it.
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, NotesDraft>>({});
+  const notesButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Human Reviewed status is independent of the private article draft.
   const currentOverride = current ? overlays.overrides[current.slug] : undefined;
@@ -207,8 +224,6 @@ export const ReviewExperience = memo(function ReviewExperience({
   const moleculeOverrideUrl =
     current && moleculeMeta ? moleculeOverrideImageUrl(current.slug, moleculeMeta.updatedAt) : null;
 
-
-
   const status = useReviewStatusWrites({
     current,
     typedArticles,
@@ -217,19 +232,20 @@ export const ReviewExperience = memo(function ReviewExperience({
     setOverrides: overlays.setOverrides,
     canSignOff,
     canRecommend,
-    currentHydrated: currentArticleHydrated,
+    currentHydrated: currentReadable,
     publishedRevisions,
   });
-  const { lastTick, lastRecommended, milestone, celebration, toggleReviewed, undoLastTick } =
+  const { lastTick, lastRecommended, milestone, celebration, toggleReviewed, toggleFlagged, undoLastTick, isTicking } =
     status;
+  const { frozen } = useWriteFreeze();
 
   // An editor's R asks once, with room for an optional note, before the
   // recommendation is recorded against the version on screen.
   const { confirm: confirmRecommend, dialog: recommendDialog } = useConfirm();
   const recommendNoteRef = useRef<HTMLInputElement | null>(null);
-  const { currentRecommendation, recommendReviewed, isTicking } = status;
+  const { currentRecommendation, recommendReviewed } = status;
   const requestRecommendation = useCallback(() => {
-    if (!current || !canRecommend || !currentArticleHydrated || isTicking) return;
+    if (!current || !canRecommend || !currentReadable || isTicking) return;
     // A current sign-off needs no recommendation; a stale one does.
     if (current.status === "completed") return;
     if (currentRecommendation && !currentRecommendation.stale) return;
@@ -238,16 +254,43 @@ export const ReviewExperience = memo(function ReviewExperience({
       description:
         "An admin approves recommendations in Change Review. Yours covers the version you are reading; if the article is published again first, it needs another review.",
       body: (
-        <div className="space-y-1.5">
-          <Label htmlFor="review-recommendation-note">Note for the admin (optional)</Label>
-          <Input id="review-recommendation-note" ref={recommendNoteRef} maxLength={1000} autoComplete="off" />
-        </div>
+        <EditorField label="Note for the admin (optional)" htmlFor="review-recommendation-note" description="What you checked, or anything the admin should look at first.">
+          <Input id="review-recommendation-note" ref={recommendNoteRef} maxLength={1000} autoComplete="off" className="text-[16px] md:text-sm" />
+        </EditorField>
       ),
       confirmLabel: "Recommend reviewed",
       onConfirm: () => recommendReviewed(recommendNoteRef.current?.value ?? ""),
     });
-  }, [canRecommend, confirmRecommend, current, currentArticleHydrated, currentRecommendation, isTicking, recommendReviewed]);
-  const pressReviewed = canSignOff ? toggleReviewed : requestRecommendation;
+  }, [canRecommend, confirmRecommend, current, currentReadable, currentRecommendation, isTicking, recommendReviewed]);
+  // The re-sign-off gate: on a changed article the first press opens what
+  // changed since the last review, and only a press after that acts: an
+  // admin's signs it off (the same request and revision as a one-step
+  // sign-off), an editor's opens the recommend confirm. Keyed by slug, so
+  // moving on resets it; other articles take one step.
+  const [changesSeenSlug, setChangesSeenSlug] = useState<string | null>(null);
+  const [changesOpenSignal, setChangesOpenSignal] = useState(0);
+  const staleGateApplies =
+    (canSignOff || canRecommend) && current !== null && current.status === "stale" && Boolean(current.reviewedRevision);
+  const staleGateClosed = staleGateApplies && changesSeenSlug !== current?.slug;
+  const staleChangesShown = staleGateApplies && changesSeenSlug === current?.slug;
+  // A recommendation already waiting on this version has nothing to gate.
+  const recommendationWaiting = Boolean(currentRecommendation && !currentRecommendation.stale);
+  const markChangesSeen = useCallback(() => {
+    setChangesSeenSlug(currentSlugRef.current);
+  }, [currentSlugRef]);
+  const openChangesFirst = useCallback(() => {
+    if (!currentReadable || isTicking) return;
+    setChangesOpenSignal((value) => value + 1);
+  }, [currentReadable, isTicking]);
+  const signOff = useCallback(() => {
+    if (staleGateClosed) return openChangesFirst();
+    toggleReviewed();
+  }, [openChangesFirst, staleGateClosed, toggleReviewed]);
+  const recommend = useCallback(() => {
+    if (staleGateClosed && !recommendationWaiting) return openChangesFirst();
+    requestRecommendation();
+  }, [openChangesFirst, recommendationWaiting, requestRecommendation, staleGateClosed]);
+  const pressReviewed = canSignOff ? signOff : recommend;
 
   const [articleDirty, setArticleDirty] = useState(false);
   const [operationLocked, setOperationLocked] = useState(false);
@@ -271,6 +314,28 @@ export const ReviewExperience = memo(function ReviewExperience({
     guardNavigation: articleNavigation.guard,
   });
 
+  // The next article in the queue still waiting for a sign-off, after the
+  // one on screen and wrapping round, so a result can offer it.
+  const nextWaiting = useMemo(() => {
+    if (visibleQueue.length === 0) return null;
+    for (let step = 1; step < visibleQueue.length; step += 1) {
+      const entry = visibleQueue[(Math.max(position, 0) + step) % visibleQueue.length];
+      if (entry.status !== "completed") return entry;
+    }
+    return null;
+  }, [position, visibleQueue]);
+  const goNextWaiting = useCallback(() => {
+    if (nextWaiting) navigateTo(nextWaiting.slug);
+  }, [navigateTo, nextWaiting]);
+
+  // Leaving for the editor asks first while article edits are unsaved; a
+  // modified click still opens a new tab.
+  const leaveWorkbench = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    if (!articleDirty || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    articleNavigation.guard(() => router.push("/dev"));
+  }, [articleDirty, articleNavigation, router]);
+
   const toggleMoleculePanel = useCallback(() => {
     if (!currentSlugRef.current) return;
     setMoleculePanelOpen((open) => !open);
@@ -280,6 +345,22 @@ export const ReviewExperience = memo(function ReviewExperience({
     if (!currentSlugRef.current) return;
     setNotesPanelOpen((open) => !open);
   }, [currentSlugRef]);
+  // Closing the panel hands focus back to the button that opened it.
+  const closeNotesPanel = useCallback(() => {
+    setNotesPanelOpen(false);
+    window.requestAnimationFrame(() => notesButtonRef.current?.focus({ preventScroll: true }));
+  }, []);
+  const recordNoteDraft = useCallback((slug: string, draft: NotesDraft) => {
+    setNoteDrafts((previous) => {
+      if (isEmptyNotesDraft(draft)) {
+        if (!(slug in previous)) return previous;
+        const next = { ...previous };
+        delete next[slug];
+        return next;
+      }
+      return { ...previous, [slug]: draft };
+    });
+  }, []);
 
   const recordFlags = useCallback((slug: string, flags: ReviewFlag[]) => {
     setFlagOverrides((previous) => ({ ...previous, [slug]: flags }));
@@ -291,7 +372,7 @@ export const ReviewExperience = memo(function ReviewExperience({
     setCitationPanelOpen((open) => !open);
   }, [currentSlugRef, citationPanelOpen, updateSettings]);
 
-  // Scoped to the webpage view — the only place the mode does anything — so
+  // Scoped to the webpage view, the only place the mode does anything, so
   // neither the key nor the bar button can arm it invisibly from the editor.
   // Both editor and admin roles may arm local editing.
   const toggleInlineEdit = useCallback(() => {
@@ -304,7 +385,7 @@ export const ReviewExperience = memo(function ReviewExperience({
    * `articleLinks` setting is off. Capture phase, so it runs before both the
    * anchor's own handler and Next's client-side router; keyboard activation
    * (Enter on a focused link) arrives here as a click too. Same-page `#`
-   * anchors stay live — a TOC jump never loses the reviewer's place.
+   * anchors stay live, so a contents jump never loses the reviewer's place.
    */
   const blockArticleLinks = useCallback((event: React.MouseEvent) => {
     if (!(event.target instanceof Element)) return;
@@ -315,12 +396,13 @@ export const ReviewExperience = memo(function ReviewExperience({
   }, []);
 
   // Moving on collapses the panels, so the WASM canvas never lingers over the
-  // wrong molecule (and the palette never lists the wrong article's sources) —
+  // wrong molecule (and the palette never lists the wrong article's sources);
   // the next article starts from the article itself.
   useEffect(() => {
     setMoleculePanelOpen(false);
     setCitationPanelOpen(false);
     setNotesPanelOpen(false);
+    setChangesSeenSlug(null);
   }, [currentSlug]);
 
   useEffect(() => {
@@ -330,38 +412,48 @@ export const ReviewExperience = memo(function ReviewExperience({
       if (event.defaultPrevented) return;
       if (isTypingTarget(event.target) || isWidgetTarget(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key === "ArrowLeft") {
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      if (key === "ArrowLeft" || key === "k") {
         event.preventDefault();
         goPrev();
-      } else if (event.key === "ArrowRight") {
+      } else if (key === "ArrowRight" || key === "j") {
         event.preventDefault();
         goNext();
-      } else if (event.key === "r" || event.key === "R") {
+      } else if (key === "r") {
         event.preventDefault();
         pressReviewed();
-      } else if (event.key === "u" || event.key === "U") {
+      } else if (key === "u") {
         event.preventDefault();
         undoLastTick();
-      } else if (event.key === "m" || event.key === "M") {
+      } else if (key === "h") {
+        event.preventDefault();
+        toggleFlagged();
+      } else if (key === "m") {
         event.preventDefault();
         toggleMoleculePanel();
-      } else if (event.key === "c" || event.key === "C") {
+      } else if (key === "c") {
         // Plain C, not Shift+C: inside a textarea Shift+C is how a capital C
         // is typed, and the typing guard above already keeps every bare-letter
         // shortcut out of form fields.
         event.preventDefault();
         toggleCitationPanel();
-      } else if (event.key === "f" || event.key === "F") {
+      } else if (key === "f") {
         // Notes and flags, where a held article gets its reason. The panel
         // takes focus in the note, so the next keys type rather than command.
         event.preventDefault();
         toggleNotesPanel();
-      } else if (event.key === "e" || event.key === "E") {
+      } else if (key === "e") {
         // The typing guard above keeps E out of the very inputs the mode
         // creates, so the key that turns editing on can never type into it.
         event.preventDefault();
         toggleInlineEdit();
-      } else if (event.key === "?") {
+      } else if (key === "n") {
+        event.preventDefault();
+        goNextWaiting();
+      } else if (key === "/") {
+        event.preventDefault();
+        setPickerOpen(true);
+      } else if (key === "?") {
         event.preventDefault();
         setHelpOpen((open) => !open);
       }
@@ -370,9 +462,11 @@ export const ReviewExperience = memo(function ReviewExperience({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
     goNext,
+    goNextWaiting,
     goPrev,
     pressReviewed,
     toggleCitationPanel,
+    toggleFlagged,
     toggleInlineEdit,
     toggleMoleculePanel,
     toggleNotesPanel,
@@ -381,28 +475,187 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   if (queue.length === 0) {
     return (
-      <main className="theme-page-shell min-h-screen p-8">
-        <div className="mx-auto max-w-xl pt-16">
-          <Notice
-            tone="info" message="No public articles are available to review yet."
-          />
-        </div>
+      <main className="theme-page-shell flex min-h-screen items-center justify-center p-6">
+        <StateCard
+          className="max-w-lg"
+          icon="lucide:list-checks"
+          title="Nothing to review yet"
+          description="No public articles are available to review yet. Articles join the queue as soon as they are published."
+          actions={(
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild variant="outline" className={TOUCH_PILL}>
+                <Link href="/dev/articles">Open Substances</Link>
+              </Button>
+              <Button asChild variant="ghost" className={TOUCH_PILL}>
+                <Link href="/dev">Back to the editor</Link>
+              </Button>
+            </div>
+          )}
+        />
       </main>
     );
   }
 
   // The frames between mount and the landing pick: hold the shell rather than
-  // paint a command bar with no article and a "no article data" warning under
-  // it. `current` is only ever null before the landing runs — once a slug is
-  // chosen the queue filter always keeps it.
+  // paint a bar with no article under it. `current` is only ever null before
+  // the landing runs; once a slug is chosen the queue filter always keeps it.
   if (!current && !currentSlug) {
     return <main className="theme-page-shell min-h-screen" aria-busy="true" />;
   }
 
   const dot = current ? STATUS_DOT[current.status] : null;
+  const recommendationState = canRecommend
+    ? (currentRecommendation ? (currentRecommendation.stale ? "stale" : "pending") : "none") as "none" | "pending" | "stale"
+    : null;
+  const credit = current?.status === "completed" ? signOffCredit(current) : null;
+  const flagCount = (current ? flagOverrides[current.slug] ?? article?.editorial_review?.flags ?? [] : []).length;
+  const isHeld = current?.status === "in_progress";
+
+  // Why the tick is off, when it is, in the dock's words.
+  const tickReason = !current
+    ? null
+    : currentDrawFailed
+      ? "This article could not be drawn, so it cannot be marked reviewed here. Fix it in the Substances editor first."
+      : currentArticleFailed
+        ? "The article did not load, so it cannot be marked reviewed yet."
+        : !currentArticleHydrated
+          ? "Marking reviewed waits until the article has loaded."
+          : staleChangesShown && !(canRecommend && recommendationWaiting)
+            ? "Changes since the last review are shown above."
+            : staleGateClosed && !(canRecommend && recommendationWaiting)
+              ? `It changed since its last review, so ${
+                  canSignOff ? "Mark as reviewed" : recommendationState === "stale" ? "Recommend again" : "Recommend as reviewed"
+                } first opens the changes.`
+              : null;
+  const roleSentence = describeReviewRole({ canSignOff, canRecommend, recommendation: recommendationState });
+  const roleLine = roleSentence || tickReason || (isHeld && flagCount === 0) ? (
+    <>
+      {roleSentence}
+      {tickReason ? <>{roleSentence ? " " : null}{tickReason}</> : null}
+      {isHeld && flagCount === 0 ? <>{roleSentence || tickReason ? " " : null}Nothing says why it is on hold yet; add a flag under Notes.</> : null}
+      {recommendationState === "pending" ? (
+        <>
+          {" "}
+          <Link href="/dev/queue#recommendations" className="text-dose-accent-strong theme-accent-underline underline-offset-4 hover:underline">
+            Open Change Review
+          </Link>
+        </>
+      ) : null}
+    </>
+  ) : null;
+
+  // The one result the dock shows: a refused write first, then the last
+  // change with its Undo (and what it finished), then a recommendation.
+  const tickResultTitle = lastTick && lastTick.status === "completed"
+    ? celebration && celebration.level === "section"
+      ? `${celebration.groupLabel ? `${celebration.groupLabel}, ${celebration.label}` : celebration.label} complete, all ${celebration.total.toLocaleString()} reviewed`
+      : celebration && celebration.level === "group"
+        ? `${celebration.label} complete: every article in the class is reviewed`
+        : milestone !== null
+          ? `${milestone.toLocaleString()} reviewed. Keep rolling.`
+          : undefined
+    : undefined;
+  const result = status.tickError ? (
+    <Notice
+      tone={status.tickRefusal === "frozen" ? "warning" : "danger"}
+      message={status.tickError}
+      className="text-sm"
+      dismiss={status.clearTickError}
+      actions={status.tickRefusal === "expired" ? (
+        <Button asChild variant="outline" size="sm">
+          <a href={`/sign-in?callbackUrl=${encodeURIComponent(current ? `/review/${current.slug}` : "/review")}`} target="_blank" rel="noopener noreferrer">
+            Sign in in a new tab
+          </a>
+        </Button>
+      ) : undefined}
+    />
+  ) : lastTick ? (
+    <div role="status" className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+      <EditorStatusPill inline tone="success" icon={lastTick.status === "completed" ? "lucide:badge-check" : lastTick.status === "in_progress" ? "lucide:hand" : "lucide:rotate-ccw"} className="max-w-full whitespace-normal text-left">
+        <span className="min-w-0">
+          {tickResultTitle ? <span className="font-semibold">{tickResultTitle}. </span> : null}
+          {describeStatusChange(lastTick.status, lastTick.name)}
+        </span>
+      </EditorStatusPill>
+      <Button type="button" variant="outline" size="sm" onClick={undoLastTick} disabled={isTicking} aria-keyshortcuts="u" className="gap-2">
+        Undo
+        <Kbd>U</Kbd>
+      </Button>
+      {lastTick.status === "completed" && nextWaiting && lastTick.slug === current?.slug ? (
+        <Button type="button" variant="link" size="quiet" className="h-auto gap-2 p-0" onClick={goNextWaiting} aria-keyshortcuts="n">
+          <span className="max-sm:hidden">Next waiting:</span><span className="sm:hidden">Next:</span> {nextWaiting.name}
+          <Kbd>N</Kbd>
+        </Button>
+      ) : null}
+    </div>
+  ) : lastRecommended ? (
+    <Notice
+      placement="inline"
+      tone="success"
+      icon="lucide:send"
+      message={`Recommended ${lastRecommended} as reviewed. An admin approves it in Change Review.`}
+      className="text-sm"
+      autoClearMs={null}
+    />
+  ) : null;
+
+  const actions = current ? (
+    <>
+      <Button
+        type="button"
+        variant={isHeld ? "iconWarning" : "outline"}
+        className={cn("gap-2 max-sm:px-3", TOUCH_PILL)}
+        onClick={toggleFlagged}
+        disabled={isTicking}
+        aria-pressed={isHeld}
+        aria-label="Hold"
+        aria-keyshortcuts="h"
+        title={isHeld ? "On hold. Press to release it (H)" : "Hold this article if you cannot finish it now (H)"}
+      >
+        <Icon icon="lucide:hand" size={15} />
+        Hold
+        <Kbd className="max-sm:hidden">H</Kbd>
+      </Button>
+      <Button
+        ref={notesButtonRef}
+        type="button"
+        variant={notesPanelOpen ? "pillActive" : "outline"}
+        className={cn("gap-2 max-sm:px-3", TOUCH_PILL)}
+        onClick={toggleNotesPanel}
+        aria-expanded={notesPanelOpen}
+        aria-controls={NOTES_PANEL_ID}
+        aria-keyshortcuts="f"
+      >
+        <Icon icon="lucide:notebook-pen" size={15} />
+        <span className="max-sm:sr-only">Notes and flags</span>
+        {flagCount > 0 ? (
+          <span className="theme-review-count rounded-chip px-1.5 text-xs tabular-nums">
+            <span className="sr-only">, </span>{flagCount}<span className="sr-only"> {flagCount === 1 ? "flag" : "flags"}</span>
+          </span>
+        ) : null}
+        {noteDrafts[current.slug] && !notesPanelOpen ? (
+          <>
+            <span aria-hidden className="theme-dev-unsaved-dot size-1.5 rounded-full" />
+            <span className="sr-only">, a note not added yet</span>
+          </>
+        ) : null}
+        <Kbd className="max-sm:hidden">F</Kbd>
+      </Button>
+      <MarkReviewedControl
+        isCurrentReviewed={current.status === "completed"}
+        justTicked={lastTick?.status === "completed" && lastTick.slug === current.slug}
+        hasCurrent={currentReadable}
+        isTicking={isTicking}
+        canSignOff={canSignOff}
+        recommendation={recommendationState}
+        confirm={canSignOff && staleChangesShown}
+        toggleReviewed={pressReviewed}
+      />
+    </>
+  ) : null;
 
   return (
-    <main className="theme-page-shell min-h-screen">
+    <main className="theme-page-shell flex min-h-screen flex-col">
       {/* Screen-reader narration for keyboard-driven article changes. */}
       <p aria-live="polite" className="sr-only">
         {current
@@ -413,7 +666,7 @@ export const ReviewExperience = memo(function ReviewExperience({
       <ReviewCommandBar
         settings={{ ...settings, changeViewMode: (view) => articleNavigation.guard(() => settings.changeViewMode(view)) }}
         queue={queueState}
-        status={{ ...status, toggleReviewed: pressReviewed }}
+        status={status}
         navigateTo={navigateTo}
         goPrev={goPrev}
         goNext={goNext}
@@ -424,68 +677,92 @@ export const ReviewExperience = memo(function ReviewExperience({
         toggleMoleculePanel={toggleMoleculePanel}
         toggleCitationPanel={toggleCitationPanel}
         toggleInlineEdit={toggleInlineEdit}
-        notesPanelOpen={notesPanelOpen}
-        toggleNotesPanel={toggleNotesPanel}
         canEditArticle={canEditArticle}
         helpOpen={helpOpen}
         setHelpOpen={setHelpOpen}
+        pickerOpen={pickerOpen}
+        setPickerOpen={setPickerOpen}
+        onLeave={leaveWorkbench}
       />
 
       {articleNavigation.dialog}
       {recommendDialog}
-      {current?.status === "stale" && current.reviewedRevision ? (
-        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
-          <ReviewChangesSinceReview
-            key={`${current.slug}:${current.reviewedRevision}`}
-            slug={current.slug}
-            name={current.name}
-            reviewedRevision={current.reviewedRevision}
-            reviewedBy={current.reviewedBy}
-            recommendedBy={current.recommendedBy}
-          />
-        </div>
-      ) : null}
-      {notesPanelOpen && current ? (
-        <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+      <div className="flex-1">
+        {current?.status === "stale" && current.reviewedRevision ? (
+          <div className="mx-auto w-full max-w-[1500px] px-4 pt-4 sm:px-6">
+            <ReviewChangesSinceReview
+              key={`${current.slug}:${current.reviewedRevision}`}
+              slug={current.slug}
+              name={current.name}
+              reviewedRevision={current.reviewedRevision}
+              reviewedBy={current.reviewedBy}
+              reviewedAt={current.reviewedAt}
+              recommendedBy={current.recommendedBy}
+              openSignal={changesOpenSignal}
+              onOpened={markChangesSeen}
+            />
+          </div>
+        ) : null}
+        <ReviewArticleView
+          allReviewed={allReviewed}
+          total={queue.length}
+          showAll={() => updateSettings({ unreviewedOnly: false })}
+          current={current}
+          articleForView={currentArticleHydrated ? articleForView : null}
+          articleHydrating={current !== null && !currentArticleHydrated && !currentArticleFailed}
+          articleFailed={currentArticleFailed}
+          retryArticle={retryCurrentArticle}
+          goNext={canGoNext ? goNext : undefined}
+          onDrawFailedChange={reportDrawFailed}
+          moleculeOverrideUrl={moleculeOverrideUrl}
+          moleculePanelOpen={moleculePanelOpen}
+          closeMoleculePanel={() => setMoleculePanelOpen(false)}
+          citationPanelOpen={citationPanelOpen}
+          closeCitationPanel={() => setCitationPanelOpen(false)}
+          viewMode={viewMode}
+          articleLinks={articleLinks}
+          blockArticleLinks={blockArticleLinks}
+          articlesRefreshConflict={articlesRefreshConflict !== null}
+          inlineEdit={inlineEdit}
+          workbenchRole={resolveSessionRole(session.data?.user ?? {})}
+          workbenchEmail={session.data?.user?.email ?? null}
+          onDirtyChange={setArticleDirty}
+          draftGuardRef={articleDraftGuard}
+          onOperationLockChange={setOperationLocked}
+        />
+      </div>
+
+      <ReviewDock
+        state={current?.status ?? null}
+        credit={credit ? (
+          <span className={cn("theme-text-secondary", result ? "max-sm:hidden" : undefined)}>
+            <span data-testid="review-signoff-credit">{credit}.</span>
+            {current?.reviewedAt ? <span className="theme-text-muted"> <RelativeDay iso={current.reviewedAt} prefix="Signed off" />.</span> : null}
+          </span>
+        ) : null}
+        roleLine={roleLine}
+        reviewed={reviewedCount}
+        total={queue.length}
+        result={result}
+        frozen={frozen && !status.tickError}
+        notes={notesPanelOpen && current ? (
           <ReviewNotesPanel
             key={current.slug}
             slug={current.slug}
             name={current.name}
             flags={flagOverrides[current.slug] ?? article?.editorial_review?.flags ?? []}
             onFlagsChange={recordFlags}
-            onClose={() => setNotesPanelOpen(false)}
+            onClose={closeNotesPanel}
+            draft={noteDrafts[current.slug]}
+            onDraftChange={recordNoteDraft}
           />
-        </div>
-      ) : null}
-      <ReviewArticleView
-        allReviewed={allReviewed}
-        total={queue.length}
-        showAll={() => updateSettings({ unreviewedOnly: false })}
-        current={current}
-        articleForView={currentArticleHydrated ? articleForView : null}
-        articleHydrating={current !== null && !currentArticleHydrated && !currentArticleFailed}
-        articleFailed={currentArticleFailed}
-        retryArticle={retryCurrentArticle}
-        moleculeOverrideUrl={moleculeOverrideUrl}
-        moleculePanelOpen={moleculePanelOpen}
-        closeMoleculePanel={() => setMoleculePanelOpen(false)}
-        citationPanelOpen={citationPanelOpen}
-        closeCitationPanel={() => setCitationPanelOpen(false)}
-        viewMode={viewMode}
-        articleLinks={articleLinks}
-        blockArticleLinks={blockArticleLinks}
-        articlesRefreshConflict={articlesRefreshConflict !== null}
-        inlineEdit={inlineEdit}
-        workbenchRole={resolveSessionRole(session.data?.user ?? {})}
-        workbenchEmail={session.data?.user?.email ?? null}
-        onDirtyChange={setArticleDirty}
-        draftGuardRef={articleDraftGuard}
-        onOperationLockChange={setOperationLocked}
+        ) : null}
+        actions={actions}
       />
 
       {/* A finished psychoactive category: confetti plus the medallion card.
           When that same tick finished the whole corpus, FinishedState is the
-          headline — the confetti still flies, the card stays home. */}
+          headline; the confetti still flies, the card stays home. */}
       {celebration?.level === "group" ? (
         <ReviewClassCelebration
           key={celebration.id}
@@ -495,47 +772,6 @@ export const ReviewExperience = memo(function ReviewExperience({
           showCard={!allReviewed}
           onDismiss={status.dismissCelebration}
         />
-      ) : null}
-
-      {celebration?.level === "section" ? (
-        <ReviewToast tone="success">
-          <Icon icon="lucide:sparkles" size={16} />
-          <span>
-            <span className="font-semibold">{celebration.label}</span> complete,
-            all {celebration.total} reviewed
-          </span>
-        </ReviewToast>
-      ) : milestone !== null ? (
-        <ReviewToast tone="milestone">
-          <Icon icon="lucide:party-popper" size={16} />
-          <span className="font-semibold">{milestone} reviewed!</span>
-          <span className="theme-text-faint">Keep rolling.</span>
-        </ReviewToast>
-      ) : lastRecommended ? (
-        <ReviewToast tone="success">
-          <Icon icon="lucide:send" size={16} />
-          <span>
-            Recommended <span className="font-semibold">{lastRecommended}</span> as reviewed.
-            An admin approves it in Change Review.
-          </span>
-        </ReviewToast>
-      ) : lastTick ? (
-        <ReviewToast tone="success">
-          <Icon icon={lastTick.status === "completed" ? "lucide:badge-check" : lastTick.status === "in_progress" ? "lucide:flag" : "lucide:rotate-ccw"} size={16} />
-          <span>
-            {STATUS_CHANGE_COPY[lastTick.status].lead}{" "}
-            <span className="font-semibold">{lastTick.name}</span>{" "}
-            {STATUS_CHANGE_COPY[lastTick.status].tail}
-          </span>
-          <button
-            type="button"
-            onClick={undoLastTick}
-            className="font-semibold underline underline-offset-2 hover:opacity-80"
-          >
-            Undo
-          </button>
-          <Kbd>U</Kbd>
-        </ReviewToast>
       ) : null}
     </main>
   );

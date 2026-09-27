@@ -136,7 +136,7 @@ export function EditorCitationDiagnosticsPanel({
 
       {routePreviews.length > 0 && (
         <div className="space-y-2">
-          <p className="theme-text-faint text-xs font-medium uppercase tracking-wider">
+          <p className="type-meta-label theme-text-faint">
             Route reference preview
           </p>
           <div className="space-y-2">
@@ -165,7 +165,7 @@ export function EditorCitationDiagnosticsPanel({
 
       {prosePreviews.length > 0 && (
         <div className="space-y-2">
-          <p className="theme-text-faint text-xs font-medium uppercase tracking-wider">
+          <p className="type-meta-label theme-text-faint">
             Numbered prose preview
           </p>
           <div className="space-y-2">

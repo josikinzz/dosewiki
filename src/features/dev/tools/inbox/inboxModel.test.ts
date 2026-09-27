@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { filterInboxItems, sortInboxItems, type InboxItem } from "./inboxModel";
+import {
+  countByAssignment,
+  describeLoadFailures,
+  filterInboxItems,
+  sortInboxItems,
+  urgencyTone,
+  type InboxItem,
+} from "./inboxModel";
 
 function item(overrides: Partial<InboxItem> & Pick<InboxItem, "key">): InboxItem {
   return {
@@ -55,5 +62,44 @@ describe("inboxModel", () => {
     ];
     expect(filterInboxItems(items, { assignment: "everyone", chip: "feedback", actor: null }).map((entry) => entry.key)).toEqual(["a", "s"]);
     expect(filterInboxItems(items, { assignment: "everyone", chip: "change-review", actor: null }).map((entry) => entry.key)).toEqual(["r"]);
+  });
+
+  it("counts every assignment view under the current chip", () => {
+    const items = [
+      item({ key: "a", claimedBy: "ada@example.com" }),
+      item({ key: "b", claimedBy: null }),
+      item({ key: "c", claimedBy: "ben@example.com", source: "citations" }),
+    ];
+    expect(countByAssignment(items, { chip: null, actor: "ada@example.com" })).toEqual({ mine: 1, unassigned: 1, everyone: 3 });
+    expect(countByAssignment(items, { chip: "citations", actor: "ada@example.com" })).toEqual({ mine: 0, unassigned: 0, everyone: 1 });
+  });
+
+  it("folds load failures into one title and message", () => {
+    expect(describeLoadFailures([], false)).toBeNull();
+    expect(
+      describeLoadFailures([{ source: "Citations", message: "Timed out. Try again." }], false),
+    ).toEqual({ what: "Citations", message: "Timed out. Items from Citations are missing from the list below; everything else loaded." });
+    expect(describeLoadFailures([{ source: "Claims", message: "Down." }], false)).toEqual({
+      what: "who is working on what",
+      message: "Down. Until claims load, every item shows as unclaimed.",
+    });
+    expect(
+      describeLoadFailures(
+        [
+          { source: "Claims", message: "Down." },
+          { source: "Trip report", message: "Down." },
+        ],
+        true,
+      ),
+    ).toEqual({ what: "the Inbox", message: "Down." });
+  });
+
+  it("gives urgency one tone rule", () => {
+    expect([urgencyTone("critical"), urgencyTone("high"), urgencyTone("normal"), urgencyTone("low")]).toEqual([
+      "danger",
+      "caution",
+      null,
+      "neutral",
+    ]);
   });
 });

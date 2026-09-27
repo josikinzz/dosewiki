@@ -58,4 +58,30 @@ describe("buildTagRegistry", () => {
     ]);
     expect(result.changes).toHaveLength(1);
   });
+
+  it("moves a tag only on the articles that carry it", () => {
+    const carrier = createEmptyArticle();
+    carrier.id = 1;
+    carrier.title = "Carrier";
+    carrier.identification.common_name = "Carrier";
+    carrier.classification.psychoactive_class = ["Anxiolytic"];
+    const bystander = createEmptyArticle();
+    bystander.id = 2;
+    bystander.title = "Bystander";
+    bystander.identification.common_name = "Bystander";
+    bystander.classification.psychoactive_class = ["Stimulant"];
+    bystander.index_categories = ["Stimulants"];
+
+    const result = applyTagMutation([carrier, bystander], {
+      type: "move",
+      sourceField: "psychoactive_class",
+      targetField: "index_categories",
+      tag: "Anxiolytic",
+      renamedTag: "Anxiolytics",
+    });
+
+    expect(result.changes.map((change) => change.index)).toEqual([0]);
+    expect(result.articles[0].index_categories).toEqual(["Anxiolytics"]);
+    expect(result.articles[1]).toBe(bystander);
+  });
 });

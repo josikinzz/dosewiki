@@ -11,6 +11,7 @@ import type { SubstanceArticle } from "@/schema";
 import { articleValidationIssues, describeValidationIssue } from "./useArticleLifecycle";
 import { CITE_TOKEN_PATTERN } from "@/lib/citations/citationTokens";
 import { ArticleFormProvider } from "@/features/dev/forms/ArticleFormContext";
+import { PublishedArticleProvider } from "@/features/dev/forms/PublishedArticleContext";
 import { OverviewFieldsRHF } from "@/features/dev/forms/OverviewFieldsRHF";
 import { ClassificationFieldsRHF } from "@/features/dev/forms/ClassificationFieldsRHF";
 import { DosageDurationFieldsRHF } from "@/features/dev/forms/DosageDurationFieldsRHF";
@@ -27,8 +28,10 @@ import type { ArticleEditorSection } from "./articleSections";
 export { ARTICLE_SECTION_LABELS, type ArticleEditorSection } from "./articleSections";
 export type SectionFormHandle = { collect: () => Promise<SubstanceArticle> };
 
-export function ArticleSectionForm({ section, article, slug, form, handleRef }: {
+export function ArticleSectionForm({ section, article, slug, form, handleRef, published = null }: {
   section: ArticleEditorSection; article: SubstanceArticle; slug: string;
+  /** The live article, so fields can say what readers see now. */
+  published?: SubstanceArticle | null;
   form: UseArticleFormReturn;
   handleRef: React.RefObject<SectionFormHandle | null>;
 }) {
@@ -79,21 +82,21 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef }: 
   let fields;
   switch (section) {
     case "summary": fields = <NotesFieldsRHF idPrefix={prefix} describedBy={citationGuidanceId} />; break;
-    case "identification": fields = <><OverviewFieldsRHF idPrefix={prefix} categoryOptions={options.categories} indexCategoryOptions={options.indexCategories} identificationOnly /><p className="theme-text-muted text-sm">Structure drawings remain in the specialist molecule editor.</p><Button asChild variant="outline"><Link href={`/dev/molecule-editor/substances/${encodeURIComponent(slug)}`}>Open molecule editor</Link></Button></>; break;
+    case "identification": fields = <><OverviewFieldsRHF idPrefix={prefix} categoryOptions={options.categories} indexCategoryOptions={options.indexCategories} identificationOnly /><p className="theme-text-muted text-sm">The structure drawing is edited in Molecules.</p><Button asChild variant="outline"><Link href={`/dev/molecule-editor/substances/${encodeURIComponent(slug)}`}>Open molecule editor</Link></Button></>; break;
     case "classification": fields = <><p className="theme-text-muted max-w-prose text-sm">This changes this substance's classification and derived index membership. Shared taxonomy names and other substances are unchanged. Suggestions come from this article only.</p><ClassificationFieldsRHF chemicalClassOptions={options.chemicalClasses} psychoactiveClassOptions={options.psychoactiveClasses} /></>; break;
     case "dosage": fields = <DosageDurationFieldsRHF idPrefix={prefix} />; break;
     case "subjective_effects": fields = <SubjectiveEffectsFieldsRHF idPrefix={prefix} pairedIndicator />; break;
     case "comparisons": fields = <ComparisonsFieldsRHF />; break;
     case "reagent_testing": fields = <ReagentPreviewFieldsRHF idPrefix={prefix} />; break;
     case "pharmacology": fields = <ChemistryFieldsRHF idPrefix={prefix} mechanismOptions={options.mechanismOfAction} />; break;
-    case "interactions": fields = <><p className="theme-text-muted text-sm">Article-specific interaction notes only; shared interaction taxonomy and reciprocal articles are unchanged.</p><InteractionsFieldsRHF embedded /></>; break;
+    case "interactions": fields = <><p className="theme-text-muted max-w-prose text-sm">These lists belong to this article only. The other substance's article and the shared interaction chart do not change with them.</p><InteractionsFieldsRHF embedded /></>; break;
     case "tolerance": fields = <ToleranceFieldsRHF idPrefix={prefix} embedded />; break;
     case "harm_potential": fields = <AddictionFieldsRHF idPrefix={prefix} pairedIndicator />; break;
     case "history_culture": fields = <HistoryCultureFieldsRHF idPrefix={prefix} embedded />; break;
     case "legality": fields = <LegalityFieldsRHF idPrefix={prefix} embedded />; break;
     case "references": fields = null; break;
   }
-  return <FormProvider {...methods}><ArticleFormProvider value={form}>
+  return <PublishedArticleProvider value={published}><FormProvider {...methods}><ArticleFormProvider value={form}>
     <form ref={formElement} className="space-y-6" onSubmit={(event) => event.preventDefault()}>
       {fields}
       {section !== "references" && <p id={citationGuidanceId} className="theme-text-muted text-sm">Preserve stable [cite:reference-id] markers. Changed claims require a support recheck; an existing marker does not certify new wording.</p>}
@@ -114,5 +117,5 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef }: 
         </section>
       ) : <ReferencesFieldsRHF embedded />}
     </form>
-  </ArticleFormProvider></FormProvider>;
+  </ArticleFormProvider></FormProvider></PublishedArticleProvider>;
 }

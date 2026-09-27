@@ -51,7 +51,7 @@ describe("Theme Lab workbench", { timeout: 15_000 }, () => {
     render(<Harness onRoute />);
     await screen.findByRole("dialog", { name: "Theme Lab" });
 
-    expect(screen.getByRole("link", { name: "Back to dev tools", hidden: true })).toHaveAttribute("href", "/dev");
+    expect(screen.getByRole("link", { name: "Back to the editor", hidden: true })).toHaveAttribute("href", "/dev");
   });
 
   it("says what it edits, now that Pro is authored here too", async () => {

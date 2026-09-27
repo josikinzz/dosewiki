@@ -5,31 +5,34 @@ import {
   PublicSectionHeading,
 } from "@/components/layout/PublicPagePrimitives";
 import { NestedContentCard } from "@/components/ui/surface";
-import { EditorSection } from "@/features/dev/components";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import { publicHref } from "@/utils/publicHref";
 
 type AboutPreviewSectionProps = {
   resolvedPreviewMarkdown: string;
+  /** The subtitle with live counts filled in, shown under the page heading. */
+  resolvedSubtitle?: string;
   selectedFounders: NormalizedUserProfile[];
 };
 
 /**
  * Renders editable About sections with the public page's Markdown renderer,
- * headings, and contributor cards. The hero and noneditable sections are omitted.
+ * headings, and contributor cards, in public page order. The hero image and
+ * the sections that live in Copy are omitted.
  */
 export function AboutPreviewSection({
   resolvedPreviewMarkdown,
+  resolvedSubtitle,
   selectedFounders,
 }: AboutPreviewSectionProps) {
   const { introduction, sources, history } = splitAboutMarkdown(resolvedPreviewMarkdown);
   return (
-    <EditorSection
-      icon="lucide:eye"
-      title="Live preview"
-      description="Rendered in public page order: Introduction, Sources and review, then Founders & Contributors."
-    >
+    <section aria-label="Preview" className="min-w-0 space-y-3">
+      <p className="type-meta-label theme-text-muted">Preview, as the About page</p>
       <NestedContentCard variant="subtle" padding="lg" radius="xl" className="space-y-10">
+        {resolvedSubtitle ? (
+          <p className="type-deck theme-text-secondary">{resolvedSubtitle}</p>
+        ) : null}
         <section className="space-y-6">
           <PublicSectionHeading icon="lucide:book-open" title="Introduction" />
           <AboutMissionMarkdown content={introduction} />
@@ -63,13 +66,12 @@ export function AboutPreviewSection({
           ) : (
             <div className="p-8 text-center">
               <p className="theme-text-faint text-sm">
-                Founder profiles have not been published yet. Pin contributors
-                from the Dev Tools About tab to surface them here.
+                No founders are listed. Add them under Founders and they show here.
               </p>
             </div>
           )}
         </section>
       </NestedContentCard>
-    </EditorSection>
+    </section>
   );
 }

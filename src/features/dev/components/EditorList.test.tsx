@@ -128,6 +128,11 @@ describe("EditorList", () => {
     expect(onToggle).toHaveBeenCalledTimes(2);
     expect(listbox.querySelectorAll(FOCUSABLE)).toHaveLength(0);
     expect(within(listbox).queryByRole("checkbox")).not.toBeInTheDocument();
+    // A finger-sized tick under a coarse pointer, and one focus cue: the open row's border.
+    expect(screen.getByTitle("Select Item 1").className).toContain("[@media(pointer:coarse)]:h-11");
+    expect(screen.getByTitle("Select Item 1").className).toContain("[@media(pointer:coarse)]:w-11");
+    expect(listbox).toHaveClass("theme-dev-listbox");
+    expect(second.querySelector(".theme-dev-list-row")).not.toBeNull();
   });
 
   it("selects on click and filters through the search box", () => {
@@ -248,5 +253,49 @@ describe("EditorList", () => {
     // The keys still step from the selection, not from the scrolled window.
     await user.keyboard("{ArrowDown}");
     expect(document.getElementById(listbox.getAttribute("aria-activedescendant") ?? "")).toHaveTextContent("Item 2");
+  });
+
+  it("windows rows of different heights without looping, and keeps the selection in view", () => {
+    // Rows with a pill are taller than rows without one. A shared pitch taken from
+    // whichever row mounted first flipped as the window moved, and a selection near
+    // the bottom of the box re-scrolled until React stopped it.
+    const tall = (key: string) => Number(key.split("-")[1]) % 3 === 0;
+    const rect = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const key = this.dataset.rowKey;
+      const height = key ? (tall(key) ? 84 : 44) : 0;
+      return { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: height, width: 300, height, toJSON: () => ({}) } as DOMRect;
+    });
+    const client = vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockImplementation(function (this: HTMLElement) {
+      return this.getAttribute("role") === "listbox" ? 300 : 0;
+    });
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      render(<Harness />);
+      const listbox = screen.getByRole("listbox", { name: "Items" });
+      fireEvent.keyDown(listbox, { key: "End" });
+      for (let step = 0; step < 12; step += 1) fireEvent.keyDown(listbox, { key: "ArrowUp" });
+      for (let step = 0; step < 6; step += 1) fireEvent.keyDown(listbox, { key: "ArrowDown" });
+
+      const active = within(listbox).getByRole("option", { selected: true });
+      expect(active).toHaveTextContent("Item 993");
+      // The row is drawn inside the window (not parked outside it), and where the
+      // window draws it lies inside the box: the window's offset plus the measured
+      // rows before it.
+      const windowed = active.parentElement as HTMLElement;
+      const shift = Number(/translateY\((\d+(?:\.\d+)?)px\)/.exec(windowed.style.transform)?.[1]);
+      expect(Number.isFinite(shift)).toBe(true);
+      let top = shift;
+      for (const row of Array.from(windowed.children)) {
+        if (row === active) break;
+        top += row.getBoundingClientRect().height;
+      }
+      expect(top).toBeGreaterThanOrEqual(listbox.scrollTop);
+      expect(top + 44).toBeLessThanOrEqual(listbox.scrollTop + 300);
+      expect(errors.mock.calls.flat().join(" ")).not.toMatch(/Maximum update depth/);
+    } finally {
+      rect.mockRestore();
+      client.mockRestore();
+      errors.mockRestore();
+    }
   });
 });

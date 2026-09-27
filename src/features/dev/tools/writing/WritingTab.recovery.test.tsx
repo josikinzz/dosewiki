@@ -208,8 +208,8 @@ describe("WritingTab draft recovery", () => {
     const first = renderAs("editor@example.com");
     await openRow();
     await user.type(screen.getByLabelText("Body"), " More.");
-    await user.click(screen.getByRole("button", { name: "Review changes" }));
-    await user.click(screen.getByRole("button", { name: "Confirm save as unpublished" }));
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save draft" }));
     await screen.findByText(/Publication has not been confirmed/);
     first.unmount();
 
@@ -222,7 +222,7 @@ describe("WritingTab draft recovery", () => {
     await user.click(within(offer).getByRole("button", { name: "Restore" }));
 
     // Nothing else can be written until the first operation is reconciled.
-    expect(screen.getByRole("button", { name: "Review changes" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Retry publication confirmation" }));
     await screen.findByText(/Saved as a draft/);
 
@@ -269,8 +269,8 @@ describe("WritingTab loading a newer saved version under open edits", () => {
 
     // A further change lands after the merge: the revision check refuses it.
     postResponder = async () => Response.json({ error: "Someone saved this article after you loaded it." }, { status: 409 });
-    await user.click(screen.getByRole("button", { name: "Review changes" }));
-    await user.click(screen.getByRole("button", { name: "Confirm save as unpublished" }));
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Save draft" }));
     expect(await screen.findByText("Someone saved this article after you loaded it.")).toBeInTheDocument();
     expect(posts()[0]).toMatchObject({ title: "Launch post two", body: "Post, edited by someone else.", expectedRevision: "e".repeat(64) });
     expect(screen.queryByText(/Saved as a draft/)).not.toBeInTheDocument();

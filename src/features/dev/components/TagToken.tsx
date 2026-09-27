@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/Icon";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 export interface TagTokenProps extends HTMLAttributes<HTMLSpanElement> {
@@ -55,11 +56,11 @@ export function TagToken({
           type="button"
           variant="tagRemove"
           size="auto"
-          className={
-            removeTone === "danger"
-              ? "text-dose-danger hover:bg-[rgb(var(--c-rose)/0.16)] hover:text-dose-danger"
-              : undefined
-          }
+          // The halo grows the tap area to 44px on touch screens without growing the chip.
+          className={cn(
+            TOUCH_HALO,
+            removeTone === "danger" && "text-dose-danger hover:bg-[rgb(var(--c-rose)/0.16)] hover:text-dose-danger",
+          )}
           aria-label={removeLabel ?? `Remove ${String(label)}`}
           onClick={(event) => {
             event.stopPropagation();

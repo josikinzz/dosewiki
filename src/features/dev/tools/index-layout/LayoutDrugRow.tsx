@@ -9,19 +9,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { EditorStatusPill } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
-import type { BoardDestination, BoardItem } from "./boardModel";
-import { slotId, slotsEqual, type LayoutSlot, type MoveDirection } from "./layoutOps";
-import { slugIssueLabels, slugIssueTones } from "./types";
+import type { BoardItem } from "./boardModel";
+import { slotId, type LayoutSlot, type MoveDirection } from "./layoutOps";
+import type { LayoutMoveRequest } from "./LayoutMoveDialog";
+import { slugIssueLabels, slugIssueNotes, slugIssueTones } from "./types";
 
 export function rowId(slot: LayoutSlot, slug: string): string {
   return `${slotId(slot)}::${slug}`;
@@ -34,43 +31,53 @@ export function parseRowId(id: string): { slot: LayoutSlot; slug: string } | nul
 }
 
 /**
- * Icon buttons on a 28px box: dense enough to sit inside a 44px index row,
- * and the row itself is the coarse-pointer target.
+ * Icon buttons on a 28px box with a 44px halo: dense enough to sit inside an
+ * index row without stealing its name's width.
  */
-const ROW_CONTROL_CLASS = "h-7 w-7 rounded-lg p-0";
+const ROW_CONTROL_CLASS = cn("h-7 w-7 scroll-mb-28 scroll-mt-28 rounded-control p-0", TOUCH_HALO);
+
+export type RowPlace = "top" | "end";
 
 export interface LayoutDrugRowProps {
   slot: LayoutSlot;
   item: BoardItem;
-  /** Position within the slot, for the bump affordances. */
+  /** Position within the slot, for the move affordances. */
   index: number;
   count: number;
-  destinations: readonly BoardDestination[];
+  /** The list's name ("Psychedelic, Common"), for the menu and the move dialog. */
+  listLabel: string | null;
   onBump: (slot: LayoutSlot, slug: string, direction: MoveDirection) => void;
-  onMove: (from: LayoutSlot, slug: string, to: LayoutSlot) => void;
+  onPlace?: (slot: LayoutSlot, slug: string, place: RowPlace) => void;
+  onRequestMove: (request: LayoutMoveRequest) => void;
   onRemove: (slot: LayoutSlot, slug: string) => void;
+  /** The working changes put this row here (moved, added or reordered): an unsaved dot after the name. */
+  changed?: boolean;
   /**
-   * Tray rows have no order to bump and nothing to remove from: their only
-   * actions are the destinations that put them into the index.
+   * Tray rows have no order to change and nothing to remove from: their one
+   * action is the Place button that puts them into the index.
    */
   variant?: "list" | "tray";
 }
 
 /**
  * One substance line, drawn like the public index row (bullet, label) with the
- * editing handles a reader never sees: a grip to drag, bump arrows, and a menu
- * for moving elsewhere or removing. Handles stay quiet until the row is hovered
- * or focused; on coarse pointers they are always present.
+ * editing handles a reader never sees: a grip to drag, and a menu that can do
+ * everything the grip does (move up, down, to the top or end, to another list,
+ * out of this list). On a fine pointer the grip and the up and down arrows
+ * wake on hover or focus; on a touch screen the grip and the menu are always
+ * there and the arrows live in the menu, so the name keeps its width.
  */
 export const LayoutDrugRow = memo(function LayoutDrugRow({
   slot,
   item,
   index,
   count,
-  destinations,
+  listLabel,
   onBump,
-  onMove,
+  onPlace,
+  onRequestMove,
   onRemove,
+  changed = false,
   variant = "list",
 }: LayoutDrugRowProps) {
   const id = rowId(slot, item.slug);
@@ -79,124 +86,142 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
   });
 
   const isTray = variant === "tray";
-  const canUp = !isTray && index > 0;
-  const canDown = !isTray && index < count - 1;
-  const grouped = new Map<string, BoardDestination[]>();
-  for (const destination of destinations) {
-    if (slotsEqual(destination.slot, slot)) continue;
-    const list = grouped.get(destination.categoryLabel) ?? [];
-    list.push(destination);
-    grouped.set(destination.categoryLabel, list);
-  }
+  const first = index === 0;
+  const last = index >= count - 1;
+  const moveRequest: LayoutMoveRequest = { from: slot, slug: item.slug, name: item.name, fromLabel: isTray ? null : listLabel };
 
   return (
     <li
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "theme-index-card-link theme-text-secondary group/item relative mx-1 flex min-w-0 w-[calc(100%-1rem)] items-center gap-1 rounded-xl py-1 pl-1 pr-1 text-[0.9375rem] transition-[background-color,color,padding] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-within:bg-dose-surface-muted focus-within:text-dose-text",
-        isTray
-          ? "group-hover/item:pr-9 focus-within:pr-9 [@media(pointer:coarse)]:pr-9"
-          : "group-hover/item:pr-[5.5rem] focus-within:pr-[5.5rem] [@media(pointer:coarse)]:pr-[5.5rem]",
+        "theme-index-card-link theme-text-secondary group/item relative mx-1 flex min-w-0 w-[calc(100%-1rem)] items-center gap-1 rounded-xl py-1 pl-1 pr-1 text-[0.9375rem] transition-[background-color,color] duration-200 hover:bg-dose-surface-muted hover:text-dose-text focus-within:bg-dose-surface-muted focus-within:text-dose-text",
         isDragging && "z-10 opacity-40",
         item.hiddenOnSite && "opacity-70",
       )}
-      data-slug={item.slug}
+      data-row={id}
     >
       <button
         ref={setActivatorNodeRef}
         type="button"
         className={cn(
-          "theme-focus-ring theme-text-faint flex h-7 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-md hover:text-dose-text active:cursor-grabbing",
-          "opacity-0 group-hover/item:opacity-100 focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100",
+          "theme-focus-ring theme-text-faint flex h-7 w-6 shrink-0 cursor-grab touch-none items-center justify-center rounded-control hover:text-dose-text active:cursor-grabbing",
+          "[@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-hover/item:opacity-100 [@media(pointer:fine)]:group-focus-within/item:opacity-100",
+          TOUCH_HALO,
         )}
-        aria-label={`Drag ${item.name}`}
+        aria-label={isTray ? `Drag ${item.name} into the index` : `Drag ${item.name}, ${index + 1} of ${count} in ${listLabel ?? "this list"}`}
         {...attributes}
         {...listeners}
       >
         <Icon icon="lucide:grip-vertical" size={14} />
       </button>
-      <span className="theme-index-card-bullet mr-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
-      <span className="theme-index-card-label min-w-0 flex-1 truncate py-1.5">{item.name}</span>
-      {item.issues.map((issue) => (
-        <EditorStatusPill key={issue} tone={slugIssueTones[issue]} className="min-w-0 shrink px-1.5 py-0 text-[10px]">
-          {slugIssueLabels[issue]}
-        </EditorStatusPill>
-      ))}
-      <span
-        className={cn(
-          "absolute right-1 top-1/2 flex -translate-y-1/2 items-center",
-          "opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-within/item:opacity-100 [@media(pointer:coarse)]:opacity-100",
-        )}
-      >
-        {isTray ? null : (
+      <span aria-hidden className="theme-index-card-bullet mr-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
+      {/* Pills ride inline after the name, so a long name wraps at its words instead of being squeezed by them. */}
+      <span className="theme-index-card-label min-w-0 flex-1 break-words py-1.5">
+        {item.name}
+        {changed ? (
           <>
-            <Button
-              type="button"
-              variant="ghost"
-              size="auto"
-              className={ROW_CONTROL_CLASS}
-              disabled={!canUp}
-              aria-label={`Move ${item.name} up`}
-              onClick={() => onBump(slot, item.slug, "up")}
-            >
-              <Icon icon="lucide:chevron-up" size={15} />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="auto"
-              className={ROW_CONTROL_CLASS}
-              disabled={!canDown}
-              aria-label={`Move ${item.name} down`}
-              onClick={() => onBump(slot, item.slug, "down")}
-            >
-              <Icon icon="lucide:chevron-down" size={15} />
-            </Button>
+            <span aria-hidden className="theme-dev-unsaved-dot ml-2 inline-block size-1.5 rounded-full align-middle" />
+            <span className="sr-only">, changed</span>
           </>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="auto"
-              className={ROW_CONTROL_CLASS}
-              aria-label={isTray ? `Place ${item.name} in the index` : `More actions for ${item.name}`}
-            >
-              <Icon icon="lucide:ellipsis" size={15} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[12rem]">
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Icon icon="lucide:corner-down-right" size={14} className="mr-2" />
-                {isTray ? "Place in" : "Move to"}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent className="max-h-[60vh] min-w-[14rem] overflow-y-auto">
-                  {[...grouped.entries()].map(([categoryLabel, entries], groupIndex) => (
-                    <div key={categoryLabel}>
-                      {groupIndex > 0 ? <DropdownMenuSeparator /> : null}
-                      <DropdownMenuLabel className="theme-text-faint text-[11px] uppercase tracking-[0.18em]">
-                        {categoryLabel}
-                      </DropdownMenuLabel>
-                      {entries.map((destination) => (
-                        <DropdownMenuItem
-                          key={slotId(destination.slot)}
-                          onSelect={() => onMove(slot, item.slug, destination.slot)}
-                        >
-                          {destination.sectionLabel ?? "Category list"}
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
+        ) : null}
+        {item.issues.map((issue) => (
+          <EditorStatusPill key={issue} inline tone={slugIssueTones[issue]} className="ml-2 align-middle">
+            <span className="sr-only">, </span>
+            {slugIssueLabels[issue]}
+          </EditorStatusPill>
+        ))}
+      </span>
+      <span className="flex shrink-0 items-center">
+        {isTray ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="h-7 px-2 text-xs"
+            aria-label={`Place ${item.name} in the index`}
+            onClick={() => onRequestMove(moveRequest)}
+          >
+            Place
+          </Button>
+        ) : (
+          <>
+            <span className="hidden items-center [@media(pointer:fine)]:flex [@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:transition-opacity [@media(pointer:fine)]:group-hover/item:opacity-100 [@media(pointer:fine)]:group-focus-within/item:opacity-100">
+              <Button
+                type="button"
+                variant="ghost"
+                size="auto"
+                className={ROW_CONTROL_CLASS}
+                disabled={first}
+                aria-label={`Move ${item.name} up`}
+                onClick={() => onBump(slot, item.slug, "up")}
+              >
+                <Icon icon="lucide:chevron-up" size={15} />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="auto"
+                className={ROW_CONTROL_CLASS}
+                disabled={last}
+                aria-label={`Move ${item.name} down`}
+                onClick={() => onBump(slot, item.slug, "down")}
+              >
+                <Icon icon="lucide:chevron-down" size={15} />
+              </Button>
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="auto"
+                  data-control="menu"
+                  className={cn(
+                    ROW_CONTROL_CLASS,
+                    "[@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:transition-opacity [@media(pointer:fine)]:group-hover/item:opacity-100 [@media(pointer:fine)]:group-focus-within/item:opacity-100 data-[state=open]:opacity-100",
+                  )}
+                  aria-label={`More actions for ${item.name}`}
+                >
+                  <Icon icon="lucide:ellipsis" size={15} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[min(18rem,calc(100vw-2rem))]">
+                <div className="px-2 space-y-0.5 py-2 font-normal">
+                  <span className="theme-text-primary block text-sm font-medium">{item.name}</span>
+                  <span className="theme-text-muted block text-xs">
+                    {listLabel ? `${index + 1} of ${count} in ${listLabel}` : `${index + 1} of ${count}`}
+                  </span>
+                  {item.issues.map((issue) => (
+                    <span key={issue} className="theme-warning-text block text-xs">{slugIssueNotes[issue]}</span>
                   ))}
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-            {isTray ? null : (
-              <>
+                </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={first} onSelect={() => onBump(slot, item.slug, "up")}>
+                  <Icon icon="lucide:arrow-up" size={14} className="mr-2" />
+                  Move up
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled={last} onSelect={() => onBump(slot, item.slug, "down")}>
+                  <Icon icon="lucide:arrow-down" size={14} className="mr-2" />
+                  Move down
+                </DropdownMenuItem>
+                {onPlace ? (
+                  <>
+                    <DropdownMenuItem disabled={first} onSelect={() => onPlace(slot, item.slug, "top")}>
+                      <Icon icon="lucide:arrow-up-to-line" size={14} className="mr-2" />
+                      Move to the top
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled={last} onSelect={() => onPlace(slot, item.slug, "end")}>
+                      <Icon icon="lucide:arrow-down-to-line" size={14} className="mr-2" />
+                      Move to the end
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => onRequestMove(moveRequest)}>
+                  <Icon icon="lucide:corner-down-right" size={14} className="mr-2" />
+                  Move to another list
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-dose-danger focus:text-dose-danger"
                   onSelect={() => onRemove(slot, item.slug)}
@@ -204,10 +229,10 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
                   <Icon icon="lucide:x" size={14} className="mr-2" />
                   Remove from this list
                 </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
       </span>
     </li>
   );

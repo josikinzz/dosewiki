@@ -62,6 +62,7 @@ describe("resolveReviewCelebration", () => {
       level: "section",
       label: "Lysergamides",
       total: 2,
+      groupLabel: "Psychedelics",
     });
   });
 

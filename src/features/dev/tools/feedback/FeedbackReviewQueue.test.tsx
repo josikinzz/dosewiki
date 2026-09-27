@@ -87,6 +87,9 @@ function stubFetch(
   return fetchMock;
 }
 
+const statusChoice = (name: string | RegExp) =>
+  within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name });
+
 /** The queue as the tab mounts it: the filter starts automatic and is owned above the queue. */
 function Queue<Item extends FeedbackQueueItem>({ adapter }: { adapter: FeedbackSourceAdapter<Item> }) {
   const [filter, setFilter] = useState<FeedbackQueueFilter | null>(null);
@@ -229,7 +232,7 @@ describe.each([
     render(queue);
 
     await screen.findAllByText(headline);
-    await user.click(screen.getByRole("button", { name: "Spam" }));
+    await user.click(screen.getByRole("button", { name: "Mark as spam" }));
     await user.click(
       within(await screen.findByRole("dialog", { name: "Mark as spam?" })).getByRole("button", { name: "Mark as spam" }),
     );
@@ -253,15 +256,15 @@ describe.each([
     await user.dblClick(resolve);
 
     await waitFor(() => expect(resolve).toBeDisabled());
-    expect(screen.getByRole("button", { name: "Reviewing" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Claim" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Spam" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Mark as spam" })).toBeDisabled();
     expect(screen.getByLabelText("Review note")).toBeDisabled();
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
 
     hold.resolve();
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reviewing" })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Claim" })).toBeEnabled());
     expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
 
@@ -318,7 +321,7 @@ describe("FeedbackReviewQueue with a malformed list response", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     const list = await screen.findByRole("listbox", { name: "Feedback queue" });
-    await user.click(screen.getByRole("button", { name: "Reviewing" }));
+    await user.click(screen.getByRole("button", { name: "Claim" }));
 
     expect(await screen.findByRole("button", { name: "Try again" })).toBeInTheDocument();
     expect(within(list).getByText("Psilocybin")).toBeInTheDocument();
@@ -417,13 +420,13 @@ describe("FeedbackReviewQueue after a decision", () => {
     held.releaseTransition();
     await screen.findByText('Moved feedback for "Alprazolam" to resolved.');
 
-    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Loading .*feedback/)).not.toBeInTheDocument();
     expect(screen.queryByText("Loading")).not.toBeInTheDocument();
     expect(within(list).getByText("Bromazepam")).toBeInTheDocument();
 
     held.releaseRefresh();
     await within(list).findByText("Zolpidem");
-    expect(screen.queryByText("Loading feedback...")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Loading .*feedback/)).not.toBeInTheDocument();
   });
 });
 
@@ -443,34 +446,37 @@ describe("FeedbackReviewQueue intake triage", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     const list = await screen.findByRole("listbox", { name: "Feedback queue" });
-    expect(screen.getByText("1 spam")).toBeInTheDocument();
+    expect(statusChoice("Spam, 1")).toBeInTheDocument();
     expect(within(list).getByText("Spam")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("All");
+    expect(statusChoice(/^All/)).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("shows each row's importance and sorts the list by it", async () => {
+  it("shows each row's importance, opens waiting work most important first, and can sort by age", async () => {
     const user = userEvent.setup();
     stubFetch("/api/article-feedback", [
-      { ...articleRow, id: "article-low", substance_title: "Caffeine", importance: "low" },
-      { ...articleRow, id: "article-critical", substance_title: "Fentanyl", importance: "critical" },
-      { ...articleRow, id: "article-normal", substance_title: "Melatonin", importance: "normal" },
+      { ...articleRow, id: "article-low", substance_title: "Caffeine", importance: "low", created_at: "2026-08-01T10:00:00.000Z" },
+      { ...articleRow, id: "article-critical", substance_title: "Fentanyl", importance: "critical", created_at: "2026-08-03T10:00:00.000Z" },
+      { ...articleRow, id: "article-normal", substance_title: "Melatonin", importance: "normal", created_at: "2026-08-02T10:00:00.000Z" },
     ]);
     render(<Queue adapter={articleFeedbackAdapter} />);
 
-    const list = await screen.findByRole("listbox", { name: "Feedback queue" });
+    await screen.findByRole("listbox", { name: "Feedback queue" });
     // Changing the order reloads the list from the server, so read the list afresh each time.
     const titles = () =>
       within(screen.getByRole("listbox", { name: "Feedback queue" }))
         .getAllByRole("option")
         .map((option) => option.textContent ?? "");
-    expect(within(within(list).getAllByRole("option")[1]).getByText("Critical")).toBeInTheDocument();
+    const firstRow = () => within(screen.getByRole("listbox", { name: "Feedback queue" })).getAllByRole("option")[0];
 
-    await user.click(screen.getByRole("combobox", { name: "Sort" }));
-    await user.click(await screen.findByRole("option", { name: "Importance" }));
-
-    await waitFor(() => expect(titles()[0]).toContain("Fentanyl"));
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveDisplayValue("By importance");
+    expect(titles()[0]).toContain("Fentanyl");
+    expect(within(firstRow()).getByText("Critical")).toBeInTheDocument();
     expect(titles()[1]).toContain("Melatonin");
     expect(titles()[2]).toContain("Caffeine");
+
+    await user.selectOptions(screen.getByRole("combobox", { name: "Sort" }), "Oldest first");
+    await waitFor(() => expect(titles()[0]).toContain("Caffeine"));
+    expect(titles()[2]).toContain("Fentanyl");
   });
 });
 
@@ -508,9 +514,10 @@ describe("FeedbackReviewQueue reach", () => {
 
     expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
     expect(within(listbox()).getAllByRole("option")).toHaveLength(1);
-    expect(screen.getByText("1 new · 250 resolved")).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("New (1)");
-    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveTextContent("Oldest first");
+    expect(statusChoice("New, 1")).toHaveAttribute("aria-pressed", "true");
+    expect(statusChoice("Resolved, 250")).toBeInTheDocument();
+    // Waiting work opens most important first, then oldest.
+    expect(screen.getByRole("combobox", { name: "Sort" })).toHaveDisplayValue("By importance");
   });
 
   it("pages through everything, shows loaded apart from total, and keeps the selection and note while more load", async () => {
@@ -519,8 +526,7 @@ describe("FeedbackReviewQueue reach", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     await screen.findByRole("heading", { level: 3, name: "Tramadol" });
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "All 251" }));
+    await user.click(statusChoice("All, 251"));
 
     expect(await screen.findByText("100 of 251 loaded")).toBeInTheDocument();
     await user.click(within(listbox()).getByText("Resolved 247"));
@@ -547,8 +553,7 @@ describe("FeedbackReviewQueue reach", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     await screen.findByRole("heading", { level: 3, name: "Tramadol" });
-    await user.click(screen.getByRole("combobox", { name: "Queue filter" }));
-    await user.click(await screen.findByRole("option", { name: "Resolved 250" }));
+    await user.click(statusChoice("Resolved, 250"));
     await screen.findByText("100 of 250 loaded");
 
     await user.type(screen.getByRole("searchbox", { name: "Search feedback" }), "Resolved 3");
@@ -556,7 +561,7 @@ describe("FeedbackReviewQueue reach", () => {
       expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("q=Resolved+3"), expect.anything()),
     );
     // "Resolved 3" and "Resolved 30" to "Resolved 39": the oldest ones sit past the first page.
-    expect(await screen.findByText("11 of 11 loaded")).toBeInTheDocument();
+    expect(await screen.findByText("11 resolved")).toBeInTheDocument();
     expect(within(listbox()).getByText("Resolved 3")).toBeInTheDocument();
   });
 
@@ -565,7 +570,7 @@ describe("FeedbackReviewQueue reach", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     expect(await screen.findByRole("heading", { level: 3, name: "Tramadol" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("Reviewing (1)");
+    expect(statusChoice("Reviewing, 1")).toHaveAttribute("aria-pressed", "true");
   });
 });
 
@@ -578,17 +583,12 @@ describe("FeedbackReviewQueue filter", () => {
     const list = await screen.findByRole("listbox", { name: "Feedback queue" });
     expect(within(list).getAllByRole("option")).toHaveLength(1);
     expect(within(list).getByText("Mescaline")).toBeInTheDocument();
-    expect(screen.getByText("1 new · 1 resolved")).toBeInTheDocument();
+    expect(statusChoice("New, 1")).toHaveAttribute("aria-pressed", "true");
+    expect(statusChoice("All, 2")).toBeInTheDocument();
+    expect(statusChoice("Resolved, 1")).toBeInTheDocument();
+    expect(statusChoice("Spam, 0")).toBeInTheDocument();
 
-    const filter = screen.getByRole("combobox", { name: "Queue filter" });
-    expect(filter).toHaveTextContent("New");
-    await user.click(filter);
-    expect(await screen.findByRole("option", { name: "All 2" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "New 1" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Resolved 1" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Spam 0" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("option", { name: "All 2" }));
+    await user.click(statusChoice("All, 2"));
     await waitFor(() =>
       expect(within(screen.getByRole("listbox", { name: "Feedback queue" })).getAllByRole("option")).toHaveLength(2),
     );
@@ -599,7 +599,7 @@ describe("FeedbackReviewQueue filter", () => {
     render(<Queue adapter={articleFeedbackAdapter} />);
 
     expect((await screen.findAllByText("Ketamine")).length).toBeGreaterThan(0);
-    expect(screen.getByRole("combobox", { name: "Queue filter" })).toHaveTextContent("All");
+    expect(statusChoice(/^All/)).toHaveAttribute("aria-pressed", "true");
   });
 
   it("keeps a typed note when a row click is cancelled and drops it only on Discard", async () => {

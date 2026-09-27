@@ -14,9 +14,11 @@ import { useCallback, useState, type ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Notice, useConfirm, type NoticeMessage } from "@/features/dev/components";
-import { getRoleDisplayName, type ManagedRole } from "@/lib/auth/roles";
+import { useWriteFreeze } from "@/features/dev/components/writeFreeze";
+import { approvedGlossaryLocales, getRoleDisplayName, type ManagedRole } from "@/lib/auth/roles";
 import {
   banMember,
+  describePermissions,
   formatLocaleNames,
   issueMemberReset,
   setMemberRole,
@@ -24,7 +26,13 @@ import {
   type MemberRow,
 } from "./membersModel";
 
-type ResetLink = { email: string; href: string; copied: boolean };
+type ResetLink = { email: string; label: string; href: string; copied: boolean; confirmingDismiss: boolean };
+
+/** A result, and the account it is about, so it lands in that account's pane. */
+type MemberNotice = NoticeMessage & { email: string | null };
+
+/** A refused write under the freeze reads as the freeze, not as the route's own words. */
+const FROZEN_MEMBER_WRITE = "Writes are paused, so that was not saved.";
 
 export type MemberPendingKind = "role" | "ban" | "unban" | "reset";
 
@@ -40,7 +48,10 @@ export const MEMBER_PENDING_LABEL: Record<MemberPendingKind, string> = {
 
 export function useMemberActions(reload: () => Promise<void>) {
   const [pending, setPending] = useState<MemberPendingAction | null>(null);
-  const [notice, setNotice] = useState<NoticeMessage | null>(null);
+  const [notice, setMemberNotice] = useState<MemberNotice | null>(null);
+  const { frozen } = useWriteFreeze();
+  /** Callers that set a notice without naming an account see it on every account. */
+  const setNotice = useCallback((next: NoticeMessage | null) => setMemberNotice(next ? { ...next, email: null } : null), []);
   const [resetLink, setResetLink] = useState<ResetLink | null>(null);
   const { confirm, dialog } = useConfirm();
 
@@ -48,25 +59,26 @@ export function useMemberActions(reload: () => Promise<void>) {
   const run = useCallback(
     async (email: string, kind: MemberPendingKind, action: () => Promise<void>, success: string, refresh = true) => {
       setPending({ email, kind });
-      setNotice(null);
+      setMemberNotice(null);
       try {
         await action();
         if (refresh) await reload();
-        setNotice({ tone: "success", message: success });
+        if (success) setMemberNotice({ email, tone: "success", message: success });
       } catch (error) {
-        setNotice({ tone: "danger", message: error instanceof Error ? error.message : "The change did not go through." });
+        const message = error instanceof Error ? error.message : "The change did not go through.";
+        setMemberNotice({ email, tone: "danger", message: frozen || /frozen|writes are paused/i.test(message) ? FROZEN_MEMBER_WRITE : message });
       } finally {
         setPending(null);
       }
     },
-    [reload],
+    [frozen, reload],
   );
 
   const changeRole = (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => {
     const label = row.username ?? row.email;
     confirm({
       title: `Change permissions for ${label}?`,
-      description: `${label}: ${getRoleDisplayName(role)}. Approved glossary languages: ${formatLocaleNames(glossaryLocales)}. These permissions replace the current grant on their next request.`,
+      description: `${label} goes from ${describePermissions(row.role, approvedGlossaryLocales(row))} to ${getRoleDisplayName(role)}. Approved glossary languages: ${formatLocaleNames(glossaryLocales)}. These permissions replace the current grant on their next request.`,
       confirmLabel: "Save permissions",
       onConfirm: () => void run(row.email, "role", () => setMemberRole(row.email, role, glossaryLocales), `Permissions saved for ${label}.`),
     });
@@ -75,7 +87,12 @@ export function useMemberActions(reload: () => Promise<void>) {
   const toggleBan = (row: MemberRow) => {
     const label = row.username ?? row.email;
     if (row.bannedAt) {
-      void run(row.email, "unban", () => unbanMember(row.email), `${label} can sign in again.`);
+      confirm({
+        title: `Unban ${label}?`,
+        description: `${label} can sign in again at once, with the ${getRoleDisplayName(row.role)} permissions they held when banned.`,
+        confirmLabel: "Unban",
+        onConfirm: () => void run(row.email, "unban", () => unbanMember(row.email), `${label} can sign in again.`),
+      });
       return;
     }
     confirm({
@@ -88,14 +105,23 @@ export function useMemberActions(reload: () => Promise<void>) {
   };
 
   const issueReset = (row: MemberRow) =>
+    confirm({
+      title: `Issue a password reset link for ${row.username ?? row.email}?`,
+      description: `You get a one-time link to send ${row.username ?? row.email}; it works once and expires in an hour. Their current password keeps working until they use it, and any earlier reset link for them stops working.`,
+      confirmLabel: "Issue reset link",
+      onConfirm: () => issueResetNow(row),
+    });
+
+  const issueResetNow = (row: MemberRow) =>
     void run(
       row.email,
       "reset",
       async () => {
         const path = await issueMemberReset(row.email);
-        setResetLink({ email: row.email, href: new URL(path, window.location.origin).toString(), copied: false });
+        setResetLink({ email: row.email, label: row.username ?? row.email, href: new URL(path, window.location.origin).toString(), copied: false, confirmingDismiss: false });
       },
-      `Reset link issued for ${row.username ?? row.email}. It works once and expires in an hour.`,
+      // The link card below says it all; a second success line would repeat it.
+      "",
       false,
     );
 
@@ -105,34 +131,59 @@ export function useMemberActions(reload: () => Promise<void>) {
       await navigator.clipboard.writeText(resetLink.href);
       setResetLink({ ...resetLink, copied: true });
     } catch {
-      setNotice({ tone: "danger", message: "Copy failed. Select the link and copy it by hand." });
+      setMemberNotice({ email: resetLink.email, tone: "danger", message: "Copy failed. Select the link and copy it by hand." });
     }
   };
 
-  const notices: ReactNode = (
-    <>
-      {notice ? <Notice {...notice} dismiss={() => setNotice(null)} /> : null}
-      {resetLink ? (
-        <Notice
-          tone="info" icon="lucide:key-round" title={`Reset link for ${resetLink.email}`} message={(
-              <span className="block break-all font-mono text-xs" data-testid="reset-link">
-                {resetLink.href}
-              </span>
-            )} actions={(
-              <>
-                <Button type="button" variant="accent" size="sm" onClick={() => void copyResetLink()}>
-                  <Icon icon={resetLink.copied ? "lucide:check" : "lucide:copy"} size={14} />
-                  {resetLink.copied ? "Copied" : "Copy link"}
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setResetLink(null)}>
-                  Dismiss
-                </Button>
-              </>
-            )}
-        />
-      ) : null}
-    </>
-  );
+  /** The results about `email` (and any not tied to an account): where the write was made. */
+  const noticesFor = (email: string | null | undefined): ReactNode => {
+    const showNotice = notice && (notice.email === null || email === undefined || notice.email === email);
+    const showReset = resetLink && (email === undefined || resetLink.email === email);
+    if (!showNotice && !showReset) return null;
+    return (
+      <>
+        {showNotice ? <Notice tone={notice.tone} title={notice.title} message={notice.message} icon={notice.icon} actions={notice.actions} dismiss={() => setMemberNotice(null)} /> : null}
+        {showReset ? (
+          <Notice
+            tone="info" icon="lucide:key-round" title={`Reset link for ${resetLink.label}`} message={(
+                <span className="block space-y-1">
+                  <span className="block">Send it to them privately. It works once and expires in an hour, and it is not shown again.</span>
+                  <span className="block break-all font-mono text-xs" data-testid="reset-link">
+                    {resetLink.href}
+                  </span>
+                </span>
+              )} actions={resetLink.confirmingDismiss ? (
+                <>
+                  <span className="theme-text-secondary text-sm">Close without copying? The link cannot be shown again.</span>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setResetLink(null)}>
+                    Close it
+                  </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setResetLink({ ...resetLink, confirmingDismiss: false })}>
+                    Keep it
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button type="button" variant="accent" size="sm" onClick={() => void copyResetLink()}>
+                    <Icon icon={resetLink.copied ? "lucide:check" : "lucide:copy"} size={14} />
+                    {resetLink.copied ? "Copied" : "Copy link"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => (resetLink.copied ? setResetLink(null) : setResetLink({ ...resetLink, confirmingDismiss: true }))}
+                  >
+                    Dismiss
+                  </Button>
+                </>
+              )}
+          />
+        ) : null}
+      </>
+    );
+  };
+  const notices: ReactNode = noticesFor(undefined);
 
-  return { pending, changeRole, toggleBan, issueReset, notices, setNotice, confirm, dialog };
+  return { pending, changeRole, toggleBan, issueReset, notices, noticesFor, setNotice, confirm, dialog };
 }

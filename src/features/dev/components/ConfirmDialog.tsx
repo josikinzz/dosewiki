@@ -24,6 +24,8 @@ export interface ConfirmRequest {
   destructive?: boolean;
   /** Rows a bulk write touches; the first eight are listed, the rest counted. */
   affected?: string[];
+  /** The heading over `affected` ("Shows on 5 articles"); defaults to "Affects N rows". */
+  affectedLabel?: string;
   /** Widens the dialog for a body that carries diffs. */
   wide?: boolean;
   onConfirm: () => void | Promise<void>;
@@ -47,18 +49,26 @@ export interface ConfirmDialogProps {
  */
 export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
+  const [failure, setFailure] = useState<{ request: ConfirmRequest; message: string } | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
 
+  // A refused confirm keeps the dialog open with the reason inside it, so the
+  // editor can try again or cancel instead of watching nothing happen.
   const handleConfirm = async () => {
     if (!request || busy) return;
     setBusy(true);
+    setFailure(null);
     try {
       await request.onConfirm();
+    } catch (error) {
+      setFailure({ request, message: error instanceof Error && error.message ? error.message : "That did not go through. Try again." });
+      return;
     } finally {
       setBusy(false);
     }
     onClose();
   };
+  const failureMessage = failure && failure.request === request ? failure.message : null;
 
   const affected = request?.affected ?? [];
   const preview = affected.slice(0, AFFECTED_PREVIEW_LIMIT);
@@ -94,8 +104,8 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
             {request.body}
             {affected.length > 0 ? (
               <div className="space-y-1.5">
-                <p className="theme-text-faint text-xs font-medium uppercase tracking-wide">
-                  Affects {affected.length} {affected.length === 1 ? "row" : "rows"}
+                <p className="type-meta-label theme-text-faint">
+                  {request.affectedLabel ?? `Affects ${affected.length} ${affected.length === 1 ? "row" : "rows"}`}
                 </p>
                 <ul className="theme-text-secondary max-h-48 space-y-0.5 overflow-y-auto text-sm">
                   {preview.map((row) => (
@@ -106,6 +116,11 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
                   {remainder > 0 ? <li className="theme-text-faint">and {remainder} more</li> : null}
                 </ul>
               </div>
+            ) : null}
+            {failureMessage ? (
+              <p role="alert" className="theme-danger-surface theme-danger-text rounded-control border px-3 py-2 text-sm">
+                {failureMessage}
+              </p>
             ) : null}
             <DialogFooter className="gap-2">
               <Button type="button" variant="outline" disabled={busy} onClick={onClose}>
@@ -119,7 +134,7 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
                   aria-busy={busy || undefined}
                   onClick={() => void handleConfirm()}
                 >
-                  {request.confirmLabel}
+                  {failureMessage ? "Try again" : request.confirmLabel}
                 </Button>
               ) : null}
             </DialogFooter>

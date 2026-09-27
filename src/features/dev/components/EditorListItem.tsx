@@ -22,7 +22,7 @@ export interface EditorListRowProps extends Omit<HTMLAttributes<HTMLDivElement>,
 
 function rowClassName(active: boolean, className: string | undefined) {
   return cn(
-    "group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition",
+    "theme-dev-list-row group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition",
     active
       ? "border-[color:var(--theme-frosted-control-on-panel-hover-border)] [background:var(--theme-frosted-control-on-panel-hover-bg)] shadow-[var(--theme-frosted-control-on-panel-hover-shadow)]"
       : "border-transparent [background:var(--theme-frosted-control-on-panel-bg)] shadow-[var(--theme-frosted-control-on-panel-shadow)] hover:border-[color:var(--theme-frosted-control-on-panel-hover-border)] hover:[background:var(--theme-frosted-control-on-panel-hover-bg)]",

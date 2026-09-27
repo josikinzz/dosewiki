@@ -1,13 +1,13 @@
 "use client";
 
-import { useContext, useRef, type ReactNode, type RefObject } from "react";
+import { useContext, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { ContextualEditorContainerContext } from "./context";
 
 export function ContextualEditorPanel({
-  title, description, children, open, onOpenChange, returnFocusRef,
+  title, description, children, open, onOpenChange, returnFocusRef, footer, onKeyDown,
 }: {
   title: string;
   description?: string;
@@ -15,6 +15,13 @@ export function ContextualEditorPanel({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   returnFocusRef?: RefObject<HTMLElement | null>;
+  /**
+   * Actions pinned under the scrolling body, so a long form never hides its
+   * buttons below the fold. Optional: without it the body scrolls alone.
+   */
+  footer?: ReactNode;
+  /** Keys the panel handles itself (a save shortcut) before they stop here. */
+  onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }) {
   const container = useContext(ContextualEditorContainerContext);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -38,7 +45,7 @@ export function ContextualEditorPanel({
             event.preventDefault();
           }
         }}
-        onKeyDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => { onKeyDown?.(event); event.stopPropagation(); }}
       >
         <DialogHeader className="min-w-0 shrink-0 pr-12 text-left [overflow-wrap:anywhere]">
           <DialogTitle className="leading-snug">{title}</DialogTitle>
@@ -47,6 +54,11 @@ export function ContextualEditorPanel({
         <div className="-m-1 min-h-0 min-w-0 space-y-4 overflow-y-auto p-1">
           {children}
         </div>
+        {footer ? (
+          <div className="-mx-4 -mb-4 shrink-0 border-dose-border space-y-2 border-t px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-5">
+            {footer}
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

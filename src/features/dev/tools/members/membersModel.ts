@@ -4,7 +4,7 @@
  */
 
 import translationLocaleNames from "@/i18n/translationLocaleNames.json";
-import type { AppRole, ManagedRole } from "@/lib/auth/roles";
+import { approvedGlossaryLocales, getRoleDisplayName, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
 const LOCALE_NAMES: Record<string, string> = translationLocaleNames;
@@ -70,6 +70,17 @@ export function formatSeen(iso: string | undefined): string {
     return "Unknown";
   }
   return new Date(time).toISOString().slice(0, 10);
+}
+
+/** A grant as words: "Editor + Translator (Dutch, German)". */
+export function describePermissions(role: AppRole, glossaryLocales: readonly string[]): string {
+  const name = getRoleDisplayName(role);
+  return roleMeetsFloor(role, "translator") && role !== "admin" ? `${name} (${formatLocaleNames(glossaryLocales, "no languages")})` : name;
+}
+
+/** What a staged permission change does, for the line beside Save permissions. */
+export function describePermissionChange(row: MemberRow, role: AppRole, glossaryLocales: readonly string[]): string {
+  return `From ${describePermissions(row.role, approvedGlossaryLocales(row))} to ${describePermissions(role, glossaryLocales)}, once you confirm.`;
 }
 
 const BASE_PATH = "/api/dev/members";

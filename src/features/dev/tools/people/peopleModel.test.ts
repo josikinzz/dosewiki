@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filterPeople, findPersonBySlug, pairPeople, personLabel } from "./peopleModel";
+import { countPeople, filterPeople, findPersonBySlug, isFrozenWriteMessage, pairPeople, personLabel, personRowDetail } from "./peopleModel";
 
 const DATA = {
   self: "josie@example.com",
@@ -51,5 +51,14 @@ describe("pairPeople", () => {
       "profile:ZED",
     ]);
     expect(filterPeople(people, "all", "lovelace").map((person) => person.id)).toEqual(["account:ada@example.com"]);
+  });
+
+  it("counts each view and says where a linked person's profile is", () => {
+    const people = pairPeople(DATA, PROFILES);
+    expect(countPeople(people)).toEqual({ accounts: 2, unlinked: 4, all: 5 });
+    expect(personRowDetail(people[0])).toBe("Profile: Ada Lovelace");
+    expect(personRowDetail(people[2])).toBe("bob@example.com");
+    expect(isFrozenWriteMessage("Data writes are frozen (DATA_WRITES_FROZEN).")).toBe(true);
+    expect(isFrozenWriteMessage("That profile could not be loaded.")).toBe(false);
   });
 });

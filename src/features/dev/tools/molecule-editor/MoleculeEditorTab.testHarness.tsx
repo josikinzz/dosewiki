@@ -42,6 +42,13 @@ Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
 
 vi.mock("@/hooks/useEditorRead", () => ({
   useEditorRead: useQueryMock,
+  // The tab reads the depiction list through the non-throwing state hook.
+  useEditorReadState: (name: string, args: unknown, freshness: unknown) => ({
+    data: useQueryMock(name, args, freshness),
+    error: null,
+    fetching: false,
+    retry: () => {},
+  }),
   useEditorDrainedRead: useDrainedReadMock,
   useInvalidateEditorReads: () => async () => undefined,
 }));

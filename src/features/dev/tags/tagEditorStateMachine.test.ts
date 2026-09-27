@@ -634,8 +634,8 @@ describe("TagEditorTab state-machine integration", () => {
       }),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Reload tags" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reload tags" })).not.toBeDisabled());
+    fireEvent.click(screen.getByRole("button", { name: "Refresh tags" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Refresh tags" })).not.toBeDisabled());
 
     expect(screen.getByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();
@@ -663,5 +663,44 @@ describe("TagEditorTab state-machine integration", () => {
       fireEvent.click(screen.getByRole("button", { name: /try again/i }));
     });
     expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic");
+  });
+
+  it("names a merge before it runs when the new label already exists in the field", async () => {
+    stubRegistryFetch();
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), { target: { value: "psychedelic" } });
+
+    expect(screen.getByRole("button", { name: "Merge into “Psychedelic”" })).toBeEnabled();
+    expect(screen.getByText(/Renaming merges the two/)).toBeInTheDocument();
+    // An unchanged label cannot be sent at all.
+    fireEvent.change(screen.getByPlaceholderText("Enter new label"), { target: { value: "Classic" } });
+    expect(screen.getByRole("button", { name: "Rename in 1 article" })).toBeDisabled();
+  });
+
+  it("asks before removing a tag, and removes nothing when the confirm is cancelled", async () => {
+    stubRegistryFetch();
+    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
+    renderTab();
+
+    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
+    fireEvent.click(screen.getByRole("tab", { name: "Remove" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove from 1 article" }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Remove “Classic” from 1 article?");
+    expect(dialog).toHaveTextContent("LSD");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(applyArticlesTransformMock).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove from 1 article" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Remove from 1 article", hidden: false }));
+    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
+    expect(devContext.articles[0]).toMatchObject({ index_categories: ["Psychedelic"] });
+    // The pane stays on the removed tag with its Undo.
+    expect(await screen.findByText(/Deleted "Classic" from 1 article/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo delete" })).toBeInTheDocument();
   });
 });

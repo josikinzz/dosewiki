@@ -7,11 +7,11 @@
  * is orphaned, hidden from readers, and listed in the Review Inbox.
  */
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Surface } from "@/components/ui/surface";
+import { EditorField, EditorStatusPill, Notice, type EditorStatusPillTone } from "@/features/dev/components";
 import type { ReviewHistoryEntry } from "@lib/translation/reviewTypes";
 import {
   TRANSLATOR_NOTE_MAX_LENGTH,
@@ -24,10 +24,10 @@ import { languageLabel } from "./glossaryModel";
 
 const ENDPOINT = "/api/dev/translation-note";
 
-const MARKS: Record<Exclude<TranslatorNoteStatus, "empty">, { label: string; variant: BadgeProps["variant"] }> = {
-  draft: { label: "Draft", variant: "secondary" },
-  approved: { label: "Approved, shown to readers", variant: "success" },
-  orphaned: { label: "Orphaned: section removed from the English", variant: "destructive" },
+const MARKS: Record<Exclude<TranslatorNoteStatus, "empty">, { label: string; tone: EditorStatusPillTone }> = {
+  draft: { label: "Draft", tone: "warning" },
+  approved: { label: "Approved, shown to readers", tone: "success" },
+  orphaned: { label: "Orphaned: section removed from the English", tone: "danger" },
 };
 
 export type TranslatorNotesState = {
@@ -110,19 +110,23 @@ function NoteEditor({ state, row, onClose }: { state: TranslatorNotesState; row:
   const approvable = Boolean(row.draft) && body === row.draft && reason.trim().length > 0;
   return (
     <div className="space-y-3">
-      <label htmlFor={`${formId}-body`} className="block">Translator&apos;s note<Textarea id={`${formId}-body`} ref={bodyRef} lang={locale} dir="auto" value={body} onChange={(e) => setBody(e.target.value)} disabled={busy} maxLength={TRANSLATOR_NOTE_MAX_LENGTH} /></label>
-      <p className="theme-text-faint text-xs">Write in {languageLabel(locale)} only. Readers see it in a labelled box stating it is not in the English original. Notes are never used for translation or shown in another language.</p>
-      <label htmlFor={`${formId}-reason`} className="block">Reason<Input id={`${formId}-reason`} value={reason} onChange={(e) => setReason(e.target.value)} disabled={busy} maxLength={1000} /></label>
-      {error ? <p role="alert" className="text-sm text-[color:var(--theme-danger-text)]">{error}</p> : null}
-      {notice ? <p role="status" className="theme-text-secondary text-sm">{notice}</p> : null}
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" disabled={busy || !body.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button>
-        <Button variant="accent" disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
-        <Button variant="ghost" disabled={busy} onClick={onClose}>Close note</Button>
+      <EditorField htmlFor={`${formId}-body`} label="Translator's note" description={`Write in ${languageLabel(locale)} only. Readers see it in a labelled box stating it is not in the English original. Notes are never used for translation or shown in another language.`}>
+        <Textarea id={`${formId}-body`} ref={bodyRef} lang={locale} dir="auto" value={body} onChange={(e) => setBody(e.target.value)} disabled={busy} maxLength={TRANSLATOR_NOTE_MAX_LENGTH} className="[field-sizing:content] max-h-[70vh] min-h-20 text-[16px] md:text-sm" />
+      </EditorField>
+      <EditorField htmlFor={`${formId}-reason`} label="Reason" description="Why readers here need this. Recorded in the note's history.">
+        <Input id={`${formId}-reason`} inputSize="sm" value={reason} onChange={(e) => setReason(e.target.value)} disabled={busy} maxLength={1000} />
+      </EditorField>
+      {error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
+      {notice ? <p role="status" className="text-sm text-[color:var(--theme-success-text)]">{notice}</p> : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant={!approvable && body.trim() && reason.trim() && !busy ? "accent" : "outline"} disabled={busy || !body.trim() || !reason.trim()} onClick={() => void mutate("save")}>Save draft</Button>
+        <Button size="sm" variant={approvable && !busy ? "accent" : "outline"} disabled={busy || !approvable} onClick={() => void mutate("approve")}>Approve saved draft</Button>
+        <Button size="sm" variant="ghost" disabled={busy} onClick={onClose}>Close note</Button>
+        {!reason.trim() ? <span className="theme-text-muted text-xs">A reason is needed to save or restore.</span> : null}
       </div>
       {history.length ? <>
-        <h5 className="theme-text-primary font-medium">Note history</h5>
-        <ul className="space-y-2">{history.map((h) => <li key={h.revision} className="theme-text-secondary text-sm">Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)} <Button size="sm" variant="outline" disabled={busy || !reason.trim()} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
+        <h5 className="type-meta-label theme-text-muted">Note history</h5>
+        <ul className="theme-dev-link-list">{history.map((h) => <li key={h.revision} className="theme-text-secondary flex flex-wrap items-center gap-2 py-2 text-sm"><span>Revision {h.revision}: {h.action} by {h.actor}. {formatReviewReason(h.reason)}</span><Button size="sm" variant="outline" disabled={busy || !reason.trim()} onClick={() => void mutate("restore", h.revision)}>Restore as draft</Button></li>)}</ul>
       </> : null}
     </div>
   );
@@ -138,11 +142,22 @@ function NoteSection({ state, row }: { state: TranslatorNotesState; row: Transla
   }, [state.requested, row.section, row.status]);
   const mark = row.status === "empty" ? null : MARKS[row.status];
   const hasNote = row.draft !== null || row.approved !== null;
+  // An empty section offers one quiet line, so the article keeps its rhythm; a note that exists reads as a note.
+  if (!hasNote && row.status !== "orphaned" && !open) {
+    return (
+      <div role="group" aria-label={`Translator's note: ${row.label}`} className="md:pl-[calc(50%+0.75rem)]">
+        <Button size="sm" variant="ghost" className="theme-text-muted -ml-2 text-xs" aria-label={`Add translator's note under ${row.label}`} onClick={() => setOpen(true)}>
+          <Icon icon="lucide:plus" size={13} />
+          Add translator&apos;s note
+        </Button>
+      </div>
+    );
+  }
   return (
-    <Surface variant="subtle" padding="sm" radius="lg" className="min-w-0 space-y-2 break-words" role="group" aria-label={`Translator's note: ${row.label}`}>
+    <div className="min-w-0 space-y-2 break-words rounded-card border border-dashed border-[color:var(--editor-panel-border)] p-3" role="group" aria-label={`Translator's note: ${row.label}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="theme-text-faint text-xs">Translator&apos;s note · {row.label}</span>
-        {mark ? <Badge variant={mark.variant}>{mark.label}</Badge> : null}
+        <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs"><Icon icon="lucide:sticky-note" size={13} />Translator&apos;s note · {row.label}</span>
+        {mark ? <EditorStatusPill tone={mark.tone} inline>{mark.label}</EditorStatusPill> : null}
       </div>
       {row.approved !== null ? <p lang={state.locale} dir="auto" className="theme-text-primary whitespace-pre-wrap">{row.approved}</p> : null}
       {row.draft !== null ? <p className="theme-text-secondary whitespace-pre-wrap text-sm">Draft: <span lang={state.locale} dir="auto">{row.draft}</span></p> : null}
@@ -151,7 +166,7 @@ function NoteSection({ state, row }: { state: TranslatorNotesState; row: Transla
         : open
           ? <NoteEditor state={state} row={row} onClose={() => setOpen(false)} />
           : <Button size="sm" variant="outline" aria-label={`${hasNote ? "Edit" : "Add"} translator's note under ${row.label}`} onClick={() => setOpen(true)}>{hasNote ? "Edit translator's note" : "Add translator's note"}</Button>}
-    </Surface>
+    </div>
   );
 }
 

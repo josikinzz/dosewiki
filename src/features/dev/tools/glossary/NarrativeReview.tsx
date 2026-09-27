@@ -3,15 +3,12 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { ExpandButton } from "@/components/common/ExpandButton";
-import { SmartLink } from "@/components/common/SmartLink";
-import { StateCard } from "@/components/common/StateCard";
-import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Surface } from "@/components/ui/surface";
 import { Textarea } from "@/components/ui/textarea";
 import type { SearchManifestIndex } from "@/data/builders/searchManifest";
-import { useUnsavedWork } from "@/features/dev/components";
+import { EditorPanel, EditorStatusPill, Notice, useUnsavedWork, type EditorStatusPillTone } from "@/features/dev/components";
 import { loadSearchManifestIndex } from "@/hooks/useSearchManifest";
 import { parseUiLocale } from "@/i18n/messages";
 import type { PublicationReceipt } from "@server/next/publicationDispatch";
@@ -36,6 +33,7 @@ import { FluencyReviewButton } from "./FluencyReviewButton";
 import { count, languageLabel } from "./glossaryModel";
 import { PromoteToStyleGuide } from "./StyleGuidePanel";
 import { TranslatorNoteSlot, useTranslatorNotes } from "./TranslatorNotes";
+import { When } from "./workbenchParts";
 
 type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 
@@ -44,14 +42,14 @@ type Row = Packet["rows"][number];
 /** One mark per paragraph; the workbench legend owns the wider definitions. */
 const MARKS: Record<
   NarrativeRowStatus,
-  { label: string; variant: BadgeProps["variant"] }
+  { label: string; tone: EditorStatusPillTone }
 > = {
-  unreviewed: { label: "Machine", variant: "outline" },
-  draft: { label: "Draft", variant: "secondary" },
-  approved: { label: "Human approved", variant: "success" },
+  unreviewed: { label: "Machine", tone: "neutral" },
+  draft: { label: "Draft", tone: "warning" },
+  approved: { label: "Human approved", tone: "success" },
   // A re-check approval still shows, but a neighbouring English sentence changed.
-  recheck: { label: "Re-check: nearby English changed", variant: "default" },
-  stale: { label: "Source changed", variant: "destructive" },
+  recheck: { label: "Re-check: nearby English changed", tone: "warning" },
+  stale: { label: "Source changed", tone: "danger" },
 };
 
 /** Wording a reader sees now: an applied approval (including re-check), else the machine target, else English. */
@@ -141,8 +139,8 @@ function ArticlePicker({
     onChoose(m.slug);
   }
   return (
-    <div className="relative w-full max-w-md">
-      <label htmlFor={`${id}-query`}>Find article</label>
+    <div className="relative w-full space-y-1">
+      <label htmlFor={`${id}-query`} className="theme-text-secondary block text-sm font-medium">Find article</label>
       <Input
         id={`${id}-query`}
         role="combobox"
@@ -153,7 +151,8 @@ function ArticlePicker({
         autoComplete="off"
         value={query}
         disabled={disabled}
-        placeholder="English or localized title"
+        placeholder="English or translated title"
+        inputSize="sm"
         onFocus={() => {
           ensureIndexes();
           setOpen(true);
@@ -189,7 +188,7 @@ function ArticlePicker({
           id={`${id}-list`}
           role="listbox"
           aria-label="Matching articles"
-          className="theme-frosted-control mt-1 max-h-72 overflow-y-auto rounded-lg border border-[var(--theme-border-subtle)] p-1"
+          className="theme-frosted-control absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-card border border-[var(--theme-border-subtle)] p-1 shadow-[var(--theme-elevation-overlay)]"
         >
           {matches.map((m, index) => (
             // The combobox owns keyboard selection through aria-activedescendant.
@@ -199,7 +198,7 @@ function ArticlePicker({
               id={`${id}-option-${index}`}
               role="option"
               aria-selected={index === active}
-              className={`cursor-pointer rounded-md px-2 py-1.5 hover:bg-[var(--theme-frosted-control-hover-bg)] ${index === active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
+              className={`theme-menu-row cursor-pointer rounded-control px-2 py-1.5 hover:bg-[var(--theme-frosted-control-hover-bg)] ${index === active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => pick(m)}
             >
@@ -445,42 +444,46 @@ export function NarrativeReview({
       setReason(EMPTY_CORRECTION);
     },
   });
+  const blocked = Boolean(row) && ((changed && !reason.kind) || openConflicts(row!.source, target, row!.glossary, exceptionsFor(reason, row!.id)).length > 0);
   const editor = row ? (
-    <Surface
-      variant="subtle"
-      padding="sm"
-      radius="lg"
-      className="min-w-0 space-y-3 break-words"
-    >
-      <h4 className="theme-text-primary font-medium">
-        {row.field} · {MARKS[row.status]?.label ?? row.status}
-      </h4>
-      <p
-        className="theme-text-secondary text-sm"
-        title={`Model ${row.machine?.model ?? "unknown"} · prompt ${row.machine?.prompt_version ?? "unknown"}`}
-      >
-        Machine translation: {row.machine?.target ?? "Missing"}
-      </p>
-      <p className="theme-text-secondary text-sm">
-        Approved translation: {row.approved?.target ?? "Not reviewed"}
-      </p>
-      <p className="theme-text-secondary text-sm">
-        {row.usages
-          ? `The same English appears in ${count(row.usages.total, "place")}; showing ${row.usages.pages.length}.`
-          : "Other places with the same English were not checked."}{" "}
-        This correction changes only {packet?.slug}, {row.field}.
-      </p>
-      <ul className="theme-text-secondary text-sm">
-        {row.usages?.pages.map((p) => (
-          <li key={`${p.kind}:${p.slug}`}>
-            <SmartLink className="underline" href={p.href}>
-              {p.kind}: {p.label}
-            </SmartLink>
-          </li>
-        ))}
-      </ul>
-      <label htmlFor={`${formId}-correction`} className="block">
-        Correction
+    <div className="min-w-0 space-y-4 rounded-card border border-[color:var(--editor-panel-border-strong)] bg-[var(--editor-panel-bg-subtle)] p-4 [&_:is(input,textarea,button)]:scroll-mb-40 [&_:is(input,textarea,button)]:scroll-mt-28">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h4 className="theme-text-primary flex flex-wrap items-center gap-2 font-medium">
+          <span>Correcting {fieldName(row.field)}</span>
+          <ParagraphMark status={row.status} />
+        </h4>
+        <Button size="sm" variant="ghost" className="-mr-2" disabled={busy} onClick={closeEditor} aria-keyshortcuts="Escape">
+          Close editor
+        </Button>
+      </div>
+      <dl className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[9rem_minmax(0,1fr)]">
+        <dt className="theme-text-muted">Machine wording</dt>
+        <dd lang={locale} dir="auto" className="theme-text-secondary break-words" title={`Model ${row.machine?.model ?? "unknown"} · prompt ${row.machine?.prompt_version ?? "unknown"}`}>
+          {row.machine?.target ?? <span lang="en" className="theme-text-faint">Missing</span>}
+        </dd>
+        <dt className="theme-text-muted">Approved wording</dt>
+        <dd lang={row.approved ? locale : undefined} dir="auto" className="theme-text-secondary break-words">{row.approved?.target ?? <span lang="en" className="theme-text-faint">Not reviewed</span>}</dd>
+        <dt className="theme-text-muted">Changes</dt>
+        <dd className="theme-text-secondary">
+          This paragraph only.{" "}
+          {row.usages
+            ? `The same English appears in ${count(row.usages.total, "place")}; each keeps its own wording.`
+            : "Other places with the same English were not checked."}
+          {row.usages?.pages.length ? (
+            <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+              {row.usages.pages.map((p) => (
+                <li key={`${p.kind}:${p.slug}`}>
+                  <a className="text-dose-accent-strong theme-accent-underline underline-offset-4 hover:underline" href={p.href} target="_blank" rel="noopener noreferrer">
+                    {p.label}<span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </dd>
+      </dl>
+      <label htmlFor={`${formId}-correction`} className="block space-y-1">
+        <span className="theme-text-secondary text-sm font-medium">Correction</span>
         <Textarea
           id={`${formId}-correction`}
           ref={correctionRef}
@@ -488,8 +491,15 @@ export function NarrativeReview({
           dir="auto"
           value={target}
           onChange={(e) => setTarget(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape" && !busy) {
+              e.preventDefault();
+              closeEditor();
+            }
+          }}
           disabled={busy}
           maxLength={30000}
+          className="[field-sizing:content] max-h-[70vh] min-h-24 text-[16px] md:text-sm"
         />
       </label>
       <CorrectionReasonFields
@@ -503,28 +513,24 @@ export function NarrativeReview({
         disabled={busy}
         needed={changed}
       />
-      <ApprovalActions
-        changed={changed}
-        canSave={canSave}
-        approvable={approvable}
-        busy={busy}
-        blocked={
-          (changed && !reason.kind) ||
-          openConflicts(
-            row.source,
-            target,
-            row.glossary,
-            exceptionsFor(reason, row.id),
-          ).length > 0
-        }
-        onSave={() => void mutate("save")}
-        onSaveAndApprove={() => void mutate("save-approve")}
-        onApprove={() => void mutate("approve")}
-      >
-        <Button size="sm" variant="ghost" disabled={busy} onClick={closeEditor}>
-          Close editor
-        </Button>
-      </ApprovalActions>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <ApprovalActions
+          changed={changed}
+          canSave={canSave}
+          approvable={approvable}
+          busy={busy}
+          blocked={blocked}
+          onSave={() => void mutate("save")}
+          onSaveAndApprove={() => void mutate("save-approve")}
+          onApprove={() => void mutate("approve")}
+        />
+        <span className="theme-text-muted inline-flex items-center gap-1.5 text-xs">
+          {target !== openedTarget ? <><span aria-hidden className="size-1.5 rounded-full bg-[var(--theme-accent)]" />Unsaved correction</> : busy ? "Saving" : null}
+        </span>
+      </div>
+      {error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
+      {notice ? <p role="status" className="text-sm text-[color:var(--theme-success-text)]">{notice}</p> : null}
+      <Receipts publication={publication} />
       <ExpandButton
         variant="inline"
         className="-ml-1 text-current"
@@ -540,194 +546,250 @@ export function NarrativeReview({
             No recorded review history for this paragraph.
           </p>
         ) : (
-          <ul className="space-y-2" aria-label="Review history">
+          <ul className="theme-dev-link-list" aria-label="Review history">
             {history.map((h) => (
-              <li key={h.revision} className="theme-text-secondary text-sm">
-                Revision {h.revision}: {h.action} by {h.actor}.{" "}
-                {formatReviewReason(h.reason)}
-                {h.glossaryExceptions?.length
-                  ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.`
-                  : ""}{" "}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => void mutate("restore", h.revision)}
-                >
-                  Restore as draft
-                </Button>
-                {h.action === "save" &&
-                h.reason.kind === "fluency" &&
-                packet ? (
-                  <PromoteToStyleGuide
-                    locale={locale}
-                    slug={packet.slug}
-                    segment={row.id}
-                    revision={h.revision}
+              <li key={h.revision} className="theme-text-secondary space-y-1.5 py-2 text-sm">
+                <p>
+                  Revision {h.revision}: {h.action} by {h.actor}, <When at={h.createdAt} />.{" "}
+                  {formatReviewReason(h.reason)}
+                  {h.glossaryExceptions?.length
+                    ? ` Kept out on purpose: ${h.glossaryExceptions.join(", ")}.`
+                    : ""}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
                     disabled={busy}
-                  />
-                ) : null}
+                    onClick={() => void mutate("restore", h.revision)}
+                  >
+                    Restore as draft
+                  </Button>
+                  {h.action === "save" &&
+                  h.reason.kind === "fluency" &&
+                  packet ? (
+                    <PromoteToStyleGuide
+                      locale={locale}
+                      slug={packet.slug}
+                      segment={row.id}
+                      revision={h.revision}
+                      disabled={busy}
+                    />
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
         )
       ) : null}
-    </Surface>
+    </div>
   ) : null;
+  const openByAddress = (
+      <details className="theme-text-muted text-sm" open={Boolean(slug) || undefined}>
+              <summary className="cursor-pointer select-none text-xs">Open by address instead</summary>
+              <div className="mt-2 flex flex-wrap items-end gap-2">
+                <label htmlFor={`${formId}-slug`} className="min-w-0 flex-1 space-y-1">
+                  <span className="theme-text-secondary block text-xs font-medium">Article slug</span>
+                  <Input
+                    id={`${formId}-slug`}
+                    inputSize="sm"
+                    value={slug}
+                    disabled={busy}
+                    placeholder="lsd"
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setPacket(null);
+                      setHistory([]);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && slug.trim() && !busy) {
+                        e.preventDefault();
+                        void load();
+                      }
+                    }}
+                  />
+                </label>
+                <Button variant="outline" size="sm" disabled={busy || !slug.trim()} onClick={() => void load()}>
+                  Open article
+                </Button>
+              </div>
+            </details>
+  );
+  const approvedShare = packet?.tally ? (packet.tally.total ? (packet.tally.humanApproved / packet.tally.total) * 100 : 0) : 0;
   return (
     <section aria-label="Narrative review" className="min-w-0 space-y-4">
-      <p className="theme-text-secondary text-sm">
-        Pick an article to review. A correction changes only the paragraph you
-        chose; the same English elsewhere keeps its own wording.
-      </p>
       {packet ? null : (
-        <ArticlesToReview locale={locale} disabled={busy} onOpen={choose} />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
+          <div className="min-w-0 space-y-2">
+            <ArticlesToReview locale={locale} disabled={busy} onOpen={choose} />
+          </div>
+          <div className="min-w-0 space-y-3 lg:sticky lg:top-24">
+            <p className="theme-text-secondary text-sm">
+              Or open any article. A correction changes only the paragraph you choose; the same English elsewhere keeps its own wording.
+            </p>
+            <ArticlePicker locale={locale} disabled={busy} onChoose={choose} />
+            {openByAddress}
+            {error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
+          </div>
+        </div>
       )}
-      <div className="flex flex-wrap items-end gap-3">
-        <ArticlePicker locale={locale} disabled={busy} onChoose={choose} />
-        <label htmlFor={`${formId}-slug`}>
-          Article slug
-          <Input
-            id={`${formId}-slug`}
-            value={slug}
-            disabled={busy}
-            onChange={(e) => {
-              setSlug(e.target.value);
-              setPacket(null);
-              setHistory([]);
-            }}
-          />
-        </label>
-        <Button disabled={busy || !slug.trim()} onClick={() => void load()}>
-          Open article
-        </Button>
-      </div>
-      {error ? (
-        <StateCard
-          compact
-          tone="danger"
-          title="Review failed"
-          description={error}
-        />
-      ) : null}
-      {publication.length > 0 ? (
-        <ul className="theme-text-secondary text-sm">
-          {publication.map((receipt, index) => (
-            <li key={index}>
-              {receipt.target}: {receipt.status} ({receipt.attempts} attempts).{" "}
-              {receipt.detail}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {notice ? (
-        <p role="status" className="theme-text-secondary text-sm">
-          {notice}
-        </p>
-      ) : null}
       {packet ? (
-        <Surface
-          variant="subtle"
-          padding="sm"
-          radius="lg"
-          className="min-w-0 space-y-3"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h3 className="theme-text-primary font-medium">{packet.slug}</h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={busy}
-              onClick={() => {
-                closeEditor();
-                setPacket(null);
-                setSlug("");
-              }}
-            >
-              Back to articles needing review
-            </Button>
-            {packet.tally ? (
-              <p className="theme-text-secondary text-sm">
-                {packet.tally.humanApproved} of {packet.tally.total} paragraphs
-                human approved
-              </p>
-            ) : null}
-          </div>
-          {canAdmin ? (
-            <FluencyReviewButton
-              key={packet.slug}
-              locale={locale}
-              slug={packet.slug}
-            />
-          ) : null}
-          <p className="theme-text-faint text-xs">
-            Stored wording in source order. Click a translated paragraph to
-            correct it.
-          </p>
-          <div
-            aria-hidden="true"
-            className="theme-text-faint hidden text-xs md:grid md:grid-cols-2 md:gap-4"
-          >
-            <span>English</span>
-            <span>{languageLabel(locale)}</span>
-          </div>
-          <ol className="space-y-4">
-            {packet.rows.map((item, index) => {
-              const mark =
-                  MARKS[item.status as NarrativeRowStatus] ?? MARKS.unreviewed,
-                textId = `${formId}-text-${index}`,
-                active = item.id === selected;
-              return (
-                <li key={item.id} className="min-w-0 space-y-2">
-                  <p className="theme-text-faint text-xs">{labels[index]}</p>
-                  <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2 md:gap-4">
-                    <div className="min-w-0">
-                      <p className="theme-text-faint text-xs md:hidden">
-                        English
-                      </p>
-                      <p
-                        lang="en"
-                        className="theme-text-primary whitespace-pre-wrap break-words"
-                      >
-                        {item.source}
-                      </p>
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="theme-text-faint text-xs md:hidden">
-                          {languageLabel(locale)}
-                        </span>
-                        <Badge variant={mark.variant}>{mark.label}</Badge>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label={`Review ${labels[index]}`}
-                        aria-describedby={textId}
-                        aria-expanded={active}
-                        disabled={busy}
-                        className={`theme-focus-ring block w-full min-w-0 rounded-md px-2 py-1 text-left hover:bg-[var(--theme-frosted-control-hover-bg)] ${active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
-                        onClick={() => void load(item.id)}
-                      >
-                        <span
-                          id={textId}
-                          lang={locale}
-                          dir="auto"
-                          className="theme-text-primary whitespace-pre-wrap break-words"
-                        >
-                          {liveText(item)}
-                        </span>
-                      </button>
-                    </div>
+        <EditorPanel className="overflow-visible">
+          <header className="theme-portal-rule space-y-3 border-b px-4 py-3.5 sm:px-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="-ml-2"
+                disabled={busy}
+                onClick={() => {
+                  closeEditor();
+                  setPacket(null);
+                  setSlug("");
+                }}
+              >
+                <Icon icon="lucide:arrow-left" size={14} />
+                Back to articles needing review
+              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <details className="group relative">
+                  <summary className="theme-text-secondary cursor-pointer select-none list-none text-sm hover:underline">Open another article</summary>
+                  <div className="theme-portal-rule absolute right-0 z-30 mt-2 w-[min(22rem,calc(100vw-3rem))] space-y-3 rounded-card border bg-[var(--editor-panel-bg)] p-3 shadow-[var(--theme-elevation-overlay)]">
+                    <ArticlePicker locale={locale} disabled={busy} onChoose={choose} />
+                    {openByAddress}
                   </div>
-                  {active ? editor : null}
-                  <TranslatorNoteSlot state={notes} afterRowId={item.id} />
-                </li>
-              );
-            })}
-          </ol>
-          <TranslatorNoteSlot state={notes} rest />
-        </Surface>
+                </details>
+                <a href={`/substances/${packet.slug}`} target="_blank" rel="noopener noreferrer" className="text-dose-accent-strong theme-accent-underline inline-flex items-center gap-1 text-sm underline-offset-4 hover:underline">
+                  Open the English page
+                  <Icon icon="lucide:arrow-up-right" size={13} />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+              <div className="min-w-0 space-y-1.5">
+                <h3 className="theme-accent-heading text-xl font-semibold leading-tight">{packet.slug}</h3>
+                {packet.tally ? (
+                  <p className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-sm tabular-nums">
+                    <span aria-hidden className="flex h-1.5 w-24 overflow-hidden rounded-full theme-progress-track">
+                      <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${approvedShare}%` }} />
+                    </span>
+                    <span>
+                      {packet.tally.humanApproved} of {packet.tally.total} paragraphs
+                      human approved
+                    </span>
+                  </p>
+                ) : null}
+              </div>
+              {canAdmin ? (
+                <FluencyReviewButton
+                  key={packet.slug}
+                  locale={locale}
+                  slug={packet.slug}
+                />
+              ) : null}
+            </div>
+          </header>
+          <div className="space-y-4 px-4 py-4 sm:px-5">
+            {!row && error ? <Notice tone="danger" placement="inline" message={error} dismiss={() => setError(null)} /> : null}
+            {!row && notice ? <p role="status" className="text-sm text-[color:var(--theme-success-text)]">{notice}</p> : null}
+            {!row ? <Receipts publication={publication} /> : null}
+            <p className="theme-text-muted text-xs">
+              Stored wording in source order. Select a translated paragraph to
+              correct it.
+            </p>
+            <div
+              aria-hidden="true"
+              className="type-meta-label theme-text-muted hidden md:grid md:grid-cols-2 md:gap-6"
+            >
+              <span>English</span>
+              <span className="normal-case tracking-normal">{languageLabel(locale)}</span>
+            </div>
+            <ol className="theme-dev-link-list">
+              {packet.rows.map((item, index) => {
+                const textId = `${formId}-text-${index}`,
+                  active = item.id === selected;
+                return (
+                  <li key={item.id} className="min-w-0 space-y-2 py-3">
+                    <p className="theme-text-faint text-xs" title={labels[index]}>{fieldName(labels[index])}</p>
+                    <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2 md:gap-6">
+                      <div className="min-w-0">
+                        <p className="theme-text-faint text-xs md:hidden">
+                          English
+                        </p>
+                        <p
+                          lang="en"
+                          className="theme-text-primary whitespace-pre-wrap break-words leading-relaxed"
+                        >
+                          {item.source}
+                        </p>
+                      </div>
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="theme-text-faint text-xs md:hidden">
+                            {languageLabel(locale)}
+                          </span>
+                          <ParagraphMark status={item.status as NarrativeRowStatus} />
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={`Review ${labels[index]}`}
+                          aria-describedby={textId}
+                          aria-expanded={active}
+                          disabled={busy}
+                          className={`theme-focus-ring group -mx-2 block w-[calc(100%+1rem)] min-w-0 rounded-control px-2 py-1 text-left transition-colors hover:bg-[var(--theme-frosted-control-hover-bg)] ${active ? "bg-[var(--theme-frosted-control-bg)]" : ""}`}
+                          onClick={() => void load(item.id)}
+                        >
+                          <span
+                            id={textId}
+                            lang={locale}
+                            dir="auto"
+                            className="theme-text-primary whitespace-pre-wrap break-words leading-relaxed"
+                          >
+                            {liveText(item)}
+                          </span>
+                          <span aria-hidden className="theme-text-faint ml-1 inline-flex translate-y-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                            <Icon icon="lucide:pencil" size={12} />
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    {active ? editor : null}
+                    <TranslatorNoteSlot state={notes} afterRowId={item.id} />
+                  </li>
+                );
+              })}
+            </ol>
+            <TranslatorNoteSlot state={notes} rest />
+          </div>
+        </EditorPanel>
       ) : null}
     </section>
+  );
+}
+
+/** A paragraph's review state as the sentence-case pill every view uses. */
+function ParagraphMark({ status }: { status: NarrativeRowStatus }) {
+  const mark = MARKS[status] ?? MARKS.unreviewed;
+  return <EditorStatusPill tone={mark.tone} inline>{mark.label}</EditorStatusPill>;
+}
+
+/** "effects.summary paragraph 2" as a reader would say it: "Effects summary, paragraph 2". */
+function fieldName(field: string): string {
+  const spaced = field.replace(/[._-]+/g, " ").replace(/\s+paragraph\s+(\d+)$/, ", paragraph $1").replace(/\s+(\d+)$/, " $1").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/** Where an approval was sent after it saved; a receipt that did not land says so. */
+function Receipts({ publication }: { publication: PublicationReceipt[] }) {
+  if (publication.length === 0) return null;
+  return (
+    <ul className="theme-text-muted space-y-0.5 text-xs">
+      {publication.map((receipt, index) => (
+        <li key={index} className={receipt.status === "accepted" ? undefined : "text-[color:var(--theme-warning-text)]"}>
+          {receipt.target}: {receipt.status} ({receipt.attempts} {receipt.attempts === 1 ? "attempt" : "attempts"}). {receipt.detail}
+        </li>
+      ))}
+    </ul>
   );
 }

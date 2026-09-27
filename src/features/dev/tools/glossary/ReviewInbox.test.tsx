@@ -47,7 +47,7 @@ describe("Review inbox", () => {
     await user.keyboard("a");
     // Nothing is written yet: the item leaves the list, focus moves on, and Undo is offered.
     expect(writes).toEqual([]);
-    expect(screen.getByRole("status", { name: "Inbox messages" })).toHaveTextContent('Accepting "Euphoria" in 10 seconds.');
+    expect(screen.getByRole("status", { name: "Waiting messages" })).toHaveTextContent('Accepting "Euphoria" in 10 seconds.');
     expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
     expect(screen.queryByRole("listitem", { name: "Glossary: Euphoria" })).not.toBeInTheDocument();
     expect(screen.getByRole("listitem", { name: "Glossary: Anxiety" })).toHaveFocus();
@@ -69,7 +69,7 @@ describe("Review inbox", () => {
     await user.keyboard("a");
     await user.click(screen.getByRole("button", { name: "Undo" }));
     expect(screen.getByRole("listitem", { name: "Glossary: Euphoria" })).toHaveFocus();
-    expect(screen.getByRole("status", { name: "Inbox messages" })).toHaveTextContent('Undone. "Euphoria" was not accepted.');
+    expect(screen.getByRole("status", { name: "Waiting messages" })).toHaveTextContent('Undone. "Euphoria" was not accepted.');
     // U undoes from the keyboard too.
     await user.keyboard("a");
     expect(screen.queryByRole("listitem", { name: "Glossary: Euphoria" })).not.toBeInTheDocument();
@@ -101,10 +101,10 @@ describe("Review inbox", () => {
     const user = userEvent.setup();
     render(<ReviewInbox locale="zh-Hans" />);
     // Mounted while loading, and still the same element once items arrive.
-    const region = screen.getByRole("status", { name: "Inbox messages" });
+    const region = screen.getByRole("status", { name: "Waiting messages" });
     expect(region).toHaveAttribute("aria-live", "polite");
     await screen.findByRole("listitem", { name: "Glossary: Euphoria" });
-    expect(screen.getByRole("status", { name: "Inbox messages" })).toBe(region);
+    expect(screen.getByRole("status", { name: "Waiting messages" })).toBe(region);
     expect(region).toBeEmptyDOMElement();
     await user.click(screen.getByRole("button", { name: "Accept" }));
     expect(await within(region).findByText('Accepted "Euphoria".')).toBeInTheDocument();
@@ -162,8 +162,9 @@ describe("Review inbox", () => {
     const user = userEvent.setup();
     render(<ReviewInbox locale="zh-Hans" />);
     await user.click(await screen.findByRole("button", { name: "Accept" }));
-    const item = screen.getByRole("listitem", { name: `Translation: ${recheck.english}` });
-    expect(item).toHaveTextContent("Replication (体验再现)");
+    // The item stays listed, and the decision dock names what the wording leaves out.
+    expect(screen.getByRole("listitem", { name: `Translation: ${recheck.english}` })).toBeInTheDocument();
+    expect(await screen.findByText(/This wording leaves out Replication \(体验再现\)/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Fine here: accept without Replication/ }));
     expect(await screen.findByText(`Accepted "${recheck.english}".`)).toBeInTheDocument();
     expect(writes).toEqual([

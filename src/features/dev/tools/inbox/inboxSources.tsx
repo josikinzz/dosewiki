@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+
+import { ExpandButton } from "@/components/common/ExpandButton";
 
 import { EditorStatusPill } from "@/features/dev/components";
 import { DecisionLogSection } from "@/features/dev/tools/DecisionLogSection";
@@ -30,6 +32,7 @@ import type { TripReportSubmissionRow } from "@/features/reports/submissions/tri
 
 import {
   canTransitionTripReportSubmission,
+  TRIP_REPORT_SUBMISSION_TRANSITIONS,
   type TripReportSubmissionStatus,
 } from "@/features/reports/submissions/tripReportSubmissionStatus";
 import { SITE_FEEDBACK_PENDING_STATUSES } from "@/features/site-feedback/siteFeedback";
@@ -75,6 +78,11 @@ export type InboxSourceAdapter = {
   id: InboxSourceId;
   /** The owning tool, named where the Inbox says where a decision happens. */
   toolLabel: string;
+  /**
+   * True when `detail(id)` draws the item's own title and status pills (the
+   * Feedback adapters do), so the Inbox pane header does not repeat them.
+   */
+  detailHasHeading?: boolean;
   list: (context: InboxListContext) => Promise<InboxItem[]>;
   detail: (id: string) => ReactNode;
   actions: {
@@ -91,6 +99,13 @@ export type InboxSourceAdapter = {
     /** Decisions this item can take here; empty when the owning tool decides. */
     decisions: (item: InboxItem) => readonly InboxDecision[];
     decide?: (id: string, decision: InboxDecision, note: string) => Promise<InboxItem | null>;
+    /**
+     * Take back the last decision `decide` made on `id`, through the same
+     * status route and transition table the owning tool's own undo uses: back
+     * where it was when the transitions allow it, else to Reviewing. Null
+     * when there is nothing to take back.
+     */
+    undo?: (id: string) => Promise<InboxItem> | null;
   };
 };
 
@@ -158,15 +173,68 @@ function MissingDetail() {
 
 function DetailFacts({ facts }: { facts: readonly { label: string; value: ReactNode }[] }) {
   return (
-    <dl className="grid gap-3 text-sm sm:grid-cols-2">
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm lg:grid-cols-3">
       {facts.map((fact) => (
         <div key={fact.label}>
-          <dt className="theme-text-faint text-xs font-medium uppercase tracking-wide">{fact.label}</dt>
-          <dd className="theme-text-primary mt-0.5">{fact.value}</dd>
+          <dt className="type-meta-label theme-text-muted">{fact.label}</dt>
+          <dd className="theme-text-primary mt-1 tabular-nums">{fact.value}</dd>
         </div>
       ))}
     </dl>
   );
+}
+
+/** One sub-heading recipe for every source's detail blocks. */
+function DetailHeading({ children }: { children: ReactNode }) {
+  return <h4 className="theme-accent-heading text-sm font-semibold">{children}</h4>;
+}
+
+/**
+ * The Feedback tool's correction panel, folded in the Inbox: triage reads the
+ * report and decides, and linking a correction is the rarer step. Nothing
+ * mounts (or loads) until the admin opens it.
+ */
+function CorrectionReveal({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const regionId = useId();
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <DetailHeading>Correction</DetailHeading>
+        <ExpandButton
+          variant="inline"
+          isExpanded={open}
+          onToggle={() => setOpen((value) => !value)}
+          ariaControls={regionId}
+          ariaLabel={open ? "Hide the correction panel" : "Show the correction panel: start or link a correction"}
+        />
+      </div>
+      {open ? (
+        <div id={regionId} className="theme-reveal-enter">
+          {children}
+        </div>
+      ) : (
+        <p id={regionId} className="theme-text-muted text-sm">
+          Start a correction or link an existing change.
+        </p>
+      )}
+    </section>
+  );
+}
+
+/**
+ * Where undo takes a decided row: back where it was when the transitions
+ * allow it, else to Reviewing, which every decided status reopens to. The
+ * owning tools' own undo reads their tables the same way.
+ */
+function undoStatus<Status extends string>(
+  transitions: Readonly<Record<string, readonly string[]>>,
+  from: Status,
+  to: Status,
+): Status | null {
+  const allowed = transitions[to] ?? [];
+  if (allowed.includes(from)) return from;
+  return allowed.includes("reviewing") ? ("reviewing" as Status) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -182,6 +250,8 @@ const NEEDS_REVIEW: readonly string[] = NEEDS_REVIEW_SUBMISSION_STATUSES;
 
 function tripReportsSource(): InboxSourceAdapter {
   const cache = rowCache<TripReportSubmissionRow>();
+  /** The last decision per row, so `undo` knows where it came from. */
+  const decided = new Map<string, { from: TripReportSubmissionStatus; to: TripReportSubmissionStatus }>();
   const toItem = (row: TripReportSubmissionRow): InboxItem => {
     cache.put(row.id, row);
     return {
@@ -252,9 +322,20 @@ function tripReportsSource(): InboxSourceAdapter {
         );
       },
       async decide(id, decision, note) {
+        const from = cache.get(id).status;
         const row = await move(id, TRIP_DECISION_STATUS[decision], note);
+        decided.set(id, { from, to: row.status });
         const item = toItem(row);
         return NEEDS_REVIEW.includes(row.status) ? item : null;
+      },
+      undo(id) {
+        const last = decided.get(id);
+        const target = last ? undoStatus(TRIP_REPORT_SUBMISSION_TRANSITIONS, last.from, last.to) : null;
+        if (!target) return null;
+        return move(id, target).then((row) => {
+          decided.delete(id);
+          return toItem(row);
+        });
       },
     },
   };
@@ -283,6 +364,7 @@ type FeedbackSourceSpec<Item extends FeedbackQueueItem> = {
 
 function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec<Item>): InboxSourceAdapter {
   const cache = rowCache<Item>();
+  const decided = new Map<string, { from: FeedbackQueueStatus; to: FeedbackQueueStatus }>();
   const toItem = (row: Item): InboxItem => {
     cache.put(row.id, row);
     const adapter = spec.adapterFor(row);
@@ -310,6 +392,8 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
   return {
     id: spec.id,
     toolLabel: spec.id === "glossary-feedback" ? "Glossary" : "Feedback",
+    // The feedback adapters draw facts only; the Inbox pane header names the item and its pills.
+    detailHasHeading: false,
     async list() {
       return (await spec.loadPending()).filter((row) => PENDING_FEEDBACK.includes(row.status)).map(toItem);
     },
@@ -321,11 +405,15 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
         <div className="space-y-5">
           {adapter.renderDetail(row)}
           <section>
-            <h4 className="theme-accent-heading text-sm font-semibold">Details</h4>
-            <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.details}</p>
+            <DetailHeading>Details</DetailHeading>
+            <p className="theme-text-secondary mt-2 max-w-prose whitespace-pre-line text-sm leading-6">{row.details}</p>
           </section>
           {/* A link does not move the item, so the cached row just takes the new log. */}
-          {adapter.renderCorrection?.(row, (updated) => cache.put(updated.id, { ...row, ...updated }))}
+          {adapter.renderCorrection ? (
+            <CorrectionReveal key={row.id}>
+              {adapter.renderCorrection(row, (updated) => cache.put(updated.id, { ...row, ...updated }))}
+            </CorrectionReveal>
+          ) : null}
           {adapter.keepsDecisionLog ? (
             <DecisionLogSection
               entries={decisionLogOf(row)}
@@ -354,9 +442,21 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
         );
       },
       async decide(id, decision, note) {
+        const from = cache.get(id).status;
         const row = await move(id, FEEDBACK_DECISION_STATUS[decision], note);
+        decided.set(id, { from, to: row.status });
         const item = toItem(row);
         return PENDING_FEEDBACK.includes(row.status) ? item : null;
+      },
+      undo(id) {
+        const last = decided.get(id);
+        if (!last || !cache.has(id)) return null;
+        const target = undoStatus(spec.adapterFor(cache.get(id)).transitions, last.from, last.to);
+        if (!target) return null;
+        return move(id, target).then((row) => {
+          decided.delete(id);
+          return toItem(row);
+        });
       },
     },
   };
@@ -543,7 +643,7 @@ function proposalsSource() {
           ]}
         />
         <section>
-          <h4 className="theme-accent-heading text-sm font-semibold">Changes</h4>
+          <DetailHeading>Changes</DetailHeading>
           <ul className="theme-text-secondary mt-2 list-disc space-y-1 pl-5 text-sm">
             {row.targets.map((target) => (
               <li key={`${target.kind}:${target.key}`}>{target.key}</li>
@@ -573,19 +673,22 @@ function recommendationsSource() {
     detail: (row) => (
       <div className="space-y-4">
         {row.stale ? (
-          <EditorStatusPill tone="caution">Changed since recommended</EditorStatusPill>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <EditorStatusPill tone="caution">Changed since recommended</EditorStatusPill>
+            <span className="theme-text-muted">The article moved on, so this can only be looked at again, not approved.</span>
+          </div>
         ) : null}
         <DetailFacts
           facts={[
             { label: "Recommended by", value: formatReviewerIdentity(row.recommended_by) ?? row.recommended_by },
             { label: "Recommended", value: formatFeedbackDate(row.recommended_at) ?? "Unknown" },
-            { label: "Revision", value: <span className="font-mono text-xs">{row.revision}</span> },
+            { label: "Revision", value: <span className="font-mono">{row.revision}</span> },
           ]}
         />
         {row.note ? (
           <section>
-            <h4 className="theme-accent-heading text-sm font-semibold">Note</h4>
-            <p className="theme-text-secondary mt-2 whitespace-pre-line text-sm leading-6">{row.note}</p>
+            <DetailHeading>Note</DetailHeading>
+            <p className="theme-text-secondary mt-2 max-w-prose whitespace-pre-line text-sm leading-6">{row.note}</p>
           </section>
         ) : null}
       </div>

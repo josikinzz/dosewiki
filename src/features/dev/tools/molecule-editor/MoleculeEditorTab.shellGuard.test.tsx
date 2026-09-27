@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
-vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}) }));
+vi.mock("../../pages/useDevRailBadges", () => ({ useDevRailBadges: () => ({}), useDevRailBadgeReadings: () => ({}) }));
 
 import {
   expectRailMarksUnsaved,
@@ -34,7 +34,6 @@ describe("MoleculeEditorTab reports unsaved work to the shell", () => {
   it("marks the rail and asks before a tab switch drops an edited depiction", async () => {
     const user = seedExample();
     const { nav, onTabChange } = renderInDevShell(<MoleculeEditorTab />, { tab: "molecule-editor" });
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),
@@ -57,7 +56,6 @@ describe("MoleculeEditorTab reports unsaved work to the shell", () => {
     const user = seedExample();
     const add = vi.spyOn(window, "addEventListener");
     render(<MoleculeEditorTab />);
-    await user.click(screen.getByRole("combobox", { name: "Select a substance" }));
     await user.click(await screen.findByText("Example"));
     await waitFor(() =>
       expect(screen.getByTestId("ocl-editor")).toHaveAttribute("data-source", "saved molblock"),

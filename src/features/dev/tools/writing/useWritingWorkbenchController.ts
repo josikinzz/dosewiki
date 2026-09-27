@@ -7,6 +7,7 @@ import { prepareVCode } from "@/features/effects/vcode/editing";
 
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import { useDraftRecoveryStore } from "@/features/dev/recovery/DraftRecoveryContext";
+import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreeze";
 import type { DraftCheckpoint } from "@/features/dev/recovery/draftRecovery";
 
 import type {
@@ -63,6 +64,12 @@ export function writingMerge(review: WritingMergeReview): ThreeWayMerge<WritingD
 }
 
 type SaveState = EditorActionStatusState | "idle";
+/**
+ * Why the last save or submission did not land, when the route said: someone
+ * saved the row after it was opened (409), or the write freeze refused it
+ * (503 with the freeze code). Anything else is `other`.
+ */
+export type WritingSaveFailure = "conflict" | "frozen" | "other";
 export type WritingSelection =
   | { type: "pinned" }
   | { type: "new" }
@@ -103,6 +110,13 @@ export function useWritingWorkbenchController({
   const [uncertain, setUncertain] = useState(false);
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [listError, setListError] = useState<string | null>(null);
+  const [listLoading, setListLoading] = useState(false);
+  const [saveFailure, setSaveFailure] = useState<WritingSaveFailure | null>(null);
+  // The open row's read: a failure the pane shows with Try again, a slug no
+  // row carries (a stale deep link), and the counter Try again bumps.
+  const [rowError, setRowError] = useState<string | null>(null);
+  const [missingSlug, setMissingSlug] = useState<string | null>(null);
+  const [rowAttempt, setRowAttempt] = useState(0);
   // A date input holding a half-typed day reports an empty value; the editor
   // says so here rather than saving no date without a word.
   const [dateIncomplete, setDateIncomplete] = useState(false);
@@ -124,6 +138,7 @@ export function useWritingWorkbenchController({
 
   const refreshList = useCallback(async () => {
     if (contextual) { setEntries([]); return; }
+    setListLoading(true);
     try {
       const response = await fetch(API_PATH);
       const payload = (await response.json()) as {
@@ -140,6 +155,8 @@ export function useWritingWorkbenchController({
       setListError(
         error instanceof Error ? error.message : "The article list could not be loaded.",
       );
+    } finally {
+      setListLoading(false);
     }
   }, [contextual]);
 
@@ -156,11 +173,13 @@ export function useWritingWorkbenchController({
   useEffect(() => {
     if (!selectedSlug) {
       setLoadedRow(null);
+      setRowError(null);
       return;
     }
 
     let cancelled = false;
     setIsLoadingRow(true);
+    setRowError(null);
     void (async () => {
       try {
         const response = await fetch(`${API_PATH}?slug=${encodeURIComponent(selectedSlug)}`);
@@ -173,8 +192,16 @@ export function useWritingWorkbenchController({
         }
         if (cancelled) return;
         if (!payload.article) {
-          setNotice({ tone: "danger", message: "That article is no longer there." });
           setLoadedRow(null);
+          // In the workbench a slug nothing carries (a stale link) warns at
+          // the list and falls back to the pinned entry; the contextual panel
+          // has nowhere to fall back to, so it says so where it is.
+          if (pinnedEntryId) {
+            setMissingSlug(selectedSlug);
+            setSelection({ type: "pinned" });
+          } else {
+            setNotice({ tone: "danger", message: "That article is no longer there." });
+          }
           return;
         }
         slugTouchedRef.current = true;
@@ -186,11 +213,9 @@ export function useWritingWorkbenchController({
         setSaveState("idle");
       } catch (error) {
         if (!cancelled) {
-          setNotice({
-            tone: "danger",
-            title: "Load failed",
-            message: error instanceof Error ? error.message : "That article could not be loaded.",
-          });
+          const message = error instanceof Error ? error.message : "That article could not be loaded.";
+          setRowError(message);
+          setNotice({ tone: "danger", title: "Load failed", message });
         }
       } finally {
         if (!cancelled) setIsLoadingRow(false);
@@ -199,7 +224,13 @@ export function useWritingWorkbenchController({
     return () => {
       cancelled = true;
     };
-  }, [selectedSlug]);
+  }, [selectedSlug, rowAttempt, pinnedEntryId]);
+
+  /** Reads the open row again after its read failed. */
+  const retryRow = useCallback(() => {
+    setNotice(null);
+    setRowAttempt((value) => value + 1);
+  }, []);
 
   const slugAvailability = checkSlugAvailability(draft.slug, entries ?? [], selectedSlug);
   // A recovery choice holds the form still, so nothing typed can land under
@@ -285,6 +316,7 @@ export function useWritingWorkbenchController({
     setBaseline(empty);
     setSaveState("idle");
     setNotice(null);
+    setSaveFailure(null);
   }, []);
 
   const startNew = useCallback(() => {
@@ -323,6 +355,8 @@ export function useWritingWorkbenchController({
     forgetRecovery();
     setSelection({ type: "row", slug });
     setNotice(null);
+    setSaveFailure(null);
+    setMissingSlug(null);
   }, [forgetRecovery, uncertain, saveState]);
 
   const updateTitle = useCallback((title: string) => {
@@ -352,6 +386,7 @@ export function useWritingWorkbenchController({
       if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error) return false;
       setSaveState("saving");
       setNotice(null);
+      setSaveFailure(null);
       const savingRecord = recordKey;
       try {
         // An unconfirmed operation is replayed exactly as it first left, with
@@ -383,7 +418,11 @@ export function useWritingWorkbenchController({
         });
         const payload = (await response.json()) as { slug?: string; error?: string; revision?: string };
         if (!response.ok) {
-          if (response.status < 500) {
+          const frozen = isWriteFreezeRefusal(response.status, payload);
+          setSaveFailure(response.status === 409 ? "conflict" : frozen ? "frozen" : "other");
+          // The freeze answers before any statement runs, so it is as definite
+          // as a 4xx: nothing was written and nothing waits on confirmation.
+          if (response.status < 500 || frozen) {
             // A definite refusal: nothing is pending any more, the edit still is.
             setUncertain(false);
             if (recoveryStore && savingRecord) {
@@ -414,6 +453,7 @@ export function useWritingWorkbenchController({
         return true;
       } catch (error) {
         setSaveState("error");
+        setSaveFailure((current) => current ?? "other");
         setNotice({
           tone: "danger",
           title: "Save failed",
@@ -435,6 +475,7 @@ export function useWritingWorkbenchController({
     if (loadedRow && draft.slug.trim() !== loadedRow.slug) return false;
     setSaveState("saving");
     setNotice(null);
+    setSaveFailure(null);
     const rowKind = loadedRow?.kind ?? kind;
     const title = draft.title.trim();
     const label = rowKind === "blog" ? "blog post" : "article";
@@ -466,6 +507,7 @@ export function useWritingWorkbenchController({
       return true;
     } catch (error) {
       setSaveState("error");
+      setSaveFailure("other");
       setNotice({
         tone: "danger",
         title: "Submission failed",
@@ -479,6 +521,7 @@ export function useWritingWorkbenchController({
     forgetRecovery();
     setDraft(baseline);
     setNotice(null);
+    setSaveFailure(null);
   }, [baseline, forgetRecovery, uncertain, saveState]);
 
   /**
@@ -527,6 +570,8 @@ export function useWritingWorkbenchController({
     if (!merge || merge.unresolved.length > 0) return;
     setMergeReview(null);
   }, [merge]);
+  const dismissNotice = useCallback(() => setNotice(null), []);
+  const dismissMissing = useCallback(() => setMissingSlug(null), []);
   const reconcile = useCallback(async () => {
     if (!loadedRow || uncertain || saveState === "saving") return;
     try {
@@ -543,6 +588,7 @@ export function useWritingWorkbenchController({
       setBaseline(latest);
       setDraft(merged.merged);
       operationRef.current = null;
+      setSaveFailure(null);
       if (merged.conflicts.length > 0 || merged.theirs.length > 0) setMergeReview(review);
       setNotice({
         tone: "warning",
@@ -580,7 +626,15 @@ export function useWritingWorkbenchController({
     saveState,
     uncertain,
     notice,
+    dismissNotice,
+    saveFailure,
     listError,
+    listLoading,
+    retryList: refreshList,
+    rowError,
+    retryRow,
+    missingSlug,
+    dismissMissing,
     slugAvailability,
     readOnly,
     isDirty,

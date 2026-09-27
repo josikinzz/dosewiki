@@ -23,6 +23,8 @@ export interface ReviewQueueEntry {
   reviewedRevision?: string;
   /** Who signed off the covered revision. */
   reviewedBy?: string;
+  /** When that sign-off was made. */
+  reviewedAt?: string;
   /** The editor whose recommendation that sign-off approved, if any. */
   recommendedBy?: string;
   /**
@@ -204,6 +206,7 @@ export function buildReviewQueue(
             : status,
           ...(signed ? { reviewedRevision: signed } : {}),
           ...(signed && review?.reviewed_by ? { reviewedBy: review.reviewed_by } : {}),
+          ...(signed && review?.reviewed_at ? { reviewedAt: review.reviewed_at } : {}),
           ...(signed && review?.recommended_by ? { recommendedBy: review.recommended_by } : {}),
           referenceCount: resolveReferenceCount(article),
           flagSummary: deriveReviewFlagSummary(article.editorial_review?.flags),

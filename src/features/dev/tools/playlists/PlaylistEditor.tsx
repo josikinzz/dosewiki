@@ -226,7 +226,7 @@ export function PlaylistEditor({
       ) : null}
 
       <div className="space-y-2">
-        <p className="theme-text-muted text-[11px] uppercase tracking-[0.24em]">
+        <p className="theme-text-secondary text-sm font-medium">
           Works, in order ({draft.slugs.length})
         </p>
         {unavailableCount > 0 ? (

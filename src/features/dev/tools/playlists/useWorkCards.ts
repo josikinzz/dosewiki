@@ -15,6 +15,8 @@ export type WorkCards = {
   unavailable: ReadonlySet<string>;
   /** The last lookup failure, if any; entries then stay unknown rather than missing. */
   error: string | null;
+  /** Asks again for every entry still unknown after a failed lookup. */
+  retry: () => void;
 };
 
 /**
@@ -26,6 +28,7 @@ export type WorkCards = {
 export function useWorkCards(slugs: readonly string[], enabled: boolean): WorkCards {
   const [known, setKnown] = useState<ReadonlyMap<string, PlaylistCandidate | null>>(() => new Map());
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const record = useCallback((asked: readonly string[], found: readonly PlaylistCandidate[]) => {
     setKnown((current) => {
@@ -55,7 +58,7 @@ export function useWorkCards(slugs: readonly string[], enabled: boolean): WorkCa
     return () => {
       cancelled = true;
     };
-  }, [missingKey, record]);
+  }, [missingKey, record, attempt]);
 
   const remember = useCallback((candidates: readonly PlaylistCandidate[]) => {
     if (candidates.length === 0) return;
@@ -82,5 +85,10 @@ export function useWorkCards(slugs: readonly string[], enabled: boolean): WorkCa
     [known],
   );
 
-  return { get: (slug) => known.get(slug), remember, resolve, unavailable, error };
+  const retry = useCallback(() => {
+    setError(null);
+    setAttempt((count) => count + 1);
+  }, []);
+
+  return { get: (slug) => known.get(slug), remember, resolve, unavailable, error, retry };
 }

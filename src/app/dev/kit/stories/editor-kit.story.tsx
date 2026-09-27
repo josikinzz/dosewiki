@@ -12,6 +12,7 @@ import {
   DevShortcutsProvider,
   DiffSurface,
   EditorActionGroup,
+  EditorBackLink,
   EditorActionStatus,
   EditorCheckbox,
   EditorField,
@@ -44,7 +45,12 @@ import {
   TagToken,
   TriageShortcutHint,
   UnsavedWorkProvider,
+  WRITE_FREEZE_CODE,
+  WRITE_FREEZE_COPY,
+  clearWriteFreeze,
   isTextEntryTarget,
+  isWriteFreezeRefusal,
+  reportWriteFreeze,
   saveLineCopy,
   unresolvedConflictText,
   useConfirm,
@@ -55,6 +61,8 @@ import {
   useTriageShortcuts,
   useUnsavedWork,
   useUnsavedWorkRegistry,
+  useWriteFreeze,
+  useWriteFreezeObserver,
 } from "@/features/dev/components";
 
 import type { StoryDef } from "../registry/types";
@@ -313,6 +321,16 @@ const toolbarStory: StoryDef = {
         </div>
       ),
     },
+    {
+      label: "Inline, inside a sentence or a row button",
+      note: "`inline` renders the pill as a span, so it is valid inside a p, a label or a button. Pills speak in sentence case; never pass uppercase or tracking.",
+      render: () => (
+        <p className="theme-text-secondary text-sm">
+          Diazepam is <EditorStatusPill tone="success" inline>Live on 5 substances</EditorStatusPill> and{" "}
+          <EditorStatusPill tone="neutral" inline>Hidden on 1 by the cap</EditorStatusPill>.
+        </p>
+      ),
+    },
   ],
 };
 
@@ -359,7 +377,50 @@ function EditorListDemo() {
       onSelect={setSelected}
       emptyText="No substances match."
       search={{ placeholder: "Search substances", matches: (row, query) => row.name.toLowerCase().includes(query.toLowerCase()) }}
-      renderItem={(row, { selected: isSelected }) => <EditorListItem active={isSelected} title={row.name} />}
+      renderItem={(row, { selected: isSelected }) => <EditorListRow active={isSelected} title={row.name} />}
+    />
+  );
+}
+
+type TriageRow = { id: string; title: string; detail: string; pill?: string };
+const TRIAGE_ROWS: TriageRow[] = [
+  { id: "halcyon", title: "Halcyon at the lake", detail: "LSD 100 µg · Waiting since Jan 2", pill: "Accepted" },
+  { id: "festival", title: "Fixture festival notes, part two", detail: "MDMA 100 mg · Waiting since Jan 6" },
+  { id: "drive", title: "Night drive home", detail: "Cannabis 10 mg · Waiting since Jan 10", pill: "New" },
+  { id: "static", title: "Forty minutes of static", detail: "DMT 40 mg · Waiting since Jan 13" },
+];
+
+function EditorListTicksDemo() {
+  const [selected, setSelected] = useState<string | null>("festival");
+  const [checked, setChecked] = useState<ReadonlySet<string>>(new Set(["drive"]));
+  return (
+    <EditorList
+      label="Trip reports"
+      items={TRIAGE_ROWS}
+      getKey={(row) => row.id}
+      selectedKey={selected}
+      onSelect={setSelected}
+      estimateRowHeight={68}
+      emptyText="Nothing waits."
+      multiSelect={{
+        checkedKeys: checked,
+        onToggle: (key) =>
+          setChecked((current) => {
+            const next = new Set(current);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+          }),
+        checkLabel: (row) => `Select ${row.title}`,
+      }}
+      renderItem={(row, { selected: isSelected }) => (
+        <EditorListRow
+          active={isSelected}
+          title={row.title}
+          subtitle={row.detail}
+          badge={row.pill ? <EditorStatusPill tone={row.pill === "New" ? "info" : "success"} inline>{row.pill}</EditorStatusPill> : undefined}
+        />
+      )}
     />
   );
 }
@@ -373,7 +434,16 @@ const listStory: StoryDef = {
   source: "src/features/dev/components/EditorList.tsx",
   importLine: IMPORT_LINE("EditorList"),
   exports: ["EditorList"],
-  examples: [{ label: "Searchable list", background: "plain", full: true, render: () => <EditorListDemo /> }],
+  examples: [
+    { label: "Searchable list", background: "plain", full: true, render: () => <EditorListDemo /> },
+    {
+      label: "Bulk ticks, rows of different heights",
+      note: "Rows are measured one by one, so a row with a pill may be taller. Ticks take a 44px column under a coarse pointer; while a row is selected the focus cue is its border. Render EditorListRow (never a button) inside the list.",
+      background: "plain",
+      full: true,
+      render: () => <EditorListTicksDemo />,
+    },
+  ],
 };
 
 const tableStory: StoryDef = {
@@ -424,6 +494,7 @@ const surfacesStory: StoryDef = {
   examples: [
     { label: "Code", background: "plain", full: true, render: () => <CodeSurface title="Payload" value={'{\n  "slug": "lsd"\n}'} language="json" /> },
     { label: "Diff", background: "plain", full: true, render: () => <DiffSurface title="Changes" diffText={"- Old title\n+ New title"} /> },
+    { label: "Diff with a search highlight", note: "`highlight` marks each search term inside the lines (the Change log passes its search).", background: "plain", full: true, render: () => <DiffSurface title="Changes" diffText={"- 150 mg\n+ 150 mg or more"} highlight="mg" /> },
   ],
 };
 
@@ -491,6 +562,44 @@ function ConfirmDemo() {
       >
         useConfirm
       </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          confirm({
+            title: "Enable “benzo-mixing” on 2 substances?",
+            description: "Readers of these articles see the banner at once.",
+            confirmLabel: "Enable on 2 substances",
+            affected: ["Alprazolam", "Diazepam"],
+            affectedLabel: "Shows on 2 substances",
+            onConfirm: () => undefined,
+          })
+        }
+      >
+        With affectedLabel
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          confirm({
+            title: "Approve 2 recommendations?",
+            description: "Each article is marked reviewed at the version the editor read.",
+            body: (
+              <ul className="theme-text-secondary list-disc space-y-1 pl-5 text-sm">
+                <li>LSD, recommended by Sam: “Doses match the sources.”</li>
+                <li>Ketamine, recommended by Mira.</li>
+              </ul>
+            ),
+            confirmLabel: "Approve 2",
+            onConfirm: () => Promise.reject(new Error("Writes are paused, so that was not saved.")),
+          })
+        }
+      >
+        With a body, refused
+      </Button>
       <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
         ConfirmDialog
       </Button>
@@ -513,7 +622,11 @@ const confirmStory: StoryDef = {
   importLine: IMPORT_LINE("ConfirmDialog, useConfirm"),
   exports: ["ConfirmDialog", "useConfirm"],
   examples: [{ label: "Open a confirm", render: () => <ConfirmDemo /> }],
-  notes: ["Lint bans native confirm() in dev tools; use this instead."],
+  notes: [
+    "Lint bans native confirm() in dev tools; use this instead.",
+    "`affectedLabel` heads the affected list in the tool's words (\"Shows on 5 substances\") instead of \"Affects N rows\".",
+    "`description` is wrapped in a p, so lists and paragraphs go in `body`. A rejected onConfirm shows its message in the dialog and relabels the button Try again.",
+  ],
 };
 
 const loadErrorStory: StoryDef = {
@@ -521,11 +634,15 @@ const loadErrorStory: StoryDef = {
   name: "LoadErrorState",
   tier: "editor",
   status: "stable",
-  summary: "A failed load with its reason and a Try again button.",
+  summary: "A failed load: what failed, the reason in plain words, a Try again button, and who to tell.",
   source: "src/features/dev/components/LoadErrorState.tsx",
   importLine: IMPORT_LINE("LoadErrorState"),
   exports: ["LoadErrorState"],
-  examples: [{ label: "Default", background: "plain", full: true, render: () => <LoadErrorState message="The editing source could not be loaded." onRetry={() => undefined} /> }],
+  examples: [
+    { label: "Default", background: "plain", full: true, render: () => <LoadErrorState message="The editing source could not be loaded." onRetry={() => undefined} /> },
+    { label: "Named, with a technical message", background: "plain", full: true, render: () => <LoadErrorState what="pending invites" message="No answer from GET /api/dev/invites (502)." onRetry={() => undefined} /> },
+  ],
+  notes: ["Pass `what` so the title names what failed. A message carrying an /api/ path is tucked under Details behind a plain sentence."],
 };
 
 const saveLineStory: StoryDef = {
@@ -533,10 +650,10 @@ const saveLineStory: StoryDef = {
   name: "SaveLine",
   tier: "editor",
   status: "stable",
-  summary: "States where a save goes, beside the primary action, from the tool's save model.",
+  summary: "States where a save goes, beside the primary action, from the tool's save model, or the tool's own sentence through `copy` when no model fits.",
   source: "src/features/dev/components/SaveLine.tsx",
-  importLine: IMPORT_LINE("SaveLine, SAVE_LINE_COPY, saveLineCopy"),
-  exports: ["SaveLine", "SAVE_LINE_COPY", "saveLineCopy"],
+  importLine: IMPORT_LINE("SaveLine, SAVE_LINE_COPY, WRITE_FREEZE_COPY, saveLineCopy"),
+  exports: ["SaveLine", "SAVE_LINE_COPY", "WRITE_FREEZE_COPY", "saveLineCopy"],
   examples: [
     {
       label: "Every model and destination",
@@ -548,10 +665,68 @@ const saveLineStory: StoryDef = {
           <SaveLine model="record" destination="proposal" />
           <SaveLine model="record" destination="read-only" />
           <p className="theme-text-faint text-xs">{saveLineCopy("batch", "live").detail}</p>
+          <p className="theme-text-faint text-xs">While writes are paused every line reads: {WRITE_FREEZE_COPY.label}</p>
         </div>
       ),
     },
+    {
+      label: "A tool's own sentence (copy)",
+      render: () => (
+        <SaveLine
+          model="instant"
+          copy={{ label: "Saving publishes nothing.", detail: "An admin applies a playlist to a gallery in Replication Studio.", icon: "lucide:archive", tone: "info" }}
+        />
+      ),
+    },
   ],
+};
+
+const backLinkStory: StoryDef = {
+  id: "editor-back-link",
+  name: "EditorBackLink",
+  tier: "editor",
+  status: "stable",
+  summary: "The one way back from a developer utility route (UI kit, Theme lab) to the editor shell.",
+  source: "src/features/dev/components/EditorBackLink.tsx",
+  importLine: IMPORT_LINE("EditorBackLink"),
+  exports: ["EditorBackLink"],
+  examples: [{ label: "Default", render: () => <EditorBackLink /> }],
+};
+
+function WriteFreezeDemo() {
+  // The observer only watches this tab's own API writes; mounting it here is
+  // harmless on the kit page and shows the hook in use.
+  useWriteFreezeObserver();
+  const { frozen } = useWriteFreeze();
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <SaveLine model="instant" />
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" variant="outline" onClick={() => reportWriteFreeze()} disabled={frozen}>
+          Simulate a refused write
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => clearWriteFreeze()} disabled={!frozen}>
+          Simulate a write that lands
+        </Button>
+      </div>
+      <p className="theme-text-faint text-xs">
+        {`isWriteFreezeRefusal(503, { code: "${WRITE_FREEZE_CODE}" }) is ${String(isWriteFreezeRefusal(503, { code: WRITE_FREEZE_CODE }))}.`}
+      </p>
+    </div>
+  );
+}
+
+const writeFreezeStory: StoryDef = {
+  id: "editor-write-freeze",
+  name: "Write freeze signal",
+  tier: "editor",
+  status: "stable",
+  summary:
+    "How the editor learns writes are paused: the shell root mounts useWriteFreezeObserver, the first 503 DATA_WRITES_FROZEN refusal flips useWriteFreeze, and every SaveLine and the frame's write status switch to WRITE_FREEZE_COPY until a write lands.",
+  source: "src/features/dev/components/writeFreeze.ts",
+  importLine: IMPORT_LINE("useWriteFreeze, useWriteFreezeObserver, reportWriteFreeze, clearWriteFreeze, isWriteFreezeRefusal, WRITE_FREEZE_CODE"),
+  exports: ["useWriteFreeze", "useWriteFreezeObserver", "reportWriteFreeze", "clearWriteFreeze", "isWriteFreezeRefusal", "WRITE_FREEZE_CODE"],
+  examples: [{ label: "Refused, then landed", render: () => <WriteFreezeDemo /> }],
 };
 
 function MergeDemo() {
@@ -741,6 +916,8 @@ export const editorKitStories: StoryDef[] = [
   confirmStory,
   loadErrorStory,
   saveLineStory,
+  writeFreezeStory,
+  backLinkStory,
   mergeStory,
   unsavedWorkStory,
   shortcutsStory,

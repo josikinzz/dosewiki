@@ -178,7 +178,7 @@ export function ReplicationStudioTab({
   if (load.status === "loading") {
     return (
       <EditorPanel variant="empty" className="p-8 text-center text-sm">
-        Loading the replication corpus…
+        Loading the replication corpus
       </EditorPanel>
     );
   }
@@ -302,7 +302,7 @@ export function ReplicationStudioTab({
   const libraryToolbar = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {railColumn ? null : filtersPopover}
-      <p className="theme-text-secondary shrink-0 font-mono text-xs tabular-nums" aria-live="polite">
+      <p className="theme-text-secondary shrink-0 text-xs tabular-nums" aria-live="polite">
         {visibleRows.length === rows.length
           ? `${rows.length} works`
           : `${visibleRows.length} of ${rows.length} shown`}
@@ -471,7 +471,7 @@ export function ReplicationStudioTab({
                   onReset={featured.reset}
                 />
               ) : (
-                <p className="theme-text-muted text-sm">Loading the featured selection…</p>
+                <p className="theme-text-muted text-sm">Loading the featured selection</p>
               )
             ) : null}
 

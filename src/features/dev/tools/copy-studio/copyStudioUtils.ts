@@ -114,7 +114,12 @@ export type CopyStudioGroup = { group: string; blocks: CopyStudioBlock[] };
 
 export type CopyStudioSection = { section: string; groups: CopyStudioGroup[] };
 
-/** Rail groups in default order, with the blocks belonging to each. */
+/**
+ * Rail groups in default order, with the blocks belonging to each. A flavored
+ * block (`footer-tagline-effect-index`) is listed straight after the block it
+ * rewords (`footer-tagline`) when both sit in the group, so the two wordings
+ * read as a pair instead of landing rows apart.
+ */
 export function groupCopyStudioBlocks(blocks: readonly CopyStudioBlock[]): CopyStudioGroup[] {
   const groups: CopyStudioGroup[] = [];
 
@@ -127,7 +132,38 @@ export function groupCopyStudioBlocks(blocks: readonly CopyStudioBlock[]): CopyS
     groups.push({ group: block.group, blocks: [block] });
   });
 
-  return groups;
+  return groups.map((entry) => ({ group: entry.group, blocks: pairFlavoredBlocks(entry.blocks) }));
+}
+
+/** The key a flavored block rewords: `footer-tagline-effect-index` rewords `footer-tagline`. */
+export function copyBlockBaseKey(block: Pick<CopyStudioBlock, "key" | "flavor">): string | null {
+  if (!block.flavor) return null;
+  const suffix = `-${block.flavor}`;
+  return block.key.endsWith(suffix) ? block.key.slice(0, -suffix.length) : null;
+}
+
+function pairFlavoredBlocks(blocks: readonly CopyStudioBlock[]): CopyStudioBlock[] {
+  const keys = new Set(blocks.map((block) => block.key));
+  const twins = new Map<string, CopyStudioBlock[]>();
+  blocks.forEach((block) => {
+    const base = copyBlockBaseKey(block);
+    if (base && keys.has(base)) twins.set(base, [...(twins.get(base) ?? []), block]);
+  });
+  const paired = new Set([...twins.values()].flat().map((block) => block.key));
+  return blocks.flatMap((block) => (paired.has(block.key) ? [] : [block, ...(twins.get(block.key) ?? [])]));
+}
+
+/**
+ * The other wording of the same words: the Effect Index twin of a dose.wiki
+ * block, or the dose.wiki block a flavored one rewords. Null when there is none.
+ */
+export function copyBlockTwin(
+  block: Pick<CopyStudioBlock, "key" | "flavor">,
+  blocks: readonly CopyStudioBlock[],
+): CopyStudioBlock | null {
+  const base = copyBlockBaseKey(block);
+  if (base) return blocks.find((entry) => entry.key === base) ?? null;
+  return blocks.find((entry) => entry.flavor && copyBlockBaseKey(entry) === block.key) ?? null;
 }
 
 /**
@@ -198,13 +234,31 @@ export function filterCopyStudioBlocks(
   const byName: CopyStudioBlock[] = [];
   const byText: CopyStudioBlock[] = [];
   blocks.forEach((block) => {
-    if (block.key.toLowerCase().includes(needle) || block.label.toLowerCase().includes(needle)) {
-      byName.push(block);
-    } else if (blockCurrentText(block).toLowerCase().includes(needle)) {
-      byText.push(block);
-    }
+    const match = copySearchMatch(block, needle);
+    if (match === "name") byName.push(block);
+    else if (match) byText.push(block);
   });
   return [...byName, ...byText];
+}
+
+/**
+ * Where `query` matched a block: its key or label, the words it shows, or,
+ * for a stored block the compact catalogue lists without its text, the
+ * checked-in default it started from. Null when it does not match.
+ */
+export type CopySearchMatch = "name" | "text" | "default";
+
+export function copySearchMatch(block: CopyStudioBlock, query: string): CopySearchMatch | null {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return null;
+  if (block.key.toLowerCase().includes(needle) || block.label.toLowerCase().includes(needle)) return "name";
+  const text = blockCurrentText(block);
+  if (text.toLowerCase().includes(needle)) return "text";
+  if (!text && block.source === "data" && block.fallback) {
+    const fallback = draftToText(block.kind, block.fallback);
+    if (fallback.toLowerCase().includes(needle)) return "default";
+  }
+  return null;
 }
 
 /**
@@ -325,4 +379,72 @@ export const COPY_PREVIEW_PLACEHOLDER_VALUES: Record<string, string> = {
   categoryCount: "9",
   reportCount: "180",
   replicationCount: "95",
+  siteName: "dose.wiki",
+  reviewer: "Jordan Lee",
+  discordInvite: "https://discord.gg/example",
 };
+
+/**
+ * What a draft does to the placeholders the published text relies on: names
+ * the draft dropped (the page will stop filling them in) and names it added
+ * that the published text never used (the page may print them as typed).
+ */
+export function placeholderChanges(published: string, draft: string): { removed: string[]; added: string[] } {
+  const before = new Set(countPlaceholders(published).map((entry) => entry.name));
+  const after = new Set(countPlaceholders(draft).map((entry) => entry.name));
+  return {
+    removed: [...before].filter((name) => !after.has(name)).sort(),
+    added: [...after].filter((name) => !before.has(name)).sort(),
+  };
+}
+
+/** The sections a block list is split into, with how many blocks each holds. */
+export function countSectionBlocks(section: CopyStudioSection): number {
+  return section.groups.reduce((total, group) => total + group.blocks.length, 0);
+}
+
+/** One line on what is stored for a block, for the pane header and the default wording block. */
+export function describeCopySource(block: Pick<CopyStudioBlock, "source" | "fallback">): string {
+  if (block.source === "default") return "Shows its checked-in default. Nothing is stored for it.";
+  if (!block.fallback) return "Stored copy with no checked-in default, so there is nothing to go back to.";
+  return "Shows stored copy. Its checked-in default is kept to go back to.";
+}
+
+/** The part of a `GET /api/dev/proposals` row Copy reads. */
+export type CopyProposalRow = {
+  _id: string;
+  proposerName?: string;
+  isAuthor?: boolean;
+  status: string;
+  createdAt?: string;
+  targets?: readonly { kind: string; key: string }[];
+};
+
+export type OpenCopyProposal = { id: string; mine: boolean; by: string };
+
+/**
+ * The copy blocks an open proposal (submitted, or sent back for changes)
+ * would change, keyed by block, newest proposal first. An editor's list holds
+ * only their own proposals; an admin's holds everyone's.
+ */
+export function openCopyProposals(rows: readonly CopyProposalRow[]): Map<string, OpenCopyProposal> {
+  const open = new Map<string, OpenCopyProposal>();
+  [...rows]
+    .filter((row) => row.status === "submitted" || row.status === "changes_requested")
+    .sort((left, right) => (right.createdAt ?? "").localeCompare(left.createdAt ?? ""))
+    .forEach((row) => {
+      (row.targets ?? []).forEach((target) => {
+        if (target.kind !== "copyBlock" || open.has(target.key)) return;
+        open.set(target.key, { id: row._id, mine: Boolean(row.isAuthor), by: row.proposerName?.trim() || "Someone" });
+      });
+    });
+  return open;
+}
+
+/** Text a search result or a browser tab cuts short: SEO titles and descriptions. */
+export function copyLengthGuide(block: Pick<CopyStudioBlock, "key" | "group" | "kind">): { target: number; where: string } | undefined {
+  if (block.group !== "SEO" || block.kind === "list") return undefined;
+  return /title/.test(block.key)
+    ? { target: 60, where: "search results and tabs" }
+    : { target: 155, where: "search results" };
+}

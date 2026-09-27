@@ -64,20 +64,18 @@ export function EditorServerHealthIndicator({ health, onRefresh }: EditorServerH
         loading={health.status === "checking"}
         live
         title={titleParts.filter(Boolean).join(" • ")}
-        className="max-w-[14rem] uppercase tracking-[0.2em]"
       >
-        <span className="truncate">{appearance.label}</span>
+        <span>{appearance.label}</span>
       </EditorStatusPill>
       {(health.status === "unhealthy" || health.status === "error") && (
         <Button
           type="button"
           variant="ghostPill"
-          size="chipXs"
-          className="px-2.5 py-1 tracking-[0.2em]"
+          size="xs"
           onClick={onRefresh}
           disabled={health.isRefreshing}
         >
-          Retry
+          Check again
         </Button>
       )}
     </div>

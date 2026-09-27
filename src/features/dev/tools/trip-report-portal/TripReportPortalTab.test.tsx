@@ -177,7 +177,7 @@ describe("TripReportPortalTab", () => {
     expect(screen.queryByText("Alpine clarity")).not.toBeInTheDocument();
 
     // Both origins are counted in the corpus stats.
-    expect(screen.getByText(/2 reports · 2 authors · 2 substances/)).toBeInTheDocument();
+    expect(screen.getByText(/2 reports from 2 authors, covering 2 substances/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^Published/ }));
     expect(await screen.findByText("Alpine clarity")).toBeInTheDocument();
@@ -220,7 +220,7 @@ describe("TripReportPortalTab", () => {
 
   it("opens on the submission a deep link names, the way the Inbox opens it", async () => {
     render(<TripReportPortalTab initialSubmissionId="submission-1" />);
-    await screen.findByText("2 reports · 2 authors · 2 substances");
+    await screen.findByText(/2 reports from 2 authors, covering 2 substances/);
 
     expect(
       await screen.findByText(
@@ -236,7 +236,7 @@ describe("TripReportPortalTab", () => {
 
     // The controller paints its cached corpus before fetching. Wait for this
     // fixture rather than querying all 300 cached rows from the preceding case.
-    await screen.findByText("2 reports · 2 authors · 2 substances");
+    await screen.findByText(/2 reports from 2 authors, covering 2 substances/);
 
     await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
 
@@ -260,7 +260,11 @@ describe("TripReportPortalTab", () => {
       ),
     );
     expect(await screen.findByText("Sober sitter present.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
+    // A decision the item can no longer take is hidden; an accepted item waits for Publish.
+    expect(screen.queryByRole("button", { name: "Accept" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Publish" })).toBeInTheDocument();
+    // The note went into the log with the decision, so the field is clear for the next one.
+    expect(screen.getByLabelText("Decision note")).toHaveValue("");
   });
 
   it("keeps the earlier rejection reason when review restarts with a blank decision note", async () => {
@@ -274,7 +278,7 @@ describe("TripReportPortalTab", () => {
     await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
     expect(await screen.findByText("No dose given for the second substance.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Reopen review" }));
+    await user.click(screen.getByRole("button", { name: "Reopen" }));
 
     await waitFor(() =>
       expect(fetch).toHaveBeenCalledWith(
@@ -282,7 +286,7 @@ describe("TripReportPortalTab", () => {
         expect.objectContaining({ method: "POST", body: JSON.stringify({ status: "reviewing" }) }),
       ),
     );
-    expect(await screen.findByText(/Review started on/)).toBeInTheDocument();
+    expect(await screen.findByText(/You are reviewing/)).toBeInTheDocument();
     expect(screen.getByText("No dose given for the second substance.")).toBeInTheDocument();
   });
 
@@ -312,7 +316,7 @@ describe("TripReportPortalTab", () => {
 
     await user.click(screen.getByLabelText("Decision note"));
     await user.paste("Author sent the missing dose.");
-    await user.click(screen.getByRole("button", { name: "Reopen review" }));
+    await user.click(screen.getByRole("button", { name: "Reopen" }));
 
     await waitFor(() => {
       entries = within(screen.getByRole("list", { name: "Decision log" })).getAllByRole("listitem");
@@ -366,14 +370,17 @@ describe("TripReportPortalTab", () => {
     ]);
     render(<TripReportPortalTab />);
 
-    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
-    expect(await screen.findByText("1 of 2 in list")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Previous in list" })).toBeDisabled();
-
-    await user.click(screen.getByRole("button", { name: "Next in list" }));
+    // Needs review waits longest first, so the earlier submission leads.
+    await user.click(await screen.findByRole("option", { name: /Second museum walk/ }));
     expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
-    expect(screen.getByText("2 of 2 in list")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Next in list" })).toBeDisabled();
+    // The pager renders once for phones and once for desktop; both say the same.
+    expect(screen.getAllByText("1 of 2")[0]).toBeInTheDocument();
+    for (const button of screen.getAllByRole("button", { name: "Previous in list" })) expect(button).toBeDisabled();
+
+    await user.click(screen.getAllByRole("button", { name: "Next in list" })[0]);
+    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    expect(screen.getAllByText("2 of 2")[0]).toBeInTheDocument();
+    for (const button of screen.getAllByRole("button", { name: "Next in list" })) expect(button).toBeDisabled();
   });
 
   it("previews and publishes an accepted submission through the promotion endpoint", async () => {
@@ -448,11 +455,20 @@ describe("TripReportPortalTab", () => {
     await user.click(await screen.findByRole("button", { name: /^Published/ }));
     await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
 
-    const title = await screen.findByLabelText("Report title");
+    const title = await screen.findByLabelText("Title");
     await user.clear(title);
     await user.type(title, "Alpine clarity revisited");
 
-    await user.click(screen.getByRole("button", { name: "Save report" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    // A save replaces the live page, so it asks first and names what changed.
+    const dialog = await screen.findByRole("dialog", { name: "Publish your changes to “Alpine clarity”?" });
+    expect(within(dialog).getByText(/You changed the title\./)).toBeInTheDocument();
+    expect(
+      vi.mocked(fetch).mock.calls.some(
+        ([url, init]) => String(url).includes("/api/dev/trip-reports/record") && (init as RequestInit | undefined)?.method === "POST",
+      ),
+    ).toBe(false);
+    await user.click(within(dialog).getByRole("button", { name: "Save and publish" }));
 
     await waitFor(() => {
       const call = vi.mocked(fetch).mock.calls.find(
@@ -480,23 +496,23 @@ describe("TripReportPortalTab", () => {
 
     await user.click(await screen.findByRole("button", { name: /^Published/ }));
     await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
-    const title = await screen.findByLabelText("Report title");
+    const title = await screen.findByLabelText("Title");
     await user.type(title, " revisited");
 
     await user.click(screen.getByRole("option", { name: /Quiet river/ }));
-    const dialog = await screen.findByRole("dialog", { name: "Discard your edits?" });
+    const dialog = await screen.findByRole("dialog", { name: "Discard your edits to “Alpine clarity”?" });
     await user.click(within(dialog).getByRole("button", { name: "Keep editing" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(screen.getByLabelText("Report title")).toHaveValue("Alpine clarity revisited");
+    expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity revisited");
 
     await user.click(screen.getByRole("option", { name: /Quiet river/ }));
     await user.click(
-      within(await screen.findByRole("dialog", { name: "Discard your edits?" })).getByRole("button", {
+      within(await screen.findByRole("dialog", { name: "Discard your edits to “Alpine clarity”?" })).getByRole("button", {
         name: "Discard changes",
       }),
     );
-    await waitFor(() => expect(screen.getByLabelText("Report title")).toHaveValue("Quiet river"));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Quiet river"));
   });
 
   it("switches rows from a clean editor without asking", async () => {
@@ -506,10 +522,10 @@ describe("TripReportPortalTab", () => {
 
     await user.click(await screen.findByRole("button", { name: /^Published/ }));
     await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
-    expect(await screen.findByLabelText("Report title")).toHaveValue("Alpine clarity");
+    expect(await screen.findByLabelText("Title")).toHaveValue("Alpine clarity");
 
     await user.click(screen.getByRole("option", { name: /Quiet river/ }));
-    await waitFor(() => expect(screen.getByLabelText("Report title")).toHaveValue("Quiet river"));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Quiet river"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -519,16 +535,16 @@ describe("TripReportPortalTab", () => {
 
     await user.click(await screen.findByRole("button", { name: /^Published/ }));
     await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
-    await user.type(await screen.findByLabelText("Report title"), " revisited");
+    await user.type(await screen.findByLabelText("Title"), " revisited");
 
     // The first Escape leaves the field; the next one asks to close.
     await user.keyboard("{Escape}");
     await user.keyboard("{Escape}");
-    expect(await screen.findByRole("dialog", { name: "Discard your edits?" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Discard your edits to “Alpine clarity”?" })).toBeInTheDocument();
 
     await user.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(screen.getByLabelText("Report title")).toHaveValue("Alpine clarity revisited");
+    expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity revisited");
   });
 
   it("closes only the confirm dialog when Escape dismisses it", async () => {
@@ -552,7 +568,7 @@ describe("TripReportPortalTab", () => {
     await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
     await user.click(await screen.findByRole("button", { name: "Delete this report" }));
 
-    const confirmButton = screen.getByRole("button", { name: "Delete" });
+    const confirmButton = screen.getByRole("button", { name: "Delete report" });
     expect(confirmButton).toBeDisabled();
 
     await user.type(screen.getByLabelText("Type the report slug to confirm deletion"), "alpine-clarity");
@@ -575,13 +591,15 @@ describe("TripReportPortalTab", () => {
 
     render(<TripReportPortalTab />);
 
-    expect(await screen.findByText("Submission queue unavailable")).toBeInTheDocument();
+    expect(await screen.findByText("Could not load the submission queue")).toBeInTheDocument();
     expect(screen.getByText("Trip report submission storage is not configured.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
     // The failed Needs review source stays explicitly incomplete rather than
-    // masquerading as an empty queue, while the independent published source
-    // remains usable.
-    expect(screen.getByRole("button", { name: /^Needs review/ })).toHaveTextContent("…");
+    // masquerading as an empty queue (no count, never zero), while the
+    // independent published source remains usable.
+    const needs = screen.getByRole("button", { name: /^Needs review/ });
+    expect(needs).toHaveAccessibleName("Needs review, not loaded");
+    expect(needs).not.toHaveTextContent(/\d/);
     expect(screen.queryByText(/No reports/)).not.toBeInTheDocument();
 
     await userEvent.setup().click(screen.getByRole("button", { name: /^Published/ }));
@@ -641,18 +659,19 @@ describe("TripReportPortalTab keyboard triage and bulk actions", () => {
     stubCorpus([submission, second]);
     render(<TripReportPortalTab />);
 
+    // Needs review waits longest first: the earlier submission leads.
     await screen.findByRole("option", { name: /Careful low dose museum walk/ });
     await user.keyboard("j");
-    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
-    await user.keyboard("j");
     expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
-    await user.keyboard("k");
+    await user.keyboard("j");
     expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    await user.keyboard("k");
+    expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
 
     await user.keyboard("a");
     await waitFor(() =>
       expect(statusPosts()).toEqual([
-        { url: "/api/trip-report-submissions/submission-1/status", body: { status: "accepted" } },
+        { url: "/api/trip-report-submissions/submission-2/status", body: { status: "accepted" } },
       ]),
     );
   });
@@ -687,10 +706,10 @@ describe("TripReportPortalTab keyboard triage and bulk actions", () => {
     await screen.findByRole("option", { name: /Careful low dose museum walk/ });
     listbox.focus();
     await user.keyboard("{ArrowDown}");
-    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
-    await user.keyboard("{ArrowDown}");
     expect(await screen.findByRole("heading", { name: "Second museum walk" })).toBeInTheDocument();
-    expect(within(listbox).getByRole("option", { selected: true })).toHaveTextContent("Second museum walk");
+    await user.keyboard("{ArrowDown}");
+    expect(await screen.findByRole("heading", { name: "Careful low dose museum walk" })).toBeInTheDocument();
+    expect(within(listbox).getByRole("option", { selected: true })).toHaveTextContent("Careful low dose museum walk");
   });
 
   it("marks every ticked submission as spam after one confirm", async () => {
@@ -713,8 +732,8 @@ describe("TripReportPortalTab keyboard triage and bulk actions", () => {
     await user.click(within(dialog).getByRole("button", { name: "Mark as spam" }));
     await waitFor(() =>
       expect(statusPosts()).toEqual([
-        { url: "/api/trip-report-submissions/submission-1/status", body: { status: "spam" } },
         { url: "/api/trip-report-submissions/submission-2/status", body: { status: "spam" } },
+        { url: "/api/trip-report-submissions/submission-1/status", body: { status: "spam" } },
       ]),
     );
     expect(await screen.findByText("Marked 2 submissions as spam.")).toBeInTheDocument();
@@ -876,5 +895,146 @@ describe("TripReportPortalTab author-facing decisions and ownership", () => {
 
     await screen.findByText('Published "Careful low dose museum walk" to the public trip reports.');
     expect(screen.queryByRole("button", { name: "Assign to this member" })).not.toBeInTheDocument();
+  });
+});
+
+describe("TripReportPortalTab review dock, hold line and recovery", () => {
+  it("names who holds a claimed submission and claims an open one through Reviewing", async () => {
+    const user = userEvent.setup();
+    stubCorpus([
+      submission,
+      {
+        ...submission,
+        id: "submission-2",
+        title: "Second museum walk",
+        status: "reviewing",
+        reviewed_by: "other-admin@example.com",
+        reviewed_at: "2026-06-12T08:00:00.000Z",
+      },
+    ]);
+    render(<TripReportPortalTab actorEmail="admin@example.com" />);
+
+    await user.click(await screen.findByRole("option", { name: /Second museum walk/ }));
+    expect(await screen.findByText(/Claimed by other-admin@example.com/)).toBeInTheDocument();
+    // Another admin's claim offers no Release; the decisions stay available.
+    expect(screen.queryByRole("button", { name: "Release" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeEnabled();
+
+    await user.click(screen.getByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(await screen.findByText("Nobody is reviewing this yet.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Claim" }));
+    await waitFor(() =>
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/trip-report-submissions/submission-1/status",
+        expect.objectContaining({ method: "POST", body: JSON.stringify({ status: "reviewing" }) }),
+      ),
+    );
+    // Now it is the viewer's, and Release hands it back to New.
+    expect(await screen.findByRole("button", { name: "Release" })).toBeInTheDocument();
+  });
+
+  it("keeps Publish off while the author has not consented to publishing", async () => {
+    const user = userEvent.setup();
+    stubCorpus([{ ...acceptedSubmission, publish_consent: false }]);
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    expect(await screen.findByText(/did not consent to publishing, so Publish is off/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();
+  });
+
+  it("shows what goes public in the publish confirm, from a preview that writes nothing", async () => {
+    const user = userEvent.setup();
+    const promotes: unknown[] = [];
+    stubCorpus([acceptedSubmission]);
+    const corpusFetch = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/promote")) {
+        promotes.push(JSON.parse(String(init?.body)));
+        return Response.json({ ok: true, published: false, submission: acceptedSubmission, payload: promotionPayload });
+      }
+      return corpusFetch(input, init);
+    });
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(await screen.findByRole("button", { name: "Publish" }));
+    const dialog = await screen.findByRole("dialog", { name: "Publish “Careful low dose museum walk”?" });
+    expect(within(dialog).getAllByText(/\/reports\/careful-low-dose-museum-walk/).length).toBeGreaterThan(0);
+    expect(within(dialog).getByText("LSD, 75 ug, oral")).toBeInTheDocument();
+    // Only the preview has been asked for; Cancel publishes nothing.
+    expect(promotes).toEqual([{ publish: false }]);
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(promotes).toEqual([{ publish: false }]);
+  });
+
+  it("reads a refused decision under the write freeze as the freeze", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission]);
+    const corpusFetch = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).endsWith("/status")) {
+        return Response.json({ error: "Data writes are frozen.", code: "DATA_WRITES_FROZEN" }, { status: 503 });
+      }
+      return corpusFetch(input, init);
+    });
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("option", { name: /Careful low dose museum walk/ }));
+    await user.click(await screen.findByRole("button", { name: "Accept" }));
+    expect(await screen.findByText(/Writes are paused, so that was not saved/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
+  });
+
+  it("offers the latest version after a revision conflict, behind a confirm that says the edits go", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission]);
+    const corpusFetch = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("/api/dev/trip-reports/record") && init?.method === "POST") {
+        return Response.json(
+          { error: "This report's editable fields changed since it was opened. Your local corrections are retained; reload and reconcile before publishing." },
+          { status: 409 },
+        );
+      }
+      return corpusFetch(input, init);
+    });
+    render(<TripReportPortalTab />);
+
+    await user.click(await screen.findByRole("button", { name: /^Published/ }));
+    await user.click(await screen.findByRole("option", { name: /Alpine clarity/ }));
+    await user.type(await screen.findByLabelText("Title"), " revisited");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Save and publish" }));
+
+    expect(await screen.findByText("Someone saved this report after you opened it.")).toBeInTheDocument();
+    // The draft is kept until the editor chooses to drop it.
+    expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity revisited");
+    await user.click(screen.getByRole("button", { name: "Load the latest version" }));
+    const dialog = await screen.findByRole("dialog", { name: "Load the latest version?" });
+    expect(within(dialog).getByText(/Your edits here are dropped/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Load latest" }));
+    await waitFor(() => expect(screen.getByLabelText("Title")).toHaveValue("Alpine clarity"));
+  });
+
+  it("says when a deep link names nothing, and opens nothing in its place", async () => {
+    stubCorpus([submission]);
+    render(<TripReportPortalTab initialSubmissionId="gone-1" />);
+
+    expect(await screen.findByText(/The link names a trip report or submission that is not here/)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Careful low dose museum walk" })).not.toBeInTheDocument();
+  });
+
+  it("says where a search that finds nothing here does find something", async () => {
+    const user = userEvent.setup();
+    stubCorpus([submission]);
+    render(<TripReportPortalTab />);
+
+    await screen.findByRole("option", { name: /Careful low dose museum walk/ });
+    await user.type(screen.getByRole("searchbox", { name: "Search reports" }), "alpine");
+    expect(await screen.findByText("No needs review report matches “alpine”.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Published (1)" }));
+    expect(await screen.findByRole("option", { name: /Alpine clarity/ })).toBeInTheDocument();
   });
 });

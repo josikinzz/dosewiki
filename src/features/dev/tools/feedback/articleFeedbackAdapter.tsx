@@ -5,14 +5,9 @@ import {
   type ArticleFeedbackRow,
 } from "@/features/article/feedback/articleFeedback";
 
-import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
-import {
-  FeedbackMetadataItem,
-  FeedbackStatusPill,
-  formatFeedbackDate,
-  type FeedbackSourceAdapter,
-} from "./FeedbackReviewQueue";
 import { FeedbackCorrectionPanel } from "./FeedbackCorrectionPanel";
+import { FeedbackFacts, formatReceived, readableAddress, readerScale } from "./FeedbackFacts";
+import type { FeedbackSourceAdapter } from "./FeedbackReviewQueue";
 import { feedbackReplyHref } from "./feedbackQueueModel";
 import { createFeedbackRequests } from "./feedbackRequests";
 
@@ -35,13 +30,6 @@ type ArticleFeedbackQueueItem = Pick<
   | "created_at"
 >;
 
-const IMPORTANCE_PILL_TONE: Record<ArticleFeedbackRow["importance"], EditorStatusPillTone> = {
-  critical: "danger",
-  high: "caution",
-  normal: "info",
-  low: "neutral",
-};
-
 export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueItem> = {
   source: "article",
   ...createFeedbackRequests<ArticleFeedbackQueueItem>("/api/article-feedback"),
@@ -59,53 +47,40 @@ export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueI
   importance: (row) => row.importance,
   labels: {
     icon: "lucide:message-square-plus",
-    title: "Article Feedback",
-    description: "Private per-article issue reports and edit suggestions from readers.",
+    title: "Article feedback",
+    description: "Private reports and edit suggestions readers send from an article page.",
     emptyQueue: "No article feedback yet.",
+    noun: "article feedback",
     itemTitle: (row) => row.substance_title,
     itemSubtitle: (row) => ARTICLE_FEEDBACK_CATEGORY_LABELS[row.category],
     transitioned: (row, statusLabel) => `Moved feedback for "${row.substance_title}" to ${statusLabel}.`,
   },
+  // The pane draws the title, category, importance and status; these are the facts under them.
   renderDetail: (row) => (
-    <>
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
-          <h3 className="theme-accent-heading text-xl font-semibold">
-            <a
-              href={`/${row.substance_slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline"
-            >
-              {row.substance_title}
-            </a>
-          </h3>
-          <p className="theme-text-muted mt-1 text-sm">
-            {ARTICLE_FEEDBACK_CATEGORY_LABELS[row.category]}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <EditorStatusPill tone={IMPORTANCE_PILL_TONE[row.importance]}>
-            {ARTICLE_FEEDBACK_IMPORTANCE_LABELS[row.importance]}
-          </EditorStatusPill>
-          <FeedbackStatusPill status={row.status} />
-        </div>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-        <FeedbackMetadataItem label="Received" value={formatFeedbackDate(row.created_at)} />
-        <FeedbackMetadataItem
-          label="Contact email"
-          value={row.contact_email}
-          href={
-            row.contact_email
-              ? feedbackReplyHref(row.contact_email, `Your dose.wiki feedback on ${row.substance_title}`, row.details)
-              : undefined
-          }
-        />
-        <FeedbackMetadataItem label="Source URL" value={row.source_url} href={row.source_url} />
-        <FeedbackMetadataItem label="Honeypot" value={row.honeypot_triggered ? "Triggered" : undefined} />
-      </div>
-    </>
+    <FeedbackFacts
+      facts={[
+        {
+          label: "Article",
+          value: `/${row.substance_slug}`,
+          href: `/${row.substance_slug}`,
+          hint: `, ${row.substance_title}, opens in a new tab`,
+        },
+        { label: "Reader rated it", value: readerScale(ARTICLE_FEEDBACK_IMPORTANCE_LABELS[row.importance]) },
+        { label: "Received", value: formatReceived(row.created_at) },
+        {
+          label: "Contact",
+          value: row.contact_email,
+          href: row.contact_email
+            ? feedbackReplyHref(row.contact_email, `Your dose.wiki feedback on ${row.substance_title}`, row.details)
+            : undefined,
+        },
+        row.source_url
+          ? { label: "Source they cite", value: readableAddress(row.source_url), href: row.source_url, hint: ", opens in a new tab", wide: true }
+          : null,
+        row.honeypot_triggered
+          ? { label: "Spam trap", value: "Tripped: the form's hidden field was filled, as bots do", tone: "warning" as const, wide: true }
+          : null,
+      ]}
+    />
   ),
 };
