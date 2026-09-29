@@ -45,8 +45,8 @@ import { readLocalizedPublicationIndex } from "./publicationIndexStore";
 
 /**
  * Resolve stored translations for a small set of independent reader-facing
- * strings. Search uses this after ranking the English index so translated
- * labels do not change relevance and Latin queries keep working.
+ * strings. Search uses this to compose locale display fields before ranking,
+ * retaining canonical labels and aliases so English queries keep working.
  */
 export async function getLocalizedLeaves(
   values: readonly string[],

@@ -116,6 +116,7 @@ export function GlobalSearch({
   const lastLiveNavigationQueryRef = useRef<string | null>(currentView.type === "search" ? currentView.query.trim() : null);
   const queryRef = useRef(query);
   const liveSearchOriginViewRef = useRef<AppView | null>(null);
+  const routeAddressRef = useRef<string | null>(null);
   const inputId = useId();
   const requestSearchManifest = useCallback(() => {
     void loadSearchManifestIndex(locale);
@@ -148,6 +149,7 @@ export function GlobalSearch({
   }, [query]);
 
   useEffect(() => {
+    routeAddressRef.current = window.location.pathname + window.location.search;
     if (currentView.type === "search") {
       const routeMatchesLocalDraft = queryRef.current.trim() === currentView.query.trim();
       const shouldRestoreLiveFocus =
@@ -182,6 +184,7 @@ export function GlobalSearch({
         return;
       }
 
+      pendingLiveNavigationRef.current = false;
       isEditingLiveSearchRef.current = false;
       pendingLiveFocusRestoreQueryRef.current = null;
       lastLiveNavigationQueryRef.current = null;
@@ -215,9 +218,60 @@ export function GlobalSearch({
       isEditingLiveSearchRef.current = false;
     };
 
+    const handleNavigationClick = (event: globalThis.MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (!(target instanceof Element) || containerRef.current?.contains(target)) {
+        return;
+      }
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (
+        !anchor ||
+        anchor.hasAttribute("download") ||
+        (anchor.target && anchor.target !== "_self") ||
+        !["http:", "https:"].includes(anchor.protocol)
+      ) {
+        return;
+      }
+      if (
+        anchor.getAttribute("href")?.includes("#") &&
+        anchor.origin === window.location.origin &&
+        anchor.pathname === window.location.pathname &&
+        anchor.search === window.location.search
+      ) {
+        return;
+      }
+
+      // Link activation owns navigation before the destination commits. Focus
+      // loss alone does not revoke a draft: background taps still settle it.
+      pendingLiveNavigationRef.current = false;
+    };
+
+    const handleHistoryNavigation = () => {
+      const nextAddress = window.location.pathname + window.location.search;
+      // Fragment history stays on the same page and leaves its draft intact.
+      if (nextAddress === routeAddressRef.current) {
+        return;
+      }
+      pendingLiveNavigationRef.current = false;
+      pendingLiveFocusRestoreQueryRef.current = null;
+      isEditingLiveSearchRef.current = false;
+    };
+
+    window.addEventListener("popstate", handleHistoryNavigation);
+    document.addEventListener("click", handleNavigationClick, true);
     document.addEventListener("pointerdown", handlePointerDown, true);
 
     return () => {
+      window.removeEventListener("popstate", handleHistoryNavigation);
+      document.removeEventListener("click", handleNavigationClick, true);
       document.removeEventListener("pointerdown", handlePointerDown, true);
     };
   }, [liveResultsMode]);
@@ -241,7 +295,7 @@ export function GlobalSearch({
   const currentSearchQuery = currentView.type === "search" ? currentView.query : "";
 
   useEffect(() => {
-    if (!liveResultsMode) {
+    if (!liveResultsMode || !pendingLiveNavigationRef.current) {
       return;
     }
 
@@ -255,10 +309,6 @@ export function GlobalSearch({
     }
 
     if (!trimmed && !isEditingLiveSearchRef.current) {
-      return;
-    }
-
-    if (currentView.type !== "search" && !pendingLiveNavigationRef.current) {
       return;
     }
 
@@ -326,6 +376,7 @@ export function GlobalSearch({
       inputRef.current?.focus();
       return;
     }
+    pendingLiveNavigationRef.current = false;
     isEditingLiveSearchRef.current = false;
     pendingLiveFocusRestoreQueryRef.current = null;
     lastLiveNavigationQueryRef.current = trimmed;
@@ -372,6 +423,7 @@ export function GlobalSearch({
   }, [currentView, isHomeVariant, liveResultsMode]);
 
   const handleClear = useCallback(() => {
+    pendingLiveNavigationRef.current = false;
     isEditingLiveSearchRef.current = false;
     pendingLiveFocusRestoreQueryRef.current = null;
     lastLiveNavigationQueryRef.current = null;

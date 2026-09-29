@@ -6,6 +6,8 @@
  * the header cannot be scored one way locally and another way on the server.
  */
 
+import { isCasSearchQuery, normalizeCasNumber } from "./casSearch";
+
 export type SearchEntryType = "substance" | "category" | "effect" | "report" | "profile";
 
 const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
@@ -59,28 +61,29 @@ const COMBINING_MARKS = /[\u0300-\u036f]/g;
 /**
  * Canonical text form for every comparison in this module.
  *
- * Decomposing to NFD and dropping combining marks folds accents away, so
- * `peyoté` and `peyote` are the same string on both sides of a comparison —
- * indexed names carry the accents editors typed, queries usually do not.
+ * NFKD accepts compatibility forms such as full-width Latin letters/digits.
+ * Dropping common combining accents keeps `peyoté` and `peyote` equivalent.
+ * Other letters and script marks outside that accent range remain; this does
+ * not transliterate names or convert Simplified and Traditional Chinese.
  */
 export const foldSearchText = (value: string | undefined | null): string => {
   if (!value) {
     return "";
   }
-  return value.normalize("NFD").replace(COMBINING_MARKS, "").toLowerCase();
+  return value.normalize("NFKD").replace(COMBINING_MARKS, "").toLowerCase();
 };
 
 /** Folded, punctuation-flattened identity key used to link reports to substances. */
 export const normalizeSearchKey = (value: string | undefined): string =>
-  foldSearchText(value).replace(/[^a-z0-9]+/g, " ").trim();
+  foldSearchText(value).replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").trim();
 
 /**
- * Compact identity form: folded with everything but letters and digits
- * removed, so `allad` and `AL-LAD` compare equal. Only ever compared against
- * other compact forms; word-boundary logic stays on the folded/spaced form.
+ * Compact identity form retains Unicode letters, numbers and script marks.
+ * Punctuation is removed so `allad` and `AL-LAD` compare equal, while a Han
+ * prefix cannot collapse into an unrelated Latin or numeric identity.
  */
 const compactSearchText = (value: string | undefined | null): string =>
-  foldSearchText(value).replace(/[^a-z0-9]+/g, "")
+  foldSearchText(value).replace(/[^\p{L}\p{N}\p{M}]+/gu, "")
 
 /** The compact fields an index or manifest loader precomputes per entry. */
 export interface CompactMatchFields {
@@ -107,14 +110,13 @@ export const buildCompactMatchFields = (
   };
 };
 
-const isWordCharacter = (code: number): boolean =>
-  (code >= 97 && code <= 122) || (code >= 48 && code <= 57);
+const WORD_CHARACTER_AT_END = /[\p{L}\p{N}\p{M}]$/u;
 
 /** True when `query` starts any word inside `text` (not just the whole string). */
 const hasWordPrefix = (text: string, query: string): boolean => {
   let from = text.indexOf(query);
   while (from >= 0) {
-    if (from === 0 || !isWordCharacter(text.charCodeAt(from - 1))) {
+    if (from === 0 || !WORD_CHARACTER_AT_END.test(text.slice(0, from))) {
       return true;
     }
     from = text.indexOf(query, from + 1);
@@ -154,6 +156,7 @@ export interface MatchableEntry {
   slug: string;
   count?: number;
   aliases?: readonly string[];
+  casNumbers?: readonly string[];
   labelFolded: string;
   aliasFolded?: readonly string[];
   labelCompact: string;
@@ -362,6 +365,15 @@ export function runSearch<TEntry extends MatchableEntry>(
   const normalized = normalizeSearchQuery(query);
   if (!normalized) {
     return [];
+  }
+  if (isCasSearchQuery(normalized)) {
+    const casNumber = normalizeCasNumber(normalized);
+    if (!casNumber) return [];
+    const matches = entries
+      .filter((entry) => entry.type === "substance" && entry.casNumbers?.includes(casNumber))
+      .map((entry) => ({ entry, score: 0, matchLength: casNumber.length }));
+    matches.sort((left, right) => compareMatches(left, right, new Set()));
+    return typeof limit === "number" ? matches.slice(0, Math.max(limit, 0)) : matches;
   }
   const compactQuery = compactSearchText(normalized);
 

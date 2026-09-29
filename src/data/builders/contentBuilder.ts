@@ -42,6 +42,7 @@ import {
   buildToleranceEntries,
 } from "./contentBuilderInteractions";
 import { buildArticleChemistryPresentation } from "./articleChemistryPresentation";
+import { normalizeCasNumber } from "./casSearch";
 export { slugifyDrugName } from "./contentBuilderShared";
 
 export interface SubstanceRecord {
@@ -49,6 +50,7 @@ export interface SubstanceRecord {
   name: string;
   slug: string;
   aliases: string[];
+  casNumbers?: readonly string[];
   categories: string[];
   indexCategories: string[];
   chemicalClasses: string[];
@@ -333,6 +335,7 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
 
   const nameVariants = buildNameVariants(identification, baseName);
   const aliases = nameVariants.flatMap((variant) => variant.values);
+  const casNumber = normalizeCasNumber(identification?.cas_number);
   const referenceName = identity.substitutiveName || identity.iupacName || null;
   const displayAliases = referenceName
     ? aliases.filter(
@@ -388,6 +391,7 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
     id,
     name: baseName,
     aliases,
+    ...(casNumber ? { casNumbers: [casNumber] } : {}),
     slug,
     categories,
     indexCategories,

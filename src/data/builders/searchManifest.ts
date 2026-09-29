@@ -29,7 +29,7 @@ import {
  * already-cached client could not read; it is part of the cache key, so a bump
  * retires every stored copy.
  */
-const SEARCH_MANIFEST_SHAPE = 2;
+const SEARCH_MANIFEST_SHAPE = 3;
 
 interface SearchManifestEntry {
   id: string;
@@ -40,6 +40,7 @@ interface SearchManifestEntry {
   description?: string;
   icon?: IconName;
   aliases?: readonly string[];
+  casNumbers?: readonly string[];
   count?: number;
   /** Reports only: normalized keys of the substances the report covers. */
   substanceKeys?: readonly string[];
@@ -112,6 +113,8 @@ export function createSearchManifest(index: SearchIndex, locale = "en"): SearchM
       // even if an alias-bearing profile entry ever reappears upstream.
       const aliases = entry.type === "profile" ? undefined : omitEmpty(entry.aliases);
       if (aliases) manifestEntry.aliases = aliases;
+      const casNumbers = omitEmpty(entry.casNumbers);
+      if (casNumbers) manifestEntry.casNumbers = casNumbers;
 
       const substanceKeys = omitEmpty(entry.reportSubstanceKeys);
       if (substanceKeys) manifestEntry.substanceKeys = substanceKeys;
@@ -151,6 +154,7 @@ export function buildSearchManifestIndex(manifest: SearchManifest): SearchManife
       slug: entry.slug,
       count: entry.count,
       aliases: entry.aliases,
+      casNumbers: entry.casNumbers,
       labelFolded,
       aliasFolded,
       ...buildCompactMatchFields(entry.label, entry.aliases),

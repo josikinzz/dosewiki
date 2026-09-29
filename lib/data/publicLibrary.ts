@@ -29,8 +29,6 @@ import {
   getPublicEffectArticles,
   getPublicEffectMembershipInput,
   getPublicReports,
-  getPublicEffectBySlug,
-  getPublicReportBySlug,
   getRawSubstances,
   type IndexLayoutType,
 } from "./publicData";
@@ -274,7 +272,7 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
           ? effectSummariesBySlug.get(slug)
           : reportSummariesBySlug.get(slug)?.introduction;
       const displayLeaves = [sourceSummary ?? secondary, description];
-      // Substance names and aliases are canonical Latin-script identity, not
+      // Substance names and aliases are canonical editorial identity, not
       // translatable display copy. Other result kinds retain their existing
       // localized labels and aliases.
       if (type !== "substance") displayLeaves.push(label, ...(aliases ?? []));
@@ -291,7 +289,10 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
       ? entry.aliases
       : entry.aliases?.map((alias) => localizedLeaves.get(alias) ?? alias),
     secondary: entry.type === "substance" && substancesBySlug.get(entry.slug)
-      ? localizedLeaves.get(substancesBySlug.get(entry.slug)!) ?? substancesBySlug.get(entry.slug)!
+      ? stripCitationTokens(
+        localizedLeaves.get(substancesBySlug.get(entry.slug)!) ??
+        substancesBySlug.get(entry.slug)!,
+      ).trim()
       : entry.secondary
         ? (localizedLeaves.get(entry.secondary) ?? entry.secondary)
         : undefined,
@@ -308,18 +309,18 @@ export const getPublicSearchManifest = cache(
     createSearchManifest(await getPublicLocalizedSearchIndex(locale), locale),
 );
 
-export const getPublicSearchMatches = cache(async (query: string, limit = 20) => {
+export const getPublicSearchMatches = cache(async (query: string, limit = 20, locale = "en") => {
   if (!query.trim()) {
     return [];
   }
 
-  return (await getPublicSearchIndex()).query(query, { limit });
+  return (await getPublicLocalizedSearchIndex(locale)).query(query, { limit });
 });
 
 // Keep search composition outside persistent leaves, including on cold instances.
 const getCachedSearchSuggestions = cache(
-  async (query: string, limit: number): Promise<SearchSuggestion[]> =>
-    (await getPublicSearchMatches(query, limit)).map(toSearchSuggestion),
+  async (query: string, limit: number, locale: string): Promise<SearchSuggestion[]> =>
+    (await getPublicSearchMatches(query, limit, locale)).map(toSearchSuggestion),
 );
 
 export const getPublicSearchSuggestions = cache(
@@ -328,75 +329,7 @@ export const getPublicSearchSuggestions = cache(
     if (!trimmed) {
       return [];
     }
-    const suggestions = await getCachedSearchSuggestions(trimmed, limit);
-    if (locale === "en") return suggestions;
-
-    const [effectSummaries, previews, reportSummaries] = await Promise.all([
-      getPublicEffectSummariesBySlugs(suggestions.filter(({ type }) => type === "effect").map(({ slug }) => slug)),
-      getPublicSubstanceSearchSummaries(),
-      getPublicReportSearchSummaries(),
-    ]);
-    const effectsBySlug = new Map(effectSummaries.map((effect) => [effect.slug, effect]));
-    const reportsBySlug = new Map(reportSummaries.map((report) => [report.slug, report]));
-    const substancesBySlug = new Map(previews.map((preview) => [preview.slug, preview]));
-    const leaves = suggestions.flatMap((suggestion) => {
-      if (suggestion.type === "substance") {
-        const summary = substancesBySlug.get(suggestion.slug)?.summary;
-        return summary ? [summary] : [];
-      }
-      if (suggestion.type === "effect") {
-        const effect = effectsBySlug.get(suggestion.slug);
-        return effect ? [effect.name, effect.summary].filter((value): value is string => Boolean(value)) : [];
-      }
-      if (suggestion.type === "report") {
-        const report = reportsBySlug.get(suggestion.slug);
-        return report?.introduction ? [report.introduction] : [];
-      }
-      return [suggestion.label, suggestion.secondary, suggestion.description]
-        .filter((value): value is string => Boolean(value));
-    });
-    const localized = await getLocalizedLeaves(leaves, locale);
-    return suggestions.map((suggestion) => {
-      if (suggestion.type === "substance") {
-        const source = substancesBySlug.get(suggestion.slug)?.summary;
-        return {
-          ...suggestion,
-          secondary: source
-            ? stripCitationTokens(localized.get(source) ?? source).trim() || suggestion.secondary
-            : suggestion.secondary,
-        };
-      }
-      if (suggestion.type === "effect") {
-        const effect = effectsBySlug.get(suggestion.slug);
-        return effect ? {
-          ...suggestion,
-          label: localized.get(effect.name) ?? effect.name,
-          secondary: effect.summary
-            ? (localized.get(effect.summary) ?? effect.summary)
-            : suggestion.secondary,
-        } : suggestion;
-      }
-      if (suggestion.type === "report") {
-        const report = reportsBySlug.get(suggestion.slug);
-        return report ? {
-          ...suggestion,
-          label: localized.get(report.title) ?? report.title,
-          description: report.introduction
-            ? (localized.get(report.introduction) ?? report.introduction).trim() || suggestion.description
-            : suggestion.description,
-        } : suggestion;
-      }
-      return {
-        ...suggestion,
-        label: localized.get(suggestion.label) ?? suggestion.label,
-        secondary: suggestion.secondary
-          ? (localized.get(suggestion.secondary) ?? suggestion.secondary)
-          : suggestion.secondary,
-        description: suggestion.description
-          ? (localized.get(suggestion.description) ?? suggestion.description)
-          : suggestion.description,
-      };
-    });
+    return getCachedSearchSuggestions(trimmed, limit, locale);
   },
 );
 
@@ -498,4 +431,3 @@ export const getPublicMechanismDetail = cache(async (
     mechanismMap, buildDetailContext(records, psychoactive),
   ).getMechanismDetail(mechanismSlug, qualifierKey);
 });
-

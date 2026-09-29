@@ -2,6 +2,7 @@ import type { IconName } from "@/components/common/Icon";
 import { icons } from "@/utils/iconNames";
 import type { LibraryData } from "../SubstanceIndexProvider";
 import type { SubstanceRecord } from "./contentBuilder";
+import { normalizeCasNumber } from "./casSearch";
 import {
   buildCompactMatchFields,
   foldSearchText,
@@ -24,6 +25,7 @@ export interface SearchEntry {
   secondary?: string;
   description?: string;
   aliases?: readonly string[];
+  casNumbers?: readonly string[];
   slug: string;
   icon?: IconName;
   count?: number;
@@ -98,6 +100,7 @@ interface SearchIndexSubstanceInput {
   name: string;
   slug: string;
   aliases: string[];
+  casNumbers?: readonly string[];
   categories: string[];
   heroLabels: string[];
   chemicalClasses: string[];
@@ -387,6 +390,7 @@ const readonlySearchEntry = (entry: SearchEntry): SearchEntry =>
     ...entry,
     keywords: Object.freeze([...entry.keywords]),
     aliases: entry.aliases ? Object.freeze([...entry.aliases]) : undefined,
+    casNumbers: entry.casNumbers ? Object.freeze([...entry.casNumbers]) : undefined,
     description: entry.description,
     meta: entry.meta
       ? Object.freeze(entry.meta.map((meta) => Object.freeze({ ...meta })))
@@ -472,6 +476,7 @@ export function createSearchIndexInput(
         name: record.name,
         slug: record.slug,
         aliases: [...record.aliases],
+        casNumbers: record.casNumbers ? [...record.casNumbers] : undefined,
         categories: [...categories],
         heroLabels,
         chemicalClasses: [...record.chemicalClasses],
@@ -586,6 +591,9 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
       label: substance.name,
       secondary: substance.subtitle,
       aliases: Object.freeze([...substance.aliases]),
+      casNumbers: substance.casNumbers
+        ?.map(normalizeCasNumber)
+        .filter((value): value is string => value !== null),
       slug: substance.slug,
       keywords: mergeKeywords(...keywordSources),
       meta: meta.length > 0 ? meta : undefined,

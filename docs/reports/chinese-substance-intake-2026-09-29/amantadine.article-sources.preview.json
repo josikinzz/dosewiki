@@ -1,0 +1,32 @@
+{
+  "slug": "amantadine",
+  "substanceName": "Amantadine",
+  "sources": [
+    {
+      "id": "amantadine-generic-label-5232b933-1df9-43b4-8ac2-61bfa4855e68",
+      "fileName": "amantadine-generic-label-5232b933-1df9-43b4-8ac2-61bfa4855e68.excerpt.txt",
+      "displayName": "Amantadine hydrochloride capsules, USP",
+      "size": 234,
+      "tokens": 0
+    },
+    {
+      "id": "amantadine-gocovri-label-82ff865f-78f3-4c94-b6a9-727a54944b28",
+      "fileName": "amantadine-gocovri-label-82ff865f-78f3-4c94-b6a9-727a54944b28.excerpt.txt",
+      "displayName": "GOCOVRI (amantadine) extended-release capsules",
+      "size": 239,
+      "tokens": 0
+    },
+    {
+      "id": "amantadine-cdc-antiviral",
+      "fileName": "amantadine-cdc-antiviral.excerpt.txt",
+      "displayName": "Influenza Antiviral Drug Resistance",
+      "size": 193,
+      "tokens": 0
+    }
+  ],
+  "contents": {
+    "amantadine-generic-label-5232b933-1df9-43b4-8ac2-61bfa4855e68": "# Amantadine hydrochloride capsules, USP\nSource: https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=5232b933-1df9-43b4-8ac2-61bfa4855e68&type=display\n\nDeaths have been reported from overdose with amantadine hydrochloride.\n",
+    "amantadine-gocovri-label-82ff865f-78f3-4c94-b6a9-727a54944b28": "# GOCOVRI (amantadine) extended-release capsules\nSource: https://dailymed.nlm.nih.gov/dailymed/fda/fdaDrugXsl.cfm?setid=82ff865f-78f3-4c94-b6a9-727a54944b28&type=display\n\nAmantadine is a weak uncompetitive antagonist of the NMDA receptor.\n",
+    "amantadine-cdc-antiviral": "# Influenza Antiviral Drug Resistance\nSource: https://www.cdc.gov/flu/treatment/antiviralresistance.html\n\nnearly all circulating seasonal influenza A viruses have been resistant to adamantanes\n"
+  }
+}
