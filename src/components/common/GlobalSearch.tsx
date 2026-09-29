@@ -252,6 +252,8 @@ export function GlobalSearch({
       // Link activation owns navigation before the destination commits. Focus
       // loss alone does not revoke a draft: background taps still settle it.
       pendingLiveNavigationRef.current = false;
+      pendingLiveFocusRestoreQueryRef.current = null;
+      isEditingLiveSearchRef.current = false;
     };
 
     const handleHistoryNavigation = () => {

@@ -6,6 +6,7 @@ import { resetSearchManifestForTests } from "@/hooks/useSearchManifest";
 import type { SearchManifest } from "@/data/builders/searchManifest";
 import type { AppView } from "@/types/navigation";
 import { GlobalSearch, LIVE_RESULTS_SETTLE_MS } from "./GlobalSearch";
+import { SmartLink } from "./SmartLink";
 import { resetSearchSuggestionsCacheForTests } from "./useGlobalSearchSuggestions";
 
 const routing = vi.hoisted(() => ({ request: vi.fn() }));
@@ -48,6 +49,7 @@ function setup({ editQuery = true } = {}) {
         liveResultsMode
         compact
       />
+      <SmartLink href="/search?q=lsd">Other search</SmartLink>
       {view.type === "search" ? (
         <LiveSearchResultsPage initialQuery={view.query} initialResults={MANIFEST.entries} />
       ) : (
@@ -130,6 +132,22 @@ describe("GlobalSearch result navigation ownership", () => {
     expect(routing.request).toHaveBeenCalledWith("/dmt");
     await settle();
 
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(onReplaceNavigate).not.toHaveBeenCalled();
+  });
+
+  it("shows the chosen search query after keyboard search-to-search navigation", async () => {
+    const { rendered, ui, input, onNavigate, onReplaceNavigate } = setup();
+    const result = screen.getByRole("link", { name: "Other search" });
+    act(() => { input.focus(); result.focus(); });
+    // A keyboard click can reach route arrival before the deferred input blur.
+    fireEvent.keyDown(result, { key: "Enter" });
+    fireEvent.click(result, { detail: 0 });
+    expect(routing.request).toHaveBeenCalledWith("/search?q=lsd");
+    rendered.rerender(ui({ type: "search", query: "lsd" }));
+
+    expect(input).toHaveValue("lsd");
+    await settle();
     expect(onNavigate).not.toHaveBeenCalled();
     expect(onReplaceNavigate).not.toHaveBeenCalled();
   });
