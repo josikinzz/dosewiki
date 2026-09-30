@@ -30,7 +30,7 @@
  *
  * Deployment binding: `requireGeneratedPublicationDeploymentFingerprint`
  * reads GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT from the process env. The
- * rehearsal uses `postgres-rehearsal` unless the environment supplies a fingerprint.
+ * rehearsal binds the configured fingerprint to its actual host/database.
  */
 
 import fs from "node:fs";
@@ -49,6 +49,7 @@ import {
 import { articlePublicationKey } from "../../lib/postgres/articlePublication";
 import { documentHash, type DataDocument } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
+import { parsePostgresTarget } from "../../lib/postgres/runtime/target";
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { minimalArticle } from "../../src/test/fixtures/articles";
 import { guardTarget, resolveTarget } from "./targetGuard";
@@ -57,8 +58,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 
 // Tokens are read from the editor process environment. Distinct random
 // values per intent make "scoped" and "legacy" credentials distinguishable.
-process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT ||= "postgres-rehearsal";
-const FINGERPRINT = process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
+let FINGERPRINT: string;
 const TOKENS = {
   editorArticleWrite: `t07-scoped-editor-${randomBytes(12).toString("hex")}`,
   citationEvidenceWrite: `t07-scoped-evidence-write-${randomBytes(12).toString("hex")}`,
@@ -137,6 +137,8 @@ async function main() {
   const argv = process.argv.slice(2);
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
+  process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT ||= parsePostgresTarget(target).identity;
+  FINGERPRINT = process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
   const data = PostgresClient.fromUrl(target);

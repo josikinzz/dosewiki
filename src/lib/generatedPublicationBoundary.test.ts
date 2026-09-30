@@ -2,12 +2,14 @@
 import { PostgresError } from "@server/postgres/runtime/values";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { requireGeneratedPublicationDeploymentFingerprint } from "../../server/lib/generatedPublication";
 import { publishReviewedSectionHandler } from "../../server/substanceIndex";
 
 type Role = "admin" | "editor" | "viewer";
 
-function ctxWithMemberships(memberships: Record<string, Role> = {}) {
+function ctxWithMemberships(memberships: Record<string, Role> = {}, targetIdentity?: string) {
   return {
+    targetIdentity,
     auth: { getUserIdentity: vi.fn(async () => null) },
     db: {
       query: vi.fn((table: string) => ({
@@ -92,5 +94,34 @@ describe("reviewed publication mutation authorization boundary", () => {
       ),
       "UNAUTHORIZED",
     );
+  });
+});
+
+
+describe("native publication destination binding", () => {
+  const identity = "production.example.test/postgres";
+  it("accepts the canonical production fingerprint only for the actual pool target", () => {
+    expect(requireGeneratedPublicationDeploymentFingerprint({ GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT: identity }, identity)).toBe(identity);
+    expect(() => requireGeneratedPublicationDeploymentFingerprint({ GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT: identity }, "other.example/postgres"))
+      .toThrowError(expect.objectContaining({ code: "TARGET_DEPLOYMENT_MISMATCH" }));
+  });
+  it.each(["postgres-rehearsal", "HOST/db", "host:5432/db", "user@host/db", "host/", "host/db/extra"])(
+    "rejects noncanonical or ambiguous destination %s", (value) => {
+      expect(() => requireGeneratedPublicationDeploymentFingerprint({ GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT: value }, value))
+        .toThrowError(expect.objectContaining({ code: "DEPLOYMENT_BINDING_NOT_CONFIGURED" }));
+    });
+  it("fails closed without an observed pool identity", () => {
+    expect(() => requireGeneratedPublicationDeploymentFingerprint({ GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT: identity }))
+      .toThrowError(expect.objectContaining({ code: "DEPLOYMENT_BINDING_NOT_CONFIGURED" }));
+  });
+  it("the role-guarded native handler forwards its actual pool target", async () => {
+    process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE = "scoped-token";
+    process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT = identity;
+    await expectCode(publishReviewedSectionHandler(ctxWithMemberships({ "editor@example.com": "editor" }, "wrong.example/postgres"),
+      { ...args, apiKey: "scoped-token" }), "TARGET_DEPLOYMENT_MISMATCH");
+    await expectCode(publishReviewedSectionHandler(ctxWithMemberships({ "editor@example.com": "editor" }, identity),
+      { ...args, apiKey: "scoped-token" }), "INVALID_PROPOSAL");
+    delete process.env.DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE;
+    delete process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
   });
 });

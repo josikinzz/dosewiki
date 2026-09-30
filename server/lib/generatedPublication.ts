@@ -10,7 +10,9 @@ import { GENERATED_PUBLICATION_PROFILE_FIELDS } from "../../lib/generatedPublica
 import {
   REGENERATION_ARTIFACT_KIND,
   regenerationPublicationErrors,
+  isRegenerationPublication,
 } from "../../lib/generatedPublication/regeneration.mjs";
+import { parsePostgresTarget } from "../../lib/postgres/runtime/target";
 import { validateSubstanceArticleContract } from "../../src/schema/substance/contract";
 
 export const GENERATED_PUBLICATION_HASH_VERSION = "section-cas-v1" as const;
@@ -162,6 +164,15 @@ export type ReviewedPublicationProposal = {
     model: string;
     thinking: string;
   };
+  collaborationAudit?: {
+    version: string;
+    section: string;
+    promptHash: string;
+    excerptHash: string;
+    inputHash: string;
+    receiptHash: string;
+    receipt: Record<string, unknown>;
+  };
   review: {
     status: "approved";
     reviewedBy: string;
@@ -184,13 +195,26 @@ function requireArticleSlug(article: Record<string, unknown>, field: string) {
 
 export function requireGeneratedPublicationDeploymentFingerprint(
   env: Record<string, string | undefined> = process.env,
+  actualTargetIdentity?: string,
 ) {
   const fingerprint = env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT?.trim();
-  if (!fingerprint || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(fingerprint)) {
+  let canonicalIdentity: string | undefined;
+  if (fingerprint) {
+    const slash = fingerprint.lastIndexOf("/");
+    const host = fingerprint.slice(0, slash);
+    const database = fingerprint.slice(slash + 1);
+    const urlHost = host.includes(":") ? `[${host}]` : host;
+    try { canonicalIdentity = parsePostgresTarget(`postgres://${urlHost}/${encodeURIComponent(database)}`).identity; }
+    catch { /* Invalid destination labels fail closed below. */ }
+  }
+  if (!fingerprint || canonicalIdentity !== fingerprint || !actualTargetIdentity) {
     fail(
       "DEPLOYMENT_BINDING_NOT_CONFIGURED",
-      "GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT must name this exact Postgres target.",
+      "GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT must name the actual Postgres host/database.",
     );
+  }
+  if (fingerprint !== actualTargetIdentity) {
+    fail("TARGET_DEPLOYMENT_MISMATCH", "Configured publication target does not match the actual Postgres pool destination.");
   }
   return fingerprint;
 }
@@ -359,7 +383,7 @@ export async function publishReviewedSectionTransaction({
     if (existingOperation.payloadDigest !== payloadDigest) {
       fail("IDEMPOTENCY_KEY_REUSED", "proposalId was already used with a different payload.");
     }
-    if (proposal.sourceArtifactKind !== REGENERATION_ARTIFACT_KIND) {
+    if (!isRegenerationPublication(proposal)) {
       return {
         status: "already_applied" as const,
         proposalId: proposal.proposalId,
@@ -378,7 +402,7 @@ export async function publishReviewedSectionTransaction({
     });
   }
   const liveArticle = cleanArticle(articles[0]);
-  if (proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND) {
+  if (isRegenerationPublication(proposal)) {
     const errors = regenerationPublicationErrors(proposal, { liveArticle });
     if (errors.length) fail("INVALID_REGENERATION_PROPOSAL", errors.join("; "));
   }

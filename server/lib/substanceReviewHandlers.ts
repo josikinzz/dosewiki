@@ -109,7 +109,7 @@ export async function publishReviewedSectionHandler(
       proposal: args.proposal as ReviewedPublicationProposal,
       actorEmail: actor.email,
       now: new Date().toISOString(),
-      expectedTargetDeploymentFingerprint: requireGeneratedPublicationDeploymentFingerprint(),
+      expectedTargetDeploymentFingerprint: requireGeneratedPublicationDeploymentFingerprint(process.env, ctx.targetIdentity),
     });
   } catch (error) {
     if (error instanceof PostgresError) throw error;

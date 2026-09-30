@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   computeReviewedArtifactDigest,
+  canonicalHash,
   REVIEWED_ARTIFACT_DIGEST_VERSION,
 } from "../../lib/generatedPublication/canonical.mjs";
 import { minimalArticle } from "../test/fixtures/articles";
@@ -465,4 +466,123 @@ describe("excerpt section regeneration publication", () => {
         .toThrowError(expect.objectContaining({ code: "CITATION_MARKERS_CHANGED" }));
     }
   });
+});
+
+describe("isolated collaboration section publication", () => {
+  function collaborationProposal(overrides: Partial<ReviewedPublicationProposal> = {}) {
+    const baseArticle = { ...article(), priority: "low" };
+    const proposedArticle = { ...structuredClone(baseArticle), summary: "Fresh collaboration narrative" };
+    const receipt = {
+      actualTaskPath: "/root/section_worker", actualAgentId: "11111111-2222-3333-4444-555555555555",
+      transport: "codex-collaboration-subagent", forkTurns: "none", capturedAt: "2026-09-30T00:46:21.929Z",
+      inputHash: "c".repeat(64), rawResponseSha256: "b".repeat(64),
+      wireModelVerified: false, wireEffortVerified: false, wireToolsVerified: false, sdkReceipt: false,
+    };
+    const value = {
+      baseArticle, proposedArticle, sourceArtifactKind: "codex_collaboration_section_draft",
+      collaborationAudit: {
+        version: "codex-collaboration-section-draft-v1", section: "summary",
+        promptHash: "d".repeat(64), excerptHash: "e".repeat(64), inputHash: receipt.inputHash,
+        receiptHash: canonicalHash(receipt), receipt,
+      },
+      ...overrides,
+    };
+    const profile = overrides.profile ?? "summary";
+    return proposal({ ...value,
+      expectedOwnedHash: computeOwnedSectionHash(profile, value.baseArticle),
+      proposedOwnedHash: computeOwnedSectionHash(profile, value.proposedArticle),
+    });
+  }
+
+  it("publishes an eligible uncited section, preserving all other fields and operation history", async () => {
+    const reviewed = collaborationProposal();
+    const live = { ...reviewed.baseArticle, legality: { ...minimalArticle.legality, international: ["Concurrent retained legality"] } };
+    const db = fakeDb({ liveArticle: live });
+    const result = await publishReviewedSectionTransaction({ db, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" });
+    expect(result.status).toBe("updated");
+    expect(db.patches).toEqual([{ summary: reviewed.proposedArticle.summary }]);
+    expect(db.inserts[0]).toMatchObject({ artifactDigest: reviewed.artifactDigest, manifestDigest: reviewed.manifestDigest,
+      rawResponseHash: reviewed.rawResponseHash, previousHash: reviewed.expectedOwnedHash, nextHash: reviewed.proposedOwnedHash });
+  });
+
+  it.each(["wireModelVerified", "wireEffortVerified", "wireToolsVerified", "sdkReceipt", "wireDispatchBytesVerified", "localRuntimeToolsObserved"])(
+    "rejects a forged %s assertion even with recomputed digests", (field) => {
+      const original = collaborationProposal();
+      const receipt = { ...original.collaborationAudit!.receipt, [field]: true };
+      const reviewed = collaborationProposal({ collaborationAudit: { ...original.collaborationAudit!, receipt, receiptHash: canonicalHash(receipt) } });
+      expect(() => validateReviewedPublicationProposal(reviewed, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+    });
+
+  it.each(["inputHash", "rawResponseSha256", "forkTurns", "actualTaskPath", "actualAgentId", "capturedAt"])(
+    "rejects a detached collaboration receipt %s", (field) => {
+      const original = collaborationProposal();
+      const receipt = { ...original.collaborationAudit!.receipt, [field]: "wrong" };
+      const reviewed = collaborationProposal({ collaborationAudit: { ...original.collaborationAudit!, receipt, receiptHash: canonicalHash(receipt) } });
+      expect(() => validateReviewedPublicationProposal(reviewed, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+    });
+
+  it("binds complete real receipt bytes into both receipt and reviewed artifact digests", () => {
+    const reviewed = collaborationProposal();
+    reviewed.collaborationAudit!.receipt.requestedModel = "different observation";
+    expect(() => validateReviewedPublicationProposal(reviewed, "target-test")).toThrowError(expect.objectContaining({ code: "ARTIFACT_DIGEST_MISMATCH" }));
+    const resigned = collaborationProposal({ collaborationAudit: reviewed.collaborationAudit });
+    expect(() => validateReviewedPublicationProposal(resigned, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+  });
+
+  it("rejects SDK audit substitution and kind relabeling", () => {
+    const original = collaborationProposal();
+    for (const overrides of [
+      { sourceArtifactKind: "generated_section", collaborationAudit: original.collaborationAudit },
+      { regenerationAudit: regenerationProposal().regenerationAudit },
+      { collaborationAudit: undefined },
+    ]) {
+      expect(() => validateReviewedPublicationProposal(collaborationProposal(overrides), "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+    }
+  });
+
+  it("retains closed eligibility, owned-field, citation and stale-write boundaries", async () => {
+    const original = collaborationProposal();
+    const publicBase = { ...original.baseArticle, priority: "normal", index_categories: [] };
+    expect(() => validateReviewedPublicationProposal(collaborationProposal({ baseArticle: publicBase,
+      proposedArticle: { ...publicBase, summary: "Fresh prose" } }), "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+    const dosageEdit = collaborationProposal({ proposedArticle: { ...original.proposedArticle, dosage: { ...minimalArticle.dosage, extra: true } }, approvedPaths: ["dosage", "summary"] });
+    expect(() => validateReviewedPublicationProposal(dosageEdit, "target-test")).toThrowError(expect.objectContaining({ code: "UNOWNED_FIELD_CHANGE" }));
+    const citedBase = { ...original.baseArticle, summary: "Retained claim [cite:old]" };
+    expect(() => validateReviewedPublicationProposal(collaborationProposal({ baseArticle: citedBase }), "target-test")).toThrowError(expect.objectContaining({ code: "CITATION_MARKERS_CHANGED" }));
+    const db = fakeDb({ liveArticle: { ...original.baseArticle, summary: "Concurrent changed summary" } });
+    const result = await publishReviewedSectionTransaction({ db, proposal: original, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" });
+    expect(result.status).toBe("conflict"); expect(db.patches).toEqual([]); expect(db.inserts).toEqual([]);
+  });
+
+  it("checks live eligibility before accepting an idempotent collaboration receipt", async () => {
+    const reviewed = collaborationProposal();
+    const db = fakeDb({ liveArticle: { ...reviewed.proposedArticle, priority: "normal", index_categories: [] },
+      operation: { payloadDigest: generatedPublicationPayloadDigest(reviewed), nextHash: reviewed.proposedOwnedHash } });
+    await expect(publishReviewedSectionTransaction({ db, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" })).rejects.toMatchObject({ code: "INVALID_REGENERATION_PROPOSAL" });
+    expect(db.patches).toEqual([]); expect(db.inserts).toEqual([]);
+  });
+
+  it("publishes pharmacology alone while retaining dosage/duration in its CAS boundary", async () => {
+    const original = collaborationProposal();
+    const baseArticle = original.baseArticle;
+    const proposedArticle = { ...baseArticle, pharmacology: { ...minimalArticle.pharmacology, pharmacodynamics: "Fresh mechanism" } };
+    const reviewed = collaborationProposal({ profile: "pharmacology", approvedPaths: ["pharmacology"], baseArticle, proposedArticle,
+      collaborationAudit: { ...original.collaborationAudit!, section: "pharmacology" } });
+    const db = fakeDb({ liveArticle: baseArticle });
+    expect((await publishReviewedSectionTransaction({ db, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" })).status).toBe("updated");
+    expect(db.patches).toEqual([{ pharmacology: proposedArticle.pharmacology }]);
+    const stale = fakeDb({ liveArticle: { ...baseArticle, duration: { changed: true } } });
+    expect((await publishReviewedSectionTransaction({ db: stale, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" })).status).toBe("conflict");
+    expect(stale.patches).toEqual([]);
+    const ownsTooMuch = collaborationProposal({ ...reviewed,
+      proposedArticle: { ...proposedArticle, dosage: { changed: true } }, approvedPaths: ["dosage", "pharmacology"],
+      artifactDigest: undefined, review: undefined });
+    expect(() => validateReviewedPublicationProposal(ownsTooMuch, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
+  });
+
 });

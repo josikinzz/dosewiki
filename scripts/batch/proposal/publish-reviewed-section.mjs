@@ -15,9 +15,10 @@ import {
 import { citationEvidenceGateErrors } from "../../../lib/citations/citationSafety.mjs";
 import { publicationFieldsForProfile } from "../../../lib/generatedPublication/profiles.mjs";
 import {
-  REGENERATION_ARTIFACT_KIND,
   regenerationPublicationErrors,
+  isRegenerationPublication,
 } from "../../../lib/generatedPublication/regeneration.mjs";
+import { collaborationManifestErrors } from "../../../lib/generatedPublication/collaboration.mjs";
 import {
   assertDataOpsWriteAllowed,
   createDataOpsRunContext,
@@ -196,6 +197,8 @@ export function loadAndVerifyPublicationArtifact({ proposalPath, repoRoot }) {
   if (verifyManifest(manifest) !== proposal.manifestDigest) {
     throw new Error("Proposal manifestDigest does not match the immutable target manifest.");
   }
+  const collaborationErrors = collaborationManifestErrors(proposal, manifest);
+  if (collaborationErrors.length) throw new Error(`Publication collaboration artifact gate failed: ${collaborationErrors.join("; ")}`);
   if (manifest.deployments?.target?.fingerprint !== proposal.targetDeploymentFingerprint) {
     throw new Error("Target manifest deployment fingerprint does not match the proposal.");
   }
@@ -238,6 +241,7 @@ export function buildReviewedPublicationEnvelope({ proposal, artifactDigest, rev
     ...(proposal.sourceArtifactKind ? { sourceArtifactKind: proposal.sourceArtifactKind } : {}),
     ...(proposal.correctionAudit ? { correctionAudit: proposal.correctionAudit } : {}),
     ...(proposal.regenerationAudit !== undefined ? { regenerationAudit: proposal.regenerationAudit } : {}),
+    ...(proposal.collaborationAudit !== undefined ? { collaborationAudit: proposal.collaborationAudit } : {}),
     ...(proposal.markerChanges ? { markerChanges: proposal.markerChanges } : {}),
     ...(proposal.claimEvidence ? { claimEvidence: proposal.claimEvidence } : {}),
     review: {
@@ -325,8 +329,8 @@ export async function publishReviewedPublication({
   const verified = loadAndVerifyPublicationArtifact({ proposalPath: options.proposalPath, repoRoot });
   const trustGate = reviewedPublicationTrustGate(verified.proposal);
   if (!trustGate.accepted && (
-    verified.proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND ||
-    verified.proposal.regenerationAudit !== undefined
+    isRegenerationPublication(verified.proposal) ||
+    verified.proposal.regenerationAudit !== undefined || verified.proposal.collaborationAudit !== undefined
   )) {
     throw new Error(`Publication regeneration trust gate failed: ${trustGate.errors.join("; ")}`);
   }
@@ -350,7 +354,7 @@ export async function publishReviewedPublication({
   if (!liveArticle) {
     throw new Error(`No live target article found for ${verified.proposal.slug}.`);
   }
-  if (verified.proposal.sourceArtifactKind === REGENERATION_ARTIFACT_KIND) {
+  if (isRegenerationPublication(verified.proposal)) {
     const errors = regenerationPublicationErrors(verified.proposal, { liveArticle });
     if (errors.length) throw new Error(`Publication regeneration trust gate failed: ${errors.join("; ")}`);
   }

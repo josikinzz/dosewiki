@@ -598,7 +598,8 @@ requires an explicit reviewer identity, UTC timestamp, and a retyped matching
 artifact digest. On write it requires a registered `admin` or `editor` delegated
 actor, the scoped `generatedPublicationWrite` token (never the legacy key), the
 standard explicit target/deployment confirmation ceremony, and the target's
-`GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT`.
+`GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT`, expressed as the canonical
+`host/database` identity and checked against the actual native pool destination.
 
 The mutation rejects slug or deployment mismatch and artifact substitution,
 hashes only the closed profile-owned top-level fields, checks the base/proposed
@@ -609,6 +610,18 @@ share one transaction; stale owned content returns a conflict with no write,
 while concurrent unrelated-section edits survive. The publisher re-reads the
 article after a successful mutation and verifies the approved section content
 before it reports completion.
+
+Explicitly authorized collaboration drafts use the separate
+`codex_collaboration_section_draft` artifact kind. Their digest-bound
+`collaborationAudit` carries the exact captured receipt, actual task/agent
+identity, frozen input hash and raw-response hash. The immutable manifest also
+binds the live prompt, exact excerpts and two isolated messages. Local runtime
+observations remain distinct from wire verification: SDK receipt and wire
+model, effort and tools verification are explicitly false. These drafts use
+only the five eligible narrative profiles, preserve all non-owned fields and
+existing citation markers, and recheck live eligibility even on an idempotent
+receipt. They use the same guarded publisher and review ceremony; they cannot
+be relabeled as SDK regeneration or citation corrections.
 
 ### Molecule depiction flow
 

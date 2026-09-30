@@ -16,6 +16,7 @@ import {
 } from "./publish-reviewed-section.mjs";
 import {
   computeReviewedArtifactDigest,
+  canonicalHash,
   computeSectionCasHash,
   REVIEWED_ARTIFACT_DIGEST_VERSION,
   sha256Text,
@@ -386,6 +387,99 @@ describe("reviewed regeneration publication command", () => {
         regenerationAudit: proposal.regenerationAudit, sourceArtifactKind: "excerpt_section_regeneration",
         approvedPaths: ["summary"], proposedArticle: proposal.proposedArticle,
       }),
+    }));
+  });
+});
+
+function makeCollaborationArtifact(customize = (value) => value, alterManifest = (value) => value) {
+  const prompt = { content: "Write the summary from these excerpts." };
+  const exactExcerpt = "The compound was described in a clinical investigation.";
+  const messages = [{ role: "system", content: "Use only provided evidence; return one summary YAML document." },
+    { role: "user", content: `${prompt.content}\n\nEXACT SECTION EXCERPTS\n${exactExcerpt}` }];
+  const receipt = {
+    actualTaskPath: "/root/summary_writer", actualAgentId: "11111111-2222-3333-4444-555555555555",
+    transport: "codex-collaboration-subagent", forkTurns: "none", capturedAt: "2026-09-30T00:46:21.929Z",
+    inputHash: canonicalHash(messages), rawResponseSha256: sha256Text("summary: after summary"),
+    wireModelVerified: false, wireEffortVerified: false, wireToolsVerified: false, sdkReceipt: false,
+  };
+  const artifact = makeArtifact((original) => {
+    const baseArticle = { ...original.baseArticle, priority: "low" };
+    return customize({ ...original, baseArticle, proposedArticle: { ...baseArticle, summary: "after summary" },
+      sourceArtifactKind: "codex_collaboration_section_draft",
+      collaborationAudit: { version: "codex-collaboration-section-draft-v1", section: "summary",
+        promptHash: sha256Text(prompt.content), excerptHash: sha256Text(exactExcerpt), inputHash: receipt.inputHash,
+        receiptHash: canonicalHash(receipt), receipt },
+    });
+  });
+  const manifestPath = resolve(artifact.root, artifact.proposal.manifestPath);
+  const previousManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const { manifestDigest: _previousDigest, ...manifestContent } = previousManifest;
+  const manifest = attachManifestDigest(alterManifest({ ...manifestContent, prompt, exactExcerpt, messages,
+    collaborationAudit: artifact.proposal.collaborationAudit }));
+  const proposal = { ...artifact.proposal, manifestDigest: manifest.manifestDigest };
+  proposal.artifactDigest = computeReviewedArtifactDigest(proposal);
+  chmodSync(manifestPath, 0o644); writeFileSync(manifestPath, JSON.stringify(manifest)); chmodSync(manifestPath, 0o444);
+  chmodSync(artifact.proposalPath, 0o644); writeFileSync(artifact.proposalPath, JSON.stringify(proposal)); chmodSync(artifact.proposalPath, 0o444);
+  return { ...artifact, proposal };
+}
+
+describe("reviewed collaboration publication command", () => {
+  it("binds actual collaboration provenance without creating an SDK receipt", () => {
+    const { root, proposal, proposalPath } = makeCollaborationArtifact();
+    expect(loadAndVerifyPublicationArtifact({ proposalPath, repoRoot: root }).artifactDigest).toBe(proposal.artifactDigest);
+    const envelope = buildReviewedPublicationEnvelope({ proposal, artifactDigest: proposal.artifactDigest,
+      reviewedBy: "parent agent", reviewedAt: "2026-09-30T01:00:00.000Z" });
+    expect(envelope.collaborationAudit).toEqual(proposal.collaborationAudit);
+    expect(envelope).not.toHaveProperty("regenerationAudit");
+    expect(computeReviewedArtifactDigest(envelope)).toBe(proposal.artifactDigest);
+  });
+
+  it.each([
+    (manifest) => ({ ...manifest, prompt: { content: "Substituted prompt" } }),
+    (manifest) => ({ ...manifest, exactExcerpt: "Substituted evidence" }),
+    (manifest) => ({ ...manifest, messages: [...manifest.messages, { role: "user", content: "Previous context" }] }),
+    (manifest) => ({ ...manifest, messages: [{ ...manifest.messages[0], tools: [] }, manifest.messages[1]] }),
+    (manifest) => Object.fromEntries(Object.entries(manifest).filter(([key]) => key !== "collaborationAudit")),
+  ])("rejects frozen input substitution before creating a client", async (alterManifest) => {
+    const { root, proposalPath } = makeCollaborationArtifact(undefined, alterManifest);
+    const Client = vi.fn();
+    await expect(publishReviewedPublication({ argv: [`--proposal=${relative(root, proposalPath)}`,
+      "--target=postgresql://localhost/target-test", "--dry-run"], env: { DATA_BACKEND: "postgres" },
+      repoRoot: root, Client, postgresApi, logger: { log: vi.fn() } })).rejects.toThrow(/collaboration artifact gate failed/);
+    expect(Client).not.toHaveBeenCalled();
+  });
+
+  it("rejects a re-signed audit claiming verified wire transport", () => {
+    const { root, proposalPath } = makeCollaborationArtifact((proposal) => {
+      const receipt = { ...proposal.collaborationAudit.receipt, wireModelVerified: true };
+      return { ...proposal, collaborationAudit: { ...proposal.collaborationAudit, receipt, receiptHash: canonicalHash(receipt) } };
+    });
+    expect(() => loadAndVerifyPublicationArtifact({ proposalPath, repoRoot: root })).toThrow(/wireModelVerified: false/);
+  });
+
+  it("checks live eligibility before any write or already-applied disposition", async () => {
+    const { root, proposal, proposalPath } = makeCollaborationArtifact();
+    const { FakeClient, mutation } = makeClient({ ...proposal.proposedArticle, priority: "normal", index_categories: [] });
+    await expect(publishReviewedPublication({ argv: [`--proposal=${relative(root, proposalPath)}`,
+      "--target=postgresql://localhost/target-test", "--dry-run"], env: { DATA_BACKEND: "postgres" },
+      repoRoot: root, Client: FakeClient, postgresApi, logger: { log: vi.fn() } })).rejects.toThrow(/Live article is no longer eligible/);
+    expect(mutation).not.toHaveBeenCalled();
+  });
+
+  it("uses the existing scoped, approved-artifact write ceremony", async () => {
+    const { root, proposal, proposalPath } = makeCollaborationArtifact();
+    const { FakeClient, mutation } = makeClient(proposal.baseArticle);
+    const argv = [`--proposal=${relative(root, proposalPath)}`, "--target=postgresql://localhost/target-test",
+      "--write", "--confirm-reviewed-publication", "--confirm-write=publish-reviewed-section",
+      "--expected-deployment=localhost/target-test", "--actor-email=editor@example.com", "--reviewed-by=parent agent",
+      "--reviewed-at=2026-09-30T01:00:00.000Z", `--approve-artifact=${proposal.artifactDigest}`];
+    const result = await publishReviewedPublication({ argv,
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token" },
+      repoRoot: root, Client: FakeClient, postgresApi, logger: { log: vi.fn() } });
+    expect(result.status).toBe("updated");
+    expect(mutation).toHaveBeenCalledWith(postgresApi.substanceIndex.publishReviewedSection, expect.objectContaining({
+      proposal: expect.objectContaining({ sourceArtifactKind: "codex_collaboration_section_draft",
+        collaborationAudit: proposal.collaborationAudit, approvedPaths: ["summary"] }),
     }));
   });
 });
