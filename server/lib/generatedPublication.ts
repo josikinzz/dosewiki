@@ -406,14 +406,22 @@ export async function publishReviewedSectionTransaction({
     const errors = regenerationPublicationErrors(proposal, { liveArticle });
     if (errors.length) fail("INVALID_REGENERATION_PROPOSAL", errors.join("; "));
   }
+  const currentHash = computeOwnedSectionHash(proposal.profile, liveArticle);
   if (existingOperation) {
+    if (currentHash !== existingOperation.nextHash || currentHash !== validated.proposedOwnedHash) {
+      return {
+        status: "conflict" as const,
+        proposalId: proposal.proposalId,
+        expectedHash: validated.proposedOwnedHash,
+        currentHash,
+      };
+    }
     return {
       status: "already_applied" as const,
       proposalId: proposal.proposalId,
-      currentHash: existingOperation.nextHash,
+      currentHash,
     };
   }
-  const currentHash = computeOwnedSectionHash(proposal.profile, liveArticle);
   if (currentHash === validated.proposedOwnedHash) {
     return {
       status: "already_applied" as const,

@@ -585,4 +585,32 @@ describe("isolated collaboration section publication", () => {
     expect(() => validateReviewedPublicationProposal(ownsTooMuch, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
   });
 
+
+  it.each([false, true])("rechecks collaboration receipt owned-field read-back after drift=%s", async (drift) => {
+    const reviewed = collaborationProposal();
+    const liveArticle = { ...reviewed.proposedArticle, ...(drift ? { summary: "A later human edit" } : {}) };
+    const currentHash = computeOwnedSectionHash(reviewed.profile, liveArticle);
+    const db = fakeDb({ liveArticle, operation: { payloadDigest: generatedPublicationPayloadDigest(reviewed), nextHash: reviewed.proposedOwnedHash } });
+    const result = await publishReviewedSectionTransaction({ db, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" });
+    expect(result).toMatchObject(drift ? { status: "conflict", expectedHash: reviewed.proposedOwnedHash, currentHash }
+      : { status: "already_applied", currentHash });
+    expect(db.patches).toEqual([]); expect(db.inserts).toEqual([]);
+  });
+
+});
+
+
+describe("SDK regeneration receipt live read-back", () => {
+  it.each([false, true])("does not report a historical receipt as current success after drift=%s", async (drift) => {
+    const reviewed = regenerationProposal();
+    const liveArticle = { ...reviewed.proposedArticle, ...(drift ? { summary: "A later human edit" } : {}) };
+    const currentHash = computeOwnedSectionHash(reviewed.profile, liveArticle);
+    const db = fakeDb({ liveArticle, operation: { payloadDigest: generatedPublicationPayloadDigest(reviewed), nextHash: reviewed.proposedOwnedHash } });
+    const result = await publishReviewedSectionTransaction({ db, proposal: reviewed, actorEmail: "editor@example.com",
+      now: "2026-09-30T01:00:00.000Z", expectedTargetDeploymentFingerprint: "target-test" });
+    expect(result).toMatchObject(drift ? { status: "conflict", expectedHash: reviewed.proposedOwnedHash, currentHash }
+      : { status: "already_applied", currentHash });
+    expect(db.patches).toEqual([]); expect(db.inserts).toEqual([]);
+  });
 });
