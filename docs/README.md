@@ -64,6 +64,7 @@ authoritative when prose and code disagree.
 | [workflows/replication-classification-guide.html](workflows/replication-classification-guide.html) | Field guide for replication admission, viewing mode, and taxonomy |
 | [workflows/trip-report-timeline.md](workflows/trip-report-timeline.md) | Lossless reshaping of flat trip reports onto the phase rail |
 | [workflows/article-source-quote-extraction.md](workflows/article-source-quote-extraction.md) | Shared contract for verbatim quote extraction from article sources |
+| [workflows/public-search.md](workflows/public-search.md) | Public search identity, localized matching, exact CAS lookup, and navigation freshness |
 
 ## Source corpora kept under content
 

@@ -255,15 +255,14 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
   const canonicalIndex = await getPublicSearchIndex();
   if (locale === "en") return canonicalIndex;
   const entries = canonicalIndex.entries;
-  const previews = await getPublicSubstanceSearchSummaries();
-  const substanceSummaries = new Map(previews.map((preview) => [preview.slug, preview.summary]));
-  const [effectSummaries, reportSummaries] = await Promise.all([
+  const [previews, effectSummaries, reportSummaries] = await Promise.all([
+    getPublicSubstanceSearchSummaries(),
     getPublicEffectSummariesBySlugs(entries.filter(({ type }) => type === "effect").map(({ slug }) => slug)),
     getPublicReportSearchSummaries(),
   ]);
   const effectSummariesBySlug = new Map(effectSummaries.map((effect) => [effect.slug, effect.summary]));
   const reportSummariesBySlug = new Map(reportSummaries.map((report) => [report.slug, report]));
-  const substancesBySlug = substanceSummaries;
+  const substancesBySlug = new Map(previews.map((preview) => [preview.slug, preview.summary]));
   const localizedLeaves = await getLocalizedLeaves(
     entries.flatMap(({ type, slug, label, aliases, secondary, description }) => {
       const sourceSummary = type === "substance"
@@ -293,12 +292,17 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
         localizedLeaves.get(substancesBySlug.get(entry.slug)!) ??
         substancesBySlug.get(entry.slug)!,
       ).trim()
-      : entry.secondary
-        ? (localizedLeaves.get(entry.secondary) ?? entry.secondary)
+      : entry.type === "effect" && effectSummariesBySlug.get(entry.slug)
+        ? localizedLeaves.get(effectSummariesBySlug.get(entry.slug)!) ?? effectSummariesBySlug.get(entry.slug)!
+        : entry.secondary
+          ? (localizedLeaves.get(entry.secondary) ?? entry.secondary)
+          : undefined,
+    description: entry.type === "report" && reportSummariesBySlug.get(entry.slug)?.introduction
+      ? (localizedLeaves.get(reportSummariesBySlug.get(entry.slug)!.introduction!) ??
+        reportSummariesBySlug.get(entry.slug)!.introduction!).trim() || entry.description
+      : entry.description
+        ? (localizedLeaves.get(entry.description) ?? entry.description)
         : undefined,
-    description: entry.description
-      ? (localizedLeaves.get(entry.description) ?? entry.description)
-      : undefined,
   }));
 
   return localizeSearchIndex(canonicalIndex, locale, localizedEntries);

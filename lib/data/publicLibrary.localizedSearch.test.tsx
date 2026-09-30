@@ -10,6 +10,7 @@ import type { SubstanceArticle } from "../../src/schema";
 const external = vi.hoisted(() => ({
   articles: [] as Array<SubstanceArticle & { slug: string }>,
   effects: [] as Array<Record<string, unknown>>,
+  reports: [] as Array<Record<string, unknown>>,
   translations: new Map<string, string>(),
   fullSubstanceReads: 0,
 }));
@@ -21,7 +22,7 @@ vi.mock("./publicData.reads", () => ({
     getRawSubstances: async () => external.articles.map(projectLibraryInput),
     getPublicSubstanceSearchSummaries: async () => external.articles.map(projectSubstanceSearchSummary),
     getPublicEffectSummariesBySlugs: async (slugs: string[]) => external.effects.filter((effect) => slugs.includes(String(effect.slug))),
-    getPublicReportSearchSummaries: async () => [],
+    getPublicReportSearchSummaries: async () => external.reports,
     getPublicSubstanceBySlug: async (slug: string) => {
       external.fullSubstanceReads += 1;
       return external.articles.find((article) => article.slug === slug) ?? null;
@@ -30,7 +31,7 @@ vi.mock("./publicData.reads", () => ({
     getPublicEffectArticles: async () => external.effects,
     getPublicEffectBySlug: async (slug: string) =>
       external.effects.find((effect) => effect.slug === slug) ?? null,
-    getPublicTripReportPreviews: async () => [],
+    getPublicTripReportPreviews: async () => external.reports,
     getPublicContributorProfiles: async () => [],
     getPublicContributorIdentities: async () => [],
   }),
@@ -80,6 +81,7 @@ beforeEach(() => {
   vi.stubEnv("DATA_BACKEND", "postgres");
   vi.stubEnv("POSTGRES_POOLED_URL", "postgres://reader@127.0.0.1:5432/search_test");
   external.translations.clear();
+  external.reports = [];
   external.fullSubstanceReads = 0;
   external.translations.set(segmentHash("Geometry"), "几何结构");
   const article = makeArticle("Ketamine", "ketamine");
@@ -189,6 +191,34 @@ describe("localized public search", () => {
     expect(browser.query("Ketamine")[0]).toMatchObject({
       id: "substance:ketamine", secondary: matches[0].secondary,
     });
+    expect(external.fullSubstanceReads).toBe(0);
+  });
+
+  it("preserves compact readers' raw effect summary translations across matching surfaces", async () => {
+    const rawSummary = "  Repeated visual patterns.\n";
+    external.effects[0].summary = rawSummary;
+    external.translations.set(segmentHash(rawSummary), "反复出现的视觉图案。");
+    const { getPublicSearchManifest, getPublicSearchSuggestions } = await import("./publicLibrary");
+    const browser = buildSearchManifestIndex(await getPublicSearchManifest("zh-Hans"));
+    const server = await getPublicSearchSuggestions("几何结构", 20, "zh-Hans");
+    expect(server[0]).toMatchObject({ id: "effect:geometry", secondary: "反复出现的视觉图案。" });
+    expect(server).toEqual(browser.query("几何结构"));
+    expect(external.fullSubstanceReads).toBe(0);
+  });
+
+  it("preserves compact readers' full report introduction translations across matching surfaces", async () => {
+    const introduction = `  ${"Report source text. ".repeat(30)}\n`;
+    external.reports = [{
+      slug: "careful-evening", title: "A careful evening", subject: { name: "Ada" }, featured: false,
+      substances: [{ name: "Ketamine" }], substanceNames: ["Ketamine"], introduction,
+    }];
+    external.translations.set(segmentHash("A careful evening"), "谨慎的夜晚");
+    external.translations.set(segmentHash(introduction), "完整报告介绍。");
+    const { getPublicSearchManifest, getPublicSearchSuggestions } = await import("./publicLibrary");
+    const browser = buildSearchManifestIndex(await getPublicSearchManifest("zh-Hans"));
+    const server = await getPublicSearchSuggestions("谨慎的夜晚", 20, "zh-Hans");
+    expect(server[0]).toMatchObject({ id: "report:careful-evening", description: "完整报告介绍。" });
+    expect(server).toEqual(browser.query("谨慎的夜晚"));
     expect(external.fullSubstanceReads).toBe(0);
   });
 

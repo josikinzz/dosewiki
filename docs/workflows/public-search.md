@@ -6,6 +6,11 @@ API suggestions and server-rendered search select from the requested locale's
 index before projecting results. English names and canonical App Paths remain
 available alongside approved localized labels.
 
+The locale projection uses compact substance, effect and report summary readers
+for exact source leaves. Translation lookup hashes the original text, preserving
+whitespace and complete introductions, rather than cleaned search excerpts. All
+three matching surfaces share that projection without loading full articles.
+
 ## Chinese substance names
 
 Substance names are canonical identities, not translated display copy. Reviewed
