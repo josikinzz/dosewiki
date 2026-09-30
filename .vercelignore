@@ -65,7 +65,8 @@ output/
 outputs/
 quotes/
 runs/
-recovery/
+# Root operational snapshots, while retaining src/features/dev/recovery.
+/recovery/
 # Workstation audit records can contain private operation data.
 scripts/data/audit-logs/
 scripts/data/backups/
