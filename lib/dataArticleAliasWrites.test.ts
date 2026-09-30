@@ -81,6 +81,34 @@ describe("append-only alternative names", () => {
 });
 
 describe("guarded alias field handler", () => {
+  it("preserves legacy identification siblings and absent defaults through validation, journaling and replay", async () => {
+    const identification: Record<string, unknown> = {
+      ...(storedLsd.identification as object), alternative_names: OLD,
+      retained_legacy_identifier: "retain-me",
+    };
+    delete identification.botanical_name;
+    const { ctx, rowsOf, db } = createCtx({
+      memberships: [admin], substanceIndex: [{ ...storedLsd, identification }],
+    });
+    const args = await request(ctx);
+    const before = articleDocument(await loadArticle(ctx, "lsd"));
+    const result = await setArticleFieldHandler(ctx, args as never);
+    const after = articleDocument(await loadArticle(ctx, "lsd"));
+    const expected = { ...before, identification: { ...identification, alternative_names: NEXT } };
+    expect(after).toEqual(expected);
+    expect(Object.prototype.hasOwnProperty.call(after.identification, "botanical_name")).toBe(false);
+    expect(db.patch.mock.calls.find(([id]) => id === "s1")?.[1])
+      .toEqual({ identification: expected.identification });
+    expect([...rowsOf("articleRevisions").values()][0]).toMatchObject({ before, after: expected });
+    expect(result.topLevelValue).toEqual(expected.identification);
+    expect(result.baseHash).toBe(await articleBaseHash(ctx, after));
+    db.patch.mockClear();
+    db.insert.mockClear();
+    await expect(setArticleFieldHandler(ctx, args as never)).resolves.toEqual(result);
+    expect(db.patch).not.toHaveBeenCalled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+
   it("accepts arrays through the actual callable validator and journals only identification", async () => {
     const { ctx, rowsOf, db } = seed();
     const args = await request(ctx);

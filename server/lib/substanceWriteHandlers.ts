@@ -125,7 +125,12 @@ export async function setArticleFieldHandler(
       message: result.reason,
     });
   }
-  const after = validateArticleChange(before, { ...before, [result.topLevelKey]: result.topLevelValue });
+  const candidate = { ...before, [result.topLevelKey]: result.topLevelValue };
+  const validated = validateArticleChange(before, candidate);
+  // The alias helper changes one array only. Schema validation can strip
+  // legacy identification siblings or supply defaults, so keep the exact
+  // validated candidate for this narrowly owned append operation.
+  const after = aliasAppend ? candidate : validated;
   await ctx.db.patch(article._id, articleChangePatch(before, after));
   const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: aliasAppend ? "Append reviewed alternative names" : `Inline edit \u2014 ${args.path}` });
   return {
