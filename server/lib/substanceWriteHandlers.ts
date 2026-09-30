@@ -6,7 +6,10 @@ import {
   applyIupacNameWrite,
   EDITABLE_ARTICLE_FIELD_MAX_LENGTH,
   isEditableArticleFieldPath,
+  editableFieldKindForPath,
+  type EditableFieldValue,
 } from "./articleFieldWrites";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { ingestSubstanceArticle, ingestSubstanceArticles } from "./substanceIngestion";
 import { contentHash } from "../../lib/proposals/contentHash";
 import { articleChangePatch, articleConflict, articleDocument, validateArticleChange } from "./articleLifecycleValidation";
@@ -58,9 +61,7 @@ export async function saveSubstancesHandler(
   return ingestSubstanceArticles({ db: ctx.db, articles: args.articles });
 }
 
-export type EditableFieldValue =
-  | string
-  | { min: number | null; max: number | null; unit: string };
+export type { EditableFieldValue } from "./articleFieldWrites";
 
 export async function setArticleFieldHandler(
   ctx: MutationCtx,
@@ -73,11 +74,16 @@ export async function setArticleFieldHandler(
     changeId: string;
   },
 ) {
+  const aliasAppend = editableFieldKindForPath(args.path) === "aliases";
+  if (aliasAppend) assertDataWritesNotFrozen("substanceIndex:setArticleField");
   const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
   }, "admin");
+  if (aliasAppend && actor.authMethod === "apiKey" && !args.actorEmail?.trim()) {
+    throw new PostgresError({ code: "REGISTERED_ADMIN_REQUIRED", message: "Appending names requires a registered admin actor." });
+  }
   if (!isEditableArticleFieldPath(args.path)) {
     throw new PostgresError({
       code: "FIELD_NOT_EDITABLE",
@@ -102,6 +108,7 @@ export async function setArticleFieldHandler(
         contentHash({ ...prior.before, [replay.topLevelKey]: replay.topLevelValue }) !== contentHash(prior.after)) {
       throw new PostgresError({ code: "ARTICLE_CHANGE_REUSED", message: "That change ID already names another edit." });
     }
+    if (aliasAppend && await articleBaseHash(ctx, before) !== prior.resultHash) articleConflict();
     return { slug: args.slug, path: args.path, value: args.value, topLevelKey: replay.topLevelKey, topLevelValue: replay.topLevelValue, id: article.id, title: article.title, baseHash: prior.resultHash };
   }
   if (args.baseHash !== await articleBaseHash(ctx, before)) articleConflict();
@@ -120,7 +127,7 @@ export async function setArticleFieldHandler(
   }
   const after = validateArticleChange(before, { ...before, [result.topLevelKey]: result.topLevelValue });
   await ctx.db.patch(article._id, articleChangePatch(before, after));
-  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: `Inline edit \u2014 ${args.path}` });
+  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: aliasAppend ? "Append reviewed alternative names" : `Inline edit \u2014 ${args.path}` });
   return {
     slug: args.slug,
     path: args.path,

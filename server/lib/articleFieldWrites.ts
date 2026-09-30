@@ -13,9 +13,10 @@
 
 /**
  * What a leaf holds. `text` is a plain string; `range` is the
- * `{min, max, unit}` shape shared by dose tiers and duration stages.
+ * `{min, max, unit}` shape shared by dose tiers and duration stages; `aliases`
+ * is the exact alternative-name array, with separate append-only guards.
  */
-export type EditableFieldKind = "text" | "range";
+export type EditableFieldKind = "text" | "range" | "aliases";
 
 /**
  * Template field paths an inline edit may write, in `fieldPath.ts` notation,
@@ -45,6 +46,8 @@ export const EDITABLE_ARTICLE_FIELD_KINDS = {
   "identification.substitutive_name": "text",
   "identification.botanical_name": "text",
   "identification.common_name": "text",
+  // Guarded append-only names, not a generic array editing surface.
+  "identification.alternative_names": "aliases",
   // Dosage & duration
   "dosage.routes[].notes": "text",
   "dosage.routes[].bioavailability": "text",
@@ -123,7 +126,50 @@ export interface EditableRangeValue {
   unit: string;
 }
 
-export type EditableFieldValue = string | EditableRangeValue;
+export type EditableFieldValue = string | EditableRangeValue | string[];
+
+export const EDITABLE_ALIAS_MAX_COUNT = 128;
+export const EDITABLE_ALIAS_MAX_LENGTH = 512;
+export const EDITABLE_ALIAS_MAX_TOTAL_LENGTH = 16_384;
+
+/** Exact stored identity strings: never trim, normalize or deduplicate a write. */
+function isEditableAliasArray(value: unknown): value is string[] {
+  if (!Array.isArray(value) || value.length > EDITABLE_ALIAS_MAX_COUNT) return false;
+  let length = 0;
+  const names = new Set<string>();
+  for (const name of value) {
+    if (typeof name !== "string" || !name || name !== name.trim() ||
+        name.length > EDITABLE_ALIAS_MAX_LENGTH || /\p{Cc}/u.test(name) || names.has(name)) return false;
+    names.add(name);
+    length += name.length;
+  }
+  return length <= EDITABLE_ALIAS_MAX_TOTAL_LENGTH;
+}
+
+function aliasArraysEqual(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((name, index) => name === right[index]);
+}
+
+function applyAlternativeNameAppend(
+  document: Record<string, unknown>, value: unknown, expected: unknown,
+): EditableFieldWriteResult {
+  if (!isEditableAliasArray(value) || !isEditableAliasArray(expected)) {
+    return { ok: false, reason: "Names and expected names must be bounded arrays of unique, nonempty, unpadded strings." };
+  }
+  const identification = document.identification;
+  if (!isRecord(identification) || !isEditableAliasArray(identification.alternative_names)) {
+    return { ok: false, reason: "Stored alternative names must be a valid string array before appending." };
+  }
+  const existing = identification.alternative_names;
+  if (!aliasArraysEqual(existing, expected)) {
+    return { ok: false, reason: EDITABLE_FIELD_CONFLICT_REASON, conflict: true };
+  }
+  if (value.length < existing.length || existing.some((name, index) => value[index] !== name)) {
+    return { ok: false, reason: "Appending names must preserve every existing name in its original order." };
+  }
+  const names = [...value];
+  return { ok: true, topLevelKey: "identification", topLevelValue: { ...identification, alternative_names: names }, value: names };
+}
 
 /** Units are short labels (`mg`, `hours`), never prose. */
 export const EDITABLE_RANGE_UNIT_MAX_LENGTH = 32;
@@ -388,7 +434,7 @@ export const EDITABLE_FIELD_CONFLICT_REASON =
   "This field changed since the article was loaded. Reload the article, then make the edit again.";
 
 /**
- * Applies one string write to a stored article document, cloning only the
+ * Applies one guarded leaf write to a stored article document, cloning only the
  * top-level key the path touches so a patch never carries the rest of the
  * document back over concurrent edits.
  *
@@ -407,6 +453,8 @@ export function applyEditableFieldWrite(
   if (!parts || !kind) {
     return { ok: false, reason: `Field "${path}" is not inline-editable.` };
   }
+
+  if (kind === "aliases") return applyAlternativeNameAppend(document, value, options.expected);
 
   if (kind === "text") {
     if (typeof value !== "string") {

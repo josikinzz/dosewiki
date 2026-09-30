@@ -662,6 +662,7 @@ export const replaceAgentReviewFlagsForArticle = mutation({
 
 const editableFieldValueValidator = v.union(
   v.string(),
+  v.array(v.string()),
   v.object({
     min: v.union(v.number(), v.null()),
     max: v.union(v.number(), v.null()),
@@ -670,8 +671,8 @@ const editableFieldValueValidator = v.union(
 );
 
 /**
- * Kept for the publication rehearsal's refusal check, the admin-floor matrix,
- * and the server-write capability test. The retired HTTP route is not a caller.
+ * Admin-only, revision-bound field edits, including exact append-only reviewed
+ * names. The retired HTTP inline route is not a caller.
  */
 export const setArticleField = mutation({
   args: {

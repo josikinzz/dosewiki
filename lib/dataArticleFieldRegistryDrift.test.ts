@@ -35,6 +35,7 @@ const TEMPLATES = Object.entries(EDITABLE_ARTICLE_FIELD_KINDS) as Array<
 const REGISTRY_TYPES_BY_KIND: Record<EditableFieldKind, ReadonlySet<FieldType>> = {
   text: new Set<FieldType>(["text", "textarea"]),
   range: new Set<FieldType>(["dose", "duration"]),
+  aliases: new Set<FieldType>(["tagArray", "array"]),
 };
 
 type ResolutionMode =
@@ -111,6 +112,10 @@ function resolveTemplate(template: string): Resolution | null {
 }
 
 describe("inline-edit allow-list vs. the field registry", () => {
+  it("limits the array write kind to the alternative-name field", () => {
+    expect(TEMPLATES.filter(([, kind]) => kind === "aliases").map(([template]) => template))
+      .toEqual(["identification.alternative_names"]);
+  });
   it("keeps every template well-formed under the field-path contract", () => {
     for (const [template] of TEMPLATES) {
       // `*` is inline-edit notation, not field-path notation; a concrete
