@@ -196,10 +196,17 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
 
   const busy = savingId !== null;
   const rows = openIdsOf(pending).map((id) => entriesRef.current.get(id)).filter((entry): entry is UnsavedWorkEntry => !!entry);
+  // Only promise a save when some row offers one: a dialog that says "Save"
+  // and then shows only Discard leaves the editor hunting for a button.
+  const anySavable = rows.some((entry) => entry.save && !entry.publishesLive);
   const request = pending && rows.length > 0
     ? {
-        title: rows.length === 1 ? "Save or discard your changes?" : `Save or discard ${rows.length} unsaved changes?`,
-        description: "These changes are not saved yet. Save them, discard them, or keep editing.",
+        title: anySavable
+          ? rows.length === 1 ? "Save or discard your changes?" : `Save or discard ${rows.length} unsaved changes?`
+          : rows.length === 1 ? "Discard your changes?" : `Discard ${rows.length} unsaved changes?`,
+        description: anySavable
+          ? "These changes are not saved yet. Save them, discard them, or keep editing."
+          : "These changes cannot be saved from here. Discard them, or keep editing and finish them in the tool.",
         cancelLabel: "Keep editing",
         destructive: true,
         confirmLabel: rows.length > 1 ? "Discard all and continue" : undefined,

@@ -69,5 +69,5 @@ export function expectRailMarksUnsaved(nav: HTMLElement, tabLabel: string) {
 export function switchTabExpectingGuard(nav: HTMLElement, onTabChange: ReturnType<typeof vi.fn>) {
   fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
   expect(onTabChange).not.toHaveBeenCalled();
-  return screen.getByRole("dialog", { name: /Save or discard/ });
+  return screen.getByRole("dialog", { name: /discard/i });
 }

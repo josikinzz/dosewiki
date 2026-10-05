@@ -117,13 +117,14 @@ describe("useDevRailBadges", () => {
     expect(fetch).toHaveBeenCalledWith("/api/glossary-feedback/pending-count");
   });
 
-  it("sums every waiting count, review recommendations included, into the one Inbox count", async () => {
+  it("sums every waiting count but citations, review recommendations included, into the one Inbox count", async () => {
     stubCounts({ tripReports: [3], feedback: [5], proposals: [2], citations: [4], glossary: [1], recommendations: [2] });
     render(<Badges />);
 
-    await waitFor(() => expect(screen.getByTestId("inbox")).toHaveTextContent("17"));
+    await waitFor(() => expect(screen.getByTestId("inbox")).toHaveTextContent("13"));
     // Each tool keeps its own count beside the Inbox total.
     expect(screen.getByTestId("feedback")).toHaveTextContent("5");
+    expect(screen.getByTestId("citations")).toHaveTextContent("4");
     expect(fetch).toHaveBeenCalledWith("/api/dev/review-recommendations");
   });
 

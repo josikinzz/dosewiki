@@ -79,7 +79,7 @@ describe("GlossaryTab reports unsaved work to the shell", () => {
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Language" }), "fr");
 
-    const dialog = screen.getByRole("dialog", { name: /Save or discard/ });
+    const dialog = screen.getByRole("dialog", { name: /discard/i });
     expect(within(dialog).getByText(/^Glossary: style guide for .*German/)).toBeTruthy();
     expect(glossaryLocales).toEqual(["de"]);
     expect(screen.getByRole("combobox", { name: "Language", hidden: true })).toHaveValue("de");
@@ -97,9 +97,9 @@ describe("GlossaryTab reports unsaved work to the shell", () => {
     await dirtyStyleGuide(user);
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Language" }), "fr");
-    fireEvent.click(within(screen.getByRole("dialog", { name: /Save or discard/ })).getByRole("button", { name: "Keep editing" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: /discard/i })).getByRole("button", { name: "Keep editing" }));
 
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: /Save or discard/ })).toBeNull());
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: /discard/i })).toBeNull());
     expect(glossaryLocales).toEqual(["de"]);
     expect(screen.getByRole("textbox", { name: "Rules, one per line" })).toHaveValue("Use the informal du.\nKeep units in English.");
   });

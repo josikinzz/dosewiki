@@ -89,6 +89,27 @@ describe("the shell's unsaved-work registry", () => {
     expect(screen.getByRole("textbox", { name: "Draft" })).toHaveValue("");
   });
 
+  it("promises a save only when the work can be saved from the dialog", () => {
+    const { nav } = renderShell();
+    makeDirty();
+
+    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "Discard your changes?" });
+    expect(within(dialog).queryByRole("button", { name: "Save" })).toBeNull();
+    expect(within(dialog).queryByText(/Save them/)).toBeNull();
+  });
+
+  it("asks to save or discard when the work has a save", () => {
+    const { nav } = renderShell({ save: vi.fn(async () => {}) });
+    makeDirty();
+
+    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeTruthy();
+  });
+
   it("stays put when the editor cancels", () => {
     const { onTabChange, nav } = renderShell();
     makeDirty();

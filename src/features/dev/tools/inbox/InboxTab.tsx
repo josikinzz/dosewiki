@@ -50,6 +50,7 @@ import {
   type InboxLoadFailure,
   type InboxSourceId,
 } from "./inboxModel";
+import { readInboxNotes, writeInboxNotes, type InboxNotes } from "./inboxNotes";
 import {
   BADGE_OF_SOURCE,
   createInboxSources,
@@ -178,8 +179,15 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const [loading, setLoading] = useState(true);
   const [chip, setChip] = useState<InboxChip | null>(null);
   const [assignment, setAssignment] = useState<InboxAssignment>("everyone");
+  // Citation reviews outnumber everything people send in, so All starts
+  // without them. The Citations chip always shows them.
+  const [hideCitations, setHideCitations] = useState(true);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [notes, setNotes] = useState<Record<string, string>>({});
+  // Drafts live in this browser until the decision they travel with. Nothing
+  // above the selected pane renders them, so reading storage here cannot
+  // disturb hydration.
+  const [notes, setNotes] = useState<InboxNotes>(() => readInboxNotes(actorEmail));
+  const [notesKept, setNotesKept] = useState(true);
   const [pending, setPending] = useState<{ key: string; action: PendingAction } | null>(null);
   const [notice, setNotice] = useState<InboxNotice | null>(null);
   const [announcement, setAnnouncement] = useState("");
@@ -229,16 +237,16 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
 
   const sorted = useMemo(() => sortInboxItems(items ?? []), [items]);
   const visible = useMemo(
-    () => filterInboxItems(sorted, { assignment, chip, actor: actorEmail }),
-    [sorted, assignment, chip, actorEmail],
+    () => filterInboxItems(sorted, { assignment, chip, actor: actorEmail, hideCitations }),
+    [sorted, assignment, chip, actorEmail, hideCitations],
   );
   const chipCounts = useMemo(
     () => countByChip(filterInboxItems(sorted, { assignment, chip: null, actor: actorEmail })),
     [sorted, assignment, actorEmail],
   );
   const assignmentCounts = useMemo(
-    () => countByAssignment(sorted, { chip, actor: actorEmail }),
-    [sorted, chip, actorEmail],
+    () => countByAssignment(sorted, { chip, actor: actorEmail, hideCitations }),
+    [sorted, chip, actorEmail, hideCitations],
   );
   const selectedIndex = visible.findIndex((item) => item.key === selectedKey);
   const selected = selectedIndex >= 0 ? visible[selectedIndex] : null;
@@ -248,12 +256,19 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   // Picking a row below `lg` brings the pane into view; a desktop pick stays put.
   useScrollToDetail(reviewRef, selected?.key ?? null);
 
+  useEffect(() => {
+    setNotesKept(writeInboxNotes(actorEmail, notes));
+  }, [actorEmail, notes]);
+
+  // Kept notes survive leaving, so only notes this browser could not store
+  // are at stake. They cannot be sent on their own, so the dialog offers
+  // Discard and Keep editing, never Save.
   const typedNotes = Object.values(notes).filter((value) => value.trim()).length;
   useUnsavedWork({
     id: "inbox:notes",
     tab: "inbox",
-    label: `Inbox: ${typedNotes} unsent review ${typedNotes === 1 ? "note" : "notes"}`,
-    dirty: typedNotes > 0,
+    label: `Inbox: ${typedNotes} review ${typedNotes === 1 ? "note" : "notes"}, sent only when you resolve, reject or mark as spam`,
+    dirty: !notesKept && typedNotes > 0,
     discard: () => setNotes({}),
   });
 
@@ -446,6 +461,7 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const resetFilters = () => {
     setChip(null);
     setAssignment("everyone");
+    setHideCitations(false);
   };
 
   const busy = pending !== null;
@@ -460,7 +476,12 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     }),
   );
   const totalsKnown = counted && failedChips.size === 0;
-  const filtered = chip !== null || assignment !== "everyone";
+  const citationsHidden = hideCitations && chip === null && chipCounts.citations > 0;
+  const filtered = chip !== null || assignment !== "everyone" || citationsHidden;
+  const narrowedBy = [
+    assignment !== "everyone" ? INBOX_ASSIGNMENTS.find((option) => option.value === assignment)!.label : null,
+    chip ? INBOX_CHIPS.find((option) => option.value === chip)!.label : null,
+  ].filter((word): word is string => Boolean(word));
 
   return (
     <div className="space-y-6">
@@ -485,7 +506,14 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
               {
                 value: ALL_CHIPS,
                 label: "All",
-                ...(totalsKnown ? { badge: String(Object.values(chipCounts).reduce((sum, count) => sum + count, 0)) } : {}),
+                ...(totalsKnown
+                  ? {
+                      badge: String(
+                        Object.values(chipCounts).reduce((sum, count) => sum + count, 0) -
+                          (hideCitations ? chipCounts.citations : 0),
+                      ),
+                    }
+                  : {}),
               },
               ...INBOX_CHIPS.map((option) => ({
                 ...option,
@@ -496,6 +524,20 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
             onChange={(value) => setChip(value === ALL_CHIPS ? null : (value as InboxChip))}
           />
         </div>
+        {citationsHidden ? (
+          <p className="theme-text-muted text-sm">
+            {`${chipCounts.citations} citation ${chipCounts.citations === 1 ? "review is" : "reviews are"} hidden from All. `}
+            <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => setHideCitations(false)}>
+              Show them
+            </Button>
+          </p>
+        ) : chip === null && !hideCitations && chipCounts.citations > 0 ? (
+          <p className="theme-text-muted text-sm">
+            <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => setHideCitations(true)}>
+              Hide citation reviews
+            </Button>
+          </p>
+        ) : null}
         <RailCountFreshness />
         {loadFailure ? (
           <LoadErrorState what={loadFailure.what} message={loadFailure.message} onRetry={() => void load()} busy={loading} />
@@ -557,12 +599,9 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
           )}
           {items !== null && visible.length === 0 && sorted.length > 0 ? (
             <p className="theme-text-muted text-sm">
-              {`${sorted.length} ${sorted.length === 1 ? "item waits" : "items wait"} outside ${joinWords(
-                [
-                  assignment !== "everyone" ? INBOX_ASSIGNMENTS.find((option) => option.value === assignment)!.label : null,
-                  chip ? INBOX_CHIPS.find((option) => option.value === chip)!.label : null,
-                ].filter((word): word is string => Boolean(word)),
-              )}. `}
+              {narrowedBy.length === 0
+                ? "Only citation reviews are waiting. "
+                : `${sorted.length} ${sorted.length === 1 ? "item waits" : "items wait"} outside ${joinWords(narrowedBy)}. `}
               <Button type="button" variant="link" size="auto" className="text-sm" onClick={resetFilters}>
                 Show everything
               </Button>
@@ -932,7 +971,7 @@ function ReviewPane({
           <EditorField
             htmlFor={noteId}
             label="Review note"
-            description="Optional. Added to the decision log with the decision you make next."
+            description="Optional. Kept in this browser until you resolve, reject or mark as spam, then added to the decision log with that decision."
           >
             <Textarea
               ref={noteRef}

@@ -263,7 +263,7 @@ describe("CopyStudioTab", () => {
     await userEvent.type(screen.getByRole("textbox", { name: "Copy" }), " Edited.");
 
     await userEvent.click(screen.getByRole("button", { name: "Leave editor" }));
-    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    const dialog = screen.getByRole("dialog", { name: "Discard your changes?" });
     expect(within(dialog).getByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeTruthy();
     expect(within(dialog).queryByRole("button", { name: /Publish|Save|Submit/ })).toBeNull();
 

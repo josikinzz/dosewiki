@@ -187,9 +187,12 @@ function freshServer(): Server {
   };
 }
 
+/** Opens the Inbox with every source shown: All starts with citation reviews hidden. */
 async function openInbox(actorEmail: string) {
   const view = render(<InboxTab actorEmail={actorEmail} />);
   const list = await screen.findByRole("listbox", { name: "Inbox items" });
+  await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(6));
+  await userEvent.setup().click(await screen.findByRole("button", { name: "Show them" }));
   await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
   return { ...view, list };
 }
@@ -213,6 +216,7 @@ describe("InboxTab", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.localStorage.clear();
   });
 
   it("lists items from every source, most urgent first and then oldest first", async () => {
@@ -375,6 +379,7 @@ describe("InboxTab", () => {
       </SubstanceIndexProvider>,
     );
     const list = await screen.findByRole("listbox", { name: "Inbox items" });
+    await userEvent.setup().click(await screen.findByRole("button", { name: "Show them" }));
     await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
     expect(within(list).getByText("LSD")).toBeInTheDocument();
     expect(within(list).queryByText("lsd")).not.toBeInTheDocument();
@@ -426,6 +431,35 @@ describe("InboxTab", () => {
     expect(screen.getByText("Nothing matches these filters.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Show everything" }));
     await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(7));
+  });
+
+  it("starts All without citation reviews, which the Citations chip still shows", async () => {
+    stubServer(freshServer(), () => actor);
+    render(<InboxTab actorEmail={ADA} />);
+    const list = await screen.findByRole("listbox", { name: "Inbox items" });
+    const user = userEvent.setup();
+
+    await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(6));
+    expect(within(list).queryByText("lsd")).not.toBeInTheDocument();
+    expect(await screen.findByText(/1 citation review is hidden from All/)).toBeInTheDocument();
+
+    await user.click(within(screen.getByRole("group", { name: "Source" })).getByRole("button", { name: /^Citations/ }));
+    await waitFor(() => expect(within(list).getAllByRole("option")).toHaveLength(1));
+    expect(within(list).getByText("lsd")).toBeInTheDocument();
+  });
+
+  it("keeps a review note in this browser across a remount", async () => {
+    stubServer(freshServer(), () => actor);
+    const first = await openInbox(ADA);
+    const user = userEvent.setup();
+
+    await user.click(within(first.list).getByText("Website technical issue"));
+    await user.type(screen.getByRole("textbox", { name: /Review note/ }), "Checked against TripSit.");
+    first.unmount();
+
+    const second = await openInbox(ADA);
+    await user.click(within(second.list).getByText("Website technical issue"));
+    expect(screen.getByRole("textbox", { name: /Review note/ })).toHaveValue("Checked against TripSit.");
   });
 
   it("folds every failed queue into one error with one retry", async () => {
