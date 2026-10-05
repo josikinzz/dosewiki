@@ -10,6 +10,7 @@ import { DevModePage } from "@/features/dev/pages/DevModePage";
 import { tabNeedsLibrary } from "@/features/dev/pages/devModePageUtils";
 import type { DevModeTab } from "@/features/dev/pages/devTabRegistry";
 import { parsePath, viewToPath } from "@/utils/routing";
+import { setEditorLegacyContributorHandleGroups } from "@server/contributorProfileIdentity";
 import { useOwnedProfileKey } from "./useOwnedProfileKey";
 
 type NextDevRouteClientProps = {
@@ -25,6 +26,12 @@ type NextDevRouteClientProps = {
    * that read falls back to anyway.
    */
   ownedProfileKey?: Promise<string | null>;
+  /**
+   * The deployment's `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`, so reviewer stamps
+   * under a retired login show the live profile's name. Empty for roles that
+   * see no reviewer stamps.
+   */
+  legacyHandleGroups?: string;
 };
 
 type DevRouteState = {
@@ -139,7 +146,10 @@ export function NextDevRouteClient({
   initialFilter,
   initialProfileKey,
   ownedProfileKey,
+  legacyHandleGroups,
 }: NextDevRouteClientProps) {
+  // Set during render, before any tool below formats a reviewer name.
+  setEditorLegacyContributorHandleGroups(legacyHandleGroups);
   // Every read the shell makes goes through the `/api/editor/*` routes on the
   // TanStack Query client mounted by the layout-level AppProviders, alongside
   // the auth session; nothing is remounted here and no data-backend client

@@ -10,7 +10,7 @@ import {
   STATUS_PAGE_PATHS,
 } from "@server/next/statusRedirectPolicy";
 import { deriveProfileKeyFromEmail } from "@/data/userProfiles";
-import { getDevRouteDecision } from "@/lib/auth/roles";
+import { getDevRouteDecision, roleMeetsFloor } from "@/lib/auth/roles";
 import {
   DataTargetSplitRefusal,
 } from "../../_components/DataTargetSplitNotice";
@@ -93,6 +93,11 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
         })
     : undefined;
   const initialProfileKey = userEmail ? deriveProfileKeyFromEmail(userEmail) : undefined;
+  // Reviewer stamps under a retired login name the person behind them. Only
+  // the roles that already see those stamps get the mapping.
+  const legacyHandleGroups = roleMeetsFloor(role, "editor") || roleMeetsFloor(role, "translator")
+    ? process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS ?? ""
+    : "";
 
   return (
     <NextDevRouteClient
@@ -101,6 +106,7 @@ export default async function NextDevPage({ params, searchParams }: DevPageProps
       initialFilter={route.filter}
       initialProfileKey={initialProfileKey}
       ownedProfileKey={ownedProfileKey}
+      legacyHandleGroups={legacyHandleGroups}
     />
   );
 }

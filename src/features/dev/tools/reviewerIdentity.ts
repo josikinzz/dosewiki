@@ -15,9 +15,9 @@ const REVIEWER_PROFILES = contributorProfiles.map((profile) => ({
 /**
  * Turns an internal credential address into the contributor identity editors
  * recognize. External addresses are intentionally left untouched. Retired
- * handles resolve through `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` where that
- * variable is available (server and tests); without it the raw handle is
- * title-cased.
+ * handles resolve through `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`: read from the
+ * environment on the server, and handed to the editor browser by the signed-in
+ * /dev page. Without it the raw handle is title-cased.
  */
 export function formatReviewerIdentity(value?: string | null): string | null {
   const reviewer = value?.trim();
