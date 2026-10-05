@@ -85,9 +85,21 @@ let cachedGroups: readonly (readonly string[])[] = EMPTY_HANDLE_GROUPS;
  * when unset, so browser bundles and unconfigured deployments simply match
  * nothing extra. Both the Postgres reviewer-email derivation and the changelog
  * submitter matching expand through these groups without ever emitting them.
+ *
+ * The editor shell is the one browser exception: its records already carry
+ * the retired credential emails, so the signed-in page hands the same value to
+ * `setEditorLegacyContributorHandleGroups` and reviewer names resolve there
+ * too. Public pages never receive it.
  */
+let editorGroupsSource = "";
+
+/** Editor browser only: the server-read `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` value. */
+export function setEditorLegacyContributorHandleGroups(raw: string | null | undefined): void {
+  editorGroupsSource = raw ?? "";
+}
+
 export function legacyContributorHandleGroups(): readonly (readonly string[])[] {
-  const raw = typeof process === "undefined" ? undefined : process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS;
+  const raw = (typeof process === "undefined" ? undefined : process.env.LEGACY_CONTRIBUTOR_HANDLE_GROUPS) || editorGroupsSource;
   if (!raw) return EMPTY_HANDLE_GROUPS;
   if (raw !== cachedGroupsSource) {
     cachedGroupsSource = raw;
