@@ -191,6 +191,109 @@ export const setAdminAccount = mutation({
 });
 
 /**
+ * Renames an account in place: username, email and display name change, the
+ * password hash stays, so the person signs in under the new username with the
+ * password they already use. Only `scripts/auth/rename-account.mjs` calls this.
+ *
+ * A row already holding the new username or email is removed only when it has
+ * never signed in (an unused placeholder); anything else is refused, so a
+ * rename can never swallow a live account. The password timestamp moves
+ * forward, ending sessions issued under the old email. Article drafts move to
+ * the new email so they stay with their owner. Rows that stamp the old email
+ * as history (reviews, changelog, decisions) are left as they are; the
+ * deployment's `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` attributes them.
+ */
+export const renameAccount = mutation({
+  args: {
+    apiKey: v.string(),
+    fromUsername: v.string(),
+    toUsername: v.string(),
+    toEmail: v.string(),
+    toName: v.string(),
+  },
+  returns: v.object({
+    membershipId: v.id("memberships"),
+    fromEmail: v.string(),
+    removedPlaceholders: v.array(v.string()),
+    movedDrafts: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    await requireRole(ctx, { apiKey: args.apiKey }, "admin");
+
+    const fromUsername = normalizeUsername(args.fromUsername);
+    const toUsername = normalizeUsername(args.toUsername);
+    const toEmail = normalizeEmail(args.toEmail);
+    const toName = args.toName.trim();
+    if (!fromUsername || !toUsername || !toEmail.includes("@") || !toName) {
+      throw new Error("fromUsername, toUsername, toEmail, and toName are required");
+    }
+
+    const source = await ctx.db
+      .query("memberships")
+      .withIndex("by_username", (query) => query.eq("username", fromUsername))
+      .unique();
+    if (!source) {
+      throw new Error(`No account has the username ${fromUsername}.`);
+    }
+    if (source.bannedAt) {
+      throw new Error(`${fromUsername} is banned; unban it before renaming.`);
+    }
+
+    const byUsername = await ctx.db
+      .query("memberships")
+      .withIndex("by_username", (query) => query.eq("username", toUsername))
+      .unique();
+    const byEmail = await ctx.db
+      .query("memberships")
+      .withIndex("by_email", (query) => query.eq("email", toEmail))
+      .unique();
+    const placeholders = [byUsername, byEmail].filter(
+      (row, index, rows): row is NonNullable<typeof row> =>
+        row !== null && row._id !== source._id && rows.findIndex((other) => other?._id === row._id) === index,
+    );
+    for (const row of placeholders) {
+      if (row.lastSeenAt) {
+        throw new Error(`${row.email} has signed in before; it is a live account, not a placeholder.`);
+      }
+    }
+    for (const row of placeholders) {
+      await ctx.db.delete(row._id);
+    }
+
+    const fromEmail = source.email;
+    const now = new Date().toISOString();
+    await ctx.db.patch(source._id, {
+      username: toUsername,
+      email: toEmail,
+      name: toName,
+      passwordUpdatedAt: nextPasswordUpdatedAt(source.passwordUpdatedAt),
+      resetTokenHash: undefined,
+      resetTokenExpiresAt: undefined,
+      updatedAt: now,
+    });
+
+    let movedDrafts = 0;
+    if (fromEmail !== toEmail) {
+      const drafts = await ctx.db
+        .query("articleDrafts")
+        .withIndex("by_owner_slug", (query) => query.eq("ownerEmail", fromEmail))
+        .collect();
+      for (const draft of drafts) {
+        await ctx.db.patch(draft._id, { ownerEmail: toEmail });
+        movedDrafts += 1;
+      }
+    }
+
+    return {
+      membershipId: source._id,
+      fromEmail,
+      removedPlaceholders: placeholders.map((row) => row.email),
+      movedDrafts,
+    };
+  },
+});
+
+/**
  * One-off migration: drops the rows the retired OAuth sign-in minted as
  * `viewer`. Rows that already carry a username are accounts and are kept.
  */
