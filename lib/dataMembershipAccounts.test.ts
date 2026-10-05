@@ -6,6 +6,7 @@ import {
   getCredentialsByUsername,
   issuePasswordReset,
   listRoster,
+  renameAccount,
   retireViewerMemberships,
   setAdminAccount,
   setRole,
@@ -115,6 +116,7 @@ const banHandler = handlerOf(ban);
 const unbanHandler = handlerOf(unban);
 const issueResetHandler = handlerOf(issuePasswordReset);
 const consumeResetHandler = handlerOf(consumePasswordReset);
+const renameHandler = handlerOf(renameAccount);
 
 const josie: Row = {
   _id: "m1",
@@ -558,6 +560,66 @@ describe("memberships account functions", () => {
       await expect(
         consumeResetHandler(ctx, { apiKey: "wrong", tokenHash: "deadbeef", passwordHash: "scrypt$new" }),
       ).rejects.toThrow();
+    });
+  });
+  describe("renameAccount", () => {
+    const old: Row = {
+      _id: "m2",
+      email: "old@local.dose.wiki",
+      username: "old",
+      role: "admin",
+      name: "Old",
+      passwordHash: "scrypt$16384$8$1$b2xk$aGFzaA==",
+      passwordUpdatedAt: "2026-05-01T00:00:00.000Z",
+      lastSeenAt: "2026-10-05T10:00:00.000Z",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const placeholder: Row = {
+      _id: "m3",
+      email: "new@local.dose.wiki",
+      username: "new",
+      role: "admin",
+      name: "New",
+      passwordHash: "scrypt$16384$8$1$bmV3$aGFzaA==",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const args = { apiKey: SERVER_KEY, fromUsername: "OLD", toUsername: "new", toEmail: "New@local.dose.wiki", toName: "New" };
+
+    it("refuses a caller without the server key", async () => {
+      const { ctx } = createCtx([josie, old]);
+      await expect(renameHandler(ctx, { ...args, apiKey: "wrong" })).rejects.toThrow();
+    });
+
+    it("renames in place, keeps the password hash, drops an unused placeholder and moves drafts", async () => {
+      const draft = { _id: "d1", ownerEmail: "old@local.dose.wiki", slug: "aleph-2" } as unknown as Row;
+      const { ctx, rows } = createCtx([josie, old, placeholder, draft]);
+
+      await expect(renameHandler(ctx, args)).resolves.toEqual({
+        membershipId: "m2",
+        fromEmail: "old@local.dose.wiki",
+        removedPlaceholders: ["new@local.dose.wiki"],
+        movedDrafts: 1,
+      });
+      const renamed = rows.get("m2")!;
+      expect(renamed).toMatchObject({ username: "new", email: "new@local.dose.wiki", name: "New", passwordHash: old.passwordHash });
+      expect(Date.parse(renamed.passwordUpdatedAt!)).toBeGreaterThan(Date.parse(old.passwordUpdatedAt!));
+      expect(rows.has("m3")).toBe(false);
+      expect((rows.get("d1") as unknown as { ownerEmail: string }).ownerEmail).toBe("new@local.dose.wiki");
+    });
+
+    it("never removes an account that has signed in", async () => {
+      const { ctx, rows } = createCtx([josie, old, { ...placeholder, lastSeenAt: "2026-09-01T00:00:00.000Z" }]);
+
+      await expect(renameHandler(ctx, args)).rejects.toThrow(/live account/);
+      expect(rows.get("m2")).toMatchObject({ username: "old", email: "old@local.dose.wiki" });
+      expect(rows.has("m3")).toBe(true);
+    });
+
+    it("refuses an unknown or banned source", async () => {
+      await expect(renameHandler(createCtx([josie]).ctx, args)).rejects.toThrow(/No account/);
+      await expect(renameHandler(createCtx([josie, { ...old, bannedAt: "2026-09-01T00:00:00.000Z" }]).ctx, args)).rejects.toThrow(/banned/);
     });
   });
 });

@@ -2,6 +2,7 @@ export const productionWriterClassifications = Object.freeze({
   productionBoundary: Object.freeze([
     "scripts/admin/data-admin.mjs",
     "scripts/articles/repair-markdown-shortcode-bodies.mjs",
+    "scripts/auth/rename-account.mjs",
     "scripts/auth/seed-admin-accounts.mjs",
     "scripts/batch/apply-dosage-duration-rewrite-results.mjs",
     "scripts/citations/apply-reference-author-repairs.mjs",
