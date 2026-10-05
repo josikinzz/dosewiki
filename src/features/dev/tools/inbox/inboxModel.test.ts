@@ -64,6 +64,15 @@ describe("inboxModel", () => {
     expect(filterInboxItems(items, { assignment: "everyone", chip: "change-review", actor: null }).map((entry) => entry.key)).toEqual(["r"]);
   });
 
+  it("holds citation rows back from All when asked, but never from the Citations chip", () => {
+    const items = [item({ key: "f", source: "site-feedback" }), item({ key: "c", source: "citations" })];
+    const keys = (chip: "citations" | null) =>
+      filterInboxItems(items, { assignment: "everyone", chip, actor: null, hideCitations: true }).map((entry) => entry.key);
+    expect(keys(null)).toEqual(["f"]);
+    expect(keys("citations")).toEqual(["c"]);
+    expect(countByAssignment(items, { chip: null, actor: null, hideCitations: true }).everyone).toBe(1);
+  });
+
   it("counts every assignment view under the current chip", () => {
     const items = [
       item({ key: "a", claimedBy: "ada@example.com" }),

@@ -938,7 +938,8 @@ export default async function DocsHowPage() {
                 <td className="p-3">
                   Stored, not yet used{" "}
                   <small className="theme-text-faint block">
-                    Bluelight, D. M. Turner, Nervewing
+                    Bluelight, Nervewing, and D. M. Turner&apos;s writings (author of
+                    The Essential Psychedelic Guide)
                   </small>
                 </td>
                 <td className="p-3">

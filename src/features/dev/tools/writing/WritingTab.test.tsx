@@ -186,7 +186,7 @@ describe("WritingTab", () => {
     await user.type(screen.getByLabelText("Title"), " extra");
 
     await user.click(screen.getByRole("button", { name: "Copy" }));
-    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
+    const dialog = screen.getByRole("dialog", { name: "Discard your changes?" });
     expect(within(dialog).getByText("Writing: Field notes extra")).toBeTruthy();
     // A published row saves by publishing, which the dialog never does.
     expect(within(dialog).getByText("This change would go live. Publish it from the tool; leaving here never publishes.")).toBeTruthy();

@@ -140,13 +140,26 @@ export function matchesAssignment(item: InboxItem, assignment: InboxAssignment, 
   }
 }
 
+/**
+ * Whether a row belongs under a source chip. Under All, citation rows can be
+ * held back: they outnumber everything a person sent in many times over and
+ * bury it. Picking the Citations chip always shows them.
+ */
+function matchesChip(item: InboxItem, chip: InboxChip | null, hideCitations: boolean): boolean {
+  const itemChip = CHIP_OF_SOURCE[item.source];
+  return chip === null ? !(hideCitations && itemChip === "citations") : itemChip === chip;
+}
+
 export function filterInboxItems(
   items: readonly InboxItem[],
-  { assignment, chip, actor }: { assignment: InboxAssignment; chip: InboxChip | null; actor: string | null },
+  {
+    assignment,
+    chip,
+    actor,
+    hideCitations = false,
+  }: { assignment: InboxAssignment; chip: InboxChip | null; actor: string | null; hideCitations?: boolean },
 ): InboxItem[] {
-  return items.filter(
-    (item) => (chip === null || CHIP_OF_SOURCE[item.source] === chip) && matchesAssignment(item, assignment, actor),
-  );
+  return items.filter((item) => matchesChip(item, chip, hideCitations) && matchesAssignment(item, assignment, actor));
 }
 
 export function countByChip(items: readonly InboxItem[]): Record<InboxChip, number> {
@@ -164,11 +177,11 @@ export function countByChip(items: readonly InboxItem[]): Record<InboxChip, numb
 /** How many items each assignment view would show under the current source chip. */
 export function countByAssignment(
   items: readonly InboxItem[],
-  { chip, actor }: { chip: InboxChip | null; actor: string | null },
+  { chip, actor, hideCitations = false }: { chip: InboxChip | null; actor: string | null; hideCitations?: boolean },
 ): Record<InboxAssignment, number> {
   const counts: Record<InboxAssignment, number> = { mine: 0, unassigned: 0, everyone: 0 };
   for (const item of items) {
-    if (chip !== null && CHIP_OF_SOURCE[item.source] !== chip) continue;
+    if (!matchesChip(item, chip, hideCitations)) continue;
     for (const option of INBOX_ASSIGNMENTS) {
       if (matchesAssignment(item, option.value, actor)) counts[option.value] += 1;
     }

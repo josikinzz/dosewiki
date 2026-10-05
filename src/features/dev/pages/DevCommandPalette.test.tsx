@@ -198,7 +198,7 @@ describe("the Cmd+K palette", () => {
     await search(user, "members");
     await user.keyboard("{Enter}");
 
-    const guard = screen.getByRole("dialog", { name: /Save or discard/ });
+    const guard = screen.getByRole("dialog", { name: /discard/i });
     expect(within(guard).getByText("Writing: Harm reduction basics")).toBeTruthy();
     expect(onTabChange).not.toHaveBeenCalled();
     await user.click(within(guard).getByRole("button", { name: "Keep editing" }));
@@ -208,7 +208,7 @@ describe("the Cmd+K palette", () => {
     const palette = await search(user, "writing about");
     await within(palette).findByRole("option", { name: /About/ });
     await user.keyboard("{Enter}");
-    const again = screen.getByRole("dialog", { name: /Save or discard/ });
+    const again = screen.getByRole("dialog", { name: /discard/i });
     expect(onOpenPath).not.toHaveBeenCalled();
     await user.click(within(again).getByRole("button", { name: "Discard" }));
     expect(onOpenPath).toHaveBeenCalledWith("/dev/writing/about");

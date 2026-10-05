@@ -11,9 +11,13 @@ type DescriptorBadge = NonNullable<DevTabDescriptor["badge"]>;
 /**
  * The badge the Inbox declares. It has no endpoint of its own: its count is
  * the sum of every count source below that the role may read, so the Inbox
- * number and the queues it lists cannot disagree.
+ * number and the queues it lists cannot disagree. Citations stay out of the
+ * sum, as they stay out of the Inbox's default list: hundreds of open citation
+ * articles would bury the handful of things people sent in. The Citations tab
+ * keeps its own badge.
  */
 const INBOX_BADGE = INBOX_ROLLUP_BADGE;
+const OUTSIDE_INBOX_TOTAL: ReadonlySet<DevRailBadge> = new Set(["citations"]);
 
 /**
  * A count source with its own endpoint. Review recommendations wait on an
@@ -230,7 +234,7 @@ export function useDevRailBadges(role: AppRole | null, actorEmail?: string | nul
     if (activeOwner !== owner || !roleMeetsFloor(role, BADGE_FLOORS[badge])) continue;
     const { count } = current[badge];
     if (count !== null && count > 0) {
-      inboxTotal += count;
+      if (!OUTSIDE_INBOX_TOTAL.has(badge)) inboxTotal += count;
       if (badge !== "review-recommendations") counts[badge] = count;
     }
   }

@@ -362,7 +362,7 @@ describe("PeopleTab", () => {
 
       // Picking another person drops both, so it asks the same dialog.
       fireEvent.click(list().getByRole("option", { name: /^bob/ }));
-      const guard = screen.getByRole("dialog", { name: /Save or discard/ });
+      const guard = screen.getByRole("dialog", { name: /discard/i });
       expect(within(guard).getByText("People: permissions for ada")).toBeTruthy();
       fireEvent.click(within(guard).getByRole("button", { name: /Discard all/ }));
       await waitFor(() => expect(accountPanel().getByText("bob@example.com")).toBeTruthy());

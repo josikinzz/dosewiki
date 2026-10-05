@@ -28,7 +28,7 @@ describe("useStagedSetUnsavedWork", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Leave editor" })[0]);
-    const dialog = screen.getByRole("dialog", { name: /Save or discard 2 unsaved changes/ });
+    const dialog = screen.getByRole("dialog", { name: /discard 2 unsaved changes/i });
     expect(within(dialog).getByText("Tags: article edits not yet committed")).toBeTruthy();
     expect(within(dialog).getByText("Index layout: layout edits not yet committed")).toBeTruthy();
     // Commit asks its own questions: the dialog offers no Save.
