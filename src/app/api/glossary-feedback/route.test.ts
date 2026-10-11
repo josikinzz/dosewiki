@@ -22,7 +22,10 @@ import {
   publicGlossaryRendering,
 } from "@server/translation/publicGlossaryRendering";
 import { languageReadiness } from "@server/translation/languageReadiness";
-import { renderingVersion } from "@/features/language-glossary/languageGlossary";
+import {
+  MISSING_RENDERING_VERSION,
+  renderingVersion,
+} from "@/features/language-glossary/languageGlossary";
 import { POST } from "./route";
 import { GET } from "./visitorReaction";
 
@@ -451,6 +454,39 @@ describe("public glossary intake through isolated Postgres", () => {
     expect(
       (await POST(request({ action: "reaction", choice: "right" }))).status,
     ).toBe(429);
+  });
+
+  it("takes a first translation for a known term the language lacks, and nothing else for it", async () => {
+    await database.query(
+      `INSERT INTO "translationGlossaryTerms" (term, kind, gloss, updated_at) VALUES ($1, $2, $3, 1)
+       ON CONFLICT (term) DO NOTHING`,
+      ["Drifting", "effect-name", "Surfaces appear to move"],
+    );
+    const missing = { term: "Drifting", version: MISSING_RENDERING_VERSION };
+    // A missing term has no wording to react to and needs an actual translation.
+    expect(
+      (await POST(request({ action: "reaction", choice: "right", ...missing }))).status,
+    ).toBe(400);
+    expect(
+      (await POST(request({ action: "suggestion", details: "Hard one", ...missing }))).status,
+    ).toBe(400);
+    // Only terms the glossary knows; once a rendering exists, the missing version is stale.
+    expect(
+      (await POST(request({ action: "suggestion", alternative: "x", term: "Invented", version: MISSING_RENDERING_VERSION }))).status,
+    ).toBe(400);
+    expect(
+      (await POST(request({ action: "suggestion", alternative: "Kalm", term: "Calm", version: MISSING_RENDERING_VERSION }))).status,
+    ).toBe(409);
+    expect(
+      (await POST(request({ action: "suggestion", alternative: "Drijven", ...missing }))).status,
+    ).toBe(202);
+    const rows = await database.query<{ term: string; target: string; alternative: string; status: string }>(
+      'SELECT term, target, alternative, status FROM "glossaryFeedback" WHERE term = $1',
+      ["Drifting"],
+    );
+    expect(rows.rows).toEqual([
+      { term: "Drifting", target: "", alternative: "Drijven", status: "new" },
+    ]);
   });
 });
 

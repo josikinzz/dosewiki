@@ -58,13 +58,13 @@ beforeEach(() => {
 it("searches translations, labels proposed and missing rows, and provides Arabic direction", async () => {
   page();
   expect(screen.getByText("Machine suggestion")).toBeVisible();
-  expect(screen.getByText("Translation missing")).toBeVisible();
+  expect(screen.getByRole("button", { name: /^Energy\s*Suggest a translation$/ })).toBeVisible();
   expect(screen.getByText("هدوء")).toHaveAttribute("dir", "rtl");
-  fireEvent.change(screen.getByLabelText("Search English or translations"), {
+  fireEvent.change(screen.getByLabelText("Search terms"), {
     target: { value: "هدوء" },
   });
   expect(screen.queryByText("Energy")).not.toBeInTheDocument();
-  fireEvent.change(screen.getByLabelText("Search English or translations"), {
+  fireEvent.change(screen.getByLabelText("Search terms"), {
     target: { value: "unknown" },
   });
   expect(screen.getByText("No terms match your search.")).toBeVisible();
@@ -132,7 +132,7 @@ it("combines the status filter with search", () => {
   chooseStatus("Live, not yet checked");
   expect(screen.getByText("Phenidate", { selector: "span" })).toBeVisible();
   expect(screen.queryByText("Euphoria", { selector: "span" })).not.toBeInTheDocument();
-  fireEvent.change(screen.getByLabelText("Search English or translations"), { target: { value: "欣快" } });
+  fireEvent.change(screen.getByLabelText("Search terms"), { target: { value: "欣快" } });
   // Euphoria matches the search but not the status; Phenidate the status but not the search.
   expect(screen.getByText("No terms match your search.")).toBeVisible();
   chooseStatus("Checked by a person");
@@ -154,22 +154,18 @@ it("keeps a failed suggestion draft and acknowledges a retry", async () => {
         : new Response("{}", { status: 202 });
     });
   page();
-  const disclosure = screen
-    .getByText("Give feedback on Calm")
-    .closest("details")!;
-  disclosure.open = true;
-  fireEvent(disclosure, new Event("toggle"));
-  const comment = await screen.findByLabelText("Comment (optional)");
+  fireEvent.click(screen.getByRole("button", { name: /^Calm/ }));
+  const comment = await screen.findByLabelText("Why is it better? (optional)");
   fireEvent.change(comment, { target: { value: "A useful comment" } });
   await waitFor(() =>
     expect(
-      screen.getByRole("button", { name: "Send privately" }),
+      screen.getByRole("button", { name: "Send to reviewers" }),
     ).toBeEnabled(),
   );
-  fireEvent.click(screen.getByRole("button", { name: "Send privately" }));
+  fireEvent.click(screen.getByRole("button", { name: "Send to reviewers" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Try again");
   expect(comment).toHaveValue("A useful comment");
-  fireEvent.click(screen.getByRole("button", { name: "Send privately" }));
+  fireEvent.click(screen.getByRole("button", { name: "Send to reviewers" }));
   await waitFor(() => expect(comment).toHaveValue(""));
   expect(
     fetcher.mock.calls
@@ -183,6 +179,40 @@ it("keeps a failed suggestion draft and acknowledges a retry", async () => {
   const retry = JSON.parse(String(sent[1][1]?.body));
   expect(retry.id).toBe(first.id);
   expect(first).not.toHaveProperty("turnstileToken");
+});
+it("lists terms that still need a person first and keeps checked terms in their own section", () => {
+  zhPage();
+  const terms = screen
+    .getAllByRole("button", { name: /Suggest a (better )?translation/ })
+    .map((button) => button.querySelector('span[lang="en"]')!.textContent);
+  expect(terms).toEqual(["Drifting", "Tracers", "Phenidate", "Euphoria"]);
+  expect(screen.getByRole("heading", { name: "Needs a person" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Checked by a person" })).toBeVisible();
+  expect(screen.getByText("1 of 4 terms checked by a person · 3 need help")).toBeVisible();
+});
+
+it("opens one term's suggestion box at a time, and asks for a first translation of an untranslated term", async () => {
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    new Response('{"choice":"clear"}', { status: 200 }),
+  );
+  zhPage();
+  const drifting = screen.getByRole("button", { name: /^Drifting/ });
+  expect(drifting).toHaveAttribute("aria-expanded", "false");
+  fireEvent.click(drifting);
+  expect(drifting).toHaveAttribute("aria-expanded", "true");
+  const translation = screen.getByLabelText("Your translation");
+  expect(translation).toHaveAttribute("lang", "zh-Hans");
+  // No wording yet, so nothing to react to, and a comment alone is not a translation.
+  expect(screen.queryByRole("button", { name: "Looks right" })).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Note for reviewers (optional)"), { target: { value: "Hmm" } });
+  expect(screen.getByRole("button", { name: "Send to reviewers" })).toBeDisabled();
+  fireEvent.change(translation, { target: { value: "漂移" } });
+  expect(screen.getByRole("button", { name: "Send to reviewers" })).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: /^Tracers/ }));
+  expect(drifting).toHaveAttribute("aria-expanded", "false");
+  expect(translation).not.toBeInTheDocument();
+  expect(await screen.findByLabelText("Your translation")).toHaveAttribute("placeholder", "拖影");
+  expect(screen.getByRole("button", { name: "Looks right" })).toBeInTheDocument();
 });
 it("opens language destinations and returns keyboard focus after Escape", async () => {
   const user = userEvent.setup();
@@ -215,11 +245,7 @@ it("restores the stored reaction in a new session and offers removal", async () 
     new Response('{"choice":"improve"}', { status: 200 }),
   );
   page();
-  const disclosure = screen
-    .getByText("Give feedback on Calm")
-    .closest("details")!;
-  disclosure.open = true;
-  fireEvent(disclosure, new Event("toggle"));
+  fireEvent.click(screen.getByRole("button", { name: /^Calm/ }));
   expect(
     await screen.findByRole("button", { name: "Clear reaction" }),
   ).toBeVisible();

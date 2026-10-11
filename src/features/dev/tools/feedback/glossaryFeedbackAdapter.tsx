@@ -42,9 +42,13 @@ export function glossaryFeedbackAdapter(
           {
             label: "Reviewed translation",
             value: (
-              <bdi lang={row.locale} dir={row.locale === "ar" ? "rtl" : "auto"}>
-                {row.target}
-              </bdi>
+              row.target ? (
+                <bdi lang={row.locale} dir={row.locale === "ar" ? "rtl" : "auto"}>
+                  {row.target}
+                </bdi>
+              ) : (
+                "Not translated yet"
+              )
             ),
           },
           row.alternative

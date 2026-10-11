@@ -197,6 +197,15 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return row ? publicGlossaryRendering(row) : null;
   }
 
+  /** A term with an English definition or a rendering in any language; public feedback may name no other. */
+  async isKnownGlossaryTerm(term: string) {
+    const result = await this.client.query(
+      `SELECT 1 FROM "translationGlossaryTerms" WHERE "term" = $1
+       UNION ALL SELECT 1 FROM "translationGlossary" WHERE "term" = $1 LIMIT 1`, [term],
+    );
+    return result.rows.length > 0;
+  }
+
   async getGlossaryReactionTotals(locale: string) {
     const result = await this.client.query(
       `SELECT "term", "target", "version", count(*) FILTER (WHERE "choice" = 'right')::int AS "right", count(*) FILTER (WHERE "choice" = 'improve')::int AS "improve"

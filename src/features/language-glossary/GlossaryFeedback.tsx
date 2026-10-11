@@ -1,16 +1,21 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
-import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { TurnstileWidget } from "@/features/site-feedback/components/TurnstileWidget";
 import type { PublicGlossaryEntry } from "./languageGlossary";
 
 type Choice = "right" | "improve" | "clear";
 const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
+/**
+ * One term's suggestion box, opened by clicking the term. A better (or first)
+ * translation leads; the "Looks right" / "Needs improvement" reaction is a
+ * secondary choice, offered only when there is wording to react to.
+ */
 export function GlossaryFeedback({
   locale,
   entry,
@@ -18,33 +23,13 @@ export function GlossaryFeedback({
   locale: string;
   entry: PublicGlossaryEntry;
 }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <details
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="text-sm"
-    >
-      <summary className="theme-text-secondary flex cursor-pointer list-none items-center gap-2 py-3">
-        Give feedback on {entry.term}
-        <ExpandIndicator isExpanded={open} />
-      </summary>
-      {open ? <FeedbackForm locale={locale} entry={entry} /> : null}
-    </details>
-  );
-}
-function FeedbackForm({
-  locale,
-  entry,
-}: {
-  locale: string;
-  entry: PublicGlossaryEntry;
-}) {
   const id = useId();
+  const hasWording = Boolean(entry.target);
   const [details, setDetails] = useState("");
   const [alternative, setAlternative] = useState("");
   const [website, setWebsite] = useState("");
   const [choice, setChoice] = useState<Choice>("clear");
-  const [loadingChoice, setLoadingChoice] = useState(true);
+  const [loadingChoice, setLoadingChoice] = useState(hasWording);
   const [choiceLoadFailed, setChoiceLoadFailed] = useState(false);
   const [choiceRefresh, setChoiceRefresh] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -53,6 +38,9 @@ function FeedbackForm({
   const [token, setToken] = useState<string | null>(null);
   const [reset, setReset] = useState(0);
   const pending = useRef<{ fingerprint: string; id: string } | null>(null);
+  const input = useRef<HTMLInputElement>(null);
+  // The box opens because a reader clicked its term; take them straight to it.
+  useEffect(() => input.current?.focus(), []);
   const key = `glossary-feedback:${locale}:${entry.term}:${entry.version}`;
   useEffect(() => {
     try {
@@ -66,6 +54,8 @@ function FeedbackForm({
     }
   }, [key]);
   useEffect(() => {
+    // A term with no wording has no reaction to restore.
+    if (!hasWording) return;
     const controller = new AbortController();
     setLoadingChoice(true);
     setChoiceLoadFailed(false);
@@ -95,7 +85,7 @@ function FeedbackForm({
         if (!controller.signal.aborted) setLoadingChoice(false);
       });
     return () => controller.abort();
-  }, [locale, entry.term, entry.version, choiceRefresh]);
+  }, [locale, entry.term, entry.version, hasWording, choiceRefresh]);
   function saveDraft(next: {
     details?: string;
     alternative?: string;
@@ -135,7 +125,7 @@ function FeedbackForm({
         cache: "no-store",
       });
       if (!identity.ok)
-        throw new Error("Unable to start feedback. Please retry.");
+        throw new Error("Unable to start your suggestion. Please retry.");
       const response = await fetch("/api/glossary-feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,7 +139,7 @@ function FeedbackForm({
       const result = await response.json().catch(() => ({}));
       if (!response.ok)
         throw new Error(
-          result.error || "Unable to save feedback. Please retry.",
+          result.error || "Unable to send your suggestion. Please retry.",
         );
       pending.current = null;
       if (action === "reaction") {
@@ -164,14 +154,14 @@ function FeedbackForm({
         setDetails("");
         setAlternative("");
         saveDraft({ details: "", alternative: "" });
-        setNotice("Sent privately to the language reviewers. Thank you.");
+        setNotice("Thank you! A reviewer will look at your suggestion.");
       }
     } catch (error) {
       setFailed(true);
       setNotice(
         error instanceof Error
           ? error.message
-          : "Unable to save feedback. Your draft has been kept.",
+          : "Unable to send your suggestion. Your draft has been kept.",
       );
     } finally {
       setBusy(false);
@@ -179,86 +169,33 @@ function FeedbackForm({
       setReset((value) => value + 1);
     }
   }
-  const disabled =
-    busy || loadingChoice || choiceLoadFailed || Boolean(siteKey && !token);
+  const captchaPending = Boolean(siteKey && !token);
+  const reactionDisabled =
+    busy || loadingChoice || choiceLoadFailed || captchaPending;
+  // An untranslated term needs a translation; otherwise a comment alone is enough.
+  const canSuggest = hasWording
+    ? Boolean(details.trim() || alternative.trim())
+    : Boolean(alternative.trim());
   return (
     <form
-      className="space-y-4 py-2"
+      className="theme-reveal-enter border-dose-border mt-3 flex flex-col gap-4 rounded-control border p-4 text-sm"
       onSubmit={(event) => {
         event.preventDefault();
         void submit("suggestion");
       }}
     >
-      <p className="theme-text-muted">
-        Feedback is private. Reviewers decide whether to change a translation.
-      </p>
-      {siteKey ? (
-        <TurnstileWidget
-          siteKey={siteKey}
-          onToken={setToken}
-          resetSignal={reset}
-        />
-      ) : null}
-      {choiceLoadFailed ? (
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setChoiceRefresh((value) => value + 1)}
-        >
-          Retry loading reaction
-        </Button>
-      ) : null}
-      <div
-        role="group"
-        aria-label={`Reaction to ${entry.term}`}
-        className="flex flex-wrap gap-2"
-      >
-        <Button
-          type="button"
-          className="min-h-11"
-          disabled={disabled}
-          variant={choice === "right" ? "secondary" : "outline"}
-          aria-pressed={choice === "right"}
-          onClick={() =>
-            void submit("reaction", choice === "right" ? "clear" : "right")
-          }
-        >
-          Looks right
-        </Button>
-        <Button
-          type="button"
-          className="min-h-11"
-          disabled={disabled}
-          variant={choice === "improve" ? "secondary" : "outline"}
-          aria-pressed={choice === "improve"}
-          onClick={() =>
-            void submit("reaction", choice === "improve" ? "clear" : "improve")
-          }
-        >
-          Needs improvement
-        </Button>
-        {choice !== "clear" ? (
-          <Button
-            type="button"
-            className="min-h-11"
-            variant="ghost"
-            disabled={disabled}
-            onClick={() => void submit("reaction", "clear")}
-          >
-            Clear reaction
-          </Button>
-        ) : null}
-      </div>
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor={`${id}-alternative`}>
-          Alternative translation (optional)
+          Your translation
         </Label>
         <Input
           id={`${id}-alternative`}
           lang={locale}
           dir={locale === "ar" ? "rtl" : "auto"}
+          ref={input}
           maxLength={400}
           disabled={busy}
+          placeholder={entry.target ?? undefined}
           value={alternative}
           onChange={(event) => {
             setAlternative(event.target.value);
@@ -266,10 +203,13 @@ function FeedbackForm({
           }}
         />
       </div>
-      <div>
-        <Label htmlFor={`${id}-comment`}>Comment (optional)</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor={`${id}-comment`}>
+          {hasWording ? "Why is it better? (optional)" : "Note for reviewers (optional)"}
+        </Label>
         <Textarea
           id={`${id}-comment`}
+          rows={2}
           maxLength={4000}
           disabled={busy}
           value={details}
@@ -290,14 +230,86 @@ function FeedbackForm({
           />
         </label>
       </div>
-      <Button
-        type="submit"
-        className="min-h-11"
-        disabled={disabled || (!details.trim() && !alternative.trim())}
+      {siteKey ? (
+        <TurnstileWidget
+          siteKey={siteKey}
+          onToken={setToken}
+          resetSignal={reset}
+        />
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          type="submit"
+          disabled={busy || captchaPending || !canSuggest}
+        >
+          {busy ? "Sending…" : "Send to reviewers"}
+        </Button>
+        <p className="theme-text-muted">
+          Suggestions are private. A person reviews each one.
+        </p>
+      </div>
+      {hasWording ? (
+        <div className="space-y-2">
+          <p className="theme-text-secondary">Or just tell us about the current translation:</p>
+          {choiceLoadFailed ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setChoiceRefresh((value) => value + 1)}
+            >
+              Retry loading reaction
+            </Button>
+          ) : null}
+          <div
+            role="group"
+            aria-label={`Reaction to ${entry.term}`}
+            className="flex flex-wrap gap-2"
+          >
+            <Button
+              type="button"
+              disabled={reactionDisabled}
+              variant={choice === "right" ? "secondary" : "outline"}
+              aria-pressed={choice === "right"}
+              onClick={() =>
+                void submit("reaction", choice === "right" ? "clear" : "right")
+              }
+            >
+              Looks right
+            </Button>
+            <Button
+              type="button"
+              disabled={reactionDisabled}
+              variant={choice === "improve" ? "secondary" : "outline"}
+              aria-pressed={choice === "improve"}
+              onClick={() =>
+                void submit(
+                  "reaction",
+                  choice === "improve" ? "clear" : "improve",
+                )
+              }
+            >
+              Needs improvement
+            </Button>
+            {choice !== "clear" ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={reactionDisabled}
+                onClick={() => void submit("reaction", "clear")}
+              >
+                Clear reaction
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      <p
+        role={failed ? "alert" : "status"}
+        className={cn(
+          "theme-feedback-enter empty:hidden",
+          failed ? "text-dose-danger" : "theme-text-secondary",
+        )}
       >
-        {busy ? "Saving…" : "Send privately"}
-      </Button>
-      <p role={failed ? "alert" : "status"} className="theme-text-secondary">
         {notice}
       </p>
     </form>

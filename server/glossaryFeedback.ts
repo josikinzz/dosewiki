@@ -5,6 +5,7 @@ import { requireRole } from "./lib/auth";
 import { approvedGlossaryLocales, canAccessGlossaryLocale } from "../src/lib/auth/roles";
 import {
   glossaryLanguage,
+  MISSING_RENDERING_VERSION,
   renderingVersion,
 } from "../src/features/language-glossary/languageGlossary";
 import {
@@ -41,12 +42,26 @@ function validateIdentity(args: {
   )
     throw new PostgresError("Invalid glossary feedback identity.");
 }
+/**
+ * What the reader saw, checked inside the write transaction. A term with no
+ * rendering in this language takes only suggestions (`allowMissing`): there
+ * is no wording to react to, and its version is `MISSING_RENDERING_VERSION`.
+ */
 async function snapshot(
   ctx: QueryCtx,
   args: { locale: string; term: string; version: string },
+  { allowMissing = false } = {},
 ) {
   const row = await ctx.db.getGlossaryRendering(args.locale, args.term);
-  if (!row) throw new PostgresError("Unknown glossary term.");
+  if (!row) {
+    if (
+      !allowMissing ||
+      args.version !== MISSING_RENDERING_VERSION ||
+      !(await ctx.db.isKnownGlossaryTerm(args.term))
+    )
+      throw new PostgresError("Unknown glossary term.");
+    return { locale: args.locale, term: args.term, target: "", version: args.version };
+  }
   if (renderingVersion(row) !== args.version)
     throw new PostgresError({
       code: "CONFLICT",
@@ -122,7 +137,9 @@ export const create = mutation({
         throw new PostgresError("Submission identity already used.");
       return { id: existing.id };
     }
-    const reviewed = await snapshot(ctx, args);
+    const reviewed = await snapshot(ctx, args, { allowMissing: true });
+    if (!reviewed.target && !args.alternative.trim())
+      throw new PostgresError("Suggest a translation for this term.");
     await ctx.db.insert("glossaryFeedback", {
       ...reviewed,
       id: args.id,
