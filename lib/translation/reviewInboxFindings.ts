@@ -382,7 +382,8 @@ export function readerSuggestionItems(locale: string, rows: readonly ReaderSugge
       id: row.id,
       reason: "reader-suggestion",
       english: row.term,
-      live: row.target,
+      // Empty when the reader translated a term this language did not have yet.
+      live: row.target || null,
       ...(row.alternative.trim() ? { suggestion: row.alternative.trim() } : {}),
       ...(row.details.trim() ? { detail: `Reader: ${row.details.trim()}` } : {}),
       where: `Public glossary · ${row.created_at.slice(0, 10)}`,

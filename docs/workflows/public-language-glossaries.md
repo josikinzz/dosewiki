@@ -10,6 +10,15 @@ reviewer identity and private feedback. Pending workbench drafts are shown as
 proposed wording (a suggestion) while the effective approved term remains
 unchanged.
 
+The page is the public place to crowdsource a language's terms. A progress line
+counts terms checked by a person. Terms that still need a person come first, in
+a "Needs a person" section ordered not translated, machine suggestion, then live
+but unchecked (`sortByReviewPriority` in `languageGlossary.ts`); checked terms
+follow in their own section. Clicking a term opens its suggestion box in place,
+one term at a time. The box leads with the reader's own translation and an
+optional reason; "Looks right" / "Needs improvement" reactions sit below it and
+appear only when there is wording to react to.
+
 A term is "Checked by a person" only when the newest recorded approval carries
 the exact live wording and names the reviewer the row names, the same rule the
 workbench applies. The comparison runs in the rendering SQL, so no reviewer
@@ -59,6 +68,13 @@ Clearing cookies permits another browser identity; this is not one vote per huma
 added service operations. Both are create-only, validate the current term inside
 the serializable transaction, and obey the global write freeze. No public
 operation edits glossary content, approves terms, or enqueues translation work.
+
+A term with no rendering in the language takes a first translation: its
+version is `MISSING_RENDERING_VERSION`, the stored target is empty, and the
+suggestion must carry a translation, not only a comment. The term must have an
+English definition or a rendering in some language (`isKnownGlossaryTerm`), and
+the version goes stale as soon as any rendering exists. Such a term takes no
+reactions. In the workbench it reads "not translated yet".
 
 Suggestions retain locale, term, target snapshot and exact version. The same
 browser and request ID replay without another row. Reusing an ID for different

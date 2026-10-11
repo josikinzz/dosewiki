@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { projectGlossary } from "./languageGlossary";
+import {
+  MISSING_RENDERING_VERSION,
+  needsHumanReview,
+  projectGlossary,
+  sortByReviewPriority,
+} from "./languageGlossary";
 
 describe("public language glossary", () => {
   it("includes missing translations and exposes only reader fields", () => {
@@ -53,5 +58,22 @@ describe("public language glossary", () => {
       ["Energy", "human_review"],
       ["Glow", "machine_suggestion"],
     ]);
+  });
+
+  it("gives an untranslated term a version a first suggestion can be checked against", () => {
+    const [entry] = projectGlossary([{ term: "Calm", kind: "effect-name", gloss: "" }], []);
+    expect(entry.version).toBe(MISSING_RENDERING_VERSION);
+  });
+
+  it("orders terms that still need a person first, alphabetically within each status", () => {
+    const sorted = sortByReviewPriority([
+      { term: "Energy", provenance: "human_review" as const },
+      { term: "Drift", provenance: "legacy_unverified" as const },
+      { term: "Calm", provenance: "machine_suggestion" as const },
+      { term: "Bliss", provenance: "missing" as const },
+      { term: "Awe", provenance: "legacy_unverified" as const },
+    ]);
+    expect(sorted.map((entry) => entry.term)).toEqual(["Bliss", "Calm", "Awe", "Drift", "Energy"]);
+    expect(sorted.filter(needsHumanReview).map((entry) => entry.term)).toEqual(["Bliss", "Calm", "Awe", "Drift"]);
   });
 });

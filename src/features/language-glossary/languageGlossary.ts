@@ -59,6 +59,12 @@ export type Rendering = {
   /** Draft/restore changes advance this even when approved bytes are unchanged. */
   review_revision?: number;
 };
+/**
+ * The version a reader sees for a term with no rendering in their language.
+ * A suggestion sent against it fails as stale once any rendering appears,
+ * exactly as a suggestion against an edited rendering does.
+ */
+export const MISSING_RENDERING_VERSION = JSON.stringify(["missing"]);
 /** Include the exact rendering and status so even same-millisecond edits cannot share a version. */
 export function renderingVersion(row: Rendering): string {
   return JSON.stringify([
@@ -83,7 +89,7 @@ export function projectGlossary(
       status: "missing",
       provenance: "missing",
       example: null,
-      version: null,
+      version: MISSING_RENDERING_VERSION,
     });
   for (const row of rows)
     entries.set(row.term, {
@@ -100,6 +106,29 @@ export function projectGlossary(
       version: renderingVersion(row),
     });
   return [...entries.values()].sort((a, b) => a.term.localeCompare(b.term));
+}
+/**
+ * Which terms most need a person, first: nothing yet, then a machine draft,
+ * then live wording nobody checked, then checked wording.
+ */
+const REVIEW_PRIORITY: Record<PublicGlossaryProvenance, number> = {
+  missing: 0,
+  machine_suggestion: 1,
+  legacy_unverified: 2,
+  human_review: 3,
+};
+export function needsHumanReview(entry: Pick<PublicGlossaryEntry, "provenance">): boolean {
+  return entry.provenance !== "human_review";
+}
+/** Review priority first, then English term, so equal-priority rows keep a stable order. */
+export function sortByReviewPriority<T extends Pick<PublicGlossaryEntry, "provenance" | "term">>(
+  entries: readonly T[],
+): T[] {
+  return [...entries].sort(
+    (a, b) =>
+      REVIEW_PRIORITY[a.provenance] - REVIEW_PRIORITY[b.provenance] ||
+      a.term.localeCompare(b.term, "en"),
+  );
 }
 export type LanguageDestination = {
   code: string;

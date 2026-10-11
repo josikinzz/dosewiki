@@ -57,6 +57,7 @@ export interface QueryInitializer<T> extends Query<T> {
 }
 export interface DatabaseReader {
   getGlossaryRendering(locale: string, term: string): Promise<{ term: string; kind: string; target: string; status: "draft" | "approved"; updated_at: number } | null>;
+  isKnownGlossaryTerm(term: string): Promise<boolean>;
   getGlossaryReactionTotals(locale: string): Promise<Array<{ term: string; target: string; version: string; right: number; improve: number }>>;
   get<Table extends TableNames>(id: Id<Table>): Promise<Doc<Table> | null>;
   get<Table extends TableNames>(table: Table, id: Id<Table>): Promise<Doc<Table> | null>;
