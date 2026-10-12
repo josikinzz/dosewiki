@@ -1,30 +1,35 @@
-/**
- * The public glossary: the translation glossary's terms with their one-line
- * English definitions, read straight from Postgres. The mirror at
- * `src/app/zh/glossary` adds each term's approved rendering.
- */
-import { getDataBackend } from "@server/postgres/runtime/backend";
+import { permanentRedirect } from "next/navigation";
+import { glossaryHref } from "@/features/language-glossary/glossaryRoutes";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
-import { readGlosses } from "@server/translation/glossaryGloss";
-import { buildGlossaryGroups, GLOSSARY_INTRO, GlossaryPage as GlossaryContentPage } from "@/components/pages/GlossaryPage";
+import { GlossaryRoute } from "@/features/language-glossary/GlossaryRoute";
 import { msg } from "@/i18n/messages";
 import { t } from "@/i18n/server";
-import { getGlossaryUsages } from "@server/translation/glossaryUsage";
 
-export const revalidate = 3600;
-
-export async function generateMetadata() {
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ locale?: string }>;
+}) {
+  const locale = (await searchParams).locale ?? "en";
   return buildPublicPageMetadata({
     title: t(msg("Glossary")),
-    description: t(GLOSSARY_INTRO),
+    description: t(
+      msg(
+        "The fixed vocabulary of this site: what each term means here and, on a translated mirror, how it is rendered.",
+      ),
+    ),
     route: { family: "glossary" },
+    noIndex: locale !== "en",
   });
 }
 
-export default async function GlossaryPage() {
-  getDataBackend();
-  const glosses = await readGlosses();
-  const groups = buildGlossaryGroups(glosses);
-  const usages = await getGlossaryUsages(groups.flatMap((group) => group.entries.map((entry) => entry.term)));
-  return <GlossaryContentPage groups={groups} usages={usages} renderingLang={null} />;
+export default async function GlossaryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ locale?: string }>;
+}) {
+  const locale = (await searchParams).locale ?? "en";
+  const destination = glossaryHref(locale);
+  if (destination.startsWith("https://")) permanentRedirect(destination);
+  return GlossaryRoute({ locale });
 }

@@ -1,30 +1,13 @@
-import { notFound } from "next/navigation";
-import { readPublicLanguageGlossary } from "@server/translation/publicGlossary";
-import { getPublicTranslationCredits } from "@server/data/publicData";
-import { LanguageGlossaryPage } from "@/features/language-glossary/LanguageGlossaryPage";
+import { notFound, permanentRedirect } from "next/navigation";
+import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
+import { glossaryHref } from "@/features/language-glossary/glossaryRoutes";
 
-export const revalidate = 60;
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const page = await readPublicLanguageGlossary((await params).locale);
-  return {
-    title: page ? `${page.language.name} glossary` : "Glossary",
-    robots: { index: false, follow: true },
-  };
-}
 export default async function Page({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const [page, credits] = await Promise.all([
-    readPublicLanguageGlossary(locale),
-    getPublicTranslationCredits(locale),
-  ]);
-  if (!page) notFound();
-  return <LanguageGlossaryPage {...page} credits={credits} />;
+  if (locale !== "en" && !glossaryLanguage(locale)) notFound();
+  permanentRedirect(glossaryHref(locale));
 }

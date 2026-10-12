@@ -1,3 +1,4 @@
+import { glossaryHref as publicGlossaryHref } from "../../src/features/language-glossary/glossaryRoutes";
 import { createHash } from "node:crypto";
 import type { Rendering } from "../../src/features/language-glossary/languageGlossary";
 
@@ -44,7 +45,7 @@ export function languageReadiness(
   release: LanguageRelease | null,
   now = Date.now(),
 ) {
-  const glossaryHref = `/glossary/${encodeURIComponent(locale)}`;
+  const glossaryHref = publicGlossaryHref(locale);
   const byTerm = new Map(rows.map((row) => [row.term, row]));
   const complete =
     required.length > 0 &&

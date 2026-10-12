@@ -1,10 +1,14 @@
 # Public language glossaries
 
-`/glossary` remains the English reference; the existing Chinese mirror glossary
-is unchanged. `/glossary/languages` lists participating translation languages
-with stored rows. `/glossary/[locale]` shows each term's translation, English
-definition, source usage, and one of four statuses: "Checked by a person",
-"Machine suggestion", "Live, not yet checked", or "Not translated yet".
+`/glossary` uses one shared glossary renderer. English shows the reference definitions;
+`zh.dose.wiki/glossary` and `ru.dose.wiki/glossary` show the language's translations
+and per-term suggestions, including terms without a translation. Languages without
+a mirror use `/glossary?locale=<code>`. Old `/glossary/<code>` addresses permanently
+redirect to the corresponding merged page. `/glossary/languages` lists participating
+translation languages with stored rows. Translation terms show an English definition,
+source usage, and one of four statuses: "Checked by a person", "Machine suggestion",
+"Live, not yet checked", or "Not translated yet". Human-checked badges are green;
+unchecked badges are red, with readable status text in both themes.
 Category, status, and search filters combine. The public projection excludes
 reviewer identity and private feedback. Pending workbench drafts are shown as
 proposed wording (a suggestion) while the effective approved term remains

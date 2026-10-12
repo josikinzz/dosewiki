@@ -68,7 +68,7 @@ function decodeSegment(value: string): string | null {
 /** Reject dynamic page paths that are absent from the build's public corpus. */
 export function isUnavailablePublicDynamicPath(pathname: string): boolean {
   const glossaryMatch = pathname.match(/^\/glossary\/([^/]+)\/?$/);
-  if (glossaryMatch && glossaryMatch[1] !== "languages") {
+  if (glossaryMatch && glossaryMatch[1] !== "languages" && glossaryMatch[1] !== "en") {
     try { return !glossaryLanguage(decodeURIComponent(glossaryMatch[1])); } catch { return true; }
   }
   const replicationMatch = pathname.match(/^\/replications\/([^/]+)\/?$/);

@@ -4,9 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { TurnstileWidget } from "@/features/site-feedback/components/TurnstileWidget";
 import type { PublicGlossaryEntry } from "./languageGlossary";
+
+class FeedbackError extends Error {}
 
 type Choice = "right" | "improve" | "clear";
 const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -24,6 +27,7 @@ export function GlossaryFeedback({
   entry: PublicGlossaryEntry;
 }) {
   const id = useId();
+  const t = useT();
   const hasWording = Boolean(entry.target);
   const [details, setDetails] = useState("");
   const [alternative, setAlternative] = useState("");
@@ -70,22 +74,21 @@ export function GlossaryFeedback({
     })
       .then(async (response) => {
         const result = await response.json();
-        if (!response.ok)
-          throw new Error(result.error ?? "Unable to load your reaction.");
+        if (!response.ok) throw new Error(t("Unable to load your reaction."));
         if (!controller.signal.aborted) setChoice(result.choice ?? "clear");
       })
-      .catch((error) => {
+      .catch(() => {
         if (!controller.signal.aborted) {
           setChoiceLoadFailed(true);
           setFailed(true);
-          setNotice(error.message);
+          setNotice(t("Unable to load your reaction."));
         }
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoadingChoice(false);
       });
     return () => controller.abort();
-  }, [locale, entry.term, entry.version, hasWording, choiceRefresh]);
+  }, [locale, entry.term, entry.version, hasWording, choiceRefresh, t]);
   function saveDraft(next: {
     details?: string;
     alternative?: string;
@@ -125,7 +128,9 @@ export function GlossaryFeedback({
         cache: "no-store",
       });
       if (!identity.ok)
-        throw new Error("Unable to start your suggestion. Please retry.");
+        throw new FeedbackError(
+          t("Unable to start your suggestion. Please retry."),
+        );
       const response = await fetch("/api/glossary-feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,32 +141,38 @@ export function GlossaryFeedback({
           turnstileToken: token ?? undefined,
         }),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok)
-        throw new Error(
-          result.error || "Unable to send your suggestion. Please retry.",
-        );
+      if (!response.ok) {
+        const message =
+          response.status === 409
+            ? t("This term changed. Reload the page before trying again.")
+            : response.status === 503
+              ? t(
+                  "Feedback is temporarily unavailable. Your draft has been kept.",
+                )
+              : t("Unable to send your suggestion. Please retry.");
+        throw new FeedbackError(message);
+      }
       pending.current = null;
       if (action === "reaction") {
         setChoice(nextChoice!);
         saveDraft({ choice: nextChoice });
         setNotice(
           nextChoice === "clear"
-            ? "Reaction removed."
-            : "Reaction saved. Thank you.",
+            ? t("Reaction removed.")
+            : t("Reaction saved. Thank you."),
         );
       } else {
         setDetails("");
         setAlternative("");
         saveDraft({ details: "", alternative: "" });
-        setNotice("Thank you! A reviewer will look at your suggestion.");
+        setNotice(t("Thank you! A reviewer will look at your suggestion."));
       }
     } catch (error) {
       setFailed(true);
       setNotice(
-        error instanceof Error
+        error instanceof FeedbackError
           ? error.message
-          : "Unable to send your suggestion. Your draft has been kept.",
+          : t("Unable to send your suggestion. Your draft has been kept."),
       );
     } finally {
       setBusy(false);
@@ -185,9 +196,7 @@ export function GlossaryFeedback({
       }}
     >
       <div className="space-y-1.5">
-        <Label htmlFor={`${id}-alternative`}>
-          Your translation
-        </Label>
+        <Label htmlFor={`${id}-alternative`}>{t("Your translation")}</Label>
         <Input
           id={`${id}-alternative`}
           lang={locale}
@@ -205,7 +214,9 @@ export function GlossaryFeedback({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor={`${id}-comment`}>
-          {hasWording ? "Why is it better? (optional)" : "Note for reviewers (optional)"}
+          {hasWording
+            ? t("Why is it better? (optional)")
+            : t("Note for reviewers (optional)")}
         </Label>
         <Textarea
           id={`${id}-comment`}
@@ -238,31 +249,30 @@ export function GlossaryFeedback({
         />
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="submit"
-          disabled={busy || captchaPending || !canSuggest}
-        >
-          {busy ? "Sending…" : "Send to reviewers"}
+        <Button type="submit" disabled={busy || captchaPending || !canSuggest}>
+          {busy ? t("Sending…") : t("Send to reviewers")}
         </Button>
         <p className="theme-text-muted">
-          Suggestions are private. A person reviews each one.
+          {t("Suggestions are private. A person reviews each one.")}
         </p>
       </div>
       {hasWording ? (
         <div className="space-y-2">
-          <p className="theme-text-secondary">Or just tell us about the current translation:</p>
+          <p className="theme-text-secondary">
+            {t("Or just tell us about the current translation:")}
+          </p>
           {choiceLoadFailed ? (
             <Button
               type="button"
               variant="ghost"
               onClick={() => setChoiceRefresh((value) => value + 1)}
             >
-              Retry loading reaction
+              {t("Retry loading reaction")}
             </Button>
           ) : null}
           <div
             role="group"
-            aria-label={`Reaction to ${entry.term}`}
+            aria-label={t("Reaction to {{term}}", { term: entry.term })}
             className="flex flex-wrap gap-2"
           >
             <Button
@@ -274,7 +284,7 @@ export function GlossaryFeedback({
                 void submit("reaction", choice === "right" ? "clear" : "right")
               }
             >
-              Looks right
+              {t("Looks right")}
             </Button>
             <Button
               type="button"
@@ -288,7 +298,7 @@ export function GlossaryFeedback({
                 )
               }
             >
-              Needs improvement
+              {t("Needs improvement")}
             </Button>
             {choice !== "clear" ? (
               <Button
@@ -297,7 +307,7 @@ export function GlossaryFeedback({
                 disabled={reactionDisabled}
                 onClick={() => void submit("reaction", "clear")}
               >
-                Clear reaction
+                {t("Clear reaction")}
               </Button>
             ) : null}
           </div>
