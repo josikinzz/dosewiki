@@ -163,7 +163,7 @@ it("keeps a failed suggestion draft and acknowledges a retry", async () => {
     ).toBeEnabled(),
   );
   fireEvent.click(screen.getByRole("button", { name: "Send to reviewers" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Try again");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Feedback is temporarily unavailable. Your draft has been kept.");
   expect(comment).toHaveValue("A useful comment");
   fireEvent.click(screen.getByRole("button", { name: "Send to reviewers" }));
   await waitFor(() => expect(comment).toHaveValue(""));

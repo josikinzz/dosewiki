@@ -50,7 +50,7 @@ it("links only a fully verified release and retains the glossary path", () => {
   expect(languageReadiness("nl", ["Calm"], rows, release, now)).toMatchObject({
     state: "Website available",
     href: "https://nl.dose.wiki",
-    glossaryHref: "/glossary/nl",
+    glossaryHref: "/glossary?locale=nl",
   });
   for (const patch of [
     { contentCoverage: false },
@@ -64,7 +64,7 @@ it("links only a fully verified release and retains the glossary path", () => {
     expect(
       languageReadiness("nl", ["Calm"], rows, { ...release, ...patch }, now)
         .href,
-    ).toBe("/glossary/nl");
+    ).toBe("/glossary?locale=nl");
 });
 it("rejects drafts, changed glossary revisions and expired evidence", () => {
   expect(
@@ -84,7 +84,7 @@ it("rejects drafts, changed glossary revisions and expired evidence", () => {
       release,
       now,
     ),
-  ).toMatchObject({ stale: true, href: "/glossary/nl" });
+  ).toMatchObject({ stale: true, href: "/glossary?locale=nl" });
   expect(
     languageReadiness(
       "nl",
@@ -93,7 +93,7 @@ it("rejects drafts, changed glossary revisions and expired evidence", () => {
       { ...release, expiresAt: "2026-09-01" },
       now,
     ),
-  ).toMatchObject({ stale: true, href: "/glossary/nl" });
+  ).toMatchObject({ stale: true, href: "/glossary?locale=nl" });
   expect(languageReadiness("nl", ["Calm"], rows, null, now).state).toBe(
     "Website in preparation",
   );
@@ -116,5 +116,5 @@ it("invalidates release evidence when review revision changes with identical wor
       release,
       now,
     ),
-  ).toMatchObject({ stale: true, href: "/glossary/nl" });
+  ).toMatchObject({ stale: true, href: "/glossary?locale=nl" });
 });
