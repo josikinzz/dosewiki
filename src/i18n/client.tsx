@@ -7,13 +7,19 @@ import { PUBLIC_LOCALES } from "./localeRegistry.mjs";
 import { resolveUiMessage } from "./uiMessageDefinitions";
 
 const UiLocaleContext = createContext<UiLocale | null>(null);
+const UiMessageLocaleContext = createContext<string | null>(null);
 const UiMessagesContext = createContext<Readonly<Record<string, string>>>({});
 
-export function UiMessagesProvider({ messages, children }: {
+export function UiMessagesProvider({ messages, locale, children }: {
   messages: Readonly<Record<string, string>>;
+  /** Page-scoped language for glossaries that have no site mirror. */
+  locale?: string;
   children: ReactNode;
 }) {
-  return <UiMessagesContext.Provider value={messages}>{children}</UiMessagesContext.Provider>;
+  const inheritedLocale = useContext(UiMessageLocaleContext);
+  return <UiMessageLocaleContext.Provider value={locale ?? inheritedLocale}>
+    <UiMessagesContext.Provider value={messages}>{children}</UiMessagesContext.Provider>
+  </UiMessageLocaleContext.Provider>;
 }
 
 /** Rendered by a localized page around its subtree. */
@@ -34,7 +40,8 @@ export function useUiLocale(): UiLocale {
 
 /** `t("English literal")` for client components. */
 export function useT(): (text: string, values?: MessageValues) => string {
-  const locale = useUiLocale();
+  const siteLocale = useUiLocale();
+  const locale = useContext(UiMessageLocaleContext) ?? siteLocale;
   const messages = useContext(UiMessagesContext);
   return useCallback(
     (text: string, values?: MessageValues) =>

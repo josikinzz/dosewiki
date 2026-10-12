@@ -31,6 +31,9 @@ vi.mock("next/navigation", async (original) => ({
   permanentRedirect: mocks.redirect,
 }));
 
+import glossarySeeds from "@/i18n/glossaryMessageSeeds.json";
+import { GlossaryRoute } from "@/features/language-glossary/GlossaryRoute";
+
 import GlossaryPage, { generateMetadata } from "./page";
 import ChineseGlossary, {
   generateMetadata as generateMirrorMetadata,
@@ -185,4 +188,44 @@ it("explains a stale Chinese term and retains the reader's suggestion", async ()
     "此术语已更改。请刷新页面后重试。",
   );
   expect(input).toHaveValue("欣快感");
+});
+
+
+it.each(Object.keys(glossarySeeds))("localizes the entire %s glossary without a mirror catalog wrapper", async (locale) => {
+  vi.mocked(globalThis.fetch).mockClear();
+  const messages = glossarySeeds[locale as keyof typeof glossarySeeds];
+  mocks.readPublicLanguageGlossary.mockResolvedValue({
+    language: glossaryLanguage(locale),
+    entries: projectGlossary([
+      { term: "Checked", kind: "effect-name", gloss: "English definition" },
+      { term: "Missing", kind: "effect-name", gloss: "Another English definition" },
+      { term: "Draft", kind: "effect-name", gloss: "Draft definition" },
+      { term: "Live", kind: "effect-name", gloss: "Live definition" },
+    ], [
+      { term: "Checked", target: "target", kind: "effect-name", status: "approved", provenance: "human_review", updated_at: 1 },
+      { term: "Draft", target: "draft", kind: "effect-name", status: "draft", updated_at: 1 },
+      { term: "Live", target: "live", kind: "effect-name", status: "approved", provenance: "legacy_unverified", updated_at: 1 },
+    ]),
+    usages: {},
+  });
+  render(await GlossaryRoute({ locale }));
+  expect(screen.getByRole("heading", { name: messages.Glossary })).toBeVisible();
+  expect(document.querySelector("[data-glossary-contribute]")).toHaveTextContent(messages["Help improve these translations"]);
+  expect(screen.getByLabelText(messages["Search terms"])).toBeVisible();
+  expect(screen.getByText("English definition")).toHaveAttribute("lang", "en");
+  for (const [term, status, tone] of [
+    ["Checked", "human_review", "green"],
+    ["Missing", "missing", "red"],
+    ["Draft", "machine_suggestion", "red"],
+    ["Live", "legacy_unverified", "red"],
+  ]) {
+    const row = screen.getByText(term, { selector: "span" }).closest("dt")!.parentElement!;
+    expect(within(row).getByText(messages[`languageGlossary.status.${status}` as keyof typeof messages])).toHaveAttribute("data-badge-tone", tone);
+  }
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(`^Missing\\s*${messages["Suggest a translation"]}$`) }));
+  expect(screen.getByLabelText(messages["Your translation"])).toHaveAttribute("lang", locale);
+  expect(screen.getByLabelText(messages["Note for reviewers (optional)"])).toBeVisible();
+  expect(screen.getByRole("button", { name: messages["Send to reviewers"] })).toBeDisabled();
+  expect(screen.getByText(messages["Suggestions are private. A person reviews each one."])).toBeVisible();
+  expect(globalThis.fetch).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ method: "POST" }));
 });
