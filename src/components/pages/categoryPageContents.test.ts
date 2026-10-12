@@ -61,6 +61,12 @@ describe("filterEffectsByTags", () => {
     ).toEqual(["visual-brightening"]);
   });
 
+  it("treats missing tags as an untagged effect without breaking other sections", () => {
+    const untagged = { slug: "untagged", name: "Untagged", summary: "No tags." } as CategoryEffect;
+    expect(filterEffectsByTags([untagged, ...effects], ["psychedelic", "visual"]))
+      .toEqual(effects.slice(0, 2));
+  });
+
   it("drops effects carrying an excluded tag", () => {
     expect(
       filterEffectsByTags(effects, ["psychedelic", "visual"], ["enhancement"]).map(

@@ -153,7 +153,7 @@
   "src/context/ThemeContext.tsx": 20,
   "src/data/builders/effectReverseJoin.test.ts": 1,
   "src/data/builders/searchManifest.ts": 2,
-  "src/data/builders/searchMatching.ts": 6,
+  "src/data/builders/searchMatching.ts": 5,
   "src/data/changelog/articleRecentChanges.ts": 1,
   "src/data/config/effectIndexFeaturedReplications.test.ts": 1,
   "src/data/content/copyBlockMigration.test.tsx": 1,

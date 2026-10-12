@@ -30,7 +30,7 @@ export function categorySectionAnchorId(section: DrugClassSection): string {
 }
 
 function hasTag(effect: CategoryEffect, tag: string): boolean {
-  return effect.tags.some((candidate) => candidate.toLowerCase() === tag.toLowerCase());
+  return (effect.tags ?? []).some((candidate) => candidate.toLowerCase() === tag.toLowerCase());
 }
 
 /**

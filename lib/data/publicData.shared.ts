@@ -149,8 +149,8 @@ export type SubjectiveEffectDetailRecord = SubjectiveEffectRecord & {
 export type PublicEffectArticle = SubjectiveEffectDetailRecord;
 
 export type PublicEffectSummary = Pick<PublicEffectArticle,
-  "slug" | "name" | "tags" | "summary" | "long_summary_raw" | "long_summary_ast" | "citations" | "subarticles"
->;
+  "slug" | "name" | "long_summary_raw" | "long_summary_ast" | "citations" | "subarticles"
+> & Partial<Pick<PublicEffectArticle, "tags" | "summary">>;
 
 export type PublicEffectIndexArticle = {
   slug: string;
