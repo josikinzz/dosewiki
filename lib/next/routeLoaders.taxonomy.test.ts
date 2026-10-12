@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getDrugClassContent } from "@/data/drugClassContent";
+import { resolveDrugClassSections } from "@/components/pages/categoryPageContents";
 import { getRouteLoaderMocks } from "./routeLoaders.testHarness";
 import {
   loadCategoryRoute,
@@ -128,6 +130,35 @@ describe("taxonomy route loaders", () => {
     expect(liveTranslation.localizeRecords).toHaveBeenCalledWith([summary], "zh-Hans", "effect");
     expect(result).toMatchObject({ kind: "ok", effects: [localized] });
   });
+
+  it.each([null, { code: "zh-Hans", pathPrefix: "/zh", htmlLang: "zh-Hans" }] as const)(
+    "preserves category membership when hydrating compact summaries for %j",
+    async (locale) => {
+      publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({
+        definition: { key: "psychedelic", name: "Psychedelics" }, total: 12,
+      });
+      const preview = {
+        slug: "colour-enhancement", name: "Colour enhancement", summary: "Brighter colours.",
+        featured: false, tags: ["psychedelic", "visual", "enhancement"],
+      };
+      publicData.getPublicEffects.mockResolvedValueOnce([preview]);
+      // The compact summary projection deliberately omits tags and short summary.
+      const summary = { slug: preview.slug, name: preview.name, long_summary_raw: "Detailed colours." };
+      publicData.getPublicEffectSummariesBySlugs.mockResolvedValueOnce([summary]);
+      if (locale) liveTranslation.localizeRecords.mockImplementationOnce(async (records) => ({
+        records: records.map((record: typeof preview) => ({ ...record, name: "色彩增强" })),
+      }));
+      const result = await loadCategoryRoute("psychedelic", locale);
+      expect(result.kind).toBe("ok");
+      if (result.kind !== "ok") throw new Error("Expected category route");
+      const sections = resolveDrugClassSections(getDrugClassContent("psychedelic"), result.effects);
+      expect(sections.flatMap(({ effects }) => effects.map(({ slug }) => slug))).toContain(preview.slug);
+      expect(result.effects[0]).toMatchObject({
+        tags: preview.tags, summary: preview.summary, long_summary_raw: summary.long_summary_raw,
+        name: locale ? "色彩增强" : preview.name,
+      });
+    },
+  );
 
   it("resolves category metadata without optional effect or gallery reads", async () => {
     publicLibrary.getPublicCategoryDetail.mockResolvedValueOnce({

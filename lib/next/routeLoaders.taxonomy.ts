@@ -181,7 +181,8 @@ export const loadCategoryRoute = cache(async (
   const summaryBySlug = new Map(summaries.map((effect) => [effect.slug, effect]));
   const canonicalEffects = previews
     .filter(({ slug }) => selectedSlugs.has(slug))
-    .map((effect) => summaryBySlug.get(effect.slug) ?? effect);
+    // Compact summaries add article content without replacing canonical tags.
+    .map((effect) => ({ ...effect, ...summaryBySlug.get(effect.slug) }));
   const effects = locale
     ? (await localizeRecords(canonicalEffects, locale.code, "effect")).records
     : canonicalEffects;
