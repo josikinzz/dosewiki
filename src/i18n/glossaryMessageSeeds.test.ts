@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import seeds from "./glossaryMessageSeeds.json";
+import { resolveUiMessage } from "./uiMessageDefinitions";
 import names from "./translationLocaleNames.json";
-import { uiCatalogFor } from "./serverMessages";
+import { glossaryUiCatalogFor } from "./serverMessages";
 import { GLOSSARY_CATEGORIES, OTHER_CATEGORY } from "@/lib/glossary/glossaryCategories";
 import { PUBLIC_GLOSSARY_PROVENANCES } from "@/features/language-glossary/languageGlossary";
 
@@ -25,10 +26,10 @@ it("covers every participating glossary language", () => {
   expect(Object.keys(seeds).sort()).toEqual(Object.keys(names).sort());
 });
 it.each(Object.keys(seeds))("publishes every %s glossary control with preserved placeholders", (locale) => {
-  const catalog = uiCatalogFor(locale)!;
+  const catalog = glossaryUiCatalogFor(locale)!;
   for (const key of controls) {
-    expect(catalog[key], `${locale}: ${key}`).toBeTruthy();
-    expect(catalog[key], `${locale}: ${key}`).not.toBe(key);
-    expect(tokens(catalog[key]), `${locale}: ${key}`).toEqual(tokens(key));
+    expect(resolveUiMessage(catalog, key), `${locale}: ${key}`).toBeTruthy();
+    expect(resolveUiMessage(catalog, key), `${locale}: ${key}`).not.toBe(key);
+    expect(tokens(resolveUiMessage(catalog, key)), `${locale}: ${key}`).toEqual(tokens(key));
   }
 });

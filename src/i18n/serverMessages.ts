@@ -13,7 +13,8 @@ import ko from "@content/i18n/messages/ko.json";
 import ru from "@content/i18n/messages/ru.json";
 import zhHans from "@content/i18n/messages/zh-Hans.json";
 import { formatMessage, type MessageValues } from "./messages";
-import { resolveUiMessage } from "./uiMessageDefinitions";
+import glossarySeeds from "./glossaryMessageSeeds.json";
+import { resolveUiMessage, uiMessageId } from "./uiMessageDefinitions";
 import { UI_MESSAGE_SEEDS } from "./uiMessageSeeds";
 
 /** Compiled catalog wording wins. A contextual message the checked-in catalog
@@ -40,7 +41,7 @@ const UI_CATALOGS: Readonly<Record<string, Readonly<Record<string, string>>>> = 
 };
 
 /** The catalog of one locale; English and unknown locales have none. */
-export function uiCatalogFor(locale: string): Readonly<Record<string, string>> | undefined {
+function uiCatalogFor(locale: string): Readonly<Record<string, string>> | undefined {
   return Object.prototype.hasOwnProperty.call(UI_CATALOGS, locale) ? UI_CATALOGS[locale] : undefined;
 }
 
@@ -48,4 +49,13 @@ export function uiCatalogFor(locale: string): Readonly<Record<string, string>> |
  * A locale without a catalog renders English, never another translation. */
 export function translateMessage(locale: string, text: string, values?: MessageValues): string {
   return formatMessage(resolveUiMessage(uiCatalogFor(locale), text), values);
+}
+
+
+/** Serialize only glossary controls, keeping full mirror catalogs on the server. */
+export function glossaryUiCatalogFor(locale: string): Readonly<Record<string, string>> {
+  const keys = glossarySeeds[locale as keyof typeof glossarySeeds];
+  if (!keys) return {};
+  const catalog = uiCatalogFor(locale);
+  return Object.fromEntries(Object.keys(keys).map((key) => [uiMessageId(key), resolveUiMessage(catalog, key)]));
 }
