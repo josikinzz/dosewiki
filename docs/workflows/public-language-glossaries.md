@@ -163,3 +163,28 @@ The broader suite recorded 6,147 passing tests and no failures before the
 existing `MoleculeQuickEditor.test.tsx` hung. That hang reproduced in the original
 checkout, so the full suite is not reported as complete. No production migration
 or deployment was performed.
+
+
+## Glossary interface languages
+
+The English reference is at `dose.wiki/glossary`. Chinese (`zh-Hans`) and
+Russian (`ru`) use `zh.dose.wiki/glossary` and `ru.dose.wiki/glossary`.
+Arabic (`ar`), Czech (`cs`), German (`de`), Spanish (`es`), French (`fr`),
+Hindi (`hi`), Japanese (`ja`), Korean (`ko`), Dutch (`nl`), Polish (`pl`),
+and Portuguese (`pt`) use `dose.wiki/glossary?locale=<code>` and have no
+language host. Glossary participation does not release a whole-site mirror.
+
+Every translation glossary loads its own compiled catalog inside the shared
+route, including languages without a site mirror. Only that language's catalog
+is passed to the client. The page, contribute banner, filters, suggestion form,
+feedback notices, usage controls and review badges are localized. Definitions,
+English terms and English source examples remain English. Badge colors and the
+shared renderer are unchanged.
+
+`src/i18n/glossaryMessageSeeds.json` contains editable interface translations,
+not term definitions or records of human review. `uiMessageSeeds.ts` includes
+these in the existing catalog producer. Regenerate each affected locale with
+`bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --locale <code> --offline --write`.
+Offline compilation changes local artifacts only and does not establish current
+workbench approval. The glossary coverage test checks every supported language,
+page control and placeholder; route tests exercise localized forms and badges.

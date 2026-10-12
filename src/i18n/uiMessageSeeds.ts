@@ -1,6 +1,8 @@
+import glossarySeeds from "./glossaryMessageSeeds.json";
+
 /** Baseline corrections supplied in the translation-workbench request.
  * These are build seeds, not records of human review in the workbench. */
-export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+const BASE_UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   "zh-Hans": {
     "This term changed. Reload the page before trying again.": "此术语已更改。请刷新页面后重试。",
     "Feedback is temporarily unavailable. Your draft has been kept.": "暂时无法提交反馈。草稿已保留。",
@@ -76,3 +78,8 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "translationCredits.title": "Участники перевода",
   },
 };
+
+/** Complete public glossary chrome for every participating translation language. */
+export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, string>>>> = Object.fromEntries(
+  Object.entries(glossarySeeds).map(([locale, messages]) => [locale, { ...BASE_UI_MESSAGE_SEEDS[locale], ...messages }]),
+);

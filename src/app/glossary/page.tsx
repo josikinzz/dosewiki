@@ -3,7 +3,7 @@ import { glossaryHref } from "@/features/language-glossary/glossaryRoutes";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { GlossaryRoute } from "@/features/language-glossary/GlossaryRoute";
 import { msg } from "@/i18n/messages";
-import { t } from "@/i18n/server";
+import { translateMessage } from "@/i18n/serverMessages";
 
 export async function generateMetadata({
   searchParams,
@@ -12,11 +12,12 @@ export async function generateMetadata({
 }) {
   const locale = (await searchParams).locale ?? "en";
   return buildPublicPageMetadata({
-    title: t(msg("Glossary")),
-    description: t(
-      msg(
-        "The fixed vocabulary of this site: what each term means here and, on a translated mirror, how it is rendered.",
-      ),
+    title: translateMessage(locale, msg("Glossary")),
+    description: translateMessage(
+      locale,
+      locale === "en"
+        ? msg("The fixed vocabulary of this site: what each term means here and, on a translated mirror, how it is rendered.")
+        : msg("Help translate dose.wiki. Click any term to suggest a translation. A person reviews every suggestion before anything changes."),
     ),
     route: { family: "glossary" },
     noIndex: locale !== "en",
