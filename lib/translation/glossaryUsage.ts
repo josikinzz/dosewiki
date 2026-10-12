@@ -12,7 +12,7 @@ import { buildEffectArticleModel, EFFECT_ARTICLE_SECTION_TITLES, type Subjective
 import { FLAT_CATEGORIES, PARENT_CATEGORIES, TABS } from "../../src/features/effects/pages/effectsIndexConfig";
 import { buildGalleryBrowseUrl, type GalleryBrowseState } from "../../src/features/replications/galleryUrlState";
 import { MEDIA_LABEL, MEDIA_OPTIONS, TAXONOMY_FILTER_CHIP_LABELS, TAXONOMY_FILTER_LABELS, TAXONOMY_FILTER_OPTIONS } from "../../src/features/replications/replicationVocabulary";
-import type { GlossaryUsageMap, GlossaryUsageNode, GlossaryUsageResponse } from "../../src/lib/glossary/glossaryUsage";
+import { GLOSSARY_USAGE_COVERAGE, type GlossaryUsageMap, type GlossaryUsageNode, type GlossaryUsageResponse } from "../../src/lib/glossary/glossaryUsage";
 import type { SubstanceArticle } from "../../src/schema/substance/article";
 import { getSubstanceSectionManifestEntries } from "../../src/schema/substance/sectionCatalog";
 import { effectIndexViewPath } from "../../src/utils/indexViewRoutes";
@@ -22,7 +22,6 @@ import { getPublicDataReadAdapter, type PublicDataReadAdapter } from "../data/pu
 import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG, publicDataCache } from "../data/publicData.cache";
 import { resolveRuntimePostgresTarget } from "../postgres/runtime/target";
 
-const COVERAGE = "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.";
 const PAGE_SIZE = 40;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const sections = getSubstanceSectionManifestEntries();
@@ -190,7 +189,7 @@ export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offs
     nodes: nodes.slice(offset, offset + PAGE_SIZE).map(({ text: _text, segment: _segment, ...node }) => node),
     totalSourceNodes: nodes.length,
     nextOffset: offset + PAGE_SIZE < nodes.length ? offset + PAGE_SIZE : null,
-    coverage: COVERAGE,
+    coverage: GLOSSARY_USAGE_COVERAGE,
   };
 }
 

@@ -1,6 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import glossarySeeds from "@/i18n/glossaryMessageSeeds.json";
+import { glossaryUiCatalogFor } from "@/i18n/serverMessages";
+import { UiMessagesProvider } from "@/i18n/client";
+import { GLOSSARY_USAGE_COVERAGE } from "@/lib/glossary/glossaryUsage";
 import { GlossaryUsageDisclosure } from "./GlossaryUsageDisclosure";
 
 const source = {
@@ -93,4 +97,16 @@ describe("GlossaryUsageDisclosure", () => {
     expect(screen.getByText("No matching source locations in the covered sources.")).toBeVisible();
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+});
+
+
+it.each(Object.keys(glossarySeeds))("localizes the %s coverage tooltip while retaining English source examples", async (locale) => {
+  const messages = glossarySeeds[locale as keyof typeof glossarySeeds];
+  const user = userEvent.setup();
+  render(<UiMessagesProvider locale={locale} messages={glossaryUiCatalogFor(locale)}>
+    <GlossaryUsageDisclosure term="Taking Off" initialData={{ ...source, coverage: GLOSSARY_USAGE_COVERAGE }} />
+  </UiMessagesProvider>);
+  await user.click(screen.getByRole("button", { name: `${messages["Where it is used"]}: Taking Off` }));
+  expect(screen.getByTitle(messages[GLOSSARY_USAGE_COVERAGE as keyof typeof messages])).toBeVisible();
+  expect(screen.getByRole("link", { name: "DMT" })).toHaveAttribute("lang", "en");
 });
