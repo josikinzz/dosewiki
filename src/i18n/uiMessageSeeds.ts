@@ -5,6 +5,8 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "This term changed. Reload the page before trying again.": "此术语已更改。请刷新页面后重试。",
     "Feedback is temporarily unavailable. Your draft has been kept.": "暂时无法提交反馈。草稿已保留。",
     "Help translate dose.wiki. Click any term to suggest a translation. A person reviews every suggestion before anything changes.": "帮助翻译 dose.wiki。点击任意术语即可提出翻译建议。任何更改都须经人工审校。",
+    "Help improve these translations": "帮助改进这些翻译",
+    "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "发现某个译法可以改进？点击任意术语上的建议按钮提交您的译法。任何更改都须经人工审校。",
     "Needs a person": "需要人工审校",
     "{{checked}} of {{total}} terms checked by a person": "共 {{total}} 个术语，{{checked}} 个已人工审校",
     "{{count}} need help": "{{count}} 个需要帮助",
@@ -57,6 +59,8 @@ export const UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, s
     "translationCredits.title": "翻译贡献者",
   },
   ru: {
+    "Help improve these translations": "Помогите улучшить эти переводы",
+    "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Видите формулировку, которую можно улучшить? Нажмите кнопку предложения у любого термина, чтобы предложить исправление. Каждое предложение проверяет человек, прежде чем что-либо изменится.",
     "article.machineTranslationNotice": "Эта страница переведена автоматически, приоритет имеет [английский оригинал]({{englishUrl}}). Ещё не переведённые абзацы остаются на английском.",
     "article.humanReviewedNotice": "Проверено человеком · {{date}} · [английский оригинал]({{englishUrl}})",
     "article.paragraphsReviewed": "Проверено человеком: {{reviewed}} из {{total}} абзацев.",

@@ -14,7 +14,10 @@ reviewer identity and private feedback. Pending workbench drafts are shown as
 proposed wording (a suggestion) while the effective approved term remains
 unchanged.
 
-The page is the public place to crowdsource a language's terms. A progress line
+The page is the public place to crowdsource a language's terms. A banner above
+the list invites readers to help and explains that the suggest button on any
+term opens its proposal box; the reference page shows the same banner, pointing
+at the language glossaries instead. A progress line
 counts terms checked by a person. Terms that still need a person come first, in
 a "Needs a person" section ordered not translated, machine suggestion, then live
 but unchecked (`sortByReviewPriority` in `languageGlossary.ts`); checked terms
