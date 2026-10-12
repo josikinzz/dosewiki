@@ -253,6 +253,42 @@ it("restores the stored reaction in a new session and offers removal", async () 
     screen.getByRole("button", { name: "Needs improvement" }),
   ).toHaveAttribute("aria-pressed", "true");
 });
+it("invites suggestions in a banner above the list, and styles each suggest control as a chip with an icon", () => {
+  zhPage();
+  const banner = screen
+    .getByText("Help improve these translations")
+    .closest("[data-glossary-contribute]")!;
+  expect(banner).toBeVisible();
+  expect(banner).toHaveTextContent("Tap the suggest button on any term");
+  const chips = screen.getAllByText(/Suggest a (better )?translation/, {
+    selector: "span.rounded-full",
+  });
+  expect(chips.length).toBeGreaterThan(0);
+  for (const chip of chips) {
+    expect(chip).toHaveClass("border");
+    expect(chip.closest("button")).not.toBeNull();
+  }
+});
+
+it("shows the contribute banner on the English reference too, pointing at the language glossaries", () => {
+  render(
+    <LanguageGlossaryPage
+      reference
+      language={{ code: "en", name: "English", nativeName: "English", direction: "ltr" }}
+      entries={entries}
+      usages={{}}
+    />,
+  );
+  const banner = screen
+    .getByText("Help translate dose.wiki")
+    .closest("[data-glossary-contribute]")!;
+  expect(banner).toHaveTextContent("This page is the English reference");
+  expect(
+    within(banner as HTMLElement).getByRole("link", { name: "All glossaries" }),
+  ).toHaveAttribute("href", "/glossary/languages");
+  expect(screen.queryByText(/Suggest a (better )?translation/)).toBeNull();
+});
+
 it("credits the language's translation contributors near the header, and omits the block when no one is credited", () => {
   const { unmount } = render(
     <LanguageGlossaryPage

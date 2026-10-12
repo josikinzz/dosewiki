@@ -5,6 +5,7 @@ import {
   DefinitionList,
   DefinitionRow,
 } from "@/components/common/DefinitionList";
+import { Icon } from "@/components/common/Icon";
 import { StateCard } from "@/components/common/StateCard";
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { PublicPill } from "@/components/common/PublicTokens";
@@ -137,6 +138,7 @@ export function LanguageGlossaryPage({
           {t("All glossaries")}
         </SmartLink>
       </p>
+      <ContributeCallout reference={reference} />
       <TranslationCredits
         className="mb-8"
         title={t("translationCredits.title")}
@@ -271,6 +273,50 @@ export function LanguageGlossaryPage({
   );
 }
 
+/**
+ * The standing invitation above the list: suggestions are welcome here, and
+ * the way to make one is the suggest button on any term. The reference page
+ * has no per-term buttons, so its copy points at the language glossaries.
+ */
+function ContributeCallout({ reference }: { reference: boolean }) {
+  const t = useT();
+  return (
+    <div
+      data-glossary-contribute
+      className="mb-8 flex items-start gap-3 rounded-card border border-dose-accent/35 bg-dose-accent/10 p-4 sm:p-5"
+    >
+      <Icon
+        icon="lucide:languages"
+        size={20}
+        className="theme-icon-accent mt-0.5 shrink-0"
+      />
+      <div className="space-y-1">
+        <p className="theme-text-primary font-semibold">
+          {reference
+            ? t("Help translate dose.wiki")
+            : t("Help improve these translations")}
+        </p>
+        <p className="theme-text-secondary text-sm leading-6">
+          {reference ? (
+            <>
+              {t(
+                "This page is the English reference. Open a language glossary and tap the suggest button on any term to propose a translation. A person reviews every suggestion before anything changes.",
+              )}{" "}
+              <SmartLink className="underline" href="/glossary/languages">
+                {t("All glossaries")}
+              </SmartLink>
+            </>
+          ) : (
+            t(
+              "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.",
+            )
+          )}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function TermRow({
   entry,
   reference,
@@ -327,7 +373,12 @@ function TermRow({
             ) : null}
           </span>
           {!reference ? (
-            <span className="text-dose-accent-strong text-sm group-hover:underline">
+            <span className="type-chip-label mt-0.5 inline-flex h-6 items-center gap-1.5 rounded-full border border-dose-accent/35 bg-dose-accent/10 px-2.5 text-dose-accent-strong transition-colors group-hover:border-dose-accent-strong group-hover:bg-dose-accent/20">
+              <Icon
+                icon="lucide:message-square-plus"
+                size={12}
+                className="shrink-0"
+              />
               {entry.target
                 ? t("Suggest a better translation")
                 : t("Suggest a translation")}
