@@ -31,6 +31,19 @@ function adapter(): PublicDataReadAdapter {
 }
 
 describe("source-derived translation coverage", () => {
+  it("uses bulk public source projections with identical segmentation instead of per-slug reads", async () => {
+    const reads = adapter();
+    const expected = await buildCoverageInventory(reads);
+    reads.getPublicTranslationSubstanceDocuments = vi.fn(async () => [await reads.getPublicSubstanceBySlug("article")] as never);
+    reads.getPublicEffectArticles = vi.fn(async () => [await reads.getPublicEffectBySlug("effect")] as never);
+    const articleSlugs = vi.mocked(reads.getPublicSubstanceSlugs);
+    articleSlugs.mockClear();
+    const actual = await buildCoverageInventory(reads);
+    expect(actual.records).toEqual(expected.records);
+    expect(articleSlugs).not.toHaveBeenCalled();
+    expect(reads.getPublicTranslationSubstanceDocuments).toHaveBeenCalledTimes(1);
+    expect(reads.getPublicEffectArticles).toHaveBeenCalledTimes(1);
+  });
   it("counts never-stored source units in every public corpus even when all existing jobs completed", async () => {
     const report = await getTranslationCoverage(adapter(), context);
     expect(report.byKind.map(({ kind }) => kind)).toEqual(["article", "effect", "report", "library", "replication", "profile"]);

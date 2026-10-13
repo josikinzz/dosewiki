@@ -61,6 +61,7 @@ export const GET = protectedRouteOperation({
   unexpectedErrorLabel: "Review inbox read failed",
   unexpectedErrorMessage: "Unable to read the review inbox right now.",
   operation: async ({ request, auth, actorEmail }) => {
+    const started = performance.now();
     const params = new URL(request.url).searchParams;
     const locale = parseLocale(params.get("locale"));
     const offset = parseOffset(params.get("offset"));
@@ -69,8 +70,13 @@ export const GET = protectedRouteOperation({
     if (denied) return denied;
     getDataBackend();
     const suggestions = await readSuggestions(locale, actorEmail);
+    const suggestionsRead = performance.now();
     const inbox = await readReviewInbox(getPublicDataReadAdapter(), locale, offset, { suggestions, reason });
+    const inboxRead = performance.now();
     const body: InboxResponse = { ok: true, locale, offset, pageSize: INBOX_PAGE_SIZE, ...inbox };
-    return NextResponse.json(body, { headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json(body, { headers: {
+      "Cache-Control": "private, no-store",
+      "Server-Timing": `suggestions;dur=${(suggestionsRead - started).toFixed(1)}, inbox;dur=${(inboxRead - suggestionsRead).toFixed(1)}`,
+    } });
   },
 });

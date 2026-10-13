@@ -57,6 +57,10 @@ export const publicDataReadCatalog = {
       limit: 4,
     }),
   },
+  publicTranslationSubstanceDocumentsPage: {
+    functionName: "substanceIndex:getPublicTranslationTextInputPage",
+    args: (cursor?: string) => ({ ...(cursor ? { cursor } : {}), limit: 32 }),
+  },
   publicSubstanceLookup: {
     functionName: "substanceIndex:getPublicLookupPage",
     args: (cursor?: string) => ({

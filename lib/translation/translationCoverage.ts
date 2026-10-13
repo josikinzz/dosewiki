@@ -31,7 +31,14 @@ export async function buildCoverageInventory(reads: PublicDataReadAdapter): Prom
   const records: CoverageSourceRecord[] = [];
   let units = 0;
   for (const kind of TRANSLATION_RECORD_KINDS) {
-    for (const source of await publicRecords(reads, kind)) {
+    // Runtime adapters provide bulk public projections. Partial offline/test
+    // adapters retain the same per-record fallback and segmentation contract.
+    const sources = kind === "article" && reads.getPublicTranslationSubstanceDocuments
+      ? await reads.getPublicTranslationSubstanceDocuments()
+      : kind === "effect" && reads.getPublicEffectArticles
+        ? await reads.getPublicEffectArticles()
+        : await publicRecords(reads, kind);
+    for (const source of sources) {
       const recordUnits = workUnitsOf(segmentsOf(source, kind), kind).map(({ hash, source: text }) => ({ hash, source: text }));
       units += recordUnits.length;
       if (units > MAX_INVENTORY_UNITS) throw new Error("Translation inventory exceeds the interactive audit limit. Run the offline coverage audit.");

@@ -32,8 +32,15 @@ function rowFor(locale: string, id: string, entry?: ReviewEntry, glossary?: read
 export function isUiCatalogRefreshed(locale: string): boolean {
   return getUiCatalogPendingRefresh(locale).refreshed;
 }
-export async function readUiTranslations(locale: string): Promise<UiTranslationRow[]> {
+export async function readUiTranslations(locale: string, options: { approvedOnly?: boolean } = {}): Promise<UiTranslationRow[]> {
   resolveLocale(locale);
+  // Waiting checks existing approvals only. It needs neither thousands of
+  // unapproved catalog rows nor their glossary mention projections.
+  if (options.approvedOnly) {
+    const entries = await readReviewEntries(locale, "ui");
+    return entries.filter((entry) => entry.approved && getUiMessageInventoryDefinition(entry.sourceId))
+      .map((entry) => rowFor(locale, entry.sourceId, entry));
+  }
   const [entries, glossary] = await Promise.all([readReviewEntries(locale, "ui"), readGlossaryMentionIndex(locale)]);
   const rows = new Map(entries.map((row) => [row.sourceId, row]));
   return Object.keys(UI_MESSAGE_INVENTORY).map((id) => rowFor(locale, id, rows.get(id), glossary));

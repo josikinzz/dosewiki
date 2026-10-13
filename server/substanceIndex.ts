@@ -415,6 +415,22 @@ export const getPublicArticleTextInputPage = query({
   },
 });
 
+/** Translation audits drain public article text in bounded batches, avoiding per-slug reads. */
+export const getPublicTranslationTextInputPage = query({
+  args: publicCorpusPageArgs,
+  handler: async (ctx, args) => {
+    const result = await ctx.db.query("substanceIndex").paginate({
+      cursor: args.cursor ?? null,
+      numItems: Math.min(32, clampPublicCorpusPageSize(args.limit)),
+    });
+    return {
+      items: result.page.map(projectPublicArticle),
+      cursor: result.continueCursor,
+      isDone: result.isDone,
+    };
+  },
+});
+
 export const getPublicCoverageInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
