@@ -355,7 +355,7 @@ describe("GlossaryTab", () => {
     // Run controls sit in the collapsed Runs panel inside Articles.
     expect(screen.queryByRole("button", { name: /^Retranslate/ })).toBeNull();
     await user.click(viewButton("Articles"));
-    await user.click(screen.getByRole("button", { name: /^Runs/ }));
+    await user.click(await screen.findByRole("button", { name: /^Runs/ }));
     expect(screen.getAllByRole("button", { name: /^Retranslate/ })).toHaveLength(1);
     unmount();
     window.history.replaceState({}, "", "/dev/glossary?translationView=words&translationCategory=effects");
@@ -730,19 +730,18 @@ describe("workbench views", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("opens on Waiting without fetching the usage corpus, and Terms opens on category choices", async () => {
+  it("opens on Terms and category choices without fetching Waiting or the usage corpus", async () => {
     stubGlossaryApi([row("anxiety", "draft")]);
-    const user = userEvent.setup();
     render(<GlossaryTab viewerRole="translator" />);
     await screen.findByTestId("glossary-summary");
     const views = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab");
     // Each tab's name leads with the view; a count may follow it.
-    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Waiting", "Terms", "Interface text", "Articles", "Style guide"]);
-    expect(viewButton("Waiting")).toHaveAttribute("aria-selected", "true");
-    expect(await screen.findByRole("region", { name: "Waiting for review" })).toBeVisible();
+    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Terms", "Waiting", "Interface text", "Articles", "Style guide"]);
+    expect(viewButton("Terms")).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("region", { name: "Waiting for review" })).toBeNull();
     const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
     expect(requests.some((url) => url.includes("includeUsage=0"))).toBe(true);
-    await user.click(viewButton("Terms"));
+    expect(requests.some((url) => url.includes("translation-inbox"))).toBe(false);
     expect(screen.getByRole("button", { name: /^Subjective Effect Index:/ })).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("textbox", { name: "Translation for anxiety" })).toBeNull();
   });

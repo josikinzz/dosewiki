@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Glossary, the translation workbench: `/dev/glossary`, opening on Waiting, which lists
+ * Glossary, the translation workbench: `/dev/glossary`, opening on Terms. Waiting lists
  * what needs a person. Terms and Interface text share one search. Articles
  * opens on the articles needing review and holds the article reader, per-page
  * coverage, recorded changes, reader feedback and, for admins, the runs with
@@ -87,18 +87,17 @@ import {
   type GlossaryRowPatch,
   type GlossaryStatusFilter,
 } from "./glossaryModel";
-import { ArticlesView, type ArticlesSection } from "./ArticlesView";
+import type { ArticlesSection } from "./ArticlesView";
 import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
 import { type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
 import { GlossaryActionBar } from "./GlossaryToolbar";
-import { ReviewInbox } from "./ReviewInbox";
 import { StatusLegend } from "./StatusLegend";
-import { StyleGuidePanel } from "./StyleGuidePanel";
 import { TermsWorkspace } from "./TermsWorkspace";
 import { type NextCategory } from "./TermsOverview";
-import { UiTranslationWorkbench, type UiEditDrafts } from "./UiTranslationWorkbench";
+import type { UiEditDrafts } from "./UiTranslationWorkbench";
 import { RowSkeletons } from "./workbenchParts";
+import { ArticlesView, ReviewInbox, StyleGuidePanel, UiTranslationWorkbench } from "./lazyPanels";
 
 /** A write's outcome: the message to show, and the written rows to patch in place (`null` reloads the locale instead). */
 type WriteResult = { message: string; patch: GlossaryRowPatch | null };
@@ -135,10 +134,10 @@ type WorkbenchNotice = NoticeMessage & { where: "terms" | "runs" };
 /** The one nav: glossary terms, UI labels, and the style guide are the Words view's lists; Articles is the Pages view. */
 type WorkbenchSection = WordsList | Exclude<WorkbenchView, "words">;
 
-/** Inbox first: it is where the workbench opens, with everything waiting for a person. */
+/** Terms opens first; Waiting gathers everything needing a person. */
 const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
-  { value: "inbox", label: "Waiting" },
   { value: "terms", label: "Terms" },
+  { value: "inbox", label: "Waiting" },
   { value: "labels", label: "Interface text" },
   { value: "pages", label: "Articles" },
   { value: "style", label: "Style guide" },
@@ -162,7 +161,7 @@ type GlossaryTabProps = {
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const fieldId = useId();
-  const [view, setView] = useState<WorkbenchView>("inbox");
+  const [view, setView] = useState<WorkbenchView>("words");
   /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
   const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
   const [wordsList, setWordsList] = useState<WordsList>("terms");
@@ -172,10 +171,10 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [articleLink, setArticleLink] = useState(0);
   /** Set while the view on screen was opened by an Inbox item's Edit, so the reviewer has one step back. */
   const [fromInbox, setFromInbox] = useState(false);
-  // Opens on the Inbox unless a deep link names a view; links written for the
+  // Opens on Terms unless a deep link names a view; links written for the
   // older five views map onto these three (see parseWorkbenchDeepLink).
   const applyDeepLink = (search: string) => {
-    const link = parseWorkbenchDeepLink(search) ?? { view: "inbox" as const };
+    const link = parseWorkbenchDeepLink(search) ?? { view: "words" as const, words: "terms" as const };
     setView(link.view);
     setVisitedViews((visited) => ({ ...visited, [link.view]: true, labels: visited.labels || link.words === "labels", style: visited.style || link.words === "style" }));
     if (link.words) setWordsList(link.words);

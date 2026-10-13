@@ -71,7 +71,7 @@ async function glossaryItems(locale: string): Promise<InboxItem[]> {
 }
 
 async function uiItems(locale: string): Promise<InboxItem[]> {
-  return (await readUiTranslations(locale))
+  return (await readUiTranslations(locale, { approvedOnly: true }))
     .filter((row) => row.approved && row.status !== "draft" && (row.approved.source !== row.source || row.approved.context !== row.context))
     .map((row) => ({
       scope: "ui",

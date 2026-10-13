@@ -136,6 +136,8 @@ export type PublicDataReadAdapter = {
   getPublicEffectMembershipInput(): Promise<PublicSubstanceLibraryRecord[]>;
   getPublicCoverageSubstances(): Promise<CoverageRow[]>;
   getPublicSubstanceDocuments(): Promise<PublicSubstanceArticleRecord[]>;
+  /** Bounded bulk source for whole-corpus translation audits. */
+  getPublicTranslationSubstanceDocuments?(): Promise<PublicSubstanceArticleRecord[]>;
   getPublicMechanismRouteInput(): Promise<PublicMechanismRouteInput[]>;
   getPublicAboutPreviewSubstances(): Promise<PublicSubstanceArticleRecord[]>;
   getPublicCategoryLayout(): Promise<PublicCategoryLayout | null>;
@@ -292,6 +294,12 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       queryPaginatedPublicProjectionRead(
         query,
         publicDataReadCatalog.publicSubstanceDocumentsPage,
+        parsePublicSubstanceRecordsWithoutProvenance,
+      ),
+    getPublicTranslationSubstanceDocuments: () =>
+      queryPaginatedPublicProjectionRead(
+        query,
+        publicDataReadCatalog.publicTranslationSubstanceDocumentsPage,
         parsePublicSubstanceRecordsWithoutProvenance,
       ),
     getPublicCoverageSubstances: () =>
@@ -855,4 +863,3 @@ export function getPublicDataReadAdapter(): PublicDataReadAdapter {
 export function setPublicDataReadAdapterForTest(adapter: PublicDataReadAdapter) {
   publicDataReadAdapter = adapter;
 }
-

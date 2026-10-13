@@ -10,7 +10,7 @@ import { RunsPanel } from "./RunsPanel";
 import type { GlossaryList, GlossaryRow } from "./glossaryModel";
 
 /**
- * The translator's day in the workbench: it opens on the Inbox, Articles
+ * The translator's day in the workbench: it opens on Terms, Articles
  * lists what needs review, and terms, interface text, article paragraphs and
  * the style guide share one reason control and one save-then-approve model.
  * `zh-Hans` is the locale because the code is distinctive enough that a
@@ -118,13 +118,13 @@ describe("translation workbench for a translator", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("opens on Waiting, first in the nav", async () => {
+  it("opens on Terms, first in the nav", async () => {
     const { reads } = stubWorkbench();
     render(<GlossaryTab viewerRole="translator" />);
-    await waitFor(() => expect(view("Waiting")).toHaveAttribute("aria-selected", "true"));
+    await waitFor(() => expect(view("Terms")).toHaveAttribute("aria-selected", "true"));
     const names = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab").map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim());
-    expect(names[0]).toBe("Waiting");
-    await waitFor(() => expect(reads.some((read) => read.startsWith("/api/dev/translation-inbox"))).toBe(true));
+    expect(names.slice(0, 2)).toEqual(["Terms", "Waiting"]);
+    expect(reads.some((read) => read.startsWith("/api/dev/translation-inbox"))).toBe(false);
   });
 
   it("says in the header that a translator can approve their own edits", async () => {
@@ -191,6 +191,7 @@ describe("translation workbench for a translator", () => {
     stubWorkbench();
     const user = userEvent.setup();
     render(<GlossaryTab viewerRole="admin" />);
+    await user.click(await screen.findByRole("tab", { name: /^Waiting/ }));
     await screen.findByRole("region", { name: "Waiting for review" });
     // Each view's own content has loaded before its text is read; hidden views stay mounted, so they are read too.
     const loaded: [string, () => Promise<unknown>][] = [

@@ -449,6 +449,38 @@ Postgres runtime under `DATA_BACKEND=postgres`:
    state; a refetch only reaches the working set when the row's identity
    changed, so unsaved drafts survive polling and tab switches
 
+`/dev/glossary` opens on Terms, followed by Waiting. Explicit Waiting and
+older workbench deep links keep their destinations. Visited panels stay
+mounted to retain edits, while Waiting, Articles, Interface text, and Style
+guide load their browser modules on first visit. Terms keeps its full search
+and filters; only an opened category or search results mount term editors.
+
+Waiting returns 50 items with complete reason counts. Its source inventory
+uses bounded public article pages of up to 32 rows and the public effect bulk
+projection, then retains the existing five-minute inventory and findings
+caches. The UI check reads existing human approvals without projecting every
+catalog message's glossary annotations. Glossary findings use a literal
+fragment prefilter followed by the shared inflection matcher. Exceptions and
+reader suggestions keep their existing fresh reads and revision checks.
+The private inbox response exposes `suggestions` and `inbox` durations in
+`Server-Timing` for authenticated browser inspection.
+
+The performance regression test is
+`lib/translation/reviewInboxFindings.perf.test.ts`: an isolated PGlite database
+with 693 glossary terms and 200 archived substance articles (7,128 source
+units). Terms are treated as approved and stored translations are synthetic
+English, so this measures a repeatable workload rather than production
+translation quality or production latency. Before this change, one local
+cold read took 1,554 ms with 224 SQL reads, including 203 source reads;
+the same workload afterwards took 488 ms with 27 SQL reads, including nine
+source reads. Warm reads fell from 815 to 26 ms. Both scans returned 4,674
+findings and the same 55,074-byte inbox payload. Timing assertions are avoided;
+the test enforces bounded source reads and unchanged page results.
+In the local development browser with a 693-term API fixture, the Terms
+summary rendered 72 ms after the fixture became available and issued no
+Waiting request. Development compilation and hydration are not production
+load-time evidence.
+
 ### Editor save-article flow
 
 The preferred live-content save path, for an admin session, is:
