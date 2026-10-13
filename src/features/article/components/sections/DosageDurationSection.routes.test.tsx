@@ -46,6 +46,39 @@ vi.mock("framer-motion", () => ({
   useReducedMotion: () => false,
 }));
 
+describe("DosageDurationSection Piru pill", () => {
+  const pill = () => screen.queryByRole("link", { name: /Log a dose in Piru/ });
+
+  it("carries the article slug and the selected route", async () => {
+    const user = userEvent.setup();
+    render(
+      <DosageDurationSection
+        piruSlug="mdma"
+        article={articleWithRoutes(
+          [dosedRoute("oral"), dosedRoute("sublingual")],
+          [timedRoute("oral")],
+        )}
+      />,
+    );
+
+    expect(new URL(pill()!.getAttribute("href")!).searchParams.get("route")).toBe("oral");
+    await user.click(screen.getByRole("tab", { name: "Sublingual route" }));
+    const href = new URL(pill()!.getAttribute("href")!);
+    expect(href.searchParams.get("substance")).toBe("mdma");
+    expect(href.searchParams.get("route")).toBe("sublingual");
+  });
+
+  it("renders no pill without a slug", () => {
+    render(
+      <DosageDurationSection
+        article={articleWithRoutes([dosedRoute("oral")], [timedRoute("oral")])}
+      />,
+    );
+
+    expect(pill()).not.toBeInTheDocument();
+  });
+});
+
 describe("DosageDurationSection route tabs", () => {
   it("drops routes that are hollow on both sides", () => {
     render(

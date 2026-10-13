@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
+import { PiruLogLink } from "../../piru/PiruLinks.client";
 
 export interface DosageDurationRouteView {
   key: string;
@@ -19,9 +20,12 @@ export const DosageDurationSectionView = memo(
   function DosageDurationSectionView({
     routes,
     initialRoute,
+    piruSlug,
   }: {
     routes: readonly DosageDurationRouteView[];
     initialRoute: string;
+    /** Article slug for the "Log in Piru" pill; absent renders no pill. */
+    piruSlug?: string;
   }) {
     const t = useT();
     const [activeRoute, setActiveRoute] = useState(initialRoute);
@@ -30,6 +34,8 @@ export const DosageDurationSectionView = memo(
       if (!routes.some((route) => route.key === activeRoute))
         setActiveRoute(initialRoute);
     }, [activeRoute, initialRoute, routes]);
+
+    const activeRouteView = routes.find((route) => route.key === activeRoute);
 
     return (
       <ArticleSection
@@ -42,36 +48,46 @@ export const DosageDurationSectionView = memo(
           onValueChange={setActiveRoute}
           className="w-full"
         >
-          <TabsList className="theme-route-tabs-list theme-text-muted mb-3 flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-[var(--theme-elevation-none)]">
-            {routes.map((route) => {
-              const isActive = route.key === activeRoute;
-              return (
-                <TabsTrigger
-                  key={route.key}
-                  value={route.key}
-                  aria-label={t("{{route}} route", { route: t(route.label) })}
-                  className={cn(
-                    "theme-selected-control group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
-                    "border-transparent bg-transparent shadow-[var(--theme-elevation-none)] hover:border-transparent hover:bg-transparent",
-                    "active:scale-[0.99] motion-reduce:active:scale-100",
-                  )}
-                >
-                  {route.icon ? (
-                    <span
-                      className={cn(
-                        "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
-                        !isActive &&
-                          "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
-                      )}
-                    >
-                      <Icon icon={route.icon} size={16} />
-                    </span>
-                  ) : null}
-                  <span className="relative">{t(route.label)}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <TabsList className="theme-route-tabs-list theme-text-muted flex h-auto flex-wrap justify-start gap-1.5 !border-0 !bg-transparent p-0 shadow-[var(--theme-elevation-none)]">
+              {routes.map((route) => {
+                const isActive = route.key === activeRoute;
+                return (
+                  <TabsTrigger
+                    key={route.key}
+                    value={route.key}
+                    aria-label={t("{{route}} route", { route: t(route.label) })}
+                    className={cn(
+                      "theme-selected-control group relative isolate min-h-8 gap-1.5 overflow-hidden rounded-full border px-3 py-1.5 text-sm font-medium transition-[transform,background-color,color,box-shadow,border-color] duration-[260ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
+                      "border-transparent bg-transparent shadow-[var(--theme-elevation-none)] hover:border-transparent hover:bg-transparent",
+                      "active:scale-[0.99] motion-reduce:active:scale-100",
+                    )}
+                  >
+                    {route.icon ? (
+                      <span
+                        className={cn(
+                          "theme-selected-control-icon relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,color,box-shadow,transform] duration-300",
+                          !isActive &&
+                            "bg-transparent ring-transparent shadow-[var(--theme-elevation-none)]",
+                        )}
+                      >
+                        <Icon icon={route.icon} size={16} />
+                      </span>
+                    ) : null}
+                    <span className="relative">{t(route.label)}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+            {piruSlug && activeRouteView ? (
+              <PiruLogLink
+                slug={piruSlug}
+                routeKey={activeRouteView.key}
+                routeLabel={activeRouteView.label}
+                className="ml-auto"
+              />
+            ) : null}
+          </div>
           {routes.map((route) =>
             route.key === activeRoute ? (
               <TabsContent key={route.key} value={route.key} className="mt-3">

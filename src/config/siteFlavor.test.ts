@@ -62,6 +62,7 @@ describe("site flavor config", () => {
       showColorSchemeToggle: true,
       defaultVisualStyle: "fun",
       showVisualStyleToggle: true,
+      showPiruLinks: true,
     });
     expect(config.primaryNavIds).toEqual(["substances", "effects", "reports", "replications"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
@@ -105,6 +106,8 @@ describe("site flavor config", () => {
       // style control — the lock is what keeps Effect Index looking like Effect Index.
       defaultVisualStyle: "pro",
       showVisualStyleToggle: false,
+      // Piru resolves dose.wiki slugs, so its article links stay on dose.wiki.
+      showPiruLinks: false,
     });
     expect(config.primaryNavIds).toEqual(["effects", "replications", "substances", "reports"]);
     expect(config.secondaryNavIds).toEqual(["about"]);
