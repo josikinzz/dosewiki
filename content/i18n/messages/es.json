@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "Publicado, aún sin revisar",
   "languageGlossary.status.machine_suggestion": "Sugerencia automática",
   "languageGlossary.status.missing": "Aún sin traducir",
+  "languageGlossary.suggest.better": "Sugerir una traducción mejor",
   "Loading usage sources...": "Cargando fuentes de uso...",
   "Looks right": "Parece correcta",
   "matching source locations": "ubicaciones coincidentes en las fuentes",

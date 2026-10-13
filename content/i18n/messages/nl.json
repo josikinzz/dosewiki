@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "Gepubliceerd, nog niet gecontroleerd",
   "languageGlossary.status.machine_suggestion": "Machinevoorstel",
   "languageGlossary.status.missing": "Nog niet vertaald",
+  "languageGlossary.suggest.better": "Een betere vertaling voorstellen",
   "Loading usage sources...": "Gebruiksbronnen laden...",
   "Looks right": "Lijkt juist",
   "matching source locations": "overeenkomende plaatsen in bronnen",

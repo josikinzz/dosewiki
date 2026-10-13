@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "公開済み、未確認",
   "languageGlossary.status.machine_suggestion": "機械による提案",
   "languageGlossary.status.missing": "未翻訳",
+  "languageGlossary.suggest.better": "よりよい翻訳を提案",
   "Loading usage sources...": "使用箇所の出典を読み込み中...",
   "Looks right": "正しそう",
   "matching source locations": "一致する出典箇所",

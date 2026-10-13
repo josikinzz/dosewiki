@@ -7,6 +7,12 @@ export type UiMessageDefinition = {
 };
 
 export const UI_MESSAGE_DEFINITIONS = {
+  "languageGlossary.suggest.better": {
+    source: "Suggest a better translation",
+    context: "Compact suggestion chip on a glossary term with existing wording. Opens a proposal form, never applies a change. Keep translations short enough for the fixed-height chip.",
+    locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
+    glossaryTerms: [],
+  },
   "appearance.light": {
     source: "Light",
     context: "Appearance setting: a light color scheme. Not dose intensity or weight.",
