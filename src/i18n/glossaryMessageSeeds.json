@@ -20,7 +20,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Определения пишутся в редакторе и появляются здесь после сохранения первого из них.",
     "Help improve these translations": "Помогите улучшить эти переводы",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Видите формулировку, которую можно улучшить? Нажмите кнопку предложения у любого термина, чтобы предложить исправление. Каждое предложение проверяет человек, прежде чем что-либо изменится.",
-    "Suggest a better translation": "Предложить лучший перевод",
     "Suggest a translation": "Предложить перевод",
     "languageGlossary.example.source": "Открыть это предложение на сайте",
     "Unable to load your reaction.": "Не удалось загрузить вашу оценку.",
@@ -65,7 +64,8 @@
     "Drug classes and reagents": "Классы веществ и реагенты",
     "Harm-reduction register": "Лексика снижения вреда",
     "Other": "Другое",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Поиск охватывает стандартные подписи индексов и фильтров воссозданий ощущений, заголовки, поля дозировок и длительности, а также английский текст в общедоступных статьях о веществах, эффектах и опубликованных материалах библиотеки. Подсчитываются места в источниках, а не страницы или повторные упоминания. Значки художников и другое содержимое сайта не включены в поиск."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Поиск охватывает стандартные подписи индексов и фильтров воссозданий ощущений, заголовки, поля дозировок и длительности, а также английский текст в общедоступных статьях о веществах, эффектах и опубликованных материалах библиотеки. Подсчитываются места в источниках, а не страницы или повторные упоминания. Значки художников и другое содержимое сайта не включены в поиск.",
+    "languageGlossary.suggest.better": "Предложить лучший перевод"
   },
   "nl": {
     "Needs a person": "Controle door een persoon nodig",
@@ -88,7 +88,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Definities worden in de editor geschreven en verschijnen hier zodra de eerste is opgeslagen.",
     "Help improve these translations": "Help deze vertalingen te verbeteren",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Kan een formulering beter? Klik op de voorstelknop bij een term om een verbetering voor te stellen. Een persoon controleert elk voorstel voordat er iets verandert.",
-    "Suggest a better translation": "Een betere vertaling voorstellen",
     "Suggest a translation": "Een vertaling voorstellen",
     "languageGlossary.example.source": "Deze zin op de website bekijken",
     "Unable to load your reaction.": "Je beoordeling kon niet worden geladen.",
@@ -133,7 +132,8 @@
     "Drug classes and reagents": "Stofklassen en reagentia",
     "Harm-reduction register": "Woordgebruik voor schadebeperking",
     "Other": "Overig",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "De zoekfunctie doorzoekt vaste indexlabels en filterlabels voor ervaringsrecreaties, koppen, doserings- en duurvelden en Engelse tekst in openbare artikelen over stoffen, effecten en gepubliceerde bibliotheekartikelen. De aantallen geven plaatsen in bronnen aan, geen pagina’s of herhaalde vermeldingen. Artiestenbadges en andere site-inhoud worden niet doorzocht."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "De zoekfunctie doorzoekt vaste indexlabels en filterlabels voor ervaringsrecreaties, koppen, doserings- en duurvelden en Engelse tekst in openbare artikelen over stoffen, effecten en gepubliceerde bibliotheekartikelen. De aantallen geven plaatsen in bronnen aan, geen pagina’s of herhaalde vermeldingen. Artiestenbadges en andere site-inhoud worden niet doorzocht.",
+    "languageGlossary.suggest.better": "Een betere vertaling voorstellen"
   },
   "cs": {
     "Needs a person": "Vyžaduje kontrolu člověkem",
@@ -156,7 +156,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Definice se píší v editoru a zobrazí se zde po uložení první z nich.",
     "Help improve these translations": "Pomozte zlepšit tyto překlady",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Lze nějakou formulaci zlepšit? Klikněte na tlačítko pro návrh u libovolného termínu a navrhněte opravu. Každý návrh před provedením změn zkontroluje člověk.",
-    "Suggest a better translation": "Navrhnout lepší překlad",
     "Suggest a translation": "Navrhnout překlad",
     "languageGlossary.example.source": "Zobrazit tuto větu na webu",
     "Unable to load your reaction.": "Vaše hodnocení se nepodařilo načíst.",
@@ -201,7 +200,8 @@
     "Drug classes and reagents": "Třídy látek a činidla",
     "Harm-reduction register": "Slovník snižování rizik",
     "Other": "Ostatní",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Vyhledávání zahrnuje standardní popisky indexů a filtrů ztvárnění prožitků, nadpisy, pole dávkování a trvání a anglický text ve veřejných článcích o látkách, účincích a publikovaných článcích knihovny. Počítají se místa ve zdrojích, nikoli stránky nebo opakované zmínky. Odznaky umělců a další obsah webu se neprohledávají."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Vyhledávání zahrnuje standardní popisky indexů a filtrů ztvárnění prožitků, nadpisy, pole dávkování a trvání a anglický text ve veřejných článcích o látkách, účincích a publikovaných článcích knihovny. Počítají se místa ve zdrojích, nikoli stránky nebo opakované zmínky. Odznaky umělců a další obsah webu se neprohledávají.",
+    "languageGlossary.suggest.better": "Navrhnout lepší překlad"
   },
   "de": {
     "Needs a person": "Prüfung durch einen Menschen nötig",
@@ -224,7 +224,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Definitionen werden im Editor verfasst und erscheinen hier, sobald die erste gespeichert ist.",
     "Help improve these translations": "Hilf, diese Übersetzungen zu verbessern",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Lässt sich eine Formulierung verbessern? Klicke bei einem Begriff auf die Vorschlagsschaltfläche, um eine Korrektur vorzuschlagen. Jeder Vorschlag wird von einem Menschen geprüft, bevor sich etwas ändert.",
-    "Suggest a better translation": "Eine bessere Übersetzung vorschlagen",
     "Suggest a translation": "Eine Übersetzung vorschlagen",
     "languageGlossary.example.source": "Diesen Satz auf der Website ansehen",
     "Unable to load your reaction.": "Deine Bewertung konnte nicht geladen werden.",
@@ -269,7 +268,8 @@
     "Drug classes and reagents": "Stoffklassen und Reagenzien",
     "Harm-reduction register": "Wortwahl zur Schadensminderung",
     "Other": "Sonstiges",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Durchsucht werden die festgelegten Index- und Filterbezeichnungen für Erlebnisnachbildungen, Überschriften, Angaben zu Dosierung und Dauer sowie englische Texte in öffentlichen Artikeln zu Stoffen und Effekten und in veröffentlichten Bibliotheksartikeln. Gezählt werden Fundstellen in Quellen, keine Seiten oder wiederholten Erwähnungen. Künstlerabzeichen und andere Website-Inhalte werden nicht durchsucht."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Durchsucht werden die festgelegten Index- und Filterbezeichnungen für Erlebnisnachbildungen, Überschriften, Angaben zu Dosierung und Dauer sowie englische Texte in öffentlichen Artikeln zu Stoffen und Effekten und in veröffentlichten Bibliotheksartikeln. Gezählt werden Fundstellen in Quellen, keine Seiten oder wiederholten Erwähnungen. Künstlerabzeichen und andere Website-Inhalte werden nicht durchsucht.",
+    "languageGlossary.suggest.better": "Verbesserung vorschlagen"
   },
   "es": {
     "Needs a person": "Necesita revisión humana",
@@ -292,7 +292,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Las definiciones se escriben en el editor y aparecen aquí al guardar la primera.",
     "Help improve these translations": "Ayuda a mejorar estas traducciones",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "¿Ves una formulación que podría mejorar? Pulsa el botón de sugerencias de cualquier término para proponer una corrección. Una persona revisa cada sugerencia antes de realizar cambios.",
-    "Suggest a better translation": "Sugerir una traducción mejor",
     "Suggest a translation": "Sugerir una traducción",
     "languageGlossary.example.source": "Ver esta frase en el sitio",
     "Unable to load your reaction.": "No se pudo cargar tu valoración.",
@@ -337,7 +336,8 @@
     "Drug classes and reagents": "Clases de sustancias y reactivos",
     "Harm-reduction register": "Vocabulario de reducción de daños",
     "Other": "Otros",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "La búsqueda incluye las etiquetas estándar de los índices y los filtros de recreaciones, los encabezados, los campos de dosis y duración y el texto en inglés de los artículos públicos sobre sustancias y efectos y de los artículos publicados en la biblioteca. Se cuentan ubicaciones en las fuentes, no páginas ni menciones repetidas. No se buscan las insignias de artistas ni otros contenidos del sitio."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "La búsqueda incluye las etiquetas estándar de los índices y los filtros de recreaciones, los encabezados, los campos de dosis y duración y el texto en inglés de los artículos públicos sobre sustancias y efectos y de los artículos publicados en la biblioteca. Se cuentan ubicaciones en las fuentes, no páginas ni menciones repetidas. No se buscan las insignias de artistas ni otros contenidos del sitio.",
+    "languageGlossary.suggest.better": "Sugerir una traducción mejor"
   },
   "fr": {
     "Needs a person": "Vérification humaine nécessaire",
@@ -360,7 +360,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Les définitions sont rédigées dans l’éditeur et apparaissent ici dès que la première est enregistrée.",
     "Help improve these translations": "Aidez à améliorer ces traductions",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Une formulation pourrait être améliorée ? Cliquez sur le bouton de proposition d’un terme pour suggérer une correction. Chaque proposition est vérifiée par une personne avant toute modification.",
-    "Suggest a better translation": "Proposer une meilleure traduction",
     "Suggest a translation": "Proposer une traduction",
     "languageGlossary.example.source": "Voir cette phrase sur le site",
     "Unable to load your reaction.": "Impossible de charger votre évaluation.",
@@ -405,7 +404,8 @@
     "Drug classes and reagents": "Classes de substances et réactifs",
     "Harm-reduction register": "Vocabulaire de réduction des risques",
     "Other": "Autres",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "La recherche porte sur les libellés de référence des index et des filtres de reconstitutions, les titres, les champs de dosage et de durée, ainsi que le texte anglais des articles publics sur les substances et les effets et des articles publiés dans la bibliothèque. Les nombres indiquent des emplacements dans les sources, pas des pages ni des mentions répétées. Les badges d’artistes et les autres contenus du site ne sont pas recherchés."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "La recherche porte sur les libellés de référence des index et des filtres de reconstitutions, les titres, les champs de dosage et de durée, ainsi que le texte anglais des articles publics sur les substances et les effets et des articles publiés dans la bibliothèque. Les nombres indiquent des emplacements dans les sources, pas des pages ni des mentions répétées. Les badges d’artistes et les autres contenus du site ne sont pas recherchés.",
+    "languageGlossary.suggest.better": "Proposer une meilleure traduction"
   },
   "pl": {
     "Needs a person": "Wymaga sprawdzenia przez człowieka",
@@ -428,7 +428,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "Definicje powstają w edytorze i pojawiają się tutaj po zapisaniu pierwszej z nich.",
     "Help improve these translations": "Pomóż poprawić te tłumaczenia",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Widzisz sformułowanie, które można poprawić? Kliknij przycisk propozycji przy dowolnym terminie, aby zaproponować poprawkę. Każdą propozycję sprawdza człowiek przed wprowadzeniem zmian.",
-    "Suggest a better translation": "Zaproponuj lepsze tłumaczenie",
     "Suggest a translation": "Zaproponuj tłumaczenie",
     "languageGlossary.example.source": "Zobacz to zdanie na stronie",
     "Unable to load your reaction.": "Nie udało się wczytać Twojej oceny.",
@@ -473,7 +472,8 @@
     "Drug classes and reagents": "Klasy substancji i odczynniki",
     "Harm-reduction register": "Słownictwo redukcji szkód",
     "Other": "Inne",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Wyszukiwanie obejmuje standardowe etykiety indeksów i filtrów odtworzeń doświadczeń, nagłówki, pola dawkowania i czasu trwania oraz angielski tekst w publicznych artykułach o substancjach i efektach oraz opublikowanych artykułach biblioteki. Liczone są miejsca w źródłach, a nie strony lub powtarzające się wzmianki. Odznaki artystów i pozostałe treści witryny nie są przeszukiwane."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "Wyszukiwanie obejmuje standardowe etykiety indeksów i filtrów odtworzeń doświadczeń, nagłówki, pola dawkowania i czasu trwania oraz angielski tekst w publicznych artykułach o substancjach i efektach oraz opublikowanych artykułach biblioteki. Liczone są miejsca w źródłach, a nie strony lub powtarzające się wzmianki. Odznaki artystów i pozostałe treści witryny nie są przeszukiwane.",
+    "languageGlossary.suggest.better": "Zaproponuj lepsze tłumaczenie"
   },
   "pt": {
     "Needs a person": "Precisa de revisão humana",
@@ -496,7 +496,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "As definições são escritas no editor e aparecem aqui assim que a primeira é guardada.",
     "Help improve these translations": "Ajude a melhorar estas traduções",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "Vê uma formulação que pode melhorar? Clique no botão de sugestão de qualquer termo para propor uma correção. Uma pessoa revê cada sugestão antes de qualquer alteração.",
-    "Suggest a better translation": "Sugerir uma tradução melhor",
     "Suggest a translation": "Sugerir uma tradução",
     "languageGlossary.example.source": "Ver esta frase no site",
     "Unable to load your reaction.": "Não foi possível carregar a sua avaliação.",
@@ -541,7 +540,8 @@
     "Drug classes and reagents": "Classes de substâncias e reagentes",
     "Harm-reduction register": "Vocabulário de redução de danos",
     "Other": "Outros",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "A pesquisa abrange os rótulos padrão dos índices e dos filtros de recriações, os títulos, os campos de dosagem e duração e o texto em inglês dos artigos públicos sobre substâncias e efeitos e dos artigos publicados na biblioteca. Os números indicam locais nas fontes, não páginas ou menções repetidas. Os emblemas dos artistas e outros conteúdos do site não são pesquisados."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "A pesquisa abrange os rótulos padrão dos índices e dos filtros de recriações, os títulos, os campos de dosagem e duração e o texto em inglês dos artigos públicos sobre substâncias e efeitos e dos artigos publicados na biblioteca. Os números indicam locais nas fontes, não páginas ou menções repetidas. Os emblemas dos artistas e outros conteúdos do site não são pesquisados.",
+    "languageGlossary.suggest.better": "Sugerir uma tradução melhor"
   },
   "ar": {
     "Needs a person": "يحتاج إلى مراجعة بشرية",
@@ -564,7 +564,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "تُكتب التعريفات في المحرر وتظهر هنا بعد حفظ أول تعريف.",
     "Help improve these translations": "ساعد في تحسين هذه الترجمات",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "هل ترى صياغة يمكن تحسينها؟ انقر على زر الاقتراح بجانب أي مصطلح لاقتراح تصحيح. يراجع شخص كل اقتراح قبل إجراء أي تغيير.",
-    "Suggest a better translation": "اقتراح ترجمة أفضل",
     "Suggest a translation": "اقتراح ترجمة",
     "languageGlossary.example.source": "عرض هذه الجملة على الموقع",
     "Unable to load your reaction.": "تعذّر تحميل تقييمك.",
@@ -609,7 +608,8 @@
     "Drug classes and reagents": "فئات المواد والكواشف",
     "Harm-reduction register": "مفردات الحد من الضرر",
     "Other": "أخرى",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "يشمل البحث تسميات الفهارس المعتمدة ومرشحات محاكاة التجارب، والعناوين، وحقول الجرعات والمدة، والنص الإنجليزي في المقالات العامة عن المواد والتأثيرات ومقالات المكتبة المنشورة. تشير الأعداد إلى مواضع في المصادر، وليس إلى صفحات أو إشارات متكررة. لا يشمل البحث شارات الفنانين أو محتوى الموقع الآخر."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "يشمل البحث تسميات الفهارس المعتمدة ومرشحات محاكاة التجارب، والعناوين، وحقول الجرعات والمدة، والنص الإنجليزي في المقالات العامة عن المواد والتأثيرات ومقالات المكتبة المنشورة. تشير الأعداد إلى مواضع في المصادر، وليس إلى صفحات أو إشارات متكررة. لا يشمل البحث شارات الفنانين أو محتوى الموقع الآخر.",
+    "languageGlossary.suggest.better": "اقتراح ترجمة أفضل"
   },
   "hi": {
     "Needs a person": "मानव समीक्षा की ज़रूरत है",
@@ -632,7 +632,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "परिभाषाएँ संपादक में लिखी जाती हैं और पहली परिभाषा सहेजते ही यहाँ दिखाई देती हैं।",
     "Help improve these translations": "इन अनुवादों को बेहतर बनाने में मदद करें",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "क्या किसी अनुवाद को बेहतर बनाया जा सकता है? सुधार सुझाने के लिए किसी भी शब्द के सुझाव बटन पर क्लिक करें। कोई भी बदलाव करने से पहले हर सुझाव की समीक्षा एक व्यक्ति करता है।",
-    "Suggest a better translation": "बेहतर अनुवाद सुझाएँ",
     "Suggest a translation": "अनुवाद सुझाएँ",
     "languageGlossary.example.source": "यह वाक्य वेबसाइट पर देखें",
     "Unable to load your reaction.": "आपकी प्रतिक्रिया लोड नहीं हो सकी।",
@@ -677,7 +676,8 @@
     "Drug classes and reagents": "पदार्थों के वर्ग और अभिकर्मक",
     "Harm-reduction register": "नुकसान कम करने की शब्दावली",
     "Other": "अन्य",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "खोज में मानक सूचकांक और अनुभवों की पुनर्रचनाओं के फ़िल्टर लेबल, शीर्षक, खुराक और अवधि के फ़ील्ड, तथा सार्वजनिक पदार्थ और प्रभाव संबंधी लेखों और प्रकाशित लाइब्रेरी लेखों का अंग्रेज़ी पाठ शामिल है। गिनती स्रोतों में स्थानों की है, पेजों या बार-बार हुए उल्लेखों की नहीं। कलाकारों के बैज और वेबसाइट की अन्य सामग्री खोज में शामिल नहीं हैं।"
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "खोज में मानक सूचकांक और अनुभवों की पुनर्रचनाओं के फ़िल्टर लेबल, शीर्षक, खुराक और अवधि के फ़ील्ड, तथा सार्वजनिक पदार्थ और प्रभाव संबंधी लेखों और प्रकाशित लाइब्रेरी लेखों का अंग्रेज़ी पाठ शामिल है। गिनती स्रोतों में स्थानों की है, पेजों या बार-बार हुए उल्लेखों की नहीं। कलाकारों के बैज और वेबसाइट की अन्य सामग्री खोज में शामिल नहीं हैं।",
+    "languageGlossary.suggest.better": "बेहतर अनुवाद सुझाएँ"
   },
   "ja": {
     "Needs a person": "人による確認が必要",
@@ -700,7 +700,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "定義はエディターで作成され、最初の定義を保存するとここに表示されます。",
     "Help improve these translations": "翻訳の改善にご協力ください",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "改善できそうな訳はありますか？用語の提案ボタンから修正案をお送りください。変更を反映する前に、すべての提案を人が確認します。",
-    "Suggest a better translation": "よりよい翻訳を提案",
     "Suggest a translation": "翻訳を提案",
     "languageGlossary.example.source": "この文をサイトで見る",
     "Unable to load your reaction.": "評価を読み込めませんでした。",
@@ -745,7 +744,8 @@
     "Drug classes and reagents": "物質の分類と試薬",
     "Harm-reduction register": "ハームリダクションの用語",
     "Other": "その他",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "検索対象は、標準の索引ラベルと体験再現のフィルターラベル、見出し、用量と持続時間の項目、および公開されている物質・効果の記事とライブラリーの公開記事に含まれる英語の本文です。件数は出典内の箇所数であり、ページ数や繰り返しの言及数ではありません。アーティストのバッジやその他のサイト内容は検索対象に含まれません。"
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "検索対象は、標準の索引ラベルと体験再現のフィルターラベル、見出し、用量と持続時間の項目、および公開されている物質・効果の記事とライブラリーの公開記事に含まれる英語の本文です。件数は出典内の箇所数であり、ページ数や繰り返しの言及数ではありません。アーティストのバッジやその他のサイト内容は検索対象に含まれません。",
+    "languageGlossary.suggest.better": "よりよい翻訳を提案"
   },
   "ko": {
     "Needs a person": "사람의 검토 필요",
@@ -768,7 +768,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "정의는 편집기에서 작성하며, 첫 정의를 저장하면 여기에 표시됩니다.",
     "Help improve these translations": "번역 개선에 참여해 주세요",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "더 나은 표현이 떠오르나요? 용어의 제안 버튼을 눌러 수정안을 보내 주세요. 변경 사항이 반영되기 전에 사람이 모든 제안을 검토합니다.",
-    "Suggest a better translation": "더 나은 번역 제안",
     "Suggest a translation": "번역 제안",
     "languageGlossary.example.source": "사이트에서 이 문장 보기",
     "Unable to load your reaction.": "평가를 불러올 수 없습니다.",
@@ -813,7 +812,8 @@
     "Drug classes and reagents": "물질 분류와 시약",
     "Harm-reduction register": "위해 감소 용어",
     "Other": "기타",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "검색 범위에는 표준 색인 및 경험 재현 필터의 표기, 제목, 용량과 지속 시간 항목, 공개된 물질 및 효과 문서와 라이브러리의 공개 문서에 있는 영어 본문이 포함됩니다. 숫자는 출처의 위치 수이며, 페이지 수나 반복 언급 횟수가 아닙니다. 아티스트 배지와 그 밖의 사이트 내용은 검색하지 않습니다."
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "검색 범위에는 표준 색인 및 경험 재현 필터의 표기, 제목, 용량과 지속 시간 항목, 공개된 물질 및 효과 문서와 라이브러리의 공개 문서에 있는 영어 본문이 포함됩니다. 숫자는 출처의 위치 수이며, 페이지 수나 반복 언급 횟수가 아닙니다. 아티스트 배지와 그 밖의 사이트 내용은 검색하지 않습니다.",
+    "languageGlossary.suggest.better": "더 나은 번역 제안"
   },
   "zh-Hans": {
     "Needs a person": "需要人工审校",
@@ -836,7 +836,6 @@
     "Definitions are written in the editor and appear here once the first one is saved.": "定义在编辑器中撰写，保存第一条后将显示在此处。",
     "Help improve these translations": "帮助改进这些翻译",
     "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes.": "发现某个译法可以改进？点击任意术语上的建议按钮提交您的译法。任何更改都须经人工审校。",
-    "Suggest a better translation": "建议改进翻译",
     "Suggest a translation": "提出翻译建议",
     "languageGlossary.example.source": "在网站上查看此句",
     "Unable to load your reaction.": "无法加载您的评价。请重试。",
@@ -881,6 +880,7 @@
     "Drug classes and reagents": "药物类别与试剂",
     "Harm-reduction register": "减害登记词",
     "Other": "其他",
-    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "搜索范围包括标准索引与体验再现的筛选标签、标题、剂量和持续时间字段，以及公开的物质、效应和已发布资料文章中的英文文本。计数表示来源位置，而非页面数或重复提及次数。艺术家徽章及其他网站内容不在搜索范围内。"
+    "Canonical index and replication filter labels, plus headings, dosage and duration fields, and English text in public substance, effect, and published library articles. Counts are source locations, not pages or repeated mentions. Artist badges and other site content are not searched.": "搜索范围包括标准索引与体验再现的筛选标签、标题、剂量和持续时间字段，以及公开的物质、效应和已发布资料文章中的英文文本。计数表示来源位置，而非页面数或重复提及次数。艺术家徽章及其他网站内容不在搜索范围内。",
+    "languageGlossary.suggest.better": "建议改进翻译"
   }
 }

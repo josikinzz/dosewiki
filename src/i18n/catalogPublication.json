@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-12T23:54:10.561Z",
-    "catalogDigest": "138b3ec713b00e27cadd7e27989614795855e264b32af1e3e90ab3541d36892a",
+    "compiledAt": "2026-10-13T00:53:42.485Z",
+    "catalogDigest": "a613d33e973edc1770cf95730a6ff2872125fb4a468eb3f7f960fe517cec80d6",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
@@ -990,6 +990,11 @@
       }
     ],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "建议改进翻译",
+        "targetDigest": "5ea191df1bab6e64866dc2cffcbab876de98797b0b3e2cd363a6f4d38c5951a2"
+      },
       "appearance.light": {
         "source": "Light",
         "target": "浅色",
@@ -1078,15 +1083,20 @@
     }
   },
   "ru": {
-    "compiledAt": "2026-10-12T23:54:10.970Z",
-    "catalogDigest": "83b87bf4eeca65f3bbc8e3d2db6ac8e96fdfa1e87c85eca26a2aab15cb713614",
+    "compiledAt": "2026-10-13T00:53:42.785Z",
+    "catalogDigest": "15c91227a100725939692d631c5f21c255bef8147a897336bb0acbfdef021128",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Предложить лучший перевод",
+        "targetDigest": "b4d3956816071bdda8fdebe1ba4978ebcd40f5646014e41992aff416a287aad9"
+      },
       "appearance.light": {
         "source": "Light",
         "target": "Светлая",
@@ -1175,15 +1185,20 @@
     }
   },
   "nl": {
-    "compiledAt": "2026-10-12T23:54:11.274Z",
-    "catalogDigest": "510fbc136678b8a5ec83497deadd3c04565e316eb2b148d1c42a812ef2a284d1",
+    "compiledAt": "2026-10-13T00:53:43.085Z",
+    "catalogDigest": "c9ce212322e6ac5b8361a5bf2b866e8d32ae13d649072815cf6bb5404437ce6d",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Een betere vertaling voorstellen",
+        "targetDigest": "ce7ebfd11407060619355cb69b770c54215d977a5cf2491f99f96bab495134ab"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Status",
@@ -1227,15 +1242,20 @@
     }
   },
   "ar": {
-    "compiledAt": "2026-10-12T23:54:11.554Z",
-    "catalogDigest": "1a2ae39f798b0d8ba1d879f356758291db0a49a0892c7f21889ca12b1af82892",
+    "compiledAt": "2026-10-13T00:53:43.400Z",
+    "catalogDigest": "1d2245c9f21265124599dd70fb6f7fabd213281a40313dee9292d70cd288442d",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "اقتراح ترجمة أفضل",
+        "targetDigest": "5df560bd1de60f4fea07c002eaf71fc2d0328fcd91b281ca74304fc8a477f3f5"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "الحالة",
@@ -1279,15 +1299,20 @@
     }
   },
   "cs": {
-    "compiledAt": "2026-10-12T23:54:11.857Z",
-    "catalogDigest": "1713b1d24009227b8fd3a0af88fd8162c0cade4d6bb348f5212a336e0eecc230",
+    "compiledAt": "2026-10-13T00:53:43.763Z",
+    "catalogDigest": "275c088fba69fecdc53dddce9b99166099f0de5f4ef62a8d4e4d28201cb20de3",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Navrhnout lepší překlad",
+        "targetDigest": "fe800ae26b997f55617fa7868b4248a34d2a690bd2163d0531837be94d5e7897"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Stav",
@@ -1331,15 +1356,20 @@
     }
   },
   "de": {
-    "compiledAt": "2026-10-12T23:54:12.482Z",
-    "catalogDigest": "66216618e0b1ba7fcbe7bbb18a51f0ae9229f883ac484c9b862a03388aaf0f82",
+    "compiledAt": "2026-10-13T00:53:44.050Z",
+    "catalogDigest": "8cd66e2fe341da64eb26f66c7ecee47e113d69d7a9c9a6c3d3450b09aea139b0",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Verbesserung vorschlagen",
+        "targetDigest": "3353748f1384d04555a3f16624ec3a7db71ccd29228da57add3ef5663976dc8f"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Status",
@@ -1383,15 +1413,20 @@
     }
   },
   "es": {
-    "compiledAt": "2026-10-12T23:54:12.938Z",
-    "catalogDigest": "962f56dd247a2734997813cf906b7626df2c5f113bdab114be54ac136db8c397",
+    "compiledAt": "2026-10-13T00:53:44.338Z",
+    "catalogDigest": "2f7d0b643b849b1d30bf5e51ee7645cce9e3686d7281da4645cd8c5b8a1ced96",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Sugerir una traducción mejor",
+        "targetDigest": "42ff60d7b81058cf557b8e0cffe90eebde05efea68a0dfba31651fcb386b7f21"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Estado",
@@ -1435,15 +1470,20 @@
     }
   },
   "fr": {
-    "compiledAt": "2026-10-12T23:54:13.254Z",
-    "catalogDigest": "73e2193a8a4e47196b82dbf94abde2b6409a29c5c90e8f2b63507a9d62df92e2",
+    "compiledAt": "2026-10-13T00:53:44.625Z",
+    "catalogDigest": "c56f9fa39f2af8675dbce5128956183afac49773f55b9c68792467f9414fd263",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Proposer une meilleure traduction",
+        "targetDigest": "6da7b38e18cf1d47ad68d2266f5e2d9f6df45a31565e26bb3d2369eb74bff296"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Statut",
@@ -1487,15 +1527,20 @@
     }
   },
   "hi": {
-    "compiledAt": "2026-10-12T23:54:13.569Z",
-    "catalogDigest": "2018868515e239783105d307581587b6cea1ee7974fa1e5f558691e78e641696",
+    "compiledAt": "2026-10-13T00:53:44.917Z",
+    "catalogDigest": "52e53001427c4e86c2d44e39cbeb87d1be1f6c7d6911827d6359e8cca1a0ba97",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "बेहतर अनुवाद सुझाएँ",
+        "targetDigest": "7072f7cfe354351b54575fbc742c2385b5d348ed8f885a7b0b72a36b0dc029f6"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "स्थिति",
@@ -1539,15 +1584,20 @@
     }
   },
   "ja": {
-    "compiledAt": "2026-10-12T23:54:13.888Z",
-    "catalogDigest": "4927028c95bf26f015788096629b5aed41a4f083a1e3b20888770a49178d4155",
+    "compiledAt": "2026-10-13T00:53:45.205Z",
+    "catalogDigest": "26817c1a187ad5573da6009348a0da339ce9612ae27d2d0c08adf2c72af3ca06",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "よりよい翻訳を提案",
+        "targetDigest": "a9b3663cbfe1ec913a012b058982919206c2605e025bd06639463fd782a214ff"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "状態",
@@ -1591,15 +1641,20 @@
     }
   },
   "ko": {
-    "compiledAt": "2026-10-12T23:54:14.198Z",
-    "catalogDigest": "a67d89a721e6bf7effbd382750ba583b9dd47fab93dd1aa6e3b40e5b4ae042ae",
+    "compiledAt": "2026-10-13T00:53:45.493Z",
+    "catalogDigest": "d49fdd5b59ec6d4ff27f75c42288da9d02c20c7f93b4f730683f769ecf111dec",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "더 나은 번역 제안",
+        "targetDigest": "85bf1c63e1fd21760cffcb69c7da1e1e89e65365ce34c8493bafe773e2b735c6"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "상태",
@@ -1643,15 +1698,20 @@
     }
   },
   "pl": {
-    "compiledAt": "2026-10-12T23:54:14.514Z",
-    "catalogDigest": "42725ee4f468ee7050c238f6b0f1d68046a81bc9e82c04b86dacecb047b5554b",
+    "compiledAt": "2026-10-13T00:53:45.854Z",
+    "catalogDigest": "c1e2501848d72d833e18a8f479cd81f2d8717b2660fd2b3b4f3a60516d819944",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Zaproponuj lepsze tłumaczenie",
+        "targetDigest": "fcfd135c4ea76c204c0504f9ba11e07f78a3b6b1d3f52eb4165c07eaa99791e3"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Status",
@@ -1695,15 +1755,20 @@
     }
   },
   "pt": {
-    "compiledAt": "2026-10-12T23:54:14.829Z",
-    "catalogDigest": "2c1d7c3d7cfec03b68e55322e5b3045e48f7711dd2efa0d0e09a29d562ec909f",
+    "compiledAt": "2026-10-13T00:53:46.145Z",
+    "catalogDigest": "3280b52ea3485f7e1654dce9b6c750b52b5fcf43c63e2212ed13a2401fd3bf3c",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
+    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
     "exactLabels": {
+      "languageGlossary.suggest.better": {
+        "source": "Suggest a better translation",
+        "target": "Sugerir uma tradução melhor",
+        "targetDigest": "977cf582bd753f11b2f6a214722f31e238abbbdee0518af6ddd3e603833d904c"
+      },
       "languageGlossary.status.filter": {
         "source": "Status",
         "target": "Estado",

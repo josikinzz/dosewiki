@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "공개됨, 아직 검토되지 않음",
   "languageGlossary.status.machine_suggestion": "기계 제안",
   "languageGlossary.status.missing": "아직 번역되지 않음",
+  "languageGlossary.suggest.better": "더 나은 번역 제안",
   "Loading usage sources...": "사용 출처를 불러오는 중...",
   "Looks right": "올바른 것 같음",
   "matching source locations": "일치하는 출처 위치",

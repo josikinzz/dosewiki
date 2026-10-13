@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "Opublikowane, jeszcze niesprawdzone",
   "languageGlossary.status.machine_suggestion": "Propozycja maszynowa",
   "languageGlossary.status.missing": "Jeszcze nieprzetłumaczone",
+  "languageGlossary.suggest.better": "Zaproponuj lepsze tłumaczenie",
   "Loading usage sources...": "Wczytywanie źródeł użycia...",
   "Looks right": "Wygląda poprawnie",
   "matching source locations": "pasujących miejsc w źródłach",

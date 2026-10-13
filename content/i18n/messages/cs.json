@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "Zveřejněno, dosud nezkontrolováno",
   "languageGlossary.status.machine_suggestion": "Strojový návrh",
   "languageGlossary.status.missing": "Dosud nepřeloženo",
+  "languageGlossary.suggest.better": "Navrhnout lepší překlad",
   "Loading usage sources...": "Načítání zdrojů použití...",
   "Looks right": "Překlad je správný",
   "matching source locations": "odpovídajících míst ve zdrojích",
