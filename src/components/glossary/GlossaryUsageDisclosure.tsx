@@ -57,7 +57,7 @@ export function GlossaryUsageDisclosure({ term, initialData = null }: { term: st
       <div id={id} hidden={!expanded} aria-busy={loading} className="mt-1 space-y-1.5">
         {data ? (
           <>
-            <p className="theme-text-muted" title={data.coverage}>
+            <p className="theme-text-muted" title={t(data.coverage)}>
               {data.totalSourceNodes} {t("matching source locations")} · {t("Partial coverage")}
             </p>
             {data.nodes.length ? (

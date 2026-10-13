@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
+import { GLOSSARY_USAGE_COVERAGE } from "@/lib/glossary/glossaryUsage";
 import seeds from "./glossaryMessageSeeds.json";
 import { resolveUiMessage } from "./uiMessageDefinitions";
 import names from "./translationLocaleNames.json";
@@ -13,6 +14,7 @@ const referenceOnly = new Set([
   "This page is the English reference. Open a language glossary and tap the suggest button on any term to propose a translation. A person reviews every suggestion before anything changes.",
 ]);
 const controls = new Set([
+  GLOSSARY_USAGE_COVERAGE,
   ...[
     "src/features/language-glossary/LanguageGlossaryPage.tsx",
     "src/features/language-glossary/GlossaryFeedback.tsx",

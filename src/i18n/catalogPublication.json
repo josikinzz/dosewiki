@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-12T23:11:25.682Z",
-    "catalogDigest": "04266019d1c73c286db1e44797d0203cf7bdb5454472d8091b65bd9f07054dc2",
+    "compiledAt": "2026-10-12T23:54:10.561Z",
+    "catalogDigest": "138b3ec713b00e27cadd7e27989614795855e264b32af1e3e90ab3541d36892a",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
@@ -1078,11 +1078,11 @@
     }
   },
   "ru": {
-    "compiledAt": "2026-10-12T23:11:25.967Z",
-    "catalogDigest": "8a2390d778b0fedc14b1f559214fdec6be9bbdcf6cb203c18821f064936c34cf",
+    "compiledAt": "2026-10-12T23:54:10.970Z",
+    "catalogDigest": "83b87bf4eeca65f3bbc8e3d2db6ac8e96fdfa1e87c85eca26a2aab15cb713614",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1175,11 +1175,11 @@
     }
   },
   "nl": {
-    "compiledAt": "2026-10-12T23:11:26.247Z",
-    "catalogDigest": "cbb1cc68aec61fa046b37ca4b99c8332a2c081624aa8d98201d5bb5357a7bb98",
+    "compiledAt": "2026-10-12T23:54:11.274Z",
+    "catalogDigest": "510fbc136678b8a5ec83497deadd3c04565e316eb2b148d1c42a812ef2a284d1",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1227,11 +1227,11 @@
     }
   },
   "ar": {
-    "compiledAt": "2026-10-12T23:11:26.529Z",
-    "catalogDigest": "0449a6cfdc4c104b797460a53b3c08778a30d9b2dd0c833f5ce9629318ca08ac",
+    "compiledAt": "2026-10-12T23:54:11.554Z",
+    "catalogDigest": "1a2ae39f798b0d8ba1d879f356758291db0a49a0892c7f21889ca12b1af82892",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1279,11 +1279,11 @@
     }
   },
   "cs": {
-    "compiledAt": "2026-10-12T23:11:26.820Z",
-    "catalogDigest": "18c30e15849fd24936a79ab882068b0133f9683989dab589cb2b8c426e432f71",
+    "compiledAt": "2026-10-12T23:54:11.857Z",
+    "catalogDigest": "1713b1d24009227b8fd3a0af88fd8162c0cade4d6bb348f5212a336e0eecc230",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1331,11 +1331,11 @@
     }
   },
   "de": {
-    "compiledAt": "2026-10-12T23:11:27.109Z",
-    "catalogDigest": "cc86f75ccf724c4b98d214f235d93a66dcc2d580dc82f77760288fc62964ec65",
+    "compiledAt": "2026-10-12T23:54:12.482Z",
+    "catalogDigest": "66216618e0b1ba7fcbe7bbb18a51f0ae9229f883ac484c9b862a03388aaf0f82",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1383,11 +1383,11 @@
     }
   },
   "es": {
-    "compiledAt": "2026-10-12T23:11:27.392Z",
-    "catalogDigest": "2cc6780edfa630797eba6b631fa6fb5796d21d0e0906b2580718b29cc2390360",
+    "compiledAt": "2026-10-12T23:54:12.938Z",
+    "catalogDigest": "962f56dd247a2734997813cf906b7626df2c5f113bdab114be54ac136db8c397",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1435,11 +1435,11 @@
     }
   },
   "fr": {
-    "compiledAt": "2026-10-12T23:11:27.689Z",
-    "catalogDigest": "cd328adf448a7e462353db796410fdce2eaf5c40c47b779279f632194b89689f",
+    "compiledAt": "2026-10-12T23:54:13.254Z",
+    "catalogDigest": "73e2193a8a4e47196b82dbf94abde2b6409a29c5c90e8f2b63507a9d62df92e2",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1487,11 +1487,11 @@
     }
   },
   "hi": {
-    "compiledAt": "2026-10-12T23:11:27.980Z",
-    "catalogDigest": "faff2cabdd08b19d5f4144210fbbaf05b2268de13cfe083a5255fd44090e0161",
+    "compiledAt": "2026-10-12T23:54:13.569Z",
+    "catalogDigest": "2018868515e239783105d307581587b6cea1ee7974fa1e5f558691e78e641696",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1539,11 +1539,11 @@
     }
   },
   "ja": {
-    "compiledAt": "2026-10-12T23:11:28.272Z",
-    "catalogDigest": "00d530df78f091b5ceb82afc1908efe9b7416ac951cda58b2a5df64b823c799b",
+    "compiledAt": "2026-10-12T23:54:13.888Z",
+    "catalogDigest": "4927028c95bf26f015788096629b5aed41a4f083a1e3b20888770a49178d4155",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1591,11 +1591,11 @@
     }
   },
   "ko": {
-    "compiledAt": "2026-10-12T23:11:28.563Z",
-    "catalogDigest": "36c5af2808c90a1e3bb3c59eeba624b1c627f458829936e8142eff0552e404c9",
+    "compiledAt": "2026-10-12T23:54:14.198Z",
+    "catalogDigest": "a67d89a721e6bf7effbd382750ba583b9dd47fab93dd1aa6e3b40e5b4ae042ae",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1643,11 +1643,11 @@
     }
   },
   "pl": {
-    "compiledAt": "2026-10-12T23:11:28.865Z",
-    "catalogDigest": "f6a883c33d01f159cfa9ed31fb5910803a7b081cf520fb282def07ab3d5c4e3a",
+    "compiledAt": "2026-10-12T23:54:14.514Z",
+    "catalogDigest": "42725ee4f468ee7050c238f6b0f1d68046a81bc9e82c04b86dacecb047b5554b",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1695,11 +1695,11 @@
     }
   },
   "pt": {
-    "compiledAt": "2026-10-12T23:11:29.156Z",
-    "catalogDigest": "64a6acec4aa83d8da7d04d3c93e4109733c8ab999151866503fd94f3e90fc20d",
+    "compiledAt": "2026-10-12T23:54:14.829Z",
+    "catalogDigest": "2c1d7c3d7cfec03b68e55322e5b3045e48f7711dd2efa0d0e09a29d562ec909f",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "d10fcc3997084b8c46220d9294e9fa98b5a207d4a691507a5ddebbba1dfc12a2",
+    "sourceInventoryDigest": "710fc0d4156729e54cad69feddbd8da851e7ad4c1f580fddcdadb98b2670c283",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],

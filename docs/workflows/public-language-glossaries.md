@@ -177,7 +177,8 @@ language host. Glossary participation does not release a whole-site mirror.
 Every translation glossary loads its own compiled catalog inside the shared
 route, including languages without a site mirror. Only that language's catalog
 is passed to the client. The page, contribute banner, filters, suggestion form,
-feedback notices, usage controls and review badges are localized. Definitions,
+feedback notices, usage controls (including the source-coverage hover tooltip)
+and review badges are localized. Definitions,
 English terms and English source examples remain English. Badge colors and the
 shared renderer are unchanged.
 
