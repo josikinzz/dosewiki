@@ -551,7 +551,8 @@ const describeCommunity = showCommunity ? describe : describe.skip;
     expect(within(section).getByText("TripSit")).toBeInTheDocument();
     expect(within(section).getByText("Journal fixture")).toBeInTheDocument();
     expect(within(section).getByText("Piru body fixture.")).toBeInTheDocument();
-    expect(section.querySelector('a[href="https://testflight.apple.com/join/4vcA7dY3"]')).not.toBeNull();
+    expect(within(section).getByRole("link", { name: "Get Piru for iOS & Android" })).toHaveAttribute("href", "https://kagerou.glass/get/piru?from=dosewiki");
+    expect(section.querySelector('a[href^="https://testflight.apple.com/"]')).toBeNull();
   });
 });
 

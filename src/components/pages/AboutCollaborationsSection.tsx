@@ -29,7 +29,7 @@ export const ABOUT_COLLABORATIONS: readonly Collaboration[] = [
     logo: { src: "/about/piru/icon.avif", fit: "cover" },
     links: [
       { icon: "lucide:globe", label: "kagerou.glass/piru", href: "https://kagerou.glass/piru/" },
-      { icon: "lucide:download", label: msg("TestFlight beta"), href: "https://testflight.apple.com/join/4vcA7dY3" },
+      { icon: "lucide:download", label: msg("Get Piru for iOS & Android"), href: "https://kagerou.glass/get/piru?from=dosewiki" },
     ],
   },
   {

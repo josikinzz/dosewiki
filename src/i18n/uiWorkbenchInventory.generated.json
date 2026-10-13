@@ -1077,17 +1077,6 @@
       "Indoles are a chemical class of organic compounds derived from the core amine structure, consisting of a fused benzene and pyrrole ring system. This ring system lies at the heart of serotonin and its many mimics. The tryptamines, and through them the lysergamides, ibogalogs, and beta-carbolines, are all elaborated indoles, so the family underlies a large share of serotonergic psychoactives. The fused benzene-pyrrole ring system is the defining structural feature of the class."
     ]
   },
-  "legacy.090ad5404a0ffbf2ea62005039d2886ffefe8e2edca4fd570cd5895f05353b97": {
-    "catalogKey": "TestFlight beta",
-    "source": "TestFlight beta",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "src/components/pages/AboutCollaborationsSection.tsx"
-    ],
-    "glossaryTerms": [
-      "TestFlight beta"
-    ]
-  },
   "legacy.090dc468e82e6caa05a5ab8e058644b9f784abfaa0514039c98d57f3577e4b5a": {
     "catalogKey": "By year",
     "source": "By year",
@@ -11135,6 +11124,17 @@
     ],
     "glossaryTerms": [
       "**`effects/`**: effect rendering, including the custom VCode markup."
+    ]
+  },
+  "legacy.6e1521211f05cf7915259c835b93d1d1a473235ef89afd9eb2d9e0a5fd21899f": {
+    "catalogKey": "Get Piru for iOS & Android",
+    "source": "Get Piru for iOS & Android",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/components/pages/AboutCollaborationsSection.tsx"
+    ],
+    "glossaryTerms": [
+      "Get Piru for iOS & Android"
     ]
   },
   "legacy.6e3f9859782d3018835ae25d3c61eb02bca2e7561ea8726bc3e7aefc0574b3ba": {
