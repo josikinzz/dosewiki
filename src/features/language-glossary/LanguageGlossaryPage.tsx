@@ -380,7 +380,7 @@ function TermRow({
                 className="shrink-0"
               />
               {entry.target
-                ? t("Suggest a better translation")
+                ? t("languageGlossary.suggest.better")
                 : t("Suggest a translation")}
             </span>
           ) : null}

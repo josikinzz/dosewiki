@@ -22,6 +22,7 @@
   "languageGlossary.status.legacy_unverified": "منشور، ولم يُراجع بعد",
   "languageGlossary.status.machine_suggestion": "اقتراح آلي",
   "languageGlossary.status.missing": "لم يُترجم بعد",
+  "languageGlossary.suggest.better": "اقتراح ترجمة أفضل",
   "Loading usage sources...": "جارٍ تحميل مصادر الاستخدام...",
   "Looks right": "تبدو صحيحة",
   "matching source locations": "مواضع مطابقة في المصادر",

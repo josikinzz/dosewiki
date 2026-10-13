@@ -23,6 +23,8 @@ const controls = new Set([
   ...[...GLOSSARY_CATEGORIES, OTHER_CATEGORY].map((category) => category.label),
   ...PUBLIC_GLOSSARY_PROVENANCES.map((status) => `languageGlossary.status.${status}`),
 ]);
+// "Status" is the native label in these languages too, not an English fallback.
+const sharedSpellings = new Set(["nl:languageGlossary.status.filter", "de:languageGlossary.status.filter", "pl:languageGlossary.status.filter"]);
 const tokens = (text: string) => [...text.matchAll(/\{\{\s*\w+\s*\}\}/g)].map((match) => match[0]).sort();
 it("covers every participating glossary language", () => {
   expect(Object.keys(seeds).sort()).toEqual(Object.keys(names).sort());
@@ -31,7 +33,8 @@ it.each(Object.keys(seeds))("publishes every %s glossary control with preserved 
   const catalog = glossaryUiCatalogFor(locale)!;
   for (const key of controls) {
     expect(resolveUiMessage(catalog, key), `${locale}: ${key}`).toBeTruthy();
-    expect(resolveUiMessage(catalog, key), `${locale}: ${key}`).not.toBe(key);
+    if (!sharedSpellings.has(`${locale}:${key}`))
+      expect(resolveUiMessage(catalog, key), `${locale}: ${key}`).not.toBe(resolveUiMessage(undefined, key));
     expect(tokens(resolveUiMessage(catalog, key)), `${locale}: ${key}`).toEqual(tokens(key));
   }
 });
