@@ -20,8 +20,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { publicHref } from "@/utils/publicHref";
+
+import {
+  decodePiruReport,
+  piruReportNeedsDetailedFormat,
+  readPiruFragment,
+  type PiruImportedReport,
+} from "./piruReportImport";
 
 // No contributor profile key, avatar URL, or PDF URL: the public form is
 // unauthenticated, so a key would be an unverified claim and the two URLs would
@@ -146,6 +155,35 @@ function createInitialDraft(): ReportDraft {
   };
 }
 
+
+type PiruImportNotice = "imported" | "unreadable";
+
+/**
+ * Fills the report fields a Piru session carries. Subject details, contact,
+ * and the consents are left exactly as they were: the reader gives those on
+ * the form. A field the session left empty keeps what the draft had.
+ */
+function applyPiruReport(draft: ReportDraft, report: PiruImportedReport, nextId: () => number): ReportDraft {
+  const timeline = { ...draft.timeline };
+  for (const phase of ["onset", "peak", "offset"] as const) {
+    if (report.timeline[phase].length > 0) {
+      timeline[phase] = report.timeline[phase].map((entry) => ({ id: `${phase}-${nextId()}`, ...entry }));
+    }
+  }
+  return {
+    ...draft,
+    title: report.title || draft.title,
+    substances:
+      report.substances.length > 0
+        ? report.substances.map((substance) => ({ id: `substance-${nextId()}`, ...substance }))
+        : draft.substances,
+    introduction: report.introduction || draft.introduction,
+    timeline,
+    conclusion: report.conclusion || draft.conclusion,
+    tags: report.tags || draft.tags,
+  };
+}
+
 function omitDraftId<T extends { id: string }>(value: T): Omit<T, "id"> {
   const { id: _id, ...rest } = value;
   return rest;
@@ -194,10 +232,38 @@ const SubmissionHero = memo(function SubmissionHero() {
   );
 });
 
+const PIRU_PROMO_MESSAGE =
+  "If you log your sessions in {{piru}}, it can remind you to note how you feel as a session goes, then turn those notes into a report that fills in this form.";
+
+/** Shown to readers who did not arrive from Piru; the link opens Piru's entry on the About page. */
+function PiruPromoLine() {
+  const t = useT();
+  const [before, after = ""] = t(PIRU_PROMO_MESSAGE).split("{{piru}}");
+  return (
+    <p className="theme-reveal-enter flex max-w-2xl items-start gap-2 text-sm leading-6 text-[var(--theme-text-muted)]">
+      <Icon icon="lucide:notebook-pen" className="mt-0.5 shrink-0" size={16} />
+      <span>
+        {before}
+        <Link
+          href="/about#collaboration-piru"
+          className="theme-accent-emphasis theme-accent-underline theme-focus-ring font-medium underline decoration-dotted underline-offset-[0.18em] hover:decoration-solid"
+        >
+          Piru
+        </Link>
+        {after}
+      </span>
+    </p>
+  );
+}
+
 function TripReportSubmissionForm() {
   const [draft, setDraft] = useState(createInitialDraft);
   const [narrativeMode, setNarrativeMode] = useState<NarrativeMode>("simple");
   const [result, setResult] = useState<SubmissionResult>({ kind: "idle" });
+  const [piruNotice, setPiruNotice] = useState<PiruImportNotice | null>(null);
+  // Decided after mount, because only the client sees the fragment: hidden until then, so a
+  // reader arriving from Piru never sees the line flash before the import notice.
+  const [showPiruPromo, setShowPiruPromo] = useState(false);
   const nextIdRef = useRef(2);
   const formRef = useRef<HTMLFormElement>(null);
   const pendingFocusRef = useRef<string | null>(null);
@@ -207,6 +273,27 @@ function TripReportSubmissionForm() {
     formRef.current?.querySelector<HTMLInputElement>(`#${pendingFocusRef.current}`)?.focus();
     pendingFocusRef.current = null;
   }, [draft.substances, draft.timeline]);
+
+  // A Piru session handed over in the fragment (see `piruReportImport`). The
+  // fragment is dropped from the address either way, so the report does not
+  // linger in history or travel with a copied link.
+  useEffect(() => {
+    if (!SITE_FLAVOR_CONFIG.showPiruLinks) return;
+    const encoded = readPiruFragment(window.location.hash);
+    if (encoded === null) {
+      setShowPiruPromo(true);
+      return;
+    }
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
+    const report = decodePiruReport(encoded);
+    if (!report) {
+      setPiruNotice("unreadable");
+      return;
+    }
+    setDraft((current) => applyPiruReport(current, report, () => nextIdRef.current++));
+    if (piruReportNeedsDetailedFormat(report)) setNarrativeMode("detailed");
+    setPiruNotice("imported");
+  }, []);
 
   const progress = useMemo(() => {
     const complete = [
@@ -368,6 +455,8 @@ function TripReportSubmissionForm() {
   return (
     <form ref={formRef} className="space-y-10" onSubmit={submitReport}>
       <FormStatus result={result} />
+      {piruNotice ? <PiruImportNoticeBanner notice={piruNotice} onDismiss={() => setPiruNotice(null)} /> : null}
+      {showPiruPromo ? <PiruPromoLine /> : null}
 
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div>
@@ -1080,6 +1169,30 @@ function SubmissionConfirmation({ children }: { children: ReactNode }) {
         {children}
       </Alert>
     </div>
+  );
+}
+
+function PiruImportNoticeBanner({ notice, onDismiss }: { notice: PiruImportNotice; onDismiss: () => void }) {
+  const t = useT();
+  return (
+    <Alert className="theme-feedback-enter pr-14">
+      <Icon icon={notice === "imported" ? "lucide:notebook-pen" : "lucide:info"} size={18} />
+      <AlertDescription>
+        {notice === "imported"
+          ? t("Filled in from your Piru session. Check everything before you submit.")
+          : t("The Piru session could not be read, so the form starts empty.")}
+      </AlertDescription>
+      <Button
+        type="button"
+        variant="iconGhost"
+        size="auto"
+        className="absolute right-2 top-1/2 h-11 w-11 -translate-y-1/2"
+        aria-label={t("Dismiss notice")}
+        onClick={onDismiss}
+      >
+        <Icon icon="lucide:x" size={16} />
+      </Button>
+    </Alert>
   );
 }
 

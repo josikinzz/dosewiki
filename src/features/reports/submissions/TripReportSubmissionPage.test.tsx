@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
+
 import { TripReportSubmissionPage } from "./TripReportSubmissionPage";
 
 function changeField(label: RegExp, value: string) {
@@ -146,5 +148,126 @@ describe("TripReportSubmissionPage", () => {
     expect(await screen.findByText("Submission failed")).toBeInTheDocument();
     expect(screen.getByText("Submission validation failed.")).toBeInTheDocument();
     expect(screen.getByText("At least one substance is required.")).toBeInTheDocument();
+  });
+
+  function encode(payload: unknown): string {
+    return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  }
+
+  // Asserted against the flavor flag so the suite also passes under an Effect
+  // Index build (`NEXT_PUBLIC_SITE_FLAVOR=effectindex vitest run`).
+  it.runIf(!SITE_FLAVOR_CONFIG.showPiruLinks)("ignores a Piru fragment where the flavor has no Piru links", () => {
+    const hash = `#piru=${encode({ v: 1, title: "Saturday at home" })}`;
+    window.history.replaceState(null, "", `/reports/submit${hash}`);
+
+    render(<TripReportSubmissionPage />);
+
+    expect(window.location.hash).toBe(hash);
+    expect(screen.getByLabelText(/^Title/)).toHaveValue("");
+    expect(screen.queryByRole("link", { name: "Piru" })).not.toBeInTheDocument();
+    window.history.replaceState(null, "", "/");
+  });
+
+  describe.runIf(SITE_FLAVOR_CONFIG.showPiruLinks)("Piru session import", () => {
+    afterEach(() => {
+      window.history.replaceState(null, "", "/");
+    });
+
+    it("fills the report from the fragment and leaves consents and contact alone", async () => {
+      window.history.replaceState(
+        null,
+        "",
+        `/reports/submit#piru=${encode({
+          v: 1,
+          source: "piru",
+          title: "Saturday at home",
+          substances: [
+            { name: "MDMA", slug: "mdma", dose: "120 mg", roa: "oral" },
+            { name: "Cannabis", dose: "1 joint", roa: "inhalation" },
+          ],
+          introduction: "Quiet evening with a friend.",
+          timeline: {
+            onset: [{ time: "T+0:30", description: "Warmth in the chest." }],
+            peak: [{ time: "T+1:45", description: "<script>alert(1)</script>" }],
+          },
+          conclusion: "Slept well.",
+          tags: ["entactogen", "at home"],
+          publish_consent: true,
+          age_confirmed: true,
+          contact_email: "x@example.com",
+        })}`,
+      );
+
+      render(<TripReportSubmissionPage />);
+
+      expect(
+        await screen.findByText("Filled in from your Piru session. Check everything before you submit."),
+      ).toBeInTheDocument();
+      expect(window.location.hash).toBe("");
+      expect(window.location.pathname).toBe("/reports/submit");
+
+      expect(screen.getByLabelText(/^Title/)).toHaveValue("Saturday at home");
+      expect(screen.getByLabelText(/Substance 1 name/)).toHaveValue("MDMA");
+      expect(screen.getByLabelText(/Substance 1 dose/)).toHaveValue("120 mg");
+      expect(screen.getByLabelText(/Substance 1 ROA/)).toHaveValue("oral");
+      expect(screen.getByLabelText(/Substance 2 ROA/)).toHaveValue("inhaled");
+      expect(screen.getByRole("tab", { name: /Detailed/ })).toHaveAttribute("aria-selected", "true");
+      expect(screen.getByLabelText(/Introduction/)).toHaveValue("Quiet evening with a friend.");
+      expect(screen.getByLabelText(/Onset entry 1 time/)).toHaveValue("T+00:30");
+      expect(screen.getByLabelText(/Peak entry 1 description/)).toHaveValue(
+        "<script>alert(1)</script>",
+      );
+      expect(document.querySelector("script")).toBeNull();
+      expect(screen.getByLabelText(/Conclusion/)).toHaveValue("Slept well.");
+      expect(screen.getByLabelText(/Tags/)).toHaveValue("entactogen, at home");
+
+      expect(screen.getByLabelText(/Contact email/)).toHaveValue("");
+      expect(screen.getByLabelText(/Author or pseudonym/)).toHaveValue("");
+      for (const id of ["may-contact", "publish-consent", "age-confirmed"]) {
+        expect(document.getElementById(id)).not.toBeChecked();
+      }
+      expect(screen.getByRole("progressbar", { name: "Required fields complete" })).toHaveAttribute(
+        "aria-valuenow",
+        "2",
+      );
+
+      fireEvent.click(screen.getByRole("button", { name: "Dismiss notice" }));
+      expect(
+        screen.queryByText("Filled in from your Piru session. Check everything before you submit."),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Piru" })).not.toBeInTheDocument();
+    });
+
+    it("leaves the form empty and says so when the fragment cannot be read", async () => {
+      window.history.replaceState(null, "", "/reports/submit#piru=%%%not-base64");
+
+      render(<TripReportSubmissionPage />);
+
+      expect(
+        await screen.findByText("The Piru session could not be read, so the form starts empty."),
+      ).toBeInTheDocument();
+      expect(window.location.hash).toBe("");
+      expect(screen.getByLabelText(/^Title/)).toHaveValue("");
+    });
+
+    it("does nothing without a piru fragment", () => {
+      window.history.replaceState(null, "", "/reports/submit#core-details");
+
+      render(<TripReportSubmissionPage />);
+
+      expect(window.location.hash).toBe("#core-details");
+      expect(screen.queryByText(/Piru session/)).not.toBeInTheDocument();
+    });
+
+    it("points readers who did not come from Piru to its About page entry", async () => {
+      window.history.replaceState(null, "", "/reports/submit");
+
+      render(<TripReportSubmissionPage />);
+
+      expect(await screen.findByRole("link", { name: "Piru" })).toHaveAttribute(
+        "href",
+        "/about#collaboration-piru",
+      );
+    });
   });
 });
