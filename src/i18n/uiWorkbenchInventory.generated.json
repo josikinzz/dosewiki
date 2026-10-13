@@ -3127,17 +3127,6 @@
       "Close information"
     ]
   },
-  "legacy.1c3eddca09346b5183aa360078019ee669a7d2e090f78d75a05fa474848060c8": {
-    "catalogKey": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)",
-    "source": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)"
-    ]
-  },
   "legacy.1c769ecb9e80202f43b5dfa8c2e8a76f1136f688292489308b07c22a66763376": {
     "catalogKey": "Czech Republic",
     "source": "Czech Republic",
@@ -8895,6 +8884,17 @@
       "Transpersonal"
     ]
   },
+  "legacy.55ae8a7088e54c5f9b67d86cad56d1d15298844275cffc3f430d942dbcff3600": {
+    "catalogKey": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)",
+    "source": "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "EffectIndex.com and its materials, including all indexing-related and written content, are available under the [Creative Commons Attribution-ShareAlike License](https://creativecommons.org/licenses/by-nc-sa/4.0/) for non-commercial use. Additional terms may apply; contact [contact@dose.wiki](mailto:contact@dose.wiki) for more information and commercial inquiries.\n\nAll replications, multimedia, and non-SEI artwork belong to their original creators and are protected by international copyright laws. Artwork used without the creator's permission is reproduced at diminished quality and assumed to constitute \"fair use\" for educational and non-profit purposes. If you would like your artwork removed or reattributed, please contact [contact@dose.wiki](mailto:contact@dose.wiki)"
+    ]
+  },
   "legacy.55cd9e8336893f4b14554d62145f0098cdfb183d185042334be1bcae5e6bf42d": {
     "catalogKey": "Legacy trip reports",
     "source": "Legacy trip reports",
@@ -8948,6 +8948,17 @@
     ],
     "glossaryTerms": [
       "<strong>Visual distortions</strong> are any subjective effect which alters and changes the perception or appearance of pre-existing visual data without adding any entirely new content."
+    ]
+  },
+  "legacy.55ed532623aeb0116e5b8bd23bce142e0924a8df0b5331f612f87a83b1862742": {
+    "catalogKey": "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:",
+    "source": "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:"
     ]
   },
   "legacy.56059e7fb4e9ddfa1470a50a43ac2f05509cb802757e68d35d9033232b097e58": {
@@ -19741,17 +19752,6 @@
     ],
     "glossaryTerms": [
       "Video {{effect}} replications"
-    ]
-  },
-  "legacy.c68adfae750fdf2625401ea596395f28ef4b87d6189e76fd7f47a0b37b97e290": {
-    "catalogKey": "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:",
-    "source": "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "To collectively contact the staff members of this site, please email us at [contact@dose.wiki.](mailto:contact@dose.wiki) However, if you would like to contact the site founder directly, please refer to the contact information below:"
     ]
   },
   "legacy.c6c8885df4ea6bd1e35ef6593dcc8e485712aca05ef41b57953219bf14050b22": {
