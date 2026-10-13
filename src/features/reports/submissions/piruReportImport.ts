@@ -164,7 +164,7 @@ function plainText(value: unknown, limit: number): string {
 /** A Piru route name in the article vocabulary; see `ROA_ALIASES`. */
 export function mapPiruRoa(value: unknown): string {
   const text = plainText(value, FIELD_LIMITS.roa).toLowerCase();
-  return ROA_ALIASES[text] ?? text;
+  return Object.prototype.hasOwnProperty.call(ROA_ALIASES, text) ? ROA_ALIASES[text] : text;
 }
 
 /**

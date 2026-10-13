@@ -1,3 +1,4 @@
+import { StrictMode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -171,6 +172,14 @@ describe("TripReportSubmissionPage", () => {
   describe.runIf(SITE_FLAVOR_CONFIG.showPiruLinks)("Piru session import", () => {
     afterEach(() => {
       window.history.replaceState(null, "", "/");
+    });
+
+    it("imports once under Strict Mode without showing the promotion", async () => {
+      window.history.replaceState(null, "", `/reports/submit#piru=${encode({ v: 1, title: "Imported session" })}`);
+      render(<StrictMode><TripReportSubmissionPage /></StrictMode>);
+      expect(await screen.findByText("Filled in from your Piru session. Check everything before you submit.")).toBeInTheDocument();
+      expect(screen.queryByText(/If you log your sessions/)).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/^Title/)).toHaveValue("Imported session");
     });
 
     it("fills the report from the fragment and leaves consents and contact alone", async () => {

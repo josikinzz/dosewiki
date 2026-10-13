@@ -189,3 +189,8 @@ describe("Piru field mapping", () => {
     expect(normalizePiruTime("T+0:75")).toBe("T+0:75");
   });
 });
+
+it("keeps inherited object properties as plain route text", () => {
+  expect(mapPiruRoa("__proto__")).toBe("__proto__");
+  expect(mapPiruRoa("constructor")).toBe("constructor");
+});

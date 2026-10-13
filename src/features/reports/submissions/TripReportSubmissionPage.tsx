@@ -264,6 +264,7 @@ function TripReportSubmissionForm() {
   // Decided after mount, because only the client sees the fragment: hidden until then, so a
   // reader arriving from Piru never sees the line flash before the import notice.
   const [showPiruPromo, setShowPiruPromo] = useState(false);
+  const piruImportCheckedRef = useRef(false);
   const nextIdRef = useRef(2);
   const formRef = useRef<HTMLFormElement>(null);
   const pendingFocusRef = useRef<string | null>(null);
@@ -278,7 +279,8 @@ function TripReportSubmissionForm() {
   // fragment is dropped from the address either way, so the report does not
   // linger in history or travel with a copied link.
   useEffect(() => {
-    if (!SITE_FLAVOR_CONFIG.showPiruLinks) return;
+    if (!SITE_FLAVOR_CONFIG.showPiruLinks || piruImportCheckedRef.current) return;
+    piruImportCheckedRef.current = true;
     const encoded = readPiruFragment(window.location.hash);
     if (encoded === null) {
       setShowPiruPromo(true);
