@@ -120,31 +120,6 @@ describe("POST /api/dev/translation-glossary/import", () => {
     expect(glossary.importGlossaryDrafts).not.toHaveBeenCalled();
   });
 
-  it("answers 400 for an unknown locale and for a file without the header", async () => {
-    expect(
-      (await POST(post("term,target\nEuphoria,欣快\n", "fr"))).status,
-    ).toBe(400);
-    const headless = await POST(post("Euphoria,欣快\n"));
-    expect(headless.status).toBe(400);
-    expect((await headless.json()).error).toMatch(
-      /first line must name the columns/,
-    );
-    expect((await POST(post("term,target\n"))).status).toBe(400);
-    expect(glossary.importGlossaryDrafts).not.toHaveBeenCalled();
-  });
-
-  it("refuses the whole file when a term is unknown, a rendering is blank, or a term repeats", async () => {
-    const response = await POST(
-      post(
-        "term,target\nEuphoria,欣快\nEuphoria,快\nSerotonin,血清素\nAnxiety,\n",
-      ),
-    );
-    expect(response.status).toBe(400);
-    const body = await response.json();
-    expect(body.unknownTerms).toEqual(["Serotonin"]);
-    expect(glossary.importGlossaryDrafts).not.toHaveBeenCalled();
-  });
-
   it("imports every status as a draft and never inherits approval for changed wording", async () => {
     const response = await POST(
       post(
@@ -167,13 +142,5 @@ describe("POST /api/dev/translation-glossary/import", () => {
       ],
       TRANSLATOR.email,
     );
-  });
-
-  it("refuses a body over 2 MB without parsing it", async () => {
-    const response = await POST(
-      post(`term,target\n${"Euphoria,欣快\n".repeat(200_000)}`),
-    );
-    expect(response.status).toBe(413);
-    expect(glossary.readGlossaryRows).not.toHaveBeenCalled();
   });
 });

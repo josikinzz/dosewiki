@@ -296,6 +296,13 @@ export type SiteFlavorConfig = AppearancePolicy & {
   readonly about: SiteAboutConfig;
   /** Fallback description for an article slug that no longer resolves. */
   readonly articleFallbackDescription: string;
+  /**
+   * Whether substance articles carry the Piru links: the "Log in Piru" pill on the
+   * Dosage & Duration route row and, once a reader has used Piru from this browser,
+   * the "Open in Piru" chip in the article header. Piru resolves the dose.wiki slug,
+   * so the links belong to that publication only.
+   */
+  readonly showPiruLinks: boolean;
   /** Footer identity block. */
   readonly footer: {
     readonly tagline: string;
@@ -422,6 +429,7 @@ const DOSEWIKI_CONFIG: SiteFlavorConfig = {
     },
   },
   articleFallbackDescription: "Browse Effect Index articles in dose.wiki.",
+  showPiruLinks: true,
   footer: {
     tagline: msg(
       "dose.wiki does not endorse or warrant the accuracy or safety of the information published here. Its articles, reports, and data describe substances and individual experiences and must not be read as medical advice, dosing recommendations, or a representation that any substance or dose is safe.\n\ndose.wiki is an independently governed repository of psychoactive-substance information and first-person experiences. Its operations, content policies, and editorial decisions are its own.",
@@ -614,6 +622,8 @@ const EFFECT_INDEX_CONFIG: SiteFlavorConfig = {
     contact: null,
   },
   articleFallbackDescription: "Browse the Effect Index article archive.",
+  // Piru resolves dose.wiki slugs; this archive's articles are not its catalog.
+  showPiruLinks: false,
   footer: {
     tagline: "Formalised documentation of subjective effects. Not medical advice.",
     licence: {

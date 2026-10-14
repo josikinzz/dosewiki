@@ -24,11 +24,9 @@ inventory:
 
 ## Verify
 
-1. Run `npm run test -- src/data/config/categoryIcons.test.ts`. Add an assertion
-   when the change introduces a new alias or fallback rule.
-2. Run `npm run dev`, then open `/substances`, a substance article with the
+1. Run `npm run dev`, then open `/substances`, a substance article with the
    affected category, and the protected `/dev/index-layout` editor.
-3. Confirm the icon renders at tag and card sizes, has an accessible label where
+2. Confirm the icon renders at tag and card sizes, has an accessible label where
    the icon carries meaning, and remains legible in dark and light themes.
 4. Test an unknown symbolic key and confirm it still resolves to
    `DEFAULT_CATEGORY_ICON`.

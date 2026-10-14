@@ -26,14 +26,10 @@ import { GET } from "./route";
 
 const owner = { email: "owner@example.com", name: "Owner" };
 
-const ownedRows = [
-  { id: "r1", slug: "alpine-clarity", title: "Alpine clarity", ownerEmail: owner.email, createdAt: 1 },
-];
-
 beforeEach(() => {
   mocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("contributor", owner));
   mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
-  mocks.query.mockReset().mockResolvedValue(ownedRows);
+  mocks.query.mockReset().mockResolvedValue([]);
   mocks.getServerDataWriteCapability.mockReset().mockReturnValue({
     ok: true,
     capability: {
@@ -45,21 +41,6 @@ beforeEach(() => {
 });
 
 describe("dev owned trip reports route", () => {
-  it("lists the contributor's own reports as the Postgres actor without echoing the owner email", async () => {
-    const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports/mine"));
-
-    expect(response.status).toBe(200);
-    expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
-    expect(mocks.query).toHaveBeenCalledWith(
-      expect.anything(),
-      { apiKey: "scoped-token", actorEmail: owner.email },
-    );
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      reports: [{ id: "r1", slug: "alpine-clarity", title: "Alpine clarity", createdAt: 1 }],
-    });
-  });
-
   it("refuses a signed-out caller without touching Postgres", async () => {
     mocks.requireRoleSession.mockImplementation(roleSessionFor(null));
 

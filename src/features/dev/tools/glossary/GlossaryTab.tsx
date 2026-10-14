@@ -2,7 +2,8 @@
 
 /**
  * Glossary, the translation workbench: `/dev/glossary`, opening on Terms. Waiting lists
- * what needs a person. Terms and Interface text share one search. Articles
+ * what needs a person, readers' suggestions first. Suggestions holds what readers sent
+ * from the public glossary, with its own count. Terms and Interface text share one search. Articles
  * opens on the articles needing review and holds the article reader, per-page
  * coverage, recorded changes, reader feedback and, for admins, the runs with
  * every control that calls the model. The views are tabs over panels that stay
@@ -26,6 +27,8 @@
  * A single-row write locks only its own row, so a reviewer can keep typing in
  * the next one; after the row updates in place, focus moves to the next unreviewed row so
  * the reviewer can continue through the list with explicit approval buttons.
+ * A row approved this way keeps its place under a status filter until the
+ * filter changes (see useHeldInPlace).
  *
  * Under each term sits its definition (gloss): the one-line English meaning
  * the prompt injects beside the approved rendering and the public /glossary
@@ -66,7 +69,6 @@ import {
   draftMissingTerms,
   fetchGlossary,
   fetchGlossaryProgress,
-  filterRows,
   groupRows,
   isLiveUnchecked,
   languageLabel,
@@ -92,12 +94,16 @@ import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
 import { type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
 import { GlossaryActionBar } from "./GlossaryToolbar";
+import { importConfirmation, readGlossaryImport } from "./glossaryImport";
 import { StatusLegend } from "./StatusLegend";
 import { TermsWorkspace } from "./TermsWorkspace";
 import { type NextCategory } from "./TermsOverview";
 import type { UiEditDrafts } from "./UiTranslationWorkbench";
 import { RowSkeletons } from "./workbenchParts";
-import { ArticlesView, ReviewInbox, StyleGuidePanel, UiTranslationWorkbench } from "./lazyPanels";
+import { ArticlesView, ReaderSuggestions, ReviewInbox, StyleGuidePanel, UiTranslationWorkbench } from "./lazyPanels";
+import { useReaderSuggestionCount } from "./readerSuggestionCount";
+import { useHeldInPlace } from "./useHeldInPlace";
+import { workbenchTabs, type WorkbenchSection } from "./workbenchSections";
 
 /** A write's outcome: the message to show, and the written rows to patch in place (`null` reloads the locale instead). */
 type WriteResult = { message: string; patch: GlossaryRowPatch | null };
@@ -131,18 +137,6 @@ type CollisionReview = {
 /** A whole-tab write's result and the view it belongs to. */
 type WorkbenchNotice = NoticeMessage & { where: "terms" | "runs" };
 
-/** The one nav: glossary terms, UI labels, and the style guide are the Words view's lists; Articles is the Pages view. */
-type WorkbenchSection = WordsList | Exclude<WorkbenchView, "words">;
-
-/** Terms opens first; Waiting gathers everything needing a person. */
-const SECTIONS: readonly { value: WorkbenchSection; label: string }[] = [
-  { value: "terms", label: "Terms" },
-  { value: "inbox", label: "Waiting" },
-  { value: "labels", label: "Interface text" },
-  { value: "pages", label: "Articles" },
-  { value: "style", label: "Style guide" },
-];
-
 /** The tool's own save sentence: two saves, and neither is a site release. */
 const GLOSSARY_SAVE_COPY: SaveLineCopy = {
   label: "Save draft waits for a reviewer. Approve puts wording in use.",
@@ -163,7 +157,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const fieldId = useId();
   const [view, setView] = useState<WorkbenchView>("words");
   /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
-  const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, words: false, pages: false, labels: false, style: false });
+  const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, suggestions: false, words: false, pages: false, labels: false, style: false });
   const [wordsList, setWordsList] = useState<WordsList>("terms");
   /** The Articles section a deep link asked for. */
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
@@ -245,6 +239,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const loadVersion = useRef(0);
   const refreshInFlight = useRef(false);
   const [filters, setFilters] = useState<GlossaryFilters>(DEFAULT_FILTERS);
+  const { rows, hold: holdInPlace, release: releaseHeld } = useHeldInPlace(data, filters);
   const [busy, setBusy] = useState<Busy>(null);
   /** The one row an approve or save is writing; every other row stays editable. */
   const [writing, setWriting] = useState<Writing | null>(null);
@@ -261,6 +256,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   /** The Inbox's total and the interface text still needing a person, for the view tabs; null until known. */
   const [inboxTotal, setInboxTotal] = useState<number | null>(null);
   const [labelsWaiting, setLabelsWaiting] = useState<number | null>(null);
+  /** Reader suggestions still open in this language, recounted on every view change so a decision reaches the tab. */
+  const suggestionsWaiting = useReaderSuggestionCount(locale, view);
   /** What "Retranslate" sends: derived on the server from review and retranslate stamps, so it is the same list after a reload or on another machine. */
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
@@ -355,6 +352,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   /** Refresh: a full reload, shown as in progress on the button until it lands. */
   const refresh = async () => {
+    releaseHeld();
     setBusy("load");
     try {
       await load(locale);
@@ -390,7 +388,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     rows[next ?? order[index]]?.querySelector<HTMLInputElement>('input[aria-label^="Translation for"]')?.focus();
   }, [writingTerm]);
 
-  const rows = useMemo(() => (data ? filterRows(data.rows, filters) : []), [data, filters]);
   const groups = useMemo(() => groupRows(rows), [rows]);
   const allGroups = useMemo(() => (data ? groupRows(data.rows) : []), [data]);
   // Header numerics come from the unfiltered rows, so "34 of 120 unreviewed"
@@ -492,12 +489,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
       const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
+      holdInPlace([row.term]);
       return { message: `Approved "${row.term}".`, patch };
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
       const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
+      holdInPlace(approved.terms);
       return { message: `Approved ${count(approved.terms.length, "term")}.`, patch: approved.patch };
     });
 
@@ -583,6 +582,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       }
       termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
       const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
+      holdInPlace([row.term]);
       return { message: `Approved "${row.term}" as ${saved.target}.`, patch };
     }, row.term);
   };
@@ -686,14 +686,16 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
   };
 
-  /** Reads the chosen file here and sends it whole; the server writes all of it or none. */
+  /** The file is parsed and its terms confirmed here (see glossaryImport), then sent whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
-    const csv = file.text();
-    await run("import", async (collisionConfirmation) => {
-      const summary = await importGlossaryCsv(locale!, await csv, collisionConfirmation);
-      return `Imported ${count(summary.drafts, "draft")}; each requires explicit approval.`;
-    });
+    const read = await readGlossaryImport(file);
+    if ("error" in read) return setNotice({ tone: "danger", message: read.error, where: "terms" });
+    confirm(importConfirmation(read, locale!, () =>
+      void run("import", async (collisionConfirmation) => {
+        const summary = await importGlossaryCsv(locale!, read.csv, collisionConfirmation);
+        return `Imported ${count(summary.drafts, "draft")}; each requires explicit approval.`;
+      })));
   };
 
   // Every panel below is keyed on the language, so a switch remounts them and
@@ -750,18 +752,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const status = data ? operationalStatus(data, busy === "start", refreshError) : null;
   const termsLeft = counts.drafts + counts.unchecked;
-  // Counts ride on the tabs as a number with the words sr-only, and drop out while unknown.
-  const tabOptions = SECTIONS.map((option) => {
-    const waiting = option.value === "inbox" ? inboxTotal : option.value === "terms" ? (data ? termsLeft : null) : option.value === "labels" ? labelsWaiting : null;
-    const noun = option.value === "inbox" ? "waiting" : "to review";
-    return {
-      value: option.value,
-      controls: `glossary-view-${option.value}`,
-      disabled: navLocked,
-      label: waiting ? <>{option.label}<span className="sr-only">{`, ${waiting} ${noun}`}</span></> : option.label,
-      ...(waiting ? { badge: <span aria-hidden className="tabular-nums">{waiting}</span> } : {}),
-    };
-  });
+  const tabOptions = workbenchTabs({ inbox: inboxTotal, suggestions: suggestionsWaiting, terms: data ? termsLeft : null, labels: labelsWaiting }, navLocked);
 
   const activity = busy ? BUSY_LABEL[busy] : writing ? (writing.field === "definition" ? "Saving definition" : `Saving "${writing.term}"`) : null;
   const termsNotice: NoticeMessage | null = notice?.where === "terms"
@@ -846,6 +837,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           {visitedViews.inbox ? (
             <div id="glossary-view-inbox" role="tabpanel" aria-label="Waiting" hidden={view !== "inbox"}>
               <ReviewInbox key={data.locale} locale={data.locale} onOpen={openInboxLink} onTotalChange={setInboxTotal} active={view === "inbox"} />
+            </div>
+          ) : null}
+
+          {visitedViews.suggestions ? (
+            <div id="glossary-view-suggestions" role="tabpanel" aria-label="Suggestions" hidden={view !== "suggestions"}>
+              <ReaderSuggestions key={data.locale} locale={data.locale} />
             </div>
           ) : null}
 

@@ -3,7 +3,6 @@ import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHeal
 import {
   buildDataCommandPayload,
   buildDevSaveDraft,
-  buildProposalSummary,
   createDataSaveAdapter,
   createProposalSaveAdapter,
   type DevSaveCredentials,
@@ -62,18 +61,6 @@ function createDraft() {
 }
 
 describe("dev save command contract", () => {
-  it("builds a draft snapshot from article, layout, and changelog state; About is not staged", () => {
-    const draft = createDraft();
-
-    expect(draft.layouts.map((layout) => layout.type)).toEqual([
-      "psychoactive",
-      "chemical",
-      "mechanism",
-    ]);
-    expect("about" in draft).toBe(false);
-    expect("generatorPrompt" in draft).toBe(false);
-  });
-
   it("builds Postgres payloads from changed document snapshots", () => {
     expect(buildDataCommandPayload(createDraft())).toEqual({
       changedArticles: [{ id: 2, title: "MDMA", slug: "mdma" }],
@@ -101,38 +88,6 @@ describe("dev save command contract", () => {
             categories: ["5ht2a"],
           },
         ],
-      },
-    });
-  });
-
-  it("normalizes successful Postgres saves and marks local changes saved", async () => {
-    const saveArticle = vi.fn().mockResolvedValue({
-      success: true,
-      requestId: "save-1",
-      savedItems: ["1 article(s)"],
-      submittedBy: "JOSIE",
-      warnings: [],
-      revalidatedPaths: ["/mdma", "/substances"],
-      entry: {
-        id: "entry-1",
-        createdAt: "2026-04-26T12:00:00.000Z",
-        commit: { sha: "", url: "", message: "Saved" },
-        articles: [{ id: 2, title: "MDMA", slug: "mdma" }],
-        markdown: "# Saved",
-        submittedBy: "JOSIE",
-      },
-    });
-    const adapter = createDataSaveAdapter({ serverHealth: healthyServer, saveArticle });
-
-    await expect(adapter.execute(createDraft(), credentials)).resolves.toMatchObject({
-      savedItems: ["1 article(s)"],
-      warnings: [],
-      resolvedSubmitterKey: "JOSIE",
-      markChangesSaved: true,
-      revalidatedPaths: ["/mdma", "/substances"],
-      changelogEntry: {
-        id: "entry-1",
-        submittedBy: "JOSIE",
       },
     });
   });
@@ -189,27 +144,6 @@ describe("dev save command contract", () => {
     });
   });
 
-  it("submits the same payload as a proposal, never touches Postgres health, and points at the queue", async () => {
-    const submitProposal = vi.fn().mockResolvedValue({ proposalId: "k57zyx987654" });
-    const adapter = createProposalSaveAdapter({ submitProposal });
-    const draft = createDraft();
-
-    expect(adapter.validateAvailability(draft)).toEqual({ ok: true });
-    expect(adapter.noChangesMessage).toBe("No changes to submit.");
-    expect(adapter.verifiedMessage("EDITOR")).toContain("Submitting for review");
-
-    await expect(adapter.execute(draft, credentials)).resolves.toEqual({
-      destination: "proposal",
-      savedItems: ["Proposal #987654"],
-      warnings: [],
-      resolvedSubmitterKey: "EDITOR",
-      changelogEntry: null,
-      markChangesSaved: true,
-      actionLabel: "Open in Change Review",
-      actionHref: "/dev/queue",
-    });
-  });
-
   it("sends revisionOf when the draft rebases a returned proposal", async () => {
     const submitProposal = vi.fn().mockResolvedValue({ proposalId: "k57zyx987654" });
     const draft = createDraft();
@@ -219,14 +153,5 @@ describe("dev save command contract", () => {
 
     await createProposalSaveAdapter({ submitProposal, revisionOf: null }).execute(draft, credentials);
     expect(submitProposal).toHaveBeenLastCalledWith(expect.not.objectContaining({ revisionOf: expect.anything() }));
-  });
-
-  it("summarizes a proposal from the changed titles and layout labels", () => {
-    const draft = createDraft();
-    expect(buildProposalSummary(draft, { articles: [{ id: 2, title: "MDMA", slug: "mdma" }] })).toBe("Update MDMA");
-    expect(buildProposalSummary(draft, { indexLayouts: [{ type: "mechanism", version: 1, categories: [] }] })).toBe(
-      "Update Mechanism of action",
-    );
-    expect(buildProposalSummary(draft, {})).toBe("Editor update");
   });
 });

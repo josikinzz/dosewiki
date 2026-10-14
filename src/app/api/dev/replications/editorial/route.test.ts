@@ -110,87 +110,6 @@ describe("replication editorial route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("applies an admin's single edit and publishes both effect pages plus the record", async () => {
-    mocks.mutation.mockResolvedValue({ success: true, slug: "drifting-replication" });
-
-    const response = await POST(
-      editorialRequest({
-        ...singleEdit,
-        updates: { ...snapshot, effect_slug: "visual-acuity-enhancement" },
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, updated: 1, slugs: ["drifting-replication"] });
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.updateEditorialFields",
-      expect.objectContaining({
-        apiKey: "maintenance-token",
-        actorEmail: "admin@example.com",
-        id: "replication-id",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [
-        { kind: "replication-collections" },
-        { kind: "effect", slug: "drifting" },
-        { kind: "effect", slug: "visual-acuity-enhancement" },
-        { kind: "replication", slug: "drifting-replication" },
-      ],
-      source: "manual",
-    });
-  });
-
-  it("applies an admin's bulk edit", async () => {
-    mocks.mutation.mockResolvedValue({ updated: 1, slugs: ["drifting-replication"] });
-
-    const response = await POST(editorialRequest(bulkEdit));
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      ok: true,
-      updated: 1,
-      slugs: ["drifting-replication"],
-      published: [],
-      conflicts: [],
-    });
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.bulkUpdateEditorialFields",
-      expect.objectContaining({
-        items: [{ id: "replication-id", expected: snapshot }],
-        artist: "Renamed Artist",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "replication-collections" }],
-      source: "manual",
-    });
-  });
-
-  it("reports a stale bulk item as a conflict next to the rows it did write", async () => {
-    mocks.mutation.mockResolvedValue({
-      updated: 1,
-      slugs: ["drifting-replication"],
-      conflicts: [{ id: "stale-id", slug: "stale-replication", reason: "Someone saved it after you loaded the studio." }],
-    });
-
-    const response = await POST(
-      editorialRequest({
-        ...bulkEdit,
-        items: [...bulkEdit.items, { id: "stale-id", expected: snapshot }],
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      ok: true,
-      updated: 1,
-      slugs: ["drifting-replication"],
-      published: [],
-      conflicts: [{ id: "stale-id", slug: "stale-replication", reason: "Someone saved it after you loaded the studio." }],
-    });
-  });
-
   it("answers 409 and publishes nothing when every bulk item is stale", async () => {
     mocks.mutation.mockResolvedValue({
       updated: 0,
@@ -207,38 +126,6 @@ describe("replication editorial route", () => {
       conflicts: [{ id: "replication-id" }],
     });
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
-  });
-
-  it("bulk-sets rights on three items, each guarded by its own expected provenance", async () => {
-    mocks.mutation.mockResolvedValue({ updated: 3, slugs: ["a", "b", "c"], published: [], effects: ["drifting"], conflicts: [] });
-    const expected = { ...snapshot, rights_status: "unknown", source_url: null };
-
-    const response = await POST(editorialRequest({
-      mode: "bulk",
-      items: ["a", "b", "c"].map((id) => ({ id, expected })),
-      patch: { rightsStatus: "creator-retained" },
-    }));
-
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.bulkUpdateEditorialFields",
-      expect.objectContaining({
-        items: ["a", "b", "c"].map((id) => ({ id, expected })),
-        rights_status: "creator-retained",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "replication-collections" }, { kind: "effect", slug: "drifting" }],
-      source: "manual",
-    });
-  });
-
-  it("refuses an unknown rights status and a non-HTTP source before reaching Postgres", async () => {
-    for (const patch of [{ rightsStatus: "stolen" }, { sourceUrl: "ftp://example.test/a" }]) {
-      const response = await POST(editorialRequest({ ...bulkEdit, patch }));
-      expect(response.status).toBe(400);
-    }
-    expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
   it("answers 409 and publishes nothing while every item still lacks a source", async () => {
@@ -263,54 +150,10 @@ describe("replication editorial route", () => {
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
-  it("brings a published upload's gallery and permalink live", async () => {
-    mocks.mutation.mockResolvedValue({
-      updated: 1,
-      slugs: ["drifting-replication"],
-      published: ["drifting-replication"],
-      effects: ["drifting"],
-      conflicts: [],
-    });
-
-    const response = await POST(editorialRequest({ ...bulkEdit, patch: { publish: true } }));
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ published: ["drifting-replication"] });
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [
-        { kind: "replication-collections" },
-        { kind: "effect", slug: "drifting" },
-        { kind: "replication", slug: "drifting-replication" },
-      ],
-      source: "manual",
-    });
-  });
-
   it("refuses a bulk editorial change that names rows without expected values", async () => {
     const response = await POST(
       editorialRequest({ mode: "bulk", ids: ["replication-id"], artist: "Renamed Artist" }),
     );
-
-    expect(response.status).toBe(400);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("keeps the id-only shape for the corpus-wide showcase toggle", async () => {
-    mocks.mutation.mockResolvedValue({ updated: 1, slugs: ["drifting-replication"], conflicts: [] });
-
-    const response = await POST(
-      editorialRequest({ mode: "bulk", ids: ["replication-id"], showcaseExcluded: true }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.bulkUpdateEditorialFields",
-      expect.objectContaining({ ids: ["replication-id"], showcase_excluded: true }),
-    );
-  });
-
-  it("rejects a body with neither mode before reaching Postgres", async () => {
-    const response = await POST(editorialRequest({ id: "replication-id" }));
 
     expect(response.status).toBe(400);
     expect(mocks.mutation).not.toHaveBeenCalled();

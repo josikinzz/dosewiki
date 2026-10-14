@@ -34,21 +34,23 @@ import {
 } from "./reviewInboxFindings";
 
 /**
- * Reasons the inbox checks, in list order: English where readers expect their
- * language first, then wording readers see wrong, re-checks, QA findings,
- * model fluency suggestions, unchecked terms, and reader suggestions last.
+ * Reasons the inbox checks, in list order: reader suggestions first, because
+ * a person wrote each one and is waiting on it while the automated checks
+ * below can list thousands; then English where readers expect their language,
+ * wording readers see wrong, re-checks, QA findings, model fluency
+ * suggestions, and unchecked terms.
  */
 const INBOX_ORDER: Record<InboxReason, number> = {
-  "segment-rejected": 0,
-  "narrative-source-changed": 1,
-  "ui-source-changed": 2,
-  "narrative-recheck": 3,
-  "glossary-disagreement": 4,
-  "leftover-latin": 5,
-  "note-orphaned": 6,
-  "model-suggestion": 7,
-  "glossary-never-checked": 8,
-  "reader-suggestion": 9,
+  "reader-suggestion": 0,
+  "segment-rejected": 1,
+  "narrative-source-changed": 2,
+  "ui-source-changed": 3,
+  "narrative-recheck": 4,
+  "glossary-disagreement": 5,
+  "leftover-latin": 6,
+  "note-orphaned": 7,
+  "model-suggestion": 8,
+  "glossary-never-checked": 9,
 };
 /** Every reason, so a new reason cannot be left out of the order. */
 export const INBOX_CHECKS: readonly InboxReason[] = (Object.keys(INBOX_ORDER) as InboxReason[]).sort((a, b) => INBOX_ORDER[a] - INBOX_ORDER[b]);

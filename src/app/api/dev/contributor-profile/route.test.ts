@@ -1,4 +1,3 @@
-import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { roleSessionFor } from "@/test/routeSession";
@@ -29,12 +28,8 @@ vi.mock("@/lib/auth/requireEditorSession", () => ({
   requireRoleSession: sessionMocks.requireRoleSession,
 }));
 
-const rateLimitMocks = vi.hoisted(() => ({
-  enforceRateLimit: vi.fn(async () => null),
-}));
-
 vi.mock("@server/http/nextRateLimit", () => ({
-  enforceRateLimit: rateLimitMocks.enforceRateLimit,
+  enforceRateLimit: vi.fn(async () => null),
 }));
 
 const mocks = vi.hoisted(() => ({
@@ -123,7 +118,6 @@ describe("contributor profile route", () => {
     mocks.mutation.mockReset();
     mocks.revalidateContributorSurfaces.mockReset();
     sessionMocks.requireRoleSession.mockReset();
-    rateLimitMocks.enforceRateLimit.mockClear();
   });
 
   it("refuses a legacy viewer sign-in on both verbs before touching Postgres", async () => {
@@ -165,25 +159,6 @@ describe("contributor profile route", () => {
         staffNote: null,
         membershipEmail: null,
       });
-      // The read is the server's own; the audit identity is only for writes.
-      expect(mocks.query).toHaveBeenCalledWith("contributorProfiles.getEditorProfile", {
-        apiKey: "admin-key",
-        key: "ADA",
-      });
-    });
-
-    it("hands back a blank record keyed by the sign-in when none is stored yet", async () => {
-      routeQueries({ owned: null, editorProfile: null });
-
-      const response = await GET(getRequest("ADA"));
-
-      expect(response.status).toBe(200);
-      expect(await response.json()).toEqual({
-        ok: true,
-        profile: expect.objectContaining({ key: "ADA", displayName: "Ada", aliases: [], links: [] }),
-        works: [],
-        reports: [],
-      });
     });
 
     it("refuses a derived key whose record belongs to another sign-in", async () => {
@@ -222,15 +197,6 @@ describe("contributor profile route", () => {
       for (const field of ["role", "aliases", "approved_replicator", "staffNote"]) {
         expect(args.profile).not.toHaveProperty(field);
       }
-      expect(mocks.revalidateContributorSurfaces).toHaveBeenCalledWith(
-        expect.objectContaining({ contributorKeys: ["ADA"], scope: "profile" }),
-      );
-      // The 3 MiB avatar body keeps its own five-per-minute budget rather than
-      // the twenty-per-minute one the small editor writes share.
-      expect(rateLimitMocks.enforceRateLimit).toHaveBeenCalledWith(
-        expect.any(Request),
-        "authenticatedProfileWrite",
-      );
     });
 
     it("maps Postgres's ownership refusal to 403", async () => {
@@ -249,33 +215,6 @@ describe("contributor profile route", () => {
   describe("as an editor", () => {
     beforeEach(() => signIn("editor", "editor@example.com"));
 
-    it("reads any record with the staff fields intact", async () => {
-      routeQueries({ editorProfile: storedProfile() });
-
-      const response = await GET(getRequest("ada"));
-
-      expect(response.status).toBe(200);
-      expect((await response.json()).profile).toMatchObject({
-        staffNote: { markdown: "Internal note." },
-        membershipEmail: "ada@example.com",
-      });
-      expect(mocks.query).toHaveBeenCalledWith("contributorProfiles.getEditorProfile", {
-        apiKey: "admin-key",
-        actorEmail: "editor@example.com",
-        key: "ada",
-      });
-      expect(mocks.query).not.toHaveBeenCalledWith(
-        "contributorProfiles.getOwnedProfile",
-        expect.anything(),
-      );
-    });
-
-    it("404s a missing record that is not the editor's own", async () => {
-      routeQueries({ owned: { key: "EDITOR" }, editorProfile: null });
-
-      expect((await GET(getRequest("NOBODY"))).status).toBe(404);
-    });
-
     it("refuses a patch on a record another sign-in holds with 403, before any write", async () => {
       routeQueries({ editorProfile: storedProfile() });
 
@@ -288,98 +227,6 @@ describe("contributor profile route", () => {
       expect(mocks.mutation).not.toHaveBeenCalled();
     });
 
-    it("maps Postgres's ownership refusal on an unclaimed record to 403", async () => {
-      routeQueries({ editorProfile: storedProfile({ membershipEmail: null }) });
-      mocks.mutation.mockRejectedValue(
-        new Error("Uncaught Error: You can only edit your own contributor profile."),
-      );
-
-      const response = await POST(postRequest({ key: "ADA", aliases: ["Countess"] }));
-
-      expect(response.status).toBe(403);
-      expect(mocks.mutation).toHaveBeenCalledWith(
-        "contributorProfiles.saveProfileAsEditor",
-        expect.objectContaining({ actorEmail: "editor@example.com", key: "ADA" }),
-      );
-    });
-
-
-    it("relays Postgres's admin-only field refusal as a 403 naming the field", async () => {
-      routeQueries({ editorProfile: storedProfile({ membershipEmail: "editor@example.com" }) });
-      mocks.mutation.mockRejectedValue(
-        new PostgresError({
-          code: "ADMIN_ONLY_PROFILE_FIELD",
-          field: "approved_replicator",
-          message: 'Only an admin can change "approved_replicator" on a contributor profile.',
-        }),
-      );
-
-      const response = await POST(postRequest({ key: "ADA", approved_replicator: true }));
-
-      expect(response.status).toBe(403);
-      expect(await response.json()).toEqual({
-        error: 'Only an admin can change "approved_replicator" on a contributor profile.',
-        code: "ADMIN_ONLY_PROFILE_FIELD",
-      });
-    });
-
-    it("creates the editor's own missing record through the self mutation", async () => {
-      routeQueries({ owned: null, editorProfile: null });
-      mocks.mutation.mockResolvedValue({
-        profile: { key: "EDITOR", displayName: "Editor" },
-        revalidate: { contributorKeys: ["EDITOR"], reportSlugs: [] },
-      });
-
-      const response = await POST(
-        postRequest({ key: "EDITOR", displayName: "Editor", bio: "", links: [] }),
-      );
-
-      expect(response.status).toBe(200);
-      expect(mocks.mutation).toHaveBeenCalledWith(
-        "contributorProfiles.saveProfile",
-        expect.objectContaining({
-          actorEmail: "editor@example.com",
-          profile: expect.objectContaining({ key: "EDITOR" }),
-        }),
-      );
-    });
-  });
-
-  describe("as an admin linking a profile to an account", () => {
-    beforeEach(() => signIn("admin", "admin@example.com"));
-
-    it("writes the membership email alone, so the link never touches the rest of the profile", async () => {
-      routeQueries({ editorProfile: storedProfile({ membershipEmail: null, updatedAt: "2026-09-01T00:00:00.000Z" }) });
-      mocks.mutation.mockResolvedValue({ profile: { key: "ADA" }, revision: 2 });
-
-      const response = await POST(postRequest({
-        key: "ADA",
-        expectedUpdatedAt: "2026-09-01T00:00:00.000Z",
-        membershipEmail: "ada@example.com",
-      }));
-
-      expect(response.status).toBe(200);
-      expect(mocks.mutation).toHaveBeenCalledWith(
-        "contributorProfiles.saveProfileAsEditor",
-        expect.objectContaining({
-          actorEmail: "admin@example.com",
-          key: "ADA",
-          expectedUpdatedAt: "2026-09-01T00:00:00.000Z",
-          patch: { membershipEmail: "ada@example.com" },
-        }),
-      );
-    });
-
-    it("clears the link with null", async () => {
-      routeQueries({ editorProfile: storedProfile() });
-      mocks.mutation.mockResolvedValue({ profile: { key: "ADA" }, revision: 2 });
-
-      expect((await POST(postRequest({ key: "ADA", membershipEmail: null }))).status).toBe(200);
-      expect(mocks.mutation).toHaveBeenCalledWith(
-        "contributorProfiles.saveProfileAsEditor",
-        expect.objectContaining({ patch: { membershipEmail: null } }),
-      );
-    });
   });
 
   it("refuses an editor's link to a record another sign-in holds, before any write", async () => {

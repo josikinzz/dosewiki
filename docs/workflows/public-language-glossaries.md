@@ -19,9 +19,16 @@ the list invites readers to help and explains that the suggest button on any
 term opens its proposal box; the reference page shows the same banner, pointing
 at the language glossaries instead. A progress line
 counts terms checked by a person. Terms that still need a person come first, in
-a "Needs a person" section ordered not translated, machine suggestion, then live
-but unchecked (`sortByReviewPriority` in `languageGlossary.ts`); checked terms
-follow in their own section. Clicking a term opens its suggestion box in place,
+a "Needs a person" section; checked terms follow in their own section. Both are
+ordered by how much a person adds over the drafting model
+(`sortByReviewPriority` in `languageGlossary.ts`): the harm-reduction register
+and article labels and scales, then the Subjective Effect Index, then site
+wording, then chemical class and reagent names. Effect names are coined, so the
+wording settled here becomes the standard for that language; chemical names
+follow IUPAC conventions and want a specialist check rather than a crowd, so
+they stay listed and filterable but come last. Within a tier the order is not
+translated, machine suggestion, then live but unchecked, with each kind kept
+together. Clicking a term opens its suggestion box in place,
 one term at a time. The box leads with the reader's own translation and an
 optional reason; "Looks right" / "Needs improvement" reactions sit below it and
 appear only when there is wording to react to.

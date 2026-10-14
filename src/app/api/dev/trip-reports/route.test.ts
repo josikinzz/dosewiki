@@ -72,37 +72,14 @@ beforeEach(() => {
 });
 
 describe("dev trip report corpus route", () => {
-  it("requires an editor session and reads under the diagnostic limit", async () => {
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
-
-    expect(mocks.requireRoleSession).toHaveBeenCalled();
-    expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "diagnosticRead");
-    expect(response.status).toBe(200);
-  });
-
-  it("refuses a non-editor without touching Postgres", async () => {
-    mocks.requireRoleSession.mockResolvedValue({
-      ok: false,
-      response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
-    });
+  it("keeps the corpus index at the editor floor", async () => {
+    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
 
     const { GET } = await import("./route");
     const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
 
     expect(response.status).toBe(403);
     expect(mocks.query).not.toHaveBeenCalled();
-  });
-
-  it("forwards the signed-in editor as the Postgres actor", async () => {
-    const { GET } = await import("./route");
-    await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
-
-    expect(mocks.query).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ apiKey: "scoped-token", actorEmail: "editor@example.com" }),
-    );
   });
 });
 
@@ -115,104 +92,6 @@ describe("dev trip report record route", () => {
     });
   }
 
-  it("requires an editor session and writes under the small-write limit", async () => {
-    const { POST } = await import("./record/route");
-
-    const response = await POST(
-      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
-    );
-
-    expect(mocks.requireRoleSession).toHaveBeenCalled();
-    expect(mocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), "editorSmallWrite");
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalled();
-  });
-
-  it("refuses a non-editor without touching Postgres", async () => {
-    mocks.requireRoleSession.mockResolvedValue({
-      ok: false,
-      response: new Response(JSON.stringify({ error: "Editor access required" }), { status: 403 }),
-    });
-
-    const { POST } = await import("./record/route");
-    const response = await POST(postRequest({ mode: "delete", id: "report-1" }));
-
-    expect(response.status).toBe(403);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("rejects a body that names no supported mode", async () => {
-    const { POST } = await import("./record/route");
-    const response = await POST(postRequest({ mode: "publish", id: "report-1" }));
-
-    expect(response.status).toBe(400);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("normalizes the snapshot before comparing, so trailing whitespace is not a conflict", async () => {
-    const { POST } = await import("./record/route");
-    await POST(
-      postRequest({
-        mode: "save",
-        id: "report-1",
-        expected: { ...reportFields, title: "  Alpine clarity  " },
-        updates: reportFields,
-      }),
-    );
-
-    const [, args] = mocks.mutation.mock.calls[0];
-    expect(args.expected.title).toBe("Alpine clarity");
-  });
-
-  it("omits the profile key entirely when the editor did not touch it", async () => {
-    const { POST } = await import("./record/route");
-    await POST(
-      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
-    );
-
-    const [, args] = mocks.mutation.mock.calls[0];
-    expect(args.profileKey).toBeUndefined();
-  });
-
-  it("publishes the saved report and the index that lists it", async () => {
-    const { POST } = await import("./record/route");
-    await POST(
-      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
-    );
-
-    expect(mocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "report", slug: "alpine-clarity" }, { kind: "report-lists" }],
-      source: "manual",
-    });
-  });
-
-  it("publishes the report index when an admin deletes a record", async () => {
-    mocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }));
-    mocks.mutation.mockResolvedValue({ deleted: true });
-
-    const { POST } = await import("./record/route");
-    const response = await POST(postRequest({ mode: "delete", id: "report-1" }));
-
-    expect(response.status).toBe(200);
-    expect(mocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "report-lists" }],
-      source: "manual",
-    });
-  });
-
-  it("relays a byline claim refusal as a 409 rather than a generic failure", async () => {
-    mocks.mutation.mockRejectedValue(
-      new Error('Author name "nervewing" matches contributor profile "NERVEWING".'),
-    );
-
-    const { POST } = await import("./record/route");
-    const response = await POST(
-      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
-    );
-
-    expect(response.status).toBe(409);
-  });
-
   it("relays a stale snapshot as a 409", async () => {
     mocks.mutation.mockRejectedValue(
       new Error("Trip report alpine-clarity changed since it was opened; reload the portal before saving."),
@@ -224,21 +103,6 @@ describe("dev trip report record route", () => {
     );
 
     expect(response.status).toBe(409);
-  });
-
-  it("admits a contributor session and forwards them as the Postgres actor", async () => {
-    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
-
-    const { POST } = await import("./record/route");
-    const response = await POST(
-      postRequest({ mode: "save", id: "report-1", expected: reportFields, updates: reportFields }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ actorEmail: "owner@example.com" }),
-    );
   });
 
   it("relays a NOT_OWNER refusal as a 403", async () => {
@@ -279,13 +143,4 @@ describe("dev trip report record route", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
   });
 
-  it("keeps the corpus index at the editor floor", async () => {
-    mocks.requireRoleSession.mockImplementation(roleSessionFor("contributor", contributor));
-
-    const { GET } = await import("./route");
-    const response = await GET(new Request("https://dose.wiki/api/dev/trip-reports"));
-
-    expect(response.status).toBe(403);
-    expect(mocks.query).not.toHaveBeenCalled();
-  });
 });

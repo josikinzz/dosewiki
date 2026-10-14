@@ -20,6 +20,8 @@ import {
 interface DosageDurationSectionProps {
   article: SubstanceArticle;
   dosageDisclaimer?: string;
+  /** Article slug for the "Log in Piru" pill; absent renders no pill. */
+  piruSlug?: string;
 }
 
 interface RouteGroup {
@@ -62,6 +64,7 @@ function renderNoteLines(
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
   dosageDisclaimer,
+  piruSlug,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
   const groups = new Map<string, RouteGroup>();
@@ -220,6 +223,10 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   });
 
   return (
-    <DosageDurationSectionView routes={routes} initialRoute={initialRoute} />
+    <DosageDurationSectionView
+      routes={routes}
+      initialRoute={initialRoute}
+      piruSlug={piruSlug}
+    />
   );
 });

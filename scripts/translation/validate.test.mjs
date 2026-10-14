@@ -335,6 +335,16 @@ test("protected syntax and short words are not leftovers, while ordinary English
   assert.deepEqual(findLeftoverLatin({ source: "It lasts long.", target: "它持续时间 long 且 very 长，也 is 如此。" }), ["long", "very"]);
 });
 
+test("leftover Latin reads each glossary and name list it is given, even when one caller reuses them", () => {
+  const source = "Many users combine ibogaine with fasting.";
+  const target = "许多使用者将 ibogaine 与 Phenidate 和禁食结合。";
+  const glossary = { Phenidate: "Phenidate" };
+  const latinNames = ["Ibogaine"];
+  for (let i = 0; i < 3; i += 1) assert.deepEqual(findLeftoverLatin({ source, target, glossary, latinNames }), []);
+  assert.deepEqual(findLeftoverLatin({ source, target, glossary: { Other: "别的" }, latinNames }), ["Phenidate"]);
+  assert.deepEqual(findLeftoverLatin({ source, target, glossary, latinNames: [] }), ["ibogaine"]);
+});
+
 test("leftover Latin applies to Chinese output only, so Russian results do not change", () => {
   const ru = resolveLocale("ru");
   const verdict = validateSegment({ source: "The phenidates are stimulants.", target: "Phenidates являются стимуляторами.", locale: ru });

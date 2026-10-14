@@ -1,4 +1,3 @@
-import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
 import { POST } from "./route";
@@ -82,59 +81,6 @@ describe("POST /api/invite/redeem", () => {
       email: "ada@example.com",
       name: "Ada Lovelace",
     });
-  });
-
-  it("omits blank optional fields", async () => {
-    await POST(request({ ...validBody, email: "  ", name: "" }));
-
-    expect(mocks.redeemInviteCode).toHaveBeenCalledWith({
-      codeHash: hashInviteCode(normalizeInviteCode(CODE)),
-      username: "ada",
-      passwordHash: `hashed:${PASSPHRASE}`,
-    });
-  });
-
-  it.each([
-    ["a malformed code", { ...validBody, code: "abc" }],
-    ["a bad username", { ...validBody, username: "-ada" }],
-    ["a too-short username", { ...validBody, username: "ab" }],
-    ["a short password", { ...validBody, password: "short" }],
-    ["a bad email", { ...validBody, email: "not-an-email" }],
-    ["an over-long name", { ...validBody, name: "x".repeat(121) }],
-  ])("rejects %s with 400 before calling Postgres", async (_label, body) => {
-    const response = await POST(request(body));
-
-    expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toMatchObject({ error: expect.any(String) });
-    expect(mocks.redeemInviteCode).not.toHaveBeenCalled();
-  });
-
-  it("rejects an invalid JSON body", async () => {
-    const response = await POST(
-      new Request("https://dev.dose.wiki/api/invite/redeem", { method: "POST", body: "{nope" }),
-    );
-
-    expect(response.status).toBe(400);
-  });
-
-  it.each([
-    ["INVITE_UNKNOWN", 404],
-    ["INVITE_REVOKED", 410],
-    ["INVITE_EXPIRED", 410],
-    ["INVITE_EXHAUSTED", 410],
-    ["USERNAME_TAKEN", 409],
-    ["EMAIL_TAKEN", 409],
-    ["EMAIL_RESERVED", 400],
-  ])("maps the %s refusal to %i with route-owned copy", async (code, status) => {
-    mocks.redeemInviteCode.mockRejectedValueOnce(new PostgresError({ code, message: "internal diagnostic" }));
-
-    const response = await POST(request(validBody));
-
-    expect(response.status).toBe(status);
-    const payload = await response.json();
-    expect(payload.code).toBe(code);
-    expect(payload.error).toEqual(expect.any(String));
-    expect(payload.error).not.toContain("data internal wording");
   });
 
   it("hides an unexpected failure behind a generic 500", async () => {

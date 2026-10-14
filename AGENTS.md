@@ -42,6 +42,18 @@ The site and dataset continue to evolve toward 1.0. Check back for updates, or [
 9. Write links as App Paths; a local source change is not a deployed change, so never claim production state without deployment evidence.
 10. Em dashes are banned in all text.
 
+## Public repository hygiene
+
+This is the public source repository for dose.wiki and the repository used for development and deployment. Treat every commit, branch, tag, pull request, and uploaded artifact as potentially public.
+
+- Leave the area you changed tidier than you found it. Keep cleanup within the task's scope, preserve unrelated work, and follow generated-file ownership.
+- Commit maintained source, documented inputs, licensed assets, and reproducible generated outputs. Keep scratch files, run receipts, private notes, logs, database snapshots, and local agent state outside Git in the approved private workspace.
+- Never commit credentials, credential-bearing URLs, secret environment files, private account/contact data, visitor addresses, or unapproved personal information. Use reserved example identities in tests and documentation. Keep public attribution and contact details only with permission and clear purpose.
+- Stage explicit paths. Before committing, inspect the staged diff and run the staged secret checker. Confirm new files have a maintained owner and purpose; placeholders must be visibly synthetic.
+- If a secret or private record enters Git, stop publication and report only its location and a redacted fingerprint. Removing it from the latest tree is insufficient. Credential revocation and any history/ref cleanup require the owner's incident decision.
+- Preserve Postgres target, role, revision, confirmation, and freeze guards, Auth.js identity, and separate public/editor artifacts. Public source code does not grant access to editorial systems or authorize data writes.
+- Keep source-code and contribution links pointed at this canonical repository. Report local implementation, verification, and deployment evidence separately.
+
 ## Working style
 
 When a step doesn't need my input, keep going. Put status notes in the same message as your next action.

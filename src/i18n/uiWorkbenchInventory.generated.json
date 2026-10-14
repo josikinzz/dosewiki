@@ -6471,6 +6471,17 @@
       "6. Source code"
     ]
   },
+  "legacy.3df61b54a302a09803d8cd8bdb0523966d0b20206332b36fc42f095aa215aef2": {
+    "catalogKey": "Filled in from your Piru session. Check everything before you submit.",
+    "source": "Filled in from your Piru session. Check everything before you submit.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/reports/submissions/TripReportSubmissionPage.tsx"
+    ],
+    "glossaryTerms": [
+      "Filled in from your Piru session. Check everything before you submit."
+    ]
+  },
   "legacy.3e049d78d958038ac6bd5dcf038075cc73362b4956aaf7308c3a69c8eca76297": {
     "catalogKey": "South Africa",
     "source": "South Africa",
@@ -11181,6 +11192,17 @@
       "Racetam and peptide-like"
     ]
   },
+  "legacy.6ee0a5916d7136578f5b644e02a5a84d71d28cc82c1903f5627c725a7890fb57": {
+    "catalogKey": "Log a dose in Piru: {{route}}",
+    "source": "Log a dose in Piru: {{route}}",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/piru/PiruLinks.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Log a dose in Piru: {{route}}"
+    ]
+  },
   "legacy.6ee6c6c71f7f383a9b41e9a2884a4e74cea36ae2b15fc3d558b1bfa0bbe3a23d": {
     "catalogKey": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
     "source": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
@@ -15119,6 +15141,17 @@
       "`src/features/article/` renders sections, tables, and citations."
     ]
   },
+  "legacy.9935fa728f4051e46f4d20d47843e7e4b5d8b54e6f8dd78f1e75bcb76fad8b0d": {
+    "catalogKey": "Log in Piru",
+    "source": "Log in Piru",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/piru/PiruLinks.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Log in Piru"
+    ]
+  },
   "legacy.993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477": {
     "catalogKey": "Saturation",
     "source": "Saturation",
@@ -15892,6 +15925,17 @@
     ],
     "glossaryTerms": [
       "Substituted amine"
+    ]
+  },
+  "legacy.a179917679701032d47671a324e1040f06f1e79718fdc80a7a3a6bcd72b33378": {
+    "catalogKey": "Dismiss notice",
+    "source": "Dismiss notice",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/reports/submissions/TripReportSubmissionPage.tsx"
+    ],
+    "glossaryTerms": [
+      "Dismiss notice"
     ]
   },
   "legacy.a18f2e401012c81f65c194bc22550d502d8e1d50d01e1a32b4ac7cfb979d4c25": {
@@ -16755,6 +16799,17 @@
     ],
     "glossaryTerms": [
       "Skeletal"
+    ]
+  },
+  "legacy.aa2464900091c62ff858a231d03eb27fe96ec85c32e4c84d6554c8dd5759f112": {
+    "catalogKey": "The Piru session could not be read, so the form starts empty.",
+    "source": "The Piru session could not be read, so the form starts empty.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/reports/submissions/TripReportSubmissionPage.tsx"
+    ],
+    "glossaryTerms": [
+      "The Piru session could not be read, so the form starts empty."
     ]
   },
   "legacy.aa2a6df9d0696510e549b90fc2a12ce30b3666e356205023a3d8d32778672bf8": {
@@ -23307,6 +23362,17 @@
     ],
     "glossaryTerms": [
       "Drug"
+    ]
+  },
+  "legacy.e801fc0006496e5d7f080860d2ce4723da2f1df0f2898cd3422cc7f0af3097c4": {
+    "catalogKey": "Open in Piru",
+    "source": "Open in Piru",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/piru/PiruLinks.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Open in Piru"
     ]
   },
   "legacy.e81dd633583a0908225b61df2d27fe3ce5bd9bb62ce8e2239da30809e68b4b46": {

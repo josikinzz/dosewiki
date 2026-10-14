@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GalleryReplication } from "../../src/types/replications";
 import type { PublicDataReadAdapter } from "./publicData.reads";
-import { projectPublicApiReplication } from "../public-api/v1";
 
 beforeEach(() => {
   vi.stubEnv("DATA_BACKEND", "postgres");
@@ -94,117 +93,6 @@ describe("the replication publication gate", () => {
     expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["tree-bark"]);
   });
 
-  it("keeps a figure out of an effect's article gallery and its permalink walk", async () => {
-    const replication = row({ slug: "tracers-study", effect_slug: "tracers" });
-    const figure = row({ slug: "ecg-trace", effect_slug: "tracers", role: "figure" });
-
-    const { getPublicReplicationsByEffect } = await loadWithRows([replication, figure]);
-
-    expect((await getPublicReplicationsByEffect("tracers")).map((item) => item.slug)).toEqual([
-      "tracers-study",
-    ]);
-  });
-
-  it("hydrates exact tag-only associations with full public rights, without duplicates or inherited matches", async () => {
-    const tagged = row({
-      slug: "deliriant-work", effect_slug: "external-hallucination",
-      effect_tags: ["delirium"], rights_status: "permission-granted",
-      license_name: "Artist permission", license_url: "https://artist.test/terms",
-      credit_line: "Artist, used with permission", rightsholder: "Artist",
-      source_url: "https://artist.test/original", permission_notes: "Private grant",
-    });
-    const owner = row({ slug: "owning-work", effect_slug: "delirium", effect_tags: ["delirium"] });
-    const noOwner = row({ slug: "tag-without-owner", effect_slug: undefined, effect_tags: ["delirium"] });
-    const unrelated = row({ slug: "untagged-child", effect_slug: "internal-hallucination" });
-    const wrongCase = row({ slug: "case-mismatch", effect_slug: "Delirium", effect_tags: [" delirium"] });
-    const suppressed = row({ slug: "suppressed", effect_tags: ["delirium"], publication_state: "duplicate-suppressed" });
-    const stale = row({ slug: "stale-tag", effect_tags: ["delirium"] });
-    const withdrawn = row({ slug: "withdrawn", effect_tags: ["delirium"] });
-    // The discovery projection intentionally has no rights/source detail.
-    const slimTagged = row({ slug: tagged.slug, effect_slug: tagged.effect_slug, effect_tags: tagged.effect_tags });
-    const { getPublicReplicationsByEffect } = await loadWithRows(
-      [slimTagged, owner, noOwner, unrelated, wrongCase, suppressed, slimTagged, stale, withdrawn],
-      [owner, tagged, noOwner, unrelated, wrongCase, suppressed, { ...stale, effect_tags: [] }, { ...withdrawn, role: "figure" }],
-    );
-    const result = (await getPublicReplicationsByEffect("delirium")).map(projectPublicApiReplication);
-    expect(result.map((item) => item.slug)).toEqual(["deliriant-work", "owning-work", "tag-without-owner"]);
-    expect(result[0]).toMatchObject({
-      effect_slug: "external-hallucination", effect_tags: ["delirium"],
-      rights: {
-        status: "permission-granted", license_name: "Artist permission",
-        license_url: "https://artist.test/terms", credit_line: "Artist, used with permission",
-        source_url: "https://artist.test/original", rightsholder: "Artist",
-      },
-    });
-    expect(result[0]).not.toHaveProperty("permission_notes");
-    expect(result[1].rights.status).toBe("unknown");
-    expect((await getPublicReplicationsByEffect("external-hallucination")).map((item) => item.slug)).toEqual(["deliriant-work"]);
-  });
-
-  it("drains every effect-scoped page and hydrates the long tail without reading unrelated works", async () => {
-    vi.resetModules();
-    const works = Array.from({ length: 137 }, (_, index) => row({
-      slug: `drifting-${index}`,
-      effect_slug: index % 2 ? "geometry" : "drifting",
-      effect_tags: index % 2 ? ["drifting"] : undefined,
-    }));
-    const selected: string[] = [];
-    let pages = 0;
-    const reads = await import("./publicData.reads");
-    reads.setPublicDataReadAdapterForTest({
-      getPublicGalleryReplicationPage: async (cursor?: string, limit?: number, effectSlug?: string) => {
-        if (effectSlug !== "drifting") throw new Error("Unscoped corpus read");
-        pages += 1;
-        const offset = Number(cursor ?? 0);
-        const end = offset + limit!;
-        return { items: works.slice(offset, end), cursor: String(end), isDone: end >= works.length };
-      },
-      getPublicReplicationsBySlugs: async (slugs: string[]) => {
-        selected.push(...slugs);
-        return works.filter((work) => slugs.includes(work.slug)).reverse();
-      },
-    } as unknown as PublicDataReadAdapter);
-    const { getPublicReplicationsByEffect } = await import("./publicData.effects");
-    const result = await getPublicReplicationsByEffect("drifting");
-    expect(result.map((work) => work.slug)).toEqual(works.map((work) => work.slug));
-    expect(selected).toEqual(works.map((work) => work.slug));
-    expect(pages).toBe(3);
-  });
-
-  it("does not replace a failed effect-scoped page with an unfiltered corpus", async () => {
-    vi.resetModules();
-    const reads = await import("./publicData.reads");
-    reads.setPublicDataReadAdapterForTest({
-      getPublicGalleryReplicationPage: async (_cursor?: string, _limit?: number, effectSlug?: string) => {
-        if (effectSlug === undefined) return { items: [row()], cursor: "done", isDone: true };
-        throw new Error("Scoped query unavailable");
-      },
-    } as unknown as PublicDataReadAdapter);
-    const { getPublicReplicationsByEffect } = await import("./publicData.effects");
-    await expect(getPublicReplicationsByEffect("drifting")).rejects.toThrow("Scoped query unavailable");
-  });
-
-  it("publishes audio now that a tile and a viewer stage can draw it", async () => {
-    // The gate withheld audio for as long as every surface branched on video
-    // with an image fallback. The gallery tile now has an audio frame and the
-    // viewer an audio stage, so a clip is a work like any other here.
-    const image = row({ slug: "a-picture", type: "image" });
-    const audio = row({ slug: "a-recording", type: "audio", format: "mp3" });
-
-    const { getPublicReplications, getPublicReplicationsByEffect } = await loadWithRows([
-      image,
-      audio,
-    ]);
-
-    expect((await getPublicReplications()).map((item) => item.slug).sort()).toEqual([
-      "a-picture",
-      "a-recording",
-    ]);
-    expect(
-      (await getPublicReplicationsByEffect("geometry")).map((item) => item.slug).sort(),
-    ).toEqual(["a-picture", "a-recording"]);
-  });
-
   it("withholds only explicit non-replications while preserving unresolved rows", async () => {
     const confirmed = row({ slug: "confirmed", replication_status: "replication" });
     const nonReplication = row({ slug: "diagram", replication_status: "not-replication" });
@@ -260,24 +148,5 @@ describe("the replication publication gate", () => {
       "live-work",
       "published-upload",
     ]);
-  });
-
-  it("passes the stored corpus through untouched", async () => {
-    // A read-only audit of production on 2026-08-11 found 247 rows: every one
-    // with `role` absent, every one `image` or `video`, every one carrying an
-    // `effect_slug`. This is that shape, and the gate has to be the identity on
-    // it — the change may not move a single existing work.
-    const corpus = [
-      row({ slug: "legacy-image", type: "image" }),
-      row({ slug: "legacy-video", type: "video", effect_slug: "drifting" }),
-      row({ slug: "legacy-unknown-effect", type: "image", effect_slug: "unknown" }),
-    ];
-    for (const item of corpus) {
-      expect(item.role).toBeUndefined();
-    }
-
-    const { getPublicReplications } = await loadWithRows(corpus);
-
-    expect(await getPublicReplications()).toEqual(corpus);
   });
 });

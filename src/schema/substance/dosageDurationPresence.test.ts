@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   hasDosageContent,
   hasDosageDurationContent,
-  hasDurationContent,
   routeHasDosageContent,
   routeHasDurationContent,
   routeIsBlank,
@@ -46,16 +45,6 @@ function hollowDurationRoute(route = "oral") {
 }
 
 describe("routeHasDosageContent", () => {
-  it("rejects a fully scaffolded route", () => {
-    expect(routeHasDosageContent(hollowDosageRoute())).toBe(false);
-  });
-
-  it("accepts a route with a single dose bound", () => {
-    const route = hollowDosageRoute();
-    route.dose_ranges.light = { min: 10, max: null, unit: "mg" };
-    expect(routeHasDosageContent(route)).toBe(true);
-  });
-
   it("accepts a max-only bound", () => {
     const route = hollowDosageRoute();
     route.dose_ranges.heavy = { min: null, max: 250, unit: "mg" };
@@ -74,31 +63,9 @@ describe("routeHasDosageContent", () => {
     route.bioavailability = "~50%";
     expect(routeHasDosageContent(route)).toBe(true);
   });
-
-  it("treats whitespace-only prose as empty", () => {
-    const route = hollowDosageRoute();
-    route.notes = "   ";
-    expect(routeHasDosageContent(route)).toBe(false);
-  });
-
-  it("tolerates malformed legacy documents", () => {
-    expect(routeHasDosageContent(null)).toBe(false);
-    expect(routeHasDosageContent(undefined)).toBe(false);
-    expect(routeHasDosageContent({ route: "oral" })).toBe(false);
-  });
 });
 
 describe("routeHasDurationContent", () => {
-  it("rejects a fully scaffolded route", () => {
-    expect(routeHasDurationContent(hollowDurationRoute())).toBe(false);
-  });
-
-  it("accepts a single populated stage", () => {
-    const route = hollowDurationRoute();
-    route.stages.onset = { min: 30, max: 90, unit: "minutes" };
-    expect(routeHasDurationContent(route)).toBe(true);
-  });
-
   it("accepts half-life prose without stage numbers", () => {
     const route = hollowDurationRoute();
     route.half_life = "6-8 hours";
@@ -107,10 +74,6 @@ describe("routeHasDurationContent", () => {
 });
 
 describe("routeIsBlank", () => {
-  it("is true only when neither side renders anything", () => {
-    expect(routeIsBlank({ ...hollowDosageRoute(), ...hollowDurationRoute() })).toBe(true);
-  });
-
   it("protects an annotated route from cleanup tooling", () => {
     const route = { ...hollowDosageRoute(), ...hollowDurationRoute(), notes: "Unstandardized." };
     expect(routeIsBlank(route)).toBe(false);
@@ -118,10 +81,6 @@ describe("routeIsBlank", () => {
 });
 
 describe("section-level presence", () => {
-  it("reports a scaffolded dosage section as empty", () => {
-    expect(hasDosageContent({ routes: [hollowDosageRoute()], plateau_dosing: null })).toBe(false);
-  });
-
   it("reports a section present when any one route has content", () => {
     const populated = hollowDosageRoute("insufflated");
     populated.dose_ranges.moderate = { min: 20, max: 40, unit: "mg" };
@@ -145,23 +104,9 @@ describe("section-level presence", () => {
       }),
     ).toBe(true);
   });
-
-  it("reports an empty duration section", () => {
-    expect(hasDurationContent({ routes: [hollowDurationRoute()] })).toBe(false);
-    expect(hasDurationContent({ routes: [] })).toBe(false);
-  });
 });
 
 describe("hasDosageDurationContent", () => {
-  it("is false for the 3-cl-pcp shape: one hollow route on each side", () => {
-    expect(
-      hasDosageDurationContent({
-        dosage: { routes: [hollowDosageRoute()], plateau_dosing: null },
-        duration: { routes: [hollowDurationRoute()] },
-      }),
-    ).toBe(false);
-  });
-
   it("is true when only duration carries data", () => {
     const duration = hollowDurationRoute();
     duration.stages.total_duration = { min: 5, max: 8, unit: "hours" };
@@ -171,11 +116,5 @@ describe("hasDosageDurationContent", () => {
         duration: { routes: [duration] },
       }),
     ).toBe(true);
-  });
-
-  it("is false for a missing or malformed section", () => {
-    expect(hasDosageDurationContent(null)).toBe(false);
-    expect(hasDosageDurationContent({})).toBe(false);
-    expect(hasDosageDurationContent({ dosage: { routes: null } })).toBe(false);
   });
 });

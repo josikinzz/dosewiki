@@ -2,7 +2,7 @@
 /**
  * The Articles view: the article reader first, then the release facts that
  * used to be drawers under it, each its own section of the view: Coverage,
- * Recent changes, Reader feedback, and for admins Runs. A section mounts the
+ * Recent changes, Reactions, and for admins Runs. A section mounts the
  * first time it opens and stays mounted, so a loaded report or a half-typed
  * correction survives a switch. Write results from Runs land in Runs.
  */
@@ -76,7 +76,7 @@ export function ArticlesView({ locale, canAdmin, articleLink, initialSection, se
     { value: "reader", label: "Reader" },
     { value: "coverage", label: "Coverage" },
     { value: "changes", label: "Recent changes" },
-    { value: "feedback", label: "Reader feedback" },
+    { value: "feedback", label: "Reactions" },
     ...(canAdmin ? [{ value: "runs", label: runs.data.jobs.active > 0 ? "Runs, running" : "Runs" }] : []),
   ];
   return (

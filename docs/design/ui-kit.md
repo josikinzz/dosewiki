@@ -16,8 +16,7 @@ The catalog renders each shared primitive with its real variants and properties.
 It also provides an import line and use guidance.
 
 The appearance cog contains four independent controls: color scheme, visual style,
-surfaces, and accent. The catalog sweep covers color scheme and visual style.
-The appearance matrix tests own the supported combination coverage.
+surfaces, and accent. The catalog covers color scheme and visual style.
 
 Two vocabularies name the same axes. Readers see **Vivid** and **Clinical** in
 the cog's Style picker; code and stylesheets call them `fun` and `pro`
@@ -64,7 +63,6 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    it. Consult [Ownership](#ownership) when deciding which layer owns the result.
 2. **Keep variants primitive.** Button and Badge variant names describe visual
    behavior (tone, emphasis, shape, icon affordance), never a feature or route.
-   Feature-named variants are blocked by `src/components/ui/ownership.test.ts`.
 3. **Promote intentionally.** Keep feature-local components beside their feature
    until they have multiple real consumers and a stable, data-shaped API. The
    promotion criteria live under [Promotion criteria](#promotion-criteria).
@@ -76,7 +74,7 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    classes nothing renders.
    Never key a component rule on `data-theme`: a value that differs between
    dark and light is a `--theme-*` token with a value per scheme in
-   `src/styles/site-colors.css`. `src/theme/lightSheet.test.ts` holds that line.
+   `src/styles/site-colors.css`.
 4. **Disclosure affordances use the doubled ellipsis + chevron indicator.**
    Expand/collapse controls go through `ExpandButton`/`ExpandIndicator`
    (`src/components/common/ExpandButton.tsx`), never a bare chevron. The
@@ -99,8 +97,7 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    overlap and steal each other's tap.
    Fields keep 16px on phones so iOS does not zoom on focus: the `sm` size of
    `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
-   `text-[16px] md:text-sm`. Tests may assert these two class recipes by name;
-   `src/components/ui/touch-sizing.test.tsx` guards them.
+   `text-[16px] md:text-sm`.
 6. **Index panels share one measure.** Use `IndexPanelGrid` or
    `IndexPanelMasonry` for substance, effect, category, and article panels.
    Both prefer 320px columns, shrink only when the container is narrower, and
@@ -120,8 +117,8 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    card without touching a component. The roles nest in order in both
    styles: chip <= control <= card <= panel (Vivid 4/5/6/12px, Clinical
    3/4/4/6px), so an item never comes out rounder than its container.
-   `src/components/ui/ownership.test.ts` rejects a Tailwind radius size in
-   the primitives tier; `rounded-full` and `rounded-none` stay allowed.
+   Don't use a Tailwind radius size in the primitives tier; `rounded-full`
+   and `rounded-none` stay allowed.
 9. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
    `theme-focus-ring` for a 1px neutral keyboard-focus cue. Use
    `theme-field-focus` for text fields and selects, which emphasize their
@@ -169,17 +166,9 @@ loading changes, follow [Public page loading](../architecture/runtime-and-data.m
 
 ## Adding or changing a shared component
 
-Two Vitest checks keep the catalog aligned with the shared barrels:
-
-- `src/app/dev/kit/registry/completeness.test.ts` checks that every runtime export
-  from `ui/`, `common/`, `layout/` and the editor kit index
-  (`src/features/dev/components/index.ts`) has one catalog story, and that editor
-  kit exports sit in the Editor kit tier.
-- `src/app/dev/kit/registry/render.test.tsx` server-renders every example in all
-  four appearance combinations and catches missing providers or other render failures.
-
-These are verification checks, not build-time checks. They run with the Vitest
-suite, including the `npm run test` step inside `npm run verify:app`.
+Every runtime export from `ui/`, `common/`, `layout/` and the editor kit index
+(`src/features/dev/components/index.ts`) should have one catalog story, and editor
+kit exports sit in the Editor kit tier.
 
 To add or change a shared component:
 
@@ -189,15 +178,14 @@ To add or change a shared component:
    contract in `src/app/dev/kit/registry/types.ts`, list every runtime symbol in
    `exports`, and show each one in an example.
 3. Register the story in `src/app/dev/kit/registry/index.ts`.
-4. Run `npm run test -- src/app/dev/kit/registry/completeness.test.ts src/app/dev/kit/registry/render.test.tsx`.
+4. Open `/dev/kit` and check the story renders.
 
 The registry and `src/app/dev/kit/` own the current catalog layout; inspect them
 when adding a story rather than maintaining a parallel directory inventory.
 
 ## Scope
 
-The completeness test compares the registered stories with the runtime exports
-of all three shared barrels: `ui/`, `common/`, and `layout/`. Read the barrels
+The catalog covers the runtime exports of all three shared barrels: `ui/`, `common/`, and `layout/`. Read the barrels
 and the registry for the current inventory rather than maintaining a second list
 here.
 
@@ -243,7 +231,7 @@ list, so `tone` means the same thing on `Button`, `Badge`, and `Surface`:
 Recorded exceptions: `Input`, `Select`, and `Textarea` carry `inputSize`,
 `selectSize`, and `textareaSize` because `size` collides with the native
 attribute on `<input>` and `<select>`, and the three field controls keep one
-shape. `src/components/ui/ownership.test.ts` rejects any other axis name.
+shape. No other axis name is allowed.
 
 ## Button Variant Policy
 
@@ -310,8 +298,7 @@ Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev
 
 ## Guardrails
 
-`src/components/ui/ownership.test.ts` guards the common import/export boundary
-and primitive variant behavior. Editorial ownership review maintains the
-temporary recipe migration table above; test assertions do not certify prose.
+Editorial ownership review maintains the common import/export boundary,
+primitive variant behavior, and the temporary recipe migration table above.
 
 Current common-boundary allowlist: `src/components/common/GlobalSearch.tsx` and `src/components/common/useGlobalSearchSuggestions.ts` may import the `SearchMatch` type from `src/data/builders/search` until a route-neutral search result type is extracted.

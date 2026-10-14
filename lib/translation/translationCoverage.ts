@@ -2,7 +2,8 @@
 import "server-only";
 
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
-import { glossaryTermPattern, kindInContext } from "../../scripts/translation/locales.mjs";
+import { kindInContext } from "../../scripts/translation/locales.mjs";
+import { termFinder } from "../../scripts/translation/term-match.mjs";
 import { findLeftoverLatin, findRepeatedPunctuation } from "../../scripts/translation/validate.mjs";
 import {
   publicRecords, segmentsOf, workUnitsOf, TRANSLATION_RECORD_KINDS,
@@ -106,7 +107,7 @@ export function summarizeTranslationCoverage(input: {
   queue: TranslationQueueCoverage;
 }): TranslationCoverageResponse {
   const { inventory, context, stored, rejections, queue } = input;
-  const terms = Object.entries(context.glossary).map(([term, target]) => ({ term, target, pattern: glossaryTermPattern(term) }));
+  const termsIn: (text: string) => Array<{ term: string; target: string }> = termFinder(Object.entries(context.glossary).map(([term, target]) => ({ term, target })), (entry: { term: string }) => entry.term);
   // Substance article slugs are the names rule 2 keeps in Latin in lowercase prose.
   const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
   const chinese = context.locale.scriptGate === "simplified";
@@ -117,7 +118,7 @@ export function summarizeTranslationCoverage(input: {
   for (const record of inventory.records) {
     const counts = emptyCounts();
     counts.records = 1;
-    const scopedTerms = terms.filter(({ term }) => kindInContext(context.kinds[term] ?? "", new Set([record.kind])));
+    const kinds = new Set([record.kind]);
     for (const unit of record.units) {
       counts.units += 1;
       const row = stored.get(unit.hash);
@@ -127,7 +128,7 @@ export function summarizeTranslationCoverage(input: {
       else if (!row || !row.target.trim()) counts.missing += 1;
       else if (row.prompt_version !== context.promptVersion) counts.stale += 1;
       else counts.current += 1;
-      if (row && scopedTerms.some(({ pattern, target }) => pattern.test(unit.source) && !row.target.includes(target))) counts.glossaryMisses += 1;
+      if (row && termsIn(unit.source).some(({ term, target }) => kindInContext(context.kinds[term] ?? "", kinds) && !row.target.includes(target))) counts.glossaryMisses += 1;
       if (row?.target.trim() && findRepeatedPunctuation(unit.source, row.target).length > 0) counts.repeatedPunctuation += 1;
       if (chinese && row?.target.trim() && findLeftoverLatin({ source: unit.source, target: row.target, glossary: context.glossary, latinNames }).length > 0) counts.leftoverLatin += 1;
     }

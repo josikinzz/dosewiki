@@ -142,8 +142,6 @@ compatible; a breaking message change needs a coordinated version change.
 Verification on 2026-09-06 compared every rendered embed work position with the
 same production build's website showcase responses: LSD 648, Drifting 2,025,
 After images 68, and Tracers 135. The mixed-effect inline union matched too.
-The regression in `src/features/replications/embed/embedModel.test.ts` protects
-curated navigation order and cross-group duplicate associations.
 
 ## Endpoint inventory
 

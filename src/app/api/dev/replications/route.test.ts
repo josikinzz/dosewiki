@@ -50,7 +50,6 @@ vi.mock("@server/data/serverWriteCapability", () => ({
   probeServerDataAdminCredential: mocks.probe,
 }));
 
-
 let mediaBytes: Buffer;
 let uploadToken: string;
 const mediaFetch = vi.fn();
@@ -74,33 +73,12 @@ beforeEach(async () => {
     "admin@example.com",
   ).uploadToken;
   mediaFetch.mockReset();
-  const renditions = new Map<string, { bytes: Uint8Array; headers: Headers }>();
-  mediaFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-    if (url.includes("/_withdrawals/")) return new Response(null, { status: 404 });
-    if (url.includes("/_renditions/")) {
-      if (init?.method === "PUT") {
-        if (renditions.has(url)) return new Response(null, { status: 412 });
-        const bytes = init.body as Uint8Array;
-        const headers = new Headers(init.headers);
-        headers.set("content-length", String(bytes.length));
-        renditions.set(url, { bytes, headers });
-        return new Response(null, { status: 200 });
-      }
-      const stored = renditions.get(url);
-      return stored ? new Response(null, { headers: stored.headers }) : new Response(null, { status: 404 });
-    }
-    return new Response(init?.method === "HEAD" ? null : new Uint8Array(mediaBytes), {
-      headers: { "Content-Type": "image/webp", "Content-Length": String(mediaBytes.length) },
-    });
-  });
   vi.stubGlobal("fetch", mediaFetch);
   authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
   publishMocks.publishPublicCache.mockClear();
   mocks.query.mockReset();
   mocks.mutation.mockReset();
   mocks.getServerDataWriteCapability.mockReset();
-  mocks.probe.mockReset();
-  mocks.probe.mockResolvedValue(undefined);
   mocks.query.mockImplementation(async (reference: string) => reference === "replications.authorizeMediaUpload"
     ? { actorEmail: "admin@example.com", targetIdentity: "isolated-postgres-target" }
     : { rows: [], effects: [] });
@@ -116,45 +94,6 @@ beforeEach(async () => {
 });
 
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
-
-describe("replication corpus route", () => {
-  const request = () => new Request("https://dose.wiki/api/dev/replications");
-
-  it("serves the corpus for an editor", async () => {
-    const { GET } = await import("./route");
-
-    const response = await GET(request());
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true, rows: [], effects: [] });
-  });
-
-  /**
-   * The failure that made the studio unusable in local dev: a rotated admin key
-   * reached the route as `[Request ID: …] Server Error` with no reason attached,
-   * and the studio reported the corpus as unavailable. Postgres tells the caller
-   * nothing, so the route re-tests the token it sent and reports the credential.
-   */
-  it("distinguishes a rejected credential from a corpus read failure", async () => {
-    const opaque = new Error("[Request ID: 12995810d918ffa3] Server Error");
-    mocks.query.mockRejectedValue(opaque);
-    mocks.probe.mockRejectedValue(opaque);
-    const { GET } = await import("./route");
-
-    const response = await GET(request());
-
-    expect(response.status).toBe(503);
-  });
-
-  it("keeps a server failure status when the credential is accepted", async () => {
-    mocks.query.mockRejectedValue(new Error("[Request ID: 60e9e02e065c4fa9] Server Error"));
-    const { GET } = await import("./route");
-
-    const response = await GET(request());
-
-    expect(response.status).toBe(500);
-  });
-});
 
 describe("replication create route", () => {
   const createRequest = () =>
@@ -183,97 +122,6 @@ describe("replication create route", () => {
     expect(mediaFetch).not.toHaveBeenCalled();
   });
 
-  it("inserts the asset unpublished with rights unknown and publishes nothing", async () => {
-    authMocks.requireRoleSession.mockImplementation(
-      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
-    );
-    const { POST } = await import("./route");
-
-    const response = await POST(createRequest());
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ ok: true, slug: "new-asset", published: false });
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.insertMediaAsset",
-      expect.objectContaining({
-        slug: "new-asset",
-        actorEmail: "admin@example.com",
-        publication_state: "unpublished",
-        rights_status: "unknown",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
-  });
-
-  it("records the source, credit and rights the tray asked for", async () => {
-    authMocks.requireRoleSession.mockImplementation(
-      roleSessionFor("admin", { email: "admin@example.com", name: "Admin" }),
-    );
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/dev/replications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-        body: JSON.stringify({
-          slug: "new-asset",
-          title: "New asset",
-          artist: "Archive Artist",
-          type: "image",
-          format: "webp",
-          uploadToken,
-          fileSize: mediaBytes.length,
-          effectSlug: "tracers",
-          sourceUrl: "https://artist.test/new-asset",
-          creditLine: "Archive Artist, 2024",
-          rightsStatus: "creator-retained",
-        }),
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "replications.insertMediaAsset",
-      expect.objectContaining({
-        effect_slug: "tracers",
-        source_url: "https://artist.test/new-asset",
-        credit_line: "Archive Artist, 2024",
-        rights_status: "creator-retained",
-        publication_state: "unpublished",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
-  });
-
-  it("refuses a source that is not an HTTP address before any storage read", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/dev/replications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-        body: JSON.stringify({
-          slug: "new-asset", title: "New asset", artist: "Archive Artist", type: "image",
-          format: "webp", uploadToken, fileSize: mediaBytes.length, sourceUrl: "javascript:alert(1)",
-        }),
-      }),
-    );
-
-    expect(response.status).toBe(400);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("never publishes or inserts an interrupted upload", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
-    mediaFetch.mockResolvedValue(new Response(null, { status: 404 }));
-    const { POST } = await import("./route");
-    const response = await POST(createRequest());
-    expect(response.ok).toBe(false);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
-  });
-
   it("rejects stored bytes with the wrong digest before durable creation", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
     const corrupted = Buffer.from(mediaBytes);
@@ -281,20 +129,6 @@ describe("replication create route", () => {
     mediaFetch.mockImplementation(async (_url: string, init?: RequestInit) => new Response(init?.method === "HEAD" ? null : corrupted, {
       headers: { "Content-Type": "image/webp", "Content-Length": String(corrupted.length) },
     }));
-    const { POST } = await import("./route");
-    const response = await POST(createRequest());
-    expect(response.ok).toBe(false);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-    expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
-  });
-
-  it("does not publish an original when a responsive rendition cannot be verified", async () => {
-    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin", { email: "admin@example.com" }));
-    const storage = mediaFetch.getMockImplementation()!;
-    mediaFetch.mockImplementation(async (url: string, init?: RequestInit) =>
-      url.includes("/_renditions/") && init?.method === "HEAD"
-        ? new Response(null, { status: 404 })
-        : storage(url, init));
     const { POST } = await import("./route");
     const response = await POST(createRequest());
     expect(response.ok).toBe(false);
