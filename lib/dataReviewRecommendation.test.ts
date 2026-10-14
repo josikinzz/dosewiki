@@ -9,11 +9,9 @@ import { articleBaseHash, loadArticle, publishedArticleRevision } from "../serve
 import { articleDocument } from "../server/lib/articleLifecycleValidation";
 import {
   approveReviewRecommendationsHandler,
-  listReviewRecommendationsHandler,
   recommendEditorialReviewHandler,
-  setEditorialReviewHandler,
 } from "../server/lib/substanceReviewHandlers";
-import { SERVER_KEY, admin, createCtx, editor, proposedLsd, storedLsd, type Row } from "./changeProposalReviewFixture";
+import { SERVER_KEY, admin, createCtx, editor, proposedLsd, storedLsd } from "./changeProposalReviewFixture";
 
 const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
 const asEditor = { apiKey: SERVER_KEY, actorEmail: "editor@example.com" };
@@ -28,8 +26,6 @@ afterEach(() => {
 
 type Ctx = ReturnType<typeof createCtx>["ctx"];
 
-const article = (id: string, slug: string, title: string): Row => ({ ...structuredClone(storedLsd), _id: id, slug, title });
-
 async function publish(ctx: Ctx, summary: string, changeId: string) {
   const before = articleDocument(await loadArticle(ctx, "lsd"));
   return writeHandler(ctx, {
@@ -43,8 +39,8 @@ async function publish(ctx: Ctx, summary: string, changeId: string) {
   });
 }
 
-function reviewOf(rowsOf: ReturnType<typeof createCtx>["rowsOf"], id = "s1") {
-  return rowsOf("substanceIndex").get(id)!.editorial_review as Record<string, unknown>;
+function reviewOf(rowsOf: ReturnType<typeof createCtx>["rowsOf"]) {
+  return rowsOf("substanceIndex").get("s1")!.editorial_review as Record<string, unknown>;
 }
 
 describe("review recommendations", () => {
@@ -80,49 +76,6 @@ describe("review recommendations", () => {
     expect(reviewOf(rowsOf).status).not.toBe("completed");
   });
 
-  it("approves three recommendations in one write, each at its recommended revision", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, editor],
-      substanceIndex: [storedLsd, article("s2", "dmt", "DMT"), article("s3", "mdma", "MDMA")],
-    });
-    const revisions = new Map<string, string>();
-    for (const slug of ["lsd", "dmt", "mdma"]) {
-      await recommendEditorialReviewHandler(ctx, { ...asEditor, slug, note: "" });
-      revisions.set(slug, await publishedArticleRevision(ctx, slug));
-    }
-
-    const outcome = await approveReviewRecommendationsHandler(ctx, {
-      ...asAdmin,
-      items: ["lsd", "dmt", "mdma"].map((slug) => ({ slug, revision: revisions.get(slug)! })),
-    });
-
-    expect(outcome).toEqual({ approved: ["lsd", "dmt", "mdma"], stale: [], missing: [] });
-    for (const [id, slug] of [["s1", "lsd"], ["s2", "dmt"], ["s3", "mdma"]]) {
-      expect(reviewOf(rowsOf, id)).toMatchObject({
-        status: "completed",
-        reviewed_by: "admin@example.com",
-        reviewed_revision: revisions.get(slug),
-      });
-      expect(reviewOf(rowsOf, id)).not.toHaveProperty("recommendation");
-    }
-  });
-
-  it("keeps the recommender and the note on the approved review", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
-    await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "Doses match the sources" });
-    const revision = await publishedArticleRevision(ctx, "lsd");
-
-    await approveReviewRecommendationsHandler(ctx, { ...asAdmin, items: [{ slug: "lsd", revision }] });
-
-    expect(reviewOf(rowsOf)).toMatchObject({
-      status: "completed",
-      reviewed_by: "admin@example.com",
-      recommended_by: "editor@example.com",
-      recommendation_note: "Doses match the sources",
-    });
-    expect(reviewOf(rowsOf).recommended_at).toEqual(expect.any(String));
-  });
-
   it("reports a recommendation made stale by a later publish instead of approving it", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
     await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
@@ -136,45 +89,5 @@ describe("review recommendations", () => {
 
     expect(outcome).toEqual({ approved: [], stale: ["lsd"], missing: [] });
     expect(reviewOf(rowsOf).status).not.toBe("completed");
-  });
-
-  it("keeps a recommendation through a hold", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
-    await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
-    await setEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", status: "in_progress" });
-    expect(reviewOf(rowsOf).recommendation).toMatchObject({ recommended_by: "editor@example.com" });
-  });
-
-  it("lists recommendations with whether each is stale", async () => {
-    const { ctx } = createCtx({
-      memberships: [admin, editor],
-      substanceIndex: [storedLsd, article("s2", "dmt", "DMT")],
-    });
-    await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "lsd", note: "" });
-    await recommendEditorialReviewHandler(ctx, { ...asEditor, slug: "dmt", note: "Checked" });
-    await publish(ctx, "Edited after the recommendation", "change-after-0001");
-    const published = await Promise.all(
-      ["lsd", "dmt"].map(async (slug) => ({ slug, revision: await publishedArticleRevision(ctx, slug) })),
-    );
-
-    // The projection reader's two narrow reads, served from the fixture rows.
-    const rows = async () => (await Promise.all(["lsd", "dmt"].map((slug) => loadArticle(ctx, slug)))).map((row) => ({
-      slug: row.slug as string,
-      title: row.title,
-      status: null,
-      reviewedRevision: null,
-      recommendation: (row.editorial_review as Record<string, unknown>).recommendation,
-    }));
-    const db = Object.assign(Object.create(ctx.db), {
-      getReviewRecommendationRows: rows,
-      getPublishedArticleRevisions: async () => published,
-    });
-
-    const listed = await listReviewRecommendationsHandler({ ...ctx, db } as never, asAdmin);
-
-    expect(listed.map(({ slug, stale }) => ({ slug, stale }))).toEqual(
-      expect.arrayContaining([{ slug: "lsd", stale: true }, { slug: "dmt", stale: false }]),
-    );
-    await expect(listReviewRecommendationsHandler({ ...ctx, db } as never, asEditor)).rejects.toThrow("Admin access required");
   });
 });

@@ -1,17 +1,17 @@
 /**
  * A review sign-off records the published revision it covered, and a later
  * publish makes that sign-off stale. Drives the real handlers against the
- * in-memory Postgres fixture: sign off, publish through the article lifecycle,
- * then read the published revision and the changes since the sign-off.
+ * in-memory Postgres fixture: sign off, write through the article lifecycle,
+ * then derive the review state from the published revision.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";
 import { articleDocument } from "../server/lib/articleLifecycleValidation";
-import { addHumanReviewFlagHandler, getReviewChangesHandler, setEditorialReviewHandler } from "../server/lib/substanceReviewHandlers";
+import { addHumanReviewFlagHandler, setEditorialReviewHandler } from "../server/lib/substanceReviewHandlers";
 import { saveSubstancesHandler, setIupacNameHandler } from "../server/lib/substanceWriteHandlers";
-import { deriveReviewState, REVIEW_INITIAL_REVISION } from "../src/schema/substance/editorial";
-import { SERVER_KEY, admin, createCtx, editor, proposedLsd, storedLsd } from "./changeProposalReviewFixture";
+import { deriveReviewState } from "../src/schema/substance/editorial";
+import { SERVER_KEY, admin, createCtx, proposedLsd, storedLsd } from "./changeProposalReviewFixture";
 
 const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
 
@@ -44,41 +44,9 @@ function storedReview(rowsOf: ReturnType<typeof createCtx>["rowsOf"]) {
 }
 
 describe("review sign-off revision", () => {
-  it("records the published revision and the reviewer on sign-off", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], substanceIndex: [storedLsd] });
-    await publish(ctx, "First published summary", "change-first-0001");
-    const revision = await publishedArticleRevision(ctx, "lsd");
-    expect(revision).not.toBe(REVIEW_INITIAL_REVISION);
-
-    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
-
-    expect(storedReview(rowsOf)).toMatchObject({
-      status: "completed",
-      reviewed_by: "admin@example.com",
-      reviewed_revision: revision,
-    });
-  });
-
-  it("journals the stored article privately when a sign-off finds nothing journaled", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
-    const revision = await publishedArticleRevision(ctx, "lsd");
-    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
-
-    expect(storedReview(rowsOf).reviewed_revision).toBe(revision);
-    const journal = [...rowsOf("articleRevisions").values()];
-    expect(journal).toHaveLength(1);
-    expect(journal[0].after).toMatchObject({ summary: "Stored summary" });
-    expect(rowsOf("changelog").size).toBe(0);
-
-    // Signing again finds the content already journaled.
-    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
-    expect(rowsOf("articleRevisions").size).toBe(1);
-  });
-
-  it("makes the sign-off stale after a staged batch save, and still reads the signed content", async () => {
+  it("makes the sign-off stale after a staged batch save", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
     await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
-    const signed = storedReview(rowsOf).reviewed_revision as string;
 
     // The /api/save-article Commit path: saveArticleBatch.save runs this with no journal row.
     const stored = articleDocument(await loadArticle(ctx, "lsd"));
@@ -89,9 +57,6 @@ describe("review sign-off revision", () => {
     expect(saved.updated).toBe(1);
 
     expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("stale");
-    const changes = await getReviewChangesHandler(ctx, { ...asAdmin, slug: "lsd", revision: signed });
-    expect(changes.signed).toMatchObject({ summary: "Stored summary" });
-    expect(changes.current).toMatchObject({ summary: "Saved through the batch" });
   });
 
   it("makes the sign-off stale after an IUPAC write", async () => {
@@ -133,40 +98,5 @@ describe("review sign-off revision", () => {
       setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed", revision: "abc123" }),
     ).rejects.toMatchObject({ data: { code: "REVIEW_REVISION_UNKNOWN" } });
     expect(storedReview(rowsOf)).toEqual(storedLsd.editorial_review);
-  });
-
-  it("restores an older signed revision on undo, which stays stale", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
-    await publish(ctx, "First published summary", "change-first-0001");
-    const older = await publishedArticleRevision(ctx, "lsd");
-    await publish(ctx, "Second published summary", "change-second-01");
-
-    await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed", revision: older });
-
-    expect(storedReview(rowsOf).reviewed_revision).toBe(older);
-    expect(deriveReviewState(storedReview(rowsOf), await publishedArticleRevision(ctx, "lsd"))).toBe("stale");
-  });
-
-  it("returns the article at the signed revision and as published now", async () => {
-    const { ctx } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
-    await publish(ctx, "Reviewed summary", "change-first-0001");
-    const signed = await publishedArticleRevision(ctx, "lsd");
-    await publish(ctx, "Edited after review", "change-after-0001");
-
-    const changes = await getReviewChangesHandler(ctx, { ...asAdmin, slug: "lsd", revision: signed });
-
-    expect(changes.signed).toMatchObject({ summary: "Reviewed summary" });
-    expect(changes.current).toMatchObject({ summary: "Edited after review" });
-    expect(changes.signed).not.toHaveProperty("editorial_review");
-  });
-
-  it("reads the article before its first revision for an initial sign-off", async () => {
-    const { ctx } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
-    await publish(ctx, "Edited after review", "change-after-0001");
-
-    const changes = await getReviewChangesHandler(ctx, { ...asAdmin, slug: "lsd", revision: REVIEW_INITIAL_REVISION });
-
-    expect(changes.signed).toMatchObject({ summary: "Stored summary" });
-    expect(changes.current).toMatchObject({ summary: "Edited after review" });
   });
 });

@@ -44,7 +44,7 @@ Shared UI promotion is intentional, not a holding area for route or editor code.
 
 Use [UI System Ownership](../design/ui-kit.md#ownership) for the shared inventory and promotion criteria covering [`Surface`](../design/ui-kit.md#where-the-kit-lives), [`Button`](../design/ui-kit.md#button-variant-policy), [`Badge`](../design/ui-kit.md#where-the-kit-lives), [`ArticleSection`](../design/ui-kit.md#where-the-kit-lives), [`SectionCard`](../design/ui-kit.md#where-the-kit-lives), [`StateCard`](../design/ui-kit.md#where-the-kit-lives), public layout/content primitives, and protected dev editor primitives.
 
-Boundary checks in `src/components/ui/ownership.test.ts` keep dev-owned editor widgets out of the common barrel, block `src/components/common` imports from feature/app/domain data modules, and prevent feature-named variants from returning to the shared `Button` primitive.
+Keep dev-owned editor widgets out of the common barrel, don't import feature/app/domain data modules from `src/components/common`, and don't add feature-named variants to the shared `Button` primitive.
 
 Package-level UI dependency ownership is documented in [Dependency Ownership](../design/ui-kit.md#dependency-ownership): shared icons go through `Icon`, motion defaults to CSS/shared tokens unless a feature needs `framer-motion`, gallery/lightbox packages stay with media features, and code/diff dependencies stay in protected editor/data utilities.
 

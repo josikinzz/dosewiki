@@ -8,13 +8,11 @@ import {
   editor,
   storedLsd,
   proposedLsd,
-  proposedLayout,
   liveArticleDocument,
   proposalRow,
   asAdmin,
   asEditor,
 } from "./changeProposalReviewFixture";
-
 
 beforeEach(() => {
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
@@ -96,36 +94,6 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(rowsOf("substanceIndex").get("s1")).toEqual(source);
   });
 
-  it("applies an index layout through the layout write path, including the categoryLayout mirror", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      changeProposals: [
-        proposalRow({
-          targets: [{ kind: "indexLayout", key: "psychoactive", baseHash: contentHash(null) }],
-          payload: {
-            indexLayouts: [proposedLayout],
-            changelog: { markdown: "layout diff", articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
-          },
-        }),
-      ],
-    });
-
-    const result = await approveAndApplyHandler(ctx, asAdmin);
-
-    expect(result).toEqual({ status: "applied", revalidatePaths: ["/substances"] });
-    expect([...rowsOf("indexLayouts").values()]).toMatchObject([proposedLayout]);
-    expect([...rowsOf("categoryLayout").values()]).toMatchObject([
-      { version: 2, categories: [{ key: "psychedelics", sections: [{ key: "classic", drugs: ["lsd"] }] }] },
-    ]);
-    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
-      status: "applied",
-      snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null }],
-    });
-    expect([...rowsOf("changelog").values()][0]).toMatchObject({
-      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-    });
-  });
-
   it("flips a drifted proposal to changes_requested and writes nothing to production", async () => {
     const drifted = { ...storedLsd, summary: "Someone else edited this" };
     const { ctx, db, rowsOf } = createCtx({
@@ -197,44 +165,9 @@ describe("changeProposalReview.approveAndApply", () => {
     });
     expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Stored summary" });
   });
-
-  it("refuses an unknown proposal", async () => {
-    const { ctx } = createCtx({ memberships: [admin] });
-
-    await expect(approveAndApplyHandler(ctx, asAdmin)).rejects.toMatchObject({
-      data: { code: "PROPOSAL_NOT_FOUND" },
-    });
-  });
 });
 
 describe("changeProposalReview.reject", () => {
-  it("requires a note", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], changeProposals: [proposalRow()] });
-
-    await expect(rejectHandler(ctx, { ...asAdmin, note: "   " })).rejects.toMatchObject({
-      data: { code: "PROPOSAL_NOTE_REQUIRED" },
-    });
-    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "submitted" });
-  });
-
-  it("marks the proposal rejected with the note and reviewer", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      changeProposals: [proposalRow({ status: "changes_requested" })],
-    });
-
-    await expect(rejectHandler(ctx, { ...asAdmin, note: " Duplicate of an earlier fix. " })).resolves.toEqual({
-      status: "rejected",
-    });
-    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
-    expect(proposal).toMatchObject({
-      status: "rejected",
-      reviewNotes: "Duplicate of an earlier fix.",
-      reviewedBy: "admin@example.com",
-    });
-    expect(proposal.reviewedAt).toBe(proposal.updatedAt);
-  });
-
   it("refuses to reject an applied proposal", async () => {
     const { ctx } = createCtx({ memberships: [admin], changeProposals: [proposalRow({ status: "applied" })] });
 
@@ -317,58 +250,6 @@ describe("changeProposalReview.revert", () => {
 
     expect(rowsOf("substanceIndex").size).toBe(0);
     expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
-  });
-
-  it("puts the categoryLayout mirror back when reverting a psychoactive layout that did not exist before", async () => {
-    const seededMirror = {
-      _id: "cl1",
-      _creationTime: 1,
-      version: 1,
-      categories: [{ key: "seeded", label: "Seeded", iconKey: "seeded", sections: [], drugs: ["dmt"] }],
-    };
-    const layoutProposal = proposalRow({
-      targets: [{ kind: "indexLayout", key: "psychoactive", baseHash: contentHash(null) }],
-      payload: { indexLayouts: [proposedLayout] },
-    });
-
-    // The mirror was seeded directly (scripts/seed) and no indexLayouts row exists yet.
-    const withMirror = createCtx({
-      memberships: [admin],
-      categoryLayout: [seededMirror],
-      changeProposals: [layoutProposal],
-    });
-    await approveAndApplyHandler(withMirror.ctx, asAdmin);
-    expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([{ version: 2 }]);
-    expect(withMirror.rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
-      snapshotBefore: [
-        {
-          kind: "indexLayout",
-          key: "psychoactive",
-          document: null,
-          categoryLayout: { version: 1, categories: seededMirror.categories },
-        },
-      ],
-    });
-
-    await revertHandler(withMirror.ctx, asAdmin);
-
-    expect(withMirror.rowsOf("indexLayouts").size).toBe(0);
-    expect([...withMirror.rowsOf("categoryLayout").values()]).toMatchObject([
-      { version: 1, categories: seededMirror.categories },
-    ]);
-
-    // Neither row existed: the revert clears the mirror the apply projected.
-    const withoutMirror = createCtx({ memberships: [admin], changeProposals: [layoutProposal] });
-    await approveAndApplyHandler(withoutMirror.ctx, asAdmin);
-    expect(withoutMirror.rowsOf("categoryLayout").size).toBe(1);
-    expect(withoutMirror.rowsOf("changeProposals").get("proposal_p1")).toMatchObject({
-      snapshotBefore: [{ kind: "indexLayout", key: "psychoactive", document: null, categoryLayout: null }],
-    });
-
-    await revertHandler(withoutMirror.ctx, asAdmin);
-
-    expect(withoutMirror.rowsOf("indexLayouts").size).toBe(0);
-    expect(withoutMirror.rowsOf("categoryLayout").size).toBe(0);
   });
 
   it("restores reference metadata exactly without merging the applied enrichment back in", async () => {

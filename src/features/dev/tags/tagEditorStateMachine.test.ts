@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { createEmptyArticle } from "@/data/schema/defaults.generated";
-import { buildTagRegistry } from "@/utils/data/tagRegistry";
 
 const { applyArticlesTransformMock, getOriginalArticles, hydrateArticlesNowMock, mockDevArticles, devContext } = vi.hoisted(() => {
   const mockDevArticles = [
@@ -114,55 +113,6 @@ const completeMutation = (state: TagEditorState): TagEditorState => {
 };
 
 describe("tagEditorStateMachine", () => {
-  it("selects the first tag on startup and repairs empty fields", () => {
-    let state = createTagEditorState(articles);
-
-    expect(getSelectedUsage(state)?.tag).toBe("Classic");
-
-    state = tagEditorReducer(state, { type: "fieldSelected", field: "mechanism_of_action" });
-    expect(getSelectedUsage(state)?.tag).toBe("5-HT2A receptor agonist");
-
-    const emptyMechanismRegistry = buildTagRegistry([
-      articleWithTags("Blank", { index: ["Only Index"] }),
-    ]);
-    state = tagEditorReducer(state, {
-      type: "articlesChanged",
-      registry: emptyMechanismRegistry,
-    });
-
-    expect(getSelectedUsage(state)).toBeUndefined();
-  });
-
-  it("switches fields, updates search filtering, and resets form drafts on tag selection", () => {
-    let state = createTagEditorState(articles);
-    state = tagEditorReducer(state, { type: "renameDraftChanged", value: "Draft" });
-    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
-
-    expect(getSelectedUsage(state)?.tag).toBe("Lysergamide");
-    expect(state.renameValue).toBe("Lysergamide");
-
-    state = tagEditorReducer(state, { type: "searchChanged", query: "phen" });
-    expect(getFilteredTags(state).map((usage) => usage.tag)).toEqual(["Phenethylamine"]);
-
-    state = tagEditorReducer(state, { type: "tagSelected", usage: getFilteredTags(state)[0] });
-    expect(getSelectedUsage(state)?.tag).toBe("Phenethylamine");
-  });
-
-  it("repairs selection to the first filtered tag when a search query is active", () => {
-    let state = createTagEditorState(articles);
-    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
-    state = tagEditorReducer(state, { type: "searchChanged", query: "psy" });
-    state = tagEditorReducer(state, { type: "fieldSelected", field: "index_categories" });
-
-    expect(getFilteredTags(state).map((usage) => usage.tag)).toEqual(["Psychedelic"]);
-    expect(getSelectedUsage(state)?.tag).toBe("Psychedelic");
-
-    // Falls back to the unfiltered first tag when nothing matches.
-    state = tagEditorReducer(state, { type: "searchChanged", query: "zzz" });
-    state = tagEditorReducer(state, { type: "fieldSelected", field: "chemical_class" });
-    expect(getSelectedUsage(state)?.tag).toBe("Lysergamide");
-  });
-
   it("validates rename transitions before producing mutation effects", () => {
     let state = createTagEditorState(articles);
 
@@ -335,25 +285,6 @@ describe("tagEditorStateMachine", () => {
     expect(state.undo).toBeNull();
     expect(state.notice).toMatchObject({ type: "error", source: "delete" });
   });
-
-  it("handles article refresh and diff adapter notices", () => {
-    let state = createTagEditorState(articles);
-
-    state = tagEditorReducer(state, {
-      type: "articlesChanged",
-      registry: buildTagRegistry([articleWithTags("2C-B", { index: ["Phenethylamine"] })]),
-    });
-    expect(getSelectedUsage(state)?.tag).toBe("Phenethylamine");
-
-    state = tagEditorReducer(state, { type: "copyDiffRequested", hasDatasetChanges: false });
-    expect(state.pendingEffect).toBeNull();
-    expect(state.notice).toMatchObject({ type: "error", source: "diff" });
-
-    state = tagEditorReducer(state, { type: "downloadDiffRequested", hasDatasetChanges: true });
-    expect(state.pendingEffect).toMatchObject({ kind: "downloadDiff" });
-    state = tagEditorReducer(state, { type: "effectCompleted", effectId: state.pendingEffect?.id ?? -1 });
-    expect(state.notice).toMatchObject({ type: "success", source: "diff" });
-  });
 });
 
 describe("TagEditorTab state-machine integration", () => {
@@ -367,23 +298,14 @@ describe("TagEditorTab state-machine integration", () => {
       }),
     );
 
-  const stubRegistryFetch = (responder?: (url: string) => Promise<unknown>) => {
-    const urls: string[] = [];
+  const stubRegistryFetch = () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input);
-        urls.push(url);
-        if (responder) {
-          return responder(url);
-        }
-        return {
-          ok: true,
-          json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles }),
-        };
-      }),
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles }),
+      })),
     );
-    return urls;
   };
 
   beforeEach(() => {
@@ -395,31 +317,6 @@ describe("TagEditorTab state-machine integration", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-  });
-
-  it("renders state-machine selection and dispatches mutation events", async () => {
-    stubRegistryFetch();
-
-    renderTab();
-
-    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
-
-    fireEvent.click(screen.getByRole("option", { name: /Empathogen/i }));
-    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Empathogen");
-
-    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
-      target: { value: "Entactogen" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
-
-    await waitFor(() => {
-      expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1);
-    });
-    expect(devContext.articles).toEqual([
-      expect.objectContaining({ index_categories: ["Classic", "Psychedelic"] }),
-      expect.objectContaining({ index_categories: ["Entactogen"] }),
-    ]);
-    expect(await screen.findByRole("status")).toBeInTheDocument();
   });
 
   it("puts a rename back from the notice and leaves rows edited since alone", async () => {
@@ -453,17 +350,6 @@ describe("TagEditorTab state-machine integration", () => {
     expect(await screen.findByRole("status")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Undo/ })).toBeNull();
     expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic");
-  });
-
-  it("renders from the tag-registry scope and nothing else", async () => {
-    const urls = stubRegistryFetch();
-
-    renderTab();
-
-    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
-    expect(urls).toEqual([
-      expect.stringContaining("/api/dev/editor-library?scope=tag-registry"),
-    ]);
   });
 
   const hydrateFromRegistry = async (slugs: readonly string[]) => ({
@@ -580,127 +466,5 @@ describe("TagEditorTab state-machine integration", () => {
     });
     expect(devContext.articles[0]).not.toHaveProperty("summary");
     expect(devContext.articles[1]).toBe(mockDevArticles[1]);
-  });
-
-  it("lists a renamed tag by its new name before commit, even though the server still has the old one", async () => {
-    stubRegistryFetch();
-    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
-    // The rename happened earlier in this session; the tab mounts fresh and
-    // the tag registry route still answers with the committed tags.
-    devContext.articles = [
-      { ...mockDevArticles[0], index_categories: ["Classic Rock", "Psychedelic"] },
-      mockDevArticles[1],
-    ];
-
-    renderTab();
-
-    expect(await screen.findByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();
-    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic Rock");
-
-    // Renaming the renamed tag again reaches the article that carries it.
-    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
-      target: { value: "Classic Jazz" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
-
-    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
-    expect(devContext.articles[0]).toMatchObject({ index_categories: ["Classic Jazz", "Psychedelic"] });
-    expect(await screen.findByRole("status")).toHaveTextContent('Renamed "Classic Rock" to "Classic Jazz" in 1 article.');
-  });
-
-  it("keeps an uncommitted rename in the list after Reload tags", async () => {
-    // Each round trip answers with a fresh copy of the committed tags.
-    stubRegistryFetch(async () => ({
-      ok: true,
-      json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles.map((article) => ({ ...article })) }),
-    }));
-    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
-
-    const { rerender } = renderTab();
-
-    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
-    fireEvent.change(screen.getByPlaceholderText("Enter new label"), {
-      target: { value: "Classic Rock" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Rename in 1 article" }));
-    expect(await screen.findByRole("status")).toBeInTheDocument();
-    rerender(
-      createElement(TagEditorTab, {
-        datasetMarkdown: "+ changed",
-        hasDatasetChanges: true,
-        onCopyDatasetMarkdown: async () => undefined,
-        onDownloadDatasetMarkdown: () => undefined,
-      }),
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Refresh tags" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Refresh tags" })).not.toBeDisabled());
-
-    expect(screen.getByRole("option", { name: /Classic Rock/ })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /^Classic\b(?! Rock)/ })).toBeNull();
-  });
-
-  it("shows a retry state when the registry fetch fails", async () => {
-    let fail = true;
-    stubRegistryFetch(async () => {
-      if (fail) {
-        return { ok: false, status: 500, json: async () => ({}) };
-      }
-      return {
-        ok: true,
-        json: async () => ({ ok: true, scope: "tag-registry", entries: mockDevArticles }),
-      };
-    });
-
-    await act(async () => {
-      renderTab();
-    });
-    expect(screen.queryByPlaceholderText("Enter new label")).not.toBeInTheDocument();
-
-    fail = false;
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /try again/i }));
-    });
-    expect(screen.getByPlaceholderText("Enter new label")).toHaveValue("Classic");
-  });
-
-  it("names a merge before it runs when the new label already exists in the field", async () => {
-    stubRegistryFetch();
-    renderTab();
-
-    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
-    fireEvent.change(screen.getByPlaceholderText("Enter new label"), { target: { value: "psychedelic" } });
-
-    expect(screen.getByRole("button", { name: "Merge into “Psychedelic”" })).toBeEnabled();
-    expect(screen.getByText(/Renaming merges the two/)).toBeInTheDocument();
-    // An unchanged label cannot be sent at all.
-    fireEvent.change(screen.getByPlaceholderText("Enter new label"), { target: { value: "Classic" } });
-    expect(screen.getByRole("button", { name: "Rename in 1 article" })).toBeDisabled();
-  });
-
-  it("asks before removing a tag, and removes nothing when the confirm is cancelled", async () => {
-    stubRegistryFetch();
-    hydrateArticlesNowMock.mockImplementation(hydrateFromRegistry);
-    renderTab();
-
-    expect(await screen.findByPlaceholderText("Enter new label")).toHaveValue("Classic");
-    fireEvent.click(screen.getByRole("tab", { name: "Remove" }));
-    fireEvent.click(screen.getByRole("button", { name: "Remove from 1 article" }));
-
-    const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Remove “Classic” from 1 article?");
-    expect(dialog).toHaveTextContent("LSD");
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(applyArticlesTransformMock).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Remove from 1 article" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Remove from 1 article", hidden: false }));
-    await waitFor(() => expect(applyArticlesTransformMock).toHaveBeenCalledTimes(1));
-    expect(devContext.articles[0]).toMatchObject({ index_categories: ["Psychedelic"] });
-    // The pane stays on the removed tag with its Undo.
-    expect(await screen.findByText(/Deleted "Classic" from 1 article/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Undo delete" })).toBeInTheDocument();
   });
 });

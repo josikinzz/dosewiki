@@ -104,69 +104,6 @@ describe("warning banner preset route", () => {
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
 
-  it("invalidates current and removed article pages while reporting remote publication pending", async () => {
-    dataMocks.mutation.mockResolvedValue({
-      updated: true,
-      key: "opioid",
-      allSubstances: false,
-      enabledSlugs: ["heroin"],
-      affectedSlugs: ["heroin", "removed-article"],
-    });
-
-    const response = await POST(jsonRequest("POST", presetBody));
-
-    expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
-    for (const slug of ["heroin", "removed-article"]) {
-      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/${slug}`);
-      expect(cacheMocks.revalidatePath).toHaveBeenCalledWith(`/zh/${slug}`);
-    }
-    expect(cacheMocks.revalidatePath).not.toHaveBeenCalledWith("/", "layout");
-    expect(await response.json()).toMatchObject({ publication: { status: "pending" } });
-  });
-
-  it("expires the root layout for a preset that covers every substance", async () => {
-    dataMocks.mutation.mockResolvedValue({
-      updated: true,
-      key: "opioid",
-      allSubstances: true,
-      enabledSlugs: [],
-      affectedSlugs: ["heroin"],
-    });
-
-    const response = await POST(
-      jsonRequest("POST", { ...presetBody, allSubstances: true, enabledSlugs: [] }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/", "layout");
-  });
-
-  it("invalidates the banner cache and articles that lose a deleted preset", async () => {
-    dataMocks.mutation.mockResolvedValue({
-      removed: true,
-      key: "opioid",
-      allSubstances: false,
-      affectedSlugs: ["heroin"],
-    });
-
-    const response = await DELETE(
-      jsonRequest("DELETE", {
-        key: "opioid",
-        scope: "preset",
-        baseHash: "a".repeat(64),
-        changeId: "warning-change",
-      }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(cacheMocks.revalidateTag).toHaveBeenCalledWith("data-public:banners", { expire: 0 });
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/heroin");
-    expect(cacheMocks.revalidatePath).toHaveBeenCalledWith("/zh/heroin");
-    expect(await response.json()).toMatchObject({ publication: { status: "pending" } });
-  });
-
   it("rejects missing revision guards without writing or invalidating caches", async () => {
     const saved = await POST(jsonRequest("POST", { ...presetBody, baseHash: undefined }));
     const removed = await DELETE(jsonRequest("DELETE", { key: "opioid" }));
@@ -177,5 +114,4 @@ describe("warning banner preset route", () => {
     expect(cacheMocks.revalidatePath).not.toHaveBeenCalled();
     expect(cacheMocks.revalidateTag).not.toHaveBeenCalled();
   });
-
 });

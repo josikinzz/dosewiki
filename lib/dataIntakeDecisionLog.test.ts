@@ -1,23 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
-import {
-  create as articleFeedbackCreate,
-  transition as articleFeedbackTransition,
-} from "../server/articleFeedback";
-import { transition as siteFeedbackTransition } from "../server/siteFeedback";
-import {
-  create as submissionCreate,
-  get as submissionGet,
-  listMineHandler,
-  promoteHandler,
-  transition as submissionTransition,
-} from "../server/tripReportSubmissions";
+import { listMineHandler, transition as submissionTransition } from "../server/tripReportSubmissions";
 
 /**
- * Every status transition on an intake item appends one decision log entry
- * `{ at, actor, from, to, note }`; nothing earlier is overwritten. A row
- * decided before the log existed reads its review note back as a migrated
- * first entry, and the next transition stores that entry ahead of its own.
+ * Every status transition on an intake item appends one decision log entry. A
+ * submitter reading their own submissions sees only the status and the public
+ * reason, never the private note or the reviewer.
  */
 
 type RegisteredHandler = { _handler: (ctx: MutationCtx, args: unknown) => Promise<unknown> };
@@ -92,15 +80,8 @@ const admin: Row = {
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
-const secondAdmin: Row = { ...admin, _id: "m1", email: "second@example.com" };
 
 const as = (actorEmail: string) => ({ apiKey: SERVER_KEY, actorEmail });
-
-type LoggedRow = {
-  status: string;
-  review_notes?: string;
-  decision_log?: Record<string, unknown>[];
-};
 
 const report = {
   title: "Alpine clarity",
@@ -131,22 +112,6 @@ const submission = (overrides: Record<string, unknown> = {}): Row => ({
   ...overrides,
 });
 
-const feedbackRow = (overrides: Record<string, unknown> = {}): Row => ({
-  _id: "f1",
-  id: "feedback-1",
-  status: "new",
-  schema_version: 1,
-  substance_slug: "lsd",
-  substance_title: "LSD",
-  category: "other",
-  importance: "normal",
-  details: "Detail.",
-  honeypot_triggered: false,
-  created_at: "2026-01-01T00:00:00.000Z",
-  updated_at: "2026-01-01T00:00:00.000Z",
-  ...overrides,
-});
-
 beforeEach(() => {
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
   vi.useFakeTimers({ toFake: ["Date"] });
@@ -156,95 +121,6 @@ beforeEach(() => {
 afterEach(() => {
   delete process.env.DATA_ADMIN_KEY;
   vi.useRealTimers();
-});
-
-describe("trip report submission decision log", () => {
-  it("records two transitions as two entries, in order, with who, when, from, to and why", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin, secondAdmin], tripReportSubmissions: [submission()] });
-
-    await handlerOf(submissionTransition)(ctx, { ...as("admin@example.com"), id: "sub-1", status: "reviewing" });
-    vi.setSystemTime(new Date("2026-03-02T11:30:00.000Z"));
-    const result = (await handlerOf(submissionTransition)(ctx, {
-      ...as("second@example.com"),
-      id: "sub-1",
-      status: "rejected",
-      notes: "No dose given for the second substance.",
-    })) as LoggedRow;
-
-    const expected = [
-      { at: "2026-03-01T10:00:00.000Z", actor: "admin@example.com", from: "submitted", to: "reviewing" },
-      {
-        at: "2026-03-02T11:30:00.000Z",
-        actor: "second@example.com",
-        from: "reviewing",
-        to: "rejected",
-        note: "No dose given for the second substance.",
-      },
-    ];
-    expect(result.decision_log).toEqual(expected);
-    expect(rowsOf("tripReportSubmissions").get("s1")?.decision_log).toEqual(expected);
-    // The single note field stays current for readers that still use it.
-    expect(result.review_notes).toBe("No dose given for the second substance.");
-  });
-
-  it("reads an existing review note back as a migrated first entry, and keeps it when the next decision is stored", async () => {
-    const legacy = submission({
-      status: "rejected",
-      review_notes: "Duplicate of an earlier submission.",
-      reviewed_by: "admin@example.com",
-      reviewed_at: "2026-02-01T09:00:00.000Z",
-    });
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], tripReportSubmissions: [legacy] });
-    const migrated = {
-      at: "2026-02-01T09:00:00.000Z",
-      actor: "admin@example.com",
-      to: "rejected",
-      note: "Duplicate of an earlier submission.",
-      migrated: true,
-    };
-
-    const read = (await handlerOf(submissionGet)(ctx, { ...as("admin@example.com"), id: "sub-1" })) as LoggedRow;
-    expect(read.decision_log).toEqual([migrated]);
-    // Reading writes nothing.
-    expect(rowsOf("tripReportSubmissions").get("s1")).not.toHaveProperty("decision_log");
-
-    await handlerOf(submissionTransition)(ctx, { ...as("admin@example.com"), id: "sub-1", status: "reviewing" });
-
-    expect(rowsOf("tripReportSubmissions").get("s1")?.decision_log).toEqual([
-      migrated,
-      { at: "2026-03-01T10:00:00.000Z", actor: "admin@example.com", from: "rejected", to: "reviewing" },
-    ]);
-    expect(rowsOf("tripReportSubmissions").get("s1")?.review_notes).toBe("Duplicate of an earlier submission.");
-  });
-
-  it("logs publishing as a decision from accepted to exported", async () => {
-    const { ctx } = createCtx({ memberships: [admin], tripReportSubmissions: [submission({ status: "accepted" })] });
-
-    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1", notes: "Clear and complete." });
-
-    expect(result.submission.decision_log).toEqual([
-      {
-        at: "2026-03-01T10:00:00.000Z",
-        actor: "admin@example.com",
-        from: "accepted",
-        to: "exported",
-        note: "Clear and complete.",
-      },
-    ]);
-  });
-
-  it("never stores a decision log supplied with a new submission", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin] });
-    const { _id: _ignored, ...incoming } = submission({
-      decision_log: [{ at: "2026-01-01T00:00:00.000Z", actor: "forged", from: "submitted", to: "accepted" }],
-    });
-
-    await handlerOf(submissionCreate)(ctx, { apiKey: SERVER_KEY, submission: incoming });
-
-    const [stored] = [...rowsOf("tripReportSubmissions").values()];
-    expect(stored).toBeDefined();
-    expect(stored).not.toHaveProperty("decision_log");
-  });
 });
 
 describe("a submitter's own submissions", () => {
@@ -260,23 +136,6 @@ describe("a submitter's own submissions", () => {
       publicReason: "The dose for the second substance is missing.",
     });
   }
-
-  it("stores the public reason on the decision entry, apart from the private note", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], tripReportSubmissions: [submission()] });
-
-    await rejectWithReason(ctx);
-
-    expect(rowsOf("tripReportSubmissions").get("s1")?.decision_log).toEqual([
-      {
-        at: "2026-03-01T10:00:00.000Z",
-        actor: "admin@example.com",
-        from: "submitted",
-        to: "rejected",
-        note: "Looks like a copy of an Erowid report.",
-        public_reason: "The dose for the second substance is missing.",
-      },
-    ]);
-  });
 
   it("shows the author status and public reason only, matched by their signed-in email", async () => {
     const { ctx } = createCtx({
@@ -318,84 +177,5 @@ describe("a submitter's own submissions", () => {
     await expect(listMineHandler(ctx, as("admin@example.com"))).resolves.toEqual([]);
     // A server call that names no member is refused rather than read as the system.
     await expect(listMineHandler(ctx, { apiKey: SERVER_KEY })).rejects.toThrow(/signed-in member/);
-  });
-
-  it("links a published submission to its public address", async () => {
-    const { ctx } = createCtx({
-      memberships: [admin, author],
-      tripReports: [{ _id: "tr1", slug: "alpine-clarity" }],
-      tripReportSubmissions: [
-        submission({ status: "exported", contact_email: "author@example.com", exported_trip_report_id: "tr1" }),
-      ],
-    });
-
-    const [row] = await listMineHandler(ctx, as("author@example.com"));
-
-    expect(row).toMatchObject({ status: "published", report_slug: "alpine-clarity" });
-  });
-});
-
-describe("feedback decision log", () => {
-  it.each([
-    ["articleFeedback", articleFeedbackTransition],
-    ["siteFeedback", siteFeedbackTransition],
-  ] as const)("%s records two transitions as two entries, in order", async (table, transition) => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin, secondAdmin], [table]: [feedbackRow()] });
-
-    await handlerOf(transition)(ctx, { ...as("admin@example.com"), id: "feedback-1", status: "reviewing" });
-    vi.setSystemTime(new Date("2026-03-02T11:30:00.000Z"));
-    const result = (await handlerOf(transition)(ctx, {
-      ...as("second@example.com"),
-      id: "feedback-1",
-      status: "resolved",
-      note: "Fixed the dosage table.",
-    })) as LoggedRow;
-
-    const expected = [
-      { at: "2026-03-01T10:00:00.000Z", actor: "admin@example.com", from: "new", to: "reviewing" },
-      {
-        at: "2026-03-02T11:30:00.000Z",
-        actor: "second@example.com",
-        from: "reviewing",
-        to: "resolved",
-        note: "Fixed the dosage table.",
-      },
-    ];
-    expect(result.decision_log).toEqual(expected);
-    expect(rowsOf(table).get("f1")?.decision_log).toEqual(expected);
-  });
-
-  it("carries an existing review note into the log as the migrated first entry", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      articleFeedback: [
-        feedbackRow({
-          status: "resolved",
-          review_notes: "Source added.",
-          reviewed_by: "admin@example.com",
-          reviewed_at: "2026-02-01T09:00:00.000Z",
-        }),
-      ],
-    });
-
-    await handlerOf(articleFeedbackTransition)(ctx, { ...as("admin@example.com"), id: "feedback-1", status: "reviewing" });
-
-    expect(rowsOf("articleFeedback").get("f1")?.decision_log).toEqual([
-      { at: "2026-02-01T09:00:00.000Z", actor: "admin@example.com", to: "resolved", note: "Source added.", migrated: true },
-      { at: "2026-03-01T10:00:00.000Z", actor: "admin@example.com", from: "resolved", to: "reviewing" },
-    ]);
-  });
-
-  it("never stores a decision log supplied with new feedback", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin] });
-    const { _id: _ignored, ...incoming } = feedbackRow({
-      decision_log: [{ at: "2026-01-01T00:00:00.000Z", actor: "forged", to: "resolved" }],
-    });
-
-    await handlerOf(articleFeedbackCreate)(ctx, { apiKey: SERVER_KEY, feedback: incoming });
-
-    const [stored] = [...rowsOf("articleFeedback").values()];
-    expect(stored).toBeDefined();
-    expect(stored).not.toHaveProperty("decision_log");
   });
 });

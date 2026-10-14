@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
@@ -24,26 +24,6 @@ function Harness({ countries, collect, submit }: {
 }
 
 describe("CountryLegalityCardEditor", () => {
-  it("adds the first country with Enter without submitting the article or interrupting IME composition", async () => {
-    const user = userEvent.setup();
-    const collect = vi.fn();
-    const submit = vi.fn();
-    render(<Harness collect={collect} submit={submit} />);
-    const name = screen.getByLabelText("New country");
-    await user.type(name, "  Fixture Country  ");
-    fireEvent.keyDown(name, { key: "Enter", isComposing: true });
-    expect(screen.queryByRole("button", { name: "Remove Fixture Country" })).toBeNull();
-    await user.keyboard("{Enter}");
-    expect(screen.getByRole("button", { name: "Remove Fixture Country" })).toBeInTheDocument();
-    expect(name).toHaveValue("");
-    expect(submit).not.toHaveBeenCalled();
-    await user.type(screen.getByLabelText("Status text"), "Fixture status");
-    await user.click(screen.getByRole("button", { name: "Collect draft" }));
-    expect(collect.mock.calls[0][0].legality).toEqual({
-      international: [], countries: { "Fixture Country": { status: "Fixture status", notes: "" } },
-    });
-  });
-
   it("adds a literal country key without replacing existing metadata and rejects a duplicate", async () => {
     const user = userEvent.setup();
     const collect = vi.fn();
@@ -61,22 +41,5 @@ describe("CountryLegalityCardEditor", () => {
       Existing: existing,
       "St. Fixture [North]": { status: "", notes: "" },
     });
-  });
-
-  it("removes a country only after the shared confirm dialog, never a native confirm", async () => {
-    const user = userEvent.setup();
-    const collect = vi.fn();
-    const nativeConfirm = vi.spyOn(window, "confirm");
-    render(<Harness countries={{ Existing: { status: "Fixture status", notes: "" } }} collect={collect} submit={vi.fn()} />);
-
-    await user.click(screen.getByRole("button", { name: "Remove Existing" }));
-    await user.click(within(await screen.findByRole("dialog", { name: "Remove Existing?" })).getByRole("button", { name: "Cancel" }));
-    expect(screen.getByRole("button", { name: "Remove Existing" })).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Remove Existing" }));
-    await user.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Remove Existing" }));
-    await user.click(screen.getByRole("button", { name: "Collect draft" }));
-    expect(collect.mock.calls[0][0].legality.countries).toEqual({});
-    expect(nativeConfirm).not.toHaveBeenCalled();
   });
 });

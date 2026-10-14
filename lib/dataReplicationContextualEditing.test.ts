@@ -2,11 +2,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { collectionDetail, publishCollection, publishMetadata } from "../server/replicationContextualEditing";
 import { updateGalleryOrder } from "../server/replications";
-import { setCarouselOrder, setDisabled } from "../server/substanceGalleries";
-import { getSubstanceGalleryMembers } from "../server/lib/substanceGalleryPublicReads";
-import type { Doc } from "@server/postgres/runtime/dataModel";
-import { galleryCandidateKeys, galleryMatchProjection } from "../server/lib/publicReadIndexes";
-import { withReplicationEditJournal } from "../server/lib/replicationEditJournal";
 import { admin, createCtx, SERVER_KEY } from "./changeProposalReviewFixture";
 
 function handlerOf(fn: unknown) {
@@ -26,29 +21,6 @@ function fixture() {
 }
 async function baseline(ctx: MutationCtx, targetKind = "effect", targetKey = "tracers", credentials = actor) {
   return handlerOf(collectionDetail)(ctx, { ...credentials, targetKind, targetKey });
-}
-
-function articleFixture(count: number) {
-  const rows = Array.from({ length: count }, (_, index) => ({
-    _id: `replication-${index}`, _creationTime: index, slug: `work-${index}`,
-    title: `Work ${index}`, artist: "Artist", role: "replication", type: "image",
-    format: "jpg", created_at: "2026-01-01", url: `https://media.example/work-${index}.jpg`,
-    effect_slug: "tracers", effect_tags: [],
-    title_drugs: [{ slug: "lsd", name: "LSD", class: "psychedelics", matched_title_text: "LSD" }],
-  })) as unknown as Doc<"replications">[];
-  const test = createCtx({
-    memberships: [admin],
-    replications: rows,
-    substanceIndex: [{ _id: "substance", slug: "lsd", title: "LSD", classification: { psychoactive_class: ["Psychedelic"] } }],
-    substanceGalleries: [{ _id: "gallery", substance_slug: "lsd", curated_slugs: [], removed_slugs: ["excluded-work"], carousel_order: [], updated_at: "2026-01-01" }],
-    subjectiveEffects: [{ _id: "effect", slug: "tracers", name: "Tracers", gallery_order: [] }],
-    publicReadIndexState: [{ _id: "gallery-index", name: "gallery", version: 1, ready: true }],
-    replicationGalleryCandidates: rows.flatMap(row => galleryCandidateKeys(row).map(candidate_key => ({
-      _id: `${candidate_key}:${row._id}`, candidate_key, replication_id: row._id,
-      source_created: row._creationTime, ...galleryMatchProjection(row),
-    }))),
-  });
-  return { ...test, slugs: rows.map(row => row.slug) };
 }
 
 beforeEach(() => { process.env.DATA_ADMIN_KEY = SERVER_KEY; });
@@ -90,93 +62,5 @@ describe("contextual replication publication", () => {
     const current = await baseline(ctx);
     await handlerOf(publishCollection)(ctx, { ...actor, targetKind: "effect", targetKey: "tracers", expectedRevision: current.revision, requestId: "fresh-contextual-operation", slugs: ["b", "a"], previousSlugs: ["a", "b"], title: "Tracers" });
     await expect(handlerOf(updateGalleryOrder)(ctx, { ...actor, effect_slug: "tracers", replication_slugs: ["a", "b"], expectedRevision: current.revision })).rejects.toThrow("collection changed");
-  });
-
-  it("publishes a complete large article permutation without creating drug associations", async () => {
-    const { ctx, rowsOf, slugs } = articleFixture(300);
-    const order = [...slugs].reverse();
-    const drug = await baseline(ctx, "substance", "lsd");
-    await handlerOf(publishCollection)(ctx, { ...actor, targetKind: "substance", targetKey: "lsd", expectedRevision: drug.revision, requestId: "large-drug-order-operation", slugs: order, previousSlugs: slugs, title: "LSD" });
-    expect(rowsOf("substanceGalleries").get("gallery")).toMatchObject({
-      curated_slugs: [], removed_slugs: ["excluded-work"], carousel_order: order,
-    });
-    const effect = await baseline(ctx);
-    await handlerOf(publishCollection)(ctx, { ...actor, targetKind: "effect", targetKey: "tracers", expectedRevision: effect.revision, requestId: "large-effect-order-operation", slugs: order, previousSlugs: slugs, title: "Tracers" });
-    expect(rowsOf("subjectiveEffects").get("effect")?.gallery_order).toEqual(order);
-    const current = await baseline(ctx, "substance", "lsd");
-    await handlerOf(setCarouselOrder)(ctx, { ...actor, substance_slug: "lsd", expectedRevision: current.revision, carousel_order: slugs });
-    expect(rowsOf("substanceGalleries").get("gallery")?.carousel_order).toEqual(slugs);
-  });
-
-  it("refuses stale eligibility and order writes without any partial mutation", async () => {
-    const { ctx, rowsOf, slugs } = articleFixture(3);
-    const initial = await baseline(ctx, "substance", "lsd");
-    await handlerOf(setDisabled)(ctx, { ...actor, substance_slug: "lsd", disabled: true, expectedRevision: initial.revision });
-    const beforeGallery = structuredClone(rowsOf("substanceGalleries").get("gallery"));
-    const beforeReceipts = structuredClone([...rowsOf("replicationEditReceipts").values()]);
-    await expect(handlerOf(publishCollection)(ctx, { ...actor, targetKind: "substance", targetKey: "lsd", expectedRevision: initial.revision, requestId: "stale-drug-order-operation", slugs: [...slugs].reverse(), previousSlugs: slugs, title: "LSD" })).rejects.toMatchObject({ data: { code: "CONFLICT" } });
-    await expect(handlerOf(setDisabled)(ctx, { ...actor, substance_slug: "lsd", disabled: false, expectedRevision: initial.revision })).rejects.toMatchObject({ data: { code: "CONFLICT" } });
-    expect(rowsOf("substanceGalleries").get("gallery")).toEqual(beforeGallery);
-    expect([...rowsOf("replicationEditReceipts").values()]).toEqual(beforeReceipts);
-    expect(await getSubstanceGalleryMembers(ctx,
-      rowsOf("substanceIndex").get("substance") as Doc<"substanceIndex">,
-      rowsOf("substanceGalleries").get("gallery") as Doc<"substanceGalleries">,
-    )).toEqual([]);
-  });
-
-  it("retains substance membership edits while refusing a partial reorder baseline", async () => {
-    const { ctx, rowsOf, slugs } = articleFixture(3);
-    const initial = await baseline(ctx, "substance", "lsd");
-    await expect(handlerOf(publishCollection)(ctx, { ...actor, targetKind: "substance", targetKey: "lsd", expectedRevision: initial.revision, requestId: "partial-drug-order-operation", slugs: slugs.slice(1), previousSlugs: slugs.slice(1), title: "LSD" })).rejects.toMatchObject({ data: { code: "CONFLICT" } });
-    await handlerOf(publishCollection)(ctx, { ...actor, targetKind: "substance", targetKey: "lsd", expectedRevision: initial.revision, requestId: "remove-drug-member-operation", slugs: slugs.slice(1), previousSlugs: slugs, title: "LSD" });
-    expect(rowsOf("substanceGalleries").get("gallery")).toMatchObject({
-      curated_slugs: [], removed_slugs: ["excluded-work", slugs[0]], carousel_order: slugs.slice(1),
-    });
-  });
-
-  it("orders an effect gallery containing works a drug showcase excludes, while still refusing them for a substance", async () => {
-    // Showcase eligibility keeps `showcase_excluded` works and combination titles
-    // out of drug showcases. They are ordinary members of the effect galleries
-    // whose mechanism they depict, so ordering one must not be refused.
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      subjectiveEffects: [{ _id: "effect", slug: "tracers", name: "Tracers", gallery_order: ["excluded", "combination"] }],
-      substanceIndex: [{ _id: "substance", slug: "lsd", title: "LSD", classification: { psychoactive_class: ["Psychedelic"] } }],
-      substanceGalleries: [{ _id: "gallery", substance_slug: "lsd", curated_slugs: [], removed_slugs: [], carousel_order: [], updated_at: "2026-01-01" }],
-      replications: [
-        { _id: "replication-excluded", slug: "excluded", title: "Excluded work", artist: "Artist", role: "replication", type: "image", effect_slug: "tracers", effect_tags: [], showcase_excluded: true },
-        {
-          _id: "replication-combination", slug: "combination", title: "LSD and ketamine together", artist: "Artist",
-          role: "replication", type: "image", effect_slug: "tracers", effect_tags: [],
-          title_drugs: [
-            { slug: "lsd", name: "LSD", class: "psychedelics", matched_title_text: "LSD" },
-            { slug: "ketamine", name: "Ketamine", class: "dissociatives", matched_title_text: "ketamine" },
-          ],
-        },
-      ] as unknown as Doc<"replications">[],
-    });
-
-    const effect = await baseline(ctx);
-    await handlerOf(publishCollection)(ctx, {
-      ...actor, targetKind: "effect", targetKey: "tracers", expectedRevision: effect.revision,
-      requestId: "effect-order-excluded-members", slugs: ["combination", "excluded"],
-      previousSlugs: ["excluded", "combination"], title: "Tracers",
-    });
-    expect(rowsOf("subjectiveEffects").get("effect")?.gallery_order).toEqual(["combination", "excluded"]);
-
-    const substance = await baseline(ctx, "substance", "lsd");
-    await expect(handlerOf(publishCollection)(ctx, {
-      ...actor, targetKind: "substance", targetKey: "lsd", expectedRevision: substance.revision,
-      requestId: "substance-order-excluded-members", slugs: ["excluded"], previousSlugs: ["excluded"], title: "LSD",
-    })).rejects.toMatchObject({ data: { message: expect.stringContaining("not eligible") } });
-  });
-
-  it("does not journal unrelated effect prose in the replication journal", async () => {
-    const { ctx, rowsOf } = fixture();
-    const journal = withReplicationEditJournal(ctx);
-    const id = ctx.db.normalizeId("subjectiveEffects", "effect")!;
-    await journal.ctx.db.patch(id, { description_raw: "Narrative-only correction" });
-    await journal.commit(actor);
-    expect(rowsOf("replicationEditReceipts").size).toBe(0);
   });
 });

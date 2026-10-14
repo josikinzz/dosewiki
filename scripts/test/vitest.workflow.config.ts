@@ -12,7 +12,6 @@ export default defineConfig({
       "dist/**",
       "dist-inline/**",
       "scripts/deprecated/**",
-      "scripts/lib/workflow-command-surface.test.mjs",
     ],
   },
   resolve: {

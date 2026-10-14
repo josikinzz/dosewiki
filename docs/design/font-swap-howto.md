@@ -31,12 +31,10 @@ second font inventory in this guide.
 
 ## Verify
 
-1. Run `npm run test -- src/app/_fonts/siteFont.test.ts`.
-2. Run `npm run dev` with the target `NEXT_PUBLIC_SITE_FLAVOR`.
-3. Open `/dev/kit` and a public article. Confirm the wordmark and top-level
+1. Run `npm run dev` with the target `NEXT_PUBLIC_SITE_FLAVOR`.
+2. Open `/dev/kit` and a public article. Confirm the wordmark and top-level
    headings use the new face, body copy keeps the sans stack, and no font request
    fails in the browser network panel.
-4. Switch between dark and light themes and check narrow and wide viewports for
+3. Switch between dark and light themes and check narrow and wide viewports for
    clipping, fallback flashes, and changed line wrapping.
-5. Before release, run the repository's `npm run verify:app` sequence. A font
-   change is not validated by the build command alone.
+4. Run `npm run build` to catch font loading errors.

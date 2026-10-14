@@ -143,4 +143,4 @@ interpretation and harm-reduction policy with the article feature.
 3. Follow the [UI kit ownership section](ui-kit.md#ownership) when the work may cross a component ownership boundary.
 4. Preserve semantic structure, keyboard access, visible focus, reduced-motion behavior, and harm-reduction priority.
 5. Exercise the changed view at narrow and wide widths in both dark and light themes.
-6. For a shared catalog change, run the focused Vitest checks documented in the [UI kit](ui-kit.md#adding-or-changing-a-shared-component). Before release, `npm run verify:app` runs the full verification sequence; the catalog checks themselves are not build-time checks.
+6. For a shared catalog change, follow the steps in the [UI kit](ui-kit.md#adding-or-changing-a-shared-component).

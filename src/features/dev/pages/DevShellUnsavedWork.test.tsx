@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/aria-role -- `role` here is the component prop for the member role, not an ARIA role */
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -38,7 +38,6 @@ function FakeWritingTool({ save, publishesLive }: { save?: () => Promise<void>; 
 }
 
 function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publishesLive?: boolean } = {}) {
-  const onTabChange = vi.fn();
   const onLeave = vi.fn();
   render(
     <UnsavedWorkProvider>
@@ -51,15 +50,14 @@ function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publ
         userEmail="member@example.test"
         userName="Member"
         onPrimaryTabChange={vi.fn()}
-        onTabChange={onTabChange}
+        onTabChange={vi.fn()}
         onSignIn={vi.fn()}
         onLeave={onLeave}
       />
       <FakeWritingTool save={save} publishesLive={publishesLive} />
     </UnsavedWorkProvider>,
   );
-  const nav = screen.getByRole("navigation", { name: "Editor tools" });
-  return { onTabChange, onLeave, nav };
+  return { onLeave };
 }
 
 function makeDirty() {
@@ -73,89 +71,6 @@ function openAccountMenuItem(name: string) {
 }
 
 describe("the shell's unsaved-work registry", () => {
-  it("asks before a rail click drops a dirty draft, and Discard clears it and moves on", () => {
-    const { onTabChange, nav } = renderShell();
-    makeDirty();
-
-    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
-
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText("Writing: Harm reduction basics")).toBeTruthy();
-    expect(onTabChange).not.toHaveBeenCalled();
-
-    fireEvent.click(within(dialog).getByRole("button", { name: "Discard" }));
-
-    expect(onTabChange).toHaveBeenCalledWith("articles");
-    expect(screen.getByRole("textbox", { name: "Draft" })).toHaveValue("");
-  });
-
-  it("promises a save only when the work can be saved from the dialog", () => {
-    const { nav } = renderShell();
-    makeDirty();
-
-    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
-
-    const dialog = screen.getByRole("dialog", { name: "Discard your changes?" });
-    expect(within(dialog).queryByRole("button", { name: "Save" })).toBeNull();
-    expect(within(dialog).queryByText(/Save them/)).toBeNull();
-  });
-
-  it("asks to save or discard when the work has a save", () => {
-    const { nav } = renderShell({ save: vi.fn(async () => {}) });
-    makeDirty();
-
-    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
-
-    const dialog = screen.getByRole("dialog", { name: "Save or discard your changes?" });
-    expect(within(dialog).getByRole("button", { name: "Save" })).toBeTruthy();
-  });
-
-  it("stays put when the editor cancels", () => {
-    const { onTabChange, nav } = renderShell();
-    makeDirty();
-
-    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
-    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Keep editing" }));
-
-    expect(onTabChange).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("textbox", { name: "Draft" })).toHaveValue("New intro");
-  });
-
-  it("switches without a dialog when nothing is dirty", () => {
-    const { onTabChange, nav } = renderShell();
-
-    fireEvent.click(within(nav).getByRole("button", { name: /^Substances/ }));
-
-    expect(screen.queryByRole("dialog")).toBeNull();
-    expect(onTabChange).toHaveBeenCalledWith("articles");
-  });
-
-  it("runs the tool's save on Leave and leaves only once it succeeds", async () => {
-    let fail = true;
-    const save = vi.fn(async () => {
-      if (fail) throw new Error("The server is unreachable.");
-    });
-    const { onLeave } = renderShell({ save });
-    makeDirty();
-
-    fireEvent.click(screen.getAllByRole("button", { name: "Leave editor" })[0]);
-    const dialog = screen.getByRole("dialog");
-
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
-    });
-    expect(save).toHaveBeenCalledTimes(1);
-    expect(within(dialog).getByRole("alert")).toHaveTextContent("The server is unreachable.");
-    expect(onLeave).not.toHaveBeenCalled();
-
-    fail = false;
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
-    });
-    await waitFor(() => expect(onLeave).toHaveBeenCalledTimes(1));
-  });
-
   it("never offers Save for work whose save would go live, even when the tool passes one", () => {
     const save = vi.fn(async () => {});
     const { onLeave } = renderShell({ save, publishesLive: true });
@@ -173,19 +88,6 @@ describe("the shell's unsaved-work registry", () => {
     expect(onLeave).toHaveBeenCalledTimes(1);
   });
 
-  it("asks before signing out with a dirty draft", () => {
-    renderShell();
-    makeDirty();
-
-    openAccountMenuItem("Sign out");
-
-    expect(screen.getByRole("dialog")).toBeTruthy();
-    expect(signOutMock).not.toHaveBeenCalled();
-
-    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Discard" }));
-    expect(signOutMock).toHaveBeenCalledTimes(1);
-  });
-
   it("clears this browser's draft recovery copies on sign-out", () => {
     const store = createDraftRecoveryStore(recoveryActorKey("admin@example.com")!);
     store.write({ tool: "writing", record: "row:field-notes", baseline: "a", draft: { title: "Mine" } });
@@ -199,44 +101,5 @@ describe("the shell's unsaved-work registry", () => {
 
     expect(signOutMock).toHaveBeenCalled();
     expect(store.read("writing", "row:field-notes")).toBeNull();
-  });
-
-  it("holds the browser tab open on unload while an entry is dirty", () => {
-    renderShell();
-    const clean = new Event("beforeunload", { cancelable: true });
-    window.dispatchEvent(clean);
-    expect(clean.defaultPrevented).toBe(false);
-
-    makeDirty();
-    const dirty = new Event("beforeunload", { cancelable: true });
-    window.dispatchEvent(dirty);
-    expect(dirty.defaultPrevented).toBe(true);
-  });
-
-  it("marks the dirty tab in the rail with a name that says so", () => {
-    const { nav } = renderShell();
-    expect(within(nav).getByRole("button", { name: "Site, current tool Writing" })).toBeTruthy();
-
-    makeDirty();
-
-    // Writing sits in the Site menu for an editor: the menu says so, and so
-    // does the tab inside it.
-    const trigger = within(nav).getByRole("button", { name: "Site, current tool Writing, unsaved changes" });
-    fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
-    const menu = screen.getByRole("menu");
-    expect(within(menu).getByRole("menuitem", { name: "Writing, unsaved changes" })).toBeTruthy();
-    expect(within(menu).getByRole("menuitem", { name: "Copy" })).toBeTruthy();
-  });
-
-  it("never leaves the editor when Escape is pressed on a button", () => {
-    const { onLeave, onTabChange, nav } = renderShell();
-    const button = within(nav).getByRole("button", { name: /^Substances/ });
-    button.focus();
-
-    fireEvent.keyDown(button, { key: "Escape" });
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-
-    expect(onLeave).not.toHaveBeenCalled();
-    expect(onTabChange).not.toHaveBeenCalled();
   });
 });

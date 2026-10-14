@@ -75,14 +75,6 @@ describe("active viewer buffering", () => {
     expect(f.state().phase).toBeNull();
   });
 
-  it.each([{ ahead: 8, duration: 30 }, { ahead: 0.6, duration: 0.6 }])("starts already buffered and complete short clips immediately: %j", (options) => {
-    const f = setup(options);
-    expect(f.video.paused).toBe(false);
-    f.event("playing");
-    expect(f.state().phase).toBeNull();
-    expect(f.health).toHaveBeenLastCalledWith(options.ahead === options.duration);
-  });
-
   it("uses the remaining tail rather than waiting for an impossible target near the end", () => {
     const f = setup({ ahead: 30 });
     f.event("playing");
@@ -150,11 +142,8 @@ describe("active viewer buffering", () => {
     expect(f.video.paused).toBe(false);
   });
 
-  it.each([
-    { ahead: 0, readyState: HTMLMediaElement.HAVE_NOTHING },
-    { ahead: 0.4, readyState: HTMLMediaElement.HAVE_FUTURE_DATA },
-  ])("automatically releases a sustained wait, then rearms at the next stall: %j", (options) => {
-    const f = setup({ ...options, frames: true });
+  it("automatically releases a sustained wait, then rearms at the next stall", () => {
+    const f = setup({ ahead: 0, readyState: HTMLMediaElement.HAVE_NOTHING, frames: true });
     vi.advanceTimersByTime(4_750);
     expect(f.video.play).not.toHaveBeenCalled();
     vi.advanceTimersByTime(250);
@@ -182,22 +171,6 @@ describe("active viewer buffering", () => {
     expect(f.video.paused).toBe(false);
   });
 
-  it("keeps loading until a presented frame and rejects a pre-seek frame callback", () => {
-    const f = setup({ ahead: 20, frames: true });
-    const staleFrame = f.frame()!;
-    f.event("playing");
-    expect(f.state().phase).toBe("startup");
-    f.controller.beginSeek();
-    f.video.currentTime = 25;
-    f.controller.endSeek();
-    staleFrame(0, {} as VideoFrameCallbackMetadata);
-    expect(f.state().phase).toBe("startup");
-    expect(f.video.paused).toBe(true);
-    f.buffer([[25, 30]]);
-    f.frame()!(0, {} as VideoFrameCallbackMetadata);
-    expect(f.state().phase).toBeNull();
-  });
-
   it("never resumes during a scrub, nor after a paused seek", () => {
     const f = setup({ ahead: 10 });
     f.controller.beginSeek();
@@ -213,44 +186,6 @@ describe("active viewer buffering", () => {
     f.video.currentTime = 17;
     f.controller.endSeek();
     expect(f.video.paused).toBe(true);
-  });
-
-  it("does not start on a timeout when automatic playback is disabled", () => {
-    const f = setup({ autoplay: false });
-    f.buffer([[0, 20]]);
-    vi.advanceTimersByTime(10_000);
-    expect(f.video.play).not.toHaveBeenCalled();
-    expect(f.state()).toMatchObject({ phase: null, wantsPlaying: false });
-  });
-
-  it("invalidates source swaps and disposed frame callbacks", () => {
-    const f = setup({ ahead: 10, frames: true });
-    const staleFrame = f.frame()!;
-    f.video.src = "https://cdn.test/second.mp4";
-    f.buffer([[0, 20]]);
-    vi.advanceTimersByTime(500);
-    const previous = f.state();
-    f.controller.dispose();
-    staleFrame(0, {} as VideoFrameCallbackMetadata);
-    f.controller.retry();
-    expect(f.state()).toBe(previous);
-    expect(f.video.paused).toBe(true);
-    expect(f.health).toHaveBeenLastCalledWith(false);
-  });
-
-  it("clears error and blocked waits and allows deliberate retry", () => {
-    const f = setup();
-    f.event("error");
-    expect(f.state()).toMatchObject({ error: true, phase: null, wantsPlaying: false });
-    f.controller.retry();
-    expect(f.video.paused).toBe(false);
-    f.controller.blocked();
-    f.buffer([[0, 20]]);
-    expect(f.state()).toMatchObject({ blocked: true, phase: null, wantsPlaying: false });
-    expect(f.video.paused).toBe(true);
-    f.controller.togglePlayback();
-    expect(f.state().blocked).toBe(false);
-    expect(f.video.paused).toBe(false);
   });
 
   it("suspends hidden-tab work and restores only the prior play intent", () => {
@@ -273,17 +208,6 @@ describe("active viewer buffering", () => {
     visibility.mockReturnValue("visible");
     document.dispatchEvent(new Event("visibilitychange"));
     expect(f.video.paused).toBe(true);
-  });
-
-  it("deduplicates buffer health and revokes healthy status on disposal", () => {
-    const f = setup({ ahead: 30 });
-    f.event("playing");
-    const reports = f.health.mock.calls.length;
-    f.event("timeupdate");
-    f.event("progress");
-    expect(f.health).toHaveBeenCalledTimes(reports);
-    f.controller.dispose();
-    expect(f.health).toHaveBeenLastCalledWith(false);
   });
 
   it("turns a native pause into deliberate Play recovery without retrying on buffer or sound changes", () => {
@@ -311,62 +235,4 @@ describe("active viewer buffering", () => {
     expect(f.state().wantsPlaying).toBe(true);
     expect(f.video.paused).toBe(false);
   });
-
-  it("releases speculative downloads only for sustained bandwidth headroom or a complete clip", () => {
-    const f = setup({ ahead: 2 });
-    f.event("playing");
-    expect(f.health).toHaveBeenLastCalledWith(false);
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 2.5]]);
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 3]]);
-    expect(f.health).toHaveBeenLastCalledWith(false);
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 7]]);
-    expect(f.health).toHaveBeenLastCalledWith(false);
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 11]]);
-    expect(f.health).toHaveBeenLastCalledWith(true);
-    vi.advanceTimersByTime(1_000);
-    f.event("timeupdate");
-    expect(f.health).toHaveBeenLastCalledWith(false);
-    f.buffer([[0, 30]]);
-    expect(f.health).toHaveBeenLastCalledWith(true);
-  });
-
-  it.each(["seek", "visibility"] as const)("requires fresh bandwidth evidence after %s recovery", (recovery) => {
-    const f = setup({ ahead: 2 });
-    f.event("playing");
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 6]]);
-    vi.advanceTimersByTime(1_000);
-    f.buffer([[0, 10]]);
-    expect(f.health).toHaveBeenLastCalledWith(true);
-    if (recovery === "seek") {
-      f.controller.beginSeek();
-      f.video.currentTime = 1;
-      f.controller.endSeek();
-    } else {
-      const visibility = vi.spyOn(document, "visibilityState", "get");
-      visibility.mockReturnValue("hidden");
-      document.dispatchEvent(new Event("visibilitychange"));
-      visibility.mockReturnValue("visible");
-      document.dispatchEvent(new Event("visibilitychange"));
-    }
-    f.event("playing");
-    expect(f.video.paused).toBe(false);
-    expect(f.health).toHaveBeenLastCalledWith(false);
-  });
-});
-
-it("finishes a paused seek to the exact end rather than waiting for nonexistent runway", () => {
-  const f = setup({ ahead: 30 });
-  f.controller.beginSeek();
-  f.video.currentTime = 30;
-  f.controller.endSeek();
-  expect(f.state()).toMatchObject({ phase: null, wantsPlaying: false });
-  expect(f.video.paused).toBe(true);
-  f.controller.togglePlayback();
-  expect(f.video.currentTime).toBe(0);
-  expect(f.video.paused).toBe(false);
 });

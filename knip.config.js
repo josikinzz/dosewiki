@@ -40,6 +40,7 @@ const allowlistedScripts = [
   "scripts/translation/live-mirror.ts",
   "scripts/translation/mirror-coverage.ts",
   "scripts/util/recolorMolecules.mjs", // src/data/mappings/moleculePalette.ts
+  "scripts/lib/workflow-command-surface.mjs", // command catalog behind docs/workflows/citations.md
 ];
 
 // App files reached without a static import.
@@ -51,6 +52,7 @@ const appEntries = [
   "src/styles/theme-light-mode.css",
   "src/features/theme-lab/themeLabBootstrap.ts", // compiled by generateThemeLabBootstrap.ts
   "src/features/effects/effectGuideClass.ts", // named by data/lineage.json
+  "src/components/{common,layout}/index.ts", // tier barrels docs/design/ui-kit.md catalogs
 ];
 
 /** @type {import("knip").KnipConfig} */

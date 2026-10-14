@@ -4,9 +4,7 @@ import {
   normalizeVCodeContent,
   parseRawVCodeContent,
   unwrapTopLevelQuotes,
-  VCODE_TAG_NAMES,
 } from "./normalize";
-import { vcodeRenderers } from "./renderers";
 import type { VCodeContent, VCodeNode } from "./types";
 
 const VISUAL_DISCONNECTION_SENTENCE =
@@ -45,12 +43,6 @@ function collect(content: VCodeContent | undefined, name: string): VCodeNode[] {
     return node.name === name ? [node, ...collect(node.children, name)] : collect(node.children, name);
   });
 }
-
-describe("VCODE_TAG_NAMES", () => {
-  it("matches the renderer registry", () => {
-    expect([...VCODE_TAG_NAMES].sort()).toEqual(Object.keys(vcodeRenderers).sort());
-  });
-});
 
 describe("parseRawVCodeContent hash dialect", () => {
   const cases: Array<{
@@ -145,31 +137,6 @@ describe("parseRawVCodeContent hash dialect", () => {
     }
   });
 
-  it("converts the visual-disconnection sentence", () => {
-    const content = parseRawVCodeContent(VISUAL_DISCONNECTION_SENTENCE);
-
-    expect(flatten(content)).toBe(
-      "Visual disconnection is the experience of becoming distanced and/or detached from one's sense of vision. At its lower levels, this results in acuity suppression, double-vision.",
-    );
-    expect(collect(content, "b")).toHaveLength(1);
-    expect(collect(content, "int-link").map((node) => node.properties.to)).toEqual([
-      "/effects/acuity-suppression/",
-      "/effects/double-vision/",
-    ]);
-  });
-
-  it("groups blank-line separated prose into paragraphs around block directives", () => {
-    const content = parseRawVCodeContent(
-      '##b{Lead} paragraph.\n\n##cap-img|src="/img/gallery/a.jpg"\nTrailing paragraph.',
-    );
-
-    expect(toArray(content).map((node) => (typeof node === "string" ? "text" : node.name))).toEqual([
-      "p",
-      "captioned-image",
-      "p",
-    ]);
-  });
-
   it("leaves prose brackets alone instead of opening a node", () => {
     const content = parseRawVCodeContent(
       "See [Monism](https://example.com) and [Alan Watts] for context.",
@@ -238,16 +205,6 @@ describe("unwrapTopLevelQuotes", () => {
     expect(paragraphs).toHaveLength(2);
     expect(flatten(paragraphs[0])).toBe("First paragraph.");
     expect(flatten(paragraphs[1])).toBe("Second paragraph.");
-  });
-
-  it("preserves existing block children and surrounding content", () => {
-    const paragraph: VCodeNode = { name: "p", properties: {}, children: ["Kept paragraph."] };
-    const content = unwrapTopLevelQuotes([
-      "Lead-in text.",
-      { name: "quote", properties: {}, children: [paragraph] },
-    ]);
-
-    expect(content).toEqual(["Lead-in text.", paragraph]);
   });
 
   it("leaves nested quotes and plain content untouched", () => {

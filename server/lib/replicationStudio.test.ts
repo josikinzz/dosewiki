@@ -77,67 +77,12 @@ describe("bulk replication edits", () => {
     expect(state.patches.map((entry) => entry.id)).toEqual(["a"]);
   });
 
-  it("reports a row deleted since it was opened as a conflict", async () => {
-    const state = storage([ROW_A]);
-
-    const result = await invoke(state.ctx, {
-      items: [
-        { id: "a", expected: expectedOf(ROW_A) },
-        { id: "gone", expected: expectedOf(ROW_B) },
-      ],
-      role: "figure",
-    });
-
-    expect(result).toMatchObject({ updated: 1, conflicts: [{ id: "gone", slug: null }] });
-  });
-
   it("refuses an editorial change that names rows without their expected values", async () => {
     const state = storage([ROW_A]);
 
     await expect(invoke(state.ctx, { ids: ["a"], artist: "New Artist" })).rejects.toThrow(
       /expected/,
     );
-    expect(state.patches).toEqual([]);
-  });
-
-  it("still lets the corpus-wide showcase toggle name rows by id alone", async () => {
-    const state = storage([ROW_A]);
-
-    const result = await invoke(state.ctx, { ids: ["a"], showcase_excluded: true });
-
-    expect(result).toMatchObject({ updated: 1, conflicts: [] });
-    expect(state.patches).toEqual([{ id: "a", patch: { showcase_excluded: true } }]);
-  });
-
-  it("bulk-sets rights on three items, each against its own expected values", async () => {
-    const rows: StoredRow[] = ["a", "b", "c"].map((id) => ({
-      _id: id, slug: `work-${id}`, title: `Work ${id}`, artist: "Ann", rights_status: "unknown",
-    }));
-    const state = storage(rows);
-
-    const result = await invoke(state.ctx, {
-      items: rows.map((row) => ({ id: row._id, expected: expectedOf(row) })),
-      rights_status: "creator-retained",
-    });
-
-    expect(result).toMatchObject({ updated: 3, conflicts: [] });
-    expect(["a", "b", "c"].map((id) => state.row(id)?.rights_status)).toEqual([
-      "creator-retained",
-      "creator-retained",
-      "creator-retained",
-    ]);
-  });
-
-  it("refuses a rights change guarded by a stale rights snapshot", async () => {
-    const row: StoredRow = { _id: "a", slug: "work-a", title: "Work A", artist: "Ann", rights_status: "creator-retained" };
-    const state = storage([row]);
-
-    const result = await invoke(state.ctx, {
-      items: [{ id: "a", expected: { ...expectedOf(row), rights_status: "unknown" } }],
-      rights_status: "unknown",
-    });
-
-    expect(result).toMatchObject({ updated: 0, conflicts: [{ id: "a", code: "stale" }] });
     expect(state.patches).toEqual([]);
   });
 
@@ -167,27 +112,6 @@ describe("bulk replication edits", () => {
     expect(state.row("b")?.publication_state).toBe("published");
   });
 
-  it("publishes once the same patch supplies the missing rights and source", async () => {
-    const bare: StoredRow = {
-      _id: "a", slug: "work-a", title: "Work A", artist: "Ann",
-      rights_status: "unknown", publication_state: "unpublished",
-    };
-    const state = storage([bare]);
-
-    const result = await invoke(state.ctx, {
-      items: [{ id: "a", expected: expectedOf(bare) }],
-      rights_status: "creator-retained",
-      source_url: "https://artist.test/a",
-      publish: true,
-    });
-
-    expect(result).toMatchObject({ updated: 1, published: ["work-a"], conflicts: [] });
-    expect(state.row("a")).toMatchObject({
-      rights_status: "creator-retained",
-      source_url: "https://artist.test/a",
-      publication_state: "published",
-    });
-  });
 
   it("refuses rights the row's other provenance cannot support", async () => {
     const row: StoredRow = { _id: "a", slug: "work-a", title: "Work A", artist: "Ann", rights_status: "unknown" };

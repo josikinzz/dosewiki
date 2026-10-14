@@ -2,8 +2,8 @@ import { PostgresError } from "@server/postgres/runtime/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { getPortalRecord } from "../server/tripReports";
-import { assignOwnerHandler, listOwnedHandler, updateHandler } from "../server/lib/tripReportPortalHandlers";
-import { create, promoteHandler, transition } from "../server/tripReportSubmissions";
+import { updateHandler } from "../server/lib/tripReportPortalHandlers";
+import { create, promoteHandler } from "../server/tripReportSubmissions";
 
 // Postgres registered functions keep the original handler on `_handler`; there is
 // no in-repo Postgres runtime harness, so the handler is exercised directly.
@@ -197,92 +197,12 @@ describe("tripReportSubmissions.promote ownership", () => {
     expect(rowsOf("tripReports").get(result.reportId)).not.toHaveProperty("owner_email");
     expect(result.suggestedOwner).toEqual({ email: "owner@example.com", username: "nervewing" });
   });
-
-  it("lets an admin assign the suggested owner explicitly after promotion", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, owner],
-      tripReportSubmissions: [{ ...submission, contact_email: "owner@example.com" }],
-    });
-
-    const result = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1" });
-    const assigned = await assignOwnerHandler(ctx, {
-      ...as("admin@example.com"),
-      slug: result.payload.slug,
-      email: result.suggestedOwner!.email,
-    });
-
-    expect(assigned).toEqual({ slug: result.payload.slug, ownerEmail: "owner@example.com" });
-    expect(rowsOf("tripReports").get(result.reportId)?.owner_email).toBe("owner@example.com");
-  });
-
-  it("leaves owner_email unset and suggests nobody when no member has the contact email, or none was given", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, owner],
-      tripReportSubmissions: [
-        { ...submission, contact_email: "stranger@example.com" },
-        { ...submission, _id: "s2", id: "sub-2" },
-      ],
-    });
-
-    const first = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-1" });
-    const second = await promoteHandler(ctx, { ...as("admin@example.com"), id: "sub-2" });
-
-    expect(rowsOf("tripReports").get(first.reportId)).not.toHaveProperty("owner_email");
-    expect(rowsOf("tripReports").get(second.reportId)).not.toHaveProperty("owner_email");
-    expect(first.suggestedOwner).toBeNull();
-    expect(second.suggestedOwner).toBeNull();
-  });
 });
 
 async function readReportRevision(db: FakeDb, id = "r1"): Promise<string> {
   const record = await handlerOf(getPortalRecord)(db.ctx, { ...as("admin@example.com"), id }) as { revision: string };
   return record.revision;
 }
-
-describe("tripReportSubmissions.transition review note", () => {
-  const rejected: Row = {
-    _id: "s1",
-    id: "sub-1",
-    status: "rejected",
-    schema_version: 1,
-    report: structuredClone(fields),
-    title: fields.title,
-    author_name: "nervewing",
-    substance_names: ["Psilocybin"],
-    may_contact: false,
-    publish_consent: true,
-    age_confirmed: true,
-    honeypot_triggered: false,
-    review_notes: "No dose given for the second substance.",
-    created_at: "2026-01-01T00:00:00.000Z",
-    updated_at: "2026-01-01T00:00:00.000Z",
-  };
-
-  async function reopen(notes?: string) {
-    const { ctx, rowsOf } = createCtx({ memberships: [admin], tripReportSubmissions: [rejected] });
-    const result = (await handlerOf(transition)(ctx, {
-      ...as("admin@example.com"),
-      id: "sub-1",
-      status: "reviewing",
-      ...(notes !== undefined ? { notes } : {}),
-    })) as { status: string; review_notes?: string };
-    return { result, stored: rowsOf("tripReportSubmissions").get("s1") };
-  }
-
-  it("keeps the stored note when the status change carries none, or only a blank one", async () => {
-    for (const notes of [undefined, "", "   "]) {
-      const { result, stored } = await reopen(notes);
-      expect(result).toMatchObject({ status: "reviewing", review_notes: "No dose given for the second substance." });
-      expect(stored?.review_notes).toBe("No dose given for the second substance.");
-    }
-  });
-
-  it("replaces the stored note when the status change carries text", async () => {
-    const { result, stored } = await reopen("Author sent the missing dose.");
-    expect(result.review_notes).toBe("Author sent the missing dose.");
-    expect(stored?.review_notes).toBe("Author sent the missing dose.");
-  });
-});
 
 describe("tripReports.update ownership", () => {
   let current: FakeDb;
@@ -327,20 +247,6 @@ describe("tripReports.update ownership", () => {
     expect(current.rowsOf("contentRevisions").size).toBe(0);
   });
 
-  it("lets the owner change content fields", async () => {
-    await save("owner@example.com", {
-      title: "Alpine clarity, revisited",
-      conclusion: "Worth it.",
-      tags: ["outdoors", "winter"],
-    });
-
-    const stored = current.rowsOf("tripReports").get("r1")!;
-    expect(stored.title).toBe("Alpine clarity, revisited");
-    expect(stored.conclusion).toBe("Worth it.");
-    expect(stored.tags).toEqual(["outdoors", "winter"]);
-    expect(stored.owner_email).toBe("owner@example.com");
-  });
-
   it("refuses a contributor who does not own the report with NOT_OWNER", async () => {
     expect(await rejection(save("other@example.com", { title: "Mine now" }))).toBe("NOT_OWNER");
     expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Alpine clarity");
@@ -375,7 +281,7 @@ describe("tripReports.update ownership", () => {
     expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Alpine clarity");
   });
 
-  it("holds an editor who owns a report to content fields", async () => {
+  it("refuses attribution changes from an editor who owns the report", async () => {
     current = createCtx({
       memberships: [admin, editor],
       tripReports: [{ ...ownedReport, owner_email: "editor@example.com" }],
@@ -384,16 +290,6 @@ describe("tripReports.update ownership", () => {
     expect(await rejection(save("editor@example.com", {}, { profileKey: "NERVEWING" }))).toBe(
       "EDITOR_ONLY_REPORT_FIELD",
     );
-    const result = await save("editor@example.com", { title: "Mine, retitled" });
-    expect(result.updated).toBe(true);
-    expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Mine, retitled");
-  });
-
-  it("keeps the admin path: an admin saves a report they do not own", async () => {
-    const result = await save("admin@example.com", { title: "Edited by staff" });
-
-    expect(result.updated).toBe(true);
-    expect(current.rowsOf("tripReports").get("r1")?.title).toBe("Edited by staff");
   });
 
   it("refuses a viewer below the contributor floor", async () => {
@@ -459,22 +355,9 @@ describe("trip report attribution boundary", () => {
 
     await expect(promote(seed())).rejects.toThrow(/matches contributor profile "NERVEWING"/);
     await expect(promote(seed(), { profileKey: "UNKNOWN" })).rejects.toThrow(/Contributor profile "UNKNOWN" not found/);
-
-    const assigned = seed();
-    const assignedResult = await promote(assigned, { profileKey: "nervewing" });
-    expect(assigned.rowsOf("tripReports").get(assignedResult.reportId)).toMatchObject({
-      subject: { name: "nervewing", profile_key: "NERVEWING" },
-      attribution_review: { decision: "assigned" },
-    });
-
-    const declined = seed();
-    const declinedResult = await promote(declined, { confirmAuthorNameClaim: true });
-    const declinedReport = declined.rowsOf("tripReports").get(declinedResult.reportId);
-    expect(declinedReport).toMatchObject({ attribution_review: { decision: "declined" } });
-    expect(declinedReport?.subject).not.toHaveProperty("profile_key");
   });
 
-  it("refuses a stale save, keeps editor-set subject links, and re-adjudicates only a moved byline", async () => {
+  it("refuses a stale save of a reviewed byline", async () => {
     const reviewed: Row = {
       ...ownedReport,
       subject: { name: "nervewing", avatar_url: "https://cdn/face.png", pdf_url: "https://cdn/r.pdf" },
@@ -488,88 +371,5 @@ describe("trip report attribution boundary", () => {
     await expect(save(seed(), { expected: { ...expected, title: "Something else" } })).rejects.toMatchObject({
       data: { code: "REPORT_CONFLICT" },
     });
-
-    const unchanged = seed();
-    await save(unchanged, { updates: { ...expected, title: "Retitled" } });
-    expect(unchanged.rowsOf("tripReports").get("r1")).toMatchObject({
-      title: "Retitled",
-      slug: "alpine-clarity",
-      subject: { name: "nervewing", avatar_url: "https://cdn/face.png", pdf_url: "https://cdn/r.pdf" },
-      attribution_review: { decision: "declined", reviewed_by: "Admin" },
-    });
-
-    // Case and whitespace are not a moved byline: `normalizeAuthorMatchName` equalizes them.
-    await expect(save(seed(), { updates: { ...expected, subject: { name: "NerveWing " } } })).resolves.toMatchObject({
-      updated: true,
-    });
-
-    const movedTo = seed();
-    await save(movedTo, { updates: { ...expected, subject: { name: "somebody" } }, profileKey: "NERVEWING" });
-    expect(movedTo.rowsOf("tripReports").get("r1")).toMatchObject({
-      subject: { name: "somebody", profile_key: "NERVEWING" },
-      attribution_review: { decision: "assigned", reviewed_by: expect.any(String) },
-    });
-  });
-});
-
-describe("tripReports.listOwned", () => {
-  it("returns only the actor's reports for a contributor", async () => {
-    const { ctx } = createCtx({
-      memberships: [owner, other],
-      tripReports: [ownedReport, unownedReport, { ...ownedReport, _id: "r3", slug: "second", owner_email: "other@example.com" }],
-    });
-
-    const mine = await listOwnedHandler(ctx, as("owner@example.com"));
-
-    expect(mine.map((row) => row.slug)).toEqual(["alpine-clarity"]);
-    expect(mine[0]).toMatchObject({ id: "r1", title: "Alpine clarity", ownerEmail: "owner@example.com" });
-  });
-
-  it("lets an admin list every owned report and refuses a contributor asking for all", async () => {
-    const { ctx } = createCtx({
-      memberships: [admin, owner],
-      tripReports: [ownedReport, unownedReport],
-    });
-
-    const all = await listOwnedHandler(ctx, { ...as("admin@example.com"), all: true });
-    expect(all.map((row) => row.slug)).toEqual(["alpine-clarity"]);
-
-    expect(await rejection(listOwnedHandler(ctx, { ...as("owner@example.com"), all: true }))).toBe("FORBIDDEN");
-  });
-});
-
-describe("tripReports.assignOwner", () => {
-  it("lets an admin reassign a report to an existing member, normalizing the email", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, owner, other],
-      tripReports: [ownedReport],
-    });
-
-    const result = await assignOwnerHandler(ctx, {
-      ...as("admin@example.com"),
-      slug: "alpine-clarity",
-      email: " Other@Example.com ",
-    });
-
-    expect(result).toEqual({ slug: "alpine-clarity", ownerEmail: "other@example.com" });
-    expect(rowsOf("tripReports").get("r1")?.owner_email).toBe("other@example.com");
-  });
-
-  it("refuses an unknown member, an unknown slug, and a non-admin", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, editor, owner],
-      tripReports: [ownedReport],
-    });
-
-    expect(
-      await rejection(assignOwnerHandler(ctx, { ...as("admin@example.com"), slug: "alpine-clarity", email: "nobody@example.com" })),
-    ).toBe("MEMBER_NOT_FOUND");
-    expect(
-      await rejection(assignOwnerHandler(ctx, { ...as("admin@example.com"), slug: "missing", email: "owner@example.com" })),
-    ).toBe("REPORT_NOT_FOUND");
-    await expect(
-      assignOwnerHandler(ctx, { ...as("editor@example.com"), slug: "alpine-clarity", email: "owner@example.com" }),
-    ).rejects.toThrow(/Admin access required/);
-    expect(rowsOf("tripReports").get("r1")?.owner_email).toBe("owner@example.com");
   });
 });

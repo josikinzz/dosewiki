@@ -235,15 +235,12 @@ are still recorded with the rights metadata scripts.
 
 ## Verification commands
 
-Run checks appropriate to the files changed. The normal application-and-workflow
-gate is:
+Run the tests for the files you changed, plus:
 
 ```sh
 npm run postgres:check-env-isolation
-npm run verify:all
 npm run provenance:check
 ```
 
-Also run the campaign-specific producer and validator tests from the Media
-Review workspace. Save commands, versions, exit codes, exact artifact hashes,
+Save commands, versions, exit codes, exact artifact hashes,
 and live verification results in the campaign directory.

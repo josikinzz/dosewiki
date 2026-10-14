@@ -81,20 +81,19 @@ CI also includes:
 The rollout and promotion criteria for these controls live in
 [Security CI](../operations/security-ci.md).
 
-### Test ownership policy
+### Test policy
 
-Every test needs a stable placement and an explicit reason to exist. Reviewers should be able to name the owning layer for any new test file.
+Testing is deliberately minimal. A test earns its place only when a silent regression would cause real harm:
 
-- One observable contract is tested once, at the lowest stable layer that fully expresses it (pure model or helper before hook, hook before component, component before page or route).
-- Higher layers test integration only: wiring, state transitions, and user-visible outcomes. They never recompute a calculation a lower layer already proves.
-- Source-text scans are reserved for named architecture policies (forbidden production write APIs, archive and deprecated boundaries, route reachability, generated-data lineage, command-surface classification). They live behind `src/test/sourceScan.ts`, name the prohibited outcome in the test title, and report the offending file. Imports, helper names, class strings, directives, and formatting are not policies.
-- Static catalogs and generated data are checked with structural invariants (uniqueness, referential integrity, required fields), not verbatim snapshots of editorial content.
-- Tests that need external artifacts ship a small committed or temp-generated synthetic fixture that preserves the real digest and precondition logic. A test may not silently skip because a workstation path, campaign directory, or private artifact is absent.
-- Retire completed one-time workflows and their tests only after checking active consumers and verifying private recovery copies. Keep a fail-closed command boundary only while a concrete consumer still requires it.
-- UI tests query by role, accessible name, state, focus, visibility, and rendered output. A class assertion is allowed only when that class is a documented public style contract in [the UI kit](../design/ui-kit.md).
-- Runners stay as they are: root Vitest for `src/**` and `lib/**`, `npm run test:workflow` for `scripts/**`, `npm run openchemlib:test` for the vendored fork. No new runner or convention is introduced for a single test.
+- production write guards: `DATA_WRITES_FROZEN`, explicit targets, confirmation phrases, dry run versus apply;
+- Auth.js identity, database-backed roles, and revision or conflict checks;
+- secrets, and keeping editor-only data or credentials out of public output;
+- parsers and transforms that feed published dosage, duration, interaction, or legality data;
+- genuinely tricky pure logic such as merges and state machines.
 
-`npm run test:evidence` writes `.test-evidence/report.md` (and `report.json`) with per-file runtime for every lane, the skipped suites and cases, `setup:rdkit-or-wasm` tags for files that load RDKit, OpenChemLib, or wasm, and, with `--runs N`, a flake classification that separates files whose outcome differed across runs from files that failed every run. It exits 2 when a safety-listed fixture-backed test skips. Slow files are ranked so their setup cost can be shared or reduced; no test is deleted only because it is slow.
+Do not add tests for UI rendering, styling, copy, static catalogs, configuration, one-off scripts, or anything a person sees break immediately. Do not use tests to enforce code style or architecture conventions. Most changes ship with no new test.
+
+For a change, run the test files that cover what you touched (`npm run test -- <path>`); CI runs the rest. Runners: root Vitest for `src/**`, `lib/**`, and `server/**`, `npm run test:workflow` for `scripts/**`, and `npm run openchemlib:test` for the vendored fork. `npm run test:evidence` reports per-file runtime; a slow test that guards nothing on the list above should be deleted.
 
 ## Current Direction
 

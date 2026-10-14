@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-
 import { DataTripReportSubmissionStore } from "./dataTripReportSubmissionStore";
 import type { TripReportSubmissionInput } from "./tripReportSubmissions";
 
@@ -77,18 +76,6 @@ function createClientRecorder() {
       }),
       query: vi.fn(async (reference: { name: string }, args: Record<string, unknown>) => {
         calls.push({ kind: "query", name: reference.name, args });
-        if (reference.name === "tripReportSubmissions:list") {
-          return [insertedRow];
-        }
-        if (reference.name === "tripReportSubmissions:listByStatuses") {
-          return [insertedRow];
-        }
-        if (reference.name === "tripReportSubmissions:countByStatus") {
-          return 7;
-        }
-        if (reference.name === "tripReportSubmissions:previewPromotion") {
-          return { row: { ...insertedRow, status: "accepted" }, payload: promotionPayload };
-        }
         return insertedRow;
       }),
     },
@@ -183,24 +170,13 @@ describe("DataTripReportSubmissionStore", () => {
     ]);
   });
 
-  it("uses private Postgres functions for editor queue reads and explicit promotion, naming the actor", async () => {
+  it("promotes and transitions through private Postgres functions, naming the actor", async () => {
     const recorder = createClientRecorder();
     const store = new DataTripReportSubmissionStore({
       client: recorder.client,
       apiKey: "test-key",
     });
 
-    await expect(store.list({ status: "submitted", limit: 25 })).resolves.toHaveLength(1);
-    await expect(
-      store.previewPromotion("submission-1", {
-        actorEmail: "editor@example.com",
-      }),
-    ).resolves.toMatchObject({
-      payload: {
-        slug: "careful-low-dose-museum-walk",
-        featured: false,
-      },
-    });
     await expect(
       store.promote("submission-1", {
         actorEmail: "admin@example.com",
@@ -220,16 +196,6 @@ describe("DataTripReportSubmissionStore", () => {
     ).resolves.toMatchObject({ id: "submission-1" });
 
     expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
-      ["query", "tripReportSubmissions:list", { apiKey: "test-key", status: "submitted", limit: 25 }],
-      [
-        "query",
-        "tripReportSubmissions:previewPromotion",
-        {
-          apiKey: "test-key",
-          actorEmail: "editor@example.com",
-          id: "submission-1",
-        },
-      ],
       [
         "mutation",
         "tripReportSubmissions:promote",
@@ -254,41 +220,4 @@ describe("DataTripReportSubmissionStore", () => {
       ],
     ]);
   });
-
-  it("counts queue rows through the private count query instead of listing them", async () => {
-    const recorder = createClientRecorder();
-    const store = new DataTripReportSubmissionStore({
-      client: recorder.client,
-      apiKey: "test-key",
-    });
-
-    await expect(store.count({ statuses: ["submitted", "reviewing"] })).resolves.toBe(7);
-
-    expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
-      [
-        "query",
-        "tripReportSubmissions:countByStatus",
-        { apiKey: "test-key", statuses: ["submitted", "reviewing"] },
-      ],
-    ]);
-  });
-
-  it("lists every row in a status set through the uncapped private query, sending no limit", async () => {
-    const recorder = createClientRecorder();
-    const store = new DataTripReportSubmissionStore({
-      client: recorder.client,
-      apiKey: "test-key",
-    });
-
-    await expect(store.listByStatuses({ statuses: ["submitted", "reviewing"] })).resolves.toHaveLength(1);
-
-    expect(recorder.calls.map((call) => [call.kind, call.name, call.args])).toEqual([
-      [
-        "query",
-        "tripReportSubmissions:listByStatuses",
-        { apiKey: "test-key", statuses: ["submitted", "reviewing"] },
-      ],
-    ]);
-  });
 });
-

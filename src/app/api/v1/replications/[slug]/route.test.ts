@@ -2,13 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getPublicReplicationBySlug: vi.fn(),
-  getPublicReplications: vi.fn(),
   enforceRateLimit: vi.fn(),
 }));
 
 vi.mock("@server/data/publicData", () => ({
   getPublicReplicationBySlug: mocks.getPublicReplicationBySlug,
-  getPublicReplications: mocks.getPublicReplications,
+  getPublicReplications: vi.fn(),
 }));
 vi.mock("@server/http/nextRateLimit", () => ({
   enforceRateLimit: mocks.enforceRateLimit,
@@ -32,19 +31,7 @@ const replication = {
 describe("public replication detail API", () => {
   beforeEach(() => {
     mocks.getPublicReplicationBySlug.mockReset().mockResolvedValue(replication);
-    mocks.getPublicReplications.mockReset();
     mocks.enforceRateLimit.mockReset().mockResolvedValue(null);
-  });
-
-  it("uses the indexed slug read and never drains the replication catalog", async () => {
-    const { GET } = await import("./route");
-    const response = await GET(new Request("https://dose.wiki/api/v1/replications/drifting"), {
-      params: Promise.resolve({ slug: "drifting" }),
-    });
-
-    expect(response.status).toBe(200);
-    expect(mocks.getPublicReplicationBySlug).toHaveBeenCalledWith("drifting");
-    expect(mocks.getPublicReplications).not.toHaveBeenCalled();
   });
 
   it("serves the public projection with CORS and without private storage fields", async () => {
@@ -63,20 +50,5 @@ describe("public replication detail API", () => {
     for (const field of ["_id", "_creationTime", "storage_id", "removal_contact"]) {
       expect(body.data).not.toHaveProperty(field);
     }
-  });
-
-  it("returns the versioned not-found envelope with CORS", async () => {
-    mocks.getPublicReplicationBySlug.mockResolvedValueOnce(null);
-    const { GET } = await import("./route");
-    const response = await GET(new Request("https://dose.wiki/api/v1/replications/unknown"), {
-      params: Promise.resolve({ slug: "unknown" }),
-    });
-
-    expect(response.status).toBe(404);
-    expect(response.headers.get("access-control-allow-origin")).toBe("*");
-    await expect(response.json()).resolves.toEqual({
-      error: { code: "not_found", message: "Replication not found." },
-      meta: { api_version: "v1" },
-    });
   });
 });

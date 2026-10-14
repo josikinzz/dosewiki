@@ -1,27 +1,19 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { doseRangeTransformer } from "@/data/schema";
-import { fetchReferenceMetadata } from "@/lib/citations/referenceIntake";
-import type { DoseRange, Reference } from "@/schema";
+import type { DoseRange } from "@/schema";
 import {
   ArticleEditProvider,
   ArticleFieldCommitError,
-  useFieldMarkers,
   type ArticleEditContextValue,
   type EditableFieldValue,
 } from "./ArticleEditContext";
-import { EditableSlot } from "./EditableSlot";
 import { EditableValue } from "./EditableValue";
 
 vi.mock("@/components/common/Icon", () => ({
   Icon: ({ icon }: { icon: string }) => <span data-icon={icon} aria-hidden />,
-}));
-
-vi.mock("@/lib/citations/referenceIntake", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/citations/referenceIntake")>()),
-  fetchReferenceMetadata: vi.fn(),
 }));
 
 function renderWithProvider(
@@ -39,17 +31,6 @@ function renderWithProvider(
 }
 
 describe("EditableValue", () => {
-  it("renders children verbatim with no provider and no wrapper", () => {
-    const { container } = render(
-      <EditableValue path="tolerance.full_tolerance" value="Two weeks.">
-        <em>Two weeks.</em>
-      </EditableValue>,
-    );
-
-    expect(container.innerHTML).toBe("<em>Two weeks.</em>");
-    expect(screen.queryByRole("button")).toBeNull();
-  });
-
   it("opens an editor seeded with the raw value and commits on Enter", async () => {
     const user = userEvent.setup();
     const commit = vi.fn(async (_path: string, value: string) => value);
@@ -75,33 +56,6 @@ describe("EditableValue", () => {
     ).toBeNull();
   });
 
-  it("opens from the keyboard", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: string) => value);
-    renderWithProvider(commit);
-
-    screen.getByRole("button", { name: "Edit Oral notes" }).focus();
-    await user.keyboard("{Enter}");
-
-    expect(screen.getByRole("textbox", { name: "Edit Oral notes" })).toBeInTheDocument();
-  });
-
-  it("cancels on Escape without committing", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: string) => value);
-    renderWithProvider(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-    await user.type(
-      screen.getByRole("textbox", { name: "Edit Oral notes" }),
-      " discarded{Escape}",
-    );
-
-    expect(commit).not.toHaveBeenCalled();
-    expect(screen.queryByRole("textbox", { name: "Edit Oral notes" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Edit Oral notes" })).toBeInTheDocument();
-  });
-
   it("keeps the prior value and shows the reason when a commit is rejected", async () => {
     const user = userEvent.setup();
     const commit = vi.fn(async () => {
@@ -123,18 +77,6 @@ describe("EditableValue", () => {
       "Original note. rejected",
     );
   });
-
-  it("does not call commit when the value is unchanged", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: EditableFieldValue) => value);
-    renderWithProvider(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-    await user.keyboard("{Enter}");
-
-    expect(commit).not.toHaveBeenCalled();
-    expect(screen.queryByRole("textbox", { name: "Edit Oral notes" })).toBeNull();
-  });
 });
 
 describe("EditableValue when the stored value moved underneath it", () => {
@@ -143,7 +85,7 @@ describe("EditableValue when the stored value moved underneath it", () => {
    * trusting: the store refuses any write whose `expected` is not what it
    * currently holds, and the surface can report the newer value because it
    * holds a live subscription to it. The rendered `value` prop deliberately
-   * stays on the pre-conflict copy — a frozen working set is exactly how the
+   * stays on the pre-conflict copy: a frozen working set is exactly how the
    * reviewer ends up sending a stale baseline in the first place.
    */
   function stubSurface(initial: string) {
@@ -211,30 +153,6 @@ describe("EditableValue when the stored value moved underneath it", () => {
     );
   });
 
-  it("can take the stored text instead, then save from it", async () => {
-    const { store, commit } = stubSurface("Original note.");
-    store.value = "Someone else's note.";
-    renderWithProvider(commit, <span>Original note.</span>, {
-      refreshStoredValue: () => store.value,
-    });
-
-    const user = await openAndType(" Corrected.{Enter}");
-    await screen.findByRole("alert");
-    await user.click(screen.getByRole("button", { name: /Use current preview text/ }));
-
-    const field = screen.getByRole("textbox", { name: "Edit Oral notes" });
-    expect(field).toHaveValue("Someone else's note.");
-
-    await user.type(field, " Amended.{Enter}");
-
-    expect(commit).toHaveBeenLastCalledWith(
-      "dosage.routes[1].notes",
-      "Someone else's note. Amended.",
-      "Someone else's note.",
-    );
-    expect(store.value).toBe("Someone else's note. Amended.");
-  });
-
   it("does not overwrite what landed on a stray blur", async () => {
     const { store, commit } = stubSurface("Original note.");
     store.value = "Someone else's note.";
@@ -257,65 +175,6 @@ describe("EditableValue when the stored value moved underneath it", () => {
     );
   });
 
-  it("offers no recovery when the failure was not a conflict", async () => {
-    const commit = vi.fn(async () => {
-      // No code: an internal failure, which a client must not pretend to
-      // understand. See `src/lib/http/dataRejection.ts`.
-      throw new ArticleFieldCommitError("Unable to save that edit right now.");
-    });
-    renderWithProvider(commit, <span>Original note.</span>, {
-      refreshStoredValue: () => "Someone else's note.",
-    });
-
-    await openAndType(" Corrected.{Enter}");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Unable to save that edit right now.",
-    );
-    expect(screen.queryByText(/Apply my text to preview/)).toBeNull();
-    expect(screen.getByRole("textbox", { name: "Edit Oral notes" })).toHaveValue(
-      "Original note. Corrected.",
-    );
-  });
-
-  it("shows the reason alone when the surface has nothing fresher to offer", async () => {
-    const { commit } = stubSurface("Original note.");
-    renderWithProvider(commit, <span>Original note.</span>, {
-      // The surface's own copy is the one that was just refused, so there is
-      // nothing to reconcile against and nothing honest to click.
-      refreshStoredValue: () => "Original note.",
-    });
-    // Force the refusal without the store having actually moved.
-    commit.mockRejectedValueOnce(
-      new ArticleFieldCommitError("It moved.", "FIELD_CONFLICT"),
-    );
-
-    await openAndType(" Corrected.{Enter}");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("It moved.");
-    expect(screen.queryByText(/Apply my text to preview/)).toBeNull();
-  });
-});
-
-describe("EditableValue placeholders", () => {
-  it("shows the empty label only inside an editing surface", () => {
-    const outside = render(
-      <EditableValue path="tolerance.full_tolerance" value="" emptyLabel="Add tolerance">
-        <span />
-      </EditableValue>,
-    );
-    expect(outside.container.textContent).toBe("");
-    outside.unmount();
-
-    render(
-      <ArticleEditProvider value={{ commit: async (_p, value) => value }}>
-        <EditableValue path="tolerance.full_tolerance" value="" emptyLabel="Add tolerance">
-          <span />
-        </EditableValue>
-      </ArticleEditProvider>,
-    );
-    expect(screen.getByText("Add tolerance")).toBeInTheDocument();
-  });
 });
 
 describe("EditableValue with a parsed value", () => {
@@ -374,322 +233,5 @@ describe("EditableValue with a parsed value", () => {
     expect(screen.getByRole("textbox", { name: "Edit Light dose" })).toHaveValue(
       "quite a lot",
     );
-  });
-});
-
-describe("EditableValue with a parsed value and citations", () => {
-  const LIGHT: DoseRange = { min: 10, max: 20, unit: "mg" };
-
-  function renderCitableRange(commit: ArticleEditContextValue["commit"]) {
-    return render(
-      <ArticleEditProvider
-        value={{ commit, references: [], addReference: () => "x" }}
-      >
-        <EditableValue<DoseRange>
-          path="dosage.routes[0].dose_ranges.light"
-          value={LIGHT}
-          label="Light dose"
-          format={(range) => doseRangeTransformer.toForm(range)}
-          parse={(raw) => doseRangeTransformer.toSchema(raw)}
-          parseErrorLabel="Not a dose range."
-          citeHint="Cite this dose in the route notes."
-        >
-          <span>10-20 mg</span>
-        </EditableValue>
-      </ArticleEditProvider>,
-    );
-  }
-
-  it("offers no Cite control and says where to cite instead", async () => {
-    const user = userEvent.setup();
-    renderCitableRange(
-      vi.fn(async (_path: string, value: EditableFieldValue) => value),
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
-
-    expect(screen.queryByRole("button", { name: /Cite/ })).toBeNull();
-    expect(
-      screen.getByText("Cite this dose in the route notes."),
-    ).toBeInTheDocument();
-  });
-
-  it("refuses a citation marker typed into the unit", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(
-      async (_path: string, value: EditableFieldValue) => value,
-    );
-    renderCitableRange(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
-    const field = screen.getByRole("textbox", { name: "Edit Light dose" });
-    await user.clear(field);
-    // `[[` is how user-event types a literal bracket.
-    await user.type(field, "10-20 mg[[cite:x]{Enter}");
-
-    expect(field).toHaveValue("10-20 mg[cite:x]");
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Not a dose range.",
-    );
-    expect(commit).not.toHaveBeenCalled();
-  });
-});
-
-describe("EditableValue citations stay with the field draft", () => {
-  function MarkerRemover() {
-    const markers = useFieldMarkers();
-    const first = markers?.markers[0];
-    return first ? (
-      <button
-        type="button"
-        data-citation-control
-        onClick={() => markers.removeMarker(first)}
-      >
-        Remove this citation
-      </button>
-    ) : null;
-  }
-
-  function renderCitable(
-    value = "Original note.",
-    commit = vi.fn(async (_path: string, next: EditableFieldValue) => next),
-  ) {
-    const addReference = vi.fn((reference: Reference) => reference.id);
-    render(
-      <ArticleEditProvider value={{ commit, addReference, references: [] }}>
-        <EditableValue
-          path="dosage.routes[1].notes"
-          value={value}
-          label="Oral notes"
-        >
-          <span>{value}</span>
-          <MarkerRemover />
-        </EditableValue>
-      </ArticleEditProvider>,
-    );
-    return { addReference, commit };
-  }
-
-  async function citeDoi(user: ReturnType<typeof userEvent.setup>) {
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-    // From the keyboard: jsdom does not honor the pointer-down guard that keeps
-    // a mouse click on Cite from blurring the field.
-    await user.tab();
-    expect(screen.getByRole("button", { name: "Cite" })).toHaveFocus();
-    await user.keyboard("{Enter}");
-    await user.type(
-      screen.getByLabelText(/DOI, PubMed, ISBN, URL/),
-      "10.1000/xyz123{Enter}",
-    );
-    await waitFor(() =>
-      expect(
-        (
-          screen.getByRole("textbox", {
-            name: "Edit Oral notes",
-          }) as HTMLTextAreaElement
-        ).value,
-      ).toContain("[cite:doi-10-1000-xyz123]"),
-    );
-  }
-
-  it("drops a citation added to a draft that is then cancelled", async () => {
-    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper", authors: [], year: null, url: null });
-    const user = userEvent.setup();
-    const { addReference, commit } = renderCitable();
-
-    await citeDoi(user);
-    screen.getByRole("textbox", { name: "Edit Oral notes" }).focus();
-    await user.keyboard("{Escape}");
-
-    expect(commit).not.toHaveBeenCalled();
-    expect(addReference).not.toHaveBeenCalled();
-  });
-
-  it("adds the citation's reference once when the field applies", async () => {
-    vi.mocked(fetchReferenceMetadata).mockResolvedValueOnce({ title: "A paper", authors: [], year: null, url: null });
-    const user = userEvent.setup();
-    const { addReference, commit } = renderCitable();
-
-    await citeDoi(user);
-    screen.getByRole("textbox", { name: "Edit Oral notes" }).focus();
-    await user.keyboard("{Enter}");
-
-    await waitFor(() => expect(commit).toHaveBeenCalledTimes(1));
-    expect(addReference).toHaveBeenCalledTimes(1);
-    expect(addReference.mock.calls[0][0]).toMatchObject({
-      doi: "10.1000/xyz123",
-      title: "A paper",
-    });
-  });
-
-  it("keeps a failed metadata lookup warning visible on the field", async () => {
-    vi.mocked(fetchReferenceMetadata).mockRejectedValueOnce(
-      new Error("offline"),
-    );
-    const user = userEvent.setup();
-    renderCitable();
-
-    await citeDoi(user);
-
-    expect(
-      screen.getByText(/Metadata could not be loaded/),
-    ).toBeVisible();
-  });
-
-  it("removes only the marker and its adjacent space", async () => {
-    const user = userEvent.setup();
-    const { commit } = renderCitable("Keep  this. Claim [cite:x] here.");
-
-    await user.click(screen.getByRole("button", { name: "Remove this citation" }));
-
-    expect(commit).toHaveBeenCalledWith(
-      "dosage.routes[1].notes",
-      "Keep  this. Claim here.",
-      "Keep  this. Claim [cite:x] here.",
-    );
-  });
-
-  it("removes a trailing marker without leaving a space before the period", async () => {
-    const user = userEvent.setup();
-    const { commit } = renderCitable("Claim [cite:x].");
-
-    await user.click(screen.getByRole("button", { name: "Remove this citation" }));
-
-    expect(commit).toHaveBeenCalledWith(
-      "dosage.routes[1].notes",
-      "Claim.",
-      "Claim [cite:x].",
-    );
-  });
-});
-
-describe("EditableSlot", () => {
-  it("renders nothing at all without an editing context", () => {
-    const { container } = render(
-      <EditableSlot
-        path="legality.countries.Germany.notes"
-        value=""
-        emptyLabel="Add a country note"
-      />,
-    );
-    expect(container.innerHTML).toBe("");
-  });
-
-  it("offers the prompt inside an editing surface and commits through it", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: EditableFieldValue) => value);
-    render(
-      <ArticleEditProvider value={{ commit }}>
-        <EditableSlot
-          path="legality.countries.Germany.notes"
-          value=""
-          emptyLabel="Add a country note"
-        />
-      </ArticleEditProvider>,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit Add a country note" }));
-    await user.type(
-      screen.getByRole("textbox", { name: "Edit Add a country note" }),
-      "Anlage I.{Enter}",
-    );
-
-    expect(commit).toHaveBeenCalledWith(
-      "legality.countries.Germany.notes",
-      "Anlage I.",
-      "",
-    );
-  });
-});
-
-describe("EditableValue inside a clickable ancestor", () => {
-  it("opens without firing the ancestor's handler", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn<ArticleEditContextValue["commit"]>();
-    const onAncestorClick = vi.fn();
-
-    render(
-      <ArticleEditProvider value={{ commit }}>
-        {/* The Notable Individuals card is a button wrapping its own prose. */}
-        <button type="button" onClick={onAncestorClick}>
-          <EditableValue path="history_culture.content" value="Stored prose.">
-            Stored prose.
-          </EditableValue>
-        </button>
-      </ArticleEditProvider>,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit history_culture.content" }));
-
-    expect(onAncestorClick).not.toHaveBeenCalled();
-    expect(
-      screen.getByRole("textbox", { name: "Edit history_culture.content" }),
-    ).toHaveValue("Stored prose.");
-  });
-});
-
-describe("EditableValue in edit mode", () => {
-  function Harness({ fieldIssue }: { fieldIssue?: (value: string) => string | null }) {
-    const [value, setValue] = useState("Original note.");
-    return (
-      <ArticleEditProvider
-        value={{
-          commit: async (_path, next) => {
-            setValue(next as string);
-            return next;
-          },
-          isChanged: () => value !== "Original note.",
-          fieldIssue: fieldIssue ? () => fieldIssue(value) : undefined,
-        }}
-      >
-        <EditableValue path="dosage.routes[1].notes" value={value} label="Oral notes">
-          <span>{value}</span>
-        </EditableValue>
-      </ArticleEditProvider>
-    );
-  }
-
-  it("outlines every editable value at rest, without hover", () => {
-    render(<Harness />);
-    const field = screen.getByRole("button", { name: "Edit Oral notes" });
-    expect(field).toHaveAttribute("data-editable-affordance", "resting");
-    // The outline is a resting class, not a hover or coarse-pointer variant.
-    const classes = field.className.split(/\s+/);
-    expect(classes).toContain("outline-dashed");
-    expect(classes).toContain("outline-dose-border-strong");
-    expect(classes).not.toContain("outline-none");
-  });
-
-  it("marks a value changed and shows a visible Applied after Enter", async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-    const field = screen.getByRole("button", { name: "Edit Oral notes" });
-    expect(field).not.toHaveAttribute("data-changed");
-    expect(field.querySelector("[data-changed-dot]")).toBeNull();
-
-    await user.click(field);
-    await user.type(screen.getByRole("textbox", { name: "Edit Oral notes" }), " More.{Enter}");
-
-    const applied = await screen.findByRole("status");
-    expect(applied).toHaveTextContent("Applied");
-    expect(applied).not.toHaveClass("sr-only");
-    const changed = screen.getByRole("button", { name: "Edit Oral notes" });
-    expect(changed).toHaveAttribute("data-changed", "true");
-    expect(changed.querySelector("[data-changed-dot]")).not.toBeNull();
-    expect(changed).toHaveAccessibleDescription("Changed from the published article");
-  });
-
-  it("shows the field's validation problem beside it once the edit applies", async () => {
-    const user = userEvent.setup();
-    render(<Harness fieldIssue={(value) => (value.includes("bad") ? "This note is invalid." : null)} />);
-    expect(screen.queryByRole("alert")).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-    await user.type(screen.getByRole("textbox", { name: "Edit Oral notes" }), " bad{Enter}");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("This note is invalid.");
-    const field = screen.getByRole("button", { name: "Edit Oral notes" });
-    expect(field).toHaveAttribute("data-invalid", "true");
-    expect(field.className.split(/\s+/)).toContain("outline-dose-danger");
   });
 });

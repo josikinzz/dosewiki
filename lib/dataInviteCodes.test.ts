@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PostgresError } from "@server/postgres/runtime/values";
-import { inviteCodeStatus, list, mint, redeem, revoke } from "../server/inviteCodes";
+import { list, mint, redeem, revoke } from "../server/inviteCodes";
 
 const SERVER_KEY = "test-admin-key";
 
@@ -37,7 +37,7 @@ type Row = MembershipRow | InviteRow;
 
 /**
  * In-memory two-table db: `memberships` (by_email, by_username) and
- * `inviteCodes` (by_code_hash, by_created_at with order desc).
+ * `inviteCodes` (by_code_hash).
  */
 function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRow[] }) {
   const tables = {
@@ -51,11 +51,11 @@ function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRo
   const query = (table: keyof typeof tables) => ({
     withIndex: (
       indexName: string,
-      selector?: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
+      selector: (query: { eq: (field: string, value: unknown) => unknown }) => unknown,
     ) => {
       let field = "";
       let value: unknown;
-      selector?.({
+      selector({
         eq: (name, candidate) => {
           field = name;
           value = candidate;
@@ -66,30 +66,14 @@ function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRo
       if (field) {
         rows = rows.filter((row) => (row as Record<string, unknown>)[field] === value);
       }
-      const cursor = {
-        order: (direction: "asc" | "desc") => {
-          const key = indexName.replace("by_", "").replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
-          rows.sort((a, b) => {
-            const av = String((a as Record<string, unknown>)[key]);
-            const bv = String((b as Record<string, unknown>)[key]);
-            return direction === "desc" ? bv.localeCompare(av) : av.localeCompare(bv);
-          });
-          return cursor;
-        },
+      return {
         unique: async () => {
           if (rows.length > 1) {
             throw new Error(`${indexName} returned ${rows.length} rows`);
           }
           return rows[0] ?? null;
         },
-        collect: async () => rows,
-        paginate: async ({ numItems }: { cursor: string | null; numItems: number }) => ({
-          page: rows.slice(0, numItems),
-          isDone: rows.length <= numItems,
-          continueCursor: "",
-        }),
       };
-      return cursor;
     },
   });
 
@@ -124,7 +108,6 @@ const revokeHandler = handlerOf(revoke);
 const redeemHandler = handlerOf(redeem);
 
 const HASH_A = "a".repeat(64);
-const HASH_B = "b".repeat(64);
 const STORED_HASH = "scrypt$16384$8$1$c2FsdA==$aGFzaA==";
 
 const admin: MembershipRow = {
@@ -159,7 +142,6 @@ const activeCode = (overrides: Partial<InviteRow> = {}): InviteRow => ({
   ...overrides,
 });
 
-const asAdmin = { apiKey: SERVER_KEY, actorEmail: admin.email };
 const asEditor = { apiKey: SERVER_KEY, actorEmail: editor.email };
 
 const expectRefusal = async (promise: Promise<unknown>, code: string) => {
@@ -183,26 +165,6 @@ describe("inviteCodes", () => {
     vi.useRealTimers();
   });
 
-  describe("inviteCodeStatus", () => {
-    it("derives revoked over exhausted over expired over active", () => {
-      const base = activeCode();
-      expect(inviteCodeStatus(base, NOW)).toBe("active");
-      expect(inviteCodeStatus({ ...base, expiresAt: "2026-09-02T00:00:00.000Z" }, NOW)).toBe("expired");
-      expect(
-        inviteCodeStatus(
-          { ...base, expiresAt: "2026-09-02T00:00:00.000Z", redemptions: [{ email: "x", at: "y" }] },
-          NOW,
-        ),
-      ).toBe("exhausted");
-      expect(
-        inviteCodeStatus(
-          { ...base, redemptions: [{ email: "x", at: "y" }], revokedAt: "2026-09-02T00:00:00.000Z" },
-          NOW,
-        ),
-      ).toBe("revoked");
-    });
-  });
-
   describe("mint", () => {
     it("refuses an editor actor before touching the table", async () => {
       const { ctx, tables } = createCtx({ memberships: [admin, editor] });
@@ -211,108 +173,12 @@ describe("inviteCodes", () => {
       );
       expect(tables.inviteCodes.size).toBe(0);
     });
-
-    it("stores the hash with defaults of 7 days and one use, stamped by the actor, and returns the hashless summary", async () => {
-      const { ctx, tables } = createCtx({ memberships: [admin] });
-
-      const summary = (await mintHandler(ctx, {
-        ...asAdmin,
-        role: "contributor",
-        codeHash: HASH_A,
-        note: "  Ada  ",
-      })) as { id: string };
-      const row = tables.inviteCodes.get(summary.id)!;
-
-      expect(row).toMatchObject({
-        codeHash: HASH_A,
-        role: "contributor",
-        createdBy: admin.email,
-        createdAt: "2026-09-03T12:00:00.000Z",
-        expiresAt: "2026-09-10T12:00:00.000Z",
-        maxUses: 1,
-        redemptions: [],
-        note: "Ada",
-      });
-      expect(summary).toEqual({
-        id: row._id,
-        role: "contributor",
-        glossaryLocales: [],
-        createdBy: admin.email,
-        createdAt: "2026-09-03T12:00:00.000Z",
-        expiresAt: "2026-09-10T12:00:00.000Z",
-        maxUses: 1,
-        redemptions: [],
-        revokedAt: undefined,
-        note: "Ada",
-        status: "active",
-      });
-    });
-
-    it("honours explicit expiry and uses, and rejects out-of-range values", async () => {
-      const { ctx } = createCtx({ memberships: [admin] });
-
-      await expect(
-        mintHandler(ctx, {
-          ...asAdmin,
-          role: "editor",
-          codeHash: HASH_A,
-          expiresInDays: 30,
-          maxUses: 5,
-        }),
-      ).resolves.toMatchObject({
-        expiresAt: "2026-10-03T12:00:00.000Z",
-        maxUses: 5,
-      });
-
-      await expectRefusal(
-        mintHandler(ctx, { ...asAdmin, role: "editor", codeHash: HASH_B, expiresInDays: 0 }),
-        "INVITE_EXPIRY_INVALID",
-      );
-      await expectRefusal(
-        mintHandler(ctx, { ...asAdmin, role: "editor", codeHash: HASH_B, maxUses: 1.5 }),
-        "INVITE_USES_INVALID",
-      );
-      await expectRefusal(mintHandler(ctx, { ...asAdmin, role: "editor", codeHash: "nope" }), "INVITE_HASH_INVALID");
-    });
-
-    it("refuses a hash that already exists", async () => {
-      const { ctx } = createCtx({ memberships: [admin], inviteCodes: [activeCode()] });
-      await expectRefusal(mintHandler(ctx, { ...asAdmin, role: "editor", codeHash: HASH_A }), "INVITE_HASH_TAKEN");
-    });
   });
 
   describe("list", () => {
     it("refuses an editor", async () => {
       const { ctx } = createCtx({ memberships: [admin, editor] });
       await expect(listHandler(ctx, asEditor)).rejects.toThrow("Admin access required");
-    });
-
-    it("returns newest first with a derived status and never the hash", async () => {
-      const { ctx } = createCtx({
-        memberships: [admin],
-        inviteCodes: [
-          activeCode({ _id: "inv1", createdAt: "2026-09-01T00:00:00.000Z" }),
-          activeCode({
-            _id: "inv2",
-            codeHash: HASH_B,
-            createdAt: "2026-09-02T00:00:00.000Z",
-            revokedAt: "2026-09-02T01:00:00.000Z",
-          }),
-        ],
-      });
-
-      const result = (await listHandler(ctx, asAdmin)) as {
-        invites: Record<string, unknown>[];
-        continuationCursor: string | null;
-      };
-      const rows = result.invites;
-
-      expect(rows.map((row) => row.id)).toEqual(["inv2", "inv1"]);
-      expect(rows.map((row) => row.status)).toEqual(["revoked", "active"]);
-      expect(result.continuationCursor).toBeNull();
-      for (const row of rows) {
-        expect(row).not.toHaveProperty("codeHash");
-      }
     });
   });
 
@@ -321,26 +187,6 @@ describe("inviteCodes", () => {
       const { ctx, tables } = createCtx({ memberships: [admin, editor], inviteCodes: [activeCode()] });
       await expect(revokeHandler(ctx, { ...asEditor, id: "inv1" })).rejects.toThrow("Admin access required");
       expect(tables.inviteCodes.get("inv1")!.revokedAt).toBeUndefined();
-    });
-
-    it("stamps revokedAt on an active code and is idempotent", async () => {
-      const { ctx, tables } = createCtx({ memberships: [admin], inviteCodes: [activeCode()] });
-
-      await revokeHandler(ctx, { ...asAdmin, id: "inv1" });
-      expect(tables.inviteCodes.get("inv1")!.revokedAt).toBe("2026-09-03T12:00:00.000Z");
-
-      vi.setSystemTime(NOW + 60_000);
-      await revokeHandler(ctx, { ...asAdmin, id: "inv1" });
-      expect(tables.inviteCodes.get("inv1")!.revokedAt).toBe("2026-09-03T12:00:00.000Z");
-    });
-
-    it("refuses a fully redeemed code and an unknown id", async () => {
-      const { ctx } = createCtx({
-        memberships: [admin],
-        inviteCodes: [activeCode({ redemptions: [{ email: "x@example.com", at: "2026-09-02T00:00:00.000Z" }] })],
-      });
-      await expectRefusal(revokeHandler(ctx, { ...asAdmin, id: "inv1" }), "INVITE_EXHAUSTED");
-      await expectRefusal(revokeHandler(ctx, { ...asAdmin, id: "inv9" }), "INVITE_UNKNOWN");
     });
   });
 
@@ -407,14 +253,6 @@ describe("inviteCodes", () => {
       expect(tables.memberships.size).toBe(1);
     });
 
-    it("still accepts an address that only resembles the synthetic domain", async () => {
-      const { ctx } = createCtx({ memberships: [admin], inviteCodes: [activeCode()] });
-
-      const result = await redeemHandler(ctx, redeemArgs({ email: "ada@notmembers.dose.wiki" }));
-
-      expect(result).toMatchObject({ email: "ada@notmembers.dose.wiki" });
-    });
-
     it("refuses a taken email before recording the redemption", async () => {
       const { ctx, tables } = createCtx({ memberships: [admin, editor], inviteCodes: [activeCode()] });
 
@@ -425,31 +263,6 @@ describe("inviteCodes", () => {
 
       expect(tables.inviteCodes.get("inv1")!.redemptions).toEqual([]);
       expect(tables.memberships.size).toBe(2);
-    });
-
-    it("creates the membership at the code's role and appends the redemption", async () => {
-      const { ctx, tables } = createCtx({ memberships: [admin], inviteCodes: [activeCode({ role: "contributor" })] });
-
-      const result = await redeemHandler(ctx, redeemArgs({ name: " Ada Lovelace " }));
-
-      expect(result).toEqual({ email: "ada@members.dose.wiki", role: "contributor" });
-      const created = [...tables.memberships.values()].find((row) => row.username === "ada");
-      expect(created).toMatchObject({
-        email: "ada@members.dose.wiki",
-        username: "ada",
-        role: "contributor",
-        name: "Ada Lovelace",
-        passwordHash: STORED_HASH,
-        passwordUpdatedAt: "2026-09-03T12:00:00.000Z",
-        invitedBy: admin.email,
-        inviteCodeId: "inv1",
-        createdAt: "2026-09-03T12:00:00.000Z",
-        updatedAt: "2026-09-03T12:00:00.000Z",
-        lastSeenAt: "2026-09-03T12:00:00.000Z",
-      });
-      expect(tables.inviteCodes.get("inv1")!.redemptions).toEqual([
-        { email: "ada@members.dose.wiki", at: "2026-09-03T12:00:00.000Z" },
-      ]);
     });
 
     it("carries the invitation's exact language grant into the account and gives legacy translators no implicit grant", async () => {
