@@ -100,7 +100,10 @@ export function assertTokenOnlyDelta({ fieldPath, before, after }) {
 
 function locateClaim({ section, fields, row }) {
   const [start, end] = row.claimOffsets;
-  const matches = fields.filter((field) => (
+  const scopedFields = row.fieldPath === undefined
+    ? fields
+    : fields.filter((field) => field.fieldPath === row.fieldPath);
+  const matches = scopedFields.filter((field) => (
     end <= field.text.length && field.text.slice(start, end) === row.claimText
   ));
   if (matches.length === 0) {

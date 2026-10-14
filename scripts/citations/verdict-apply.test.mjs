@@ -55,6 +55,7 @@ function makeRow({
   quoteLocation = "",
   suggestedRepair,
   refuter,
+  fieldPath,
   safetySensitive = false,
 }) {
   const start = field.indexOf(claimText);
@@ -74,6 +75,7 @@ function makeRow({
     proposedDisposition: disposition,
     ...(suggestedRepair !== undefined ? { suggestedRepair } : {}),
     ...(refuter !== undefined ? { refuter } : {}),
+    ...(fieldPath !== undefined ? { fieldPath } : {}),
   };
 }
 
@@ -130,6 +132,41 @@ test("plan applies the exact single-token replacement and nothing else", () => {
   assert.ok(plan.sectionPatches.summary.includes("[cite:ref-a]"));
   assert.ok(plan.sectionPatches.summary.includes("[cite:ref-c]"));
   assert.equal(stripVerdictTokens(plan.sectionPatches.summary), stripVerdictTokens(SUMMARY));
+});
+
+test("uses an explicit fieldPath to disambiguate identical nested claims", () => {
+  const repeated = "Slight[cite:ref-b]";
+  const article = makeArticle();
+  article.pharmacology = {
+    first: repeated,
+    second: repeated,
+  };
+  const row = makeRow({
+    section: "pharmacology",
+    field: repeated,
+    fieldPath: "pharmacology.second",
+    markerId: "ref-b",
+    claimText: repeated,
+    verdict: "mismatched",
+    disposition: "strip",
+    quote: "The source reports functional inhibition, not affinity.",
+    quoteLocation: "Results",
+  });
+  const draft = {
+    ...makeDraft(article),
+    sections: [{
+      section: "pharmacology",
+      contentHash: contentHash(article.pharmacology),
+      rows: [row],
+    }],
+  };
+
+  const plan = buildVerdictApplyPlan({ article, draft });
+  assert.equal(plan.sectionPatches.pharmacology.first, repeated);
+  assert.equal(
+    plan.sectionPatches.pharmacology.second,
+    repeated.replace("[cite:ref-b]", CITATION_NEEDED_TOKEN),
+  );
 });
 
 test("refuses when the live content hash drifts from the draft", () => {

@@ -180,4 +180,30 @@ describe("reference identity compatibility", () => {
     })]);
     expect(merged.remap.get("incoming-alias")).toBe("stored-kept");
   });
+
+  it("assigns distinct source ids without guessing an ambiguous legacy marker", () => {
+    const references = [4, 5].map((section) => ({
+      id: "legacy",
+      url: `https://example.org/section/${section}`,
+      title: "Act",
+      authors: [],
+    }));
+    const merged = mergeReferenceCollections(references, references);
+
+    expect(new Set(merged.references.map(({ id }) => id)).size).toBe(2);
+    expect(merged.references.map(({ url }) => url)).toEqual(references.map(({ url }) => url));
+    expect(merged.references.every(({ id }) => id !== "legacy")).toBe(true);
+    expect(merged.remap.has("legacy")).toBe(false);
+    expect(mergeReferenceCollections(merged.references, merged.references).references).toEqual(merged.references);
+
+    const replacement = mergeReferenceCollections(references, [{
+      ...references[0],
+      id: "section-4",
+    }], { retainExistingUnmatched: false });
+    expect(replacement.references).toEqual([expect.objectContaining({
+      id: "section-4",
+      url: references[0].url,
+    })]);
+    expect(replacement.remap.has("legacy")).toBe(false);
+  });
 });

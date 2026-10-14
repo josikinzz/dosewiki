@@ -112,6 +112,28 @@ test("elapsed-time labels are recognised alongside wall-clock ones", () => {
   assert.deepEqual(record.offset.map((entry) => entry.time), ["T+1:00"]);
 });
 
+test("elapsed-time labels without the plus are recognised too", () => {
+  const body = [
+    "Background.",
+    "T0:00- 50mg insufflated.",
+    "T0:25- Peak.",
+    "T1:00- Coming down.",
+    "In hindsight the dose was too low.",
+  ].join("\n\n").replace(/^((?:~\s*)?T\+?\d{1,2}:\d{2})\s*-\s*/gm, "$1: ");
+
+  const record = formatFlatBody({
+    body,
+    peakFrom: "T0:25",
+    offsetFrom: "T1:00",
+    conclusionFrom: "In hindsight",
+  });
+
+  assert.equal(reconstructBody(record), body);
+  assert.deepEqual(record.onset.map((entry) => entry.time), ["T0:00"]);
+  assert.deepEqual(record.peak.map((entry) => entry.time), ["T0:25"]);
+  assert.deepEqual(record.offset.map((entry) => entry.time), ["T1:00"]);
+});
+
 test("no word of the source is dropped or reordered", () => {
   const record = format();
   const words = (text) => text.split(/\s+/).filter(Boolean);

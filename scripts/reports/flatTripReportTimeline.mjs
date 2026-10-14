@@ -37,7 +37,7 @@ const TIME_SEPARATOR = ": "
  * is always the author's own text.
  */
 const TIME_LABEL_PATTERN =
-  /^(?:~\s*)?(?:(?:After|Around|About|At|Approx\.?)\s+)?(?:\d{1,2}:\d{2}(?:\s*[ap]\.?\s?m\.?)?|T\+\S+)$/i;
+  /^(?:~\s*)?(?:(?:After|Around|About|At|Approx\.?)\s+)?(?:\d{1,2}:\d{2}(?:\s*[ap]\.?\s?m\.?)?|T\+?\d{1,2}:\d{2}(?::\d{2})?)$/i;
 
 /** Whether a paragraph opens a timeline entry, and the label if it does. */
 export function readTimeHead(paragraph) {
@@ -165,7 +165,7 @@ function collectEntries(paragraphs, from, to) {
  * @param {string} input.body Flat report text, normally the submitted `introduction`.
  * @param {string} input.peakFrom Timestamp label that opens the peak.
  * @param {string} input.offsetFrom Timestamp label that opens the offset.
- * @param {string} input.conclusionFrom Prefix of the first closing-reflection paragraph.
+ * @param {string | null} input.conclusionFrom Prefix of the first closing-reflection paragraph; null when the body ends on its last entry.
  */
 export function formatFlatBody({ body, peakFrom, offsetFrom, conclusionFrom }) {
   const paragraphs = splitParagraphs(body);
@@ -175,7 +175,7 @@ export function formatFlatBody({ body, peakFrom, offsetFrom, conclusionFrom }) {
     throw new Error("Report body contains no timestamped paragraph; there is no timeline to split out.");
   }
 
-  const conclusionIndex = locateUnique(paragraphs, conclusionFrom, "conclusion start");
+  const conclusionIndex = conclusionFrom === null ? paragraphs.length : locateUnique(paragraphs, conclusionFrom, "conclusion start");
   if (conclusionIndex <= firstEntryIndex) {
     throw new Error("Plan puts the conclusion before the first timestamp.");
   }

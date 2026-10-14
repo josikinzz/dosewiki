@@ -199,10 +199,16 @@ export function buildLegalityCitationPlan({ article, draft }) {
   const references = [...existingReferences];
   const referencesByKey = new Map();
   const referencesById = new Map();
+  const ambiguousIds = new Set();
   for (const reference of existingReferences) {
     if (!reference?.id) continue;
-    rememberReference(reference, referencesByKey);
+    if (referencesById.has(reference.id)) ambiguousIds.add(reference.id);
     referencesById.set(reference.id, reference);
+  }
+  // Legacy duplicate IDs cannot identify a single source. Preserve those
+  // references, but allocate unique IDs for any reviewed sources they match.
+  for (const reference of existingReferences) {
+    if (reference?.id && !ambiguousIds.has(reference.id)) rememberReference(reference, referencesByKey);
   }
 
   const evidence = [];
@@ -253,9 +259,18 @@ export function buildLegalityCitationPlan({ article, draft }) {
         reference = merged;
       } else {
         let id = candidate.id;
-        const collision = referencesById.get(id);
-        if (collision) {
-          id = `${id}-${stableSuffix(source.url)}`;
+        if (referencesById.has(id)) {
+          // Two distinct source pages can hash to the same 6-hex suffix
+          // (URLs differing only in trailing characters). Disambiguate by
+          // URL hash, then fall back to numeric suffixes until free.
+          const base = id;
+          let candidateId = `${base}-${stableSuffix(source.url)}`;
+          let sequence = 2;
+          while (referencesById.has(candidateId)) {
+            candidateId = `${base}-${sequence}`;
+            sequence += 1;
+          }
+          id = candidateId;
         }
         reference = { ...candidate, id };
         references.push(reference);

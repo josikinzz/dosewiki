@@ -216,6 +216,36 @@ describe("substance ingestion", () => {
     expect(docs[0].references.some(({ id }) => id === "stored-only-reference")).toBe(false);
   });
 
+  it("keeps distinct source markers when stored references share a legacy id", async () => {
+    const stored = article({ id: 7, title: "Stored", slug: "stored" });
+    stored.references = [4, 5].map((section) => ({
+      id: "legacy",
+      type: "webpage",
+      title: "Act",
+      authors: [],
+      url: `https://example.org/section/${section}`,
+      sourceType: "unknown",
+      quality: "fallback",
+    }));
+    const incoming = structuredClone(stored);
+    incoming.summary = "Supply [cite:section-4]. Possession [cite:section-5]. Unresolved [cite:legacy].";
+    incoming.references.push(...stored.references.map((reference, index) => ({
+      ...reference,
+      id: `section-${index + 4}`,
+    })));
+    const { db, docs } = createFakeDb([stored]);
+
+    await ingestSubstanceArticle({ db, article: incoming });
+
+    expect(docs[0].summary).toBe(incoming.summary);
+    for (const section of [4, 5]) {
+      expect(docs[0].references.filter(({ id }) => id === `section-${section}`)).toEqual([
+        expect.objectContaining({ url: `https://example.org/section/${section}` }),
+      ]);
+    }
+    expect(docs[0].references.some(({ id }) => id === "legacy")).toBe(false);
+  });
+
   it("applies explicitly inspected scalar metadata during whole-document replacement", () => {
     const stored = article({ id: 7, title: "Example", slug: "example" });
     stored.references = [{

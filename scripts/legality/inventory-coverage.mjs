@@ -241,7 +241,7 @@ function inspectEntry(value, referenceIds, ambiguousIds) {
 
 function countRows(rows) {
   const classifications = Object.fromEntries(CLASSIFICATIONS.map((classification) => [classification, 0]));
-  const stages = { preservation: 0, ready: 0 };
+  const stages = { preservation: 0, ready: 0, needs_review: 0 };
   for (const row of rows) {
     classifications[row.classification]++;
     stages[row.stage]++;
@@ -315,6 +315,7 @@ function main() {
     removalsSha256: removalInput?.sha256 ?? null,
     knownAmbiguousRefsSha256: ambiguousInput?.sha256 ?? null,
     completeness: "full-array input required; completeness against live substanceIndex is not verified offline",
+    countryAliasPolicy: "Multiple raw entries for one canonical jurisdiction are excluded needs_review pairs; raw values and individual hashes are retained, citation evidence is aggregated without claiming cited coverage, and no baseline winner is selected.",
   };
   const inventory = [];
   const rows = [];
@@ -340,19 +341,26 @@ function main() {
     };
     const { ids, ambiguousIds, metadata: references } = referenceMetadata(article, knownAmbiguousRefs.get(slug));
     const entries = new Map();
-    for (const [rawCountry, value] of Object.entries(article.legality?.countries ?? {})) {
+    const rawCountries = article.legality?.countries ?? {};
+    const rawCountryKeys = Object.keys(rawCountries).sort(compare);
+    for (const rawCountry of rawCountryKeys) {
       const jurisdiction = resolveJurisdiction(rawCountry, labels, `${slug}.legality.countries`);
-      if (entries.has(jurisdiction.country)) {
-        throw new Error(`${slug}: duplicate country pair through aliases ${JSON.stringify(entries.get(jurisdiction.country).rawCountry)} and ${JSON.stringify(rawCountry)}.`);
-      }
-      entries.set(jurisdiction.country, { rawCountry, value, jurisdiction });
+      if (!entries.has(jurisdiction.country)) entries.set(jurisdiction.country, { jurisdiction, rawEntries: [] });
+      entries.get(jurisdiction.country).rawEntries.push({ rawCountry, value: rawCountries[rawCountry] });
     }
-    function rowFor(country, entry) {
+    function rowFor(country, group) {
       const history = removalHistory.get(pairKey(slug, country)) ?? [];
-      const inspected = entry ? inspectEntry(entry.value, ids, ambiguousIds) : {
+      const conflict = group?.rawEntries.length > 1;
+      const entry = group && !conflict ? group.rawEntries[0] : null;
+      // Inspect every conflicting value for citation evidence, without treating
+      // the aggregate as cited coverage or selecting a baseline winner.
+      const inspected = group ? inspectEntry(conflict ? group.rawEntries.map((item) => item.value) : entry.value, ids, ambiguousIds) : {
         substantiveChars: 0, markerCount: 0, markerIds: [], resolvedMarkerIds: [], danglingMarkerIds: [], ambiguousMarkerIds: [], classification: "absent",
       };
-      const classification = entry?.jurisdiction.excluded ? "excluded" : inspected.classification;
+      const classification = conflict || group?.jurisdiction.excluded ? "excluded" : inspected.classification;
+      const exclusionReason = conflict
+        ? `Multiple raw country entries (${group.rawEntries.map((item) => JSON.stringify(item.rawCountry)).join(", ")}) normalize to canonical ${country}; all originals are preserved and no baseline winner is selected.${group.jurisdiction.excluded ? ` Roster exclusion: ${group.jurisdiction.reason}` : ""}`
+        : group?.jurisdiction.reason ?? null;
       return {
         slug,
         country,
@@ -360,13 +368,14 @@ function main() {
         visibility,
         rosterVersion: roster.version,
         articleHash,
-        baselinePresence: Boolean(entry),
+        baselinePresence: Boolean(group),
         baselineHash: entry ? hash(entry.value) : null,
         value: entry ? entry.value : null,
+        ...(conflict ? { rawEntries: group.rawEntries.map((item) => ({ ...item, baselineHash: hash(item.value) })) } : {}),
         ...inspected,
         classification,
-        exclusionReason: entry?.jurisdiction.reason ?? null,
-        stage: classification === "cited_existing" || classification === "excluded" ? "preservation" : "ready",
+        exclusionReason,
+        stage: conflict ? "needs_review" : classification === "cited_existing" || classification === "excluded" ? "preservation" : "ready",
         workerIds: [],
         artifactIds: [],
         searches: [],
@@ -375,6 +384,7 @@ function main() {
         blockers: [
           "historical_snapshot_requires_live_reconciliation",
           "production_writes_closed",
+          ...(conflict ? ["ambiguous_country_alias_entries"] : []),
           ...(history.length ? ["prior_removal_requires_review"] : []),
           ...(inspected.danglingMarkerIds.length ? ["dangling_citation_markers"] : []),
           ...(inspected.ambiguousMarkerIds.length ? ["ambiguous_reference_id"] : []),
@@ -396,9 +406,9 @@ function main() {
       articleHash,
       legalityHash: own(article, "legality") ? hash(article.legality) : null,
       countriesHash: isRecord(article.legality) && own(article.legality, "countries") ? hash(article.legality.countries) : null,
-      rawCountryKeys: [...entries.values()].map((entry) => entry.rawCountry).sort(compare),
+      rawCountryKeys,
       canonicalExistingCountries: [...entries.keys()].filter((country) => !entries.get(country).jurisdiction.excluded).sort(compare),
-      countryEntryCount: entries.size,
+      countryEntryCount: rawCountryKeys.length,
       excludedEntryCount: articleExcluded.length,
       references,
       coverage: countRows(articleRows),
@@ -417,7 +427,31 @@ function main() {
   const uniquePairs = new Set(rows.map((row) => pairKey(row.slug, row.country))).size;
   const rawEntryCount = inventory.reduce((total, article) => total + article.countryEntryCount, 0);
   const presentPairs = rows.filter((row) => row.baselinePresence).length;
-  if (rows.length !== expectedPairs || uniquePairs !== expectedPairs || presentPairs + excludedEntries.length !== rawEntryCount) {
+  let aliasConflictPairs = 0;
+  let aliasConflictExcessRawEntries = 0;
+  let accountedRawEntries = 0;
+  const accountedRawKeys = new Set();
+  const observedPairKeys = new Set();
+  let observedPairs = 0;
+  for (const collection of [rows, excludedEntries]) {
+    for (const row of collection) {
+      if (!row.baselinePresence) continue;
+      observedPairs++;
+      observedPairKeys.add(pairKey(row.slug, row.country));
+      if (row.rawEntries) {
+        aliasConflictPairs++;
+        aliasConflictExcessRawEntries += row.rawEntries.length - 1;
+        accountedRawEntries += row.rawEntries.length;
+        for (const entry of row.rawEntries) accountedRawKeys.add(pairKey(row.slug, entry.rawCountry));
+      } else {
+        accountedRawEntries++;
+        accountedRawKeys.add(pairKey(row.slug, row.rawCountry));
+      }
+    }
+  }
+  if (rows.length !== expectedPairs || uniquePairs !== expectedPairs || observedPairKeys.size !== observedPairs ||
+      accountedRawEntries !== rawEntryCount || accountedRawKeys.size !== rawEntryCount ||
+      presentPairs + excludedEntries.length + aliasConflictExcessRawEntries !== rawEntryCount) {
     throw new Error("Inventory invariants failed: duplicate or unaccounted article-country pairs or raw entries.");
   }
   const totals = {
@@ -426,6 +460,8 @@ function main() {
     pairs: countRows(rows),
     excludedEntries: countRows(excludedEntries),
     rawCountryEntries: rawEntryCount,
+    aliasConflictPairs,
+    aliasConflictExcessRawEntries,
     noLegalityArticles: inventory.filter((article) => article.rawPresence.legality !== "present").length,
     zeroCountryEntryArticles: inventory.filter((article) => article.countryEntryCount === 0).length,
     removalRecords: removals.length,
@@ -447,8 +483,15 @@ function main() {
       unaccountedPairs: expectedPairs - uniquePairs,
       presentPairs,
       absentPairs: rows.length - presentPairs,
-      accountedRawEntries: presentPairs + excludedEntries.length,
-      unaccountedRawEntries: rawEntryCount - presentPairs - excludedEntries.length,
+      excludedPairs: excludedEntries.length,
+      observedPairs,
+      uniqueObservedPairs: observedPairKeys.size,
+      duplicateObservedPairs: observedPairs - observedPairKeys.size,
+      aliasConflictExcessRawEntries,
+      accountedRawEntries,
+      unaccountedRawEntries: rawEntryCount - accountedRawEntries,
+      uniqueRawEntries: accountedRawKeys.size,
+      duplicateRawEntries: accountedRawEntries - accountedRawKeys.size,
     },
   };
   files.set("inventory.json", jsonBytes({ schemaVersion: SCHEMA_VERSION, provenance, totals, articles: inventory }));

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { buildLegalityCitationPlan } from "./apply-citations.mjs";
+import { buildApplyPlan } from "./apply-draft.mjs";
+import { mergeArticleReferenceMetadataForReplacement } from "../../server/lib/substanceIngestion.ts";
 
 function article() {
   return {
@@ -174,6 +176,99 @@ describe("legality citation adapter", () => {
     expect(second.countries[0].alreadyMarked).toBe(true);
     expect(second.articleForMarker.legality.countries.Canada.instrument)
       .toBe(first.articleForMarker.legality.countries.Canada.instrument);
+  });
+
+  it("keeps distinct source pages uniquely addressable when generated ids collide", () => {
+    const input = article();
+    input.references = [];
+    const sources = [1, 5, 4, 2].map((number) => ({
+      url: `https://www.legislation.gov.uk/uksi/2001/3998/regulation/${number}`,
+      title: `Misuse of Drugs Regulations 2001, regulation ${number}`,
+      supportQuote: `Operative text of regulation ${number}.`,
+    }));
+    const proposal = { entries: { Canada: {
+      canonicalStatus: "prohibited",
+      instrument: "Controlled Drugs Act",
+      sources,
+    } } };
+    const first = buildLegalityCitationPlan({ article: input, draft: proposal });
+    const references = first.articleForMarker.references;
+    const ids = first.countries[0].referenceIds;
+    expect(ids).toHaveLength(sources.length);
+    for (const id of ids) {
+      expect(references.filter((reference) => reference.id === id)).toHaveLength(1);
+    }
+    expect(ids.map((id) => references.find((reference) => reference.id === id).url))
+      .toEqual(sources.map((source) => source.url));
+    expect(first.promotionPlan.evidence).toHaveLength(sources.length);
+    const replay = buildLegalityCitationPlan({ article: first.articleForMarker, draft: proposal });
+    expect(replay.articleForMarker.references).toEqual(references);
+    expect(replay.articleForMarker.legality).toEqual(first.articleForMarker.legality);
+  });
+
+  it("preserves ambiguous legacy references while giving reviewed sources unique markers", () => {
+    const input = article();
+    input.references = [
+      { id: "shared", url: "https://laws.example.gov/section/2", title: "Section 2" },
+      { id: "shared", url: "https://laws.example.gov/section/4", title: "Section 4" },
+      { id: "shared", url: "https://laws.example.gov/section/5", title: "Section 5" },
+    ];
+    const original = structuredClone(input.references);
+    const sources = original.map(({ url, title }) => ({ url, title, supportQuote: "Operative provision." }));
+    const proposal = { entries: { Canada: { instrument: "Controlled Drugs Act", canonicalStatus: "prohibited", sources } } };
+    const first = buildLegalityCitationPlan({ article: input, draft: proposal });
+    const references = first.articleForMarker.references;
+    expect(references.filter(({ id }) => id === "shared")).toEqual(original);
+    for (const [index, id] of first.countries[0].referenceIds.entries()) {
+      expect(references.filter((reference) => reference.id === id)).toEqual([
+        expect.objectContaining({ url: sources[index].url }),
+      ]);
+    }
+    const replay = buildLegalityCitationPlan({ article: first.articleForMarker, draft: proposal });
+    expect(replay.articleForMarker).toEqual(first.articleForMarker);
+  });
+
+  it("preserves unrelated distinct sources across apply and cite replacement without guessing shared markers", () => {
+    const input = article();
+    const stateSources = [401, 402].map((section) => ({
+      id: "shared-state-source",
+      title: "State controlled substances act",
+      url: `https://laws.example.gov/state/section/${section}`,
+    }));
+    input.references.push(...stateSources);
+    input.legality.usStates.Colorado.instrument += " [cite:shared-state-source]";
+    const proposal = { international: [], entries: {}, corrections: { Canada: {
+      ...input.legality.countries.Canada,
+      oldEntry: structuredClone(input.legality.countries.Canada),
+      sources: draft().entries.Canada.sources,
+    } } };
+
+    const apply = buildApplyPlan({ article: input, draft: proposal });
+    const applied = mergeArticleReferenceMetadataForReplacement(
+      { ...input, legality: apply.legality }, input.references,
+    ).article;
+    const cite = buildLegalityCitationPlan({ article: applied, draft: proposal });
+    const saved = mergeArticleReferenceMetadataForReplacement(
+      cite.articleForMarker, applied.references,
+    ).article;
+
+    const stateIds = stateSources.map(({ url }) => {
+      const matches = saved.references.filter((reference) => reference.url === url);
+      expect(matches).toHaveLength(1);
+      return matches[0].id;
+    });
+    expect(new Set(stateIds).size).toBe(stateSources.length);
+    expect(stateIds).not.toContain("shared-state-source");
+    expect(saved.legality.usStates).toEqual(input.legality.usStates);
+    for (const [index, id] of cite.countries[0].referenceIds.entries()) {
+      expect(saved.references.filter((reference) => reference.id === id)).toEqual([
+        expect.objectContaining({ url: proposal.corrections.Canada.sources[index].url }),
+      ]);
+    }
+    const replay = buildLegalityCitationPlan({ article: saved, draft: proposal });
+    expect(mergeArticleReferenceMetadataForReplacement(
+      replay.articleForMarker, saved.references,
+    ).article).toEqual(saved);
   });
 
   it("harvests state and city sources with jurisdiction-specific evidence", () => {

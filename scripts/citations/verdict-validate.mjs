@@ -90,6 +90,27 @@ const CLAIM_HASH_PATTERN = /^[0-9a-f]{12}$/;
 const NON_CONTIGUOUS_QUOTE_PATTERN = /\.{3}|…|\[\s*(?:\.\.\.?|…)\s*\]/;
 const REFUTER_OUTCOMES = new Set(["confirmed", "refuted"]);
 
+/**
+ * The citation-pi refuter prompt (`prompts/refuter.md`) emits
+ * `outcome: "upheld" | "refuted"`, while this validator and verdict-apply
+ * speak `confirmed | refuted`. Adapters map the raw refuter outcome through
+ * this table before writing a draft row, and keep the raw value beside it
+ * (`refuter.rawOutcome`). The validator itself stays strict: an unmapped
+ * `upheld` in a draft is still `invalid_refuter`.
+ */
+export const REFUTER_OUTCOME_MAPPING_VERSION = "citation-pi-refuter-outcome-v1";
+export const REFUTER_OUTCOME_ALIASES = Object.freeze({
+  upheld: "confirmed",
+  confirmed: "confirmed",
+  refuted: "refuted",
+});
+
+/** Map a raw refuter outcome to the draft vocabulary, or null when unknown. */
+export function normalizeRefuterOutcome(rawOutcome) {
+  if (typeof rawOutcome !== "string") return null;
+  return REFUTER_OUTCOME_ALIASES[rawOutcome.trim().toLowerCase()] ?? null;
+}
+
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
