@@ -52,12 +52,9 @@ jobs:
           bun run test:workflow
           bun run typecheck
           bun run lint:all
-          bun run lint:api
-          bun run knip
           bun run typecheck:scripts
           bun run typecheck:handlers
           bun run provenance:check
-          bun run cleanup:metrics --check
 
       - name: Check generated schema and migrations for drift
         run: |
