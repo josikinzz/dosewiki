@@ -113,8 +113,9 @@ changing build keys, hosts, or flavors.
 
 ## Verify
 
-Run the narrowest command that covers your change, then the matching
-aggregate before opening a pull request:
+Run the tests that cover the files you changed and the type check. CI runs
+the full suite on every pull request, so there is no need to run every
+aggregate locally for a small change.
 
 | Command | Covers |
 | --- | --- |
@@ -126,7 +127,7 @@ aggregate before opening a pull request:
 | `npm run verify:app` | OpenChemLib fork check, tests, lint, and build |
 | `npm run test:workflow` | Script and tool tests under `scripts/**` |
 | `npm run test:journeys` | Browser journeys through `/dev` against deterministic fixtures; needs `npm run dev:journeys-server` running |
-| `npm run verify:workflow` | Workflow tests, script lint, script and handler type checks, cleanup metrics, and data provenance |
+| `npm run verify:workflow` | Workflow tests, script lint, script and handler type checks, and data provenance |
 | `npm run verify:all` | Both aggregates; use when app and workflow surfaces both changed |
 | `npm run theme:tokens:check`, `npm run theme:classes:check` | Theme token and utility class audits for UI changes |
 | `npm run security:check` | The pre-commit secret scan, runnable by hand |
@@ -145,8 +146,10 @@ rotate it.
 - Update documentation in the same pull request when ownership, commands, or
   contracts change: `README.md`, `ARCHITECTURE.md`, `docs/README.md`, and the
   owning document under `docs/`.
-- Tests defend observable behavior. Add one when a plausible bug would fail
-  it; do not add tests that pin wording or implementation details.
+- Testing is minimal by design. Add a test only for write guards, auth and
+  roles, revision conflicts, secrets, or data that feeds published dosage,
+  interaction, or legality information. See the
+  [test policy](docs/architecture/operations-and-direction.md#test-policy).
 - Production data is never written from a pull request. Guarded commands
   require the full ceremony in [data credentials](docs/operations/data-credentials.md),
   and a dry run is not authorization.

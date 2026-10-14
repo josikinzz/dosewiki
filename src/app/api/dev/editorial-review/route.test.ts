@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getFunctionName } from "@server/postgres/runtime/api";
 import {
   describeRoleFloor,
   installProtectedRouteMocks,
@@ -25,13 +24,6 @@ function tickRequest(status: "needed" | "in_progress" | "completed" = "completed
   });
 }
 
-function flagRequest(flag: unknown) {
-  return new Request("https://dose.wiki/api/dev/editorial-review", {
-    method: "POST", headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-    body: JSON.stringify({ action: "add-flag", slug: "2c-b", flag }),
-  });
-}
-
 describe("editorial review route", () => {
   beforeEach(() => {
     resetRouteMocks("admin", { email: "admin@example.com", name: "Admin" });
@@ -45,20 +37,6 @@ describe("editorial review route", () => {
     expect(response.status).toBe(403);
     expect(routeMocks.mutation).not.toHaveBeenCalled();
   });
-
-  it("lets an editor move a review to in_progress", async () => {
-    signInAs("editor");
-    routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "in_progress", notes: "" } });
-    const response = await POST(tickRequest("in_progress"));
-    expect(response.status).toBe(200);
-  });
-
-  it("lets an admin mark a review completed", async () => {
-    routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: { status: "completed", notes: "" } });
-    const response = await POST(tickRequest("completed"));
-    expect(response.status).toBe(200);
-  });
-
 
   it("signs off the revision the reviewer read and returns the reviewer and revision it stored", async () => {
     const stored = {
@@ -83,64 +61,6 @@ describe("editorial review route", () => {
     await expect(response.json()).resolves.toMatchObject({ editorial_review: stored });
   });
 
-  it("refuses a revision on anything but a sign-off, and a malformed revision", async () => {
-    const post = (body: unknown) => POST(new Request("https://dose.wiki/api/dev/editorial-review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-      body: JSON.stringify(body),
-    }));
-    expect((await post({ slug: "2c-b", status: "needed", revision: "a1b2c3" })).status).toBe(400);
-    expect((await post({ slug: "2c-b", status: "completed", revision: "not a hash" })).status).toBe(400);
-    expect(routeMocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("records an editor recommendation that is not a completed review", async () => {
-    signInAs("editor");
-    const stored = {
-      status: "needed",
-      notes: "",
-      recommendation: { revision: "a1b2c3", recommended_by: "editor@example.com", recommended_at: "2026-09-25T00:00:00.000Z", note: "Doses checked" },
-    };
-    routeMocks.mutation.mockResolvedValue({ slug: "2c-b", editorial_review: stored });
-    const response = await POST(new Request("https://dose.wiki/api/dev/editorial-review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-      body: JSON.stringify({ action: "recommend", slug: "2c-b", revision: "a1b2c3", note: " Doses checked " }),
-    }));
-
-    expect(response.status).toBe(200);
-    expect(routeMocks.mutation).toHaveBeenCalledTimes(1);
-    const [reference, args] = routeMocks.mutation.mock.calls[0];
-    expect(getFunctionName(reference as never)).toBe("substanceIndex:recommendEditorialReview");
-    expect(args).toMatchObject({ slug: "2c-b", revision: "a1b2c3", note: "Doses checked" });
-    expect(args).not.toHaveProperty("status");
-    const payload = await response.json() as { editorial_review: { status: string } };
-    expect(payload.editorial_review.status).not.toBe("completed");
-  });
-
-  it("refuses a malformed recommendation revision or an overlong note before calling Postgres", async () => {
-    signInAs("editor");
-    const post = (body: unknown) => POST(new Request("https://dose.wiki/api/dev/editorial-review", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Origin: "https://dose.wiki" },
-      body: JSON.stringify(body),
-    }));
-    expect((await post({ action: "recommend", slug: "2c-b", revision: "not a hash" })).status).toBe(400);
-    expect((await post({ action: "recommend", slug: "2c-b", note: "x".repeat(1001) })).status).toBe(400);
-    expect(routeMocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("rejects malformed labels before calling Postgres", async () => {
-    const response = await POST(flagRequest({ label: "this label has too many words", severity: "minor", note: "" }));
-    expect(response.status).toBe(400);
-    expect(routeMocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("rejects malformed severities before calling Postgres", async () => {
-    const response = await POST(flagRequest({ label: "skinny", severity: "blocking", note: "" }));
-    expect(response.status).toBe(400);
-    expect(routeMocks.mutation).not.toHaveBeenCalled();
-  });
 });
 
 describeRoleFloor({

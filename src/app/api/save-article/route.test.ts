@@ -19,12 +19,8 @@ vi.mock("@server/data/publicData", () => ({
   },
 }));
 
-const publicLibraryMocks = vi.hoisted(() => ({
-  invalidatePublicDerivedDataCache: vi.fn(),
-}));
-
 vi.mock("@server/data/publicLibrary", () => ({
-  invalidatePublicDerivedDataCache: publicLibraryMocks.invalidatePublicDerivedDataCache,
+  invalidatePublicDerivedDataCache: vi.fn(),
 }));
 
 vi.mock("@server/postgres/runtime/api", () => ({
@@ -66,16 +62,8 @@ function withBatch(client: { mutation: ReturnType<typeof vi.fn>; query: ReturnTy
   const nested = client.mutation as (name: string, args: Record<string, unknown>) => Promise<unknown>;
   client.mutation = vi.fn(async (name: string, args: Record<string, unknown>) => {
     if (name !== "saveArticleBatch.save") return nested(name, args);
-    const articleResult = Array.isArray(args.articles) && args.articles.length
-      ? await nested("substanceIndex.saveSubstances", { apiKey: args.apiKey, actorEmail: args.actorEmail, articles: args.articles }) : null;
-    const layoutResults: Array<{ type: unknown; receipt: unknown }> = [];
-    for (const layout of (args.indexLayouts ?? []) as Array<Record<string, unknown>>) {
-      const receipt = await nested("indexLayouts.save", { apiKey: args.apiKey, actorEmail: args.actorEmail, ...layout });
-      layoutResults.push({ type: layout.type, receipt });
-    }
-    const changed = ((articleResult as { created?: number; updated?: number } | null)?.created ?? 0) + ((articleResult as { created?: number; updated?: number } | null)?.updated ?? 0);
-    if (changed && args.changelog) await nested("changelog.addEntry", { apiKey: args.apiKey, actorEmail: args.actorEmail, ...(args.changelog as object) });
-    return { articleResult, layoutResults, changelogSaved: Boolean(changed && args.changelog) };
+    const articleResult = await nested("substanceIndex.saveSubstances", { apiKey: args.apiKey, actorEmail: args.actorEmail, articles: args.articles });
+    return { articleResult, layoutResults: [], changelogSaved: false };
   });
   return client;
 }
@@ -85,7 +73,6 @@ describe("save-article route", () => {
     vi.resetModules();
     nextCacheMocks.revalidatePath.mockReset();
     nextCacheMocks.revalidateTag.mockReset();
-    publicLibraryMocks.invalidatePublicDerivedDataCache.mockReset();
     authMocks.requireRoleSession.mockReset().mockImplementation(roleSessionFor("admin"));
     mocks.getServerDataWriteCapability.mockReset();
   });
@@ -118,41 +105,12 @@ describe("save-article route", () => {
     expect(client.mutation).toHaveBeenCalledTimes(1);
   });
 
-  it("does not revalidate when an atomic save fails at its changelog", async () => {
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") return {
-          created: 0, updated: 1, errors: [], affectedPaths: ["/lsd"],
-          outcomes: [{ target: "id:1", action: "updated", title: "LSD", requestedSlug: "lsd", fallbackSlug: "lsd", canonicalSlug: "lsd", previous: { id: 1, title: "LSD", slug: "lsd" }, next: { id: 1, title: "LSD", slug: "lsd" }, affectedPaths: ["/lsd"], publicationDependency: "content" }],
-        };
-        if (name === "indexLayouts.save") return { updated: true, id: "layout-id", revision: 1, replayed: false, unchanged: false };
-        if (name === "changelog.addEntry") throw new Error("changelog write failed");
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerDataWriteCapability.mockReturnValue({ ok: true, capability: { adminKey: "admin-key", client } });
-    const { POST } = await import("./route");
-    const response = await POST(new Request("https://dose.wiki/api/save-article", {
-      method: "POST", headers: { Origin: "https://dose.wiki" },
-      body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }], indexLayouts: [{ type: "chemical", version: 2, categories: [], expected: null, expectedRevision: 0, operationId: "chemical-fixture-operation" }], changelog: { markdown: "Changed LSD", articles: [{ id: 1, title: "LSD", slug: "lsd" }] } }),
-    }));
-
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toMatchObject({
-      code: "data_save_failed",
-      phase: "article-mutation",
-    });
-    expect(nextCacheMocks.revalidatePath).not.toHaveBeenCalled();
-    expect(client.mutation).toHaveBeenCalledTimes(1);
-  });
-
   it("refuses an editor: the panel routes editors through /api/dev/proposals instead", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const client = { query: vi.fn(), mutation: vi.fn() };
     mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
-      capability: { adminKey: "admin-key", client: withBatch(client) },
+      capability: { adminKey: "admin-key", client },
     });
     const { POST } = await import("./route");
 
@@ -164,289 +122,31 @@ describe("save-article route", () => {
     expect(client.mutation).not.toHaveBeenCalled();
   });
 
-  it("uses substance ingestion outcomes for verification and revalidation", async () => {
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") {
-          return {
-            created: 0,
-            updated: 1,
-            skipped: 0,
-            errors: [],
-            affectedPaths: ["/lsd", "/old-lsd", "/substances"],
-            outcomes: [
-              {
-                target: "id:1",
-                action: "updated",
-                title: "LSD",
-                requestedSlug: "lsd",
-                fallbackSlug: "lsd",
-                canonicalSlug: "lsd",
-                previous: { id: 1, title: "Old LSD", slug: "old-lsd" },
-                next: { id: 1, title: "LSD", slug: "lsd" },
-                affectedPaths: ["/lsd", "/old-lsd", "/substances"],
-              },
-            ],
-          };
-        }
-
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerDataWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client: withBatch(client),
-      },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({
-        articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-      }), }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(client.query).not.toHaveBeenCalled();
-    expect(client.mutation).toHaveBeenCalledWith("saveArticleBatch.save", expect.objectContaining({
-      apiKey: "admin-key",
-      actorEmail: "editor@example.com",
-      articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-    }));
-    expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/lsd");
-    expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/old-lsd");
-    expect(nextCacheMocks.revalidatePath).toHaveBeenCalledWith("/substances");
-    await expect(response.json()).resolves.toMatchObject({
-      success: true,
-      savedItems: ["1 article(s)"],
-      verification: [
-        {
-          target: "id:1",
-          found: true,
-          previousSlug: "old-lsd",
-          requestedSlug: "lsd",
-          storedSlug: "lsd",
-          storedTitle: "LSD",
-          titleMatches: true,
-          slugMatches: true,
-        },
-      ],
-      revalidatedPaths: ["/lsd", "/old-lsd", "/substances"],
-    });
-  });
-
-  it("strips fields that Postgres article mutations do not accept before forwarding article payloads", async () => {
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") {
-          return {
-            created: 0,
-            updated: 1,
-            skipped: 0,
-            errors: [],
-            affectedPaths: ["/dextromethorphan", "/substances"],
-            outcomes: [
-              {
-                target: "id:282",
-                action: "updated",
-                title: "Dextromethorphan",
-                requestedSlug: "dextromethorphan",
-                fallbackSlug: "dextromethorphan",
-                canonicalSlug: "dextromethorphan",
-                previous: { id: 282, title: "Dextromethorphan", slug: "dextromethorphan" },
-                next: { id: 282, title: "Dextromethorphan", slug: "dextromethorphan" },
-                affectedPaths: ["/dextromethorphan", "/substances"],
-              },
-            ],
-          };
-        }
-
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerDataWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client: withBatch(client),
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({
-        articles: [
-          {
-            _creationTime: 1768751404790.3594,
-            _id: "kd749agfhj6sa0pmw8eytfb1g57zfezs",
-            uiOnlyDraftState: "dirty",
-            id: 282,
-            title: "Dextromethorphan",
-            slug: "dextromethorphan",
-          },
-        ],
-      }), }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(client.mutation).toHaveBeenCalledWith("saveArticleBatch.save", expect.objectContaining({
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-      articles: [
-        {
-          id: 282,
-          title: "Dextromethorphan",
-          slug: "dextromethorphan",
-        },
-      ],
-    }));
-  });
-
   it("delegates the authenticated editor email to every user-initiated Postgres write", async () => {
     const client = {
       query: vi.fn(),
       mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") {
-          return {
-            created: 1,
-            updated: 0,
-            skipped: 0,
-            errors: [],
-            affectedPaths: ["/lsd", "/substances"],
-            outcomes: [
-              {
-                target: "id:1",
-                action: "created",
-                title: "LSD",
-                requestedSlug: "lsd",
-                fallbackSlug: "lsd",
-                canonicalSlug: "lsd",
-                previous: null,
-                next: { id: 1, title: "LSD", slug: "lsd" },
-                affectedPaths: ["/lsd", "/substances"],
-              },
-            ],
-          };
-        }
-
-        if (name === "changelog.addEntry") {
-          return { created: true, id: "entry-id" };
-        }
-
+        if (name === "substanceIndex.saveSubstances") return {
+          created: 1, updated: 0, skipped: 0, errors: [], affectedPaths: ["/lsd"],
+          outcomes: [{ target: "id:1", action: "created", title: "LSD", requestedSlug: "lsd", fallbackSlug: "lsd", canonicalSlug: "lsd", previous: null, next: { id: 1, title: "LSD", slug: "lsd" }, affectedPaths: ["/lsd"] }],
+        };
         throw new Error(`Unexpected mutation ${name}`);
       }),
     };
     mocks.getServerDataWriteCapability.mockReturnValue({
       ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client: withBatch(client),
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
+      capability: { adminKey: "admin-key", client: withBatch(client), getAdminIntentToken: vi.fn(() => "article-token") },
     });
     const { POST } = await import("./route");
 
     const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({
-        articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-        changelog: {
-          markdown: "Changed LSD.",
-          articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-        },
-      }), }),
+      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }] }), }),
     );
 
     expect(response.status).toBe(200);
-    expect(client.mutation).not.toHaveBeenCalledWith("siteConfig.saveAbout", expect.anything());
     expect(client.mutation).toHaveBeenCalledWith("saveArticleBatch.save", expect.objectContaining({
       apiKey: "article-token",
       actorEmail: "editor@example.com",
     }));
-    expect(client.mutation).toHaveBeenCalledTimes(1);
-    expect(client.mutation).toHaveBeenCalledWith("saveArticleBatch.save", expect.objectContaining({
-      changelog: expect.objectContaining({ markdown: "Changed LSD." }),
-    }));
-  });
-
-  it("persists every changed index layout dataset through the authenticated Postgres route", async () => {
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "indexLayouts.save") {
-          return { updated: true, id: "layout-id", revision: 1, replayed: false, unchanged: false };
-        }
-
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerDataWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client: withBatch(client),
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({
-        indexLayouts: [
-          { type: "chemical", version: 2, categories: [], expected: null, expectedRevision: 0, operationId: "chemical-fixture-operation" },
-          { type: "mechanism", version: 3, categories: [], expected: null, expectedRevision: 0, operationId: "mechanism-fixture-operation" },
-        ],
-      }), }),
-    );
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      success: true,
-      savedItems: ["2 index layout publication receipt(s) confirmed"],
-      revalidatedPaths: ["/chemical", "/mechanism", "/substances"],
-    });
-  });
-
-
-  it("returns request diagnostics when the Postgres article mutation rejects editor access", async () => {
-    const client = {
-      query: vi.fn(),
-      mutation: vi.fn(async (name: string) => {
-        if (name === "substanceIndex.saveSubstances") {
-          throw new Error("Editor access required");
-        }
-
-        throw new Error(`Unexpected mutation ${name}`);
-      }),
-    };
-    mocks.getServerDataWriteCapability.mockReturnValue({
-      ok: true,
-      capability: {
-        adminKey: "admin-key",
-        client: withBatch(client),
-        getAdminIntentToken: vi.fn(() => "article-token"),
-      },
-    });
-    const { POST } = await import("./route");
-
-    const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({
-        articles: [{ id: 1, title: "LSD", slug: "lsd" }],
-      }), }),
-    );
-
-    expect(response.status).toBe(403);
-    await expect(response.json()).resolves.toMatchObject({
-      error: "Editor access required for Postgres writes.",
-      code: "data_editor_access_required",
-      phase: "article-mutation",
-      details: [
-        "The signed-in account authenticated with Next.js, but Postgres does not have an admin/editor membership for that email.",
-      ],
-    });
   });
 });

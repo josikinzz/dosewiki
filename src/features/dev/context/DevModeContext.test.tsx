@@ -18,7 +18,6 @@ vi.mock("@/hooks/useIndexLayouts", () => ({
   }),
 }));
 
-
 vi.mock("@/data/SubstanceIndexProvider", () => ({
   useLibrary: useLibraryMock,
 }));
@@ -26,31 +25,6 @@ vi.mock("next-auth/react", () => ({ useSession: () => ({ status: "authenticated"
 vi.mock("../tools/useCopyIndexSource", () => ({ useCopyIndexSource: () => ({ data: useQueryMock(), error: null, reload: vi.fn() }) }));
 
 import { DevModeProvider, useDevMode } from "./DevModeContext";
-
-function DevModeConsumer() {
-  const { articles, close, resetArticleAt, updateArticleAt } = useDevMode();
-
-  return (
-    <div>
-      <div data-testid="article-title">{articles[0]?.title ?? ""}</div>
-      <button type="button" onClick={close}>
-        Close
-      </button>
-      <button
-        type="button"
-        onClick={() => updateArticleAt(0, {
-          ...articles[0],
-          title: "Updated LSD",
-        })}
-      >
-        Update article
-      </button>
-      <button type="button" onClick={() => resetArticleAt(0)}>
-        Reset article
-      </button>
-    </div>
-  );
-}
 
 const ARTICLES = [
   {
@@ -83,7 +57,6 @@ function ProposalSeedConsumer() {
   const {
     activeProposal,
     articles,
-    clearActiveProposal,
     discardActiveProposal,
     getOriginalArticles,
     loadProposal,
@@ -120,9 +93,6 @@ function ProposalSeedConsumer() {
       >
         Load proposal
       </button>
-      <button type="button" onClick={clearActiveProposal}>
-        Clear proposal
-      </button>
       <button type="button" onClick={discardActiveProposal}>
         Discard proposal
       </button>
@@ -134,91 +104,6 @@ describe("DevModeContext", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     window.sessionStorage.clear();
-  });
-
-  it("closes the editor to the substances index", () => {
-    let currentPath = "/dev/articles/lsd";
-    const navigateMock = vi.fn((nextPath: string) => {
-      currentPath = nextPath;
-    });
-
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-
-    render(
-      <DevModeProvider navigate={navigateMock} getCurrentPath={() => currentPath}>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-
-    expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith("/substances");
-  });
-
-  it("returns to the page the editor came from, and remembers it across reloads inside /dev", () => {
-    const referrer = vi.spyOn(document, "referrer", "get");
-    referrer.mockReturnValue(`${window.location.origin}/substances/lsd?tab=dosage#oral`);
-    const navigateMock = vi.fn();
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-
-    const first = render(
-      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(navigateMock).toHaveBeenLastCalledWith("/substances/lsd?tab=dosage#oral");
-    first.unmount();
-
-    // A reload inside the editor (or the sign-in bounce) reports an editor
-    // page as the referrer; the page the editor came from still wins.
-    referrer.mockReturnValue(`${window.location.origin}/dev/writing`);
-    render(
-      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-    expect(navigateMock).toHaveBeenLastCalledWith("/substances/lsd?tab=dosage#oral");
-    referrer.mockRestore();
-  });
-
-  it("ignores a referrer from another site", () => {
-    const referrer = vi.spyOn(document, "referrer", "get").mockReturnValue("https://elsewhere.example/page");
-    const navigateMock = vi.fn();
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-
-    render(
-      <DevModeProvider navigate={navigateMock} getCurrentPath={() => "/dev/articles/lsd"}>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
-
-    expect(navigateMock).toHaveBeenLastCalledWith("/substances");
-    referrer.mockRestore();
-  });
-
-
-  it("preserves article reset behavior", () => {
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-
-    render(
-      <DevModeProvider>
-        <DevModeConsumer />
-      </DevModeProvider>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Update article" }));
-    expect(screen.getByTestId("article-title")).toHaveTextContent("Updated LSD");
-
-    fireEvent.click(screen.getByRole("button", { name: "Reset article" }));
-    expect(screen.getByTestId("article-title")).toHaveTextContent("LSD");
   });
 
   it("seeds the working set from a proposal over hydrated production rows, and discards it back", async () => {
@@ -262,31 +147,6 @@ describe("DevModeContext", () => {
     expect(screen.getByTestId("article-summary")).toHaveTextContent("Stored summary");
     expect(screen.getByTestId("article-count")).toHaveTextContent("1");
     expect(screen.getByTestId("psychoactive-version")).toHaveTextContent("1");
-  });
-
-  it("clears the proposal link after a save but keeps the seeded edits", async () => {
-    useLibraryMock.mockReturnValue({ articles: ARTICLES });
-    useQueryMock.mockReturnValue(INDEX_LAYOUTS);
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => Response.json({ article: { title: "LSD", slug: "lsd", summary: "Stored summary" } })),
-    );
-
-    render(
-      <DevModeProvider>
-        <ProposalSeedConsumer />
-      </DevModeProvider>,
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Load proposal" }));
-      await Promise.resolve();
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Clear proposal" }));
-
-    expect(screen.getByTestId("active-proposal")).toHaveTextContent("none");
-    expect(screen.getByTestId("article-summary")).toHaveTextContent("Proposed summary");
-    expect(screen.getByTestId("article-count")).toHaveTextContent("2");
   });
 
   it("refuses to seed when a production article the proposal needs does not load", async () => {

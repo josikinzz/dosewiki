@@ -107,7 +107,6 @@ describe("carousel order PATCH", () => {
       }),
     );
 
-
     expect(response.status).toBe(200);
     expect(dataMocks.mutation).toHaveBeenCalledWith(
       "replications.updateGalleryOrder",
@@ -120,11 +119,8 @@ describe("carousel order PATCH", () => {
         expectedRevision: "a".repeat(64),
       },
     );
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "effect", slug: "tracers" }, { kind: "replication-collections" }],
-      source: "manual",
-    });
   });
+
   it("fails closed on a public host before Postgres", async () => {
     authMocks.requireRoleSession.mockRejectedValue(
       new Error("Effect Index has no editor auth configuration."),
@@ -143,57 +139,5 @@ describe("carousel order PATCH", () => {
     );
     expect(response.status).toBe(404);
     expect(dataMocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("writes artist and substance orders through their owning records", async () => {
-    const { PATCH } = await import("./route");
-    await PATCH(
-      orderRequest({
-        targetKind: "artist",
-        targetKey: "chelsea-morgan",
-        slugs: ["a", "b"],
-        expectedOrder: ["b", "a"],
-      }),
-    );
-    expect(dataMocks.mutation).toHaveBeenNthCalledWith(
-      1,
-      "contributorProfiles.setContributorOrdering",
-      expect.objectContaining({
-        key: "chelsea-morgan",
-        replicationOrder: ["a", "b"],
-        expectedReplicationOrder: ["b", "a"],
-      }),
-    );
-
-    await PATCH(
-      orderRequest({
-        targetKind: "substance",
-        targetKey: "ketamine",
-        slugs: ["x", "y"],
-        expectedOrder: ["y", "x"],
-        expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
-      }),
-    );
-    expect(dataMocks.mutation).toHaveBeenNthCalledWith(
-      2,
-      "substanceGalleries.setCarouselOrder",
-      expect.objectContaining({
-        substance_slug: "ketamine",
-        carousel_order: ["x", "y"],
-        expectedCarouselOrder: ["y", "x"],
-        expectedUpdatedAt: "2026-08-25T10:00:00.000Z",
-      }),
-    );
-    expect(publishMocks.publishPublicCache).toHaveBeenNthCalledWith(1, {
-      targets: [
-        { kind: "contributor", slug: "chelsea-morgan" },
-        { kind: "replication-collections" },
-      ],
-      source: "manual",
-    });
-    expect(publishMocks.publishPublicCache).toHaveBeenNthCalledWith(2, {
-      targets: [{ kind: "article", slug: "ketamine" }, { kind: "replication-collections" }],
-      source: "manual",
-    });
   });
 });

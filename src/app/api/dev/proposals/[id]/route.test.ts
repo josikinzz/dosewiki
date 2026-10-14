@@ -41,10 +41,7 @@ function createClient(proposal: unknown = PROPOSAL) {
       }
       throw new Error(`Unexpected query ${name}`);
     }),
-    mutation: vi.fn(async (name: string, args: { text: string }) => {
-      if (name === "changeProposals.comment") {
-        return { by: "editor@example.com", at: "2026-09-03T00:00:00.000Z", text: args.text };
-      }
+    mutation: vi.fn(async (name: string) => {
       throw new Error(`Unexpected mutation ${name}`);
     }),
   };
@@ -61,34 +58,6 @@ function commentRequest(id: string, body: unknown) {
 describe("dev proposal detail and comment routes", () => {
   beforeEach(() => {
     resetRouteMocks("editor");
-  });
-
-  it("returns the full proposal with live hashes to an editor", async () => {
-    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1?seed=1"));
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ ok: true, proposal: PROPOSAL });
-    expect(client.query).toHaveBeenCalledWith("changeProposals.get", {
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-      id: "cp_1",
-      includePayload: true,
-    });
-  });
-
-  it("forwards the structured article patch, and withholds it when the comparison is unavailable", async () => {
-    const articlePatches = [{ slug: "lsd", changes: [{ path: "summary", before: "Before", after: "After" }] }];
-    grantWriteCapability(createClient({ ...PROPOSAL, comparisonMode: "submitted", articlePatches }));
-    const { GET } = await import("./route");
-    const shown = await (await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"))).json();
-    expect(shown.proposal.articlePatches).toEqual(articlePatches);
-
-    grantWriteCapability(createClient({ ...PROPOSAL, diff: "", comparisonMode: "unavailable", articlePatches }));
-    const hidden = await (await GET(new Request("https://dose.wiki/api/dev/proposals/cp_1"))).json();
-    expect(hidden.proposal.articlePatches).toBeUndefined();
   });
 
   it("does not forward historical audit identities, contact metadata, snapshots or client changelogs", async () => {
@@ -155,38 +124,6 @@ describe("dev proposal detail and comment routes", () => {
     const body = await response.json();
     expect(body.proposal).toMatchObject({ comparisonMode: "unavailable", diff: "" });
     expect(JSON.stringify(body)).not.toContain("private@example.com");
-  });
-
-  it("answers 404 when Postgres knows no such proposal", async () => {
-    grantWriteCapability(createClient(null), { intentToken: "article-token" });
-    const { GET } = await import("./route");
-
-    const response = await GET(new Request("https://dose.wiki/api/dev/proposals/cp_missing"));
-
-    expect(response.status).toBe(404);
-  });
-
-  it("stores a trimmed comment under the session email and refuses empty text", async () => {
-    const client = grantWriteCapability(createClient(), { intentToken: "article-token" });
-    const { POST } = await import("./comment/route");
-
-    const response = await POST(commentRequest("cp_1", { text: "  Looks right.  " }));
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
-      ok: true,
-      comment: { authorName: "Contributor", at: "2026-09-03T00:00:00.000Z", text: "Looks right." },
-    });
-    expect(client.mutation).toHaveBeenCalledWith("changeProposals.comment", {
-      apiKey: "article-token",
-      actorEmail: "editor@example.com",
-      id: "cp_1",
-      text: "Looks right.",
-    });
-
-    const empty = await POST(commentRequest("cp_1", { text: "   " }));
-    expect(empty.status).toBe(400);
-    expect(client.mutation).toHaveBeenCalledTimes(1);
   });
 });
 

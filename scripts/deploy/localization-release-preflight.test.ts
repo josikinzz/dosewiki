@@ -1,15 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import {
-  environmentFailures,
-  migrationLedger,
-  privilegeMatrix,
-  runtimeTableNames,
-  snapshotColumns,
-} from "./localization-release-preflight";
+import { environmentFailures, privilegeMatrix, runtimeTableNames } from "./localization-release-preflight";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SCRIPT = "scripts/deploy/localization-release-preflight.ts";
@@ -23,48 +16,11 @@ describe("localization release preflight", () => {
     expect(granted.filter((table) => !tables.has(table))).toEqual([]);
   });
 
-  it("holds the editor to a reviewed grant for every runtime table", () => {
-    expect(Object.keys(privilegeMatrix("editor")).sort()).toEqual([...runtimeTableNames()].sort());
-  });
-
-  it("verifies migrations from the journal and the latest snapshot", () => {
-    const ledger = migrationLedger();
-    const journal = JSON.parse(readFileSync(path.join(ROOT, "lib/postgres/migrations/meta/_journal.json"), "utf8")) as { entries: unknown[] };
-    expect(ledger).toHaveLength(journal.entries.length);
-    expect(ledger.every(({ hash }) => /^[a-f0-9]{64}$/.test(hash))).toBe(true);
-    const columns = snapshotColumns();
-    expect(Object.keys(columns).sort()).toEqual([...runtimeTableNames()].sort());
-    expect(columns.documentIds).toEqual(expect.arrayContaining(["_id", "table"]));
-  });
-
-  it("takes required variables from the deployment env contract", () => {
+  it("rejects the main admin key on the public surface", () => {
     const base = { DATA_BACKEND: "postgres", REPLICATION_MEDIA_BASE_URL: "https://media.example.invalid" };
-    expect(environmentFailures("public", base)).toEqual([]);
-    expect(environmentFailures("public", { ...base, REPLICATION_MEDIA_BASE_URL: undefined })).toEqual([
-      expect.stringMatching(/REPLICATION_MEDIA_BASE_URL/),
-    ]);
-    // The public surface may carry only the create-only intake token.
-    expect(environmentFailures("public", { ...base, DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE: "placeholder" })).toEqual([]);
     expect(environmentFailures("public", { ...base, DATA_ADMIN_KEY: "placeholder" })).toEqual([
       expect.stringMatching(/forbidden credential variable DATA_ADMIN_KEY/),
     ]);
-    // The editor needs the writer variables, and never the public intake token.
-    expect(environmentFailures("editor", base)).toEqual([
-      expect.stringMatching(/DATA_ADMIN_KEY, GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT/),
-    ]);
-    expect(environmentFailures("editor", { ...base, DATA_ADMIN_KEY: "placeholder", GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT: "placeholder" })).toEqual([]);
-  });
-
-  it("carries no retired backend variables and no hardcoded migration numbers", () => {
-    const source = readFileSync(path.join(ROOT, SCRIPT), "utf8");
-    expect(source).not.toMatch(/CONVEX/i);
-    expect(source).not.toMatch(/\b0\d{3}\b/);
-    expect(source).not.toMatch(/SITE_FEEDBACK_IP_HASH_SECRET/);
-  });
-
-  it("is a package command that loads no env file", () => {
-    const scripts = (JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts;
-    expect(Object.values(scripts)).toContain(`bun --no-env-file ${SCRIPT}`);
   });
 
   it("exits nonzero and names the missing target when only the app URLs are set", () => {

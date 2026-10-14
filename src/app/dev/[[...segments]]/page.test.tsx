@@ -65,62 +65,12 @@ vi.mock("../_components/NextDevRouteClient", () => ({
 }));
 
 import NextDevPage from "./page";
-import { DEV_TAB_REGISTRY } from "@/features/dev/pages/devTabRegistry";
-import {
-  DataTargetSplitRefusal,
-} from "../../_components/DataTargetSplitNotice";
-import { NextDevRouteClient } from "../_components/NextDevRouteClient";
+import { DataTargetSplitRefusal } from "../../_components/DataTargetSplitNotice";
 
 describe("NextDevPage shell selection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getEditorTargetAlignmentMock.mockReturnValue(ALIGNED);
-  });
-
-  it("mounts the one shell on Contributors for an authenticated contributor", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: {
-        email: "member@example.com",
-        role: "contributor",
-      },
-    });
-    getOwnedContributorProfileMock.mockResolvedValue("MEMBER");
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors", "me"] }) });
-
-    expect(element.type).toBe(NextDevRouteClient);
-    expect(element.props).toEqual(
-      expect.objectContaining({
-        initialTab: "contributors",
-        initialSlug: "me",
-        initialProfileKey: "MEMBER",
-      }),
-    );
-    await expect(element.props.ownedProfileKey).resolves.toBe("MEMBER");
-  });
-
-  it.each(["admin", "editor", "editor_translator", "translator", "contributor"] as const)(
-    "opens bare /dev on the Home for a %s, with no redirect",
-    async (role) => {
-      getServerSessionMock.mockResolvedValue({ user: { email: "member@example.com", role } });
-      getOwnedContributorProfileMock.mockResolvedValue(null);
-
-      const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
-      expect(element.type).toBe(NextDevRouteClient);
-      expect(element.props).toEqual(expect.objectContaining({ initialTab: "home", initialSlug: undefined }));
-    },
-  );
-
-  it("still loads the shell for a contributor on an editor tab, which the shell renders locked", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: { email: "member@example.com", role: "contributor" },
-    });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: ["articles"] }) });
-
-    expect(element.type).toBe(NextDevRouteClient);
-    expect(element.props).toEqual(expect.objectContaining({ initialTab: "articles" }));
   });
 
   it("refuses a viewer account any tab before any shell is built", async () => {
@@ -133,58 +83,6 @@ describe("NextDevPage shell selection", () => {
         "redirect:/unauthorized",
       );
     }
-  });
-
-  it("keeps editor users on the same shell for Contributors", async () => {
-    getServerSessionMock.mockResolvedValue({
-      user: {
-        email: "editor@example.com",
-        role: "editor",
-      },
-    });
-    getOwnedContributorProfileMock.mockResolvedValue(null);
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: ["contributors"] }) });
-
-    expect(element.type).toBe(NextDevRouteClient);
-    expect(element.props).toEqual(
-      expect.objectContaining({
-        initialProfileKey: "EDITOR",
-        initialTab: "contributors",
-      }),
-    );
-  });
-
-  it("renders the editor shell when the owned-profile lookup fails", async () => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    getServerSessionMock.mockResolvedValue({
-      user: {
-        email: "editor@example.com",
-        role: "editor",
-      },
-    });
-    getOwnedContributorProfileMock.mockRejectedValue(new Error("Postgres credential rejected"));
-
-    const element = await NextDevPage({ params: Promise.resolve({ segments: [] }) });
-
-    // The lookup is handed down unresolved, so the shell is built and returned
-    // without ever waiting on the failing Postgres read.
-    expect(element.type).toBe(NextDevRouteClient);
-    expect(element.props).toEqual(
-      expect.objectContaining({
-        initialProfileKey: "EDITOR",
-      }),
-    );
-
-    // The rejection is absorbed into a `null` key before it reaches the client,
-    // so the hook adopting it never sees a rejected promise, and the diagnostic
-    // is still logged server-side.
-    await expect(element.props.ownedProfileKey).resolves.toBeNull();
-    expect(consoleError).toHaveBeenCalledWith(
-      "Unable to resolve the owned contributor profile; rendering the /dev shell without it.",
-      expect.any(Error),
-    );
-    consoleError.mockRestore();
   });
 
   it("refuses to render the shell when reads and writes target different deployments", async () => {
@@ -201,7 +99,6 @@ describe("NextDevPage shell selection", () => {
     expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
   });
 
-
   describe("local screenshot viewer", () => {
     const VIEWER_ENV = ["NODE_ENV", "DEV_SCREENSHOT_VIEWER", "DATA_WRITES_FROZEN"] as const;
     let previous: Record<string, string | undefined> = {};
@@ -217,14 +114,6 @@ describe("NextDevPage shell selection", () => {
 
     afterEach(() => {
       for (const key of VIEWER_ENV) vi.stubEnv(key, previous[key]);
-    });
-
-    it("renders the shell without a session and skips the private profile read", async () => {
-      const element = await NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) });
-
-      expect(element.type).toBe(NextDevRouteClient);
-      expect(element.props).toEqual(expect.objectContaining({ initialTab: "replications", ownedProfileKey: undefined }));
-      expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -251,79 +140,6 @@ describe("NextDevPage shell selection", () => {
       const element = await NextDevPage({ params: Promise.resolve({ segments: ["replications"] }) });
       expect(element.props).toEqual(expect.objectContaining({ initialProfileKey: "MEMBER" }));
       expect(getOwnedContributorProfileMock).toHaveBeenCalledWith("member@example.com");
-    });
-  });
-
-  describe("route resolution", () => {
-    const asEditor = () => {
-      getServerSessionMock.mockResolvedValue({
-        user: { email: "editor@example.com", role: "editor" },
-      });
-      getOwnedContributorProfileMock.mockResolvedValue(null);
-    };
-
-    const shellTabs = DEV_TAB_REGISTRY.filter((tab) => tab.destination.kind === "shell");
-
-    it.each(shellTabs.flatMap((tab) => [tab.id, ...tab.aliases].map((segment) => [segment, tab.id] as const)))(
-      "resolves /dev/%s to the %s tab and keeps the slug",
-      async (segment, id) => {
-        asEditor();
-
-        const bare = await NextDevPage({ params: Promise.resolve({ segments: [segment] }) });
-        expect(bare.type).toBe(NextDevRouteClient);
-        expect(bare.props).toEqual(expect.objectContaining({ initialTab: id, initialSlug: undefined }));
-
-        const deep = await NextDevPage({ params: Promise.resolve({ segments: [segment, "lsd"] }) });
-        expect(deep.props).toEqual(expect.objectContaining({ initialTab: id, initialSlug: "lsd" }));
-      },
-    );
-
-    it("redirects the external review descriptor to its own route", async () => {
-      asEditor();
-
-      await expect(NextDevPage({ params: Promise.resolve({ segments: ["review"] }) })).rejects.toThrow(
-        "redirect:/review",
-      );
-      await expect(NextDevPage({ params: Promise.resolve({ segments: ["review", "lsd"] }) })).rejects.toThrow(
-        "redirect:/review/lsd",
-      );
-    });
-
-    it("pins /dev/about onto Writing, falls back to articles for unknown tabs, and opens Home at the root", async () => {
-      asEditor();
-
-      const about = await NextDevPage({ params: Promise.resolve({ segments: ["about"] }) });
-      expect(about.props).toEqual(expect.objectContaining({ initialTab: "writing", initialSlug: "about" }));
-
-      const unknown = await NextDevPage({ params: Promise.resolve({ segments: ["unknown-tab", "ketamine"] }) });
-      expect(unknown.props).toEqual(expect.objectContaining({ initialTab: "articles", initialSlug: "ketamine" }));
-
-      const root = await NextDevPage({ params: Promise.resolve({}) });
-      expect(root.props).toEqual(expect.objectContaining({ initialTab: "home", initialSlug: undefined }));
-    });
-
-    it("opens /dev/blog and /dev/writing?kind=blog on Writing with the blog filter", async () => {
-      asEditor();
-
-      const legacy = await NextDevPage({ params: Promise.resolve({ segments: ["blog", "first-post"] }) });
-      expect(legacy.type).toBe(NextDevRouteClient);
-      expect(legacy.props).toEqual(
-        expect.objectContaining({ initialTab: "writing", initialSlug: "first-post", initialFilter: "blog" }),
-      );
-
-      const queried = await NextDevPage({
-        params: Promise.resolve({ segments: ["writing"] }),
-        searchParams: Promise.resolve({ kind: "blog" }),
-      });
-      expect(queried.props).toEqual(
-        expect.objectContaining({ initialTab: "writing", initialSlug: undefined, initialFilter: "blog" }),
-      );
-
-      const plain = await NextDevPage({
-        params: Promise.resolve({ segments: ["writing"] }),
-        searchParams: Promise.resolve({ kind: "poem" }),
-      });
-      expect(plain.props).toEqual(expect.objectContaining({ initialTab: "writing", initialFilter: undefined }));
     });
   });
 });

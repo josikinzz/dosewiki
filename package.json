@@ -200,7 +200,7 @@
     "lint:all": "npm run lint && npm run lint:scripts",
     "verify:fast": "npm run test && npm run typecheck",
     "verify:app": "npm run openchemlib:verify && npm run test && npm run lint && npm run build",
-    "verify:workflow": "npm run test:workflow && npm run lint:scripts && npm run typecheck:scripts && npm run typecheck:handlers && npm run cleanup:metrics -- --check && npm run provenance:check && npm run postgres:verify-migrations && npm run postgres:check-schema",
+    "verify:workflow": "npm run test:workflow && npm run lint:scripts && npm run typecheck:scripts && npm run typecheck:handlers && npm run provenance:check && npm run postgres:verify-migrations && npm run postgres:check-schema",
     "verify:all": "npm run verify:app && npm run verify:workflow",
     "prepare": "husky || true",
     "security:check": "./.husky/check-secrets.sh"

@@ -465,8 +465,8 @@ reader suggestions keep their existing fresh reads and revision checks.
 The private inbox response exposes `suggestions` and `inbox` durations in
 `Server-Timing` for authenticated browser inspection.
 
-The performance regression test is
-`lib/translation/reviewInboxFindings.perf.test.ts`: an isolated PGlite database
+These numbers come from a one-off benchmark, since removed under the
+[test policy](operations-and-direction.md#test-policy): an isolated PGlite database
 with 693 glossary terms and 200 archived substance articles (7,128 source
 units). Terms are treated as approved and stored translations are synthetic
 English, so this measures a repeatable workload rather than production
@@ -474,8 +474,7 @@ translation quality or production latency. Before this change, one local
 cold read took 1,554 ms with 224 SQL reads, including 203 source reads;
 the same workload afterwards took 488 ms with 27 SQL reads, including nine
 source reads. Warm reads fell from 815 to 26 ms. Both scans returned 4,674
-findings and the same 55,074-byte inbox payload. Timing assertions are avoided;
-the test enforces bounded source reads and unchanged page results.
+findings and the same 55,074-byte inbox payload.
 In the local development browser with a 693-term API fixture, the Terms
 summary rendered 72 ms after the fixture became available and issued no
 Waiting request. Development compilation and hydration are not production

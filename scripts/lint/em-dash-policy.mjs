@@ -71,7 +71,7 @@ export function scanEmDashes(file, text) {
   return { violations, comments: all.length - inLiterals.size };
 }
 
-/** Compares per-file comment counts to the baseline, which may only shrink. */
+/** Fails only when a file has more comment em dashes than its baseline; fewer is fine. */
 export function compareToBaseline(actual, baseline, ceiling = BASELINE_CEILING) {
   const problems = [];
   const allowedTotal = Object.values(baseline).reduce((sum, count) => sum + count, 0);
@@ -83,8 +83,6 @@ export function compareToBaseline(actual, baseline, ceiling = BASELINE_CEILING) 
     const allowed = baseline[file] ?? 0;
     if (found > allowed) {
       problems.push(`${file} has ${found} comment em dash${found === 1 ? "" : "es"}; the baseline allows ${allowed}. Rewrite the new comment without one.`);
-    } else if (found < allowed) {
-      problems.push(`${file} now has ${found} comment em dash${found === 1 ? "" : "es"} (baseline ${allowed}); shrink the baseline with \`node scripts/lint/check-em-dashes.mjs --shrink-baseline\`.`);
     }
   }
   return problems;

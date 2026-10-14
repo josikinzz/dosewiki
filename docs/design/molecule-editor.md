@@ -105,13 +105,11 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
 
 ## Renderer verification notes
 
-The OpenChemLib renderer was validated in Node before the switch (probe scripts, now covered by
-`renderMoleculeSvg.integration.test.ts`):
+The OpenChemLib renderer was validated in Node before the switch with probe scripts:
 
 - `toSVG` draws the MOL block verbatim: coordinates, wedges, and the explicit Kekulé pattern;
   with no sanitization step to re-derive any of them.
-- No phantom hydrogen: a chiral pure hydrocarbon renders with no atom labels at all (the Fig. 1
-  regression test).
+- No phantom hydrogen: a chiral pure hydrocarbon renders with no atom labels at all.
 - `maxAVBL` pins the drawn bond length (28 px brand length) inside a generous canvas;
   `autoCrop` then trims to a tight, non-zero-origin viewBox.
 - OCL emits fixed CPK `rgb(...)` strings per element and real `<text>` labels; both are

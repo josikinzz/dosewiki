@@ -266,7 +266,7 @@ _Avoid_: Review Needed, In Progress, Flagged in progress, Completed (as a status
 
 ## Editor Vocabulary
 
-The words every editor-facing string uses in `/dev`, /review and the editors that open on public pages. `src/features/dev/editorVocabulary.test.ts` fails when a visible string in those modules uses a banned phrase (git, pipeline and transport jargon such as baseline, rebase, reconcile, working set, staged change, projection, payload, receipt, endpoint), and names the word to use instead. Stored values, identifiers and API fields keep their names; only visible copy follows this list.
+The words every editor-facing string uses in `/dev`, /review and the editors that open on public pages. Visible strings in those modules avoid git, pipeline and transport jargon (baseline, rebase, reconcile, working set, staged change, projection, payload, receipt, endpoint); use the words below instead. Stored values, identifiers and API fields keep their names; only visible copy follows this list.
 
 **Change Review**:
 The `/dev` tool where admins decide proposals and Recommended Reviewed requests. A submission's notice links to it with Open in Change Review.

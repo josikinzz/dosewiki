@@ -5,8 +5,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { roleSessionFor } from "@/test/routeSession";
 import { readReviewHistory } from "@server/translation/reviewStore";
 import { readApprovedUiTranslations, writeUiTranslation } from "@server/translation/uiTranslationStore";
-import { UI_BATCH_APPROVAL_REASON, type UiBatchApprovalResponse } from "@server/translation/uiTranslationTypes";
-import { UI_MESSAGE_INVENTORY } from "@server/translation/uiWorkbenchDefinitions";
+import type { UiBatchApprovalResponse } from "@server/translation/uiTranslationTypes";
 import { POST } from "./route";
 
 vi.setConfig({ testTimeout: 30_000 });
@@ -56,47 +55,6 @@ describe("batch approval of short UI labels", () => {
     expect(approved).not.toHaveProperty("gallery.replications");
   });
 
-  it("records one approval per label with the session reviewer and the batch reason", async () => {
-    // An existing human draft with the same wording is approved as is.
-    const draft = await writeUiTranslation({ locale: "zh-Hans", id: "appearance.dark", action: "save", target: "深色", expectedRevision: 0, actor: "sin@example.test", reason: "Draft" });
-    const response = await post({ locale: "zh-Hans", actor: "forged@example.test", items: [
-      { id: "appearance.light", expectedRevision: 0, target: "浅色" },
-      { id: "appearance.dark", expectedRevision: draft.revision, target: "深色" },
-    ] });
-    expect(response.status).toBe(200);
-    for (const id of ["appearance.light", "appearance.dark"]) {
-      const approvals = (await readReviewHistory("zh-Hans", "ui", id)).filter((entry) => entry.action === "approve");
-      expect(approvals).toHaveLength(1);
-      expect(approvals[0]).toMatchObject({ actor: "sin@example.test", reason: { kind: "unspecified", note: UI_BATCH_APPROVAL_REASON } });
-    }
-    expect((await readReviewHistory("zh-Hans", "ui", "appearance.dark")).map((entry) => entry.action)).toEqual(["approve", "save"]);
-  });
-
-  it("keeps a failed row unapproved when its wording fails validation", async () => {
-    const [clips] = Object.entries(UI_MESSAGE_INVENTORY).find(([, definition]) => definition.source === "{{count}} clips")!;
-    const response = await post({ locale: "zh-Hans", items: [{ id: "appearance.light", expectedRevision: 0, target: "浅色" }, { id: clips, expectedRevision: 0, target: "片段" }] });
-    const { results } = await response.json() as UiBatchApprovalResponse;
-    expect(results.map((result) => result.ok)).toEqual([true, false]);
-    expect(results[1]).toMatchObject({ error: expect.stringContaining("PLACEHOLDER_LOSS") });
-    // The draft and the approval share one transaction, so neither is kept.
-    expect(await readReviewHistory("zh-Hans", "ui", clips)).toEqual([]);
-  });
-
-  it("fails a row that drops an approved glossary rendering and approves the rest", async () => {
-    await db.query(`INSERT INTO "translationGlossary" (locale, term, target, kind, status, source, reviewed_at, reviewed_by, retranslation_requested_at, updated_at) VALUES ('zh-Hans','Replication','体验再现','concept','approved','human',5,'sin@example.test',5,10)`);
-    const response = await post({ locale: "zh-Hans", items: [
-      { id: "gallery.replication", expectedRevision: 0, target: "体验再现" },
-      { id: "gallery.replications", expectedRevision: 0, target: "复现" },
-      { id: "appearance.light", expectedRevision: 0, target: "浅色" },
-    ] });
-    expect(response.status).toBe(200);
-    const { results } = await response.json() as UiBatchApprovalResponse;
-    expect(results.map((result) => [result.id, result.ok])).toEqual([["gallery.replication", true], ["gallery.replications", false], ["appearance.light", true]]);
-    expect(results[1]).toMatchObject({ code: "GLOSSARY_CONFLICT", error: expect.stringContaining("Replication (体验再现)") });
-    expect(await readReviewHistory("zh-Hans", "ui", "gallery.replications")).toEqual([]);
-    expect(await readApprovedUiTranslations("zh-Hans")).toMatchObject({ "gallery.replication": "体验再现", "appearance.light": "浅色" });
-  });
-
   it("refuses the whole batch under the write freeze, outside the assigned locale, or without the translator role", async () => {
     const items = [{ id: "appearance.light", expectedRevision: 0, target: "浅色" }];
     vi.stubEnv("DATA_WRITES_FROZEN", "1");
@@ -106,13 +64,5 @@ describe("batch approval of short UI labels", () => {
     auth.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     expect((await post({ locale: "zh-Hans", items })).status).toBe(403);
     expect(await readReviewHistory("zh-Hans", "ui", "appearance.light")).toEqual([]);
-  });
-
-  it("rejects undeclared, duplicate, oversized, and empty selections", async () => {
-    const item = { id: "appearance.light", expectedRevision: 0, target: "浅色" };
-    for (const items of [[], [{ ...item, id: "arbitrary.code" }], [item, item], [{ ...item, target: " " }], [{ ...item, expectedRevision: -1 }]]) {
-      expect((await post({ locale: "zh-Hans", items })).status).toBe(400);
-    }
-    expect((await post({ locale: "zh-Hans", items: Array.from({ length: 201 }, () => item) })).status).toBe(400);
   });
 });

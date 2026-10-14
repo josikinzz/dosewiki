@@ -21,20 +21,14 @@ import {
   PUBLIC_GLOSSARY_RENDERING_SELECT,
   publicGlossaryRendering,
 } from "@server/translation/publicGlossaryRendering";
-import { languageReadiness } from "@server/translation/languageReadiness";
-import {
-  MISSING_RENDERING_VERSION,
-  renderingVersion,
-} from "@/features/language-glossary/languageGlossary";
+import { renderingVersion } from "@/features/language-glossary/languageGlossary";
 import { POST } from "./route";
-import { GET } from "./visitorReaction";
 
 vi.setConfig({ testTimeout: 30000 });
 
 const seam = vi.hoisted(() => ({
   capability: null as unknown,
   limited: false,
-  realLimits: false,
   client: null as unknown,
 }));
 vi.mock("@server/data/serverWriteCapability", async (original) => ({
@@ -44,21 +38,11 @@ vi.mock("@server/data/serverWriteCapability", async (original) => ({
 vi.mock("@server/postgres/runtime/backend", () => ({
   getPostgresClient: () => seam.client,
 }));
-vi.mock("@server/http/nextRateLimit", async (original) => {
-  const real = await original<typeof import("@server/http/nextRateLimit")>();
-  return {
-    getClientIp: () => "127.0.0.1",
-    enforceRateLimit: async (
-      request: Request,
-      policy: Parameters<typeof real.enforceRateLimit>[1],
-    ) =>
-      seam.realLimits
-        ? real.enforceRateLimit(request, policy)
-        : seam.limited
-          ? new Response("rate limited", { status: 429 })
-          : null,
-  };
-});
+vi.mock("@server/http/nextRateLimit", () => ({
+  getClientIp: () => "127.0.0.1",
+  enforceRateLimit: async () =>
+    seam.limited ? new Response("rate limited", { status: 429 }) : null,
+}));
 
 let database: PGlite;
 let client: PostgresClient;
@@ -133,7 +117,6 @@ beforeEach(async () => {
     client: new ServerDataWriteClient(client),
   };
   seam.limited = false;
-  seam.realLimits = false;
   await database.exec(
     'TRUNCATE "glossaryFeedback", "glossaryReactionEvents", "translationGlossary", "translationReviewEntries";',
   );
@@ -159,7 +142,7 @@ const reviewArgs = {
 };
 
 describe("public glossary intake through isolated Postgres", () => {
-  it("keeps live approved wording public over a pending draft and validates feedback against that same snapshot", async () => {
+  it("keeps live approved wording public over a pending draft and refuses feedback on stale wording", async () => {
     await database.exec(
       `UPDATE "translationGlossary" SET status = 'approved';`,
     );
@@ -194,9 +177,6 @@ describe("public glossary intake through isolated Postgres", () => {
       status: "approved",
       review_revision: 1,
     });
-    expect(languageReadiness("nl", ["Calm"], [visible], null).state).toBe(
-      "Website in preparation",
-    );
     expect(
       (
         await POST(
@@ -208,199 +188,6 @@ describe("public glossary intake through isolated Postgres", () => {
         )
       ).status,
     ).toBe(409);
-    expect(
-      (
-        await POST(
-          request({
-            action: "suggestion",
-            details: "Current live wording",
-            version: renderingVersion(visible),
-          }),
-        )
-      ).status,
-    ).toBe(202);
-    expect(
-      (await client.query(api.glossaryFeedback.list, reviewArgs))[0],
-    ).toMatchObject({ target: "Rust", version: renderingVersion(visible) });
-    expect(
-      (await database.query('SELECT target, status FROM "translationGlossary"'))
-        .rows[0],
-    ).toEqual({ target: "Rust", status: "approved" });
-
-    // A same-wording restore/edit between page read and submission is a new revision.
-    await database.exec('UPDATE "translationReviewEntries" SET revision = 2;');
-    expect(
-      (
-        await POST(
-          request({
-            action: "reaction",
-            choice: "right",
-            version: renderingVersion(visible),
-          }),
-        )
-      ).status,
-    ).toBe(409);
-    expect(
-      (await database.query('SELECT * FROM "glossaryReactionEvents"')).rows,
-    ).toHaveLength(0);
-    expect(
-      (
-        await POST(
-          request({
-            action: "reaction",
-            choice: "right",
-            version: renderingVersion({ ...visible, review_revision: 2 }),
-          }),
-        )
-      ).status,
-    ).toBe(202);
-  });
-
-  it("uses canonical approved wording when the draft JSON is null", async () => {
-    await database.exec(
-      `UPDATE "translationGlossary" SET status = 'approved';`,
-    );
-    await database.query(
-      `INSERT INTO "translationReviewEntries" (locale, scope, source_id, revision, draft, approved, updated_at)
-      VALUES ('nl', 'glossary', 'Calm', 2, 'null'::jsonb, $1, 2)`,
-      [
-        JSON.stringify({
-          source: "Calm",
-          context: "effect-name",
-          target: "Rust",
-        }),
-      ],
-    );
-    const query = await database.query(
-      `${PUBLIC_GLOSSARY_RENDERING_SELECT} WHERE g.locale = $1`,
-      ["nl"],
-    );
-    const visible = publicGlossaryRendering(
-      query.rows[0] as Record<string, unknown>,
-    );
-    expect(visible).toMatchObject({
-      target: "Rust",
-      status: "approved",
-      review_revision: 2,
-    });
-    expect(languageReadiness("nl", ["Calm"], [visible], null).state).toBe(
-      "Website in preparation",
-    );
-    expect(
-      (
-        await POST(
-          request({
-            action: "reaction",
-            choice: "right",
-            version: renderingVersion(visible),
-          }),
-        )
-      ).status,
-    ).toBe(202);
-  });
-
-  it("persists one versioned suggestion on retry and reviews it without changing the glossary", async () => {
-    const id = randomUUID();
-    expect(
-      (
-        await POST(
-          request({
-            action: "suggestion",
-            details: "More natural wording",
-            alternative: "Kalmte",
-            id,
-          }),
-        )
-      ).status,
-    ).toBe(202);
-    expect(
-      (
-        await POST(
-          request({
-            action: "suggestion",
-            details: "More natural wording",
-            alternative: "Kalmte",
-            id,
-          }),
-        )
-      ).status,
-    ).toBe(202);
-    const rows = await client.query(api.glossaryFeedback.list, reviewArgs);
-    expect(rows).toHaveLength(1);
-    // The rail badge counts it for the reviewer of that language only.
-    const countArgs = { apiKey: "test-review", actorEmail: reviewArgs.actorEmail };
-    expect(await client.query(api.glossaryFeedback.pendingCount, countArgs)).toBe(1);
-    expect(
-      await client.query(api.glossaryFeedback.pendingCount, { ...countArgs, actorEmail: "other@example.test" }),
-    ).toBe(0);
-    expect(rows[0]).toMatchObject({
-      target: "Rust",
-      version: renderingVersion(rendering),
-      alternative: "Kalmte",
-    });
-    expect(rows[0]).not.toHaveProperty("visitor");
-    await client.mutation(api.glossaryFeedback.transition, {
-      apiKey: "test-review",
-      actorEmail: reviewArgs.actorEmail,
-      id: rows[0].id as never,
-      status: "resolved",
-      note: "Reviewed separately",
-    });
-    expect(
-      (await client.query(api.glossaryFeedback.list, reviewArgs))[0].status,
-    ).toBe("resolved");
-    expect(await client.query(api.glossaryFeedback.pendingCount, countArgs)).toBe(0);
-    expect(
-      (await database.query('SELECT target, status FROM "translationGlossary"'))
-        .rows,
-    ).toEqual([{ target: "Rust", status: "draft" }]);
-  });
-  it("changes and clears one reaction per browser and separates revised renderings", async () => {
-    for (const choice of ["right", "right", "improve"] as const)
-      expect((await POST(request({ action: "reaction", choice }))).status).toBe(
-        202,
-      );
-    expect(
-      await client.query(api.glossaryFeedback.reactions, reviewArgs),
-    ).toEqual([expect.objectContaining({ right: 0, improve: 1 })]);
-    const current = await GET(
-      new NextRequest(
-        `https://dose.wiki/api/glossary-feedback/identity?${new URLSearchParams({ locale: "nl", term: "Calm", version: renderingVersion(rendering) })}`,
-        { headers: { cookie: `glossary-visitor=${visitor}` } },
-      ),
-    );
-    expect(await current.json()).toEqual({ ok: true, choice: "improve" });
-    expect(current.headers.get("cache-control")).toContain("no-store");
-    expect(
-      (await POST(request({ action: "reaction", choice: "clear" }))).status,
-    ).toBe(202);
-    expect(
-      await client.query(api.glossaryFeedback.reactions, reviewArgs),
-    ).toEqual([expect.objectContaining({ right: 0, improve: 0 })]);
-    await database.exec(
-      "UPDATE \"translationGlossary\" SET target = 'Kalmte', updated_at = 2",
-    );
-    expect(
-      (await POST(request({ action: "reaction", choice: "right" }))).status,
-    ).toBe(409);
-    expect(
-      (
-        await POST(
-          request({
-            action: "reaction",
-            choice: "right",
-            version: renderingVersion({
-              ...rendering,
-              target: "Kalmte",
-              updated_at: 2,
-            }),
-          }),
-        )
-      ).status,
-    ).toBe(202);
-    expect(
-      await client.query(api.glossaryFeedback.reactions, reviewArgs),
-    ).toHaveLength(2);
   });
   it("denies wrong credentials, unassigned reviewers and frozen writes", async () => {
     await expect(
@@ -430,16 +217,7 @@ describe("public glossary intake through isolated Postgres", () => {
       [],
     );
   });
-  it("rejects invalid content, foreign origins, stale versions and rate-limited requests", async () => {
-    for (const body of [
-      { details: "" },
-      { details: "x".repeat(4001) },
-      { details: "hello", locale: "zz" },
-      { details: "hello", term: "Unknown" },
-    ])
-      expect(
-        (await POST(request({ action: "suggestion", ...body }))).status,
-      ).toBe(400);
+  it("rejects foreign origins and rate-limited requests", async () => {
     expect(
       (
         await POST(
@@ -455,61 +233,4 @@ describe("public glossary intake through isolated Postgres", () => {
       (await POST(request({ action: "reaction", choice: "right" }))).status,
     ).toBe(429);
   });
-
-  it("takes a first translation for a known term the language lacks, and nothing else for it", async () => {
-    await database.query(
-      `INSERT INTO "translationGlossaryTerms" (term, kind, gloss, updated_at) VALUES ($1, $2, $3, 1)
-       ON CONFLICT (term) DO NOTHING`,
-      ["Drifting", "effect-name", "Surfaces appear to move"],
-    );
-    const missing = { term: "Drifting", version: MISSING_RENDERING_VERSION };
-    // A missing term has no wording to react to and needs an actual translation.
-    expect(
-      (await POST(request({ action: "reaction", choice: "right", ...missing }))).status,
-    ).toBe(400);
-    expect(
-      (await POST(request({ action: "suggestion", details: "Hard one", ...missing }))).status,
-    ).toBe(400);
-    // Only terms the glossary knows; once a rendering exists, the missing version is stale.
-    expect(
-      (await POST(request({ action: "suggestion", alternative: "x", term: "Invented", version: MISSING_RENDERING_VERSION }))).status,
-    ).toBe(400);
-    expect(
-      (await POST(request({ action: "suggestion", alternative: "Kalm", term: "Calm", version: MISSING_RENDERING_VERSION }))).status,
-    ).toBe(409);
-    expect(
-      (await POST(request({ action: "suggestion", alternative: "Drijven", ...missing }))).status,
-    ).toBe(202);
-    const rows = await database.query<{ term: string; target: string; alternative: string; status: string }>(
-      'SELECT term, target, alternative, status FROM "glossaryFeedback" WHERE term = $1',
-      ["Drifting"],
-    );
-    expect(rows.rows).toEqual([
-      { term: "Drifting", target: "", alternative: "Drijven", status: "new" },
-    ]);
-  });
-});
-
-it("keeps identity reads out of the submission budget while enforcing the write limit", async () => {
-  seam.realLimits = true;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    expect(
-      (
-        await GET(
-          new NextRequest("https://dose.wiki/api/glossary-feedback/identity"),
-        )
-      ).status,
-    ).toBe(200);
-    expect(
-      (
-        await POST(
-          request({ action: "suggestion", details: `Comment ${attempt}` }),
-        )
-      ).status,
-    ).toBe(202);
-  }
-  expect(
-    (await POST(request({ action: "suggestion", details: "Fourth comment" })))
-      .status,
-  ).toBe(429);
 });

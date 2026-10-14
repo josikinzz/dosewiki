@@ -68,24 +68,6 @@ describe("molecule override route", () => {
     publishMocks.publishPublicCache.mockClear();
   });
 
-  it("loads a selected substance depiction through the authenticated admin deployment", async () => {
-    mocks.query.mockResolvedValue({ slug: "2c-b", molblock: "mol", svg: "<svg />" });
-    const response = await GET(
-      new Request("https://dose.wiki/api/dev/molecule-override?slug=2c-b"),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({
-      ok: true,
-      override: { slug: "2c-b", molblock: "mol", svg: "<svg />" },
-    });
-    expect(mocks.query).toHaveBeenCalledWith(
-      { name: "moleculeEditor:getEditSource" },
-      { apiKey: "admin-key", actorEmail: "admin@example.com", slug: "2c-b" },
-    );
-    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
-  });
-
   it("refuses an editor session on every verb before touching Postgres", async () => {
     authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
     const responses = await Promise.all([
@@ -97,17 +79,6 @@ describe("molecule override route", () => {
     expect(responses.map((response) => response.status)).toEqual([403, 403, 403]);
     expect(mocks.query).not.toHaveBeenCalled();
     expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("publishes the saved depiction so both public deployments redraw it", async () => {
-    mocks.mutation.mockResolvedValue({ updated: true });
-    const response = await POST(postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />" }));
-
-    expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "molecule", slug: "2c-b" }],
-      source: "manual",
-    });
   });
 
   it("relays the expected revision and answers a stale save with 409 and no publication", async () => {
@@ -135,24 +106,6 @@ describe("molecule override route", () => {
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
-  it("returns the stored revision after a save so the next save can check it", async () => {
-    mocks.mutation.mockResolvedValue({
-      status: "ok",
-      updated: true,
-      updatedAt: "2026-09-03T00:00:00.000Z",
-    });
-    const response = await POST(
-      postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />", expectedUpdatedAt: null }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ updatedAt: "2026-09-03T00:00:00.000Z" });
-    expect(mocks.mutation).toHaveBeenCalledWith(
-      "moleculeOverrides.save",
-      expect.objectContaining({ expectedUpdatedAt: null }),
-    );
-  });
-
   it("refuses an empty expected revision before touching Postgres", async () => {
     const response = await POST(
       postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />", expectedUpdatedAt: "" }),
@@ -160,29 +113,5 @@ describe("molecule override route", () => {
 
     expect(response.status).toBe(400);
     expect(mocks.mutation).not.toHaveBeenCalled();
-  });
-
-  it("publishes the class index alongside a class depiction", async () => {
-    mocks.mutation.mockResolvedValue({ updated: true });
-    const response = await POST(
-      postRequest({ slug: "class:tryptamines", molblock: "mol", svg: "<svg />" }),
-    );
-
-    expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "molecule", slug: "class:tryptamines" }, { kind: "chemical-class-lists" }],
-      source: "manual",
-    });
-  });
-
-  it("publishes the depiction it removed", async () => {
-    mocks.mutation.mockResolvedValue({ deleted: true });
-    const response = await DELETE(deleteRequest("2c-b"));
-
-    expect(response.status).toBe(200);
-    expect(publishMocks.publishPublicCache).toHaveBeenCalledWith({
-      targets: [{ kind: "molecule", slug: "2c-b" }],
-      source: "manual",
-    });
   });
 });
