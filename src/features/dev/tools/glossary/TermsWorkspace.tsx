@@ -105,7 +105,6 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
     group,
     editDrafts: props.editDrafts,
     totals: totals[group.category.id] ?? { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount },
-    statusFilter: filters.status,
     disabled: props.busy,
     writingTerm: props.writingTerm,
     glosses: props.glosses,

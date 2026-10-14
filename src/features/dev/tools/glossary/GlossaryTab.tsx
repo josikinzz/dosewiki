@@ -27,6 +27,8 @@
  * A single-row write locks only its own row, so a reviewer can keep typing in
  * the next one; after the row updates in place, focus moves to the next unreviewed row so
  * the reviewer can continue through the list with explicit approval buttons.
+ * A row approved this way keeps its place under a status filter until the
+ * filter changes (see useHeldInPlace).
  *
  * Under each term sits its definition (gloss): the one-line English meaning
  * the prompt injects beside the approved rendering and the public /glossary
@@ -67,7 +69,6 @@ import {
   draftMissingTerms,
   fetchGlossary,
   fetchGlossaryProgress,
-  filterRows,
   groupRows,
   isLiveUnchecked,
   languageLabel,
@@ -93,6 +94,7 @@ import { DraftMap, useDraftMapHasEntries, type DraftMapOf } from "./draftMap";
 import { GlossaryCollisionDialog } from "./GlossaryCollisionDialog";
 import { type GlossaryEditDrafts, type GlossaryRowNotice } from "./GlossaryReviewTable";
 import { GlossaryActionBar } from "./GlossaryToolbar";
+import { importConfirmation, readGlossaryImport } from "./glossaryImport";
 import { StatusLegend } from "./StatusLegend";
 import { TermsWorkspace } from "./TermsWorkspace";
 import { type NextCategory } from "./TermsOverview";
@@ -100,6 +102,7 @@ import type { UiEditDrafts } from "./UiTranslationWorkbench";
 import { RowSkeletons } from "./workbenchParts";
 import { ArticlesView, ReaderSuggestions, ReviewInbox, StyleGuidePanel, UiTranslationWorkbench } from "./lazyPanels";
 import { useReaderSuggestionCount } from "./readerSuggestionCount";
+import { useHeldInPlace } from "./useHeldInPlace";
 import { workbenchTabs, type WorkbenchSection } from "./workbenchSections";
 
 /** A write's outcome: the message to show, and the written rows to patch in place (`null` reloads the locale instead). */
@@ -236,6 +239,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const loadVersion = useRef(0);
   const refreshInFlight = useRef(false);
   const [filters, setFilters] = useState<GlossaryFilters>(DEFAULT_FILTERS);
+  const { rows, hold: holdInPlace, release: releaseHeld } = useHeldInPlace(data, filters);
   const [busy, setBusy] = useState<Busy>(null);
   /** The one row an approve or save is writing; every other row stays editable. */
   const [writing, setWriting] = useState<Writing | null>(null);
@@ -348,6 +352,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   /** Refresh: a full reload, shown as in progress on the button until it lands. */
   const refresh = async () => {
+    releaseHeld();
     setBusy("load");
     try {
       await load(locale);
@@ -383,7 +388,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     rows[next ?? order[index]]?.querySelector<HTMLInputElement>('input[aria-label^="Translation for"]')?.focus();
   }, [writingTerm]);
 
-  const rows = useMemo(() => (data ? filterRows(data.rows, filters) : []), [data, filters]);
   const groups = useMemo(() => groupRows(rows), [rows]);
   const allGroups = useMemo(() => (data ? groupRows(data.rows) : []), [data]);
   // Header numerics come from the unfiltered rows, so "34 of 120 unreviewed"
@@ -485,12 +489,14 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const approveOne = (row: GlossaryRow) =>
     run("approve", async (collisionConfirmation) => {
       const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: row.revision });
+      holdInPlace([row.term]);
       return { message: `Approved "${row.term}".`, patch };
     }, row.term);
 
   const approveMany = (terms: readonly string[]) =>
     run("approve", async (collisionConfirmation) => {
       const approved = await approveTerms(locale!, terms, collisionConfirmation, Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision])));
+      holdInPlace(approved.terms);
       return { message: `Approved ${count(approved.terms.length, "term")}.`, patch: approved.patch };
     });
 
@@ -576,6 +582,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       }
       termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
       const { patch } = await approveTerms(locale!, [row.term], collisionConfirmation, { [row.term]: saved.revision }, reason);
+      holdInPlace([row.term]);
       return { message: `Approved "${row.term}" as ${saved.target}.`, patch };
     }, row.term);
   };
@@ -679,14 +686,16 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
   };
 
-  /** Reads the chosen file here and sends it whole; the server writes all of it or none. */
+  /** The file is parsed and its terms confirmed here (see glossaryImport), then sent whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
-    const csv = file.text();
-    await run("import", async (collisionConfirmation) => {
-      const summary = await importGlossaryCsv(locale!, await csv, collisionConfirmation);
-      return `Imported ${count(summary.drafts, "draft")}; each requires explicit approval.`;
-    });
+    const read = await readGlossaryImport(file);
+    if ("error" in read) return setNotice({ tone: "danger", message: read.error, where: "terms" });
+    confirm(importConfirmation(read, locale!, () =>
+      void run("import", async (collisionConfirmation) => {
+        const summary = await importGlossaryCsv(locale!, read.csv, collisionConfirmation);
+        return `Imported ${count(summary.drafts, "draft")}; each requires explicit approval.`;
+      })));
   };
 
   // Every panel below is keyed on the language, so a switch remounts them and

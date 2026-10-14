@@ -16,7 +16,6 @@ import {
   type GlossaryGroup,
   type GlossaryRow,
   type GlossaryRowPatch,
-  type GlossaryStatusFilter,
 } from "./glossaryModel";
 
 import { TranslationHistory, translationRequest } from "./TranslationHistory";
@@ -57,7 +56,6 @@ export type GlossaryGroupSectionProps = {
   editDrafts: GlossaryEditDrafts;
   /** Category counts from the unfiltered rows, so the header keeps its meaning while a search narrows the list. */
   totals: { total: number; draft: number; unchecked: number };
-  statusFilter: GlossaryStatusFilter;
   /** A whole-tab write is in flight; every row locks. */
   disabled: boolean;
   /** The one row a single-row write is locking, if any. */
@@ -91,7 +89,7 @@ export type GlossaryGroupSectionProps = {
  * of how much there is, the two bulk actions (each touching exactly its own
  * count, and each confirming first), then the rows as an open list.
  */
-export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, disabled, writingTerm, glosses, usages, canDefine, headingLevel: Heading = "h3", headingId, lead, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, onReload, rowNotice }: GlossaryGroupSectionProps) {
+export function GlossaryGroupSection({ group, editDrafts, totals, disabled, writingTerm, glosses, usages, canDefine, headingLevel: Heading = "h3", headingId, lead, onApproveAll, onConfirmAll, onApprove, onConfirm, onSave, onSaveAndApprove, onSaveDefinition, onRestored, onReload, rowNotice }: GlossaryGroupSectionProps) {
   const { category, rows, draftCount, uncheckedCount } = group;
   const open = standingLabel({ drafts: totals.draft, unchecked: totals.unchecked });
   const standing = open ? `${open} · ${count(totals.total, "term")}` : count(totals.total, "term");
@@ -110,8 +108,8 @@ export function GlossaryGroupSection({ group, editDrafts, totals, statusFilter, 
                 <span className="block h-full bg-[var(--theme-accent)]" style={{ width: `${reviewedShare(totals)}%` }} />
               </span>
               <span>{standing}</span>
-              {/* A "Reviewed" pill only where a reviewed category can be seen at all; under Unreviewed it can never appear. */}
-              {!open && statusFilter === "all" ? <EditorStatusPill tone="success" inline>Reviewed</EditorStatusPill> : null}
+              {/* Whenever the category is on screen with nothing left to decide, including the moment its last row was just approved and held in place. */}
+              {!open ? <EditorStatusPill tone="success" inline>Reviewed</EditorStatusPill> : null}
             </p>
           </div>
           {draftCount > 0 || uncheckedCount > 0 ? (
