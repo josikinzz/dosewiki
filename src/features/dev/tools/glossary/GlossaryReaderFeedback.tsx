@@ -1,10 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import {
-  FeedbackReviewQueue,
-  type FeedbackQueueFilter,
-} from "../feedback/FeedbackReviewQueue";
-import { glossaryFeedbackAdapter } from "../feedback/glossaryFeedbackAdapter";
+import { useEffect, useState } from "react";
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -19,15 +14,11 @@ type ReactionTotals = {
   right: number;
   improve: number;
 };
-/** Reader feedback and website readiness, a section of the Articles view. */
+/** Readers' reactions and website readiness, a section of the Articles view. Suggestions have their own view. */
 export function GlossaryReaderFeedback({ locale }: { locale: string }) {
   return <ReviewContent key={locale} locale={locale} />;
 }
 function ReviewContent({ locale }: { locale: string }) {
-  const [statusFilter, setStatusFilter] = useState<FeedbackQueueFilter | null>(
-    null,
-  );
-  const adapter = useMemo(() => glossaryFeedbackAdapter(locale), [locale]);
   const [data, setData] = useState<{
     totals: ReactionTotals[];
     readiness: { state: string; stale: boolean; revision: string } | null;
@@ -144,13 +135,9 @@ function ReviewContent({ locale }: { locale: string }) {
           <RowSkeletons rows={3} label="reactions and readiness" />
         ) : null}
       </section>
-      <section aria-label="Reader suggestions" className="space-y-3">
-        <FeedbackReviewQueue
-          adapter={adapter}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-        />
-      </section>
+      <p className="theme-text-muted text-sm">
+        Suggestions readers send from the public glossary are in Suggestions, beside Waiting.
+      </p>
     </div>
   );
 }

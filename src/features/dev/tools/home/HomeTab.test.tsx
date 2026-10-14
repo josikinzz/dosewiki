@@ -180,7 +180,8 @@ describe("Home cards", () => {
       "/dev/trip-report-submissions",
       "/dev/article-feedback?source=article",
       "/dev/article-feedback?source=site",
-      "/dev/glossary?translationView=inbox",
+      // Glossary feedback opens the reader suggestions, not the whole waiting list.
+      "/dev/glossary?translationView=suggestions",
       "/dev/citation-review",
       "/dev/queue",
       "/dev/queue",

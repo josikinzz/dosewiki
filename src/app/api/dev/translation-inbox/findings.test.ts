@@ -239,7 +239,7 @@ describe("inbox findings over isolated Postgres", () => {
     expect((await read("segment-rejected")).total).toBe(0);
   });
 
-  it("lists a suggestion sent through the public feedback route last, and Resolve updates its feedback status", async () => {
+  it("lists a suggestion sent through the public feedback route first, ahead of every automated finding, and Resolve updates its feedback status", async () => {
     await store(PHENIDATE_SOURCE, PHENIDATE_TARGET);
     const visitor = randomUUID();
     const submitted = await feedbackPost(new NextRequest("https://dose.wiki/api/glossary-feedback", {
@@ -253,13 +253,15 @@ describe("inbox findings over isolated Postgres", () => {
     expect(submitted.status).toBe(202);
 
     const body = await read();
-    const last = body.items[body.items.length - 1];
-    expect(last).toMatchObject({ scope: "feedback", reason: "reader-suggestion", english: "Phenidate", live: "哌甲酯类", suggestion: "哌醋甲酯类" });
-    expect(last.href).toContain("translationTerm=Phenidate");
-    if (last.accept?.kind !== "feedback-resolve") throw new Error("expected a feedback resolve");
+    // The stored translation also yields an automated finding; the reader's suggestion still leads.
+    expect(body.items.length).toBeGreaterThan(1);
+    const first = body.items[0];
+    expect(first).toMatchObject({ scope: "feedback", reason: "reader-suggestion", english: "Phenidate", live: "哌甲酯类", suggestion: "哌醋甲酯类" });
+    expect(first.href).toContain("translationTerm=Phenidate");
+    if (first.accept?.kind !== "feedback-resolve") throw new Error("expected a feedback resolve");
 
     // Resolve goes through the existing feedback status mutation.
-    const resolved = await feedbackStatusPost(post(`/api/glossary-feedback/${last.accept.id}/status`, { status: "resolved", note: "Resolved from the Inbox" }));
+    const resolved = await feedbackStatusPost(post(`/api/glossary-feedback/${first.accept.id}/status`, { status: "resolved", note: "Resolved from the Inbox" }));
     expect(resolved.status).toBe(200);
     expect((await database.query(`SELECT status, reviewed_by FROM "glossaryFeedback"`)).rows).toEqual([{ status: "resolved", reviewed_by: reviewer.email }]);
     expect((await read("reader-suggestion")).total).toBe(0);
