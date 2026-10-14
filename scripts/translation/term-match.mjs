@@ -106,3 +106,43 @@ export function termFragments(term) {
   if (current) fragments.push(current);
   return fragments;
 }
+
+const ALNUM_RUN = /[A-Za-z0-9]+/g;
+/** Letters of a run's start that index a term; a run is looked up by each of its first ones. */
+const KEY_LENGTH = 3;
+
+/**
+ * Which of many terms a text mentions, in the order given: the same answer
+ * as filtering them with `mentionsTerm`, without running every matcher on
+ * every text. A match of a term's first word or identifier is always a whole
+ * run of ASCII letters and digits in the text (the matcher's `\b` and the
+ * term's own separators bound it, and its case folding never reaches outside
+ * ASCII), and that run starts with the word's stem. So the text's runs, keyed
+ * by their first letters, name every candidate, and the matcher still decides.
+ * Pass `termOf` to get back the caller's own items.
+ */
+export function termFinder(items, termOf = (item) => item) {
+  const byKey = new Map();
+  const always = [];
+  items.forEach((item, index) => {
+    const anchor = tokens(termOf(item)).find((token) => /[A-Za-z0-9]/.test(token.text));
+    const key = anchor ? (anchor.literal ? anchor.text : anchor.stem).toLowerCase().slice(0, KEY_LENGTH) : "";
+    if (!key) {
+      always.push(index);
+      return;
+    }
+    const list = byKey.get(key);
+    if (list) list.push(index);
+    else byKey.set(key, [index]);
+  });
+  return (text) => {
+    const candidates = new Set(always);
+    for (const [run] of text.matchAll(ALNUM_RUN)) {
+      const lower = run.toLowerCase();
+      for (let length = 1; length <= Math.min(KEY_LENGTH, lower.length); length += 1) {
+        for (const index of byKey.get(lower.slice(0, length)) ?? []) candidates.add(index);
+      }
+    }
+    return [...candidates].sort((a, b) => a - b).filter((index) => mentionsTerm(text, termOf(items[index]))).map((index) => items[index]);
+  };
+}

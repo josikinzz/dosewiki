@@ -162,6 +162,10 @@ export const WORKBENCH_PATH = "/dev/glossary";
 export function glossaryTermHref(locale: string, term: string): string {
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "words", translationTerm: term })}`;
 }
+/** Opens the suggestions readers sent from the public glossary, in one language or the workbench's first. */
+export function readerSuggestionsHref(locale?: string): string {
+  return `${WORKBENCH_PATH}?${new URLSearchParams({ ...(locale ? { locale } : {}), translationView: "suggestions" })}`;
+}
 export function uiLabelHref(locale: string, id: string): string {
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationView: "words", translationLabel: id })}`;
 }
@@ -174,8 +178,8 @@ export function translatorNoteHref(locale: string, slug: string, section: string
   return `${WORKBENCH_PATH}?${new URLSearchParams({ locale, translationReview: "article", translationLocale: locale, translationSlug: slug, translationNote: section })}`;
 }
 
-/** The workbench's three views. */
-export type WorkbenchView = "inbox" | "words" | "pages";
+/** The workbench's views: what is waiting, what readers suggested, the words, and the pages. */
+export type WorkbenchView = "inbox" | "suggestions" | "words" | "pages";
 /** Words holds the glossary terms, the UI labels, and the locale style guide. */
 export type WordsList = "terms" | "labels" | "style";
 const WORDS_LISTS: readonly WordsList[] = ["terms", "labels", "style"];
@@ -184,7 +188,8 @@ export type PagesSection = "coverage" | "changes";
 export type WorkbenchDeepLink = { view: WorkbenchView; words?: WordsList; pages?: PagesSection; term?: string; label?: string };
 
 /**
- * Reads a workbench deep link. `translationView=words` opens Words on the list
+ * Reads a workbench deep link. `translationView=suggestions` opens the
+ * reader suggestions; `translationView=words` opens Words on the list
  * `translationWords` names (`terms`, `labels`, or `style`), else on the list
  * a `translationTerm` or `translationLabel` implies. Links written before the
  * three-view layout keep working: `glossary` and `labels` open Words, and `coverage`, `changes`, and
@@ -197,6 +202,7 @@ export function parseWorkbenchDeepLink(search: string): WorkbenchDeepLink | null
   const label = params.get("translationLabel") ?? undefined;
   switch (params.get("translationView")) {
     case "inbox": return { view: "inbox" };
+    case "suggestions": return { view: "suggestions" };
     case "words": {
       const list = params.get("translationWords");
       if (list && (WORDS_LISTS as readonly string[]).includes(list)) return { view: "words", words: list as WordsList, term, label };

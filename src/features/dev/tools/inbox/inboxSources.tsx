@@ -12,10 +12,7 @@ import type {
 } from "@/features/dev/tools/feedback/FeedbackReviewQueue";
 import { formatFeedbackDate } from "@/features/dev/tools/feedback/FeedbackReviewQueue";
 import { readFeedbackList } from "@/features/dev/tools/feedback/feedbackRequests";
-import {
-  glossaryFeedbackAdapter,
-  type GlossaryFeedbackItem,
-} from "@/features/dev/tools/feedback/glossaryFeedbackAdapter";
+import { glossaryFeedbackAdapter, type GlossaryFeedbackItem } from "@/features/dev/tools/feedback/glossaryFeedbackAdapter";
 import { siteFeedbackAdapter } from "@/features/dev/tools/feedback/siteFeedbackAdapter";
 import type { ProposalSummary, ReviewRecommendationRow } from "@/features/dev/tools/queue/queueModel";
 import { fetchProposals, fetchReviewRecommendations } from "@/features/dev/tools/queue/queueRequests";
@@ -37,6 +34,7 @@ import {
 } from "@/features/reports/submissions/tripReportSubmissionStatus";
 import { SITE_FEEDBACK_PENDING_STATUSES } from "@/features/site-feedback/siteFeedback";
 import { devHref } from "@/utils/devHref";
+import { readerSuggestionsHref } from "@server/translation/reviewInboxTypes";
 import { feedbackTaskHref } from "@/features/dev/tools/feedback/feedbackTaskLink";
 import { reviewRecommendationHref } from "@/features/dev/tools/queue/queueTaskLink";
 
@@ -723,7 +721,7 @@ export function createInboxSources(): InboxSourceAdapter[] {
       id: "glossary-feedback",
       adapterFor: (row) => glossaryFeedbackAdapter(row.locale),
       loadPending: allPendingGlossary,
-      href: () => devHref({ type: "dev", tab: "glossary" }),
+      href: (row) => readerSuggestionsHref(row.locale),
       claimer: (row) => (row.status === "reviewing" ? row.reviewed_by?.trim() || null : null),
     }),
     citationsSource(),

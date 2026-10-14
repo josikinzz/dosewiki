@@ -9,7 +9,7 @@
 import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
 import { isLatinName } from "./locales.mjs";
-import { mentionsTerm } from "./term-match.mjs";
+import { mentionsTerm, termFinder } from "./term-match.mjs";
 import { markupTokens, stripMarkup } from "./markup.mjs";
 
 export const DEFECT_CODES = Object.freeze({
@@ -307,6 +307,23 @@ function latinWords(text) {
 }
 
 /**
+ * The kept forms of one glossary and name list, as a term finder. Scans call
+ * `findLeftoverLatin` once per stored target with the same two objects, so
+ * the forms are derived once per pair, by identity; callers do not mutate them.
+ */
+const keptFinders = new WeakMap();
+function keptFinder(glossary, latinNames) {
+  let byNames = keptFinders.get(glossary);
+  if (!byNames) keptFinders.set(glossary, (byNames = new WeakMap()));
+  let finder = byNames.get(latinNames);
+  if (!finder) {
+    finder = termFinder([...Object.values(glossary).flatMap(latinWords), ...[...latinNames].flatMap(latinWords)]);
+    byNames.set(latinNames, finder);
+  }
+  return finder;
+}
+
+/**
  * English words of four or more letters left in Chinese output, in order and
  * once each (as the output spells them). Not a leftover:
  * - protected syntax: citation markers, `{{placeholders}}`, Markdown link
@@ -333,10 +350,7 @@ export function findLeftoverLatin({ source, target, glossary = {}, latinNames = 
     .replace(/（[^（）]*）|\([^()]*\)/g, " ");
   if (markup) text = stripMarkup(text);
 
-  const kept = [
-    ...Object.values(glossary).flatMap(latinWords),
-    ...[...latinNames].flatMap(latinWords),
-  ];
+  const keptIn = keptFinder(glossary, latinNames);
   const found = [];
   for (const [token] of text.matchAll(LATIN_TOKEN)) {
     // Digits or an inner dot mark an identifier: "2C-B", "EC50", "dose.wiki".
@@ -344,7 +358,7 @@ export function findLeftoverLatin({ source, target, glossary = {}, latinNames = 
     for (const word of token.match(/[A-Za-zÀ-ɏ]+/gu) ?? []) {
       if (word.length < LEFTOVER_MIN_LETTERS || found.includes(word)) continue;
       if (isLatinName(word, source)) continue;
-      if (kept.some((form) => mentionsTerm(word, form))) continue;
+      if (keptIn(word).length > 0) continue;
       found.push(word);
     }
   }
