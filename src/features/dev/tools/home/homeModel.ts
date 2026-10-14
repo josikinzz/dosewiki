@@ -7,6 +7,7 @@
 import { canApprove, roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import type { DevRailBadge, DevRailBadgeReading } from "@/features/dev/pages/useDevRailBadges";
 import { devHref } from "@/utils/devHref";
+import { readerSuggestionsHref } from "@server/translation/reviewInboxTypes";
 
 /**
  * - `admin`: everything waiting on an admin, and the pending invites.
@@ -102,7 +103,7 @@ export const ADMIN_WAITING_ROWS: readonly AdminWaitingRow[] = [
     part: "site",
     href: devHref({ type: "dev", tab: "article-feedback", filter: "site" }),
   },
-  { label: "Glossary feedback", badge: "glossary-feedback", href: glossaryInboxHref() },
+  { label: "Glossary feedback", badge: "glossary-feedback", href: readerSuggestionsHref() },
   { label: "Citations", badge: "citations", href: devHref({ type: "dev", tab: "citation-review" }) },
   { label: "Proposals", badge: "proposals", href: devHref({ type: "dev", tab: "queue" }) },
   // Recommendations have no tab of their own; they sit inside Change Review.

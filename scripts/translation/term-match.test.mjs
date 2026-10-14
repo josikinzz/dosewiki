@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { mentionsTerm, termFragments, termMatcher } from "./term-match.mjs";
+import { mentionsTerm, termFinder, termFragments, termMatcher } from "./term-match.mjs";
 
 test("a term matches its plural and its -ing, -ed, and -ion forms, and nothing longer", () => {
   assert.equal(mentionsTerm("The phenidates are a class.", "Phenidate"), true);
@@ -52,4 +52,23 @@ test("every match contains the term's fragments in order, so a substring prefilt
       }
     }
   }
+});
+
+test("a term finder answers exactly what mentionsTerm answers, in the order given", () => {
+  const terms = ["Replication", "come-up", "2C-B", "5-HT2A", "Trip", "visual distortion", "Light", "Toxicity", "Phenidate", "be", "-ish", "→"];
+  const texts = [
+    "Replicating a visual effect.", "The come-ups were fast.", "The come up was fast.", "2C-B is short.", "2C-Bs are short.",
+    "5-HT2A agonists", "Tripping alone.", "Stripped down.", "Visual distortions occur.", "Users felt lightheaded.",
+    "A LIGHT dose.", "Heavy toxicities.", "The phenidates.", "To be or not.", "Greenish-ish.", "a → b",
+    "_replication", "éreplication", "Kreplication", "replication_", "x2C-B", "", "no terms at all",
+  ];
+  const find = termFinder(terms);
+  for (const text of texts) {
+    assert.deepEqual(find(text), terms.filter((term) => mentionsTerm(text, term)), text);
+  }
+});
+
+test("a term finder keeps the caller's items", () => {
+  const items = [{ term: "Trip", target: "a" }, { term: "Light", target: "b" }];
+  assert.deepEqual(termFinder(items, (item) => item.term)("light trips"), items);
 });

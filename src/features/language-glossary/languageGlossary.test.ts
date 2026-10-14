@@ -67,13 +67,40 @@ describe("public language glossary", () => {
 
   it("orders terms that still need a person first, alphabetically within each status", () => {
     const sorted = sortByReviewPriority([
-      { term: "Energy", provenance: "human_review" as const },
-      { term: "Drift", provenance: "legacy_unverified" as const },
-      { term: "Calm", provenance: "machine_suggestion" as const },
-      { term: "Bliss", provenance: "missing" as const },
-      { term: "Awe", provenance: "legacy_unverified" as const },
+      { term: "Energy", kind: "effect-name", provenance: "human_review" as const },
+      { term: "Drift", kind: "effect-name", provenance: "legacy_unverified" as const },
+      { term: "Calm", kind: "effect-name", provenance: "machine_suggestion" as const },
+      { term: "Bliss", kind: "effect-name", provenance: "missing" as const },
+      { term: "Awe", kind: "effect-name", provenance: "legacy_unverified" as const },
     ]);
     expect(sorted.map((entry) => entry.term)).toEqual(["Bliss", "Calm", "Awe", "Drift", "Energy"]);
     expect(sorted.filter(needsHumanReview).map((entry) => entry.term)).toEqual(["Bliss", "Calm", "Awe", "Drift"]);
+  });
+
+  it("puts judgment calls before rule-governed names, whatever the status or spelling", () => {
+    const sorted = sortByReviewPriority([
+      { term: "1,2-Diarylethylamine (diarylethylamines)", kind: "chemical-class", provenance: "missing" as const },
+      { term: "Marquis", kind: "reagent-name", provenance: "machine_suggestion" as const },
+      { term: "Archived label", kind: "retired-kind", provenance: "machine_suggestion" as const },
+      { term: "Dosage", kind: "section-heading", provenance: "machine_suggestion" as const },
+      { term: "Drifting", kind: "effect-name", provenance: "machine_suggestion" as const },
+      { term: "Visual Effects", kind: "effect-category", provenance: "machine_suggestion" as const },
+      { term: "Heavy", kind: "enum:dose-tier", provenance: "machine_suggestion" as const },
+      { term: "comedown", kind: "register", provenance: "legacy_unverified" as const },
+      { term: "Common", kind: "enum:dose-tier", provenance: "machine_suggestion" as const },
+    ]);
+    expect(sorted.map((entry) => entry.term)).toEqual([
+      // Within a tier the less-reviewed wording leads, then each kind stays together.
+      "Common",
+      "Heavy",
+      "comedown",
+      "Visual Effects",
+      "Drifting",
+      "Dosage",
+      // An unlisted kind waits with site wording, after the kinds that tier names.
+      "Archived label",
+      "1,2-Diarylethylamine (diarylethylamines)",
+      "Marquis",
+    ]);
   });
 });

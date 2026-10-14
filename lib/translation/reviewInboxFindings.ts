@@ -26,7 +26,7 @@ import { getPostgresClient } from "@server/postgres/runtime/backend";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
 import { kindInContext, resolveLocale } from "../../scripts/translation/locales.mjs";
-import { mentionsTerm, termFragments } from "../../scripts/translation/term-match.mjs";
+import { mentionsTerm, termFinder } from "../../scripts/translation/term-match.mjs";
 import { findLeftoverLatin } from "../../scripts/translation/validate.mjs";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import { readGlossaryRows, type TranslationGlossaryRow } from "./glossary";
@@ -112,9 +112,9 @@ export function scanInboxFindings(input: {
   corrections?: ReadonlyMap<string, ReadonlyMap<string, ArticleCorrection>>;
 }): QaFinding[] {
   const { inventory, stored, rejections, glossary, chinese, corrections } = input;
-  // Every inflected match contains these literal fragments. Cheap substring
-  // checks shortlist terms; the shared matcher still decides every finding.
-  const candidates = glossary.map((entry) => ({ entry, fragments: termFragments(entry.term).map((part) => part.toLowerCase()) }));
+  // Indexed by each term's opening letters, so a unit is matched only against
+  // the terms it could mention; the shared matcher still decides every finding.
+  const termsIn: (text: string) => ScanGlossaryTerm[] = termFinder(glossary, (entry: ScanGlossaryTerm) => entry.term);
   const glossaryMap = Object.fromEntries(glossary.map(({ term, target }) => [term, target]));
   // Substance article slugs are the names rule 2 keeps in Latin in lowercase prose.
   const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
@@ -152,9 +152,7 @@ export function scanInboxFindings(input: {
         // Machine results are shared by every page with this hash; human wording is checked where it applies.
         let terms = machine ? mentioned.get(unit.hash) : undefined;
         if (!terms) {
-          const source = unit.source.toLowerCase();
-          terms = candidates.filter(({ entry, fragments }) => fragments.every((part) => source.includes(part)) && mentionsTerm(unit.source, entry.term) && !carriesRendering(text, entry.target))
-            .map(({ entry }) => entry);
+          terms = termsIn(unit.source).filter(({ target: rendering }) => !carriesRendering(text, rendering));
           if (machine) mentioned.set(unit.hash, terms);
         }
         for (const term of terms) {

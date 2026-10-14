@@ -736,7 +736,7 @@ describe("workbench views", () => {
     await screen.findByTestId("glossary-summary");
     const views = within(screen.getByRole("tablist", { name: "Workbench view" })).getAllByRole("tab");
     // Each tab's name leads with the view; a count may follow it.
-    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Terms", "Waiting", "Interface text", "Articles", "Style guide"]);
+    expect(views.map((tab) => /^[A-Za-z ]+/.exec(tab.textContent ?? "")?.[0].trim())).toEqual(["Terms", "Waiting", "Suggestions", "Interface text", "Articles", "Style guide"]);
     expect(viewButton("Terms")).toHaveAttribute("aria-selected", "true");
     expect(screen.queryByRole("region", { name: "Waiting for review" })).toBeNull();
     const requests = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
