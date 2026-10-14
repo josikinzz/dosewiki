@@ -65,6 +65,11 @@ export interface HeroSectionViewProps {
   linkableCategoryKeys?: readonly string[];
   /** Whether to show the "Preview" indicator badge (default: true in dev context) */
   showPreviewBadge?: boolean;
+  /**
+   * A compact control after the alternative names (the "Open in Piru" chip).
+   * Articles without alternative names give it a row of its own there.
+   */
+  nameRowAction?: ReactNode;
 }
 export const HeroSectionView = memo(function HeroSectionView({
   title,
@@ -81,6 +86,7 @@ export const HeroSectionView = memo(function HeroSectionView({
   onSelectClassification,
   linkableCategoryKeys,
   showPreviewBadge = true,
+  nameRowAction,
 }: HeroSectionViewProps) {
   const t = useT();
   const moleculeAlt = chemistryPresentation.molecule.hasLookupTitle
@@ -248,10 +254,18 @@ export const HeroSectionView = memo(function HeroSectionView({
                     ariaControls={alternativeNamesPanelId}
                   />
                 )}
+                {nameRowAction ? (
+                  <span className="ml-2 inline-flex empty:hidden">
+                    {nameRowAction}
+                  </span>
+                ) : null}
               </span>
             </div>
           );
         })()}
+      {nameRowAction && !identification.alternative_names?.length ? (
+        <div className="mt-3 flex empty:hidden">{nameRowAction}</div>
+      ) : null}
 
       {/* Botanical name */}
       {identification.botanical_name && (

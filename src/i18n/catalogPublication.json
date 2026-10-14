@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-13T21:24:45.218Z",
-    "catalogDigest": "4525b44acda9a813134a13b667a4d598438453edaf5b1813631d878fc26a0a7a",
+    "compiledAt": "2026-10-14T23:12:05.454Z",
+    "catalogDigest": "485f83c413909bc8899c7a2e50956a7ba7a5fb5a297a07c4d5665094011d9a68",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "bc7c27443f40e4a8fa449d881596cbea6698f7ab7fd82dc182924d74e7f18fe8",
+    "sourceInventoryDigest": "705c78288cc4d2142f858016859a24ef4f5d197944cd9489433bd1f0a3ab8749",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",

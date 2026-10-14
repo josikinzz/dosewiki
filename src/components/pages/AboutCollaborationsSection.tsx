@@ -8,6 +8,7 @@ import type { CommunityLogo } from "@/data/content/aboutCommunity";
 import { t } from "@/i18n/server";
 import { msg } from "@/i18n/messages";
 import { LogoTile } from "./AboutCommunitySection";
+import { CollaborationDetails } from "./CollaborationDetails.client";
 
 type CollaborationLink = { icon: string; label: string; href: string };
 
@@ -93,7 +94,7 @@ export function AboutCollaborationsSection({
       {ABOUT_COLLABORATIONS.map((partner, index) => (
         <li key={partner.key}>
           {index > 0 ? <div role="presentation" className="theme-horizontal-divider h-px" /> : null}
-          <details id={`collaboration-${partner.key}`} className="group/collab">
+          <CollaborationDetails id={`collaboration-${partner.key}`} className="group/collab">
             <summary className="theme-focus-ring flex cursor-pointer list-none items-center gap-4 rounded-card py-3 [&::-webkit-details-marker]:hidden [&::marker]:content-['']">
               <LogoTile logo={partner.logo} size="lg" />
               <span className="flex min-w-0 flex-1 flex-col">
@@ -126,7 +127,7 @@ export function AboutCollaborationsSection({
                 ))}
               </div>
             </div>
-          </details>
+          </CollaborationDetails>
         </li>
       ))}
     </ul>
