@@ -117,18 +117,50 @@ const REVIEW_PRIORITY: Record<PublicGlossaryProvenance, number> = {
   legacy_unverified: 2,
   human_review: 3,
 };
+/**
+ * Which kinds of term most need a person, first. Wording that takes judgment
+ * comes before wording a rule settles: the harm-reduction register and the
+ * labels every article repeats, then the Subjective Effect Index, whose coined
+ * names have no outside standard (what people settle on here becomes the
+ * standard), then site wording, then chemical and reagent names, which follow
+ * IUPAC conventions or stay proper names and want a specialist check, not a
+ * crowd. Kinds stay together within a tier so a whole scale is translated at
+ * once. A kind not listed waits with site wording.
+ */
+const REVIEW_TIERS: readonly (readonly string[])[] = [
+  ["register", "enum:dose-tier", "enum:duration-stage", "enum:interaction-tier", "enum:risk-level", "enum:legal-status", "enum:evidence-level", "enum:carcinogenicity-level", "route", "frequency", "psychoactive-class"],
+  ["effect-category", "effect-subcategory", "effect-name"],
+  ["site-name", "index-name", "section-heading", "replication"],
+  ["chemical-class", "chemical-class-alias", "reagent-name"],
+];
+const UNLISTED_KIND_TIER = 2;
+const KIND_RANK = new Map(
+  REVIEW_TIERS.flatMap((kinds, tier) => kinds.map((kind, position) => [kind, { tier, position }] as const)),
+);
+function kindRank(kind: string) {
+  return KIND_RANK.get(kind) ?? { tier: UNLISTED_KIND_TIER, position: Number.MAX_SAFE_INTEGER };
+}
 export function needsHumanReview(entry: Pick<PublicGlossaryEntry, "provenance">): boolean {
   return entry.provenance !== "human_review";
 }
-/** Review priority first, then English term, so equal-priority rows keep a stable order. */
-export function sortByReviewPriority<T extends Pick<PublicGlossaryEntry, "provenance" | "term">>(
+/**
+ * Tier first, then review priority, then kind, then English term, so a
+ * missing chemical name still waits behind a machine-drafted effect name and
+ * equal rows keep a stable order.
+ */
+export function sortByReviewPriority<T extends Pick<PublicGlossaryEntry, "provenance" | "term" | "kind">>(
   entries: readonly T[],
 ): T[] {
-  return [...entries].sort(
-    (a, b) =>
+  return [...entries].sort((a, b) => {
+    const rankA = kindRank(a.kind);
+    const rankB = kindRank(b.kind);
+    return (
+      rankA.tier - rankB.tier ||
       REVIEW_PRIORITY[a.provenance] - REVIEW_PRIORITY[b.provenance] ||
-      a.term.localeCompare(b.term, "en"),
-  );
+      rankA.position - rankB.position ||
+      a.term.localeCompare(b.term, "en")
+    );
+  });
 }
 export type LanguageDestination = {
   code: string;
