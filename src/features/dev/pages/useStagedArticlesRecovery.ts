@@ -23,7 +23,7 @@ const RECORD = "working-set";
 /** The working set is diffed on a pause, not per keystroke: it can be the whole corpus. */
 const CHECKPOINT_DELAY_MS = 800;
 
-/** A copied edit held aside because the article moved on after the copy was made. */
+/** A copied edit held for review because its article or publication baseline needs reconciliation. */
 export type HeldStagedChange = {
   change: StagedArticleChange;
   current: ArticleRecord | null;
@@ -65,6 +65,8 @@ const bySlug = (slug: string) => (article: ArticleRecord | undefined) =>
 export function useStagedArticlesRecovery({
   articles,
   getOriginalArticles,
+  getArticleBaseHashes,
+  restoreArticleBaseHashes,
   applyArticlesTransform,
   hydrateArticlesNow,
   hasChanges,
@@ -72,6 +74,8 @@ export function useStagedArticlesRecovery({
 }: {
   articles: ArticleRecord[];
   getOriginalArticles: () => ArticleRecord[];
+  getArticleBaseHashes?: () => Record<string, string>;
+  restoreArticleBaseHashes?: (hashes: Record<string, string>) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
   hydrateArticlesNow: (slugs: readonly string[]) => Promise<{ ok: boolean; articles: ArticleRecord[] }>;
   hasChanges: boolean;
@@ -87,6 +91,8 @@ export function useStagedArticlesRecovery({
   const flushRef = useRef<(() => void) | null>(null);
   const articlesRef = useRef(articles);
   articlesRef.current = articles;
+  const baseHashesRef = useRef(getArticleBaseHashes);
+  baseHashesRef.current = getArticleBaseHashes;
   const originalsRef = useRef(getOriginalArticles);
   originalsRef.current = getOriginalArticles;
 
@@ -110,7 +116,7 @@ export function useStagedArticlesRecovery({
     }
     const write = () => {
       flushRef.current = null;
-      const changes = stagedArticleChanges(articlesRef.current, originalsRef.current());
+      const changes = stagedArticleChanges(articlesRef.current, originalsRef.current(), baseHashesRef.current?.());
       if (changes.length === 0) {
         store.clear(TOOL, RECORD);
         setCheckpointSavedAt(null);
@@ -160,10 +166,12 @@ export function useStagedArticlesRecovery({
         const matches = change.baseline === NEW_ARTICLE_BASELINE
           ? current === undefined
           : current !== undefined && stagedArticleBaseline(current) === change.baseline;
-        if (matches && !editedHere) apply.push({ change, current });
+        const hasPublicationBaseline = change.baseline === NEW_ARTICLE_BASELINE || !!change.baseHash;
+        if (matches && !editedHere && hasPublicationBaseline) apply.push({ change, current });
         else aside.push({ change, current: current ?? null, choices: {}, merge: current ? mergeStagedArticleChange(current, change) : null });
       }
       if (apply.length > 0) {
+        restoreArticleBaseHashes?.(Object.fromEntries(apply.flatMap(({ change }) => change.baseline !== NEW_ARTICLE_BASELINE && change.baseHash ? [[change.slug, change.baseHash]] : [])));
         applyArticlesTransform((previous) => {
           const next = [...previous];
           for (const { change, current } of apply) {
@@ -182,7 +190,7 @@ export function useStagedArticlesRecovery({
     } finally {
       setRestoring(false);
     }
-  }, [offer, restoring, hydrateArticlesNow, applyArticlesTransform]);
+  }, [offer, restoring, hydrateArticlesNow, applyArticlesTransform, restoreArticleBaseHashes]);
 
   const discardOffer = useCallback(() => {
     store?.clear(TOOL, RECORD);

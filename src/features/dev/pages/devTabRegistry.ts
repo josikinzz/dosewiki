@@ -535,6 +535,14 @@ export function findDevTab(id: string): DevTabDescriptor | undefined {
   return hasOwn(BY_ID, id) ? BY_ID[id] : undefined;
 }
 
+export function getDevTabHeading(tool: DevModeTab, viewerRole: AppRole | null = null) {
+  const descriptor = findDevTab(tool);
+  return {
+    icon: descriptor.icon,
+    title: descriptor.labelFor?.(viewerRole) ?? descriptor.label,
+  };
+}
+
 export function resolveDevTabAlias(segment: string): DevTabDescriptor | undefined {
   return hasOwn(BY_SEGMENT, segment) ? BY_SEGMENT[segment] : undefined;
 }

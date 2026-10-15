@@ -1,3 +1,4 @@
+import { assertDataWritesNotFrozen } from "../lib/runtime/dataWriteFreeze";
 import { PostgresError, v, type Infer, type ObjectType } from "../lib/postgres/runtime/values";
 import { internalQuery, query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
@@ -176,6 +177,7 @@ const upsertArticleArgs = {
   originalSlug: v.optional(v.string()),
   expectedRevision: v.string(),
   operationId: v.string(),
+  intent: v.union(v.literal("save-unpublished"), v.literal("publish")),
   title: v.optional(v.string()),
   tags: v.optional(v.array(v.string())),
   kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
@@ -207,14 +209,18 @@ export type UpsertWritingArticleArgs = ObjectType<typeof upsertArticleArgs>;
 
 /** The upsert itself, shared by the admin route and an approved Writing proposal. */
 export async function upsertWritingArticleHandler(ctx: MutationCtx, args: UpsertWritingArticleArgs) {
+  assertDataWritesNotFrozen("effectIndexArticles:upsertArticle");
   const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
   }, "admin");
 
-  const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, expectedRevision, operationId, ...rest } = args;
-  const requestHash = contentHash({ slug, originalSlug, ...rest });
+  const { apiKey: _apiKey, actorEmail: _actorEmail, slug, originalSlug, expectedRevision, operationId, intent, ...rest } = args;
+  if (intent !== "save-unpublished" && intent !== "publish") {
+    throw new PostgresError({ code: "INVALID_WRITING", message: "An explicit Writing save or publication intent is required." });
+  }
+  const requestHash = contentHash({ intent, slug, originalSlug, ...rest });
   if (!/^[a-f0-9-]{36}$/i.test(operationId)) throw new PostgresError({ code: "INVALID_WRITING", message: "A valid publication operation is required." });
 
   if (!SLUG_PATTERN.test(slug)) {
@@ -236,6 +242,9 @@ export async function upsertWritingArticleHandler(ctx: MutationCtx, args: Upsert
       const after = applied.after as Doc<"effectIndexArticles">;
       return { slug: after.slug, id: after._id, created: applied.before === null, revision: applied.revision };
     }
+  }
+  if (intent === "save-unpublished" && (rest.status !== "draft" || (existing !== null && existing.status !== "draft"))) {
+    throw new PostgresError({ code: "INVALID_WRITING", message: "An unpublished save requires an explicitly unpublished source and draft result. Publish or unpublish from the tool after review." });
   }
   if (await currentNarrativeRevision(ctx, "writing", existing) !== expectedRevision) throw new PostgresError({ code: "FIELD_CONFLICT", message: "This writing document changed. Reload and reconcile your local edits before publishing." });
   if (existing && rest.bodyFormat !== undefined && rest.bodyFormat !== (existing.bodyFormat ?? "vcode")) throw new PostgresError({ code: "INVALID_WRITING", message: "Writing format cannot be converted by this editor." });

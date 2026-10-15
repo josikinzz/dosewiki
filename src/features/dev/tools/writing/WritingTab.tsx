@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
-  EditorSection,
   EditorSegmentedControl,
   LoadErrorState,
   Notice,
@@ -158,21 +158,26 @@ export function WritingTab({
   // published from the editor. For an editor it is Submit for review, which
   // never goes live on its own. About keeps its own save, so the shell only
   // discards it (unmounting drops that draft).
-  const { canSave, save: saveDraft, submitForReview, discard: discardDraft, baseline } = controller;
+  const { canSave, saveUnpublished, submitForReview, discard: discardDraft } = controller;
   const shellCanSave = !pinned && canSave && isDirty && (canApprove || !controller.loadedRow || draft.slug.trim() === controller.loadedRow.slug);
   useUnsavedWork({
     id: "writing",
     label: `Writing: ${openTitle}`,
     dirty: unsaved,
     saveLabel: canApprove ? "Save as unpublished" : "Submit for review",
-    publishesLive: !pinned && canApprove && (draft.status === "published" || baseline.status === "published"),
-    save: shellCanSave
-      ? async () => {
-          if (!(await (canApprove ? saveDraft(draft.status) : submitForReview()))) {
-            throw new Error(`${openTitle} was not ${canApprove ? "saved" : "submitted"}. The reason is shown in the editor.`);
-          }
-        }
-      : undefined,
+    ...(shellCanSave && canApprove && controller.canSaveUnpublished
+      ? { kind: "save-unpublished" as const, saveDraft: async () => {
+          if (!(await saveUnpublished())) throw new Error(`${openTitle} was not saved. The reason is shown in the editor.`);
+        } }
+      : shellCanSave && !canApprove
+        ? { kind: "submit-proposal" as const, submit: async () => {
+            if (!(await submitForReview())) throw new Error(`${openTitle} was not submitted. The reason is shown in the editor.`);
+          } }
+        : { kind: "discard-only" as const, because: pinned
+            ? "Finish the About change from its editor."
+            : canApprove && !controller.canSaveUnpublished
+              ? "This change would go live. Publish it from the tool; leaving here never publishes."
+              : "Finish or confirm the pending Writing action from the tool." }),
     discard: pinned ? () => {} : discardDraft,
   });
 
@@ -267,9 +272,8 @@ export function WritingTab({
 
   return (
     <div className="mx-auto w-full max-w-[100rem]">
-      <EditorSection
-        icon="lucide:pen-line"
-        title="Writing"
+      <DevToolSection
+        tool="writing"
         description="Articles, blog posts and the About page. Open one to edit it beside a live preview of the public page."
       >
         {dialog}
@@ -436,7 +440,7 @@ export function WritingTab({
             )}
           </section>
         </div>
-      </EditorSection>
+      </DevToolSection>
     </div>
   );
 }

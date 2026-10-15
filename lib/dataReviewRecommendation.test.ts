@@ -3,7 +3,7 @@
  * it, at the revision the recommendation covered. Drives the real handlers
  * against the in-memory Postgres fixture.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";
 import { articleDocument } from "../server/lib/articleLifecycleValidation";
@@ -17,10 +17,12 @@ const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
 const asEditor = { apiKey: SERVER_KEY, actorEmail: "editor@example.com" };
 
 beforeEach(() => {
+  vi.stubEnv("DATA_WRITES_FROZEN", "0");
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   delete process.env.DATA_ADMIN_KEY;
 });
 

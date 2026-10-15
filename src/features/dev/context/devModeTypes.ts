@@ -62,6 +62,8 @@ export type DevModeContextValue = {
   resetArticleAt: (index: number) => void;
   getOriginalArticle: (index: number) => ArticleRecord | undefined;
   getOriginalArticles: () => ArticleRecord[];
+  getArticleBaseHashes: () => Record<string, string>;
+  restoreArticleBaseHashes: (hashes: Record<string, string>) => void;
   replaceArticles: (nextArticles: ArticleRecord[]) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
   /**
@@ -92,7 +94,7 @@ export type DevModeContextValue = {
   applyMechanismIndexManualTransform: (
     transform: (previous: ManualMechanismIndexConfig) => ManualMechanismIndexConfig,
   ) => void;
-  markChangesSaved: () => void;
+  markChangesSaved: (receipts?: Array<{ slug: string; baseHash: string }>) => void;
   /** Set while the working set was seeded from a returned proposal; null otherwise. */
   activeProposal: DevActiveProposal | null;
   /**

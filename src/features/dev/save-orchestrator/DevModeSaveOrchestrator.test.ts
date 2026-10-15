@@ -91,6 +91,7 @@ describe("saveOrchestratorReducer", () => {
     });
 
     it("handles a save with warnings", () => {
+      const warnings = ["Revalidation failed", "Newer edits are still waiting for review"];
       let state = createInitialSaveOrchestratorState();
       state = saveOrchestratorReducer(state, { type: "saveRequested" });
       state = saveOrchestratorReducer(state, { type: "validationPassed" });
@@ -103,7 +104,7 @@ describe("saveOrchestratorReducer", () => {
         result: {
           destination: "production",
           savedItems: ["articles"],
-          warnings: ["Revalidation failed"],
+          warnings,
           resolvedSubmitterKey: "ADMIN",
           changelogEntry: null,
           markChangesSaved: false,
@@ -111,7 +112,9 @@ describe("saveOrchestratorReducer", () => {
       });
 
       expect(state.notice?.type).toBe("error");
-      expect(state.notice?.message).toContain("1 issue(s) occurred");
+      for (const warning of warnings) expect(state.notice?.message).toContain(warning);
+      expect(state.saveOperation).toEqual({ phase: "idle", error: null });
+      expect(state.pendingEffect).toBeNull();
     });
   });
 

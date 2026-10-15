@@ -21,6 +21,7 @@
  * other.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -36,7 +37,6 @@ import {
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
-  EditorSection,
   LoadErrorState,
   useConfirm,
   useDevShortcuts,
@@ -725,20 +725,22 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   // Both drafts would go live on save (a preset on its articles, the size on
   // every banner), so the shell only discards them.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "banners:preset",
     tab: "banners",
     label: `Banners: ${draft?.headline.trim() || draft?.key || "new preset"}`,
     dirty: isDirty,
-    publishesLive: true,
     discard: () =>
       setEditor((current) => (current?.origin ? editorFor(current.origin, BLANK_PRESET) : null)),
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "banners:icon-size",
     tab: "banners",
     label: "Banners: icon size for every banner",
     dirty: iconSizeDirty,
-    publishesLive: true,
     discard: () => {
       setIconSizeDraft(null);
       setIconSizeSaveState("idle");
@@ -799,7 +801,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   if (rows === undefined) {
     return (
       <div>
-        <EditorSection icon="lucide:triangle-alert" title="Banners">
+        <DevToolSection tool="banners">
           {rowsError ? (
             <LoadErrorState
               what="the banner presets"
@@ -812,7 +814,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
               <RowSkeletons rows={4} label="banner presets" />
             </div>
           )}
-        </EditorSection>
+        </DevToolSection>
       </div>
     );
   }

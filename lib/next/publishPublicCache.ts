@@ -14,7 +14,7 @@
  */
 import { revalidatePath, revalidateTag } from "next/cache";
 import { invalidatePublicDerivedDataCache } from "../data/publicLibrary";
-import { PUBLIC_DATA_CACHE_TAGS } from "../data/publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS } from "../data/publicData.cacheTags";
 import { resolvePublicationEffects } from "./publicCacheContract";
 import type { PublicationSource, PublicationTarget } from "./publicationWire";
 import { dispatchPublicationSignal, type PublicationReceipt, type SavedArticleRevision } from "./publicationDispatch";

@@ -127,6 +127,52 @@ export class SubstanceProjectionReader {
     };
   }
 
+  async getPublicSubstanceLibraryInputPage(cursor: string | undefined, limit: number) {
+    let after: { _creationTime: number; _id: string } | undefined;
+    if (cursor) {
+      try {
+        const decoded = decodeDocumentValue(JSON.parse(cursor));
+        if (!decoded || typeof decoded !== "object" || Array.isArray(decoded) ||
+            !("_id" in decoded) || typeof decoded._id !== "string" || !/^[a-z0-9]{32}$/.test(decoded._id) ||
+            !("_creationTime" in decoded) || typeof decoded._creationTime !== "number" || !Number.isFinite(decoded._creationTime)) {
+          throw new Error("Invalid pagination cursor");
+        }
+        after = { _creationTime: decoded._creationTime, _id: decoded._id };
+      } catch { throw new Error("Invalid pagination cursor"); }
+    }
+    const params: unknown[] = [];
+    const where = after
+      ? (params.push(after._creationTime, after._id), 'WHERE ("_creationTime", "_id" COLLATE "C") > ($1::double precision, $2::text COLLATE "C")')
+      : "";
+    params.push(limit + 1);
+    const result = await this.client.query(
+      `SELECT ${losslessSelectList("substanceIndex", [
+        "_id", "_creationTime", "id", "title", "slug", "priority",
+        "index_categories", "identification", "classification", "summary",
+        "dosage", "duration", "subjective_effects", "pharmacology", "interactions",
+        "reagent_testing", "tolerance", "references", "source_citations", "citations",
+      ])},
+       (CASE WHEN jsonb_typeof("harm_potential") = 'object'
+         THEN jsonb_build_object('addiction_liability', "harm_potential"->'addiction_liability')
+         ELSE "harm_potential" END)::text AS "harm_potential",
+       (CASE WHEN jsonb_typeof("editorial_review") = 'object'
+         THEN jsonb_build_object('status', "editorial_review"->'status')
+         ELSE "editorial_review" END)::text AS "editorial_review"
+       FROM "substanceIndex" ${where}
+       ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
+      params,
+    );
+    const page = result.rows.slice(0, limit).map((row) => fromRow("substanceIndex", row));
+    const last = page[page.length - 1] ?? after;
+    return {
+      rows: page,
+      cursor: JSON.stringify(encodeDocumentValue(last
+        ? { _creationTime: last._creationTime, _id: last._id }
+        : {})),
+      isDone: result.rows.length <= limit,
+    };
+  }
+
   async getPublicSubstanceSlugsPage(cursor: string | undefined, limit: number) {
     const unstored = cursor
       ? []

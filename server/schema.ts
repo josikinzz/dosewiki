@@ -272,6 +272,15 @@ export default defineSchema({
   }).index("by_slug", ["slug"])
     .index("by_actor_change", ["actorEmail", "changeId"]),
 
+  articleBatchReceipts: defineTable({
+    ownerEmail: v.string(),
+    operationId: v.string(),
+    fingerprintVersion: v.number(),
+    fingerprint: v.string(),
+    resultVersion: v.number(),
+    result: v.any(),
+  }).index("by_owner_operation", ["ownerEmail", "operationId"]),
+
   articleDraftReceipts: defineTable({
     ownerEmail: v.string(),
     changeId: v.string(),

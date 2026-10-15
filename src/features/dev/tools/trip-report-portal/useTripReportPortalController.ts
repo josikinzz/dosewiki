@@ -274,11 +274,12 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     warnOnUnload: false,
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "trip-report-submissions:report",
     tab: "trip-report-submissions",
     label: `Trip reports: edits to ${selected?.title?.trim() ? `"${selected.title.trim()}"` : "a published report"}`,
     dirty,
-    publishesLive: true,
     discard: () => {
       if (detail) setDraft(detail.fields);
     },

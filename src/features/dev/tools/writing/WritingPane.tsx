@@ -131,6 +131,7 @@ export function WritingPane({
       void controller.submitForReview();
       return;
     }
+    const command = controller.reviewedSaveCommand;
     confirm({
       title: action.confirmTitle,
       description: `${describeWritingChanges(changed)} ${action.consequence}`.trim(),
@@ -139,7 +140,7 @@ export function WritingPane({
       wide: true,
       // The dialog closes at once; the result lands in the dock beside Save.
       onConfirm: () => {
-        void controller.save(draft.status);
+        void controller.saveReviewed(command);
       },
     });
   };
@@ -287,7 +288,7 @@ export function WritingPane({
           uncertain={uncertain}
           canApprove={canApprove}
           saving={saving}
-          onRetry={() => void controller.save(draft.status)}
+          onRetry={() => void controller.retrySave()}
           reason={
             isDirty && !uncertain && !loadingRow && !rowFailed && !controller.recoveryOffer && !controller.mergeReview
               ? renameRefused

@@ -100,6 +100,10 @@ export type CompactPublicSubstanceReader = {
     cursor: string | undefined,
     limit: number,
   ) => Promise<CompactPublicSubstancePage>;
+  getPublicSubstanceLibraryInputPage: (
+    cursor: string | undefined,
+    limit: number,
+  ) => Promise<CompactPublicSubstancePage>;
   getPublicSubstanceCoveragePage: (
     cursor: string | undefined,
     limit: number,

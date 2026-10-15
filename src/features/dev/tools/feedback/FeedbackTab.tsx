@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 
 import { EditorSegmentedControl } from "@/features/dev/components";
+import { getDevTabHeading } from "@/features/dev/pages/devTabRegistry";
 import { useDevRailBadgeParts } from "@/features/dev/pages/useDevRailBadges";
 
 import { articleFeedbackAdapter } from "./articleFeedbackAdapter";
@@ -34,8 +35,7 @@ const SOURCE_DESCRIPTION: Record<FeedbackSource, string> = {
 };
 
 const TOOL_HEADING = {
-  icon: "lucide:message-square-text",
-  title: "Feedback",
+  ...getDevTabHeading("article-feedback"),
   description: "Private reports from readers: resolve, reject or correct each one. None of it is public.",
 };
 

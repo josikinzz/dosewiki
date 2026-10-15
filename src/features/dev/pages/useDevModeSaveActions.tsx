@@ -13,6 +13,7 @@ import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import type { DevCommitRebase } from "../components/DevCommitCard";
 import { useConfirm } from "../components/ConfirmDialog";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";
+import { isSameDocument } from "../context/editorDocumentSession";
 import type { DevActiveProposal } from "../context/devModeTypes";
 import {
   DevModeSaveOrchestrator,
@@ -38,10 +39,11 @@ type UseDevModeSaveActionsArgs = {
   chemicalIndexManual: unknown;
   mechanismIndexManual: unknown;
   getOriginalArticles: () => SubstanceArticle[];
+  getArticleBaseHashes: () => Record<string, string>;
   getOriginalPsychoactiveIndexManual: () => unknown;
   getOriginalChemicalIndexManual: () => unknown;
   getOriginalMechanismIndexManual: () => unknown;
-  markChangesSaved: () => void;
+  markChangesSaved: (receipts?: Array<{ slug: string; baseHash: string }>) => void;
   /** An Auth.js session is present; saves refuse to start without one. */
   isSignedIn: boolean;
   /** Admin or editor: gates the save button and server-health polling. */
@@ -162,6 +164,7 @@ export function useDevModeSaveActions({
   chemicalIndexManual,
   mechanismIndexManual,
   getOriginalArticles,
+  getArticleBaseHashes,
   getOriginalPsychoactiveIndexManual,
   getOriginalChemicalIndexManual,
   getOriginalMechanismIndexManual,
@@ -237,6 +240,7 @@ export function useDevModeSaveActions({
       buildDevSaveDraft({
         articles,
         originalArticles: getOriginalArticles(),
+        articleBaseHashes: getArticleBaseHashes(),
         layouts: [
           {
             type: "psychoactive",
@@ -269,6 +273,7 @@ export function useDevModeSaveActions({
       chemicalManualChangelog,
       datasetChangelog,
       getOriginalArticles,
+  getArticleBaseHashes,
       getOriginalPsychoactiveIndexManual,
       getOriginalChemicalIndexManual,
       getOriginalMechanismIndexManual,
@@ -302,6 +307,9 @@ export function useDevModeSaveActions({
   );
 
   // Effect handler for async operations
+  const latestDraft = useRef(draft);
+  latestDraft.current = draft;
+
   const handleEffect = useCallback(
     async function runEffect(effect: SaveOrchestratorEffect): Promise<void> {
       const adapter = canApprove
@@ -346,7 +354,10 @@ export function useDevModeSaveActions({
       } else if (effect.kind === "save") {
         try {
           const credentials = await verifySaveSession();
-          const result = await adapter.execute({ ...draft, note: pendingNoteRef.current }, credentials);
+          let result = await adapter.execute({ ...draft, note: pendingNoteRef.current }, credentials);
+          if (!isSameDocument(latestDraft.current, draft)) {
+            result = { ...result, markChangesSaved: false, warnings: [...result.warnings, "The earlier changes were saved. Edits made while saving remain in Working Changes. Review them before publishing."] };
+          }
 
           orchestrator.dispatch({ type: "saveSucceeded", result });
 
@@ -355,7 +366,7 @@ export function useDevModeSaveActions({
           }
 
           if (result.markChangesSaved) {
-            markChangesSaved();
+            markChangesSaved(result.articleReceipts);
           }
           // Whichever way the draft landed (superseding revision, or an
           // admin's direct write), the rebase it carried is finished.

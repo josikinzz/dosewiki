@@ -16,6 +16,7 @@ export type StagedArticleChange = {
   slug: string;
   /** `contentHash` of the article the edit started from, or {@link NEW_ARTICLE_BASELINE}. */
   baseline: string;
+  baseHash?: string;
   set: Record<string, unknown>;
   unset: string[];
   /**
@@ -44,6 +45,7 @@ export function stagedArticleBaseline(article: ArticleRecord | undefined): strin
 export function stagedArticleChanges(
   articles: readonly ArticleRecord[],
   originals: readonly ArticleRecord[],
+  baseHashes: Record<string, string> = {},
 ): StagedArticleChange[] {
   const changes: StagedArticleChange[] = [];
   articles.forEach((article, index) => {
@@ -60,7 +62,7 @@ export function stagedArticleChanges(
     const unset = Object.keys(before).filter((key) => before[key] !== undefined && after[key] === undefined);
     const previous: Record<string, unknown> = {};
     for (const key of [...Object.keys(set), ...unset]) if (before[key] !== undefined) previous[key] = before[key];
-    changes.push({ slug, baseline: stagedArticleBaseline(original), set, unset, before: previous });
+    changes.push({ slug, baseHash: baseHashes[slug], baseline: stagedArticleBaseline(original), set, unset, before: previous });
   });
   return changes;
 }

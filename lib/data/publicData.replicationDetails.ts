@@ -2,7 +2,8 @@ import "server-only";
 
 import { cache } from "react";
 import { isPublishableReplication, type ReplicationWithUrl } from "../../src/types/replications";
-import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cache";
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 
 /** Leaf cache: callers assembling corpus collections must remain request-scoped. */

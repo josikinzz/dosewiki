@@ -233,6 +233,7 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <CopyStudioTab initialKey={controller.copyStudioInitialKey} canApprove={controller.canApprove} />
         ) : controller.activeTab === "queue" ? (
           <QueueTab
+            viewerRole={controller.role}
             canApprove={controller.canApprove}
             onLoadIntoEditor={controller.onLoadProposal}
             initialProposalId={controller.queueInitialId}

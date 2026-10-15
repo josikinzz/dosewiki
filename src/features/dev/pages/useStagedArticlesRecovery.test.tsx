@@ -30,6 +30,7 @@ function Shell({ source }: { source: Row[] }) {
   const recovery = useStagedArticlesRecovery({
     articles: document.draft,
     getOriginalArticles: document.getOriginal,
+    getArticleBaseHashes: () => Object.fromEntries(source.map(row => [row.slug, `stored-${row.slug}`])),
     applyArticlesTransform: document.applyDraftTransform,
     hydrateArticlesNow,
     hasChanges: document.isDirty,

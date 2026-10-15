@@ -110,13 +110,13 @@ export function PlaylistsPanel({
     label: `Replications: playlist “${draft?.title.trim() || "Untitled"}”`,
     dirty: isDirty,
     saveLabel: "Save playlist",
-    save: isSaving
-      ? undefined
-      : async () => {
+    ...(isSaving
+      ? { kind: "discard-only" as const, because: "Wait for the playlist save to finish." }
+      : { kind: "save-unpublished" as const, saveDraft: async () => {
           if (!(await save())) {
             throw new Error("The playlist was not saved. The reason is shown in Playlists.");
           }
-        },
+        } }),
     discard: resetDraft,
   });
 

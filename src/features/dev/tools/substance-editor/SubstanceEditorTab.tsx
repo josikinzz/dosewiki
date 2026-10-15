@@ -9,6 +9,7 @@
  * says what the preview shows and a save dock under it. Phones show the list,
  * then the article with Back to list.
  */
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 
@@ -17,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import {
   EditorPanel,
-  EditorSection,
   EditorStatusPill,
   LoadErrorState,
   SaveLine,
@@ -138,7 +138,9 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
     id: "articles",
     label: `Substances: ${selectedRow?.name ?? "article"}`,
     dirty,
-    save: operationLocked ? undefined : saveDraft,
+    ...(operationLocked
+      ? { kind: "discard-only" as const, because: "Confirm the pending private draft save before leaving." }
+      : { kind: "save-unpublished" as const, saveDraft }),
     saveLabel: "Save draft",
     discard: () => draftGuardRef.current?.discard(),
   });
@@ -206,9 +208,8 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   return (
     <div className="mx-auto w-full max-w-[100rem]">
       {dirtyGuard.dialog}
-      <EditorSection
-        icon="lucide:flask-conical"
-        title="Substances"
+      <DevToolSection
+        tool="articles"
         description={canPublish
           ? "Edit an article where readers see it. Save a private draft as you go; publishing sends it live after you review the changes."
           : "Edit an article where readers see it. Save a private draft as you go; submitting sends it to an admin for review."}
@@ -291,7 +292,7 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
             )}
           </section>
         </div>
-      </EditorSection>
+      </DevToolSection>
     </div>
   );
 });

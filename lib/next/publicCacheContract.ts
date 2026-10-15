@@ -26,7 +26,7 @@ import {
   publicMoleculeTag,
   publicSubstanceGalleryTag,
   publicSubstanceTag,
-} from "../data/publicData.cache";
+} from "../data/publicData.cacheTags";
 import {
   localizedArticlePaths,
   localizedEffectPaths,

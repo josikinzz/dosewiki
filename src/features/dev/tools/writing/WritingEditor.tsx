@@ -54,7 +54,7 @@ export function WritingEditor({
     readOnly,
     canSave,
     updateDraft,
-    save,
+    saveReviewed,
     submitForReview,
   } = controller;
   const [reviewed, setReviewed] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export function WritingEditor({
   useEffect(() => {
     if (discarding) keepLocalEditsRef.current?.focus();
   }, [discarding]);
-  const fingerprint = JSON.stringify([draft, controller.baseline]);
+  const fingerprint = controller.reviewedSaveCommand.body;
   const changes = (Object.keys(draft) as Array<keyof WritingDraft>).filter(key => JSON.stringify(draft[key]) !== JSON.stringify(controller.baseline[key]));
   useEffect(() => {
     if (reviewed === fingerprint) reviewRef.current?.focus();
@@ -154,7 +154,7 @@ export function WritingEditor({
         )}
       </EditorToolbar>
       <WritingSaveTime controller={controller} />
-      {controller.uncertain ? <Notice tone="warning" message="Publication has not been confirmed. Editing and discard are locked until you retry the original publication." actions={<Button disabled={saveState === "saving" || !canApprove} onClick={() => void save(draft.status)}>Retry publication confirmation</Button>} /> : null}
+      {controller.uncertain ? <Notice tone="warning" message="Publication has not been confirmed. Editing and discard are locked until you retry the original publication." actions={<Button disabled={saveState === "saving" || !canApprove} onClick={() => void controller.retrySave()}>Retry publication confirmation</Button>} /> : null}
       <EditorToolbar>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.isDirty} onClick={() => setDiscarding(true)}>Discard local edits</Button>
         <Button type="button" variant="ghost" size="sm" disabled={readOnly || !controller.loadedRow} onClick={() => void controller.reconcile()}>Load the latest saved version</Button>
@@ -162,7 +162,7 @@ export function WritingEditor({
       {discarding ? <EditorSection headingLevel="h3" title="Discard local edits?" description="This restores the loaded document. Your local changes will be lost."><EditorToolbar><Button ref={keepLocalEditsRef} variant="outline" onClick={() => setDiscarding(false)}>Keep local edits</Button><Button variant="destructive" disabled={readOnly} onClick={() => { controller.discard(); setDiscarding(false); }}>Confirm discard</Button></EditorToolbar></EditorSection> : null}
       {canApprove && reviewed === fingerprint ? <div ref={reviewRef} tabIndex={-1} aria-label="Review document changes" className="min-w-0 theme-focus-ring"><EditorSection headingLevel="h3" title="Review document changes" description="Only these fields will change. This preview has not been published.">
         {changes.map(key => <div key={key} className="min-w-0 space-y-2"><h4 className="font-semibold">{WRITING_FIELD_LABELS[key]}</h4><div className="grid gap-3 md:grid-cols-2"><div className="min-w-0"><p className="theme-text-muted text-sm">Saved version</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof controller.baseline[key] === "string" ? controller.baseline[key] : JSON.stringify(controller.baseline[key], null, 2)}</pre></div><div className="min-w-0"><p className="theme-text-muted text-sm">Your changes</p><pre className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm">{typeof draft[key] === "string" ? draft[key] : JSON.stringify(draft[key], null, 2)}</pre></div></div></div>)}
-        <Button type="button" variant="accent" disabled={!saveEnabled} onClick={() => void save(draft.status)}>{draft.status === "published" ? "Confirm publication" : "Confirm save as unpublished"}</Button>
+        <Button type="button" variant="accent" disabled={!saveEnabled} onClick={() => void saveReviewed(controller.reviewedSaveCommand)}>{draft.status === "published" ? "Confirm publication" : "Confirm save as unpublished"}</Button>
         <Button type="button" variant="outline" onClick={() => { setReviewed(null); reviewButtonRef.current?.focus(); }}>Back to editing</Button>
       </EditorSection></div> : null}
       </div>

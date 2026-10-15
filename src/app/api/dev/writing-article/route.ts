@@ -1,7 +1,7 @@
 /**
  * Write endpoint for one Writing/Blog row (the /dev Writing and Blog tabs).
- * The GET reads are editor floor; the POST publishes to the live site with no
- * review step and is admin-only.
+ * The GET reads are editor floor; POST saves an unpublished draft or performs
+ * a reviewed publication and is admin-only.
  *
  *   POST /api/dev/writing-article  { slug, originalSlug?, kind, status, title?, teaser?, … }
  *
@@ -18,7 +18,7 @@
  *    would be invisible everywhere. The save path derives the legacy field from
  *    `status` and sends both, which is what makes a published row actually
  *    appear.
- * 2. **Cache publication.** Every save publishes the `writing-articles`
+ * 2. **Cache publication.** An explicit publication publishes the `writing-articles`
  *    identity through the shared seam, which expires
  *    `PUBLIC_DATA_CACHE_TAGS.articles` here and delivers the same identity
  *    to the public deployments, so a publish shows up on `/articles`, `/blog`
@@ -110,6 +110,7 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       originalSlug: body.originalSlug,
       expectedRevision: body.expectedRevision,
       operationId: body.operationId,
+      intent: body.intent,
       title: body.title,
       kind: body.kind,
       status: body.status,
@@ -125,22 +126,24 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       publicationDate: body.publicationDate,
     });
 
-    const targets: PublicationTarget[] = [{ kind: "writing-articles" }];
-    if (body.kind === "article") {
-      targets.push({ kind: "library", slug: result.slug });
-      // The locale mirror follows by cron, not inline; a failed enqueue is
-      // logged and the next save of the article retries it.
-      try {
-        await enqueueTranslationJobs(LIVE_LOCALE_CODES, [`library/${result.slug}`]);
-      } catch (error) {
-        console.warn("[writing-article] translation enqueue failed", {
-          slug: result.slug,
-          error: error instanceof Error ? error.message : String(error),
-        });
+    if (body.intent === "publish") {
+      const targets: PublicationTarget[] = [{ kind: "writing-articles" }];
+      if (body.kind === "article") {
+        targets.push({ kind: "library", slug: result.slug });
+        // The locale mirror follows by cron, not inline; a failed enqueue is
+        // logged and the next save of the article retries it.
+        try {
+          await enqueueTranslationJobs(LIVE_LOCALE_CODES, [`library/${result.slug}`]);
+        } catch (error) {
+          console.warn("[writing-article] translation enqueue failed", {
+            slug: result.slug,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       }
+      await publishPublicCache({ targets, source: "manual" });
     }
-    await publishPublicCache({ targets, source: "manual" });
 
-    return NextResponse.json({ ok: true, slug: result.slug, created: result.created, revision: result.revision });
+    return NextResponse.json({ ok: true, slug: result.slug, created: result.created, revision: result.revision, operationId: body.operationId, intent: body.intent });
   },
 });

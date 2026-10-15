@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { roleSessionFor } from "@/test/routeSession";
 
 vi.mock("server-only", () => ({}));
@@ -63,7 +64,7 @@ function withBatch(client: { mutation: ReturnType<typeof vi.fn>; query: ReturnTy
   client.mutation = vi.fn(async (name: string, args: Record<string, unknown>) => {
     if (name !== "saveArticleBatch.save") return nested(name, args);
     const articleResult = await nested("substanceIndex.saveSubstances", { apiKey: args.apiKey, actorEmail: args.actorEmail, articles: args.articles });
-    return { articleResult, layoutResults: [], changelogSaved: false };
+    return { version: 1, operationId: args.operationId, articleResult, articleReceipts: [], layoutResults: [], changelogSaved: false, changelog: null };
   });
   return client;
 }
@@ -93,7 +94,7 @@ describe("save-article route", () => {
     const { POST } = await import("./route");
     const response = await POST(new Request("https://dose.wiki/api/save-article", {
       method: "POST", headers: { Origin: "https://dose.wiki" },
-      body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }], indexLayouts: [{ type: "chemical", version: 2, categories: [], expected: null, expectedRevision: 0, operationId: "chemical-fixture-operation" }], changelog: { markdown: "Changed LSD", articles: [{ id: 1, title: "LSD", slug: "lsd" }] } }),
+      body: JSON.stringify({ operationId: "route-test-batch-operation", articleAdmissions: [{ kind: "replace-existing", slug: "lsd", baseHash: "stored-base-hash" }], articles: [{ id: 1, title: "LSD", slug: "lsd" }], indexLayouts: [{ type: "chemical", version: 2, categories: [], expected: null, expectedRevision: 0, operationId: "chemical-fixture-operation" }], changelog: { markdown: "Changed LSD", articles: [{ id: 1, title: "LSD", slug: "lsd" }] } }),
     }));
 
     expect(response.status).toBe(500);
@@ -103,6 +104,18 @@ describe("save-article route", () => {
     });
     expect(nextCacheMocks.revalidatePath).not.toHaveBeenCalled();
     expect(client.mutation).toHaveBeenCalledTimes(1);
+  });
+
+  it("maps a mutation freeze to 503 before any public refresh", async () => {
+    const client = { query: vi.fn(), mutation: vi.fn(async () => { throw new DataWriteFrozenError("saveArticleBatch:save"); }) };
+    mocks.getServerDataWriteCapability.mockReturnValue({ ok: true, capability: { adminKey: "test-key", client } });
+    const { POST } = await import("./route");
+    const response = await POST(new Request("https://dose.wiki/api/save-article", {
+      method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ operationId: "freeze-test-operation", articleAdmissions: [{ kind: "replace-existing", slug: "lsd", baseHash: "stored-base-hash" }], articles: [{ id: 1, title: "LSD", slug: "lsd" }] }),
+    }));
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({ code: "DATA_WRITES_FROZEN" });
+    expect(nextCacheMocks.revalidatePath).not.toHaveBeenCalled();
   });
 
   it("refuses an editor: the panel routes editors through /api/dev/proposals instead", async () => {
@@ -115,7 +128,7 @@ describe("save-article route", () => {
     const { POST } = await import("./route");
 
     const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }] }), }),
+      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ operationId: "route-test-batch-operation", articleAdmissions: [{ kind: "replace-existing", slug: "lsd", baseHash: "stored-base-hash" }], articles: [{ id: 1, title: "LSD", slug: "lsd" }] }), }),
     );
 
     expect(response.status).toBe(403);
@@ -140,7 +153,7 @@ describe("save-article route", () => {
     const { POST } = await import("./route");
 
     const response = await POST(
-      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ articles: [{ id: 1, title: "LSD", slug: "lsd" }] }), }),
+      new Request("https://dose.wiki/api/save-article", { method: "POST", headers: { Origin: "https://dose.wiki" }, body: JSON.stringify({ operationId: "route-test-batch-operation", articleAdmissions: [{ kind: "replace-existing", slug: "lsd", baseHash: "stored-base-hash" }], articles: [{ id: 1, title: "LSD", slug: "lsd" }] }), }),
     );
 
     expect(response.status).toBe(200);

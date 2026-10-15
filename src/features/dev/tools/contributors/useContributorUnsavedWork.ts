@@ -19,27 +19,30 @@ export function useContributorUnsavedWork(
   const { detail, isProfileDirty, isWorkOrderDirty, isReportOrderDirty, discardProfile, resetWorkOrder, resetReportOrder } = controller;
   const who = detail?.profile.displayName ?? "this contributor";
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: `${tab}:profile`,
     tab,
     label: `${toolLabel}: profile of ${who}`,
     dirty: isProfileDirty,
-    publishesLive: true,
     discard: discardProfile,
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: `${tab}:work-order`,
     tab,
     label: `${toolLabel}: order of ${who}'s works`,
     dirty: isWorkOrderDirty,
-    publishesLive: true,
     discard: resetWorkOrder,
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: `${tab}:report-order`,
     tab,
     label: `${toolLabel}: order of ${who}'s reports`,
     dirty: isReportOrderDirty,
-    publishesLive: true,
     discard: resetReportOrder,
   });
 }

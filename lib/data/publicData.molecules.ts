@@ -1,12 +1,8 @@
 import "server-only";
 
 import { cache } from "react";
-import {
-  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_DATA_CACHE_TAGS,
-  publicDataCache,
-  publicMoleculeTag,
-} from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, publicDataCache } from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS, publicMoleculeTag } from "./publicData.cacheTags";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicMolecule } from "./publicData.shared";
 

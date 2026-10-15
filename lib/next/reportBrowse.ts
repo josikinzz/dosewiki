@@ -2,7 +2,8 @@ import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 
 import { getPublicReports } from "@server/data/publicData";
-import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, PUBLIC_DATA_CACHE_TAGS } from "@server/data/publicData.cache";
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "@server/data/publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS } from "@server/data/publicData.cacheTags";
 import { getLocalizedLeaves, getLocalizedLeavesRevision } from "@server/translation/localizedRecords";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import { foldSparseGroups, groupTripReports, selectFeaturedReports, selectRecentlyAddedReports } from "../../src/features/reports/domain/tripReportIndex";

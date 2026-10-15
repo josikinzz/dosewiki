@@ -143,8 +143,8 @@ export function DevModeProvider({
     layouts: proposalLayouts,
   });
 
-  const markChangesSaved = useCallback(() => {
-    articleContextValue.markChangesSaved();
+  const markChangesSaved = useCallback((receipts?: Array<{ slug: string; baseHash: string }>) => {
+    articleContextValue.markChangesSaved(receipts);
     markIndexManualsSaved();
     if (canReadPrivateLayouts) privateLayouts.retry();
   }, [articleContextValue, markIndexManualsSaved, canReadPrivateLayouts, privateLayouts.retry]);

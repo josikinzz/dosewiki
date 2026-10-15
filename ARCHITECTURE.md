@@ -25,9 +25,11 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
 - `/glossary` and its locale mirrors share `src/features/language-glossary/GlossaryRoute.tsx` and one renderer. Translation pages include private reader suggestions; old `/glossary/<locale>` links redirect to the merged address.
 - Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
+- `lib/data/publicData.cacheTags.ts` owns pure cache tags shared by the publication contract and the Next cache adapter in `publicData.cache.ts`.
 - Protected editor routes live under `/dev`; `src/middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
 - `lib/auth/devScreenshotViewer.ts` is a local `next dev` exception that renders `/dev` documents without an account for screenshots. It never admits an API, a mutation, or a production build.
 - Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.
+- `server/lib/articleWrite.ts` owns editorial article patches and their revision journal. `server/saveArticleBatch.ts` owns atomic staged publication and actor-scoped durable batch receipts. Specialized article writers and operator ingestion contracts are listed in [runtime and data](docs/architecture/runtime-and-data.md#article-write-owners).
 - The public `/api/v1` surface exposes public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints.
 - Local JSON and Markdown are migration inputs, exports, prompts, backups, or generated artifacts unless active source reads them. `data/lineage.json` owns generated-data lineage.
 

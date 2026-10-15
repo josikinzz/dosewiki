@@ -107,6 +107,30 @@ fallbacks are not service-limit-proof, so backfill history promptly and keep
 the rollout window short. Direct SQL or snapshot imports bypass application
 index maintenance and must not modify the indexed source tables.
 
+### Article write owners
+
+`server/lib/articleWrite.ts` commits accepted editorial article patches with their revision journal and citation-evidence invalidation. Contextual publication, inline edits, IUPAC corrections, and approved proposal application use this owner. Inline alias appends retain their current-content replay check and preserve unrelated identification fields exactly.
+
+`server/saveArticleBatch.ts` publishes staged articles and index layouts in one serializable transaction. Existing articles require the stored-document `articleBaseHash` returned by authenticated hydration. The hash includes the latest article journal identity. New articles require explicit create-only admission and refuse existing slugs and article IDs. Generated section-gap metadata stays with its specialized owner.
+
+A batch operation has one stable ID and actor-scoped semantic fingerprint. Its versioned `articleBatchReceipts` row stores the complete committed result without automatic expiry. The same actor and ID with changed input refuses before baseline comparison. An exact retry returns the original result after freeze and current-role checks. Child article and layout IDs derive from the batch and target identities. The transaction includes layout journals, one public batch history entry, derived indexes, and the publication outbox. Delivery follows commit.
+
+The editor keeps the hydrated article and its hash together. Hydration replaces pristine rows only. Recovered work retains its original hash, and a slim library row cannot authorize publication. A confirmed response must name the operation and every article and layout target. Network failure or an incomplete success retains the exact pending envelope in the account-scoped browser recovery store. Later edits remain staged when an earlier operation is confirmed.
+
+These separate write contracts remain in place:
+
+| Owner | Contract and reason |
+| --- | --- |
+| `server/lib/generatedPublication.ts` and `lib/postgres/articlePublication.ts` | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. |
+| `server/moleculeOverrides.ts` | Molecule overrides and depictions are separate entities with chemistry-specific comparison and seed rules. |
+| `server/lib/substanceReviewHandlers.ts` | Human review, flags, and recommendations retain their role and published-content revision checks. Content editing cannot set this authority. |
+| `server/lib/substanceProvenanceHandlers.ts` | Bounded reference-author and metadata repairs retain source-identity and provenance checks. |
+| `server/lib/substanceWriteHandlers.ts` ingestion and `server/lib/substanceIngestion.ts` | The admin-only `saveSubstance` and `saveSubstances` contract remains for guarded operator families under `scripts/legality/`, `scripts/citations/`, `scripts/batch/`, `scripts/migrate/`, and `scripts/data-ops/`. These include citation application, schema and shape repair, dosage and duration imports, subjective-effect imports, and bounded corpus synchronization. They retain canonical ingestion validation and indexed mutations. They do not acquire editorial baseline, retry-receipt, or article-journal guarantees from the staged batch change. Their command-specific target and confirmation ceremony remains required. |
+| `server/bindingSiteMigration.ts` | Bounded pharmacology-shape migration retains its maintenance owner. |
+| `scripts/postgres/import-document-snapshot.ts` | Snapshot import retains its operator ceremony and separately committed statements. It bypasses runtime indexes and outbox and requires the existing rebuild procedure. |
+
+The browser staged-save route and proposal application no longer call the legacy operator ingestion entry points. This ownership split preserves existing operator workflows without treating a fresh server read as evidence that a browser draft is current.
+
 ### Article schema ownership
 
 Canonical article structure is defined in:
@@ -266,6 +290,14 @@ by normalization. Unknown legacy-only pharmacology keys are stripped just as
 they were by the previous full-article parse. Full public articles remain on the
 per-slug, About-preview, and coverage paths.
 
+The ordinary builder-input page selects 22 stored columns through
+`SubstanceProjectionReader`, narrowing editorial review to its status and harm
+potential to addiction liability before decoding. It retains the shared public
+projection and row parser. Effect-membership pages remain a separate read.
+Category effect enrichment adds only long summary, citations, and subarticles
+to canonical previews through `src/features/effects/pages/enrichEffectPreviews.ts`.
+Artist taxonomy read failures reject rather than producing untagged artists.
+
 Static route planning does not build that full library. It reads a slim Postgres
 mechanism-route projection and feeds it through the same mechanism aggregation
 function used by the library, preserving route/filter/order parity without
@@ -285,6 +317,10 @@ with backend, selected target identity, callback identity, and arguments in
 the key. Lookup, slug, and preview reads use field-specific Postgres
 projections rather than transporting complete article documents. Index counts
 read their own canonical membership, not unrelated public corpora.
+
+`lib/data/publicData.cacheTags.ts` owns the pure tag vocabulary. The publication
+contract imports it directly, without loading the Next cache adapter or the
+Postgres target resolver in `publicData.cache.ts`.
 
 Library and mechanism input pages persist separately, including on cold
 instances. Derived library and search caches check a shared Next Data Cache
@@ -414,6 +450,23 @@ Its menu portal remains inside that outlet for native fullscreen, and launcher
 keyboard events do not drive viewer navigation. The existing inline gallery
 editor and its desktop restriction are unchanged. Dev edits still target
 production data; following a shortcut does not save anything.
+
+### Editor exit actions
+
+The shell's `UnsavedWorkEntry` requires one action: `discard-only` with its
+reason, `save-unpublished` with a private save operation, or `submit-proposal`
+with a proposal operation. Publication stays inside each tool's explicit review
+and confirmation. Shared staged work retains its tab-switch behavior.
+
+Writing direct commands carry mandatory `save-unpublished` or `publish` intent.
+`upsertWritingArticleHandler` enforces the intent, roles, freeze, revision and
+operation identity, including trusted direct helper calls. An unpublished save
+requires an explicitly draft source and result, or an explicit new draft. Legacy
+rows without status remain potentially public. Reviewed publication and guarded
+partial operator patches use explicit `publish` intent. Proposal approval supplies
+that intent after its independent approval gates; reverts restore exact snapshots.
+Unpublished saves trigger neither cache publication nor translation jobs. Unknown
+outcomes retain the original operation ID, payload and intent for retry and recovery.
 
 ### Editor read flow
 

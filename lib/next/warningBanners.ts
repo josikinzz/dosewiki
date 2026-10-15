@@ -1,10 +1,7 @@
 import "server-only";
 
-import {
-  publicDataCache,
-  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_DATA_CACHE_TAGS,
-} from "../data/publicData.cache";
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "../data/publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS } from "../data/publicData.cacheTags";
 import { cache } from "react";
 import { CORPORA } from "../../scripts/translation/corpora.mjs";
 import { localizeDataset } from "../translation/liveTranslation";

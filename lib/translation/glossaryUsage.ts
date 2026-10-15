@@ -19,7 +19,8 @@ import { effectIndexViewPath } from "../../src/utils/indexViewRoutes";
 import { publicHref } from "../../src/utils/publicHref";
 import { getPublicRoutePath } from "../../src/utils/publicRouteIdentity";
 import { getPublicDataReadAdapter, type PublicDataReadAdapter } from "../data/publicData.reads";
-import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG, publicDataCache } from "../data/publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG } from "../data/publicData.cacheTags";
+import { publicDataCache } from "../data/publicData.cache";
 import { resolveRuntimePostgresTarget } from "../postgres/runtime/target";
 
 const PAGE_SIZE = 40;

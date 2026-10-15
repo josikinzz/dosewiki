@@ -1,3 +1,6 @@
+import { contentHash } from "../../lib/proposals/contentHash";
+import { ArticleSaveUnconfirmedError, parseArticleBatchSuccess, parsePendingArticleBatch } from "./articleBatchClient";
+import { useDraftRecoveryStore } from "@/features/dev/recovery/DraftRecoveryContext";
 import { useMutation } from "@tanstack/react-query";
 import { useRef } from "react";
 import { pickString, pickStringArray, postJson } from "./apiMutationClient";
@@ -8,6 +11,8 @@ import type { ProposalBaseline } from "../../lib/proposals/proposalBaseline";
 // ============================================================================
 
 export interface SaveArticlePayload {
+  operationId?: string;
+  articleAdmissions?: Array<{ kind: "create"; slug: string } | { kind: "replace-existing"; slug: string; baseHash: string }>;
   articles?: unknown[];
   indexLayouts?: Array<{
     type: "psychoactive" | "chemical" | "mechanism";
@@ -29,6 +34,9 @@ export interface SaveArticlePayload {
 
 export interface SaveArticleResult {
   success: boolean;
+  operationId?: string;
+  confirmsCurrentDraft?: boolean;
+  articleReceipts?: Array<{ slug: string; baseHash: string; unchanged: boolean }>;
   requestId?: string;
   savedItems: string[];
   submittedBy?: string;
@@ -120,147 +128,18 @@ export interface SubmitProposalResult {
 // ============================================================================
 
 const SAVE_ARTICLE_TIMEOUT_MS = 60_000;
-
-async function saveArticle(payload: SaveArticlePayload): Promise<SaveArticleResult> {
-  const requestSummary = {
-    articleCount: Array.isArray(payload.articles) ? payload.articles.length : 0,
-    indexLayoutCount: Array.isArray(payload.indexLayouts) ? payload.indexLayouts.length : 0,
-    hasChangelog: payload.changelog !== undefined,
-  };
-
-  console.info("[saveArticle] request:start", requestSummary);
-
+async function saveArticle(payload: SaveArticlePayload & { operationId: string }): Promise<SaveArticleResult> {
   const { response, result } = await postJson("/api/save-article", {
-    body: payload,
-    timeoutMs: SAVE_ARTICLE_TIMEOUT_MS,
-    onNetworkError: (networkError) => {
-      const aborted =
-        networkError instanceof DOMException && networkError.name === "AbortError";
-      const message = aborted
-        ? `Postgres save request timed out after ${SAVE_ARTICLE_TIMEOUT_MS / 1000} seconds.`
-        : `Postgres save request failed: ${
-            networkError instanceof Error ? networkError.message : String(networkError)
-          }`;
-      console.error("[saveArticle] request:error", {
-        ...requestSummary,
-        message,
-      });
-      throw new Error(message);
-    },
+    body: payload, timeoutMs: SAVE_ARTICLE_TIMEOUT_MS,
+    onNetworkError: () => { throw new ArticleSaveUnconfirmedError(); },
   });
-
-  console.info("[saveArticle] request:response", {
-    ...requestSummary,
-    ok: response.ok,
-    status: response.status,
-    requestId: pickString(result.requestId) ?? null,
-    savedItems: pickStringArray(result.savedItems),
-    warningCount: pickStringArray(result.warnings).length,
-  });
-
   if (!response.ok) {
-    const details = pickStringArray(result.details);
-    const error = pickString(result.error) ?? "Unable to save to Postgres.";
-    const code = pickString(result.code);
-    const phase = pickString(result.phase);
-    const requestId = pickString(result.requestId);
-    const diagnostics = [
-      code ? `code=${code}` : null,
-      phase ? `phase=${phase}` : null,
-      requestId ? `requestId=${requestId}` : null,
-    ].filter((entry): entry is string => entry !== null);
-    const detailText = details.length > 0 ? ` ${details.join(" ")}` : "";
-    const diagnosticText = diagnostics.length > 0 ? ` (${diagnostics.join(", ")})` : "";
-    throw new Error(`${error}${detailText}${diagnosticText}`.trim());
+    if (response.status >= 500 && result?.code !== "DATA_WRITES_FROZEN") throw new ArticleSaveUnconfirmedError();
+    const error = pickString(result?.error) ?? "Unable to save to Postgres.";
+    const details = pickStringArray(result?.details);
+    throw new Error([error, ...details].join(" "));
   }
-
-  return {
-    success: true,
-    requestId: pickString(result.requestId),
-    savedItems: pickStringArray(result.savedItems),
-    submittedBy: pickString(result.submittedBy),
-    warnings: pickStringArray(result.warnings),
-    verification: Array.isArray(result.verification)
-      ? result.verification.filter(
-          (
-            value,
-          ): value is {
-            target: string;
-            found: boolean;
-            previousSlug: string | null;
-            requestedSlug: string | null;
-            storedSlug: string | null;
-            storedTitle: string | null;
-            titleMatches: boolean;
-            slugMatches: boolean;
-          } =>
-            typeof value === "object" &&
-            value !== null &&
-            typeof (value as { target?: unknown }).target === "string" &&
-            typeof (value as { found?: unknown }).found === "boolean" &&
-            typeof (value as { titleMatches?: unknown }).titleMatches === "boolean" &&
-            typeof (value as { slugMatches?: unknown }).slugMatches === "boolean",
-        )
-      : [],
-    revalidatedPaths: Array.isArray(result.revalidatedPaths)
-      ? result.revalidatedPaths.filter((value): value is string => typeof value === "string")
-      : [],
-    articleResult:
-      result.articleResult && typeof result.articleResult === "object"
-        ? {
-            created: Number((result.articleResult as { created?: unknown }).created ?? 0),
-            updated: Number((result.articleResult as { updated?: unknown }).updated ?? 0),
-            skipped: Number((result.articleResult as { skipped?: unknown }).skipped ?? 0),
-            errors: Array.isArray((result.articleResult as { errors?: unknown[] }).errors)
-              ? (result.articleResult as { errors: unknown[] }).errors.filter(
-                  (value): value is string => typeof value === "string",
-                )
-              : [],
-          }
-        : undefined,
-    entry:
-      result.entry && typeof result.entry === "object"
-        ? {
-            id: typeof (result.entry as { id?: unknown }).id === "string" ? (result.entry as { id: string }).id : "",
-            createdAt:
-              typeof (result.entry as { createdAt?: unknown }).createdAt === "string"
-                ? (result.entry as { createdAt: string }).createdAt
-                : "",
-            commit: {
-              sha:
-                typeof (result.entry as { commit?: { sha?: unknown } }).commit?.sha === "string"
-                  ? (result.entry as { commit: { sha: string } }).commit.sha
-                  : "",
-              url:
-                typeof (result.entry as { commit?: { url?: unknown } }).commit?.url === "string"
-                  ? (result.entry as { commit: { url: string } }).commit.url
-                  : "",
-              message:
-                typeof (result.entry as { commit?: { message?: unknown } }).commit?.message === "string"
-                  ? (result.entry as { commit: { message: string } }).commit.message
-                  : "",
-            },
-            articles: Array.isArray((result.entry as { articles?: unknown }).articles)
-              ? (result.entry as { articles: unknown[] }).articles.filter(
-                  (value: unknown): value is { id: number; title: string; slug: string } =>
-                    typeof value === "object" &&
-                    value !== null &&
-                    typeof (value as { id?: unknown }).id === "number" &&
-                    typeof (value as { title?: unknown }).title === "string" &&
-                    typeof (value as { slug?: unknown }).slug === "string",
-                )
-              : [],
-            markdown:
-              typeof (result.entry as { markdown?: unknown }).markdown === "string"
-                ? (result.entry as { markdown: string }).markdown
-                : "",
-            submittedBy:
-              typeof (result.entry as { submittedBy?: unknown }).submittedBy === "string"
-                ? (result.entry as { submittedBy: string }).submittedBy
-                : null,
-          }
-        : undefined,
-  };
+  return parseArticleBatchSuccess(result, payload);
 }
 
 const SUBMIT_PROPOSAL_TIMEOUT_MS = 60_000;
@@ -299,19 +178,43 @@ async function submitProposal(input: SubmitProposalPayload): Promise<SubmitPropo
 // ============================================================================
 
 export function useSaveArticleMutation() {
-  const pending = useRef(new Map<string, { identity: string; operationId: string }>());
+  const store = useDraftRecoveryStore();
+  const pending = useRef<{ actor: string | null; uncertain: boolean; payload: SaveArticlePayload & { operationId: string } } | null>(null);
+  const currentActor = useRef(store?.actor ?? null);
+  currentActor.current = store?.actor ?? null;
   return useMutation({
-    mutationFn: (payload: SaveArticlePayload) => {
-      const indexLayouts = payload.indexLayouts?.map((layout) => {
-        const identity = JSON.stringify(layout);
-        let operation = pending.current.get(layout.type);
-        if (operation?.identity !== identity) {
-          operation = { identity, operationId: crypto.randomUUID() };
-          pending.current.set(layout.type, operation);
+    mutationFn: async (payload: SaveArticlePayload) => {
+      const actor = store?.actor ?? null;
+      if (pending.current?.actor !== actor) pending.current = null;
+      if (!pending.current) {
+        const recovered = store?.read<null>("staged-articles", "pending-publication")?.pending;
+        if (recovered) {
+          try {
+            const parsed = parsePendingArticleBatch(JSON.parse(recovered.body), recovered.id);
+            pending.current = { actor, uncertain: true, payload: parsed };
+          } catch { throw new ArticleSaveUnconfirmedError(); }
         }
-        return { ...layout, operationId: operation.operationId };
-      });
-      return saveArticle({ ...payload, indexLayouts });
+      }
+      if (!pending.current) pending.current = { actor, uncertain: false, payload: JSON.parse(JSON.stringify({ ...payload, operationId: crypto.randomUUID() })) };
+      const state = pending.current;
+      const operation = state.payload;
+      store?.write({ tool: "staged-articles", record: "pending-publication", baseline: operation.operationId, draft: null, pending: { id: operation.operationId, body: JSON.stringify(operation) } });
+      try {
+        const result = await saveArticle(operation);
+        const { operationId: _id, ...original } = operation;
+        const { operationId: _currentId, ...current } = payload;
+        const confirmsCurrentDraft = currentActor.current === actor && contentHash(original) === contentHash(current);
+        if (pending.current === state) pending.current = null;
+        store?.clear("staged-articles", "pending-publication");
+        return { ...result, confirmsCurrentDraft };
+      } catch (error) {
+        if (error instanceof ArticleSaveUnconfirmedError) state.uncertain = true;
+        if (!state.uncertain) {
+          if (pending.current === state) pending.current = null;
+          store?.clear("staged-articles", "pending-publication");
+        }
+        throw error;
+      }
     },
   });
 }

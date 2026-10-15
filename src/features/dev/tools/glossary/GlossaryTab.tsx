@@ -36,6 +36,7 @@
  * editor writes them in place here and a translator reads them.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -43,7 +44,6 @@ import { Button } from "@/components/ui/button";
 import {
   EditorField,
   EditorNavTabs,
-  EditorSection,
   EditorSelect,
   EditorStatusPill,
   LoadErrorState,
@@ -301,6 +301,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const hasUiDrafts = useDraftMapHasEntries(uiEditDrafts);
   const languageName = locale ? languageLabel(locale) : "this language";
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Save each term change from the Glossary after review.",
     id: "glossary:terms",
     tab: "glossary",
     label: `Glossary: term wording in ${languageName}`,
@@ -308,6 +310,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     discard: () => termEditDrafts.clear(),
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Save each interface text change from the Glossary after review.",
     id: "glossary:ui-text",
     tab: "glossary",
     label: `Glossary: interface text in ${languageName}`,
@@ -763,9 +767,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   return (
     <div className="space-y-6">
-      <EditorSection
-        icon="lucide:languages"
-        title="Glossary"
+      <DevToolSection
+        tool="glossary"
         description="The translation workbench. Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
         // Beside the heading from `sm`; on a phone it follows the description instead of splitting it from the title.
         actions={<span className="max-sm:hidden"><SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} /></span>}
@@ -830,7 +833,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
             ) : null}
           </div>
         )}
-      </EditorSection>
+      </DevToolSection>
 
       {data ? (
         <>

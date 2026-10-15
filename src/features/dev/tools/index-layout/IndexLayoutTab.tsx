@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { PublicSegmentedTabs, type PublicSegmentedTabItem } from "@/components/layout/PublicSegmentedTabs";
@@ -17,7 +18,6 @@ import { TOUCH_HALO_Y } from "@/components/ui/touchTargets";
 import { useLibrary } from "@/data/SubstanceIndexProvider";
 import {
   EditorField,
-  EditorSection,
   EditorSelect,
   Notice,
   useConfirm,
@@ -927,9 +927,8 @@ export function IndexLayoutTab({
       {workingChanges}
       {confirmDialog}
 
-      <EditorSection
-        icon="lucide:layout-grid"
-        title="Index layout"
+      <DevToolSection
+        tool="index-layout"
         description="The public Substance Index as readers see it. Drag a substance by its handle, or use its menu; changes wait in your working changes until you commit."
       >
         <div className="space-y-4">
@@ -978,7 +977,7 @@ export function IndexLayoutTab({
           </p>
           <BoardFinder hits={finderHits} query={finderQuery} onQueryChange={setFinderQuery} onPick={pickHit} inputRef={finderRef} />
         </div>
-      </EditorSection>
+      </DevToolSection>
 
       <div className="space-y-6">
         {/* The reader's strip from md; a phone gets one select, since the strip wraps to six rows there. */}

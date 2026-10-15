@@ -12,6 +12,7 @@
  * refuses when someone else changed them since they were shown.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,6 @@ import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { Icon } from "@/components/common/Icon";
 import { SmartLink } from "@/components/common/SmartLink";
 import {
-  EditorSection,
   LoadErrorState,
   useConfirm,
   useDevShortcuts,
@@ -757,15 +757,14 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
 
   return (
     <div className="space-y-6">
-      <EditorSection
-        icon="lucide:quote"
-        title="Citations"
+      <DevToolSection
+        tool="citation-review"
         description="Each evidence row pairs a claim in an article with a quote checked against its source. Approving a row makes that quote part of the article's public evidence at once; rejecting it keeps your reason for the next editor."
       >
         <p className="theme-text-secondary text-sm" aria-live="polite">
           {initialLoading ? "Loading the queue." : queueError && queue.length === 0 ? "The queue did not load." : describeQueueTotals(queue, queueFilter)}
         </p>
-      </EditorSection>
+      </DevToolSection>
 
       <p className="sr-only" role="status" aria-live="polite">
         {announcement}

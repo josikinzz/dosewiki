@@ -21,6 +21,7 @@ export type WritingArticleBody = {
   originalSlug?: unknown;
   expectedRevision?: unknown;
   operationId?: unknown;
+  intent?: unknown;
   bodyFormat?: unknown;
   kind?: unknown;
   status?: unknown;
@@ -56,6 +57,7 @@ export type ParsedWritingArticle = ParsedWritingDocument & {
   originalSlug?: string;
   expectedRevision: string;
   operationId: string;
+  intent: "save-unpublished" | "publish";
 };
 
 function requireSlug(raw: unknown, label = "A valid slug is required"): string {
@@ -152,6 +154,7 @@ export function parseWritingDocument(raw: WritingArticleBody): ParsedWritingDocu
 
 export function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingArticle {
   const document = parseWritingDocument(raw);
+  if (raw.intent !== "save-unpublished" && raw.intent !== "publish") throw new JsonBodyError(400, "An explicit Writing save or publication intent is required.");
   if (typeof raw.expectedRevision !== "string" || !/^[a-f0-9]{64}$/.test(raw.expectedRevision)) throw new JsonBodyError(400, "Reload this writing document before publishing.");
   if (typeof raw.operationId !== "string" || !/^[a-f0-9-]{36}$/i.test(raw.operationId)) throw new JsonBodyError(400, "A valid publication operation is required.");
   const originalSlug = optionalText(raw.originalSlug, "The original slug", 200);
@@ -160,6 +163,7 @@ export function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingA
     ...document,
     expectedRevision: raw.expectedRevision,
     operationId: raw.operationId,
+    intent: raw.intent,
     originalSlug: originalSlug
       ? requireSlug(originalSlug, "The original slug must be a valid slug")
       : undefined,

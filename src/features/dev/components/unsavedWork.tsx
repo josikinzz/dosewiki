@@ -3,36 +3,25 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "./ConfirmDialog";
 
-/**
- * One tool's unsaved work, as the shell sees it. `id` names the work and is
- * the rail tab that holds it, so the rail can mark it. A tool with several
- * editable scopes registers one entry per scope, each with its own `id` and
- * the shared `tab`. `save` is optional: work with no
- * one-step save (a draft that still needs its own review step) offers only
- * Discard.
- *
- * The dialog never publishes live. Publishing needs the tool's own explicit
- * action and confirm, so an entry whose save would go live sets
- * `publishesLive` and the dialog drops its Save, whatever `save` is.
- */
-export interface UnsavedWorkEntry {
+interface UnsavedWorkMetadata {
   id: string;
-  /** The rail tab that holds this work, when `id` is a scope inside it. Defaults to `id`. */
+  save?: never;
+  publishesLive?: never;
+  /** The rail tab that holds this scope. Defaults to `id`. */
   tab?: string;
   label: string;
   dirty: boolean;
-  save?: () => Promise<void>;
   discard: () => void;
-  /** The save button's verb, like "Save as unpublished" or "Submit for review". */
   saveLabel?: string;
-  /** This entry's save would go live; the dialog offers only Discard and Keep editing. */
-  publishesLive?: boolean;
-  /**
-   * Work that lives above the tool switch (the shared draft) survives a rail
-   * click, so only Leave, sign-out and a browser unload stop for it.
-   */
+  /** Shared working sets survive a rail switch, but not leaving the editor. */
   keepsOnTabSwitch?: boolean;
 }
+
+export type UnsavedWorkEntry = UnsavedWorkMetadata & (
+  | { kind: "discard-only"; because: string; saveDraft?: never; submit?: never }
+  | { kind: "save-unpublished"; saveDraft: () => Promise<void>; submit?: never; because?: never }
+  | { kind: "submit-proposal"; submit: () => Promise<void>; saveDraft?: never; because?: never }
+);
 
 /** What is about to drop the work: a rail switch, or leaving the editor entirely. */
 export type UnsavedWorkExit = "tab" | "leave";
@@ -161,8 +150,8 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
 
   const saveOne = async (exit: PendingExit, id: string) => {
     const entry = entriesRef.current.get(id);
-    if (!entry?.save || entry.publishesLive) return;
-    const save = entry.save;
+    if (!entry || entry.kind === "discard-only") return;
+    const save = entry.kind === "save-unpublished" ? entry.saveDraft : entry.submit;
     setSavingId(id);
     setError(null);
     try {
@@ -198,7 +187,7 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   const rows = openIdsOf(pending).map((id) => entriesRef.current.get(id)).filter((entry): entry is UnsavedWorkEntry => !!entry);
   // Only promise a save when some row offers one: a dialog that says "Save"
   // and then shows only Discard leaves the editor hunting for a button.
-  const anySavable = rows.some((entry) => entry.save && !entry.publishesLive);
+  const anySavable = rows.some((entry) => entry.kind !== "discard-only");
   const request = pending && rows.length > 0
     ? {
         title: anySavable
@@ -218,9 +207,9 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
                 <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2">
                   <span className="min-w-0 flex-1">
                     <span className="theme-text-secondary block truncate text-sm">{entry.label}</span>
-                    {entry.publishesLive ? (
+                    {entry.kind === "discard-only" ? (
                       <span className="theme-text-muted block text-xs">
-                        This change would go live. Publish it from the tool; leaving here never publishes.
+                        {entry.because}
                       </span>
                     ) : null}
                   </span>
@@ -228,7 +217,7 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
                     <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => discardOne(pending, entry.id)}>
                       Discard
                     </Button>
-                    {entry.save && !entry.publishesLive ? (
+                    {entry.kind !== "discard-only" ? (
                       <Button
                         type="button"
                         variant="accent"
@@ -263,33 +252,37 @@ export function useUnsavedWorkRegistry(): UnsavedWorkRegistry {
   return useContext(UnsavedWorkContext) ?? INERT_REGISTRY;
 }
 
-/**
- * Reports a tool's unsaved work to the shell for as long as the tool is
- * mounted. `save` and `discard` are read at call time, so callers need not
- * memoise them.
- */
 export function useUnsavedWork(entry: UnsavedWorkEntry): void {
   const registry = useContext(UnsavedWorkContext);
   const latest = useRef(entry);
   useEffect(() => {
     latest.current = entry;
   });
-  const { id, tab, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive } = entry;
-  const canSave = entry.save !== undefined && !publishesLive;
+  const { id, tab, label, dirty, saveLabel, keepsOnTabSwitch, kind } = entry;
+  const because = entry.kind === "discard-only" ? entry.because : undefined;
   const register = registry?.register;
 
   useEffect(() => {
     if (!register) return;
-    return register({
-      id,
-      tab,
-      label,
-      dirty,
-      saveLabel,
-      keepsOnTabSwitch,
-      publishesLive,
-      save: canSave ? () => latest.current.save?.() ?? Promise.resolve() : undefined,
-      discard: () => latest.current.discard(),
-    });
-  }, [register, id, tab, label, dirty, saveLabel, keepsOnTabSwitch, publishesLive, canSave]);
+    const metadata = { id, tab, label, dirty, saveLabel, keepsOnTabSwitch, discard: () => latest.current.discard() };
+    const unavailable = () => { throw new Error("This action is no longer available. Keep editing and finish it in the tool."); };
+    switch (kind) {
+      case "discard-only":
+        return register({ ...metadata, kind, because: because ?? "Finish this change in the tool." });
+      case "save-unpublished":
+        return register({ ...metadata, kind, saveDraft: () => {
+          const current = latest.current;
+          return current.kind === "save-unpublished" ? current.saveDraft() : unavailable();
+        } });
+      case "submit-proposal":
+        return register({ ...metadata, kind, submit: () => {
+          const current = latest.current;
+          return current.kind === "submit-proposal" ? current.submit() : unavailable();
+        } });
+      default: {
+        const exhaustive: never = kind;
+        return exhaustive;
+      }
+    }
+  }, [register, id, tab, label, dirty, saveLabel, keepsOnTabSwitch, kind, because]);
 }

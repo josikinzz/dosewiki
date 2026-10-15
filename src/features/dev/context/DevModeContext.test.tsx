@@ -111,6 +111,7 @@ describe("DevModeContext", () => {
     useQueryMock.mockReturnValue(INDEX_LAYOUTS);
     const fetchMock = vi.fn(async (input: RequestInfo | URL) =>
       Response.json({
+        baseHash: "stored-base-hash",
         article: { title: "LSD", slug: "lsd", identification: { common_name: "LSD" }, summary: "Stored summary" },
         requested: String(input),
       }),

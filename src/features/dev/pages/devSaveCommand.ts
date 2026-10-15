@@ -42,6 +42,7 @@ type ManualLayoutDocument = {
 export type DevSaveDraft = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
+  articleBaseHashes?: Record<string, string>;
   layouts: ManualLayoutDocument[];
   hasPendingChanges: boolean;
   changelog: {
@@ -54,6 +55,7 @@ export type DevSaveDraft = {
 export type DevSaveDraftInput = {
   articles: SubstanceArticle[];
   originalArticles: SubstanceArticle[];
+  articleBaseHashes?: Record<string, string>;
   layouts: ManualLayoutDocument[];
   datasetChangelog: DatasetChangelogResult;
   hasPendingChanges: boolean;
@@ -67,6 +69,7 @@ export type DevSaveCommandResult = {
   resolvedSubmitterKey: string;
   changelogEntry: ChangeLogEntry | null;
   markChangesSaved: boolean;
+  articleReceipts?: Array<{ slug: string; baseHash: string }>;
   revalidatedPaths?: string[];
   requestId?: string;
   /** Follow-up link shown beside the success notice (e.g. the review queue). */
@@ -110,6 +113,7 @@ export function buildDevSaveDraft(input: DevSaveDraftInput): DevSaveDraft {
   return {
     articles: input.articles,
     originalArticles: input.originalArticles,
+    articleBaseHashes: input.articleBaseHashes,
     layouts: input.layouts,
     hasPendingChanges: input.hasPendingChanges,
     changelog: {
@@ -183,16 +187,27 @@ export function createDataSaveAdapter({
         layout.expected = original === EMPTY_INDEX_CONFIG ? null : original;
         layout.expectedRevision = original && typeof original === "object" && "revision" in original && typeof original.revision === "number" ? original.revision : 0;
       }
+      payload.articleAdmissions = (payload.articles ?? []).map(value => {
+        const article = value as SubstanceArticle;
+        const slug = resolveEditorArticleSlug(article);
+        if (!slug) throw new Error("Every article needs a slug before publication.");
+        const original = draft.originalArticles.find(row => resolveEditorArticleSlug(row) === slug || (article.id !== null && article.id === row.id));
+        if (!original) return { kind: "create" as const, slug };
+        const baseHash = draft.articleBaseHashes?.[slug];
+        if (!baseHash) throw new Error("Load the complete article before editing it. Your draft is preserved; reload and reconcile it before publishing.");
+        return { kind: "replace-existing" as const, slug, baseHash };
+      });
       const result = await saveArticle(payload);
       const resolvedSubmitterKey = result.submittedBy?.trim() || credentials.key;
 
       return {
         destination: "production",
         savedItems: result.savedItems,
-        warnings: result.warnings ?? [],
+        warnings: result.confirmsCurrentDraft === false ? ["The earlier changes are confirmed as published. Your newer edits remain in Working Changes. Review them before publishing."] : result.warnings ?? [],
         resolvedSubmitterKey,
         changelogEntry: result.entry ? normalizeDataChangeLogEntry(result.entry) : null,
-        markChangesSaved: result.savedItems.length > 0 && !(result.warnings?.length),
+        markChangesSaved: result.confirmsCurrentDraft !== false && result.savedItems.length > 0 && !(result.warnings?.length),
+        articleReceipts: result.articleReceipts,
         revalidatedPaths: result.revalidatedPaths,
         requestId: result.requestId,
       };

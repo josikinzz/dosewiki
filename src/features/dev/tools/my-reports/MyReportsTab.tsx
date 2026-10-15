@@ -18,13 +18,13 @@
  * carries Back to list.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import {
   EditorPanel,
-  EditorSection,
   LoadErrorState,
   Notice,
   SaveLine,
@@ -89,11 +89,12 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   // Leave and unload. Saving republishes the page, so the shell only discards.
   const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "my-reports:report",
     tab: "my-reports",
     label: `My reports: edits to /reports/${open?.record.slug ?? ""}`,
     dirty,
-    publishesLive: true,
     discard: () => setOpen((current) => (current ? { ...current, draft: current.record.fields } : current)),
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
@@ -268,9 +269,8 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     <div className="space-y-12">
       {submissionsFirst ? submissions : null}
 
-      <EditorSection
-        icon="lucide:book-open-text"
-        title="My reports"
+      <DevToolSection
+        tool="my-reports"
         description="Your published trip reports. Open one to revise its title, tags or body."
         actions={
           <Button
@@ -354,7 +354,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
             </section>
           </div>
         ) : null}
-      </EditorSection>
+      </DevToolSection>
 
       {submissionsFirst ? null : submissions}
 

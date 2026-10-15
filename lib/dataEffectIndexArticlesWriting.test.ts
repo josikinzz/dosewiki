@@ -4,6 +4,7 @@ import {
   getBySlug,
   listForEditor,
   upsertArticle,
+  upsertWritingArticleHandler,
 } from "../server/effectIndexArticles";
 import { contentHash } from "./proposals/contentHash";
 import { narrativeRevision } from "../server/lib/narrativeRevisions";
@@ -128,7 +129,7 @@ function handlerOf(fn: unknown) {
   return (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
 }
 
-const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com", expectedRevision: contentHash(null), operationId: "11111111-1111-4111-8111-111111111111" };
+const adminArgs = { intent: "publish" as const, apiKey: "secret", actorEmail: "admin@example.com", expectedRevision: contentHash(null), operationId: "11111111-1111-4111-8111-111111111111" };
 const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com" };
 const memberships: Record<string, Role> = {
   "admin@example.com": "admin",
@@ -157,6 +158,7 @@ const draftRow: ArticleRow = {
 
 describe("effectIndexArticles writing extensions", () => {
   afterEach(() => {
+    delete process.env.DATA_WRITES_FROZEN;
     delete process.env.DATA_ADMIN_KEY;
     delete process.env.DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE;
   });
@@ -224,4 +226,54 @@ describe("effectIndexArticles writing extensions", () => {
     await expect(handlerOf(getBySlug)(ctx, { slug: publishedRow.slug })).resolves.toMatchObject(publishedRow);
     expect(revisions).toHaveLength(2);
   });
+  it.each([undefined, "save-private", "submit-proposal", "unknown"])("refuses unsupported direct Writing intent %s without effects", async (intent) => {
+    process.env.DATA_ADMIN_KEY = "secret";
+    const { ctx, patched, inserted, revisions } = createCtx({ rows: [draftRow], memberships });
+    await expect(upsertWritingArticleHandler(ctx, { ...adminArgs, intent, slug: draftRow.slug, expectedRevision: narrativeRevision(draftRow), status: "draft", title: "Changed" } as never)).rejects.toThrow("intent is required");
+    expect([patched.length, inserted.length, revisions.length]).toEqual([0, 0, 0]);
+  });
+
+  it.each([
+    [draftRow, "published"], [publishedRow, "draft"], [publishedRow, "published"],
+    [{ ...publishedRow, status: "published" }, "draft"], [{ ...publishedRow, status: "published" }, "published"],
+    [draftRow, undefined],
+  ] as const)("refuses an unpublished save across a public or implicit status boundary", async (row, status) => {
+    process.env.DATA_ADMIN_KEY = "secret";
+    const { ctx, patched, inserted, revisions } = createCtx({ rows: [row], memberships });
+    await expect(upsertWritingArticleHandler(ctx, { ...adminArgs, intent: "save-unpublished", slug: row.slug, expectedRevision: narrativeRevision(row), status, title: "Changed" })).rejects.toThrow("unpublished save requires");
+    expect([patched.length, inserted.length, revisions.length]).toEqual([0, 0, 0]);
+  });
+
+  it("saves explicit drafts privately, replays exactly and refuses a changed intent with the same identity", async () => {
+    process.env.DATA_ADMIN_KEY = "secret";
+    const { ctx, patched, revisions } = createCtx({ rows: [draftRow], memberships });
+    const request = { ...adminArgs, intent: "save-unpublished" as const, slug: draftRow.slug, expectedRevision: narrativeRevision(draftRow), status: "draft" as const, title: "Saved draft" };
+    const result = await upsertWritingArticleHandler(ctx, request);
+    await expect(upsertWritingArticleHandler(ctx, request)).resolves.toEqual(result);
+    await expect(upsertWritingArticleHandler(ctx, { ...request, intent: "publish" })).rejects.toThrow("Operation identity");
+    expect([patched.length, revisions.length]).toEqual([1, 1]);
+    expect(patched[0].patch).toEqual({ status: "draft", title: "Saved draft" });
+    await expect(handlerOf(getBySlug)(ctx, { slug: draftRow.slug })).resolves.toBeNull();
+  });
+
+  it("creates an explicit draft with a private intent and preserves partial live operator patches", async () => {
+    process.env.DATA_ADMIN_KEY = "secret";
+    const { ctx, inserted, patched } = createCtx({ rows: [publishedRow], memberships });
+    await upsertWritingArticleHandler(ctx, { ...adminArgs, intent: "save-unpublished", slug: "new-draft", status: "draft", title: "New" });
+    expect(inserted[0]).toMatchObject({ slug: "new-draft", status: "draft" });
+    await upsertWritingArticleHandler(ctx, { ...adminArgs, slug: publishedRow.slug, expectedRevision: narrativeRevision(publishedRow), operationId: "22222222-2222-4222-8222-222222222222", authorProfileKeys: ["synthetic-author"] });
+    expect(patched[0].patch).toEqual({ authorProfileKeys: ["synthetic-author"] });
+    await expect(handlerOf(getBySlug)(ctx, { slug: publishedRow.slug })).resolves.toMatchObject(publishedRow);
+  });
+
+  it("refuses direct helper writes and known replays under freeze", async () => {
+    process.env.DATA_ADMIN_KEY = "secret";
+    const { ctx, patched, revisions } = createCtx({ rows: [draftRow], memberships });
+    const request = { ...adminArgs, intent: "save-unpublished" as const, slug: draftRow.slug, expectedRevision: narrativeRevision(draftRow), status: "draft" as const, title: "Saved" };
+    await upsertWritingArticleHandler(ctx, request);
+    process.env.DATA_WRITES_FROZEN = "1";
+    await expect(upsertWritingArticleHandler(ctx, request)).rejects.toThrow("frozen");
+    expect([patched.length, revisions.length]).toEqual([1, 1]);
+  });
+
 });

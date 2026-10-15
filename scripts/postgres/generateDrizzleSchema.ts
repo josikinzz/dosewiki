@@ -41,6 +41,7 @@ export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "j
  * production snapshot, ignoring NULLs.
  */
 const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
+  articleBatchReceipts: ["by_owner_operation"],
   articleDraftReceipts: ["by_owner_change"],
   articleDrafts: ["by_owner_slug"],
   articleProposalTargets: ["by_proposal_slug"],

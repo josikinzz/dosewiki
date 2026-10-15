@@ -21,6 +21,7 @@
  * after it, so a save never drops anything silently.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -28,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   EditorPanel,
-  EditorSection,
   LoadErrorState,
   Notice,
   SaveLine,
@@ -230,6 +230,8 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const discardDraft = () =>
     setOpen((current) => (current ? { ...current, draft: current.saved ? draftOf(current.saved) : { ...EMPTY_DRAFT } } : current));
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Review the changed parts and save this playlist from the tool.",
     id: "playlists",
     label: `Playlists: “${open?.draft.title.trim() || "Untitled"}”`,
     dirty: isDirty,
@@ -495,9 +497,8 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
 
   return (
     <div className="space-y-10">
-      <EditorSection
-        icon="lucide:list-video"
-        title="Playlists"
+      <DevToolSection
+        tool="playlists"
         description={description}
         actions={
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => startNew()}>
@@ -652,7 +653,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
             </section>
           </div>
         ) : null}
-      </EditorSection>
+      </DevToolSection>
 
       {confirmDialog}
       {dirtyDialog}

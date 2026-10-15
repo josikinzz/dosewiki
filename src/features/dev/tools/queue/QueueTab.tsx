@@ -12,6 +12,7 @@
  * recommendations (`#recommendations`, or a `?recommendation=` task link).
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -20,7 +21,6 @@ import { EmptyStateSurface } from "@/components/ui/surface";
 import {
   EditorNavTabs,
   EditorPanel,
-  EditorSection,
   LoadErrorState,
   Notice,
   useConfirm,
@@ -34,6 +34,7 @@ import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import { DevRailBadgeFreshness } from "@/features/dev/pages/DevRailBadgeFreshness";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import { MISSING_TASK_TITLE } from "@/features/dev/tools/missingTask";
+import type { AppRole } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 import { viewToPath } from "@/utils/routing";
 
@@ -78,6 +79,7 @@ import {
 } from "./queueTaskLink";
 
 type QueueTabProps = {
+  viewerRole: AppRole | null;
   /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
   /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
@@ -106,7 +108,7 @@ const affectedRows = (targets: readonly TargetDrift[], showChanges = true) =>
 
 const SHORTCUTS = [{ keys: "/", label: "Search proposals" }];
 
-export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId, actorEmail = null }: QueueTabProps) {
+export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProposalId, actorEmail = null }: QueueTabProps) {
   const [proposals, setProposals] = useState<ProposalSummary[] | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailState>({ status: "idle" });
@@ -585,9 +587,9 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId, acto
 
   return (
     <div className="space-y-6">
-      <EditorSection
-        icon="lucide:git-pull-request-arrow"
-        title={canApprove ? "Change Review" : "My submissions"}
+      <DevToolSection
+        tool="queue"
+        viewerRole={viewerRole}
         description={canApprove
           ? "Editor proposals wait here until an admin publishes or rejects them; each is published in full or not at all."
           : "Your proposals and what happened to them. An admin decides what is published; you can discuss and revise here."}
@@ -600,7 +602,7 @@ export function QueueTab({ canApprove, onLoadIntoEditor, initialProposalId, acto
             options={tabOptions}
           />
         ) : null}
-      </EditorSection>
+      </DevToolSection>
 
       <p className="sr-only" role="status" aria-live="polite">
         {announcement}

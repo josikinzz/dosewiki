@@ -18,6 +18,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SubstanceArticle } from "@/schema";
+import type { LoadedEditorArticle } from "./useDevArticlesState";
 import { resolveEditorArticleSlug } from "./devModeUtils";
 
 const EDITOR_LIBRARY_ENDPOINT = "/api/dev/editor-library";
@@ -26,7 +27,7 @@ const EDITOR_LIBRARY_ENDPOINT = "/api/dev/editor-library";
 // the route's diagnostic rate limit while a mutation's rewrite set lands.
 const HYDRATE_BATCH_CONCURRENCY = 6;
 
-type ArticlePayload = { article?: SubstanceArticle };
+type ArticlePayload = Partial<LoadedEditorArticle>;
 
 export type DevArticleHydration = {
   /** Slugs whose whole article has landed in the working set. */
@@ -57,7 +58,7 @@ export function useDevArticleHydration({
   hydrateArticles,
 }: {
   articleCount: number;
-  hydrateArticles: (articlesBySlug: ReadonlyMap<string, SubstanceArticle>) => void;
+  hydrateArticles: (articlesBySlug: ReadonlyMap<string, LoadedEditorArticle>) => void;
 }): DevArticleHydration {
   const [hydratedSlugs, setHydratedSlugs] = useState<ReadonlySet<string>>(() => new Set());
   const [failedSlugs, setFailedSlugs] = useState<ReadonlySet<string>>(() => new Set());
@@ -88,12 +89,12 @@ export function useDevArticleHydration({
     });
   }, []);
 
-  const commit = useCallback((articles: SubstanceArticle[]) => {
-    const bySlug = new Map<string, SubstanceArticle>();
-    for (const article of articles) {
-      const slug = resolveEditorArticleSlug(article);
+  const commit = useCallback((articles: LoadedEditorArticle[]) => {
+    const bySlug = new Map<string, LoadedEditorArticle>();
+    for (const loaded of articles) {
+      const slug = resolveEditorArticleSlug(loaded.article);
       if (slug) {
-        bySlug.set(slug, article);
+        bySlug.set(slug, loaded);
       }
     }
 
@@ -127,8 +128,8 @@ export function useDevArticleHydration({
       void fetch(`${EDITOR_LIBRARY_ENDPOINT}?slug=${encodeURIComponent(normalized)}`)
         .then((response) => (response.ok ? (response.json() as Promise<ArticlePayload>) : null))
         .then((payload) => {
-          if (payload?.article) {
-            commit([payload.article]);
+          if (payload?.article && typeof payload.baseHash === "string" && payload.baseHash) {
+            commit([{ article: payload.article, baseHash: payload.baseHash }]);
           } else {
             miss();
           }
@@ -160,10 +161,10 @@ export function useDevArticleHydration({
               ? ((await response.json()) as ArticlePayload)
               : null;
 
-            if (payload?.article) {
+            if (payload?.article && typeof payload.baseHash === "string" && payload.baseHash) {
               // Same commit path as requestArticle: draft and baseline fill
               // together, so the save diff never sees the hydration itself.
-              commit([payload.article]);
+              commit([{ article: payload.article, baseHash: payload.baseHash }]);
               landed.push(payload.article);
               requestedRef.current.add(slug);
             } else {

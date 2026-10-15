@@ -4,7 +4,7 @@
  * in-memory Postgres fixture: sign off, write through the article lifecycle,
  * then derive the review state from the published revision.
  */
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";
 import { articleDocument } from "../server/lib/articleLifecycleValidation";
@@ -16,10 +16,12 @@ import { SERVER_KEY, admin, createCtx, proposedLsd, storedLsd } from "./changePr
 const asAdmin = { apiKey: SERVER_KEY, actorEmail: "admin@example.com" };
 
 beforeEach(() => {
+  vi.stubEnv("DATA_WRITES_FROZEN", "0");
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   delete process.env.DATA_ADMIN_KEY;
 });
 

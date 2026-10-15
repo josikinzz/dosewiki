@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { contentHash } from "../../../../../lib/proposals/contentHash";
 import { mergeThreeWay, type MergeSide, type ThreeWayMerge } from "../../../../../lib/proposals/threeWayMerge";
@@ -29,6 +30,12 @@ import {
   type WritingKind,
   type WritingListEntry,
 } from "./writingEditorModel";
+
+const writingSaveResult = z.object({
+  ok: z.literal(true), slug: z.string(), created: z.boolean(),
+  revision: z.string().regex(/^[a-f0-9]{64}$/), operationId: z.string(),
+  intent: z.enum(["save-unpublished", "publish"]),
+});
 
 const API_PATH = "/api/dev/writing-article";
 /** The revision a row that does not exist yet is saved against. */
@@ -62,6 +69,9 @@ export type WritingMergeReview = {
 export function writingMerge(review: WritingMergeReview): ThreeWayMerge<WritingDraft> {
   return mergeThreeWay<WritingDraft>(review.base ?? {}, review.mine, review.theirs, { choices: review.choices });
 }
+
+/** A reviewed command binds the exact key, baseline, payload and resource intent. */
+export type WritingSaveCommand = { body: string; intent: "save-unpublished" | "publish" };
 
 type SaveState = EditorActionStatusState | "idle";
 /**
@@ -380,10 +390,22 @@ export function useWritingWorkbenchController({
     setDraft((current) => ({ ...current, authorProfileKeys }));
   }, []);
 
-  const save = useCallback(
-    /** Resolves true once the server confirmed the save; false when it did not happen. */
-    async (requestedStatus: WritingDraft["status"]): Promise<boolean> => {
-      if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error) return false;
+  const canSaveUnpublished = draft.status === "draft" && (selection.type === "new" || loadedRow?.status === "draft");
+  const reviewedSaveCommand = useMemo<WritingSaveCommand>(() => {
+    const intent = canSaveUnpublished ? "save-unpublished" : "publish";
+    return { intent, body: JSON.stringify({
+      ...draft, slug: draft.slug.trim(), originalSlug: loadedRow?.slug,
+      kind: loadedRow?.kind ?? kind, title: draft.title.trim(),
+      expectedRevision: loadedRow?.baseRevision ?? NEW_ROW_REVISION,
+      publicationDate: draft.publicationDate.trim() || undefined, intent,
+    }) };
+  }, [draft, loadedRow, kind, canSaveUnpublished]);
+  const currentCommandRef = useRef(reviewedSaveCommand);
+  currentCommandRef.current = reviewedSaveCommand;
+
+  const executeSave = useCallback(
+    async (serialized: string, retry = false): Promise<boolean> => {
+      if ((readOnly && !uncertain) || saveState === "saving" || parsedBody.error || (uncertain && !retry)) return false;
       setSaveState("saving");
       setNotice(null);
       setSaveFailure(null);
@@ -391,15 +413,7 @@ export function useWritingWorkbenchController({
       try {
         // An unconfirmed operation is replayed exactly as it first left, with
         // its own id, so the server answers with the outcome it recorded.
-        const serialized = uncertain && operationRef.current
-          ? operationRef.current.body
-          : JSON.stringify({
-              ...draft, slug: draft.slug.trim(), originalSlug: loadedRow?.slug,
-              kind: loadedRow?.kind ?? kind, status: requestedStatus, title: draft.title.trim(),
-              tags: draft.tags, expectedRevision: loadedRow?.baseRevision ?? NEW_ROW_REVISION,
-              publicationDate: draft.publicationDate.trim() || undefined,
-            });
-        const document = JSON.parse(serialized) as WritingDraft & { expectedRevision: string; kind: WritingKind; originalSlug?: string };
+        const document = JSON.parse(serialized) as WritingDraft & { expectedRevision: string; kind: WritingKind; originalSlug?: string; intent?: WritingSaveCommand["intent"] };
         const status = document.status;
         if (operationRef.current?.body !== serialized) operationRef.current = { body: serialized, id: crypto.randomUUID() };
         // The operation's identity is kept before it leaves, so a lost answer
@@ -416,32 +430,38 @@ export function useWritingWorkbenchController({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...document, operationId: operationRef.current.id }),
         });
-        const payload = (await response.json()) as { slug?: string; error?: string; revision?: string };
+        const payload: unknown = await response.json();
         if (!response.ok) {
           const frozen = isWriteFreezeRefusal(response.status, payload);
           setSaveFailure(response.status === 409 ? "conflict" : frozen ? "frozen" : "other");
           // The freeze answers before any statement runs, so it is as definite
           // as a 4xx: nothing was written and nothing waits on confirmation.
-          if (response.status < 500 || frozen) {
-            // A definite refusal: nothing is pending any more, the edit still is.
+          if (!retry && (response.status < 500 || frozen)) {
+            // Only the first attempt can establish that this operation never ran.
+            // A retry refusal says nothing about the earlier unknown outcome.
             setUncertain(false);
             if (recoveryStore && savingRecord) {
               recoveryStore.write<WritingDraft>({ tool: "writing", record: savingRecord, baseline: document.expectedRevision, base: baseline, draft });
             }
           }
-          throw new Error(payload.error ?? "The article could not be saved.");
+          throw new Error(z.object({ error: z.string() }).safeParse(payload).data?.error ?? "The article could not be saved.");
         }
-        if (!payload.revision) throw new Error("The server did not confirm publication. Retry to confirm it.");
+        const confirmed = writingSaveResult.safeParse(payload);
+        if (!confirmed.success || confirmed.data.slug !== document.slug || confirmed.data.operationId !== operationRef.current.id || confirmed.data.intent !== document.intent) {
+          throw new Error("The server did not confirm this Writing operation. Retry to confirm it.");
+        }
         setUncertain(false);
         if (recoveryStore && savingRecord) recoveryStore.clear("writing", savingRecord);
         setCheckpointSavedAt(null);
         setSavedAt(Date.now());
-        setLoadedRow(current => ({ ...current, ...document, body_raw: draft.body, body_ast: parsedBody.ast, baseRevision: payload.revision! }));
-        // What was posted is the new baseline; anything typed meanwhile stays dirty.
-        setBaseline({ ...draft, status });
-        setDraft((current) => ({ ...current, status }));
+        const savedRow = { ...loadedRow, ...document, body_raw: document.body, body_ast: document.bodyFormat === "vcode" ? prepareVCode(document.body, { raw: loadedRow?.body_raw, ast: loadedRow?.body_ast }) : undefined, baseRevision: confirmed.data.revision };
+        const savedDraft = draftFromRow(savedRow);
+        setLoadedRow(savedRow);
+        setBaseline(savedDraft);
+        setDraft(savedDraft);
+        operationRef.current = null;
         setSaveState("saved");
-        setSelection({ type: "row", slug: draft.slug.trim() });
+        setSelection({ type: "row", slug: document.slug });
         setNotice({
           tone: "success",
           message:
@@ -462,8 +482,19 @@ export function useWritingWorkbenchController({
         return false;
       }
     },
-    [draft, baseline, kind, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
+    [draft, baseline, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
   );
+  const saveUnpublished = useCallback((): Promise<boolean> => {
+    const command = currentCommandRef.current;
+    return command.intent === "save-unpublished" ? executeSave(command.body) : Promise.resolve(false);
+  }, [executeSave]);
+  const saveReviewed = useCallback((command: WritingSaveCommand): Promise<boolean> => {
+    if (command.body !== currentCommandRef.current.body || command.intent !== currentCommandRef.current.intent) return Promise.resolve(false);
+    return executeSave(command.body);
+  }, [executeSave]);
+  const retrySave = useCallback((): Promise<boolean> => {
+    return uncertain && operationRef.current ? executeSave(operationRef.current.body, true) : Promise.resolve(false);
+  }, [executeSave, uncertain]);
   /**
    * An editor's save: the same document the admin's save posts, held as a
    * proposal for an admin to approve. The proposal holds the edit now, so the
@@ -651,7 +682,11 @@ export function useWritingWorkbenchController({
     updateSlug,
     updateDraft,
     setByline,
-    save,
+    canSaveUnpublished,
+    reviewedSaveCommand,
+    saveUnpublished,
+    saveReviewed,
+    retrySave,
   };
 }
 

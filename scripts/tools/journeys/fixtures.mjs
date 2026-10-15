@@ -1531,6 +1531,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       return [row.slug, { ...structuredClone(row), editorial_review: review ? structuredClone(review) : { status: "needed", notes: "" } }];
     })),
     articleReads: new Map(),
+    articleRevisions: new Map(),
     saves: 0,
     /** The stored index layouts; a commit replaces them after the route's revision check. */
     layouts: structuredClone(INDEX_LAYOUTS_SEED),
@@ -1695,7 +1696,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     };
     if (key && key !== body.slug) writing.delete(key);
     writing.set(body.slug, row);
-    return json(200, { ok: true, slug: body.slug, revision });
+    return json(200, { ok: true, slug: body.slug, created: !existing, revision, operationId: body.operationId, intent: body.intent });
   }
 
   /** The portal's index projection of one published report: no body. */
@@ -2278,10 +2279,12 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     const reads = (library.articleReads.get(slug) ?? 0) + 1;
     library.articleReads.set(slug, reads);
     // Four articles are whole (`substanceFixtures.mjs`); the rest stay the thin projection.
-    const answer = json(200, { ok: true, scope: "article", article: wholeArticle(row) ?? structuredClone(row) });
+    if (!library.articleRevisions.has(slug)) library.articleRevisions.set(slug, nextRevision());
+    const answer = json(200, { ok: true, scope: "article", article: wholeArticle(row) ?? structuredClone(row), baseHash: library.articleRevisions.get(slug) });
     if (fixture.state === "conflicted" && reads === 1 && !contested.has(`article:${slug}`)) {
       contested.add(`article:${slug}`);
       row.index_categories = [...row.index_categories, TAG_ARTICLE_CONCURRENT_CATEGORY];
+      library.articleRevisions.set(slug, nextRevision());
     }
     return answer;
   }
@@ -2319,6 +2322,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         : [...library.rows.values()].find((row) => row.id === article?.id)?.slug;
       const row = slug ? library.rows.get(slug) : null;
       if (!row) continue;
+      library.articleRevisions.set(slug, nextRevision());
       if (Array.isArray(article.index_categories)) row.index_categories = [...article.index_categories];
       if (article.classification) row.classification = structuredClone(article.classification);
       if (Array.isArray(article.pharmacology?.binding_sites)) row.pharmacology = { binding_sites: structuredClone(article.pharmacology.binding_sites) };

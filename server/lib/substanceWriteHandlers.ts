@@ -12,8 +12,9 @@ import {
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { ingestSubstanceArticle, ingestSubstanceArticles } from "./substanceIngestion";
 import { contentHash } from "../../lib/proposals/contentHash";
-import { articleChangePatch, articleConflict, articleDocument, validateArticleChange } from "./articleLifecycleValidation";
-import { articleBaseHash, loadArticle, recordArticleRevision } from "./articleRevisionJournal";
+import { articleConflict, articleDocument, validateArticleChange } from "./articleLifecycleValidation";
+import { articleBaseHash, loadArticle } from "./articleRevisionJournal";
+import { commitArticleChange } from "./articleWrite";
 
 /**
  * Every handler here writes a published article directly, so all of them sit
@@ -75,7 +76,7 @@ export async function setArticleFieldHandler(
   },
 ) {
   const aliasAppend = editableFieldKindForPath(args.path) === "aliases";
-  if (aliasAppend) assertDataWritesNotFrozen("substanceIndex:setArticleField");
+  assertDataWritesNotFrozen("substanceIndex:setArticleField");
   const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
@@ -131,8 +132,7 @@ export async function setArticleFieldHandler(
   // legacy identification siblings or supply defaults, so keep the exact
   // validated candidate for this narrowly owned append operation.
   const after = aliasAppend ? candidate : validated;
-  await ctx.db.patch(article._id, articleChangePatch(before, after));
-  const revision = await recordArticleRevision(ctx, { before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: aliasAppend ? "Append reviewed alternative names" : `Inline edit \u2014 ${args.path}` });
+  const revision = await commitArticleChange(ctx, { row: article, before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: aliasAppend ? "Append reviewed alternative names" : `Inline edit: ${args.path}` });
   return {
     slug: args.slug,
     path: args.path,
@@ -153,7 +153,8 @@ export async function setIupacNameHandler(
     expected: string;
   },
 ) {
-  await requireRole(ctx, {
+  assertDataWritesNotFrozen("substanceIndex:setIupacName");
+  const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
@@ -181,8 +182,13 @@ export async function setIupacNameHandler(
     });
   }
 
-  await ctx.db.patch(article._id, {
-    identification: result.topLevelValue,
+  const before = articleDocument(article);
+  const after = { ...before, identification: result.topLevelValue };
+  validateArticleChange(before, after);
+  if (contentHash(before) !== contentHash(after)) await commitArticleChange(ctx, {
+    row: article, before, after, actor, baseHash: await articleBaseHash(ctx, before),
+    changeId: `iupac:${contentHash({ slug: args.slug, baseHash: await articleBaseHash(ctx, before), expected: args.expected, value: args.value })}`,
+    summary: "Correct IUPAC name",
   });
   return {
     slug: args.slug,

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cache } from "react";
+import { enrichEffectPreviews } from "../../src/features/effects/pages/enrichEffectPreviews";
 import {
   getPublicEffectSummariesBySlugs,
   getPublicEffects,
@@ -8,9 +9,6 @@ import {
   type PublicEffectPreview,
 } from "@server/data/publicData";
 import { getPublicCategoryDetail, getPublicMechanismDetail } from "@server/data/publicLibrary";
-import {
-  getLocalizedPublicEffects,
-} from "@server/translation/localizedRecords";
 import {
   buildArtistCreditLinks,
   type ArtistCreditLinks,
@@ -178,11 +176,10 @@ export const loadCategoryRoute = cache(async (
     getPublicEffectSummariesBySlugs(summarySlugs),
     summarySlugs.length > 0 ? getPublicArtistCreditRows() : Promise.resolve([]),
   ]);
-  const summaryBySlug = new Map(summaries.map((effect) => [effect.slug, effect]));
-  const canonicalEffects = previews
-    .filter(({ slug }) => selectedSlugs.has(slug))
-    // Compact summaries add article content without replacing canonical tags.
-    .map((effect) => ({ ...effect, ...summaryBySlug.get(effect.slug) }));
+  const canonicalEffects = enrichEffectPreviews(
+    previews.filter(({ slug }) => selectedSlugs.has(slug)),
+    summaries,
+  );
   const effects = locale
     ? (await localizeRecords(canonicalEffects, locale.code, "effect")).records
     : canonicalEffects;

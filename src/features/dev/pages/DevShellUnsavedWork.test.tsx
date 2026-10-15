@@ -21,23 +21,21 @@ beforeAll(() => {
 });
 
 /** A stand-in tool: one text field whose draft registers with the shell. */
-function FakeWritingTool({ save, publishesLive }: { save?: () => Promise<void>; publishesLive?: boolean }) {
+function FakeWritingTool({ save, discardOnly }: { save?: () => Promise<void>; discardOnly?: boolean }) {
   const [draft, setDraft] = useState("");
   useUnsavedWork({
     id: "writing",
     label: "Writing: Harm reduction basics",
     dirty: draft !== "",
-    save: save ? async () => {
-      await save();
-      setDraft("");
-    } : undefined,
+    ...(save && !discardOnly
+      ? { kind: "save-unpublished" as const, saveDraft: async () => { await save(); setDraft(""); } }
+      : { kind: "discard-only" as const, because: "Publish it from the tool; leaving here never publishes." }),
     discard: () => setDraft(""),
-    publishesLive,
   });
   return <input aria-label="Draft" value={draft} onChange={(event) => setDraft(event.target.value)} />;
 }
 
-function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publishesLive?: boolean } = {}) {
+function renderShell({ save, discardOnly }: { save?: () => Promise<void>; discardOnly?: boolean } = {}) {
   const onLeave = vi.fn();
   render(
     <UnsavedWorkProvider>
@@ -54,7 +52,7 @@ function renderShell({ save, publishesLive }: { save?: () => Promise<void>; publ
         onSignIn={vi.fn()}
         onLeave={onLeave}
       />
-      <FakeWritingTool save={save} publishesLive={publishesLive} />
+      <FakeWritingTool save={save} discardOnly={discardOnly} />
     </UnsavedWorkProvider>,
   );
   return { onLeave };
@@ -71,9 +69,9 @@ function openAccountMenuItem(name: string) {
 }
 
 describe("the shell's unsaved-work registry", () => {
-  it("never offers Save for work whose save would go live, even when the tool passes one", () => {
+  it("never offers Save for work that requires publication from its tool", () => {
     const save = vi.fn(async () => {});
-    const { onLeave } = renderShell({ save, publishesLive: true });
+    const { onLeave } = renderShell({ save, discardOnly: true });
     makeDirty();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Leave editor" })[0]);
