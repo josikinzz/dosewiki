@@ -196,7 +196,6 @@ export default tseslint.config(
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
       'vercel-guardrails/require-rate-limit': 'warn',
-      'vercel-guardrails/validate-function-config': 'warn',
     },
   },
   {

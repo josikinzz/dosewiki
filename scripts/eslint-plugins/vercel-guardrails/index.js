@@ -5,7 +5,6 @@
  * - No hardcoded secrets or API keys
  * - Proper environment variable access
  * - Safe API route patterns
- * - Function config validation
  */
 
 const noHardcodedSecrets = {
@@ -481,51 +480,6 @@ const requireRateLimit = {
   },
 };
 
-const validateFunctionConfig = {
-  meta: {
-    type: 'suggestion',
-    docs: {
-      description: 'Validate Vercel function configuration',
-      category: 'Best Practices',
-    },
-    messages: {
-      excessiveMemory: 'Function memory ({{memory}}MB) exceeds recommended limit of 1024MB.',
-      excessiveDuration: 'Function maxDuration ({{duration}}s) exceeds recommended limit of 30s for hobby plan.',
-      missingConfig: 'Consider adding function configuration for performance optimization.',
-    },
-    schema: [],
-  },
-  create(context) {
-    return {
-      ExportNamedDeclaration(node) {
-        if (node.declaration?.type !== 'VariableDeclaration') return;
-
-        for (const decl of node.declaration.declarations) {
-          if (decl.id?.name !== 'config') continue;
-          if (decl.init?.type !== 'ObjectExpression') continue;
-
-          for (const prop of decl.init.properties) {
-            if (prop.key?.name === 'memory' && prop.value?.value > 1024) {
-              context.report({
-                node: prop,
-                messageId: 'excessiveMemory',
-                data: { memory: prop.value.value },
-              });
-            }
-            if (prop.key?.name === 'maxDuration' && prop.value?.value > 30) {
-              context.report({
-                node: prop,
-                messageId: 'excessiveDuration',
-                data: { duration: prop.value.value },
-              });
-            }
-          }
-        }
-      },
-    };
-  },
-};
-
 module.exports = {
   meta: {
     name: 'eslint-plugin-vercel-guardrails',
@@ -536,7 +490,6 @@ module.exports = {
     'enforce-env-prefix': enforceEnvPrefix,
     'no-unsafe-api-patterns': noUnsafeApiPatterns,
     'require-rate-limit': requireRateLimit,
-    'validate-function-config': validateFunctionConfig,
   },
   configs: {
     recommended: {
@@ -546,7 +499,6 @@ module.exports = {
         'vercel-guardrails/enforce-env-prefix': 'warn',
         'vercel-guardrails/no-unsafe-api-patterns': 'error',
         'vercel-guardrails/require-rate-limit': 'warn',
-        'vercel-guardrails/validate-function-config': 'warn',
       },
     },
   },
