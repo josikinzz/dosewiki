@@ -18,9 +18,10 @@
  * repo has no existing boundary to reuse.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
-import { EditorSection, LoadErrorState } from "@/features/dev/components";
+import { LoadErrorState } from "@/features/dev/components";
 
 type WarningBannersBoundaryProps = {
   children: ReactNode;
@@ -58,7 +59,7 @@ export class WarningBannersBoundary extends Component<
     // re-reads the display setting.
     return (
       <div>
-        <EditorSection icon="lucide:triangle-alert" title="Banners">
+        <DevToolSection tool="banners">
           <div className="max-w-3xl space-y-3">
             <LoadErrorState
               what="the banner display settings"
@@ -70,7 +71,7 @@ export class WarningBannersBoundary extends Component<
               server may not have the display setting yet; its logs say more.
             </p>
           </div>
-        </EditorSection>
+        </DevToolSection>
       </div>
     );
   }

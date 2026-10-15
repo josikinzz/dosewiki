@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import type { ReactNode } from "react";
 
 import {
@@ -10,7 +11,6 @@ import {
 } from "@/data/substanceWarningBanners";
 import {
   EditorNavTabs,
-  EditorSection,
   LoadErrorState,
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
@@ -141,9 +141,8 @@ export function WarningBannersStudioView({
 }: WarningBannersStudioViewProps) {
   return (
     <div>
-      <EditorSection
-        icon="lucide:triangle-alert"
-        title="Banners"
+      <DevToolSection
+        tool="banners"
         description="Warnings at the top of substance articles. A preset shows on the substances you list, or on every article when you choose that; never by classification."
       >
         <CoverageReadout coverage={coverage} capped={capped} targetCount={targets.length} />
@@ -169,7 +168,7 @@ export function WarningBannersStudioView({
         <div className="pt-1">
           {view === "presets" ? <PresetsView {...presetsProps} /> : <CoverageView {...coverageProps} />}
         </div>
-      </EditorSection>
+      </DevToolSection>
 
       {confirmDialog}
     </div>

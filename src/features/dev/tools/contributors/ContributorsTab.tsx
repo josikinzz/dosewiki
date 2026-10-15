@@ -14,6 +14,7 @@
  * in `useContributorsController`, which People reuses beside each account.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -26,7 +27,6 @@ import {
   EditorList,
   EditorListRow,
   EditorPanel,
-  EditorSection,
   EditorSegmentedControl,
   LoadErrorState,
   Notice,
@@ -220,9 +220,9 @@ export function ContributorsTab({
   return (
     <div className="space-y-8">
       {dirtyGuardDialog}
-      <EditorSection
-        icon="lucide:users"
-        title={canEdit ? "Contributors" : "Your profile"}
+      <DevToolSection
+        tool="contributors"
+        title={canEdit ? undefined : "Your profile"}
         description={
           !canEdit
             ? "What your public contributor page shows: your name, picture, bio and links."
@@ -341,7 +341,7 @@ export function ContributorsTab({
         ) : (
           <div className="max-w-4xl">{pane}</div>
         )}
-      </EditorSection>
+      </DevToolSection>
     </div>
   );
 }

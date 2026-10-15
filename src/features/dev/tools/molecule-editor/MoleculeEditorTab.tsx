@@ -14,9 +14,10 @@
  * about the open structure lives in `MoleculeEditorSession`, keyed on
  * `mode:selected`, so switching selection starts a fresh session in one step.
  */
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorReadState } from "@/hooks/useEditorRead";
-import { EditorSection, isTextEntryTarget, useConfirm, useDevShortcuts, useScrollToDetail } from "@/features/dev/components";
+import { isTextEntryTarget, useConfirm, useDevShortcuts, useScrollToDetail } from "@/features/dev/components";
 import { viewToPath } from "@/utils/routing";
 import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
@@ -355,9 +356,8 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
 
   return (
     <div className="mx-auto w-full max-w-[100rem]">
-      <EditorSection
-        icon="lucide:hexagon"
-        title="Molecules"
+      <DevToolSection
+        tool="molecule-editor"
         description="How each structure is drawn: atom positions, wedge and hash bonds, bold bonds. Substance and class depictions go live when you save; class templates stay private."
       >
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(17rem,21rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
@@ -401,7 +401,7 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
             />
           </div>
         </div>
-      </EditorSection>
+      </DevToolSection>
       {confirmDialog}
     </div>
   );

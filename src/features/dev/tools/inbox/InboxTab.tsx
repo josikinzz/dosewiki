@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -11,7 +12,6 @@ import {
   EditorList,
   EditorListRow,
   EditorPanel,
-  EditorSection,
   EditorSegmentedControl,
   EditorStatusPill,
   LoadErrorState,
@@ -437,9 +437,8 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
 
   return (
     <div className="space-y-6">
-      <EditorSection
-        icon="lucide:inbox"
-        title="Inbox"
+      <DevToolSection
+        tool="inbox"
         description="Everything waiting on an admin, most urgent first, then oldest. Claim an item so nobody else triages it."
       >
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -494,7 +493,7 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
         {loadFailure ? (
           <LoadErrorState what={loadFailure.what} message={loadFailure.message} onRetry={() => void load()} busy={loading} />
         ) : null}
-      </EditorSection>
+      </DevToolSection>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
         <section

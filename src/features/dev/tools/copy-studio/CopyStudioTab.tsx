@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { HighlightedText } from "@/components/common/HighlightedText";
@@ -12,7 +13,6 @@ import {
   EditorListRow,
   EditorList,
   EditorPanel,
-  EditorSection,
   EditorSelect,
   EditorStatusPill,
   LoadErrorState,
@@ -602,9 +602,8 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   return (
     <div className="space-y-8">
-      <EditorSection
-        icon="lucide:type"
-        title="Copy"
+      <DevToolSection
+        tool="copy-studio"
         description="The words on public pages that are not part of an article: page intros, footers, empty states and SEO text. Blocks keep a checked-in default to go back to."
       >
         <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(19rem,23rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
@@ -811,7 +810,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
             )}
           </section>
         </div>
-      </EditorSection>
+      </DevToolSection>
       {dirtyGuardDialog}
       {confirmDialog}
     </div>

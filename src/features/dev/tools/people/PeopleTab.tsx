@@ -19,6 +19,7 @@
  * profile; this tab is admin-only because accounts are.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -31,7 +32,6 @@ import {
   EditorListRow,
   EditorNavTabs,
   EditorPanel,
-  EditorSection,
   LoadErrorState,
   useDevShortcuts,
   useScrollToDetail,
@@ -329,13 +329,12 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
 
   return (
     <div className="space-y-6">
-      <EditorSection
-        icon="lucide:user-cog"
-        title="People"
+      <DevToolSection
+        tool="people"
         description="Accounts, their public contributor profiles, and the invite codes that create them."
       >
         <EditorNavTabs label="People views" value={section} onChange={(value) => changeSection(value as PeopleSection)} options={tabOptions} />
-      </EditorSection>
+      </DevToolSection>
 
       <div id="people-members" role="tabpanel" aria-label="Members" hidden={section !== "members"}>
         {loadError ? (

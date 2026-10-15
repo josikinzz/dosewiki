@@ -1,5 +1,6 @@
 "use client";
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -7,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { NormalizedUserProfile } from "@/data/userProfiles";
 import {
-  EditorSection,
   EditorSegmentedControl,
   LoadErrorState,
   Notice,
@@ -272,9 +272,8 @@ export function WritingTab({
 
   return (
     <div className="mx-auto w-full max-w-[100rem]">
-      <EditorSection
-        icon="lucide:pen-line"
-        title="Writing"
+      <DevToolSection
+        tool="writing"
         description="Articles, blog posts and the About page. Open one to edit it beside a live preview of the public page."
       >
         {dialog}
@@ -441,7 +440,7 @@ export function WritingTab({
             )}
           </section>
         </div>
-      </EditorSection>
+      </DevToolSection>
     </div>
   );
 }

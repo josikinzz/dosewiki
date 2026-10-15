@@ -12,13 +12,13 @@
  * of the screen.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import {
   EditorPanel,
-  EditorSection,
   EditorStatusPill,
   LoadErrorState,
   Notice,
@@ -387,9 +387,9 @@ export function TripReportPortalTab({
       {discardDialog}
       {confirmDialog}
       {helpDialog}
-      <EditorSection icon="lucide:notebook-pen" title="Trip reports" description={statsLine}>
+      <DevToolSection tool="trip-report-submissions" description={statsLine}>
         <DevRailBadgeFreshness badge="trip-reports" noun="reports" />
-      </EditorSection>
+      </DevToolSection>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(20rem,26rem)_minmax(0,1fr)] lg:items-start xl:gap-8">
         <PortalListColumn

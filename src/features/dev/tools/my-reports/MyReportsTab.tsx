@@ -18,13 +18,13 @@
  * carries Back to list.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import {
   EditorPanel,
-  EditorSection,
   LoadErrorState,
   Notice,
   SaveLine,
@@ -269,9 +269,8 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     <div className="space-y-12">
       {submissionsFirst ? submissions : null}
 
-      <EditorSection
-        icon="lucide:book-open-text"
-        title="My reports"
+      <DevToolSection
+        tool="my-reports"
         description="Your published trip reports. Open one to revise its title, tags or body."
         actions={
           <Button
@@ -355,7 +354,7 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
             </section>
           </div>
         ) : null}
-      </EditorSection>
+      </DevToolSection>
 
       {submissionsFirst ? null : submissions}
 

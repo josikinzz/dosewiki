@@ -21,6 +21,7 @@
  * other.
  */
 
+import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -36,7 +37,6 @@ import {
   type WarningBannerTarget,
 } from "@/data/substanceWarningBanners";
 import {
-  EditorSection,
   LoadErrorState,
   useConfirm,
   useDevShortcuts,
@@ -801,7 +801,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   if (rows === undefined) {
     return (
       <div>
-        <EditorSection icon="lucide:triangle-alert" title="Banners">
+        <DevToolSection tool="banners">
           {rowsError ? (
             <LoadErrorState
               what="the banner presets"
@@ -814,7 +814,7 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
               <RowSkeletons rows={4} label="banner presets" />
             </div>
           )}
-        </EditorSection>
+        </DevToolSection>
       </div>
     );
   }
