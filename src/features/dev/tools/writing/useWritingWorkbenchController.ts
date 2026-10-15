@@ -484,7 +484,6 @@ export function useWritingWorkbenchController({
     },
     [draft, baseline, loadedRow, refreshList, readOnly, parsedBody, uncertain, saveState, recordKey, recoveryStore],
   );
-  /** The shell receives only this draft-to-draft owner operation. */
   const saveUnpublished = useCallback((): Promise<boolean> => {
     const command = currentCommandRef.current;
     return command.intent === "save-unpublished" ? executeSave(command.body) : Promise.resolve(false);
@@ -493,7 +492,6 @@ export function useWritingWorkbenchController({
     if (command.body !== currentCommandRef.current.body || command.intent !== currentCommandRef.current.intent) return Promise.resolve(false);
     return executeSave(command.body);
   }, [executeSave]);
-  /** Replay retains the original intent, identity and payload, including legacy missing intent. */
   const retrySave = useCallback((): Promise<boolean> => {
     return uncertain && operationRef.current ? executeSave(operationRef.current.body, true) : Promise.resolve(false);
   }, [executeSave, uncertain]);

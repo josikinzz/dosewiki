@@ -3,7 +3,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "./ConfirmDialog";
 
-/** One tool's unsaved work and its explicit non-publication exit action. */
 interface UnsavedWorkMetadata {
   id: string;
   save?: never;
@@ -253,7 +252,6 @@ export function useUnsavedWorkRegistry(): UnsavedWorkRegistry {
   return useContext(UnsavedWorkContext) ?? INERT_REGISTRY;
 }
 
-/** Reports work while mounted. Actions are resolved from the latest matching variant. */
 export function useUnsavedWork(entry: UnsavedWorkEntry): void {
   const registry = useContext(UnsavedWorkContext);
   const latest = useRef(entry);

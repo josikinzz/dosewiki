@@ -32,7 +32,6 @@ export type ArticleCommand =
   | { kind: "replace-existing"; article: ArticleInput; baseHash: string }
   | { kind: "create"; article: ArticleInput };
 
-/** Authenticated callers supply actor authority; this owner controls revision, replay and storage. */
 export async function writeArticle(ctx: MutationCtx, actor: Actor, command: ArticleCommand, options: {
   changeId: string; summary: string; publicChangelog: boolean; restoring?: boolean;
 }): Promise<{ outcome: SubstanceIngestionOutcome; baseHash: string; unchanged: boolean; changeId: string; revisionId: Id<"articleRevisions"> | null }> {
