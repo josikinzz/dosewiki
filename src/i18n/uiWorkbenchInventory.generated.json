@@ -5684,6 +5684,17 @@
       "Human Epidemiological"
     ]
   },
+  "legacy.35929332bd7b388b101cfd5f4f5056cea7cb05909278afa340108eeb0855742d": {
+    "catalogKey": "Piru is an app for logging doses and writing trip reports, on iPhone, Android and Mac, with an Apple Watch companion. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report, and can fill in dose.wiki's trip report form.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your device, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). The iPhone beta is on [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki); the [Android app](https://kagerou.glass/get/piru/android?from=dosewiki) and the [Mac app](https://kagerou.glass/get/piru/mac?from=dosewiki) are free downloads from GitHub.",
+    "source": "Piru is an app for logging doses and writing trip reports, on iPhone, Android and Mac, with an Apple Watch companion. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report, and can fill in dose.wiki's trip report form.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your device, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). The iPhone beta is on [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki); the [Android app](https://kagerou.glass/get/piru/android?from=dosewiki) and the [Mac app](https://kagerou.glass/get/piru/mac?from=dosewiki) are free downloads from GitHub.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "Piru is an app for logging doses and writing trip reports, on iPhone, Android and Mac, with an Apple Watch companion. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report, and can fill in dose.wiki's trip report form.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your device, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). The iPhone beta is on [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki); the [Android app](https://kagerou.glass/get/piru/android?from=dosewiki) and the [Mac app](https://kagerou.glass/get/piru/mac?from=dosewiki) are free downloads from GitHub."
+    ]
+  },
   "legacy.35cbe99ffdee3bcd54b3c549fbd5cbd4b47a6b9b1a5e304be9270f8cf1c7e195": {
     "catalogKey": "Psychedelic (mild)",
     "source": "Psychedelic (mild)",
@@ -10698,6 +10709,17 @@
       "{{group}} has no videos. Switch the media filter to see everything."
     ]
   },
+  "legacy.687151b8823ba8d01adcc51fa173a04243818d3b4e498cec2f7f5851de7f39ab": {
+    "catalogKey": "Dose journal for iPhone, Android and Mac",
+    "source": "Dose journal for iPhone, Android and Mac",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "Dose journal for iPhone, Android and Mac"
+    ]
+  },
   "legacy.68746726e900130b0af6c27a3420471a10e193a803673f322229772693077659": {
     "catalogKey": "Image works by {{artist}}",
     "source": "Image works by {{artist}}",
@@ -12149,6 +12171,17 @@
     ],
     "glossaryTerms": [
       "View {{name}}'s contributor profile"
+    ]
+  },
+  "legacy.790e831a32e5ab6f4f53fa32c43c0d9e6314f0ff74a9661a5f43ff074e3516f6": {
+    "catalogKey": "A to Z",
+    "source": "A to Z",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/replications/ReplicationsGalleryExplorer.tsx"
+    ],
+    "glossaryTerms": [
+      "A to Z"
     ]
   },
   "legacy.7990875c13b673eb810669129b7d0cb69443177e98f3dc8cb0b8363b999976b3": {
@@ -18264,17 +18297,6 @@
       "Plateau 1"
     ]
   },
-  "legacy.b73d099e463ced1f9f8d8470b5910585252e687321a661759f18fdbde17b8f58": {
-    "catalogKey": "Dose journal for iPhone",
-    "source": "Dose journal for iPhone",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "Dose journal for iPhone"
-    ]
-  },
   "legacy.b764cdc0eab7137467211272fa539f1260d1bf2e71bcf6ff3bdc960f5c16aa14": {
     "catalogKey": "Unknown",
     "source": "Unknown",
@@ -21620,17 +21642,6 @@
     ],
     "glossaryTerms": [
       "Thiopropamines are a chemical class of organic compounds derived from the core amphetamine structure in which the benzene ring is replaced by a thiophene ring, a five-membered sulfur-containing aromatic ring. The sulfur-for-carbon ring swap is a classic bioisosteric substitution, leaving the alpha-methyl amine sidechain otherwise intact. Members act as stimulants, behaving much like their amphetamine counterparts. The thiophene ring in place of a benzene ring is the single feature that defines the class."
-    ]
-  },
-  "legacy.d794cd25ce06ab706c8936158fd210f3fc273486f42612dc5c8aa1a562a10f6c": {
-    "catalogKey": "Piru is an iPhone app for logging doses and writing trip reports. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your phone, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). It is in beta on TestFlight and coming to the App Store.",
-    "source": "Piru is an iPhone app for logging doses and writing trip reports. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your phone, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). It is in beta on TestFlight and coming to the App Store.",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "Piru is an iPhone app for logging doses and writing trip reports. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your phone, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). It is in beta on TestFlight and coming to the App Store."
     ]
   },
   "legacy.d798a3a3ce89432ee43227450ba36a97c6bedeb85c58e35e10eea4c6a3a16e82": {
