@@ -13,20 +13,13 @@ This document owns the repository's automated secret and dependency reporting po
 - A finding prints only a stable rule ID and escaped filename. Matched values and matching lines are never printed.
 - Synthetic CLI tests build temporary Git repositories and construct non-working credential-shaped fixtures at runtime. No real credential or complete fixture value is stored in the repository.
 
-Secret scanning is blocking now. A detected credential must be removed before a commit or CI run can pass. If a real credential is ever committed, removing it is not sufficient: rotate or revoke it and follow the incident process.
+Secret scanning is blocking. A commit or CI run with a detected credential fails. Removing a real committed credential from the latest tree is not enough. The [leaked-secret rule in AGENTS.md](../../AGENTS.md#rules) says what to do next.
 
 The scanner is a deterministic pattern check, not a complete secret-management system. It does not scan Git history, untracked files, repository settings, or external logs. Periodic history scanning and provider-side secret protection remain separate operational controls.
 
 ### Reproducible CI execution
 
 For exact action pins, runtime versions, jobs and artifact retention, inspect `.github/workflows/vercel-policy-checks.yml` and `package.json`. The policy-check workflow uses `contents: read`; this is not a repository-wide permission invariant. `.github/workflows/molecule-pack-nightly.yml` intentionally uses `contents: write` for its separately approved generated-pack publication, governed by [nightly molecule reads](data-credentials.md#nightly-molecule-reads).
-
-Action or Bun updates should be a deliberate pull request that:
-
-1. verifies the upstream release and commit SHA;
-2. updates the adjacent version comment and the Bun package-manager declaration when applicable;
-3. runs the focused security policy tests and the normal verification graph;
-4. reviews behavior changes before merging.
 
 ### Remote build workflow
 

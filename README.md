@@ -6,74 +6,38 @@
 
 <p align="center"><em>An open encyclopedic database for the study of psychopharmacology</em><br><sub>v0.9 beta</sub></p>
 
-Next.js application for the dose.wiki harm-reduction knowledge base and its Effect Index publication, backed by PlanetScale Postgres since 2026-09-10. Authored handlers in `server/` execute in-process through `lib/postgres/runtime/`. The two publications use one repository, branch, and production database; build-time flavor selects publication identity and route availability. The protected `/dev` surface provides the editorial tools.
+This repository is the Next.js application behind dose.wiki and its Effect Index publication. PlanetScale Postgres is the runtime database. The protected `/dev` surface holds the editorial tools.
 
----
+## About dose.wiki
 
-## Contents
-- [Platform Overview](#platform-overview)
-- [Data Architecture](#data-architecture)
-- [Project Layout](#project-layout)
-- [Public Routes](#public-routes)
-- [Editor Surface](#editor-surface)
-- [Build, Run, and Deploy](#build-run-and-deploy)
-- [Development Workflow](#development-workflow)
-- [Scripts](#scripts)
-- [Further Reading](#further-reading)
+**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and education.
 
----
+- **[Substance articles](https://dose.wiki/substances):** dose, duration, effects, interactions, chemistry, and legality by country.
+- **[Subjective effect articles](https://dose.wiki/effects):** individual components of altered states, from [visual drifting](https://dose.wiki/effects/drifting) to [ego death](https://dose.wiki/effects/ego-death).
+- **[Replications](https://dose.wiki/replications):** images, videos, and audio that recreate subjective effects.
+- **[Trip reports](https://dose.wiki/reports):** first-person accounts of individual experiences.
 
-## Platform Overview
+### Sources and review
 
-- **Framework**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS
-- **Runtime data**: the PlanetScale Postgres database, selected by `DATA_BACKEND=postgres`
-- **Authentication**: Auth.js (`next-auth`) with database-backed membership roles
-- **Package manager**: Bun 1.3.5 with `bun.lock`; package scripts remain available through `npm run`
-- **Public rendering**: static generation or ISR where declared
-- **Editorial rendering**: protected, request-rendered `/dev` routes with a per-request CSP nonce
+The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](https://dose.wiki/docs/how#sources). Each article links to the source pages that informed it.
 
-The default build is dose.wiki. `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds Effect Index. The flavor contract lives in `src/config/siteFlavor.ts`.
+Substance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](https://dose.wiki/docs/how) explains the process in depth.
 
-## Data Architecture
+So, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday.
 
-PlanetScale Postgres is the source of truth for public runtime data and the active editor; persisted table names, document IDs, and document shapes remain stable. Representative table groups include:
+This is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.
 
-- articles and editorial content: `substanceIndex`, `subjectiveEffects`, `tripReports`, `effectIndexArticles`;
-- media and chemistry: `replications`, `moleculeOverrides`, `moleculeClassTemplates`;
-- publishing and provenance: `citationEvidence`, `generatedPublicationOperations`, `changelog`;
-- access and site configuration: `memberships`, `contributorProfiles`, `siteConfig`, `indexLayouts`.
+**dose.wiki is in beta.** Each article's **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!
 
-Use `server/schema.ts` for the current table inventory and indexes. Use the matching module under `server/` for each query and mutation contract.
+The other collections are entirely human-created:
 
-Local JSON and Markdown remain useful for migration, backup, export, prompt, and generation workflows. They are not public runtime truth unless active code explicitly reads them. Before changing generated data, consult `data/lineage.json`.
+- **Effect articles** form the [Subjective Effect Index](https://dose.wiki/effects), written over more than a decade across several websites.
+- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit's [r/replications](https://reddit.com/r/replications) community.
+- **Trip reports** are written by their authors and reviewed by an editor before publication.
 
-Article shape ownership is split deliberately:
+The site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](https://dose.wiki/about#contact).
 
-- canonical article schema: `src/schema/substance.schema.ts`;
-- shared adapter: `src/schema/substance/contract.ts`;
-- generated helpers: `src/data/schema/`;
-- stored document shape: `server/schema.ts`.
-
-Article ingestion runs through the shared article adapter so invalid article shapes fail before storage.
-
-## Project Layout
-
-| Path | Responsibility |
-|------|----------------|
-| `src/app/` | App Router pages, metadata surfaces, and route handlers |
-| `src/features/` | Article, editor, effects, replication, and report features |
-| `src/components/` | Shared page chrome and UI primitives |
-| `lib/` | Server-side auth, data, HTTP, runtime, and Next.js adapters |
-| `server/` | Runtime schema, queries, mutations, and actions |
-| `scripts/` | Operator workflows for analysis, generation, migration, deployment, and sync |
-| `src/data/` | Content loaders, static config, and generated schema helpers |
-| `content/` | Authored prose and prompts loaded by code, indexed in [content/README.md](content/README.md) |
-| `data/` | Tracked datasets, third-party inputs, and the generated-data lineage manifest |
-| `docs/` | Contributor documentation, indexed in [docs/README.md](docs/README.md) |
-
-See [project layout](docs/architecture/project-layout.md) for ownership details and local artifact policy. Use `npm run hygiene:check` to inspect removable ignored/generated artifacts; `npm run hygiene:clean` removes only artifacts approved by that policy.
-
-## Public Routes
+## Public routes
 
 Public pages live under `src/app/`. Representative route groups are:
 
@@ -83,7 +47,7 @@ Public pages live under `src/app/`. Representative route groups are:
 - discovery: `/category/[categoryKey]`, `/chemical-classes/[classKey]`, `/mechanism/[mechanismSlug]`, `/psychoactive/[...summaryPath]`, and `/search`;
 - project pages: `/about`, `/contributors/[profileKey]`, `/docs/how`, `/docs/code`, and `/docs/license`.
 
-Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. Treat `src/app/**/page.tsx` as the current route map; compatibility redirects and aliases live in `src/middleware.ts` and `lib/next/publicRouteAliases.ts`.
+Some pages are publication-specific. `src/config/siteFlavor.ts` defines the flavor contract, and `lib/next/flavorGatedRoutes.ts` enforces it. The `src/app/**/page.tsx` files are the current route map. Compatibility redirects and aliases live in `src/middleware.ts` and `lib/next/publicRouteAliases.ts`.
 
 The routes above are live at <https://dose.wiki/> and <https://www.dose.wiki/>. Pre-launch `/preview` addresses permanently redirect to the matching unprefixed route.
 
@@ -99,9 +63,9 @@ response shapes.
 
 DoseWiki content is for harm-reduction education and is not medical advice. Review the [license and reuse terms](https://dose.wiki/docs/license) and preserve source attribution.
 
-## Editor Surface
+## Editor surface
 
-Sign in at `/sign-in`; the protected editor is mounted at `/dev` with tab and item deep links.
+Sign in at `/sign-in`. The protected editor is mounted at `/dev` with tab and item deep links.
 
 The editor groups related work rather than exposing separate applications:
 
@@ -111,106 +75,17 @@ The editor groups related work rather than exposing separate applications:
 - publication tools include Writing, Blog, Copy, and Contributors;
 - Profile and Change log remain primary account and audit destinations.
 
-The current tab registry is `TOOL_TAB_ITEMS` in `src/features/dev/pages/DevModePageChrome.tsx`. Tab rendering lives in `DevModePageView.tsx`, and deep-link normalization lives in `devModePageUtils.ts`; use those files instead of copying a tab inventory into documentation.
+`DEV_TAB_REGISTRY` in `src/features/dev/pages/devTabRegistry.ts` is the tab inventory. `src/features/dev/pages/DevModePageView.tsx` renders the tabs, and `src/features/dev/pages/devModePageUtils.ts` normalizes deep links.
 
 ### Authentication and writes
 
-- Auth.js configuration: `lib/auth/authOptions.ts`
-- Runtime auth policy: `lib/auth/runtimePolicy.ts`
-- Route gate: `src/middleware.ts`
-- Role source: Postgres `memberships`
+Auth.js supplies identity, and the Postgres `memberships` table supplies roles. [Auth](docs/architecture/auth.md) covers accounts, roles, and route protection. Editor tool handlers live under `src/app/api/dev/`. Article saves go through `src/app/api/save-article/`. Named rate-limit policies live in `lib/http/rateLimitPolicy.ts`.
 
-Editors and admins can use the full surface. Any authenticated user can edit their own profile. Editor tool handlers live under `src/app/api/dev/`; shared save routes live under `src/app/api/`. The preferred article write path is `save-article`, while contributor profiles use `save-user-profile`.
-
-Named rate-limit policies live in `lib/http/rateLimitPolicy.ts`.
-
-## Build, Run, and Deploy
-
-Install with the repository-pinned Bun version:
+## Develop
 
 ```bash
 bun install --frozen-lockfile
-npm run dev
+bun run dev
 ```
 
-`package.json` pins Bun 1.3.5 and owns the full script catalog. Common commands:
-
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Start local Next.js development |
-| `npm run build` | Build the application |
-| `npm run test` | Run Vitest |
-| `bun run lint:all` | Lint application, server, and scripts |
-| `npm run typecheck` | Type-check without emit |
-| `bun run verify` | Run the checkout-safe CI graph and drift checks |
-| `npm run generate:schema` | Regenerate article-schema helpers |
-| `npm run generate:social-cards` | Refresh public-route availability and pre-render shared social cards from the production database |
-| `npm run provenance:check` | Check generated-data lineage |
-
-### Environment and deployment
-
-Keep secrets in `.env.local`, the shell, or the hosting provider. Do not commit credential values.
-
-- `lib/runtime/envContract.ts` owns runtime environment diagnostics.
-- [Data credentials](docs/operations/data-credentials.md) owns production targets, credentials, write gates, and recovery.
-- [Deployment routing](docs/operations/deployment.md) owns Vercel projects, domains, build separation, and release safety.
-
-Every production deployment sets `DATA_BACKEND=postgres`, `POSTGRES_POOLED_URL`, and `REPLICATION_MEDIA_BASE_URL`. Only `dosewiki-admin` carries the write and intent-token tier. Public DoseWiki and Effect Index remain read-only and carry no admin credential. The application and ordinary operators have no alternate backend.
-
-Production writes require an allowlisted command, explicit Postgres target, reviewed dry run, remote-target gates, and the command's confirmations. Implementing a guard does not authorize production use. Follow [data credentials](docs/operations/data-credentials.md) rather than copying credential values or precedence rules here.
-
-`NEXT_PUBLIC_SITE_FLAVOR` selects the publication at build time: unset uses dose.wiki; `effectindex` uses Effect Index. The launched dose.wiki flavor defaults its canonical URL to `https://dose.wiki`.
-
-`dose.wiki` and `www.dose.wiki` use the public-only `dosewiki-public` build. `dev.dose.wiki` and `dosewiki-admin.vercel.app` use the separate, application-authenticated `dosewiki-admin` editor build and remain closed to crawlers. Public-host `/dev`, `/review`, and sign-in links hand off to `dev.dose.wiki`. Retired `/preview` addresses permanently redirect to ordinary App Paths.
-
-`PUBLIC_CACHE_PUBLISH_SECRET` and `PUBLIC_CACHE_PUBLISH_TARGETS` deliver editorial changes to the separate public projects. The signed receiver derives its own paths and tags, grants cache expiry only, and accepts only allowlisted public targets. The editor's durable outbox owns retry and revision receipts. Current variable placement and recovery steps live in [deployment routing](docs/operations/deployment.md).
-
-Vercel builds use `bun run build:vercel`; `bun run build:census -- <build directory>` prints what a finished build prerendered and how long it took. Read [deployment routing](docs/operations/deployment.md) before changing build keys, aliases, domains, or flavor settings.
-
-## Development Workflow
-
-1. Install with `bun install --frozen-lockfile`.
-2. Read [CONTRIBUTING.md](CONTRIBUTING.md), the [glossary](docs/glossary.md), and the ownership document for the feature you are changing.
-3. Treat PlanetScale Postgres as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
-4. Keep public App Router reads server-side unless the interaction requires a client subscription.
-5. Run the narrow verification command that covers the change. Use `bun run verify` for the full checkout-safe graph.
-
-Public server data helpers live in `lib/data/`; metadata and static-route planning live in `lib/next/`. Local `SubstanceIndex.json` is not a public rendering source.
-
-## Scripts
-
-[scripts/README.md](scripts/README.md) is the maintained workflow catalog; `package.json` is the executable command surface. Representative read-only or dry-run entry points are:
-
-```bash
-npm run parse:sources
-npm run batch:legality -- --dry-run
-npm run citations:formal -- --slug=2c-b --dry-run
-npm run postgres:check-env-isolation
-```
-
-Batch generation uses OpenRouter and requires `OPENROUTER_API_KEY`. Scry access uses `SCRY_API_KEY`. Keep both in `.env.local` or the shell.
-
-Data-changing commands run with `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`, `POSTGRES_IMPORT_CONFIRM` plus `--allow-remote`, `--expected-deployment=<region>.pg.psdb.cloud/postgres` where supported, and the command's write confirmation. Read [Data credentials](docs/operations/data-credentials.md) before running them.
-
-For citation workbench promotion, use `npm run citations:apply-workbench` rather than editing article JSON. Follow the [citation workflow](docs/workflows/citations.md).
-
-## Further Reading
-
-| Document | Description |
-|----------|-------------|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Install, run, verify, and pull request expectations |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Architecture entrypoint and links to runtime appendices |
-| [AGENTS.md](AGENTS.md) | Repo-specific guidance for automated contributors |
-| [docs/README.md](docs/README.md) | Index of every contributor document |
-| [docs/api.md](docs/api.md) | Public API and replication embed contract |
-| [docs/glossary.md](docs/glossary.md) | Domain language for citations, legality, review, replications, and hosts |
-| [docs/architecture/project-layout.md](docs/architecture/project-layout.md) | Contributor-facing folder map and local artifact hygiene rules |
-| [docs/design/ui-kit.md](docs/design/ui-kit.md) | Shared UI catalog, rules, and ownership |
-| [docs/design/visual-style-guide.md](docs/design/visual-style-guide.md) | Brand and visual language |
-| [scripts/README.md](scripts/README.md) | Script catalog and examples |
-| [`/docs/code`](https://dose.wiki/docs/code) | Visual codebase overview on the live site |
-| [`/docs/how`](https://dose.wiki/docs/how) | Visual walkthrough of how articles are made |
-
----
-
-If project workflows, schema ownership, or editor/save paths change, update this file together with `AGENTS.md`, `docs/README.md`, and any affected script docs.
+[CONTRIBUTING.md](CONTRIBUTING.md) covers setup, local tools, and verification. [ARCHITECTURE.md](ARCHITECTURE.md) maps the repository, and [docs/README.md](docs/README.md) indexes the rest of the documentation. The visual codebase overview is at [`/docs/code`](https://dose.wiki/docs/code), and the article process is at [`/docs/how`](https://dose.wiki/docs/how).

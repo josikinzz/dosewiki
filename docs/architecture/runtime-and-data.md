@@ -2,8 +2,6 @@
 
 This appendix holds the runtime, data-flow, auth, and integration details that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
-Update this file when route ownership, Postgres read/write paths, role enforcement, or third-party integration boundaries change.
-
 ## Data Architecture
 
 ### Postgres document model
@@ -518,8 +516,7 @@ reader suggestions keep their existing fresh reads and revision checks.
 The private inbox response exposes `suggestions` and `inbox` durations in
 `Server-Timing` for authenticated browser inspection.
 
-These numbers come from a one-off benchmark, since removed under the
-[test policy](operations-and-direction.md#test-policy): an isolated PGlite database
+These numbers come from a one-off benchmark, since removed, that ran against an isolated PGlite database
 with 693 glossary terms and 200 archived substance articles (7,128 source
 units). Terms are treated as approved and stored translations are synthetic
 English, so this measures a repeatable workload rather than production
@@ -727,6 +724,35 @@ stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query fai
 static `public/molecules` fallback. Editor saves revalidate the owner page and expire
 `data-public:molecules:<slug>` plus `data-public:molecules`. The versioned image response is
 immutable, so propagation is governed by page revalidation rather than stale image bytes.
+
+## Rendering and revalidation
+
+The app mixes static routes, SSG routes with generated params, and dynamic
+routes for sign-in, the editor, and API handlers. `/dev` and API handlers stay
+dynamic. `/reports/[slug]` pre-renders known slugs through
+`generateStaticParams` and renders other slugs on demand. Use the current
+`next build` route summary for page counts.
+
+Each route module's `revalidate` export and its matching `lib/postgres/`
+publication transaction own cache behavior. `/api/save-article` writes through
+the native Postgres handlers and revalidates the affected public paths.
+
+Persistent public cache keys use an opaque digest for the Postgres target,
+never a connection URL, because Next includes those keys in revalidation
+errors. Gallery taxonomy joins drain batches and collect matching artists
+together, including during background refreshes, instead of issuing one
+indexed read per artist. The Postgres adapter pages collections and evaluates
+their filters in-process. `lib/postgres/transactionTimeouts.ts` owns pool and
+transaction bounds. A failed read surfaces as an error. It never becomes empty
+content.
+
+Sequential cached page, media-detail, and taxonomy drains opt into
+`publicDataCache`'s `awaitRefresh` barrier. Without it, a stale Next cache hit
+starts a background read and advances the cursor at once, which floods the
+four-connection pool. The barrier waits for the refresh that invocation
+started, so the 15-minute freshness policy, bounded cache entries, and Next's
+stale-on-error behavior stay intact. Other public leaves keep ordinary
+stale-while-revalidate behavior.
 
 ## Auth and Authorization
 
