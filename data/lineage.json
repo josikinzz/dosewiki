@@ -1310,6 +1310,27 @@
       "schemaVersion": "scripts/data/resolveSmilesCoverage.mjs",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run molecules:smiles-coverage"
+    },
+    {
+      "id": "source-favicon-config",
+      "path": "src/data/config/sourceFavicons.ts",
+      "role": "derived-code",
+      "producer": "scripts/data/generate-further-reading-favicons.mjs",
+      "consumers": [
+        "src/lib/citationProjection.ts",
+        "src/features/replications/artist/artistPageModel.ts"
+      ],
+      "inputs": [
+        "scripts/data/generate-further-reading-favicons.mjs base source configs and display names",
+        "further-reading host inventory from an input export or explicitly selected Postgres read source",
+        "public/favicons/*.png"
+      ],
+      "freshnessRule": "Regenerate the complete registry after changing source mappings or further-reading hosts. Partial runs are report-only.",
+      "sourceDeployment": "local input export or explicitly selected Postgres read source",
+      "targetDeployment": null,
+      "schemaVersion": "SourceConfig[] and source display name lookup",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
     }
   ]
 }
