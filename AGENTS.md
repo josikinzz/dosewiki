@@ -30,7 +30,8 @@ dose.wiki is an open encyclopedia of psychoactive substances for harm reduction,
 | Published content is educational, never medical advice. Legality text follows the reader register in [legality](docs/workflows/legality.md). | Judgment. `bun run legality:validate` checks a legality draft when you run it. No hook or CI step runs it. |
 | Never claim production state without deployment evidence. A local change is not a deployed change. | Judgment |
 | Add a test only for write guards, auth and roles, revision conflicts, secrets, or data that feeds published dosage, interaction, or legality information. | Judgment |
-| No em dashes (U+2014) in `docs/`, `content/`, `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `data/README.md`, or string literals and JSX text under `src/`, `lib/`, and `server/`. Comments there may not add new ones. | `scripts/lint/check-em-dashes.mjs`, run by `bun run lint:all` in CI |
+| No em dashes (U+2014) in text under `docs/`, `content/`, `src/`, `lib/`, and `server/`, or in `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, and `data/README.md`. The scanner excludes binary file types. | `scripts/lint/check-em-dashes.mjs`, run by `bun run lint:all` in CI |
+| No comments in JS, TS, or CSS source except tool-read directives (ESLint, Vitest, bundler magic, pure annotations, shebangs, and license or preservation headers). Generated and vendor exclusions are defined in `scripts/lib/comment-scope.mjs`. | ESLint plugin/rule `code-hygiene/no-comments` in `scripts/eslint-plugins/code-hygiene/index.js` and the CSS check `scripts/lint/check-css-comments.mjs`, both run by `bun run lint:all` in CI |
 
 Act on reversible work without asking. Ask before deleting data, force-pushing, or changing anything outside this repository.
 
