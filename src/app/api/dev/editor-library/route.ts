@@ -92,21 +92,21 @@ export const GET = protectedRouteOperation({
 
     if (slug) {
       const idParam = Number.parseInt(params.get("id") ?? "", 10);
-      const article = await dataWrite.client.query(api.substanceIndex.getEditorBySlug, {
+      const loaded = await dataWrite.client.query(api.substanceIndex.getEditorBySlug, {
         slug,
         ...(Number.isFinite(idParam) ? { id: idParam } : {}),
         apiKey,
         actorEmail,
       });
 
-      if (!article) {
+      if (!loaded) {
         return NextResponse.json(
           { ok: false, error: `No article found for slug "${slug}".` },
           { status: 404 },
         );
       }
 
-      return NextResponse.json({ ok: true, scope: "article", article });
+      return NextResponse.json({ ok: true, scope: "article", ...loaded });
     }
 
     const scope = params.get("scope") ?? "list";

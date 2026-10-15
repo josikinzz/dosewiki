@@ -1,4 +1,3 @@
-import { PostgresError } from "../../lib/postgres/runtime/values"
 import type { Doc } from "../../lib/postgres/runtime/dataModel"
 import type { MutationCtx } from "../../lib/postgres/runtime/server"
 import { removeCopyBlockHandler, upsertCopyBlockHandler, type CopyBlockDocument } from "../copyBlocks";
@@ -11,10 +10,10 @@ import { writeCategoryLayout } from "./categoryLayoutMirror";
 import { readProposalTarget, type ProposalTargetRef } from "./changeProposalTargets";
 import { saveRevalidationPaths, type IndexLayoutType } from "./saveRevalidationPaths";
 import { resolveSubstanceSlug } from "../../src/data/projections/substanceProjectionCore";
-import { saveSubstancesHandler } from "./substanceWriteHandlers";
 import { requireRole } from "./auth";
-import { articleChangePatch, articleDocument, validateArticleChange } from "./articleLifecycleValidation";
-import { articleBaseHash, recordArticleRevision } from "./articleRevisionJournal";
+import { articleDocument } from "./articleLifecycleValidation";
+import { articleBaseHash } from "./articleRevisionJournal";
+import { writeArticle } from "./articleWrite";
 
 /**
  * Writing a change proposal to production, and writing production back.
@@ -122,29 +121,20 @@ export async function applyTarget(
       if (existing) {
         const actor = await requireRole(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, adminIntent: "editorArticleWrite" }, "admin");
         const before = articleDocument(existing);
-        const after = validateArticleChange(before, document, true, auth.articleChangeId?.startsWith("revert-") === true);
-        const baseHash = await articleBaseHash(ctx, before);
-        await ctx.db.patch(existing._id, articleChangePatch(before, after));
-        await recordArticleRevision(ctx, {
-          before, after, actor, baseHash,
+        await writeArticle(ctx, actor, { kind: "replace-existing", article: document as ProposalArticleDocument, baseHash: await articleBaseHash(ctx, before) }, {
           changeId: `${auth.articleChangeId ?? "proposal"}:${target.key}`,
           summary: auth.articleSummary ?? "Applied article proposal",
           publicChangelog: false,
+          restoring: auth.articleChangeId?.startsWith("revert-") === true,
         });
         return { revalidatePaths: saveRevalidationPaths([`/${target.key}`, "/substances"], []) };
       }
-      const result = await saveSubstancesHandler(ctx, {
-        apiKey: auth.apiKey,
-        actorEmail: auth.actorEmail,
-        articles: [document as ProposalArticleDocument],
+      const actor = await requireRole(ctx, { apiKey: auth.apiKey, actorEmail: auth.actorEmail, adminIntent: "editorArticleWrite" }, "admin");
+      const result = await writeArticle(ctx, actor, { kind: "create", article: document as ProposalArticleDocument }, {
+        changeId: `${auth.articleChangeId ?? "proposal"}:${target.key}`,
+        summary: auth.articleSummary ?? "Created article from proposal", publicChangelog: false,
       });
-      if (result.errors.length > 0) {
-        throw new PostgresError({
-          code: "PROPOSAL_APPLY_FAILED",
-          message: result.errors.join(" "),
-        });
-      }
-      return { revalidatePaths: result.affectedPaths };
+      return { revalidatePaths: result.outcome.affectedPaths };
     }
     case "indexLayout": {
       const type = target.key as IndexLayoutType;

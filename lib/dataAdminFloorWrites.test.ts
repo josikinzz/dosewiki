@@ -140,10 +140,12 @@ const DIRECT_WRITES: Array<[string, (ctx: never, args: never) => Promise<unknown
 
 describe("direct production writes sit on the admin floor", () => {
   beforeEach(() => {
+  vi.stubEnv("DATA_WRITES_FROZEN", "0");
     process.env.DATA_ADMIN_KEY = "secret";
   });
 
   afterEach(() => {
+  vi.unstubAllEnvs();
     delete process.env.DATA_ADMIN_KEY;
   });
 

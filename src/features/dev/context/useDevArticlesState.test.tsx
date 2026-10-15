@@ -19,7 +19,7 @@ describe("useDevArticlesState", () => {
       const { result } = renderHook(() => useDevArticlesState(slim()));
 
       act(() => {
-        result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
+        result.current.hydrateArticles(new Map([["lsd", { article: whole("lsd", "A whole article."), baseHash: "stored-base-hash" }]]));
       });
 
       expect(result.current.articles[0].summary).toBe("A whole article.");
@@ -28,6 +28,22 @@ describe("useDevArticlesState", () => {
       expect(result.current.getOriginalArticles()[0].summary).toBe("A whole article.");
       expect(result.current.articles[0]).toBe(result.current.getOriginalArticles()[0]);
       expect(result.current.articlesRefreshConflict).toBeNull();
+      expect(result.current.getArticleBaseHashes()).toEqual({ lsd: "stored-base-hash" });
+    });
+
+    it("retains a recovered baseline until a confirmed revision replaces it", () => {
+      const source = slim();
+      const { result } = renderHook(() => useDevArticlesState(source));
+      act(() => result.current.hydrateArticles(new Map([["lsd", { article: whole("lsd", "Stored"), baseHash: "current-stored-hash" }]])));
+      act(() => {
+        result.current.updateArticleAt(0, whole("lsd", "Recovered edit"));
+        result.current.restoreArticleBaseHashes({ lsd: "original-recovery-hash" });
+      });
+      act(() => result.current.hydrateArticles(new Map([["lsd", { article: whole("lsd", "Later stored"), baseHash: "later-hash" }]])));
+      expect(result.current.getArticleBaseHashes().lsd).toBe("original-recovery-hash");
+      expect(result.current.articles[0].summary).toBe("Recovered edit");
+      act(() => result.current.markChangesSaved([{ slug: "lsd", baseHash: "confirmed-revision-hash" }]));
+      expect(result.current.getArticleBaseHashes().lsd).toBe("confirmed-revision-hash");
     });
 
     it("does not overwrite a draft the user has already edited", () => {
@@ -41,7 +57,7 @@ describe("useDevArticlesState", () => {
       });
 
       act(() => {
-        result.current.hydrateArticles(new Map([["lsd", whole("lsd", "A whole article.")]]));
+        result.current.hydrateArticles(new Map([["lsd", { article: whole("lsd", "A whole article."), baseHash: "stored-base-hash" }]]));
       });
 
       // The edit and the source it was based on both outrank a late fetch.

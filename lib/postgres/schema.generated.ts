@@ -10,6 +10,25 @@ export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "j
 /** `optional` means the document field may be absent; a NULL in such a column reconstructs as an absent field, otherwise as an explicit null. */
 export type ColumnSpec = { kind: ColumnKind; optional: boolean };
 
+export const articleBatchReceipts = pgTable(
+  "articleBatchReceipts",
+  {
+    _id: text("_id").primaryKey(),
+    _creationTime: doublePrecision("_creationTime").notNull(),
+    "ownerEmail": text("ownerEmail").notNull(),
+    "operationId": text("operationId").notNull(),
+    "fingerprintVersion": doublePrecision("fingerprintVersion").notNull(),
+    "fingerprint": text("fingerprint").notNull(),
+    "resultVersion": doublePrecision("resultVersion").notNull(),
+    "result": jsonb("result").notNull(),
+  },
+  (t) => [
+    index("articleBatchReceipts_by_creation_time").on(t._creationTime),
+    uniqueIndex("articleBatchReceipts_by_owner_operation_unique").on(sql`${t["ownerEmail"]} COLLATE "C"`, sql`${t["operationId"]} COLLATE "C"`),
+    index("articleBatchReceipts_by_owner_operation").on(sql`${t["ownerEmail"]} COLLATE "C"`, sql`${t["operationId"]} COLLATE "C"`, t._creationTime),
+  ],
+);
+
 export const articleDraftReceipts = pgTable(
   "articleDraftReceipts",
   {
@@ -1663,6 +1682,7 @@ export const warningBannerRevisions = pgTable(
 
 /** Column storage specs per table, for import encoding and lossless reconstruction. */
 export const tableColumns = {
+  articleBatchReceipts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "ownerEmail": { kind: "text", optional: false }, "operationId": { kind: "text", optional: false }, "fingerprintVersion": { kind: "double", optional: false }, "fingerprint": { kind: "text", optional: false }, "resultVersion": { kind: "double", optional: false }, "result": { kind: "jsonb", optional: false } },
   articleDraftReceipts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "ownerEmail": { kind: "text", optional: false }, "changeId": { kind: "text", optional: false }, "fingerprint": { kind: "text", optional: false }, "result": { kind: "jsonb", optional: false } },
   articleDrafts: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "slug": { kind: "text", optional: false }, "ownerEmail": { kind: "text", optional: false }, "article": { kind: "jsonb", optional: true }, "baseHash": { kind: "text", optional: false }, "version": { kind: "double", optional: false }, "updatedAt": { kind: "text", optional: false }, "revisionOf": { kind: "text", optional: true } },
   articleFeedback: { _id: { kind: "text", optional: false }, _creationTime: { kind: "double", optional: false }, "id": { kind: "text", optional: false }, "status": { kind: "text", optional: false }, "schema_version": { kind: "double", optional: false }, "substance_slug": { kind: "text", optional: false }, "substance_title": { kind: "text", optional: false }, "category": { kind: "text", optional: false }, "importance": { kind: "text", optional: false }, "details": { kind: "text", optional: false }, "source_url": { kind: "text", optional: true }, "contact_email": { kind: "text", optional: true }, "ip_hash": { kind: "text", optional: true }, "user_agent": { kind: "text", optional: true }, "honeypot_triggered": { kind: "boolean", optional: false }, "review_notes": { kind: "text", optional: true }, "reviewed_by": { kind: "text", optional: true }, "reviewed_at": { kind: "text", optional: true }, "decision_log": { kind: "jsonb", optional: true }, "created_at": { kind: "text", optional: false }, "updated_at": { kind: "text", optional: false } },
@@ -1759,6 +1779,7 @@ export const tableReferences = {
 
 /** Identity keys enforced by unique indexes (migration 0001); fixtures and writers must keep them distinct. */
 export const tableUniqueKeys = {
+  articleBatchReceipts: [["ownerEmail","operationId"]],
   articleDraftReceipts: [["ownerEmail","changeId"]],
   articleDrafts: [["ownerEmail","slug"]],
   articleProposalTargets: [["proposalId","slug"]],
@@ -1797,6 +1818,7 @@ export const tableUniqueKeys = {
 
 /** Document index descriptors per table: name -> indexed fields in order (`_creationTime` is implicitly last). */
 export const tableIndexes = {
+  articleBatchReceipts: { "by_owner_operation": ["ownerEmail","operationId"] },
   articleDraftReceipts: { "by_owner_change": ["ownerEmail","changeId"] },
   articleDrafts: { "by_owner_slug": ["ownerEmail","slug"] },
   articleFeedback: { "by_status_created": ["status","created_at"], "by_created_at": ["created_at"], "by_public_id": ["id"], "by_substance": ["substance_slug","created_at"] },
@@ -1864,6 +1886,7 @@ export const tableIndexes = {
 } as const satisfies Record<string, Record<string, readonly string[]>>;
 
 export const tableNames = [
+  "articleBatchReceipts",
   "articleDraftReceipts",
   "articleDrafts",
   "articleFeedback",
@@ -1933,6 +1956,7 @@ export const tableNames = [
 export type TableName = (typeof tableNames)[number];
 
 export const tables = {
+  articleBatchReceipts,
   articleDraftReceipts,
   articleDrafts,
   articleFeedback,

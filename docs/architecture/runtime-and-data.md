@@ -107,6 +107,30 @@ fallbacks are not service-limit-proof, so backfill history promptly and keep
 the rollout window short. Direct SQL or snapshot imports bypass application
 index maintenance and must not modify the indexed source tables.
 
+### Article write owners
+
+`server/lib/articleWrite.ts` commits accepted editorial article patches with their revision journal and citation-evidence invalidation. Contextual publication, inline edits, IUPAC corrections, and approved proposal application use this owner. Inline alias appends retain their current-content replay check and preserve unrelated identification fields exactly.
+
+`server/saveArticleBatch.ts` publishes staged articles and index layouts in one serializable transaction. Existing articles require the stored-document `articleBaseHash` returned by authenticated hydration. The hash includes the latest article journal identity. New articles require explicit create-only admission and refuse existing slugs and article IDs. Generated section-gap metadata stays with its specialized owner.
+
+A batch operation has one stable ID and actor-scoped semantic fingerprint. Its versioned `articleBatchReceipts` row stores the complete committed result without automatic expiry. The same actor and ID with changed input refuses before baseline comparison. An exact retry returns the original result after freeze and current-role checks. Child article and layout IDs derive from the batch and target identities. The transaction includes layout journals, one public batch history entry, derived indexes, and the publication outbox. Delivery follows commit.
+
+The editor keeps the hydrated article and its hash together. Hydration replaces pristine rows only. Recovered work retains its original hash, and a slim library row cannot authorize publication. A confirmed response must name the operation and every article and layout target. Network failure or an incomplete success retains the exact pending envelope in the account-scoped browser recovery store. Later edits remain staged when an earlier operation is confirmed.
+
+These separate write contracts remain in place:
+
+| Owner | Contract and reason |
+| --- | --- |
+| `server/lib/generatedPublication.ts` and `lib/postgres/articlePublication.ts` | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. |
+| `server/moleculeOverrides.ts` | Molecule overrides and depictions are separate entities with chemistry-specific comparison and seed rules. |
+| `server/lib/substanceReviewHandlers.ts` | Human review, flags, and recommendations retain their role and published-content revision checks. Content editing cannot set this authority. |
+| `server/lib/substanceProvenanceHandlers.ts` | Bounded reference-author and metadata repairs retain source-identity and provenance checks. |
+| `server/lib/substanceWriteHandlers.ts` ingestion and `server/lib/substanceIngestion.ts` | The admin-only `saveSubstance` and `saveSubstances` contract remains for guarded operator families under `scripts/legality/`, `scripts/citations/`, `scripts/batch/`, `scripts/migrate/`, and `scripts/data-ops/`. These include citation application, schema and shape repair, dosage and duration imports, subjective-effect imports, and bounded corpus synchronization. They retain canonical ingestion validation and indexed mutations. They do not acquire editorial baseline, retry-receipt, or article-journal guarantees from the staged batch change. Their command-specific target and confirmation ceremony remains required. |
+| `server/bindingSiteMigration.ts` | Bounded pharmacology-shape migration retains its maintenance owner. |
+| `scripts/postgres/import-document-snapshot.ts` | Snapshot import retains its operator ceremony and separately committed statements. It bypasses runtime indexes and outbox and requires the existing rebuild procedure. |
+
+The browser staged-save route and proposal application no longer call the legacy operator ingestion entry points. This ownership split preserves existing operator workflows without treating a fresh server read as evidence that a browser draft is current.
+
 ### Article schema ownership
 
 Canonical article structure is defined in:

@@ -1,10 +1,12 @@
+import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
+import { dataRejectionResponse } from "@/lib/http/dataRejection";
+import { PostgresError } from "@server/postgres/runtime/values";
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { saveRevalidationPaths } from "../../../../server/lib/saveRevalidationPaths";
 import { truncateDiffMarkdown } from "../../../../lib/proposals/diffMarkdown";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { revalidateSavedPaths } from "./revalidateSavedPaths";
-import { parseCopyIndexPublicationInput } from "../dev/copyIndexPublicationInput";
 import {
   buildArticlePathsFromWriteOutcomes,
   buildArticleVerificationFromWriteOutcome,
@@ -21,6 +23,8 @@ export const runtime = "nodejs";
 const MAX_SAVE_PAYLOAD_BYTES = 20 * 1024 * 1024;
 
 type SaveArticleBody = {
+  operationId?: unknown;
+  articleAdmissions?: unknown;
   articles?: unknown;
   indexLayouts?: unknown;
   changelog?: unknown;
@@ -32,13 +36,6 @@ type SaveArticlePhase =
   | "index-layout-mutation"
   | "changelog-mutation"
   | "revalidation";
-
-function buildEntryId(now: Date): string {
-  return `${now.toISOString().slice(0, 10).replace(/-/g, "")}-${now
-    .toTimeString()
-    .slice(0, 8)
-    .replace(/:/g, "")}-${Math.random().toString(16).slice(2, 10)}`;
-}
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -126,16 +123,30 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
       throw new Error("Postgres write capability is required.");
     }
 
+    if (typeof body.operationId !== "string" || !/^[A-Za-z0-9][A-Za-z0-9:_-]{7,159}$/.test(body.operationId)) {
+      return NextResponse.json({ error: "A stable batch operation ID is required." }, { status: 400 });
+    }
+    const operationId = body.operationId;
     const requestId = `save-${Date.now().toString(36)}-${crypto.randomUUID().slice(0, 8)}`;
 
     const rawArticles = Array.isArray(body.articles) ? body.articles : [];
     const articles = rawArticles.map(sanitizeArticleForDataMutation);
-    const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts);
+    const admissions = Array.isArray(body.articleAdmissions) ? body.articleAdmissions : [];
+    const commands = articles.map((article) => {
+      const admission = admissions.find((value) => value && typeof value === "object" && value.slug === (article && typeof article === "object" && "slug" in article ? article.slug : undefined));
+      if (!admission || (admission.kind !== "create" && (admission.kind !== "replace-existing" || typeof admission.baseHash !== "string" || !admission.baseHash))) {
+        throw new PostgresError({ code: "ARTICLE_BASELINE_REQUIRED", message: "Every article requires its loaded revision or explicit create-only admission. Your draft is preserved." });
+      }
+      return admission.kind === "create" ? { kind: "create" as const, article } : { kind: "replace-existing" as const, baseHash: admission.baseHash, article };
+    });
+    const indexLayouts = parseIndexLayoutPayloads(body.indexLayouts).map(({ type, version, categories, expected, expectedRevision }) => ({ type, version, categories, expected, expectedRevision }));
     const changelog = parseChangelogPayload(body.changelog);
     if (indexLayouts.some((layout) => !Object.prototype.hasOwnProperty.call(layout, "expected"))) {
       return NextResponse.json({ error: "Every index layout needs its loaded baseline. Reload the editor source before publishing." }, { status: 400 });
     }
-    for (const layout of indexLayouts) parseCopyIndexPublicationInput(layout);
+    if (indexLayouts.some(layout => !Number.isSafeInteger(layout.expectedRevision) || layout.expectedRevision! < 0)) {
+      return NextResponse.json({ error: "Every index layout needs its loaded publication revision." }, { status: 400 });
+    }
     const articleSummaries = articles.map((article, index) => summarizeArticleForDebug(article, index));
     const strippedArticleFieldCount = rawArticles.reduce(
       (count, article) => count + countFieldsStrippedForDataMutation(article),
@@ -167,20 +178,13 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
     });
 
     try {
-      const now = new Date();
-      const changelogInput = changelog ? {
-        entryId: buildEntryId(now),
-        createdAt: now.toISOString(),
-        message: `Dev editor update - ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
-        markdown: truncateDiffMarkdown(changelog.markdown),
-        submittedBy,
-        articles: changelog.articles,
-      } : undefined;
+      const changelogInput = changelog ? { markdown: truncateDiffMarkdown(changelog.markdown), articles: changelog.articles } : undefined;
       phase = "article-mutation";
       const batch = await client.mutation(api.saveArticleBatch.save, {
         apiKey: editorArticleWriteToken,
         actorEmail,
-        articles: articles as never,
+        operationId,
+        articles: commands as never,
         indexLayouts: indexLayouts as never,
         changelog: changelogInput,
       });
@@ -207,13 +211,11 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
         savedItems.push(confirmedLayoutCount ? `${confirmedLayoutCount} index layout publication receipt(s) confirmed` : "Index layouts unchanged; no publication needed");
       }
 
-      const entry = batch.changelogSaved && changelogInput ? {
-        id: changelogInput.entryId,
-        createdAt: changelogInput.createdAt,
-        commit: { sha: "", url: "", message: changelogInput.message },
-        articles: changelogInput.articles,
-        markdown: changelogInput.markdown,
-        submittedBy,
+      const entry = batch.changelog ? {
+        id: batch.changelog.entryId, createdAt: batch.changelog.createdAt,
+        commit: { sha: "", url: "", message: batch.changelog.message },
+        articles: batch.changelog.articles, markdown: batch.changelog.markdown,
+        submittedBy: batch.changelog.submittedBy,
       } : undefined;
 
       const articleOutcomes = articleResult?.outcomes ?? [];
@@ -285,6 +287,10 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
 
       return NextResponse.json({
         success: true,
+        version: batch.version,
+        operationId: batch.operationId,
+        articleReceipts: batch.articleReceipts,
+        layoutReceipts: batch.layoutResults,
         requestId,
         savedItems,
         submittedBy,
@@ -296,6 +302,9 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
         publication,
       });
     } catch (error) {
+      if (isDataWriteFrozenError(error)) throw error;
+      const rejection = dataRejectionResponse(error);
+      if (rejection) return rejection;
       const safeError = getSafeDataSaveError(error);
       console.error("[save-article] request:failed", {
         requestId,

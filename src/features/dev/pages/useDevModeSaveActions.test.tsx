@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -62,6 +62,7 @@ function createArgs(): Parameters<typeof useDevModeSaveActions>[0] {
     chemicalIndexManual: null,
     mechanismIndexManual: null,
     getOriginalArticles: () => originalArticles,
+    getArticleBaseHashes: () => ({ lsd: "stored-base-hash" }),
     getOriginalPsychoactiveIndexManual: () => null,
     getOriginalChemicalIndexManual: () => null,
     getOriginalMechanismIndexManual: () => null,
@@ -130,6 +131,19 @@ describe("useDevModeSaveActions", () => {
     await userEvent.click(within(sheet).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(saveArticleMutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps edits made while a confirmed batch is in flight", async () => {
+    let confirm!: (value: unknown) => void;
+    saveArticleMutateAsyncMock.mockImplementation(() => new Promise(resolve => { confirm = resolve; }));
+    const args = createArgs();
+    const view = render(<TestHarness args={args} />);
+    await userEvent.click(screen.getByRole("button", { name: /commit to production/i }));
+    await userEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: /^commit/i }));
+    await waitFor(() => expect(saveArticleMutateAsyncMock).toHaveBeenCalledTimes(1));
+    view.rerender(<TestHarness args={{ ...args, articles: [{ ...args.articles[0], title: "Newer unsaved title" }] }} />);
+    await act(async () => { confirm({ success: true, savedItems: ["1 article(s)"], warnings: [], articleReceipts: [{ slug: "lsd", baseHash: "saved-base-hash" }] }); });
+    expect(args.markChangesSaved).not.toHaveBeenCalled();
   });
 
   it("refuses to save without a session and never calls the route", async () => {

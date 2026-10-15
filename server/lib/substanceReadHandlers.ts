@@ -1,3 +1,5 @@
+import { articleBaseHash } from "./articleRevisionJournal";
+import { articleDocument } from "./articleLifecycleValidation";
 import type { QueryCtx } from "../../lib/postgres/runtime/server"
 import { requireRole } from "./auth";
 import { contributorReviewerEmails, normalizeProfileKey } from "./contributorProfiles";
@@ -37,13 +39,13 @@ export async function getEditorSubstanceBySlugHandler(
     .query("substanceIndex")
     .withIndex("by_slug", (query) => query.eq("slug", args.slug))
     .take(2);
-  if (matches.length === 1) return projectEditorArticle(matches[0]);
+  if (matches.length === 1) return { article: projectEditorArticle(matches[0]), baseHash: await articleBaseHash(ctx, articleDocument(matches[0])) };
   if (args.id === undefined) return null;
   const byId = await ctx.db
     .query("substanceIndex")
     .withIndex("by_article_id", (query) => query.eq("id", args.id))
     .first();
-  return byId ? projectEditorArticle(byId) : null;
+  return byId ? { article: projectEditorArticle(byId), baseHash: await articleBaseHash(ctx, articleDocument(byId)) } : null;
 }
 
 const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;

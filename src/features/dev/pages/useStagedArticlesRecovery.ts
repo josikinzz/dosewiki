@@ -65,6 +65,8 @@ const bySlug = (slug: string) => (article: ArticleRecord | undefined) =>
 export function useStagedArticlesRecovery({
   articles,
   getOriginalArticles,
+  getArticleBaseHashes,
+  restoreArticleBaseHashes,
   applyArticlesTransform,
   hydrateArticlesNow,
   hasChanges,
@@ -72,6 +74,8 @@ export function useStagedArticlesRecovery({
 }: {
   articles: ArticleRecord[];
   getOriginalArticles: () => ArticleRecord[];
+  getArticleBaseHashes?: () => Record<string, string>;
+  restoreArticleBaseHashes?: (hashes: Record<string, string>) => void;
   applyArticlesTransform: (transform: (previous: ArticleRecord[]) => ArticleRecord[]) => void;
   hydrateArticlesNow: (slugs: readonly string[]) => Promise<{ ok: boolean; articles: ArticleRecord[] }>;
   hasChanges: boolean;
@@ -87,6 +91,8 @@ export function useStagedArticlesRecovery({
   const flushRef = useRef<(() => void) | null>(null);
   const articlesRef = useRef(articles);
   articlesRef.current = articles;
+  const baseHashesRef = useRef(getArticleBaseHashes);
+  baseHashesRef.current = getArticleBaseHashes;
   const originalsRef = useRef(getOriginalArticles);
   originalsRef.current = getOriginalArticles;
 
@@ -110,7 +116,7 @@ export function useStagedArticlesRecovery({
     }
     const write = () => {
       flushRef.current = null;
-      const changes = stagedArticleChanges(articlesRef.current, originalsRef.current());
+      const changes = stagedArticleChanges(articlesRef.current, originalsRef.current(), baseHashesRef.current?.());
       if (changes.length === 0) {
         store.clear(TOOL, RECORD);
         setCheckpointSavedAt(null);
@@ -164,6 +170,7 @@ export function useStagedArticlesRecovery({
         else aside.push({ change, current: current ?? null, choices: {}, merge: current ? mergeStagedArticleChange(current, change) : null });
       }
       if (apply.length > 0) {
+        restoreArticleBaseHashes?.(Object.fromEntries(apply.flatMap(({ change }) => change.baseline !== NEW_ARTICLE_BASELINE ? [[change.slug, change.baseHash ?? ""]] : [])));
         applyArticlesTransform((previous) => {
           const next = [...previous];
           for (const { change, current } of apply) {
@@ -182,7 +189,7 @@ export function useStagedArticlesRecovery({
     } finally {
       setRestoring(false);
     }
-  }, [offer, restoring, hydrateArticlesNow, applyArticlesTransform]);
+  }, [offer, restoring, hydrateArticlesNow, applyArticlesTransform, restoreArticleBaseHashes]);
 
   const discardOffer = useCallback(() => {
     store?.clear(TOOL, RECORD);

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { approveAndApplyHandler, rejectHandler, revertHandler } from "../server/changeProposalReview";
 import { contentHash } from "./proposals/contentHash";
 import {
@@ -15,10 +15,12 @@ import {
 } from "./changeProposalReviewFixture";
 
 beforeEach(() => {
+  vi.stubEnv("DATA_WRITES_FROZEN", "0");
   process.env.DATA_ADMIN_KEY = SERVER_KEY;
 });
 
 afterEach(() => {
+  vi.unstubAllEnvs();
   delete process.env.DATA_ADMIN_KEY;
 });
 

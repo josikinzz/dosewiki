@@ -1,11 +1,13 @@
+import { assertDataWritesNotFrozen } from "../lib/runtime/dataWriteFreeze";
+import { commitArticleChange } from "./lib/articleWrite";
 import { PostgresError, v } from "../lib/postgres/runtime/values";
 import { query, type MutationCtx, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { contentHash } from "../lib/proposals/contentHash";
 import { substanceArticleLightValidator } from "./lib/validators";
-import { articleChangePatch, articleConflict, articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
-import { articleBaseHash, articleRevisionResult, loadArticle, recordArticleRevision } from "./lib/articleRevisionJournal";
+import { articleConflict, articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
+import { articleBaseHash, articleRevisionResult, loadArticle } from "./lib/articleRevisionJournal";
 import { submitHandler } from "./changeProposals";
 import { readProposalTarget } from "./lib/changeProposalTargets";
 import type { Id } from "../lib/postgres/runtime/dataModel";
@@ -103,6 +105,7 @@ async function checkedFeedbackRef(ctx: MutationCtx, ref: FeedbackRef | undefined
 }
 
 export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
+  assertDataWritesNotFrozen("articleLifecycle:write");
   const actor = await requireRole(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" }, args.action === "publish" || args.action === "restore" ? "admin" : "editor");
   if (args.action === "publish" && args.revisionOf) throw new PostgresError({ code: "PROPOSAL_SELF_APPROVAL", message: "Changes linked to a proposal must use its independent review workflow." });
   if (!/^[A-Za-z0-9][A-Za-z0-9:_-]{7,159}$/.test(args.changeId)) throw new PostgresError({ code: "ARTICLE_CHANGE_ID", message: "Supply one stable change ID for this operation and retain it when retrying." });
@@ -171,9 +174,8 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     } else {
       // Changed units replace exactly; unrelated sections never enter the patch.
       // Reference metadata is not merged over the correction or guarded inverse.
-      await ctx.db.patch(row._id, articleChangePatch(before, article));
-      result = await recordArticleRevision(ctx, {
-        before, after: article, actor, changeId: args.changeId, baseHash, summary,
+      result = await commitArticleChange(ctx, {
+        row, before, after: article, actor, changeId: args.changeId, baseHash, summary,
         ...(args.action === "restore" ? { restoredFrom: args.revisionId } : {}),
       });
       // An admin who publishes the correction directly links the revision it made.

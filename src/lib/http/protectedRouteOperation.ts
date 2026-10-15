@@ -1,3 +1,4 @@
+import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { NextResponse } from "next/server";
 import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireEditorSession";
 import type { RoleFloor } from "@/lib/auth/roles";
@@ -45,6 +46,7 @@ type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
 };
 
 function mapDefaultError(error: unknown): NextResponse | null {
+  if (isDataWriteFrozenError(error)) return NextResponse.json({ error: "Data writes are frozen.", code: error.code }, { status: 503 });
   if (error instanceof JsonBodyError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
