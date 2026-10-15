@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Enforces rule 10 (no em dashes). See em-dash-policy.mjs for what counts.
+// Enforces the AGENTS.md em dash rule. See em-dash-policy.mjs for what counts.
 //
 //   node scripts/lint/check-em-dashes.mjs                    fail on violations or a file over its baseline
 //   node scripts/lint/check-em-dashes.mjs --shrink-baseline  lower baseline counts to match the tree
@@ -27,7 +27,7 @@ if (process.argv.includes("--shrink-baseline")) {
 for (const { file, line } of violations) console.error(`${file}:${line}: em dash in reader-facing text`);
 for (const problem of baselineProblems) console.error(problem);
 if (violations.length > 0 || baselineProblems.length > 0) {
-  console.error(`\n${violations.length} em dash violation(s), ${baselineProblems.length} baseline problem(s). Rule 10 of AGENTS.md bans em dashes.`);
+  console.error(`\n${violations.length} em dash violation(s), ${baselineProblems.length} baseline problem(s). AGENTS.md bans em dashes.`);
   process.exit(1);
 }
 console.log("No em dashes in reader-facing text; comment baseline matches.");
