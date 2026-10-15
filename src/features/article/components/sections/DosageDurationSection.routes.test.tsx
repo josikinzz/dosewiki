@@ -2,13 +2,16 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { DurationRoute } from "@/schema";
 import { DosageDurationSection } from "./DosageDurationSection";
 import {
+  hollowDosageRoute,
   dosedRoute,
   hollowDurationRoute,
   timedRoute,
   articleWithRoutes,
+  tabNames,
   renderEditing,
   openEditor,
 } from "./DosageDurationSection.testHarness";
@@ -39,6 +42,73 @@ vi.mock("framer-motion", () => ({
   },
   useReducedMotion: () => false,
 }));
+
+describe("DosageDurationSection route tabs", () => {
+  it("renders the populated sibling when two raw routes share a canonical name", () => {
+    render(
+      <DosageDurationSection
+        article={articleWithRoutes(
+          [hollowDosageRoute("intranasal"), dosedRoute("snorted")],
+          [hollowDurationRoute("intranasal"), timedRoute("snorted")],
+        )}
+      />,
+    );
+
+    expect(tabNames()).toEqual(["Insufflated route"]);
+    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
+    expect(screen.getByText("5-10 minutes")).toBeInTheDocument();
+  });
+
+  it("combines dosage and duration routes that differ only by canonical spelling", () => {
+    const article = {
+      ...createEmptyArticle(),
+      title: "Route Normalization Test",
+      dosage: {
+        routes: [
+          {
+            route: "rectal",
+            dose_ranges: {
+              threshold: { min: 2, max: null, unit: "mg" },
+              light: { min: 4, max: 8, unit: "mg" },
+              moderate: { min: 8, max: 14, unit: "mg" },
+              strong: { min: null, max: null, unit: "mg" },
+              heavy: { min: null, max: null, unit: "mg" },
+            },
+            bioavailability: "",
+            bioavailability_notes: "",
+            notes: "",
+          },
+        ],
+        plateau_dosing: null,
+      },
+      duration: {
+        routes: [
+          {
+            route: "Rectal",
+            stages: {
+              onset: { min: 5, max: 10, unit: "minutes" },
+              come_up: { min: null, max: null, unit: "minutes" },
+              peak: { min: 1, max: 2, unit: "hours" },
+              offset: { min: null, max: null, unit: "hours" },
+              after_effects: { min: null, max: null, unit: "hours" },
+              total_duration: { min: 3, max: 5, unit: "hours" },
+            },
+            half_life: "",
+            half_life_notes: "",
+          },
+        ],
+      },
+    };
+
+    render(<DosageDurationSection article={article} />);
+
+    expect(screen.getAllByRole("tab", { name: "Rectal route" })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
+    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
+    expect(screen.getByText("5-10 minutes")).toBeInTheDocument();
+  });
+});
 
 /**
  * The public article is the whole risk of inline editing: every affordance is

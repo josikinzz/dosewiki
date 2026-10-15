@@ -58,4 +58,27 @@ describe("POST /api/subscribe", () => {
     expect(mocks.mutation).not.toHaveBeenCalled();
     expect(mocks.fetch).not.toHaveBeenCalled();
   });
+
+  describe("Effect Index relay", () => {
+    const RELAY_SECRET = "relay-secret-fixture-that-is-long-enough";
+    const RECEIVER_URL = "https://dose.wiki/api/subscribe";
+
+    beforeEach(() => {
+      vi.stubEnv("VERCEL", "1");
+      vi.stubEnv("MAILING_LIST_RELAY_SECRET", RELAY_SECRET);
+      vi.stubEnv("MAILING_LIST_IP_HASH_SECRET", "ip-hash-fixture");
+    });
+
+    it("forwards the reader's address only inside a signed header", async () => {
+      vi.stubEnv("MAILING_LIST_FORWARD_URL", RECEIVER_URL);
+      mocks.fetch.mockResolvedValue(new Response('{"ok":true}', { status: 200 }));
+      vi.stubGlobal("fetch", mocks.fetch);
+
+      await POST(post({ "x-vercel-forwarded-for": "192.0.2.31" }));
+
+      const headers = mocks.fetch.mock.calls[0][1].headers as Record<string, string>;
+      expect(headers["x-dosewiki-relay-client-ip"]).toBe("192.0.2.31");
+      expect(headers["x-dosewiki-relay-client-ip-signature"]).toMatch(/^\d+\.[0-9a-f]{64}$/);
+    });
+  });
 });

@@ -5,6 +5,7 @@ import { resolveLocale } from "./locales.mjs";
 import {
   DEFECT_CODES,
   compareNumbers,
+  extractNumbers,
   isBlocking,
   validateSegment,
 } from "./validate.mjs";
@@ -35,5 +36,7 @@ test("chemical labels do not exempt a changed or dropped dose", () => {
     assert.ok(defectsFor("The isoxazole dose is 20 mg.", target).includes(DEFECT_CODES.NUMBER_MISMATCH));
 });
 
-// The live zh-Hans catalog entry a reviewer reported: doubled commas around a
-// class name the model left in English (content/i18n/messages/zh-Hans.json).
+test("receptor names do not count as measurements", () => {
+  assert.deepEqual(extractNumbers("Binding at 5-HT2A and 5-HT2C receptors"), []);
+  assert.deepEqual(extractNumbers("Doses of 330-650 mg"), ["330", "650"]);
+});
