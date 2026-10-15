@@ -203,7 +203,7 @@ export function createDataSaveAdapter({
       return {
         destination: "production",
         savedItems: result.savedItems,
-        warnings: result.confirmsCurrentDraft === false ? ["The earlier pending batch is confirmed. Newer edits are still staged; reload and reconcile before publishing them."] : result.warnings ?? [],
+        warnings: result.confirmsCurrentDraft === false ? ["The earlier changes are confirmed as published. Your newer edits remain in Working Changes. Review them before publishing."] : result.warnings ?? [],
         resolvedSubmitterKey,
         changelogEntry: result.entry ? normalizeDataChangeLogEntry(result.entry) : null,
         markChangesSaved: result.confirmsCurrentDraft !== false && result.savedItems.length > 0 && !(result.warnings?.length),

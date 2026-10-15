@@ -356,7 +356,7 @@ export function useDevModeSaveActions({
           const credentials = await verifySaveSession();
           let result = await adapter.execute({ ...draft, note: pendingNoteRef.current }, credentials);
           if (!isSameDocument(latestDraft.current, draft)) {
-            result = { ...result, markChangesSaved: false, warnings: [...result.warnings, "The earlier changes were saved. Edits made while saving are still staged; reload and reconcile before publishing them."] };
+            result = { ...result, markChangesSaved: false, warnings: [...result.warnings, "The earlier changes were saved. Edits made while saving remain in Working Changes. Review them before publishing."] };
           }
 
           orchestrator.dispatch({ type: "saveSucceeded", result });

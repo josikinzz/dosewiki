@@ -290,7 +290,7 @@ export function saveOrchestratorReducer(
       } else if (result.warnings.length > 0) {
         notice = {
           type: "error",
-          message: `Committed ${items} to production as ${result.resolvedSubmitterKey}, but ${result.warnings.length} issue(s) occurred.`,
+          message: `Committed ${items} to production as ${result.resolvedSubmitterKey}. ${result.warnings.join(" ")}`,
         };
       } else {
         notice = {
