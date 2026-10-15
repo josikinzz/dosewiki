@@ -246,7 +246,7 @@ async function main() {
   const batchSize = Number(getFlagValue(argv, "--batch-size") ?? 5);
   const includeThumbnails = !hasFlag(argv, "--skip-thumbnails");
 
-  if (!manifestPath) throw new Error("Pass --manifest=<archive-manifest.json from the archive run>.");
+  if (!manifestPath) throw new Error("Pass --manifest=<archive-manifest.json from the archive run>.\nUsage: bun scripts/replications/repoint-renditions.mjs --manifest=<archive-manifest.json> [--renditions-dir=<renditions>] [--media-type=video|image] [--batch-size=5]\nDefault plans without uploads or database writes. Video requires --renditions-dir; images use the archived master. Apply requires --write --confirm-write=repoint-replication-renditions --confirm-repoint plus --expected-deployment=<host>/<database>, an explicit --target, and the full remote-host and credential ceremony in docs/operations/data-credentials.md.");
   if (mediaType === "video" && !renditionsDir) {
     throw new Error("Pass --renditions-dir=<directory of web renditions>.");
   }

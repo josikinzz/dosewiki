@@ -130,7 +130,7 @@ async function main() {
   const mastersDir = getFlagValue(argv, "--masters-dir");
   const outputDir = getFlagValue(argv, "--output-dir");
 
-  if (!sourceDir) throw new Error("Pass --source-dir=<directory of master videos>.");
+  if (!sourceDir) throw new Error("Pass --source-dir=<directory of master videos>.\nUsage: bun scripts/replications/transcode-videos.mjs --source-dir=<masters> --masters-dir=<preserved-archive> --output-dir=<renditions>\nDefault probes files and writes the manifest without encoding. Apply requires --write --confirm-transcode and the approved write ceremony in docs/operations/data-credentials.md. The archive must already preserve every master.");
   if (!mastersDir) {
     throw new Error(
       "Pass --masters-dir=<archive directory>. Masters must be preserved before anything is encoded; set it equal to --source-dir when the source directory is itself the archive.",

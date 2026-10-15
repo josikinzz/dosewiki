@@ -101,4 +101,18 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
 | `scripts/tools/copyRdkitAssets.mjs` | Copies the RDKit runtime into `public/rdkit/`. |
 
-Root-level scripts (`scripts/*.mjs`, `scripts/parse-sources*.ts`) are single-purpose maintenance entry points; read the header comment before running one.
+Root-level scripts (`scripts/*.mjs`, `scripts/parse-sources*.ts`) are single-purpose maintenance entry points; inspect the selected script's package entry, argument handling, and owning runbook before running it.
+
+## Removing code comments
+
+`code-hygiene/no-comments` is the local ESLint rule and autofixer. It covers JavaScript and TypeScript, including root configs and local plugins. Machine directives, shebangs, license headers, and the generated and vendor exclusions survive. `scripts/lib/comment-scope.mjs` owns the shared exclusions and reads `data/lineage.json`.
+
+To rerun only the comment rule, create a temporary flat config outside the repository. Import `scripts/eslint-plugins/code-hygiene/index.js`, `typescript-eslint`, and the scope exports using absolute paths. Set `languageOptions.parser` to `tseslint.parser`, enable JSX, set `files` to `codeCommentFiles`, and globally ignore `commentExclusions` plus `generatedCommentPaths(repoRoot)`. Enable only `code-hygiene/no-comments` at `error`, with inline config disabled and unused-disable reporting off. Then run:
+
+```bash
+bunx eslint --config /absolute/path/to/comment-only.config.mjs --fix .
+node scripts/lint/check-css-comments.mjs --fix
+bun run generate:appearance-sheets
+```
+
+`bun run lint:all` enforces both comment checks. The CSS fixer uses PostCSS comment positions. Regenerate appearance sheets after their authored CSS changes so the public copies and cache hashes match.

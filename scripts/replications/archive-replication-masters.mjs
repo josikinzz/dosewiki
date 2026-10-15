@@ -274,7 +274,7 @@ async function main() {
   const reserveBytes = Number(getFlagValue(argv, "--reserve-bytes") ?? DEFAULT_RESERVE_BYTES);
   const limit = Number(getFlagValue(argv, "--limit") ?? Infinity);
 
-  if (!archiveDir) throw new Error("Pass --archive-dir=<master archive volume path>.");
+  if (!archiveDir) throw new Error("Pass --archive-dir=<master archive volume path>.\nUsage: bun scripts/replications/archive-replication-masters.mjs --archive-dir=<archive> --scratch-dir=<scratch> [--output-dir=<renditions>] [--media-type=video|image]\nDefault is a dry run. Video requires --output-dir; images are copied unchanged. Apply requires --write --confirm-archive and the approved write ceremony in docs/operations/data-credentials.md.");
   if (!scratchDir) throw new Error("Pass --scratch-dir=<local working directory>.");
   if (producesRenditions && !outputDir) {
     throw new Error("Pass --output-dir=<directory for web renditions>.");
