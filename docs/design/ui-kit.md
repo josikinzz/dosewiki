@@ -300,5 +300,3 @@ Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev
 
 Editorial ownership review maintains the common import/export boundary,
 primitive variant behavior, and the temporary recipe migration table above.
-
-Current common-boundary allowlist: `src/components/common/GlobalSearch.tsx` and `src/components/common/useGlobalSearchSuggestions.ts` may import the `SearchMatch` type from `src/data/builders/search` until a route-neutral search result type is extracted.

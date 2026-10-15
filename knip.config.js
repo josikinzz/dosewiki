@@ -72,9 +72,7 @@ const config = {
         "*.config.{js,mjs,cjs,ts,mts,cts}",
         "server/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "lib/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "runs/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
         "scripts/**/*.{js,mjs,cjs,ts,mts,cts,tsx}",
-        "!scripts/deprecated/**",
         "src/**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx,css}",
       ],
       ignore: [

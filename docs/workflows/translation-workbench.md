@@ -424,13 +424,13 @@ browser verification. Missing catalog keys continue to fall back to English.
    `postgres:migrate` workflow, first rehearsing against an isolated target.
    They add review and segment-history tables plus `retranslation_requested_at`.
    Schema deployment needs the separate production authority in
-   [data credentials](data-credentials.md).
+   [data credentials](../operations/data-credentials.md).
 2. Release the editor code. Review corrections and approve exact revisions.
 3. Build the catalog from current approved database data, inspect the diff and
    QA output, then release the public artifact through the existing deployment
    workflow. Enqueue and monitor affected article translations separately.
 4. Run the store and rendered coverage lenses in
-   [locale mirrors](locale-mirrors.md), and check the reported public controls:
+   [locale mirrors](../operations/locale-mirrors.md), and check the reported public controls:
 
 ```sh
 bun run translate:verify-release -- --locale zh-Hans --paths /,/replications
@@ -580,6 +580,3 @@ creates a bounded, unreviewed packet. It requires `TARGET_POSTGRES_URL`,
 `DATA_WRITES_FROZEN=1`, and the standard remote-target confirmation when applicable.
 Existing output files are never overwritten. Reviewers must add clean examples,
 adjudicate targets and assign the held-out split before using it for evaluation.
-
-See [the implementation ledger](../../notes-and-plans/plans/localization-quality/implementation.md)
-for the release baseline, current acceptance evidence and deferred human decisions.

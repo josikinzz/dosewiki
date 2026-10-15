@@ -147,11 +147,11 @@ The normal campaign ranks distinct populated registered sources descending. With
 
 ### Workflow and practical limits
 
-Use the [sectionmaxxing skill](../../.agents/skills/sectionmaxxing/SKILL.md) for the five owned fields: summary, pharmacology, tolerance, harm potential, and history/culture. Preserve dosage, duration, legality, reference pool, identity, priority, index categories, layout placement, and editorial metadata. Generation does not make either drug searchable or human reviewed.
+Use the sectionmaxxing skill for the five owned fields: summary, pharmacology, tolerance, harm potential, and history/culture. Preserve dosage, duration, legality, reference pool, identity, priority, index categories, layout placement, and editorial metadata. Generation does not make either drug searchable or human reviewed.
 
 The canonical campaign directory is absent in this checkout, and the isolated worker runtime's dependencies are not installed. Local `.env.local` also lacks the native Postgres target and scoped source-read credential. No inference/account preflight or campaign initialization was attempted. A future run needs the explicit native Postgres reader target and scoped source-read credential, isolated Sol-low transport preflight, frozen inputs, extraction where quotes are missing, and parent review. Read-only SQL evidence is not a substitute for that runtime preflight.
 
-The current [publication reference](../../.agents/skills/sectionmaxxing/reference/publication.md) states: "Publication remains closed for this workflow pending separate authorization under the current operator-write allowlist." This investigation evaluates drafting readiness only. Approved publication, cache/site verification, and deliberate visibility promotion remain later steps. Do not downgrade public sertraline merely to bring it into the low-priority generation workflow.
+The current publication reference states: "Publication remains closed for this workflow pending separate authorization under the current operator-write allowlist." This investigation evaluates drafting readiness only. Approved publication, cache/site verification, and deliberate visibility promotion remain later steps. Do not downgrade public sertraline merely to bring it into the low-priority generation workflow.
 
 Amantadine and venlafaxine need canonical records plus inspectable source documents before this skill can operate on them. Resolve identifiers and Chinese names from inspected authoritative sources, ingest through the existing guarded editorial/source path, and then evaluate draft scope. Their screenshot-reported prominence in Chinese communities is useful user feedback, not verified population-level evidence.
 

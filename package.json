@@ -99,7 +99,6 @@
     "citations:export-workbench-task": "bun scripts/citations/export-workbench-task-from-data.mjs",
     "citations:campaign": "node scripts/tools/pi-citation-workflow/citation-campaign.mjs",
     "citations:plan-second-pass": "node scripts/citations/plan-second-pass-research.mjs",
-    "test:citations:campaign": "node --test scripts/tools/pi-citation-workflow/citation-campaign.test.mjs",
     "citations:archive-production-dataset": "bun scripts/citations/archive-production-dataset.mjs",
     "citations:audit-subsections": "bun scripts/citations/audit-subsection-citations.mjs",
     "citations:seed-subsection-tracker": "node scripts/citations/seed-subsection-rollout-tracker.mjs",

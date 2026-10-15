@@ -14,9 +14,7 @@ export default tseslint.config(
       'dist-inline/**',
       'coverage/**',
       'public/**',
-      'scripts/deprecated/**',
       'scripts/**/archive/**',
-      'src/data/article-sources/**',
       'node_modules/**',
       '*.config.js',
       '*.config.mjs',
@@ -146,7 +144,7 @@ export default tseslint.config(
   // Active workflow scripts run in Node or Bun and are linted through npm run lint:scripts.
   {
     files: ['scripts/**/*.{js,mjs,ts}'],
-    ignores: ['scripts/deprecated/**', 'scripts/**/archive/**'],
+    ignores: ['scripts/**/archive/**'],
     languageOptions: {
       globals: {
         ...globals.node,

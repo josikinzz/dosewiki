@@ -11,7 +11,7 @@ views, and the download pack all read that same row set. There is no static
 molecule art: the retired substance SVGs and class-skeleton pipeline are gone.
 The baseline set is generated from each live
 `substanceIndex.identification.smiles` with the editor's exact OpenChemLib path
-and renderer. `npm run molecules:rerender-data` regenerates stored SVGs on
+and renderer. `npm run molecules:rerender` regenerates stored SVGs on
 Postgres and defaults to dry run.
 Writes retain `--write --confirm-molecule-rerender` plus the shared data-ops
 production-write flags.
@@ -32,7 +32,7 @@ Used by `molecules:smiles-coverage` and the historically named seeder:
 
 For current depiction coverage, query `api.moleculeOverrides.listSlugs`. To
 compare that live row set with the live substance corpus, run
-`npm run molecules:seed-data -- --dry-run` and inspect
+`npm run molecules:seed -- --dry-run` and inspect
 `tmp/molecule-seed/report.json`.
 
 ## Audit IUPAC names against live SMILES
@@ -75,7 +75,7 @@ overwrites an existing row, and writes a JSON summary plus up to five
 `.mol`/`.svg` samples under `tmp/molecule-seed/`:
 
 ```bash
-npm run molecules:seed-data -- --dry-run --limit 5
+npm run molecules:seed -- --dry-run --limit 5
 ```
 
 The deliberate production sequence is:
@@ -85,8 +85,8 @@ export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
 export POSTGRES_IMPORT_CONFIRM=<postgres-host>
 npm run postgres:check-env-isolation
-npm run molecules:seed-data -- --dry-run --limit 5 --allow-remote
-npm run molecules:seed-data -- --write --confirm-molecule-seed \
+npm run molecules:seed -- --dry-run --limit 5 --allow-remote
+npm run molecules:seed -- --write --confirm-molecule-seed \
   --confirm-write=seed-canonical-molecule-depictions \
   --expected-deployment=<postgres-host>/<database> --allow-remote
 ```
@@ -112,7 +112,7 @@ Dry-run is the default and never writes; it reports the plan (skipping existing 
 under `tmp/molecule-class-seed/`:
 
 ```bash
-npm run molecules:seed-classes-data
+npm run molecules:seed-classes
 ```
 
 The deliberate production sequence is:
@@ -122,8 +122,8 @@ export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
 export POSTGRES_IMPORT_CONFIRM=<postgres-host>
 npm run postgres:check-env-isolation
-npm run molecules:seed-classes-data -- --dry-run --allow-remote
-npm run molecules:seed-classes-data -- --apply --confirm-class-seed \
+npm run molecules:seed-classes -- --dry-run --allow-remote
+npm run molecules:seed-classes -- --apply --confirm-class-seed \
   --confirm-write=seed-class-molecule-depictions \
   --expected-deployment=<postgres-host>/<database> --allow-remote
 ```

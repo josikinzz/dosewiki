@@ -469,7 +469,7 @@ Run the coverage audits and review any remaining fallback before launch. Then:
 ### Russian launch prerequisites
 
 The Russian route tree is `src/app/ru/`, with host `ru.dose.wiki` on the public
-project. Its UI catalog is `src/i18n/messages/ru.json`; the client loads only the
+project. Its UI catalog is `content/i18n/messages/ru.json`; the client loads only the
 active language catalog. Gallery API requests and cursor identities retain `ru`.
 
 Before promotion, run the guarded publication-index dry run with `--locale ru`.

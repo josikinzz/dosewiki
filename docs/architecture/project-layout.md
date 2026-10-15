@@ -54,7 +54,7 @@ Feature folders must be reachable from the active App Router tree or explicitly 
 
 - `scripts/postgres/` owns the production database migration, import, rehearsal, and rollback-export tooling.
 - `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/data-ops/` are operational tooling, not public runtime code.
-- `scripts/config/` holds `tsconfig.scripts.json`, `tsconfig.handlers.json`, `tsconfig.node.json`, and `vitest.scripts.config.ts`; `package.json` scripts pass them explicitly with `-p` or `-c`.
+- `scripts/config/` holds `tsconfig.scripts.json`, `tsconfig.handlers.json`, and `vitest.scripts.config.ts`; `package.json` scripts pass them explicitly with `-p` or `-c`.
 - `src/schema/substance/contract.ts` is the shared substance article contract adapter used before article ingestion and by contract tests.
 - `src/data/schema/` contains generated and config-heavy schema helper code; update it through the schema generator when the source schema changes.
 - `lib/postgres/runtime/` owns the native callable API, validators, schema definitions, and execution boundary; `server/` contains the authored handlers and domain schema.

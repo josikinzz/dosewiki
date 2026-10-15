@@ -24,7 +24,7 @@ Executed the documented `npm run sectionmaxxing:worker -- preflight`. Its exit c
 
 Metadata-only inspection through the same SDK's documented `listOAuthAccounts` API found two stored `openai-codex` credentials, opaque IDs **1** and **2**, both inactive. No `runs/section-generation/worker-account.json` exists. No raw credentials, tokens, account email addresses, or sibling-account secrets were inspected or printed, and no account was selected.
 
-The [execution reference](../../.agents/skills/sectionmaxxing/reference/execution.md#runtime-and-account) explicitly states: "Without either, one unambiguous active/stored account is accepted; multiple accounts fail closed until the user chooses." That account-selection gate applies to this observed two-account state. The skill's example credential ID is not authorization to select an account here.
+The execution reference explicitly states: "Without either, one unambiguous active/stored account is accepted; multiple accounts fail closed until the user chooses." That account-selection gate applies to this observed two-account state. The skill's example credential ID is not authorization to select an account here.
 
 A separate, non-inference diagnostic exercised the actual pinned SDK request serializer with the exact production worker's `contextForPacket` and `assertIsolatedPayload` guards. It verified `gpt-5.6-sol`, `low` reasoning, zero tools, one user input, exact system/user bytes, `store: false`, and `stream: true`. This proves the serializer's isolation properties. It does **not** turn the failed account-aware worker preflight into a success, prove account entitlement, or authorize inference.
 
@@ -72,7 +72,7 @@ An independent SELECT-only OAuth reader query inspected all 577 article identity
 
 This is a complete source-availability inventory with the current ordering rule, **not** a native frozen campaign or a `verify` result. Its task status is explicitly `not_created`. Sources and prompts were not rebound into canonical campaign snapshots. There is no canonical `runs/section-generation/cite-pi/state.json` in this checkout. Future `init`/`verify` must read scoped source documents and create or resume the actual engine-owned task ledger before dispatch.
 
-The [execution reference](../../.agents/skills/sectionmaxxing/reference/execution.md#initialize-or-resume) says: "Use the unfiltered production reader for these commands." It also assigns task tracking to the live verifier's `articleTodos`. The supplemental inventory was not used to bypass that requirement. No higher-ranked unrequested drug was dispatched, and no named drug was moved ahead of the cohort.
+The execution reference says: "Use the unfiltered production reader for these commands." It also assigns task tracking to the live verifier's `articleTodos`. The supplemental inventory was not used to bypass that requirement. No higher-ranked unrequested drug was dispatched, and no named drug was moved ahead of the cohort.
 
 ## Named evidence readiness retained
 
@@ -91,9 +91,9 @@ Sertraline remains normal priority and human reviewed with all five sections pre
 
 ## Publication and transition gate
 
-The [publication reference](../../.agents/skills/sectionmaxxing/reference/publication.md#current-backend-gate) states: "Publication remains closed for this workflow pending separate authorization under the current operator-write allowlist."
+The publication reference states: "Publication remains closed for this workflow pending separate authorization under the current operator-write allowlist."
 
-The [sectionmaxxing skill](../../.agents/skills/sectionmaxxing/SKILL.md#4-publish-and-verify-this-substance) requires all five tasks to be terminal and the article completion gate to pass before another substance is generated. That gate includes matching database and canonical-site evidence for replacements and preservation of non-owned fields. This user-authorized local implementation work does not open production publication or allow jumping that per-drug gate. Ticket 08 therefore retains an external publication/site-verification dependency even after native reads and worker account selection are repaired.
+The sectionmaxxing skill requires all five tasks to be terminal and the article completion gate to pass before another substance is generated. That gate includes matching database and canonical-site evidence for replacements and preservation of non-owned fields. This user-authorized local implementation work does not open production publication or allow jumping that per-drug gate. Ticket 08 therefore retains an external publication/site-verification dependency even after native reads and worker account selection are repaired.
 
 ## Local evidence and next executable steps
 

@@ -19,7 +19,6 @@ handlers live in `server/`; `lib/data/` owns public server adapters and
 - Auth config: `lib/auth/authOptions.ts`
 - Middleware: `src/middleware.ts`
 - Protected API handlers: `src/app/api/`
-- Shared server GitHub write helpers: `lib/server/github/`
 - Public data adapters: `lib/data/publicData.ts`; active backend selection: `lib/postgres/runtime/backend.ts`
 
 ## Public Route Work

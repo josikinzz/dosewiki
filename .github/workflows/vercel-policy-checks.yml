@@ -2,13 +2,13 @@ name: Vercel Policy Checks
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     # The nightly pack commit touches only these generated outputs.
     paths-ignore:
       - public/dosewiki-molecules.zip
       - public/dosewiki-molecules.json
   pull_request:
-    branches: [main, develop]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:

@@ -306,4 +306,4 @@ Do not flip `DATA_BACKEND` during recovery. This checkout supports only Postgres
 - Runtime diagnostics: `lib/runtime/envContract.ts`
 - Postgres handler environment: `lib/postgres/runtime/deploymentEnv.ts`
 - Data write ceremony: [data credentials](data-credentials.md)
-- Translator and glossary access/import contract: `src/lib/auth/roles.ts`, `src/features/dev/devTabRegistry.ts`, and `src/app/api/dev/translation-glossary/`
+- Translator and glossary access/import contract: `src/lib/auth/roles.ts`, `src/features/dev/pages/devTabRegistry.ts`, and `src/app/api/dev/translation-glossary/`

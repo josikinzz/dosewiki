@@ -52,9 +52,8 @@ existing Cloudflare R2 archive. The dual-read seam is live in code:
 - Writes: `replications.updateR2Keys`, compare-and-swap per variant: every
   key travels with the storage ID it was derived from and the batch fails if
   the row was repointed since the plan.
-- Tooling: the reviewed historical SHA-256 reconciliation ledger under
-  `scripts/replications/data/r2-ledger/` retains digest identity, never
-  filename or size. Its original hosted-source producers are retired.
+- Tooling: the reviewed historical SHA-256 reconciliation ledger is kept
+  outside the repository; it retains digest identity, never filename or size. Its original hosted-source producers are retired.
   `scripts/replications/backfill-r2-keys.mjs` remains the native guarded consumer
   (dry-run default, canary via `--slugs`, existing production-write gates).
 
@@ -139,7 +138,7 @@ No server-side mechanism can retract already downloaded or displayed bytes.
 
 Inventory replication variants, contributor avatars, literal article-body media
 and generated social cards, including cropped/composite objects. The dated
-ledgers under `scripts/replications/data/r2-ledger/` retain original evidence
+reconciliation ledgers, kept outside the repository, retain original evidence
 locators, not a current exhaustive inventory.
 
 For each incident, preserve a non-public manifest with asset kind, referencing

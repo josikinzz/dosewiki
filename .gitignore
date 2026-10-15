@@ -39,8 +39,7 @@ outputs/
 # private tables and must never be committed.
 /.postgres/
 
-# Run evidence and scratch output live outside the tree
-# (~/Documents/Utilities/dosewiki-runs/runs), never in git.
+# Run evidence and scratch output live outside the tree, never in git.
 /runs/
 
 # Logs & env

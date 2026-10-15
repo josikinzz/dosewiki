@@ -1,7 +1,7 @@
 # Lexend — dyslexic-friendly type face
 
 Lexend is the face behind dose.wiki's dyslexic-friendly type picker
-(`data-font="dyslexic"`, `src/styles/dyslexic-type.css`). The dose.wiki build self-hosts
+(`data-font="dyslexic"`, `src/styles/font-type.css`). The dose.wiki build self-hosts
 this committed WOFF2 through `next/font/local` as the non-preloaded `dyslexicFont`
 (`--font-dyslexic`); an untoggled reader fetches none of it. Effect Index offers no such
 picker and registers nothing from here. No build-time or runtime Google Fonts request is

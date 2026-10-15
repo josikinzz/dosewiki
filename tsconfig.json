@@ -29,6 +29,5 @@
       "@server/*": ["./lib/*"]
     }
   },
-  "include": ["next-env.d.ts", "src", "lib", ".next/types/**/*.ts"],
-  "references": [{ "path": "./scripts/config/tsconfig.node.json" }]
+  "include": ["next-env.d.ts", "src", "lib", ".next/types/**/*.ts"]
 }
