@@ -78,7 +78,6 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/data-ops/` | Guarded Postgres data operations: imports, exports, shape repairs, route and dose normalization, production sync. |
 | `scripts/deploy/` | Vercel build wiring and public route warming. |
 | `scripts/effects/` | Subjective-effect article media repairs and embed upgrades. |
-| `scripts/feedback/` | Feedback register scheduling. |
 | `scripts/generate/` | Article schema helper generation. |
 | `scripts/legality/` | Legality subsection audits, drafts, validation, and guarded application. |
 | `scripts/lib/` | Shared runtime: data client, run context, production-write boundary, command surfaces, artifact lineage, hygiene policy. |
@@ -96,7 +95,7 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/translation/` | Locale translation, glossaries, packs, mirrors, and publication index backfill. |
 | `scripts/util/` | Local artifact hygiene and small one-file utilities. |
 | `scripts/replications/` | Replication corpus maintenance: provenance audits, rights metadata, R2 renditions and delivery worker, galleries, slug and credit corrections. |
-| `scripts/config/` | Secondary TypeScript and Vitest configs for scripts and route handlers. |
+| `scripts/config/` | Secondary TypeScript configs for scripts and route handlers. |
 | `scripts/deploy/analytics-redirect/` | Vercel config for the analytics redirect project. |
 | `scripts/eslint-plugins/` | Local ESLint plugin loaded by `eslint.config.mjs`. |
 | `scripts/tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
