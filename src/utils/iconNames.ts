@@ -1,6 +1,7 @@
 import type { IconName } from "@/components/common/Icon";
 
 export const icons = {
+  home: "mdi:home",
   search: "lucide:search",
   x: "lucide:x",
   plus: "lucide:plus",
