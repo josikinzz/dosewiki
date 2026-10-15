@@ -9,6 +9,6 @@ We chose path routes for focus views over query-params-for-everything (cleaner s
 
 **Consequences**
 
-- The SEI on `/effects` loses its Gallery tab on both flavors — deliberate, despite the Effect Index preservation guardrail; the guardrail continues to protect EI's header/homepage nav order, not the gallery's address.
+- The SEI on `/effects` loses its Gallery tab on both flavors. That is deliberate, despite the Effect Index preservation guardrail; the guardrail continues to protect EI's header/homepage nav order, not the gallery's address.
 - `/replications/artist/<key>` and `/replications/effect/<slug>` become public URL surface alongside the existing `/replications/<slug>` permalinks; artist focus pages remain gallery views (linking to contributor profiles when the artist is a known contributor), never redirects.
 - The per-substance replication showcase inside substance articles (see the substance-gallery curation plan) is a separate surface with its own database-backed curation; it is unaffected by this section's structure.
