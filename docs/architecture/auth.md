@@ -1,6 +1,6 @@
 # Auth and roles
 
-Auth.js owns browser identity and sessions. The Postgres `memberships` table owns roles. Authorization always comes from a session plus the current membership row, never from a credential alone.
+Auth.js owns browser identity and sessions. The Postgres `memberships` table owns roles. Authorization comes from a session plus the current membership row. A credential alone authorizes only a few scoped callers, listed under [Token-checked exceptions](#token-checked-exceptions).
 
 ## Where it lives
 
@@ -9,7 +9,7 @@ Auth.js owns browser identity and sessions. The Postgres `memberships` table own
 - `lib/auth/runtimePolicy.ts` owns the active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
 - `src/lib/auth/roles.ts` defines the roles and what each one may do.
 - `src/middleware.ts` gates `/dev` and other protected routes.
-- `src/lib/http/protectedRouteOperation.ts` wraps every protected API route.
+- `src/lib/http/protectedRouteOperation.ts` wraps each session-protected API route.
 - `server/lib/auth.ts` resolves the actor and checks the role floor inside each Postgres handler.
 
 ## Roles
@@ -27,6 +27,19 @@ An admin manages roles, bans, and password-reset links in `/dev/people`, beside 
 
 ## Protected routes
 
-`protectedRouteOperation({ auth: <floor> })` calls `requireRoleSession(floor)` before the handler runs, and `auth` is a required option. Routes at the `contributor` floor then check ownership in the data backend. Every route write passes the session's `actorEmail`, and `server/lib/auth.ts` checks the actor's current membership row, so a misconfigured route cannot escalate.
+`protectedRouteOperation({ auth: <floor> })` calls `requireRoleSession(floor)` before the handler runs, and `auth` is a required option. Routes at the `contributor` floor then check ownership in the data backend. Every session route write passes the session's `actorEmail`, and `server/lib/auth.ts` checks the actor's current membership row, so a misconfigured route cannot escalate.
+
+## Token-checked exceptions
+
+These callers authenticate a credential in the handler instead of a session.
+
+- `/api/dev/revalidate-article` accepts a bearer `citationEvidenceWrite` admin-intent token, checked by `validateAdminIntentToken`. `src/middleware.ts` lets only its POST past the editor session gate.
+- The cron routes under `src/app/api/cron/` and `src/app/api/warm/route.ts` accept `CRON_SECRET` through `cronRoute` in `lib/http/cronAuthorization.ts`. `src/middleware.ts` lets the service cron GETs listed in `lib/http/serviceCronPaths.ts` past the editor session gate.
+- `/api/public-cache/revalidate` runs on public hosts and accepts a body signed with the publication secret. It can only expire caches.
+- Workstation scripts call Postgres handlers with an admin-intent token. A call that names an `actorEmail` acts with that member's role. A call that names nobody resolves to `admin` in `server/lib/auth.ts`.
+
+Adding another exception is a judgment call. Public source code grants no access to editorial systems and does not authorize data writes.
+
+## Deployment secrets
 
 Vercel previews and production need `AUTH_SECRET`. Preview sign-in uses a real account. There is no preview-only credential.
