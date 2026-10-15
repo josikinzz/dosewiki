@@ -719,9 +719,9 @@ Public substance routes resolve one indexed metadata row by slug, while cached c
 comparison data resolves the depiction index through `lib/data/publicData.molecules.ts`. Those
 reads and the SVG served by the three public molecule routes persist through `publicDataCache`, so
 a warm request inside the revalidate window makes no database call. A transport failure is never
-persisted: the index reads degrade to the static fallback and the image routes answer 502/503. A
-stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query failures retain the
-static `public/molecules` fallback. Editor saves revalidate the owner page and expire
+persisted. The index reads propagate it, and the image routes answer 502/503. A
+stored row uses `/api/molecules/<slug>?v=<updatedAt>`, and an article without a row has no
+depiction. Editor saves revalidate the owner page and expire
 `data-public:molecules:<slug>` plus `data-public:molecules`. The versioned image response is
 immutable, so propagation is governed by page revalidation rather than stale image bytes.
 

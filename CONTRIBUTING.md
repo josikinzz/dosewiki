@@ -125,5 +125,5 @@ cover your change and the type check, or the whole graph with `bun run verify`.
 | `bun run verify` | The checkout-safe CI graph plus migration and schema drift checks |
 
 `package.json` lists every other command. The pre-commit hook in `.husky/`
-runs `scripts/security/scan-secrets.mjs --staged` and blocks a commit that
-stages a secret or a `.env` file.
+runs `scripts/security/scan-secrets.mjs --staged` and ESLint on staged `.ts`
+and `.tsx` files, and it blocks a commit that stages a secret or a `.env` file.
