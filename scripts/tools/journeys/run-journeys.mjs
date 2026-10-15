@@ -403,7 +403,7 @@ async function runStateMatrix(browser, variantName) {
       try {
         const expected = STATE_EXPECTATIONS[state];
         await session.open("/dev/writing");
-        await session.page.getByText(expected.writing).first().waitFor({ timeout: STEP_TIMEOUT });
+        await session.visible(session.page.getByText(expected.writing)).waitFor({ timeout: STEP_TIMEOUT });
         if (expected.save) {
           const { title } = await openWritingRow(session);
           await session.typeAtEnd(title, " kept");
@@ -415,7 +415,7 @@ async function runStateMatrix(browser, variantName) {
           await session.expectValue(title, "Launch post kept");
         }
         await session.open("/dev/queue");
-        await session.page.getByText(expected.queue).first().waitFor({ timeout: STEP_TIMEOUT });
+        await session.visible(session.page.getByText(expected.queue)).waitFor({ timeout: STEP_TIMEOUT });
         return session;
       } catch (error) {
         await capture(session, `state-${state}`, variantName);
