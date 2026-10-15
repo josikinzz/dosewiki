@@ -236,27 +236,6 @@ function isExplicitMissingPublicFunctionError(error: unknown): boolean {
 let hasWarnedAboutSubstanceGalleryRead = false;
 let hasWarnedAboutSubstanceSlugsRead = false;
 
-let hasWarnedAboutReplicationArtistTaxonomy = false;
-
-function reportDegradedReplicationArtistTaxonomyRead(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const message = error.message.toLowerCase();
-  if (
-    !message.includes("could not find public function") &&
-    !message.includes("server error")
-  ) {
-    return false;
-  }
-  if (!hasWarnedAboutReplicationArtistTaxonomy) {
-    hasWarnedAboutReplicationArtistTaxonomy = true;
-    console.warn(
-      "[publicData] replication artist taxonomy read failed and degraded to untagged; this is expected while backend functions deploy before the frontend.",
-    );
-  }
-  return true;
-}
-
-
 export function createDataPublicDataReadAdapter(query: QueryTransport = queryData): PublicDataReadAdapter {
   return {
     getPublicOverviewCounts: () =>
@@ -558,17 +537,10 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       ),
     getPublicReplicationArtistsByKeys: async (keys) => {
       if (keys.length === 0) return [];
-      try {
-        return await query<PublicReplicationArtistTaxonomy[], { keys: string[] }>(
-          publicDataReadCatalog.publicReplicationArtistsByKeys.functionName,
-          publicDataReadCatalog.publicReplicationArtistsByKeys.args(keys),
-        );
-      } catch (error) {
-        if (reportDegradedReplicationArtistTaxonomyRead(error)) {
-          return [];
-        }
-        throw error;
-      }
+      return query<PublicReplicationArtistTaxonomy[], { keys: string[] }>(
+        publicDataReadCatalog.publicReplicationArtistsByKeys.functionName,
+        publicDataReadCatalog.publicReplicationArtistsByKeys.args(keys),
+      );
     },
     // Single-row read for the replication permalink. Deliberately not served off
     // getPublicReplications() — that pulls the whole table for one item.

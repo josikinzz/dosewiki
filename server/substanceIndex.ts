@@ -387,15 +387,12 @@ export const getPublicLibraryInputPage = query({
       );
       return { ...page, items: rows.map(projectEffectMembershipInput) };
     }
-    const result = await ctx.db.query("substanceIndex").paginate({
-      cursor: args.cursor ?? null,
-      numItems: clampPublicCorpusPageSize(args.limit),
-    });
-    return {
-      items: result.page.map(projectLibraryInput),
-      cursor: result.continueCursor,
-      isDone: result.isDone,
-    };
+    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
+    const { rows, ...page } = await reader.getPublicSubstanceLibraryInputPage(
+      args.cursor,
+      clampPublicCorpusPageSize(args.limit),
+    );
+    return { ...page, items: rows.map(projectLibraryInput) };
   },
 });
 

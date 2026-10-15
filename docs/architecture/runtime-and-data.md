@@ -290,6 +290,14 @@ by normalization. Unknown legacy-only pharmacology keys are stripped just as
 they were by the previous full-article parse. Full public articles remain on the
 per-slug, About-preview, and coverage paths.
 
+The ordinary builder-input page selects 22 stored columns through
+`SubstanceProjectionReader`, narrowing editorial review to its status and harm
+potential to addiction liability before decoding. It retains the shared public
+projection and row parser. Effect-membership pages remain a separate read.
+Category effect enrichment adds only long summary, citations, and subarticles
+to canonical previews through `src/features/effects/pages/enrichEffectPreviews.ts`.
+Artist taxonomy read failures reject rather than producing untagged artists.
+
 Static route planning does not build that full library. It reads a slim Postgres
 mechanism-route projection and feeds it through the same mechanism aggregation
 function used by the library, preserving route/filter/order parity without
