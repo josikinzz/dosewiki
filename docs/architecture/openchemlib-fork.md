@@ -40,7 +40,8 @@ Install and validate normally:
 ```bash
 bun install
 npm run openchemlib:verify
-npm run verify:app
+bun run verify
+bun run build
 ```
 
 `openchemlib:verify` checks local package resolution, rejects nested Git metadata, and compares the checked-in source and distributable fingerprints with the artifact manifest. It does not invoke Java or GWT and must leave a clean checkout unchanged. It does not run the fork tests; that is the separate lane below.

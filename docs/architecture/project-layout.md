@@ -17,7 +17,7 @@ src/utils/      Routing, SEO, tag, slug, and interaction helpers
 lib/            Shared server helpers, including the production Postgres runtime
 server/         Authored Postgres callable handlers, document schema, and domain helpers
 scripts/        Local operational scripts for migration, generation, parsing, and audits
-scripts/config/ Secondary tsconfig and Vitest configs for scripts and route handlers
+scripts/config/ Secondary tsconfig files for scripts and route handlers
 scripts/tools/  RDKit asset copier and the Pi citation workflow bridge
 scripts/perf/   Cold-load and bundle-size harnesses
 scripts/eslint-plugins/  Local ESLint plugin loaded by eslint.config.mjs
@@ -53,7 +53,7 @@ Package-level UI dependency ownership is documented in [Dependency Ownership](..
 
 - `scripts/postgres/` owns the production database migration, import, rehearsal, and rollback-export tooling.
 - `scripts/batch/`, `scripts/parsers/`, `scripts/migrate/`, and `scripts/data-ops/` are operational tooling, not public runtime code.
-- `scripts/config/` holds `tsconfig.scripts.json`, `tsconfig.handlers.json`, and `vitest.scripts.config.ts`; `package.json` scripts pass them explicitly with `-p` or `-c`.
+- `scripts/config/` holds `tsconfig.scripts.json` and `tsconfig.handlers.json`; `package.json` scripts pass them explicitly with `-p`.
 - `src/schema/substance/contract.ts` is the shared substance article contract adapter used before article ingestion and by contract tests.
 - `src/data/schema/` contains generated and config-heavy schema helper code; update it through the schema generator when the source schema changes.
 - `lib/postgres/runtime/` owns the native callable API, validators, schema definitions, and execution boundary; `server/` contains the authored handlers and domain schema.

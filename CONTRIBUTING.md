@@ -123,12 +123,10 @@ aggregate locally for a small change.
 | `npm run test -- <path>` | One test file |
 | `npm run typecheck` | Application type check, with strict null checks on |
 | `npm run lint` | ESLint for `src/` and `lib/`, then the em dash check (`scripts/lint/check-em-dashes.mjs`) |
-| `npm run verify:fast` | `test` plus `typecheck` |
-| `npm run verify:app` | OpenChemLib fork check, tests, lint, and build |
 | `npm run test:workflow` | Script and tool tests under `scripts/**` |
 | `npm run test:journeys` | Browser journeys through `/dev` against deterministic fixtures; needs `npm run dev:journeys-server` running |
-| `npm run verify:workflow` | Workflow tests, script lint, script and handler type checks, and data provenance |
-| `npm run verify:all` | Both aggregates; use when app and workflow surfaces both changed |
+| `bun run lint:all` | ESLint for `src/`, `lib/`, `server/`, and `scripts/`, then the em dash check |
+| `bun run verify` | The checkout-safe CI graph plus migration and schema drift checks |
 | `npm run security:check` | The pre-commit secret scan, runnable by hand |
 
 The pre-commit hook in `.husky/` runs the secret scanner against the staged

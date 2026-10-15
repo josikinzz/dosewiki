@@ -85,7 +85,7 @@ export async function copyRdkitAssets() {
     );
   } catch (error) {
     console.error(
-      `[rdkit:assets] ${error?.message ?? error} - is @rdkit/rdkit installed?`,
+      `[copyRdkitAssets] ${error?.message ?? error} - is @rdkit/rdkit installed?`,
     );
     process.exitCode = 1;
     return;
@@ -93,8 +93,8 @@ export async function copyRdkitAssets() {
 
   console.log(
     copied === 0
-      ? "[rdkit:assets] public/rdkit up to date"
-      : `[rdkit:assets] copied ${copied} file(s) to public/rdkit`,
+      ? "[copyRdkitAssets] public/rdkit up to date"
+      : `[copyRdkitAssets] copied ${copied} file(s) to public/rdkit`,
   );
 }
 

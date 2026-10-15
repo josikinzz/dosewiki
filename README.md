@@ -140,10 +140,9 @@ npm run dev
 | `npm run dev` | Start local Next.js development |
 | `npm run build` | Build the application |
 | `npm run test` | Run Vitest |
-| `npm run lint` | Lint the application |
+| `bun run lint:all` | Lint application, server, and scripts |
 | `npm run typecheck` | Type-check without emit |
-| `npm run verify:app` | Verify app code |
-| `npm run verify:workflow` | Verify scripts and data workflows |
+| `bun run verify` | Run the checkout-safe CI graph and drift checks |
 | `npm run generate:schema` | Regenerate article-schema helpers |
 | `npm run generate:social-cards` | Refresh public-route availability and pre-render shared social cards from the production database |
 | `npm run provenance:check` | Check generated-data lineage |
@@ -174,7 +173,7 @@ Vercel builds use `bun run build:vercel`; `bun run build:census -- <build direct
 2. Read [CONTRIBUTING.md](CONTRIBUTING.md), the [glossary](docs/glossary.md), and the ownership document for the feature you are changing.
 3. Treat PlanetScale Postgres as runtime truth; use `src/schema/substance.schema.ts` before changing article shape.
 4. Keep public App Router reads server-side unless the interaction requires a client subscription.
-5. Run the narrow verification command that covers the change. Use `npm run verify:all` only when both app and workflow surfaces changed.
+5. Run the narrow verification command that covers the change. Use `bun run verify` for the full checkout-safe graph.
 
 Public server data helpers live in `lib/data/`; metadata and static-route planning live in `lib/next/`. Local `SubstanceIndex.json` is not a public rendering source.
 

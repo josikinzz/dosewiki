@@ -98,7 +98,7 @@ const config = {
         entry: "tailwind.config.mjs",
       },
       vitest: {
-        config: ["vitest.config.ts", "scripts/config/vitest.scripts.config.ts", "scripts/test/vitest.workflow.config.ts"],
+        config: ["vitest.config.ts", "scripts/test/vitest.workflow.config.ts"],
         entry: [
           "src/**/*.{test,spec}.{ts,tsx}",
           "lib/**/*.{test,spec}.{ts,tsx}",
