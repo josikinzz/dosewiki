@@ -236,6 +236,6 @@ export default [
     ignores: [...commentExclusions, ...generatedCommentPaths(import.meta.dirname)],
     languageOptions: { parser: tseslint.parser, parserOptions: { ecmaFeatures: { jsx: true } } },
     plugins: { 'code-hygiene': codeHygiene },
-    rules: { 'code-hygiene/no-comments': 'off' },
+    rules: { 'code-hygiene/no-comments': 'error' },
   },
 ];

@@ -6,7 +6,6 @@ import { trackedCommentFiles } from "../lib/comment-scope.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fix = process.argv.includes("--fix");
-const warn = process.argv.includes("--warn");
 let count = 0;
 for (const file of trackedCommentFiles(repoRoot, /\.css$/)) {
   const filename = path.join(repoRoot, file);
@@ -30,4 +29,4 @@ for (const file of trackedCommentFiles(repoRoot, /\.css$/)) {
   writeFileSync(filename, output);
 }
 console.log(`${count} CSS comment(s) ${fix ? "removed" : "found"}.`);
-if (count && !fix && !warn) process.exitCode = 1;
+if (count && !fix) process.exitCode = 1;
