@@ -966,6 +966,17 @@
       "NBOH"
     ]
   },
+  "legacy.078f1ab65b66164c608b68fb772326ed423b7aa1812abc1b778de9e62f0e5594": {
+    "catalogKey": "Dose journal for iPhone and Android",
+    "source": "Dose journal for iPhone and Android",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "Dose journal for iPhone and Android"
+    ]
+  },
   "legacy.07c67d76ef92ac9853588e098983fefba4ba5965f8fec95f42ab0d04c27865ba": {
     "catalogKey": "Turkey",
     "source": "Turkey",
@@ -10707,17 +10718,6 @@
     ],
     "glossaryTerms": [
       "{{group}} has no videos. Switch the media filter to see everything."
-    ]
-  },
-  "legacy.687151b8823ba8d01adcc51fa173a04243818d3b4e498cec2f7f5851de7f39ab": {
-    "catalogKey": "Dose journal for iPhone, Android and Mac",
-    "source": "Dose journal for iPhone, Android and Mac",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "Dose journal for iPhone, Android and Mac"
     ]
   },
   "legacy.68746726e900130b0af6c27a3420471a10e193a803673f322229772693077659": {
