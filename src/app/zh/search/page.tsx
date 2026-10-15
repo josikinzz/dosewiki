@@ -1,11 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/search`, reached only through the
- * middleware rewrite from `zh.dose.wiki/search?q=...` (the query survives the
- * rewrite). Same live results component; the mirror sets the request locale
- * so the chrome, the titles, and the client-fetched result labels resolve
- * Chinese, and it carries `noindex` with a canonical link back to the English
- * search page.
- */
 import { Suspense } from "react";
 
 import { LiveSearchResultsPage } from "@/components/pages/LiveSearchResultsPage";

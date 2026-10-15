@@ -55,7 +55,6 @@ export function TranslationCoverage({ locale }: { locale: string }) {
           </div>
         )
       ) : <>
-        {/* The totals: one headline with its bar, the breakdown as facts; the table below splits them by content kind. */}
         <div className="space-y-3 rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-4" data-testid="coverage-strip">
           <p className="theme-text-primary text-base font-semibold tabular-nums">{data.summary.current} of {data.summary.units} source units current across {data.summary.records} records</p>
           <div aria-hidden className="flex h-2 overflow-hidden rounded-full theme-progress-track">

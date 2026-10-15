@@ -1,12 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/about`, reached only through the
- * middleware rewrite from `zh.dose.wiki/about`. Same data and layout; the
- * mission markdown splits on the English H2s exactly as the English page
- * does, then each section body renders through the catalog (with its
- * `{{placeholder}}` counts filled after lookup) and falls back to English
- * wherever the catalog lacks a section. The mirror carries `noindex` and a
- * canonical link back to the English About page.
- */
 import {
   getIndexLayoutByType,
   getPublicAboutPreviewSubstances,
@@ -40,7 +31,6 @@ const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
 const ABOUT_COPY_KEYS = getCopyKeysByPrefix("about-");
 
 function resolveAboutSubtitle(cmsSubtitle: string): string {
-  // dose.wiki never owns its About prose; see the English page.
   return cmsSubtitle;
 }
 
@@ -99,9 +89,6 @@ export default async function LocalizedAboutPage() {
     mechanismOfActionClassCount: mechanismClassCount.toLocaleString(),
   };
 
-  // Split on the English H2s first — the split is the structural boundary —
-  // then translate each section body through the catalog and fill the count
-  // placeholders afterwards, so the catalog keys keep their `{{name}}` tokens.
   const aboutSections = splitAboutMarkdown(about.markdown);
 
   const contributors = selectAboutContributors({

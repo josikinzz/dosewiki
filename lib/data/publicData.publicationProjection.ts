@@ -5,10 +5,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function normalizePublicEffectIndexArticle(record: unknown): PublicEffectIndexArticle | null {
-  // Second line of defence behind the Postgres-side draft filter in
-  // `effectIndexArticles.getAll`/`getBySlug`: every public list and detail read
-  // funnels through this normalizer, so a draft cannot reach a route loader
-  // even if it were served by a stale deployment of those queries.
   if (isRecord(record) && record.status === "draft") {
     return null;
   }
@@ -25,9 +21,6 @@ export function normalizePublicEffectIndexArticle(record: unknown): PublicEffect
     return null;
   }
 
-  // A markdown-bodied row has no VCode at all, and parsing its `body_raw` as
-  // VCode would hand the renderer a bogus AST it would then prefer over the
-  // Markdown source. Only the VCode path derives an AST.
   const bodyFormat =
     record.bodyFormat === "markdown" || record.bodyFormat === "vcode"
       ? record.bodyFormat

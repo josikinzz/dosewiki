@@ -21,17 +21,6 @@ import { buildProposalDiff } from "./lib/changeProposalDiff";
 import { indexLayoutRevalidationPath, type IndexLayoutType } from "./lib/saveRevalidationPaths";
 import { clearInboxClaim } from "./lib/inboxClaimSources";
 
-/**
- * Admin review of change proposals: approve (which applies in the same
- * mutation), reject, revert. Every branch is admin floor and moves the
- * proposal only along `canTransition`.
- *
- * Approve is compare-and-swap: each target's live hash must still equal the
- * `baseHash` submit recorded, otherwise the proposal flips to
- * `changes_requested` with the drifted targets named and nothing else is
- * written. Revert is the mirror image against `appliedHashes`.
- */
-
 type ReviewArgs = { apiKey?: string; actorEmail?: string; proposalId: Id<"changeProposals"> };
 
 const reviewArgs = {
@@ -77,11 +66,6 @@ function requireTransition(proposal: Doc<"changeProposals">, to: ProposalStatus)
   }
 }
 
-/**
- * The article rows the proposal's targets name, as production stands right
- * now. Read after the write so an applied entry stamps the id and slug the
- * reader will follow, exactly like the direct save's history row.
- */
 async function readArticleRows(
   ctx: MutationCtx,
   targets: Doc<"changeProposals">["targets"],
@@ -110,14 +94,9 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   requireTransition(proposal, "applied");
   const now = new Date().toISOString();
 
-  // Compare-and-swap: read every target once, hash it, and keep the document
-  // as the snapshot a revert writes back. Any drift means the editor diffed
-  // against something that is no longer there.
   const snapshotBefore: ProposalSnapshotEntry[] = [];
   const drifted: string[] = [];
   const payload = proposal.payload as ProposalPayload;
-  // An ID absent at submission may now resolve to a different slug. Re-resolve
-  // the write destinations before the slug-based CAS can authorize any writes.
   try {
     const currentTargets = await deriveProposalTargets(ctx, payload);
     if (currentTargets.length !== proposal.targets.length || currentTargets.some((current) =>
@@ -182,11 +161,6 @@ export async function approveAndApplyHandler(ctx: MutationCtx, args: ReviewArgs)
   return { status: "applied" as const, revalidatePaths };
 }
 
-/**
- * Approve and apply in one call. Admin floor. Returns `applied` with the
- * public paths to revalidate, or `changes_requested` with the conflict when
- * production drifted under the proposal.
- */
 export const approveAndApply = mutation({
   args: reviewArgs,
   handler: approveAndApplyHandler,
@@ -216,7 +190,6 @@ export async function rejectHandler(ctx: MutationCtx, args: ReviewArgs & { note:
   return { status: "rejected" as const };
 }
 
-/** Reject with a note the editor sees. Admin floor. */
 export const reject = mutation({
   args: { ...reviewArgs, note: v.string() },
   handler: rejectHandler,
@@ -251,10 +224,6 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
   const auth = { apiKey: args.apiKey, actorEmail: args.actorEmail, articleChangeId: `revert-${proposal._id}`, articleSummary: `Reverted: ${proposal.summary}` };
   const revalidatePaths = await applyDocuments(ctx, auth, snapshotBefore);
 
-  // An article snapshot is written back through the same reference merge the
-  // apply used, and that merge keeps populated stored metadata over the
-  // incoming (older) values. When the row does not hash back to what the
-  // proposal pinned, the revert is incomplete and the throw rolls it back.
   for (const target of proposal.targets) {
     if (target.kind === "article" && (await hashProposalTarget(ctx, target)) !== target.baseHash) {
       throw new PostgresError({
@@ -284,10 +253,6 @@ export async function revertHandler(ctx: MutationCtx, args: ReviewArgs) {
   return { status: "reverted" as const, revalidatePaths };
 }
 
-/**
- * Write `snapshotBefore` back. Admin floor; only from `applied`, and only
- * while every target still hashes to what the apply left behind.
- */
 export const revert = mutation({
   args: reviewArgs,
   handler: revertHandler,

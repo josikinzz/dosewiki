@@ -96,7 +96,6 @@ function projectReplication(row: Doc<"replications">) {
   };
 }
 
-/** Authenticated, bounded migration read. Maintenance tools never need getAll. */
 export const getMigrationPage = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -127,7 +126,6 @@ export const getMigrationPage = query({
   },
 });
 
-/** Targeted read-back used after every canary and resumable batch. */
 export const getByIds = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -203,7 +201,6 @@ export const getArtistsByKeys = query({
   },
 });
 
-/** Public gallery metadata only; rationales and review evidence stay private. */
 export const getPublicArtistsByKeys = query({
   args: { keys: v.array(v.string()) },
   returns: v.array(
@@ -217,9 +214,6 @@ export const getPublicArtistsByKeys = query({
     if (args.keys.length > 200) {
       throw new Error("Public artist taxonomy reads are limited to 200 keys.");
     }
-    // Preserve the historical output contract: exact repeated raw inputs
-    // collapse, while differently formatted inputs that normalize to the same
-    // key retain their positions. Only the SQL predicate is fully deduplicated.
     const requestedKeys = [...new Set(args.keys)]
       .map((key) => key.trim().toLowerCase())
       .filter(Boolean);
@@ -235,7 +229,6 @@ export const getPublicArtistsByKeys = query({
         >
       >>;
     };
-    // The native projection reads only public fields, never private evidence.
     const matches = await postgresDb.getPublicArtistTaxonomyByKeys(predicateKeys);
     const byKey = new Map<string, (typeof matches)[number]>();
     for (const row of matches) {

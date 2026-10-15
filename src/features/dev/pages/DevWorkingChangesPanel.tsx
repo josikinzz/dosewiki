@@ -19,46 +19,25 @@ export type DevWorkingChangesDiff = {
   hasChanges: boolean;
   onCopy: () => void;
   onDownload: () => void;
-  /** Off while the tool is mid-write. */
   disabled?: boolean;
-  /** The copy or download result, drawn under the buttons. */
   feedback?: ReactNode;
 };
 
 export type DevWorkingChangesPanelProps = {
   commit: DevCommitControls;
-  /** Section id, for "Review and commit" links that scroll here. */
   id: string;
   headingRef?: RefObject<HTMLHeadingElement | null>;
-  /** The state in one sentence while something waits ("2 articles changed, not live yet."). */
   pendingSummary: string;
-  /** The sentence while nothing waits (what collects here). */
   idleSummary: string;
-  /** A second quiet line under the summary (other tools' changes in the same commit). */
   summaryNote?: ReactNode;
-  /** What changed, in the tool's own terms. */
   changes?: ReactNode;
-  /**
-   * Rewords a failed commit that the tool understands (a revision conflict)
-   * and offers its way forward. Return null to keep the orchestrator's words.
-   */
   describeFailure?: (message: string) => { message: ReactNode; actions?: ReactNode } | null;
   diff?: DevWorkingChangesDiff;
   saveKeyLabel: string;
-  /** Commits (or submits); the tool passes its own confirm lead through `requestCommit`. */
   onCommit: () => void;
   className?: string;
 };
 
-/**
- * A batch tool's one Working changes panel: how much waits, the one commit
- * button (accent while it can run, the Cmd+S cap on fine pointers) with the
- * server check, why a commit waits, the rebase banner, the last result kept as
- * a receipt until dismissed (the save hook clears successes after a few
- * seconds), what changed in the tool's words, and the full diff folded shut
- * with Copy and Download. The frame's write line already says how a batch goes
- * live, so this never repeats it. Tags and Index layout draw it.
- */
 export function DevWorkingChangesPanel({
   commit,
   id,

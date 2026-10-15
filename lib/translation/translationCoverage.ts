@@ -1,4 +1,3 @@
-/** Source-derived coverage. Queue completion and stored translations never prove publication. */
 import "server-only";
 
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
@@ -27,13 +26,10 @@ const MAX_INVENTORY_UNITS = 500_000;
 const PAGES_LIMIT = 200;
 const inventoryCache = new WeakMap<PublicDataReadAdapter, { value?: CoverageInventory; pending?: Promise<CoverageInventory> }>();
 
-/** Called on explicit coverage inspection, not the glossary list/typing path. */
 export async function buildCoverageInventory(reads: PublicDataReadAdapter): Promise<CoverageInventory> {
   const records: CoverageSourceRecord[] = [];
   let units = 0;
   for (const kind of TRANSLATION_RECORD_KINDS) {
-    // Runtime adapters provide bulk public projections. Partial offline/test
-    // adapters retain the same per-record fallback and segmentation contract.
     const sources = kind === "article" && reads.getPublicTranslationSubstanceDocuments
       ? await reads.getPublicTranslationSubstanceDocuments()
       : kind === "effect" && reads.getPublicEffectArticles
@@ -49,7 +45,6 @@ export async function buildCoverageInventory(reads: PublicDataReadAdapter): Prom
   return { generatedAt: Date.now(), records };
 }
 
-/** Five-minute bounded freshness; concurrent requests share one source traversal. */
 export async function getCoverageInventory(reads: PublicDataReadAdapter): Promise<CoverageInventory> {
   let entry = inventoryCache.get(reads);
   if (!entry) { entry = {}; inventoryCache.set(reads, entry); }
@@ -72,7 +67,6 @@ export type TranslationHashUsage = {
   total: number;
 };
 
-/** Source links for a bounded history page. Unknown/retired hashes have no current usage. */
 export async function getTranslationHashUsages(
   reads: PublicDataReadAdapter,
   hashes: readonly string[],
@@ -108,7 +102,6 @@ export function summarizeTranslationCoverage(input: {
 }): TranslationCoverageResponse {
   const { inventory, context, stored, rejections, queue } = input;
   const termsIn: (text: string) => Array<{ term: string; target: string }> = termFinder(Object.entries(context.glossary).map(([term, target]) => ({ term, target })), (entry: { term: string }) => entry.term);
-  // Substance article slugs are the names rule 2 keeps in Latin in lowercase prose.
   const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
   const chinese = context.locale.scriptGate === "simplified";
   const summary = emptyCounts();
@@ -122,8 +115,6 @@ export function summarizeTranslationCoverage(input: {
     for (const unit of record.units) {
       counts.units += 1;
       const row = stored.get(unit.hash);
-      // A failed replacement can coexist with a previously displayed translation.
-      // Rejected takes precedence so the four states remain mutually exclusive.
       if (rejections.has(unit.hash)) counts.rejected += 1;
       else if (!row || !row.target.trim()) counts.missing += 1;
       else if (row.prompt_version !== context.promptVersion) counts.stale += 1;
@@ -160,7 +151,6 @@ export async function getTranslationCoverage(reads: PublicDataReadAdapter, conte
   const hashes = [...new Set(inventory.records.flatMap((record) => record.units.map((unit) => unit.hash)))];
   const stored = new Map<string, CoverageStoredUnit>();
   const rejections = new Map<string, TranslationRejectionRow>();
-  // Keep database argument arrays bounded even on a full corpus audit.
   for (let start = 0; start < hashes.length; start += 1000) {
     const batch = hashes.slice(start, start + 1000);
     const [rows, rejected] = await Promise.all([

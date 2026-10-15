@@ -9,7 +9,6 @@ import { fieldPlaceWords, sectionLabel } from "./changeNote";
 
 export { articleFieldChanges, type ArticleFieldChange };
 
-/** Short enough to read as one line: "10-20 mg to 15-25 mg". */
 const INLINE_LIMIT = 60;
 
 function keyWords(key: string): string {
@@ -17,7 +16,6 @@ function keyWords(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/** One value of a change as a person reads it: a range as a dose, a list as names. */
 export function displayValue(value: unknown, path: string): string {
   if (value === undefined || value === null) return "Not present";
   if (isRangeValue(value)) return formatDose(value, path.endsWith(".threshold"));
@@ -46,8 +44,6 @@ function ChangeRow({ change }: { change: ArticleFieldChange }) {
       <span className="theme-text-muted">{before}</span> to <span>{after}</span>
     </p>;
   }
-  // Long prose marks the words that changed, so a reader never compares two
-  // paragraphs by eye: removed words in Before, added words in After.
   const parts = typeof change.before === "string" && typeof change.after === "string" ? diffWords(before, after) : null;
   const marked = (side: "before" | "after") => parts
     ? parts.map((part, index) => {
@@ -69,12 +65,6 @@ function ChangeRow({ change }: { change: ArticleFieldChange }) {
   </div>;
 }
 
-/**
- * The one reading of an article change, for the author in the page and the
- * approver in Change Review alike. Each changed field names its place in
- * words ("Oral › Dose ranges › Moderate") under its section, then its value
- * before and after. Takes either two article versions or a stored patch.
- */
 export function ArticleChangeDiff(props: { before: unknown; after: unknown } | { changes: ArticleFieldChange[] }) {
   const changes = "changes" in props ? props.changes : articleFieldChanges(props.before, props.after);
   const sections: Array<{ label: string; changes: ArticleFieldChange[] }> = [];

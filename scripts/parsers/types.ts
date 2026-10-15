@@ -1,23 +1,14 @@
-/**
- * Shared types for source parsers
- * All parsed data preserves source attribution for conflict resolution
- */
-
-// === Dose/Duration Range Types ===
-
 export interface DoseRange {
   min?: number;
   max?: number;
-  unit: string; // µg, mg, g, ml
+  unit: string;
 }
 
 export interface DurationRange {
   min?: number;
   max?: number;
-  unit: string; // minutes, hours
+  unit: string;
 }
-
-// === Parsed Section Types ===
 
 export interface ParsedDosageRoute {
   route: string;
@@ -28,7 +19,7 @@ export interface ParsedDosageRoute {
     threshold?: DoseRange;
     light?: DoseRange;
     common?: DoseRange;
-    moderate?: DoseRange; // alias for common in some sources
+    moderate?: DoseRange;
     strong?: DoseRange;
     heavy?: DoseRange;
   };
@@ -81,7 +72,7 @@ export interface ParsedPharmacology {
   metabolism?: string;
   receptors?: Array<{
     name: string;
-    action: string; // agonist, antagonist, inhibitor, etc.
+    action: string;
   }>;
   sources: string[];
 }
@@ -109,12 +100,9 @@ export interface ParsedHarmReduction {
 }
 
 export interface ParsedTolerance {
-  /** Raw tolerance text extracted from source - to be formatted by LLM */
   rawText: string;
   source: string;
 }
-
-// === Narrative Content (preserved for LLM context) ===
 
 export interface NarrativeContent {
   experienceReports: Array<{ source: string; content: string }>;
@@ -123,18 +111,14 @@ export interface NarrativeContent {
   generalNotes: Array<{ source: string; section: string; content: string }>;
 }
 
-// === Main Parsed Substance Type ===
-
 export interface ParsedSubstanceData {
   slug: string;
   name: string;
 
-  // Tier 1: Direct extraction (high confidence)
   dosage: ParsedDosageRoute[];
   duration: ParsedDurationRoute[];
   chemistry?: ParsedChemistry;
 
-  // Tier 2: Structured extraction (medium confidence)
   effects: ParsedEffect[];
   interactions: ParsedInteraction[];
   legal: ParsedLegalStatus[];
@@ -143,10 +127,8 @@ export interface ParsedSubstanceData {
   pharmacology?: ParsedPharmacology;
   harmReduction?: ParsedHarmReduction;
 
-  // Tier 3: Narrative content (for LLM context)
   narrativeContent: NarrativeContent;
 
-  // Metadata
   sourcesCoverage: {
     sourceId: string;
     displayName: string;
@@ -154,10 +136,6 @@ export interface ParsedSubstanceData {
     tokensOriginal: number;
   }[];
 }
-
-// === Parser Interface ===
-
-
 
 export interface ParserResult {
   dosage: ParsedDosageRoute[];
@@ -178,8 +156,6 @@ export interface SourceParser {
   sourceId: string;
   parse(content: string, substanceName: string): ParserResult;
 }
-
-// === Aggregated Output ===
 
 export interface ParsedSourcesOutput {
   generatedAt: string;

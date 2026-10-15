@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The footer's reuse-rights sentence.
- *
- * This is a statement about what a reader may legally do with the material, so it has to
- * follow the publication: dose.wiki's terms are mixed — MIT code, CC0 writing, and the
- * third-party carve-outs — and it links to its in-app license page, while Effect Index
- * licenses its material under CC BY-NC-SA 4.0 and links to the Creative Commons deed.
- * Shipping either wording under the other brand would be a false claim about reuse rights.
- */
 import Link from "next/link";
 
 import { useT } from "@/i18n/client";
@@ -21,10 +12,6 @@ import {
 interface SiteLicenceNoticeProps {
   className?: string;
   config?: SiteFlavorConfig;
-  /**
-   * Which reuse-rights line to render. Defaults to the footer's; the About page's Open
-   * Data section passes its own longer wording, which states the same terms.
-   */
   notice?: SiteLicenceNoticeCopy;
 }
 
@@ -56,9 +43,6 @@ export function SiteLicenceNotice({
           {t(linkLabel)}
         </Link>
       )}
-      {/* Trailing copy that opens with punctuation clings to the link: "CC0: reuse it
-          freely", not "CC0 : reuse it freely". Decided on the English source so the
-          translation inherits the same spacing. */}
       {/^[,.;:!?)]/.test(trailing) ? null : " "}
       {t(trailing)}
     </p>

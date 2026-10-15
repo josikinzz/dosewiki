@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The open report in My reports: a docked pane with one header (the report's
- * saved title, its live address, Close), the three content fields a member
- * may change, and a sticky save dock at the bottom that holds the result of
- * the last save, the unsaved line, and the actions. It mirrors the Inbox's
- * review pane, so the outcome of a save shows where the Save button is.
- */
-
 import { useId, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -46,7 +38,6 @@ export function OwnedReportPane({
   open: OpenReport;
   dirty: boolean;
   saving: boolean;
-  /** The save key as this platform writes it ("⌘S", "Ctrl S"); shown on fine pointers only. */
   saveKeyLabel: string;
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
@@ -56,7 +47,6 @@ export function OwnedReportPane({
   onRevert: () => void;
   onSave: () => void;
   titleRef: RefObject<HTMLHeadingElement | null>;
-  /** The shell's save sentence, drawn in the dock beside Save (`saveLine: "in-tool"`). */
   saveLine: ReactNode;
 }) {
   const { record, draft } = open;
@@ -70,7 +60,6 @@ export function OwnedReportPane({
   return (
     <EditorPanel className="overflow-visible" data-testid="my-report-editor" aria-labelledby={headingId} role="region">
       <header className="theme-portal-rule relative space-y-3 border-b px-4 py-3.5 sm:px-5">
-        {/* One Close for both layouts, pinned to the corner; the rows it shares keep clear of it. */}
         <Button
           type="button"
           variant="iconGhost"
@@ -161,7 +150,6 @@ export function OwnedReportPane({
             onClick={onSave}
           >
             {saving ? "Publishing" : "Save"}
-            {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
             <span aria-hidden className="[@media(pointer:coarse)]:hidden">
               <kbd className="theme-dev-kbd !text-current opacity-70">{saveKeyLabel}</kbd>
             </span>
@@ -177,7 +165,6 @@ export function OwnedReportPane({
   );
 }
 
-/** One quiet line beside the actions: what Save would do right now. */
 function SaveState({ dirty, saving }: { dirty: boolean; saving: boolean }) {
   let content: ReactNode;
   if (saving) {

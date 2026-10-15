@@ -14,7 +14,6 @@ type ReactionTotals = {
   right: number;
   improve: number;
 };
-/** Readers' reactions and website readiness, a section of the Articles view. Suggestions have their own view. */
 export function GlossaryReaderFeedback({ locale }: { locale: string }) {
   return <ReviewContent key={locale} locale={locale} />;
 }

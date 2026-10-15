@@ -39,13 +39,6 @@ export const reviewedCreatorOverrideValidator = v.object({
   evidence_digest: v.string(),
 });
 
-/**
- * Cold provenance record for one replication.
- *
- * This intentionally lives outside the hot `replications` gallery document:
- * a work can have many Reddit posts and submitters, and gallery pagination does
- * not need to repeatedly serialize that audit trail.
- */
 export const replicationSourceAttribution = v.object({
   replication_id: v.id("replications"),
   source_catalog_id: v.string(),

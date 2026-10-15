@@ -1,21 +1,5 @@
-/**
- * How many pages `next build` renders at once, from two environment
- * variables with the laptop's numbers as the defaults.
- *
- * Static generation reads a multi-megabyte substance library once per worker
- * and every page fans out server reads against a four-connection pool. On a
- * laptop far from the database, four long-lived workers rendering one page
- * each finish the build reliably; letting Next use every CPU creates a
- * cold-start thundering herd against Postgres. A runner next to the database
- * can afford more, but only as far as measured connection counts allow, so
- * the override is clamped and every raise is recorded in the deployment
- * runbook with its elapsed time and peak connections.
- */
-
 export type BuildConcurrency = {
-  /** `experimental.cpus`: static generation worker processes. */
   cpus: number;
-  /** `experimental.staticGenerationMaxConcurrency`: pages in flight per worker. */
   staticGenerationMaxConcurrency: number;
 };
 
@@ -29,13 +13,11 @@ export const BUILD_CONCURRENCY_DEFAULTS: Readonly<BuildConcurrency> = Object.fre
   staticGenerationMaxConcurrency: 1,
 });
 
-/** Inclusive ceilings. Above these the pool math stops being a bound at all. */
 export const BUILD_CONCURRENCY_LIMITS: Readonly<BuildConcurrency> = Object.freeze({
   cpus: 16,
   staticGenerationMaxConcurrency: 8,
 });
 
-/** A positive integer within `[1, limit]`, or `fallback` for anything else. */
 function clampedInteger(raw: string | undefined, limit: number, fallback: number): number {
   const text = raw?.trim() ?? "";
   if (!/^\d+$/.test(text)) return fallback;

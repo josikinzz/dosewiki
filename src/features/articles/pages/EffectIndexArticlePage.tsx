@@ -29,10 +29,6 @@ interface EffectIndexArticle {
   publicationDate?: string;
   body_raw: string;
   body_ast?: VCodeContent;
-  /**
-   * Absent on every legacy Effect Index row, and absence means the VCode markup
-   * this page has always rendered. Only `"markdown"` takes the other branch.
-   */
   bodyFormat?: "vcode" | "markdown";
   citations?: Array<{
     url: string;
@@ -44,22 +40,10 @@ interface EffectIndexArticlePageProps {
   article: EffectIndexArticle;
   locale?: UiLocale;
   t: Translate;
-  /**
-   * Resolved from the article's `authorProfileKeys` by the route loader. Empty
-   * for an article whose keys are missing or claim no profile, and then no
-   * byline renders at all — the same as before the backfill.
-   */
   bylineAuthors?: ArticleBylineAuthor[];
-  /**
-   * Drawn inside another page (the Writing editor's live preview): no `main`
-   * landmark or page id, no viewport-wide contents strip, and one column with
-   * the contents listed above the article, since the preview column is far
-   * narrower than the viewport the page's breakpoints read.
-   */
   embedded?: boolean;
 }
 
-/** Keep narrative measure independent of the full-width shared effect panels. */
 const SECTION_PROSE_CLASS_NAME =
   "article-narrative-body theme-text-secondary prose prose-fuchsia mt-6 max-w-none";
 const OVERVIEW_PROSE_CLASS_NAME =
@@ -73,11 +57,6 @@ interface ArticleBodyProps {
   headingLevel?: 2 | 3;
 }
 
-/**
- * One section's body in whichever language it was written. Both renderers
- * share the page's id assigner, so a repeated heading title numbers across
- * sections instead of restarting inside each.
- */
 function ArticleBody({
   body,
   citations,
@@ -98,11 +77,6 @@ function ArticleBody({
   );
 }
 
-/**
- * Who the commentary is by: the quote's own author when it was written as one,
- * otherwise the article's first byline. The byline supplies the profile link
- * and avatar when its name is the same person.
- */
 function resolveCommentaryAttribution(
   section: ArticleCommentarySectionModel,
   bylineAuthors: ArticleBylineAuthor[],
@@ -127,9 +101,6 @@ export function EffectIndexArticlePage({
   t,
   embedded = false,
 }: EffectIndexArticlePageProps) {
-  // A date is not a tag: it gets a `<time>` of its own, set in figures rather
-  // than in the tracked-out caps a tag wears, so the row reads as "published
-  // then, filed under these" instead of as one undifferentiated run of chips.
   const publishedDate = article.publicationDate ? new Date(article.publicationDate) : null;
   const publishedLabel =
     publishedDate && !Number.isNaN(publishedDate.getTime())
@@ -148,16 +119,11 @@ export function EffectIndexArticlePage({
       <PublicTableOfContents items={model.tocItems} variant="bare" />
     ) : null;
 
-  // One id assigner for the whole article, as on the effect page: section
-  // wrapper ids are reserved up front, and every section's renderer draws from
-  // the same sequence, so the rail's anchors are the ones the DOM carries.
   const assignHeadingId = createVCodeHeadingIdAssigner(model.sectionIds);
 
   const content = (
       <>
         <div className="flex flex-col gap-4">
-          {/* The effect page's title: one size ramp, the glyph hanging off the
-              text run. An article's glyph is the archive's own. */}
           <div className="flex items-center gap-3">
             <Icon icon={icons.bookOpenText} size={32} className="theme-accent-heading shrink-0" />
             <h1 className="theme-accent-heading font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -254,9 +220,6 @@ export function EffectIndexArticlePage({
                   heading={section.title}
                   spacing="effect"
                 >
-                  {/* Speech bubble: quiet chrome aside, not a content card.
-                      Top-level quote chrome is unwrapped at the model level,
-                      so the bubble is the only surface. */}
                   <div className="mt-6">
                     <CommentaryBubble>
                       <div
@@ -324,9 +287,6 @@ export function EffectIndexArticlePage({
         contentClassName="min-w-0 gap-10"
         className="theme-toc-strip-scope"
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         {tocNode ? <PublicTocStrip items={model.tocItems} /> : null}
         {content}
       </StickyTocLayout>

@@ -1,16 +1,5 @@
 import { MANTRA_VISUAL_STRANDS } from "./mantraData";
 
-// Deterministic generator for the decorative full-screen mantra spiral sheet.
-//
-// This SVG is large (~333 KB) and purely decorative (the two <img> on /mantras are
-// aria-hidden). It used to be inlined twice as a data: URI in the prerendered HTML,
-// bloating the page to ~725 KB. It is now generated to a static file
-// (public/mantras/spiral-sheet.svg) via `npm run generate:mantra-spiral` and served
-// once (cacheable, shared by both <img>). The colors are baked oklch literals — no
-// CSS variables or currentColor — so the external file renders identically.
-//
-// Regenerate after changing MANTRA_VISUAL_STRANDS, spiralTracks, or this builder.
-
 type SpiralTrack = {
   id: number;
   startRadius: number;

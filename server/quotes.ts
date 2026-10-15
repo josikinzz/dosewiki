@@ -8,16 +8,6 @@ import {
   requireQuoteSection,
 } from "../lib/quoteSections.mjs";
 
-/**
- * Quote document functions.
- *
- * These functions provide CRUD operations for extracted quotes per substance per section.
- * Quotes are editable via the dev tools UI.
- */
-
-/**
- * Get quotes for a specific substance and section.
- */
 export const getBySlugAndSection = query({
   args: {
     slug: v.string(),
@@ -35,9 +25,6 @@ export const getBySlugAndSection = query({
   },
 });
 
-/**
- * Get all quotes for a substance.
- */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -48,11 +35,6 @@ export const getBySlug = query({
   },
 });
 
-/**
- * Get quote availability for all sections of a substance.
- * Returns a map of section -> { available: boolean } in a single query.
- * This replaces 8 separate useQuery calls with 1.
- */
 export const getAvailabilityBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -74,9 +56,6 @@ export const getAvailabilityBySlug = query({
   },
 });
 
-/**
- * Get all quotes for a section (across all substances).
- */
 export const getBySection = query({
   args: { section: v.string() },
   handler: async (ctx, args) => {
@@ -89,9 +68,6 @@ export const getBySection = query({
   },
 });
 
-/**
- * Get all quote metadata (for listing).
- */
 export const getAllMetadata = query({
   args: {},
   handler: async (ctx) => {
@@ -106,9 +82,6 @@ export const getAllMetadata = query({
   },
 });
 
-/**
- * Get all quotes (for migration/sync).
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -116,10 +89,6 @@ export const getAll = query({
   },
 });
 
-/**
- * Save (create or update) a quote document. Quotes render on public article
- * pages, so the write is admin-only.
- */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -140,7 +109,6 @@ export const save = mutation({
     const section = requireQuoteSection(args.section).id;
     const updatedAt = new Date().toISOString();
 
-    // Check if quote with this slug+section already exists
     const existing = await ctx.db
       .query("quotes")
       .withIndex("by_slug_section", (q) =>
@@ -168,11 +136,6 @@ export const save = mutation({
   },
 });
 
-/**
- * Delete a quote document.
- *
- * @param apiKey - Required API key for authentication
- */
 export const deleteBySlugAndSection = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -204,11 +167,6 @@ export const deleteBySlugAndSection = mutation({
   },
 });
 
-/**
- * Bulk import quotes (for migration).
- *
- * @param apiKey - Required API key for authentication
- */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),

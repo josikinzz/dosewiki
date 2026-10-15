@@ -1,12 +1,3 @@
-// Per-file runtime, skip, and flake evidence for both test runners (TEST-011).
-//
-//   node scripts/test/report-test-evidence.mjs [--runs N]
-//
-// Lanes run sequentially: root Vitest, workflow Vitest, workflow node:test.
-// Output: .test-evidence/report.json and .test-evidence/report.md.
-// Exit 2 when a safety-listed file is skipped or has skipped cases,
-// exit 1 when any file fails on every run, otherwise 0 (flaky files are listed but do not fail).
-
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -14,7 +5,6 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
-// Files that must never skip: TEST-003 fixture-backed workflow tests plus the local fixture stub.
 export const SAFETY_LIST = [
 ];
 
@@ -29,10 +19,6 @@ function relative(file) {
   return path.isAbsolute(file) ? path.relative(repoRoot, file) : file;
 }
 
-/**
- * Reduce a Vitest `--reporter=json` document to per-file rows.
- * Returns rows shaped { file, lane, durationMs, status, skippedCases: string[] }.
- */
 export function summarizeVitestJson(json, lane) {
   const results = Array.isArray(json?.testResults) ? json.testResults : [];
   return results
@@ -57,12 +43,6 @@ export function summarizeVitestJson(json, lane) {
     .sort((a, b) => b.durationMs - a.durationMs || a.file.localeCompare(b.file));
 }
 
-/**
- * Merge the same lane rows across N runs.
- * Input: array of runs, each an array of rows from summarizeVitestJson or the node lane.
- * Output: { files: row[], flaky: string[], deterministic: string[] } where each row carries
- * durationMs (max across runs), durations, outcomes, status of the last run, and union of skipped cases.
- */
 export function mergeRuns(runs) {
   const byFile = new Map();
   for (const rows of runs) {
@@ -115,12 +95,10 @@ export function mergeRuns(runs) {
   return { files, flaky, deterministic };
 }
 
-/** Tag a test file whose source touches RDKit, OpenChemLib, or wasm setup. */
 export function tagSetupCost(file, source) {
   return SETUP_COST_PATTERN.test(source) ? [SETUP_COST_TAG] : [];
 }
 
-/** Exit code from a merged report: 2 safety skip, 1 deterministic failure, 0 otherwise. */
 export function computeExitCode(merged, safetyList = SAFETY_LIST) {
   const safety = new Set(safetyList);
   const safetySkipped = merged.files.some(
@@ -159,7 +137,6 @@ function runVitestLane(lane, outFile, extraArgs) {
   return summarizeVitestJson(json, lane);
 }
 
-/** Parse `node --test --test-reporter=spec` output for one file into a row. */
 export function summarizeNodeSpec(file, lane, output, durationMs, exitStatus) {
   const skippedCases = [];
   for (const line of output.split("\n")) {

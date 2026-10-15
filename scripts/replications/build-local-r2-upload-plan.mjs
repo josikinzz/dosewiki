@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/** Build a frozen, zero-write R2 upload plan from a completed derivative ledger. */
-
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";

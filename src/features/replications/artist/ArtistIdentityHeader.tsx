@@ -14,32 +14,17 @@ import { APPROVED_REPLICATOR_LABEL, VERIFIED_REPLICATOR_LABEL } from "../replica
 
 export interface ArtistIdentityHeaderProps {
   name: string;
-  /** Back to the gallery's artist browsing. */
   browseAllHref: string;
-  /**
-   * False for the Unattributed bucket, which carries no identity claim by
-   * design: no avatar frame, just the heading and counts.
-   */
   attributed: boolean;
   avatarUrl?: string | null;
   verifiedReplicator?: boolean;
-  /** dose.wiki's endorsement of the artist; the index's star, spelled out. */
   approvedReplicator?: boolean;
   role?: string | null;
-  /** Already-rendered bio markdown; null renders no prose. */
   bio?: ReactNode;
-  /** Profile links plus the folded-in legacy own-site URL. */
   links: readonly { label: string; url: string }[];
   counts: { count: number; imageCount: number; videoCount: number };
 }
 
-/**
- * The Artist Page's identity header: the avatar at portrait scale, the name in
- * display type, one quiet role-and-counts line, the bio, and every external
- * link as a pill wearing its site's mark. Replaces the old arrangement where
- * the name sat in a small focus heading, the avatar was a 56px afterthought,
- * and links all shared one generic glyph.
- */
 export function ArtistIdentityHeader({
   name,
   browseAllHref,
@@ -95,8 +80,6 @@ export function ArtistIdentityHeader({
             {trimmedRole ? (
               <>
                 <span data-testid="contributor-role">{trimmedRole}</span>
-                {/* Real spaces rather than padding, so the copied and
-                    screen-read text separates the two the same way. */}
                 <span aria-hidden="true" className="opacity-60">
                   {" · "}
                 </span>
@@ -149,11 +132,6 @@ export function ArtistIdentityHeader({
   );
 }
 
-/**
- * One external link as a pill carrying its site's mark: a brand glyph for
- * recognizable platforms, a committed favicon where the source corpus has
- * one, the globe otherwise (`artistLinkPresentation`).
- */
 function ArtistLinkPill({ label, url }: { label: string; url: string }) {
   const { icon, faviconSrc } = artistLinkPresentation(url);
 

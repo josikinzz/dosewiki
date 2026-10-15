@@ -5,27 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { count, STATE_WORD, type ReviewCounts } from "./glossaryModel";
 
-/** The category a reviewer should open next: the first, in site order, with anything left to review. */
 export type NextCategory = { id: string; label: string; left: number };
 
 type TermsOverviewProps = {
   counts: ReviewCounts;
   next: NextCategory | null;
   canAdmin: boolean;
-  /** Approved renderings not yet sent to stored translations. */
   pendingCount: number;
   nothingTranslatedYet: boolean;
   locked: boolean;
   onContinue: (categoryId: string) => void;
-  /** Opens Runs in Articles (admins), where the main translation and Retranslate live. */
   onOpenRuns?: () => void;
 };
 
-/**
- * The top of the Terms list: how far the language's glossary review has come,
- * and one button that opens the next category with work left and focuses its
- * first row. Once nothing is left, the same place says what happens next.
- */
 export function TermsOverview({ counts, next, canAdmin, pendingCount, nothingTranslatedYet, locked, onContinue, onOpenRuns }: TermsOverviewProps) {
   const total = counts.drafts + counts.unchecked + counts.approved;
   if (total === 0) return null;

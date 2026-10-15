@@ -37,14 +37,6 @@ export interface SearchMatch extends SearchEntry {
   score: number;
 }
 
-/**
- * The part of a match that search result UIs actually render.
- *
- * `keywords` exists so the index can match on classes, mechanisms and article
- * prose; for effect entries it can run past a thousand entries. Shipping it to
- * the browser made a 60-result response ~700 KB instead of ~24 KB, so responses
- * are projected down to this shape at the API boundary.
- */
 export type SearchSuggestion = Pick<
   SearchEntry,
   "id" | "type" | "label" | "secondary" | "description" | "aliases" | "slug" | "icon"
@@ -73,22 +65,16 @@ entryCounts: SearchIndexEntryCounts; }
 
 interface SearchQueryOptions { limit?: number; }
 
-/** A search entry plus the precomputed fields the matcher reads. */
 type IndexedSearchEntry = Readonly<SearchEntry & MatchableEntry>
 
 export interface SearchIndex {
   metadata: SearchIndexMetadata;
   entries: readonly SearchEntry[];
-  /**
-   * Ranked entries with their precomputed match fields. Exposed so the browser
-   * manifest can be derived from exactly what the server ranks.
-   */
   indexedEntries: readonly IndexedSearchEntry[];
   query: (query: string, options?: SearchQueryOptions) => SearchMatch[];
 }
 
 export interface LocalizedSearchEntry {
-  /** Canonical search identity, for example `effect:drifting`. */
   id: string;
   label?: string;
   aliases?: readonly string[];
@@ -160,11 +146,6 @@ export interface SearchIndexReportInput {
   authorProfileKey?: string;
 }
 
-/**
- * Contributor profiles are matched on public identity only. Aliases are
- * intentionally absent: they can carry internal reviewer handles that must
- * never surface through public search (manifest or server suggestions).
- */
 export interface SearchIndexProfileInput {
   key: string;
   displayName: string;
@@ -788,8 +769,6 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
     entries: publicEntries,
     indexedEntries,
     query(query: string, options: SearchQueryOptions = {}) {
-      // Ranking keeps entry references only, so the public-shape spread is paid
-      // once per returned row instead of once per matched row.
       return runSearch(indexedEntries, query, { limit: options.limit }).map((match) => ({
         ...toPublicEntry(match.entry),
         score: match.score,
@@ -798,14 +777,6 @@ export function buildSearchIndex(input: SearchIndexInput): SearchIndex {
   });
 }
 
-/**
- * Overlay approved localized display fields onto a canonical index.
- *
- * Canonical labels and aliases remain identity aliases, so Latin substance
- * queries and English deep links continue to work in every locale. Keywords
- * stay byte-for-byte canonical: translated prose is display-only and never
- * enters search matching.
- */
 export function localizeSearchIndex(
   index: SearchIndex,
   locale: string,
@@ -880,11 +851,6 @@ export function buildSearchIndexFromLibrary(library: LibraryData): SearchIndex {
   return buildSearchIndex(createSearchIndexInput(library));
 }
 
-/**
- * Query search using library data.
- *
- * Prefer building a SearchIndex once and querying it for repeated requests.
- */
 export function querySearchWithData(
   query: string,
   library: LibraryData,

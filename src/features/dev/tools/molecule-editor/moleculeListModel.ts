@@ -1,30 +1,17 @@
-/**
- * The Molecules list column's rules: what each record's depiction is, which
- * records a filter keeps, how search matches, and the words the column and
- * the pane use for them. Pure, so the column and the tests share one answer.
- */
 import type { EditorMode } from "./moleculeEditorTypes";
 import { groupMoleculePickerItems, type MoleculePickerGroup, type MoleculePickerItem } from "./moleculePickerOrdering";
 
-/**
- * Where a record's drawing comes from. `none`: no stored row, so the public
- * page draws nothing. `seeded`: the automatic baseline the import wrote.
- * `editor`: someone saved it by hand here. `template`: a class template
- * aligned it. `saved`: a stored row whose source the list did not say.
- */
 export type DepictionState = "none" | "seeded" | "editor" | "template" | "saved";
 
 export type MoleculeListFilter = "all" | "todo" | "edited";
 
 export interface MoleculeListRow extends MoleculePickerItem {
   depiction: DepictionState;
-  /** The stored row's last save, when the list read carried it. */
   updatedAt?: string | number | null;
 }
 
 export type OverrideSummary = { source?: string | null; updatedAt?: string | number | null };
 
-/** The state of one record from the stored-row summary (or the picker's own flag). */
 export function depictionStateOf(summary: OverrideSummary | undefined, hasOverride: boolean): DepictionState {
   if (!summary) return hasOverride ? "saved" : "none";
   if (summary.source === "seeded") return "seeded";
@@ -33,7 +20,6 @@ export function depictionStateOf(summary: OverrideSummary | undefined, hasOverri
   return "saved";
 }
 
-/** Hand-finished drawings; everything else still wants a look. */
 export function isEdited(state: DepictionState): boolean {
   return state === "editor" || state === "template" || state === "saved";
 }
@@ -43,7 +29,6 @@ export function matchesMoleculeFilter(row: MoleculeListRow, filter: MoleculeList
   return filter === "edited" ? isEdited(row.depiction) : !isEdited(row.depiction);
 }
 
-/** Case-insensitive match on the name or the key, ignoring spaces and punctuation between words. */
 export function matchesMoleculeSearch(row: MoleculePickerItem, query: string): boolean {
   const needle = normalize(query);
   if (!needle) return true;
@@ -60,7 +45,6 @@ export function countMoleculeFilters(rows: readonly MoleculeListRow[]): Record<M
   return { all: rows.length, edited, todo: rows.length - edited };
 }
 
-/** The rows a filter and a search keep, grouped as the picker grouped them. */
 export function visibleMoleculeGroups(
   rows: readonly MoleculeListRow[],
   filter: MoleculeListFilter,
@@ -71,7 +55,6 @@ export function visibleMoleculeGroups(
   );
 }
 
-/** One word per mode for the column's nouns. */
 export const MODE_NOUN: Record<EditorMode, { one: string; many: string }> = {
   substances: { one: "substance", many: "substances" },
   classes: { one: "class", many: "classes" },
@@ -83,14 +66,12 @@ export function countNoun(count: number, mode: EditorMode): string {
   return `${count.toLocaleString("en")} ${count === 1 ? noun.one : noun.many}`;
 }
 
-/** Filter labels per mode: a template is saved or not, a depiction edited or still to do. */
 export const FILTER_LABEL: Record<EditorMode, Record<MoleculeListFilter, string>> = {
   substances: { all: "All", todo: "To do", edited: "Edited" },
   classes: { all: "All", todo: "Not saved", edited: "Saved" },
   templates: { all: "All", todo: "Not saved", edited: "Saved" },
 };
 
-/** The short state a row and the pane header show. */
 export function depictionLabel(state: DepictionState, mode: EditorMode): string {
   if (mode === "templates") return state === "none" ? "No template yet" : "Saved template";
   switch (state) {
@@ -107,7 +88,6 @@ export function depictionLabel(state: DepictionState, mode: EditorMode): string 
   }
 }
 
-/** What the public page draws today, one sentence, for the pane. */
 export function depictionSentence(state: DepictionState, mode: EditorMode): string {
   if (mode === "templates") {
     return state === "none"
@@ -130,7 +110,6 @@ export function depictionSentence(state: DepictionState, mode: EditorMode): stri
   }
 }
 
-/** Which filter shows a record, so a deep link outside the filter can say where it is. */
 export function filterHiding(row: MoleculeListRow | undefined, filter: MoleculeListFilter): boolean {
   return !!row && !matchesMoleculeFilter(row, filter);
 }

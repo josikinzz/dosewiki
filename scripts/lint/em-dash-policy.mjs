@@ -1,8 +1,3 @@
-// AGENTS.md bans em dashes (U+2014). Reader-facing text (docs, content files,
-// string literals, template text, and JSX text) must carry
-// none. Comments are older debt: their per-file counts live in a baseline that
-// may only shrink. Write "\u2014" when code must match or emit the character.
-
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -11,8 +6,6 @@ import ts from "typescript";
 export const EM_DASH = "\u2014";
 export const SCANNED_ROOTS = Object.freeze(["content", "src", "lib", "server", "docs", "README.md", "ARCHITECTURE.md", "CONTRIBUTING.md", "data/README.md"]);
 export const BASELINE_PATH = "scripts/lint/em-dash-comment-baseline.json";
-// The comment count when the baseline was cut. Lower it as comments are
-// rewritten; raising it needs a reviewed reason.
 export const BASELINE_CEILING = 1776;
 
 const CODE_FILE = /\.(?:[cm]?js|jsx|tsx?)$/;
@@ -49,7 +42,6 @@ function scriptKind(file) {
   return ts.ScriptKind.JS;
 }
 
-/** Classifies each em dash in one file as a reader-facing violation or a comment. */
 export function scanEmDashes(file, text) {
   const all = occurrences(text);
   if (all.length === 0) return { violations: [], comments: 0 };
@@ -71,7 +63,6 @@ export function scanEmDashes(file, text) {
   return { violations, comments: all.length - inLiterals.size };
 }
 
-/** Fails only when a file has more comment em dashes than its baseline; fewer is fine. */
 export function compareToBaseline(actual, baseline, ceiling = BASELINE_CEILING) {
   const problems = [];
   const allowedTotal = Object.values(baseline).reduce((sum, count) => sum + count, 0);
@@ -97,7 +88,6 @@ export function listScannedFiles(repoRoot) {
     .filter((file) => file && !BINARY_FILE.test(file));
 }
 
-/** Scans the repository tree and reports violations, comment counts, and baseline problems. */
 export function checkRepository(repoRoot) {
   const violations = [];
   const comments = {};

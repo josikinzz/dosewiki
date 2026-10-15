@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Add a direct association or ordering priority from the studio library.
- *
- * Automatic placement comes from reviewed title taxonomy. This surface never
- * mutates effect tags to force a match: unmatched standalone work can be
- * associated directly, while combinations and non-showcase media stay absent.
- */
-
 import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";

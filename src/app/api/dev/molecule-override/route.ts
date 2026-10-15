@@ -1,15 +1,3 @@
-/**
- * Admin write endpoint for the Molecule Depiction Editor (`/dev` → Molecules).
- *
- * This persists the canonical MOL block + SVG to `moleculeOverrides`, so the
- * deployed editor and public pages share one depiction. Writes require an
- * editor session. DELETE backs the editor's confirmed Remove override, for
- * substance and class depictions alike.
- *
- *   POST   /api/dev/molecule-override   { slug, svg, molblock, smiles?, boldBonds?, expectedUpdatedAt? }  → save
- *     → 409 { error, conflict } when someone saved since the editor loaded; nothing was written
- *   DELETE /api/dev/molecule-override?slug=lsd                            → remove
- */
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
@@ -54,7 +42,6 @@ type ParsedSaveOverride = {
   expectedUpdatedAt?: string | null;
 };
 
-/** A molecule can't have more bonds than the MOL block byte limit allows lines. */
 const MAX_BOLD_BONDS = 1024;
 
 function deriveSubmittedBy(email: string, name?: string | null): string {
@@ -100,11 +87,6 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
   };
 }
 
-/**
- * The revision the editor loaded: the stored `updatedAt`, `null` for "no
- * depiction existed", or absent to skip the check. An empty string is refused
- * because it can never equal a stored revision and would 409 forever.
- */
 function parseExpectedUpdatedAt(value: unknown): string | null | undefined {
   if (value === undefined || value === null) return value;
   if (typeof value !== "string" || value.length === 0) {
@@ -125,24 +107,13 @@ function parseMoleculeSlug(value: string | null): string {
 }
 
 async function publishMoleculeOwner(slug: string) {
-  // The persisted public leaves key on the stored slug, `class:` prefix and
-  // all, so the molecule identity expires exactly this depiction plus the
-  // shared override index every substance page reads, and carries the owner
-  // page with it.
   const targets: PublicationTarget[] = [{ kind: "molecule", slug }];
   if (slug.startsWith("class:")) {
-    // A class depiction is also drawn on the class index, which the stored
-    // slug alone does not name.
     targets.push({ kind: "chemical-class-lists" });
   }
   await publishPublicCache({ targets, source: "manual" });
 }
 
-/**
- * The editor reads depictions through the same authenticated Postgres target used
- * for saves. This keeps a selected molecule from depending on the browser-read
- * deployment when editor and public deployments intentionally differ.
- */
 export const GET = protectedRouteOperation({
   auth: "admin",
   rateLimit: "diagnosticRead",
@@ -192,7 +163,6 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
     });
 
     if (result.status === "conflict") {
-      // Nothing was written, so nothing downstream is stale: no publication.
       return NextResponse.json(
         {
           error:
@@ -203,7 +173,6 @@ export const POST = protectedRouteOperation<SaveOverrideBody, ParsedSaveOverride
       );
     }
 
-    // Refresh the owner page so it receives the new updatedAt-versioned URL.
     await publishMoleculeOwner(body.slug);
 
     return NextResponse.json({
@@ -236,7 +205,6 @@ export const DELETE = protectedRouteOperation({
       slug,
     });
 
-    // Return the owner page to its legacy static fallback.
     await publishMoleculeOwner(slug);
 
     return NextResponse.json({ ok: true, deleted: result.deleted, slug });

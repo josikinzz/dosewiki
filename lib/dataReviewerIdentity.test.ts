@@ -8,14 +8,7 @@ import {
   transition as submissionTransition,
 } from "../server/tripReportSubmissions";
 
-/**
- * Status and promote callables stamp the reviewer from the resolved actor. A
- * caller-supplied `reviewer` is not part of any of these contracts, so even a
- * request that still carries one records who actually made the change.
- */
-
 type RegisteredHandler = { _handler: (ctx: MutationCtx, args: unknown) => Promise<unknown> };
-// Postgres's registered function type hides `_handler`; the runtime object always carries it.
 const handlerOf = (fn: unknown) => (fn as RegisteredHandler)._handler;
 
 const SERVER_KEY = "test-admin-key";

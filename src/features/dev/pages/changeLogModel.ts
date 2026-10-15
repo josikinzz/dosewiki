@@ -1,33 +1,17 @@
-/**
- * Pure helpers behind the Change log tab: what a save says in editor words,
- * how saves group by day, what the loaded window of server history amounts to,
- * and which quick date range the filters currently match.
- */
-
 import { describeChange, fieldWords } from "@/data/changelog/articleRecentChanges";
 import type { ChangeLogArticleSummary, ChangeLogEntry } from "@/data/changelog/changeLog";
 
 import { CHANGELOG_FEED_MAX_ROWS, type ChangelogFeedWindow } from "./useDevChangelogFeed";
 
 export type EntrySummary = {
-  /** `prose` inline edit, `source` reference added or removed, `bulk` a Dev editor save. */
   kind: "prose" | "source" | "bulk";
-  /** What the save did, in editor words: "Reworded 3 words", "Updated 2 articles". */
   headline: string;
-  /** Where it happened, as section and field words; null for whole-article saves. */
   location: string | null;
-  /** A hand-written save note or the reference a source edit named. */
   detail: string | null;
   linesAdded: number;
   linesRemoved: number;
 };
 
-/**
- * One line the editor can read without opening the diff. The description
- * comes from the same projection the public article ledger uses, so the raw
- * field path never reaches the screen; the counts come from the stored diff
- * lines.
- */
 export function summarizeEntry(entry: ChangeLogEntry): EntrySummary {
   const description = describeChange(entry.commit?.message ?? "", entry.markdown);
   const articleCount = entry.articles.length;
@@ -50,12 +34,10 @@ export function summarizeEntry(entry: ChangeLogEntry): EntrySummary {
   return { kind: description.kind, headline, location, detail: description.detail, linesAdded, linesRemoved };
 }
 
-/** A plural noun for a count: `countNoun(1, "save")` is "1 save". */
 export function countNoun(count: number, singular: string, plural = `${singular}s`): string {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
-/** "Caffeine", "Caffeine and Nicotine", "Caffeine, Nicotine, Alcohol and 11 more". */
 export function articleNames(articles: readonly ChangeLogArticleSummary[], named = 3): string {
   const titles = articles.map((article) => article.title);
   if (titles.length <= 1) return titles[0] ?? "";
@@ -72,16 +54,12 @@ function startOfLocalDay(time: number): number {
 }
 
 export type ChangeLogDay<T> = {
-  /** Local calendar day, `YYYY-MM-DD`; stable key and `dateTime`. */
   key: string;
-  /** "Today", "Yesterday", "Tuesday, Jan 13", with the year when it is not this one. */
   label: string;
-  /** The day written out in full, for the heading's title. */
   full: string;
   items: T[];
 };
 
-/** A local calendar day as `YYYY-MM-DD`, the value a date input takes. */
 export function toLocalDateInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -89,7 +67,6 @@ export function toLocalDateInputValue(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/** The heading a day of saves sits under, relative to `now`. */
 export function dayLabel(time: number, now: number = Date.now()): { label: string; full: string } {
   const days = Math.round((startOfLocalDay(now) - startOfLocalDay(time)) / DAY_MS);
   const date = new Date(time);
@@ -108,11 +85,6 @@ export function dayLabel(time: number, now: number = Date.now()): { label: strin
   };
 }
 
-/**
- * Saves grouped under the local day they landed on, keeping the feed's
- * newest-first order. Entry times render in local time, so the day cut is
- * local too (the date filters cut the same way).
- */
 export function groupByDay<T>(
   items: readonly T[],
   getTime: (item: T) => string,
@@ -133,13 +105,11 @@ export function groupByDay<T>(
   return days;
 }
 
-/** The time of day a save landed, in the reader's locale ("4:00 AM"). */
 export function formatSaveTime(iso: string): string {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
-/** The whole moment, for a `<time>` title: "Wednesday, January 14, 2026 at 1:00 PM". */
 export function formatSaveMoment(iso: string): string {
   const date = new Date(iso);
   return Number.isNaN(date.getTime())
@@ -154,10 +124,8 @@ export function formatSaveMoment(iso: string): string {
       });
 }
 
-/** The quick ranges the date filter offers, in days back from today; `null` is any date. */
 export const QUICK_DATE_RANGES = [7, 30] as const;
 
-/** The start and end dates of a quick range that ends today. */
 export function quickDateRange(days: number, now: Date = new Date()): { startDate: string; endDate: string } {
   const start = new Date(now);
   start.setDate(start.getDate() - (days - 1));
@@ -166,7 +134,6 @@ export function quickDateRange(days: number, now: Date = new Date()): { startDat
 
 export type DatePreset = "any" | "7" | "30" | "custom";
 
-/** Which date choice the current filter dates amount to. */
 export function datePresetFor(
   startDate: string | null,
   endDate: string | null,
@@ -180,7 +147,6 @@ export function datePresetFor(
   return "custom";
 }
 
-/** A date filter value (`YYYY-MM-DD`) in words: "Jan 9" or "Jan 9, 2025". */
 export function formatFilterDate(value: string, now: Date = new Date()): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return value;
@@ -192,7 +158,6 @@ export function formatFilterDate(value: string, now: Date = new Date()): string 
   });
 }
 
-/** The date filter as one phrase for its removable chip. */
 export function describeDateFilter(startDate: string | null, endDate: string | null, now: Date = new Date()): string | null {
   const preset = datePresetFor(startDate, endDate, now);
   if (preset === "any") return null;
@@ -203,17 +168,11 @@ export function describeDateFilter(startDate: string | null, endDate: string | n
 }
 
 export type FeedWindowState = {
-  /** The short, live status: "30 saves", "Latest 100 saves", "Loading saves". */
   status: string;
   loading: boolean;
-  /** What the loaded window leaves out, when it leaves something out. */
   note: string | null;
 };
 
-/**
- * How much of the server history the tab holds, said plainly so a capped
- * feed is never presented as the whole record.
- */
 export function describeWindow(feedWindow: ChangelogFeedWindow, totalEntriesCount: number): FeedWindowState {
   if (feedWindow.loading && feedWindow.loadedCount === 0) {
     return { status: "Loading saves", loading: true, note: null };

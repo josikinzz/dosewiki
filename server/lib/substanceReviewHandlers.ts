@@ -130,17 +130,6 @@ export async function publishReviewedSectionHandler(
   }
 }
 
-/**
- * Editors move a review between `needed` and `in_progress` and keep notes and
- * flags; only an admin marks it `completed`, which is the public
- * `expert_reviewed` signal.
- *
- * A sign-off records the published revision it covered. `revision` is the one
- * the reviewer read; it must name a state of this article, and when omitted
- * the current one is recorded. Signing the current revision first journals
- * the stored article if a write bypassed the journal, so the changes since
- * the sign-off can be read later. Any later content write derives `stale`.
- */
 export async function setEditorialReviewHandler(
   ctx: MutationCtx,
   args: EditorArgs & { status: "needed" | "in_progress" | "completed"; revision?: string },
@@ -175,8 +164,6 @@ export async function setEditorialReviewHandler(
     status: args.status,
     notes: typeof existing.notes === "string" ? existing.notes : "",
     ...(Array.isArray(existing.flags) ? { flags: existing.flags } : {}),
-    // A hold keeps an editor's recommendation waiting for an admin; a
-    // sign-off answers it.
     ...(args.status !== "completed" && isStoredRecommendation(existing.recommendation)
       ? { recommendation: existing.recommendation }
       : {}),
@@ -189,7 +176,6 @@ export async function setEditorialReviewHandler(
       : {}),
   };
   await ctx.db.patch(article._id, { editorial_review: editorialReview });
-  // A sign-off answers any waiting recommendation, so its Inbox claim ends.
   if (args.status === "completed") await clearInboxClaim(ctx, "review-recommendations", args.slug);
   return { slug: args.slug, editorial_review: editorialReview };
 }
@@ -207,17 +193,8 @@ function isStoredRecommendation(value: unknown): value is StoredRecommendation {
   return ["revision", "recommended_by", "recommended_at", "note"].every((key) => typeof record[key] === "string");
 }
 
-/** Longest note an editor may attach to a recommendation. */
 export const REVIEW_RECOMMENDATION_NOTE_MAX = 1000;
 
-/**
- * An editor recommends an article as reviewed. The recommendation is bound to
- * the published revision the editor read and leaves `status` untouched: it is
- * not a completed review, and only an admin approval turns it into one.
- *
- * `revision` must be the current published revision. One the article has
- * already moved past is refused, so a recommendation never starts out stale.
- */
 export async function recommendEditorialReviewHandler(
   ctx: MutationCtx,
   args: EditorArgs & { revision?: string; note: string },
@@ -261,26 +238,14 @@ export async function recommendEditorialReviewHandler(
   return { slug: args.slug, editorial_review: editorialReview };
 }
 
-/** Most recommendations one approval may cover. */
 export const REVIEW_RECOMMENDATION_BATCH_MAX = 100;
 
 export type RecommendationApprovalOutcome = {
-  /** Signed off at the recommended revision. */
   approved: string[];
-  /** The article was published again after the recommendation; re-review first. */
   stale: string[];
-  /** No recommendation at that revision any more (withdrawn, replaced or already approved). */
   missing: string[];
 };
 
-/**
- * An admin approves editors' recommendations in one write. Each approval
- * writes `completed` with the recommended revision and the approving admin as
- * reviewer, keeping the recommending editor (`recommended_by`,
- * `recommended_at`) and their note. `revision` is the recommendation revision the admin saw; a
- * recommendation that no longer matches it, or whose revision is no longer
- * the published one, is left alone and reported rather than approved.
- */
 export async function approveReviewRecommendationsHandler(
   ctx: MutationCtx,
   args: { apiKey?: string; actorEmail?: string; items: Array<{ slug: string; revision: string }> },
@@ -321,7 +286,6 @@ export async function approveReviewRecommendationsHandler(
       reviewed_by: actor.email,
       reviewed_at: now,
       reviewed_revision: recommendation.revision,
-      // The editor who recommended it stays credited beside the approver.
       recommended_by: recommendation.recommended_by,
       recommended_at: recommendation.recommended_at,
       ...(recommendation.note ? { recommendation_note: recommendation.note } : {}),
@@ -336,9 +300,7 @@ export async function approveReviewRecommendationsHandler(
 export type ReviewRecommendationRow = StoredRecommendation & {
   slug: string;
   title: string;
-  /** The article's current published revision. */
   publishedRevision: string;
-  /** Published again since the recommendation, so it needs re-review. */
   stale: boolean;
 };
 
@@ -353,10 +315,6 @@ type ReviewRecommendationDatabase = QueryCtx["db"] & {
   getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>>;
 };
 
-/**
- * Every pending recommendation with whether it is stale, oldest first, for
- * the admin's Review recommendations lane.
- */
 export async function listReviewRecommendationsHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string },
@@ -487,11 +445,6 @@ type ReviewRevisionDatabase = QueryCtx["db"] & {
   getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>>;
 };
 
-/**
- * Every article's current published revision, keyed by slug, so /review can
- * derive `stale` for each sign-off. Derived from stored content, so every
- * article is present.
- */
 export async function getPublishedRevisionsHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string },
@@ -505,17 +458,11 @@ export async function getPublishedRevisionsHandler(
   return Object.fromEntries(rows.map(({ slug, revision }) => [slug, revision]));
 }
 
-/** The review-irrelevant record is dropped so the comparison is content only. */
 function withoutEditorialReview(article: ArticleDocument): ArticleDocument {
   const { editorial_review: _review, ...content } = article;
   return content as ArticleDocument;
 }
 
-/**
- * What changed since a sign-off: the article at the signed revision and the
- * article as published now, both without their review record. `signed` is null
- * when the revision is not a published state of this article.
- */
 export async function getReviewChangesHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string; slug: string; revision: string },

@@ -23,7 +23,6 @@ import {
 } from "./queueModel";
 import type { QueueView } from "./queueTaskLink";
 
-/** Why the list shows no rows, and the way back to some. */
 export type QueueEmpty =
   | { kind: "none" }
   | { kind: "clear" }
@@ -39,14 +38,12 @@ export type ProposalListColumnProps = {
   onRefresh: () => void;
   busy: boolean;
   view: QueueView | null;
-  /** Null while the list is unknown, so the option shows no count rather than zero. */
   myPendingCount: number | null;
   onViewChange: (view: QueueView | null) => void;
   searchId: string;
   searchRef: RefObject<HTMLInputElement | null>;
   search: string;
   onSearchChange: (value: string) => void;
-  /** Rows exist in memory (possibly stale behind a failed refresh). */
   loaded: boolean;
   groups: GroupedProposals;
   selectedId: string | null;
@@ -55,20 +52,11 @@ export type ProposalListColumnProps = {
   empty: QueueEmpty | null;
   onShowEverything: () => void;
   onClearSearch: () => void;
-  /** Onward link for a queue with nothing in it. */
   onward: ReactNode;
-  /** A failed read, drawn where the list is; rows already loaded stay under it. */
   error: ReactNode;
-  /** Rail count freshness line. */
   freshness: ReactNode;
 };
 
-/**
- * The list column: the count and Refresh, All / My pending, search, then the
- * proposals grouped by what they wait on (Awaiting review, Needs revision)
- * above the history (Published, Closed, each capped at five). Sticky beside
- * the review pane from `lg`.
- */
 export function ProposalListColumn(props: ProposalListColumnProps) {
   const {
     listRef,
@@ -209,7 +197,6 @@ function ProposalGroup({
   const [expanded, setExpanded] = useState(false);
   const history = group.id === "applied" || group.id === "closed";
   const capped = history && !expanded && group.rows.length > QUEUE_HISTORY_CAP;
-  // The open proposal always shows, even past the cap.
   const shown = capped
     ? group.rows.filter((row, index) => index < QUEUE_HISTORY_CAP || row._id === selectedId)
     : group.rows;
@@ -255,11 +242,6 @@ function ProposalGroup({
   );
 }
 
-/**
- * Two lines: the summary (with the status when the group mixes statuses),
- * then who proposed it, how long ago, what it changes, the comment count and
- * who holds it.
- */
 function ProposalRow({
   row,
   active,

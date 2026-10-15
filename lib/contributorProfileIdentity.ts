@@ -21,10 +21,6 @@ export type MaterializedContributorProfile = {
   bio: string;
   links: ContributorProfileLink[];
   hasCustomBio: boolean;
-  // Free-text contributor title carried over from Effect Index ("Founder",
-  // "Former Dev", "Replication Artist"). Deliberately unrelated to the
-  // authorization role union in server/lib/contributorProfiles. Absent rather
-  // than empty when unset, so consumers can render nothing at all.
   role?: string;
 };
 
@@ -73,27 +69,8 @@ const EMPTY_HANDLE_GROUPS: readonly (readonly string[])[] = [];
 let cachedGroupsSource = "";
 let cachedGroups: readonly (readonly string[])[] = EMPTY_HANDLE_GROUPS;
 
-/**
- * Retired login handles that belong to the same person as a live profile key.
- *
- * These used to live as ordinary profile aliases, but unauthenticated profile
- * reads (`contributorProfiles:getAll`) ship stored aliases verbatim, and a
- * retired handle must never leave the deployment. The alias was scrubbed from
- * the stored row and the identity fact moved to the deployment environment:
- * `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` lists groups separated by `;`, handles
- * within a group separated by `,` (e.g. `CURRENT,RETIRED`), any casing. Empty
- * when unset, so browser bundles and unconfigured deployments simply match
- * nothing extra. Both the Postgres reviewer-email derivation and the changelog
- * submitter matching expand through these groups without ever emitting them.
- *
- * The editor shell is the one browser exception: its records already carry
- * the retired credential emails, so the signed-in page hands the same value to
- * `setEditorLegacyContributorHandleGroups` and reviewer names resolve there
- * too. Public pages never receive it.
- */
 let editorGroupsSource = "";
 
-/** Editor browser only: the server-read `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` value. */
 export function setEditorLegacyContributorHandleGroups(raw: string | null | undefined): void {
   editorGroupsSource = raw ?? "";
 }
@@ -111,11 +88,6 @@ export function legacyContributorHandleGroups(): readonly (readonly string[])[] 
   return cachedGroups;
 }
 
-/**
- * Normalize the given handles (profile key, aliases, legacy stamps, any
- * casing) and pull in every legacy-group sibling. Returns uppercase keys,
- * ready for stamp comparison or lowercasing into legacy credential emails.
- */
 export function expandLegacyContributorHandles(handles: Iterable<string>): Set<string> {
   const expanded = new Set<string>();
   for (const handle of handles) {
@@ -153,12 +125,6 @@ export function sanitizeContributorDisplayName(value: string | null | undefined)
   return trimmed.length > MAX_DISPLAY_NAME_LENGTH ? trimmed.slice(0, MAX_DISPLAY_NAME_LENGTH) : trimmed;
 }
 
-/**
- * Normalize a contributor title. Collapses internal whitespace so a role never
- * introduces line breaks into the header line that renders it, and returns ""
- * for anything blank so callers can drop the field instead of storing an empty
- * string that would render an empty separator.
- */
 export function sanitizeContributorRole(value: string | null | undefined): string {
   const trimmed = typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
   if (!trimmed) {
@@ -287,26 +253,11 @@ export function findContributorProfileByKeyOrAlias<T extends { key: string; alia
   return profiles.find((profile) => profile.aliases.includes(normalizedAlias)) ?? null;
 }
 
-/** The minimum a record needs to be matched against a free-text credit line. */
 export type ContributorMatchableProfile = {
   displayName: string;
   aliases: readonly string[];
 };
 
-/**
- * Every name that identifies one contributor: their display name plus their
- * aliases, normalized for comparison.
- *
- * This is the only definition of "this name is that contributor" in the app, and
- * every direction of the relation — credit line to profile, profile to its
- * credits — goes through it, so the two can never disagree about the same pair.
- *
- * Matching is exact on a normalized whole name. It used to also accept the first
- * word of a display name, which quietly made "Josie" a match for "Josie Kins"
- * and would just as quietly make one contributor's given name claim another's
- * credits as the roster grows. Aliases are the mechanism for that: a spelling
- * that should resolve to a contributor is recorded on their profile.
- */
 export function contributorMatchNames(profile: ContributorMatchableProfile): string[] {
   return Array.from(
     new Set(

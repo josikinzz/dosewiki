@@ -4,8 +4,6 @@ import {
   EditorArtifactAudit,
   getServerRuntimeIncludes,
 } from "./scripts/build/editor-artifact-audit.mjs";
-// The legacy redirect table lives in its own module so application code (the Discord
-// page) can read the invite URL from it without importing this config.
 import {
   normalizeSiteFlavor,
   resolveBuildDirectory,
@@ -16,9 +14,6 @@ import { resolveBuildConcurrency } from "./lib/next/buildConcurrency";
 import { effectIndexLegacyRedirects } from "./lib/next/effectIndexLegacyRedirects";
 import { substanceRouteAliases } from "./lib/next/substanceRouteAliases";
 
-// Separate artifacts, never a host-conditional lazy import inside one public bundle.
-// The surface and directory rule lives in scripts/build/build-surface.mjs so the
-// prerender policy and the deploy scripts read the same answer.
 const buildSurface = resolveBuildSurface();
 const editorBuild = buildSurface === "editor";
 const buildDirectory = resolveBuildDirectory();
@@ -32,25 +27,6 @@ if (
   );
 }
 
-/**
- * Build-time flavor module selection.
- *
- * `next/font` is an SWC compile-time transform: every option value must be a written
- * literal, so the two publications' faces cannot be gated inside one module, and
- * importing both would ship the unused face's `@font-face` blocks and preload links into
- * the flavor that does not render it. Each module exports the same two faces — the
- * publication's own `siteFont` and the Pro style's `proFont` — and differs in what those
- * mean: dose.wiki registers Titillium separately and never preloads it, while Effect
- * Index paints it as its own face and aliases the two names onto one registration.
- * Resolving each `@site-*` alias to exactly one module is the only place that decision can
- * live. The stylesheet alias also keeps each publication's inert, flavor-scoped CSS out of
- * the other publication's critical CSS payload.
- *
- * The flavor comes from `normalizeSiteFlavor()` in scripts/build/build-surface.mjs, the
- * same normaliser `resolveSiteFlavor()` in `src/config/siteFlavor.ts` wraps. This file
- * cannot import siteFlavor.ts itself: the config loader cannot resolve `next/navigation`,
- * which that module pulls in for its route guard.
- */
 const SITE_FONT_MODULES = {
   dosewiki: "./src/app/_fonts/dosewiki.ts",
   effectindex: "./src/app/_fonts/effectindex.ts",
@@ -61,7 +37,6 @@ const SITE_STYLE_MODULES = {
   effectindex: "./src/app/_styles/effectindex.ts",
 } as const;
 
-// The editor surface layers the dev tool chrome over the dose.wiki entry; see the module.
 const EDITOR_STYLE_MODULE = "./src/app/_styles/dosewiki-editor.ts";
 
 const siteFlavor = normalizeSiteFlavor(process.env.NEXT_PUBLIC_SITE_FLAVOR);
@@ -97,10 +72,6 @@ const effectCategoryRouteAliases = {
   "smell-and-taste": "smell-and-taste-effects",
 } as const;
 
-// A prebuilt upload (the remote build workflow) has no platform deployment ID
-// at build time, so it names its own for skew protection. The server must keep
-// serving that ID at request time too: Vercel's runtime ID would stamp preload
-// links that disagree with the font URLs compiled into the CSS.
 const prebuiltDeploymentId = resolvePrebuiltDeploymentId();
 
 const nextConfig: NextConfig = {
@@ -108,23 +79,10 @@ const nextConfig: NextConfig = {
   ...(prebuiltDeploymentId ? { deploymentId: prebuiltDeploymentId } : {}),
   distDir: buildDirectory,
   productionBrowserSourceMaps: false,
-  // The translation cron reads the Traditional charset beside
-  // scripts/translation at request time; the glossary snapshots under
-  // data/i18n/glossary are review exports and are never read at runtime.
   outputFileTracingIncludes: {
     "/api/cron/translation-refresh": ["./scripts/translation/**/*.json"],
   },
   experimental: {
-    // Static generation reads a multi-megabyte substance library once per
-    // worker, and each worker renders its share of the substance pages the
-    // prerender policy selects (lib/next/prerenderPolicy.ts) against that
-    // in-process library cache. Each page fans out server reads against a
-    // four-connection pool. Letting Next use every host CPU creates a
-    // cold-start thundering herd against Postgres, so the defaults are four
-    // long-lived workers rendering one page each (lib/next/buildConcurrency.ts).
-    // DOSEWIKI_BUILD_WORKERS and DOSEWIKI_BUILD_PAGES_PER_WORKER raise them
-    // for a runner that sits next to the database; unset or invalid values
-    // keep the defaults, and the ceilings are clamped there.
     ...resolveBuildConcurrency(),
     ...(prebuiltDeploymentId ? { runtimeServerDeploymentId: false } : {}),
     optimizePackageImports: [
@@ -147,23 +105,14 @@ const nextConfig: NextConfig = {
       "react-hook-form",
     ],
   },
-  // A cold worker's first substance-library render includes the bounded Postgres
-  // corpus read and derivation. Give that deliberate cold start room to finish
-  // instead of retrying it twice at the default 60-second threshold. The
-  // prerendered substance articles hit this path first: whichever article a
-  // worker picks up first pays the cold start, every later one is warm.
   staticPageGenerationTimeout: 180,
   allowedDevOrigins: ["127.0.0.1"],
   images: {
     localPatterns: [
-      // Molecule SVGs are cache-busted with a ?v=<updatedAt> query.
       { pathname: "/api/molecules/**" },
       { pathname: "/**", search: "" },
     ],
-    // Managed media uses Worker renditions directly. Neither managed nor legacy
-    // R2 origins may enter the optimizer's independently cached delivery path.
     remotePatterns: [],
-    // A trusted image URL must never redirect the optimizer to another host.
     maximumRedirects: 0,
   },
   env: {
@@ -182,9 +131,6 @@ const nextConfig: NextConfig = {
     },
   },
   webpack(config, { isServer, dev, config: resolvedConfig }) {
-    // next/font embeds deploymentId in CSS font URLs, but Next 16's filesystem
-    // cache version omits it. Reusing that CSS after a deploy makes its URL differ
-    // from the new HTML preload, downloading the same font twice.
     if (!dev && config.cache && config.cache.type === "filesystem") {
       config.cache.version = `${config.cache.version ?? ""}|deploymentId:${resolvedConfig.deploymentId ?? ""}`;
     }
@@ -218,13 +164,6 @@ const nextConfig: NextConfig = {
       type: "asset/source",
     });
 
-    // tsconfig.json also declares `@site-font` / `@site-styles` paths so the type checker
-    // resolves them, and those point at the dose.wiki modules. Next feeds tsconfig paths
-    // to webpack through JsConfigPathsPlugin, which resolves the same `described-resolve`
-    // hook as `resolve.alias` and won: every webpack build, whatever the flavor, bundled
-    // dose.wiki's fonts and sheets, and effectindex.com shipped dose.wiki's plum over
-    // its own teal. Turbopack honours `resolveAlias` first, which is why `next dev` never
-    // showed it. Strip the two keys from the plugin so the alias is the only resolver.
     for (const plugin of config.resolve.plugins ?? []) {
       if (plugin?.jsConfigPlugin === true && plugin.paths) {
         delete plugin.paths["@site-font"];
@@ -241,7 +180,6 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // Preserve the public mailing-list entry path used by external consumers.
       {
         source: "/subscribe",
         destination: "/api/subscribe",
@@ -295,12 +233,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // The generated chroma sheet lives in public/, which Next otherwise serves with
-        // max-age=0 — a paint-blocking revalidation round-trip on every repeat visit. Its
-        // href always carries a ?v=<content-hash> cache-buster (CHROMA_STYLESHEET_HREF in
-        // src/theme/appearanceChroma.ts), so any change to the sheet changes the URL and
-        // the response itself may be cached forever. Path matching ignores the query, so
-        // this covers the versioned URL and the bare route alike.
         source: "/appearance-chroma.css",
         headers: [
           {
@@ -310,9 +242,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // The Pro and light-mode appearance sheets moved out of the bundled CSS chain into
-        // public/ with the same contract: hrefs always carry ?v=<content-hash>
-        // (src/theme/appearanceSheets.ts), so both may be cached forever.
         source: "/pro-theme.css",
         headers: [
           {
@@ -331,7 +260,6 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Filenames carry a digest of their page/data, artwork, and renderer inputs.
         source: "/images/social/:collection/:card*.png",
         headers: [
           {

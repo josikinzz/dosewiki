@@ -33,21 +33,17 @@ export async function POST(request: Request, context: StatusRouteContext) {
     notes?: string;
     publicReason?: string;
   }>({
-    // Triage decisions move a submission through the queue; that is an admin call.
     auth: "admin",
     rateLimit: "editorSmallWrite",
     body: {
       maxBytes: MAX_STATUS_BODY_BYTES,
       parse: (body) => ({
         status: parseStatus(body.status),
-        // A blank note records only the outcome and keeps the stored note.
         notes: decisionNoteOrUndefined(body.notes),
-        // What the author reads in My reports; blank records none.
         publicReason: decisionNoteOrUndefined(body.public_reason),
       }),
     },
     unexpectedErrorLabel: "Failed to update trip report submission status:",
-    // Total, so every failure keeps this route's own response shape.
     mapError: mapStatusRouteError,
     operation: async ({ actorEmail, body }) => {
       const { id } = await Promise.resolve(context.params);

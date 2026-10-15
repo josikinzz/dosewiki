@@ -1,11 +1,3 @@
-/**
- * Executes owned callables inside Postgres transactions.
- * Queries use REPEATABLE READ READ ONLY. Mutations use SERIALIZABLE and retry
- * the complete handler on a transient failure (`classifyPostgresError`):
- * serialization, deadlock, lock timeout, pool exhaustion. External effects
- * belong to the post-commit publication delivery worker, never these handlers.
- */
-
 import { getFunctionName, type ArgsAndOptions, type FunctionReference, type FunctionReturnType, type OptionalRestArgs, type HttpMutationOptions, type FunctionKind } from "./api";
 import type { RegisteredFunction, QueryCtx, MutationCtx } from "./server";
 import { Pool } from "pg";
@@ -20,7 +12,6 @@ import { assertDataWritesNotFrozen, isDataWriteFreezeActive } from "../../runtim
 
 type Registered = RegisteredFunction;
 
-/** Load the server-only module graph only when a callable is invoked. */
 let registry: Record<string, Record<string, unknown>> | null = null;
 let registryLoad: Promise<Record<string, Record<string, unknown>>> | null = null;
 
@@ -51,11 +42,6 @@ const MAX_TRANSIENT_ATTEMPTS = 6;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Rerun `attempt` after a transient failure. Each attempt owns its own
- * checkout and transaction, so a rerun never sees the failed attempt's
- * writes. Frozen and permanent failures surface on the first attempt.
- */
 async function retryTransient<T>(attempt: (attempt: number) => Promise<T>, retryConnectionLoss = false): Promise<T> {
   for (let count = 1; ; count += 1) {
     try {
@@ -69,14 +55,12 @@ async function retryTransient<T>(attempt: (attempt: number) => Promise<T>, retry
   }
 }
 
-/** `POSTGRES_RUNTIME_TRACE=1` logs one line per function call: name, statements, elapsed. Feeds the release rehearsal's latency measurements. */
 const TRACE = process.env.POSTGRES_RUNTIME_TRACE === "1";
 function trace(kind: string, name: string, executor: SqlExecutor, startedAt: number, attempt = 1): void {
   if (!TRACE) return;
   console.info(`[postgres-runtime] ${kind} ${name} statements=${executor.statements} ms=${Math.round(performance.now() - startedAt)}${attempt > 1 ? ` attempt=${attempt}` : ""}`);
 }
 
-/** `ctx.storage` reads the R2 manifest (migration 0002); bytes never live in Postgres. */
 function storageFor(client: SqlExecutor) {
   return {
     async getUrl(storageId: string): Promise<string | null> {
@@ -87,14 +71,11 @@ function storageFor(client: SqlExecutor) {
 }
 
 const auth = {
-  /** No identity provider is configured on this handler context; handlers authenticate with API keys. */
   async getUserIdentity() {
     return null;
   },
 };
 
-
-/** Bind receipts to this pool's configured destination, never an ambient target. */
 function poolTargetIdentity(pool: Pool): string | undefined {
   const options = pool.options;
   if (!options || options.stream || options.Client) return undefined;
@@ -109,14 +90,11 @@ export class PostgresClient {
 
   constructor(private readonly pool: Pool) {
     this.targetIdentity = poolTargetIdentity(pool);
-    // The server closing an idle client (pooler idle timeout, failover) surfaces
-    // here after pg has already evicted it; unhandled, the event ends the process.
     pool.on("error", (error) => {
       console.error(`postgres: idle client closed: ${error.message}`);
     });
   }
 
-  /** Include opaque IDs in untyped handler arguments, since write proxies inspect them synchronously. */
   private candidateIds(value: unknown): string[] {
     const ids = new Set<string>();
     const seen = new Set<object>();
@@ -153,11 +131,6 @@ export class PostgresClient {
     await this.pool.end();
   }
 
-  /**
-   * One parameterized statement outside the callable surface, for the
-   * runtime-owned tables in `schema.runtime.ts` that no handler knows about.
-   * The bounded transaction preserves the statement's result and atomicity.
-   */
   async sql<Row extends Record<string, unknown>>(text: string, values: unknown[] = []): Promise<Row[]> {
     return retryTransient(async () => {
       const client = await this.pool.connect();
@@ -177,16 +150,10 @@ export class PostgresClient {
     });
   }
 
-  /**
-   * Runtime-owned producers must publish their derived metadata atomically.
-   * A transient failure reruns `operation` in a fresh transaction, so it must
-   * keep its effects inside the database.
-   */
   async sqlTransaction<T>(operation: (client: SqlClient) => Promise<T>): Promise<T> {
     return retryTransient(() => withTransaction(this.pool, operation));
   }
 
-  /** Resolve argument ids inside the callable's own transaction, so a call is one checkout and one snapshot. */
   private async prepareArguments(executor: SqlExecutor, name: string, fn: Registered, args: Record<string, unknown>): Promise<IdTableMap> {
     const idMap: IdTableMap = new Map();
     await this.resolveArgumentIds(executor, args, idMap);
@@ -199,8 +166,6 @@ export class PostgresClient {
     const { name, fn } = await resolveFunction(reference);
     if (!fn.isQuery) throw new Error(`${name} is not a query`);
     validateValue(fn.args, args, `${name} args`);
-    // A read-only transaction has no effect to duplicate, so a connection the
-    // server or network dropped mid-query reruns on a fresh checkout.
     return retryTransient(async (attempt) => {
       const client = await this.pool.connect();
       let lost: Error | undefined;
@@ -220,14 +185,12 @@ export class PostgresClient {
           throw error;
         }
       } finally {
-        // Passing the error destroys the client instead of returning it to the pool.
         client.release(lost);
       }
     }, true);
   }
 
   async mutation<Mutation extends FunctionReference<"mutation">>(reference: Mutation, ...rest: ArgsAndOptions<Mutation, HttpMutationOptions>): Promise<FunctionReturnType<Mutation>> {
-    // Refuse new writes; transactions admitted before a freeze still drain to completion.
     assertDataWritesNotFrozen(getFunctionName(reference));
     const args = (rest[0] ?? {}) as Record<string, unknown>;
     const { name, fn } = await resolveFunction(reference);

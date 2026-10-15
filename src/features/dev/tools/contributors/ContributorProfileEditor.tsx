@@ -30,29 +30,16 @@ import { MAX_BIO_LENGTH, MAX_LINKS, addAlias } from "./contributorsModel";
 import { changedProfileParts, joinProfileParts, moveLink, profileSaveBlocker, trustFlagChanges } from "./profileEditModel";
 import type { ContributorsController } from "./useContributorsController";
 
-/** Why a trust field is inert for an editor. Shown once per group, and as each control's title. */
 const ADMIN_ONLY_REASON = "Admin only: an editor can see this but not change it.";
 
 const SAVE_SHORTCUTS = [{ keys: "Cmd+S", label: "Save the open profile" }] as const;
 
 type HeadingLevel = "h3" | "h4" | "h5";
 
-/** The public contributor page for a key (keys are stored upper case; the page reads lower). */
 export function publicProfileHref(key: string): string {
   return `/contributors/${key.toLowerCase()}`;
 }
 
-/**
- * The contributor profile form, shared by Contributors, People and the public
- * artist page's contextual editor.
- *
- * Top to bottom: who it is (name, credit title, the linked account), the
- * picture, the bio, links, aliases, the admin-only settings, and a save dock
- * that sticks to the bottom of the screen while any of those is in view. The
- * curated orders and the identity operations follow the dock because each has
- * a save of its own; the operations are folded shut. A record the viewer may
- * not change opens read only, without a dock.
- */
 export function ContributorProfileEditor({
   controller,
   contextual = false,
@@ -66,19 +53,10 @@ export function ContributorProfileEditor({
   controller: ContributorsController;
   contextual?: boolean;
   onReview?: () => void;
-  /**
-   * Replaces the linked-account line. People draws the link beside the
-   * account it names, so it passes `null`; the Contributors tab keeps the
-   * read-only line that points there.
-   */
   linkedAccount?: ReactNode;
-  /** Heading tag for the editor's own sections; People nests it one deeper. */
   headingLevel?: HeadingLevel;
-  /** The key, last save and public page link above the form. Contributors draws them in its pane header instead. */
   showFacts?: boolean;
-  /** The tool's save sentence in the dock (Contributors, where the shell does not draw one). */
   showSaveLine?: boolean;
-  /** Cmd/Ctrl+S asks to save; one tool at a time may own the key. */
   saveShortcut?: boolean;
 }) {
   const {
@@ -158,7 +136,6 @@ export function ContributorProfileEditor({
     });
   };
 
-  // Cmd or Ctrl+S opens the same confirm Save does; it never saves past it.
   useDevShortcuts(SAVE_SHORTCUTS, saveShortcut && Boolean(detail) && canWrite);
   const askSaveRef = useRef(askSave);
   askSaveRef.current = askSave;
@@ -227,7 +204,6 @@ export function ContributorProfileEditor({
   return (
     <>
       {dialog}
-      {/* Fields scrolled to by focus keep clear of the sticky dock and the public header. */}
       <div className="space-y-8 [&_:is(input,button,textarea)]:scroll-mb-40 [&_:is(input,button,textarea)]:scroll-mt-28">
         {showFacts ? (
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -590,7 +566,6 @@ export function ContributorProfileEditor({
               >
                 {saving ? "Saving" : onReview ? "Preview publication" : "Save profile"}
                 {saveShortcut ? (
-                  // The wrapper hides the cap on touch screens; the kbd class sets its own display.
                   <span aria-hidden className="[@media(pointer:coarse)]:hidden">
                     <kbd className="theme-dev-kbd !text-current opacity-70">{saveKeyLabel}</kbd>
                   </span>
@@ -618,7 +593,6 @@ export function ContributorProfileEditor({
                 )}
               </p>
               {showSaveLine ? (
-                // Phones show it once there is something to save, so the resting dock stays one row.
                 <span className={cn("min-w-0 sm:ml-auto", !isProfileDirty && "max-sm:hidden")}>
                   <SaveLine model="instant" />
                 </span>
@@ -692,7 +666,6 @@ export function ContributorProfileEditor({
   );
 }
 
-/** "Key RIVER · Saved 3 days ago by …": where the record stands. */
 export function ProfileFacts({
   profile,
   canEdit,
@@ -725,7 +698,6 @@ export function ProfileFacts({
   );
 }
 
-/** The public contributor page, in a new tab. */
 export function PublicProfileLink({ profileKey, className }: { profileKey: string; className?: string }) {
   return (
     <a

@@ -6,7 +6,6 @@ import type { EmbedSelection } from "@/features/replications/embed/embedModel";
 
 export async function getEmbedCollection(selection: EmbedSelection, sourcePath: string) {
   const groups: Parameters<typeof buildEmbedCollection>[1] = [];
-  // Two collection reads share the existing four-connection pool.
   for (let offset = 0; offset < selection.slugs.length; offset += 2) {
     const resolved = await Promise.all(selection.slugs.slice(offset, offset + 2).map(async (slug) => {
       if (selection.kind === "substance") {

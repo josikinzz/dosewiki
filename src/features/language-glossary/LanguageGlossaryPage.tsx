@@ -52,11 +52,6 @@ const STATUS_MESSAGE: Record<PublicGlossaryProvenance, string> = {
   missing: "languageGlossary.status.missing",
 };
 
-/**
- * The public, contributable glossary for one language. Terms that still need
- * a person come first; clicking a term opens its suggestion box in place, and
- * every suggestion goes to the language's reviewers in the dev tools.
- */
 export function LanguageGlossaryPage({
   language,
   entries,
@@ -69,13 +64,11 @@ export function LanguageGlossaryPage({
   entries: PublicGlossaryEntry[];
   usages: GlossaryUsageMap;
   readiness?: { state: string; href: string; glossaryHref: string };
-  /** The people credited for this language; the block is omitted when empty. */
   credits?: readonly PublicTranslationCredit[];
 }) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState<PublicGlossaryProvenance | "all">("all");
-  // One suggestion box at a time keeps the list readable and loads one captcha.
   const [openTerm, setOpenTerm] = useState<string | null>(null);
   const t = useT();
   const query = search.trim().toLocaleLowerCase(language.code);
@@ -273,11 +266,6 @@ export function LanguageGlossaryPage({
   );
 }
 
-/**
- * The standing invitation above the list: suggestions are welcome here, and
- * the way to make one is the suggest button on any term. The reference page
- * has no per-term buttons, so its copy points at the language glossaries.
- */
 function ContributeCallout({ reference }: { reference: boolean }) {
   const t = useT();
   return (

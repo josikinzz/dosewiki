@@ -16,8 +16,6 @@ export async function publicReadIndexReady(ctx: QueryCtx, name: PublicReadIndexN
 }
 
 export function galleryCandidateKeys(row: Doc<"replications">): string[] {
-  // Deliberately over-select. The canonical pure policy makes every admission
-  // decision at read time, including combinations and publication suppression.
   return [...new Set([
     `slug:${row.slug}`,
     ...titleDrugRoutesOf(row).map((slug) => `drug:${slug}`),
@@ -48,7 +46,6 @@ export async function syncGalleryCandidates(ctx: MutationCtx, id: Id<"replicatio
       await ctx.db.delete(previous._id);
       continue;
     }
-    // Replace clears removed optional policy fields as well as changed values.
     await ctx.db.replace(previous._id, { candidate_key: previous.candidate_key, ...projection });
   }
   if (projection) for (const candidate_key of wanted) {

@@ -9,11 +9,6 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { ReplicationsTabNav } from "@/features/replications/components/ReplicationsTabNav";
 import { t } from "@/i18n/server";
 
-/**
- * Tutorial titles and authors are the works as their authors named them, so
- * they stay in the source language on every mirror; only the page's own
- * sentences translate.
- */
 const TUTORIALS = [
   {
     title: "Symmetrical Texture Repetition",
@@ -60,10 +55,7 @@ export async function getReplicationTutorialsMetadata(locale: LiveLocale | null 
   });
 }
 
-/** The Tutorials tab, shared by the English route and every locale mirror. */
 export function ReplicationTutorialsRoute() {
-  // One key per sentence; each link is spliced back in at its placeholder so
-  // a translation can move it.
   const [footageBefore, footageAfter] = t(
     "For a collection of high res royalty free nature stock footage that can be used within replication videos, please {{link}}",
   ).split("{{link}}");

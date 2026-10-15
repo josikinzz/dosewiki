@@ -9,23 +9,13 @@ import type {
   CoverageContentStatus,
 } from "./coverageModel";
 
-/**
- * Cell tone.
- *
- * The table exists to find gaps, so gaps are what carry colour. A section that
- * is written and cited is the unremarkable case and recedes to a quiet mark —
- * 4,600 cells of green would drown the handful of cells worth acting on.
- */
 export type CoverageTone = "success" | "warning" | "quiet" | "blank";
 
 export interface CoverageStatusDisplay {
   label: string;
-  /** Shown in the legend, and as the cell tooltip. */
   description: string;
   tone: CoverageTone;
-  /** Omitted for statuses drawn as a plain mark rather than an icon. */
   glyph?: CoverageGlyphKey;
-  /** Character drawn when there is no glyph. */
   mark?: string;
 }
 
@@ -78,11 +68,6 @@ export const COVERAGE_CITATION_DISPLAY: Record<
   },
 };
 
-/**
- * The stub column, reusing the warning vocabulary rather than inventing a
- * status of its own. A non-stub article is the unremarkable case and draws
- * nothing, matching how `not-applicable` recedes in the citation view.
- */
 export const COVERAGE_STUB_DISPLAY: Record<
   "stub" | "complete",
   CoverageStatusDisplay
@@ -100,11 +85,6 @@ export const COVERAGE_STUB_DISPLAY: Record<
   },
 };
 
-/**
- * The manual review column. Reviewed articles are the ones worth celebrating
- * — with most of the corpus still waiting, colouring the unreviewed majority
- * would drown the table, so the finished state carries the mark instead.
- */
 export const COVERAGE_REVIEW_DISPLAY: Record<
   "reviewed" | "unreviewed",
   CoverageStatusDisplay
@@ -124,7 +104,6 @@ export const COVERAGE_REVIEW_DISPLAY: Record<
   },
 };
 
-/** Why the stub policy flagged an article, phrased for a cell tooltip. */
 export const COVERAGE_STUB_REASON_LABEL: Record<ArticleStubReason, string> = {
   "missing-sections": `${STUB_THRESHOLD} or more editorial sections empty`,
   "no-dosage": "no dosage or duration data",
@@ -149,7 +128,6 @@ export const COVERAGE_BIBLIOGRAPHY_DISPLAY: Record<
   },
 };
 
-/** Text colour per tone, via the shared `dose-*` token aliases. */
 export const COVERAGE_TONE_CLASS: Record<CoverageTone, string> = {
   success: "text-dose-success",
   warning: "text-dose-warning",

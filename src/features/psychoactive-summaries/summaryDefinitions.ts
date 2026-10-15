@@ -58,17 +58,6 @@ export interface PsychoactiveSummaryDefinition {
   seeAlso: readonly PsychoactiveSummarySeeAlso[];
 }
 
-/**
- * The five summary pages, sourced from `content/taxonomy/psychoactive-summaries.json`.
- *
- * Reader-visible prose in that file (`title`, `metadataTitle`,
- * `metadataDescription`, `intro[].html`, `sections[].title`,
- * `sections[].definitionHtml`, `seeAlso[].label`) is a UI message key:
- * `PsychoactiveSummaryPage` renders it through `t()`, so the mirror sees it in
- * its own language while the English stays the only source. The HTML inside a
- * key is part of the key. `scripts/translation/ui-catalog-sources.ts` walks the
- * same fields to keep the catalog in step.
- */
 export const PSYCHOACTIVE_SUMMARY_DEFINITIONS: readonly PsychoactiveSummaryDefinition[] =
   summariesSource as PsychoactiveSummaryDefinition[];
 

@@ -44,8 +44,7 @@ export function ExternalSourcePill({
       className={cn(
         "theme-external-source-pill group relative ring-1 transition",
         isCredit
-          ? // Credit copy is a sentence: lay it out as wrapping inline text so
-            // the attribution reads in flow instead of on its own row.
+          ?
             "block w-full max-w-full rounded-card px-3 py-2 leading-5 sm:w-auto"
           : "flex h-7 items-center gap-1.5 rounded-full px-3",
         className,

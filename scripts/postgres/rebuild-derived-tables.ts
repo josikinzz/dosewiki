@@ -1,18 +1,3 @@
-/**
- * Rebuild derived tables on an explicitly selected Postgres target.
- * Drives owned backfill mutations through `PostgresClient`, paging each until
- * `isDone`. Runs through the production write command: without `--write` it
- * prints the backfill plan and opens no connection. A write needs
- * DATA_BACKEND=postgres, an explicit `--target` or TARGET_POSTGRES_URL,
- * `--confirm-write=postgres-rebuild-derived`, and the expected
- * `<host>/<database>` fingerprint; non-loopback hosts also need
- * `--allow-remote` and POSTGRES_IMPORT_CONFIRM. `DATA_WRITES_FROZEN=1` refuses
- * before any connection, and the runtime freeze still guards every mutation.
- *
- *   bun scripts/postgres/rebuild-derived-tables.ts --target <url>
- *   bun scripts/postgres/rebuild-derived-tables.ts --target <url> --write \
- *     --confirm-write=postgres-rebuild-derived --expected-deployment=<host/database> [--allow-remote]
- */
 import { makeFunctionReference } from "../../lib/postgres/runtime/api";
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { authorizeProductionWrite, createProductionWriteCommand, executeProductionWrite } from "../lib/production-write-command.mjs";

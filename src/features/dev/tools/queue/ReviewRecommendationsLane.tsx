@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * Change Review's Review recommendations view (admins only): editors'
- * "Recommended reviewed" records, approved many at a time behind one confirm.
- * Approval writes `completed` at the revision each recommendation covered. A
- * stale recommendation (the article was published again since) cannot be
- * selected; it links to /review for a fresh read instead.
- *
- * A task link (`/dev/queue?recommendation=<slug>`, as the Inbox opens one)
- * picks its recommendation out: the row is marked and scrolled into view, and
- * ticked when it can be approved. Approving still asks first. A link whose
- * recommendation is gone says so rather than showing the lane as if nothing
- * was asked for.
- */
-
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -65,7 +51,6 @@ function approvalNotice(outcome: RecommendationApproval): NoticeMessage {
 
 export type ReviewRecommendationsLaneProps = {
   linkedSlug?: string | null;
-  /** How many are ready to approve once the list loads; null while unknown. */
   onReadyCountChange?: (count: number | null) => void;
 };
 
@@ -79,7 +64,6 @@ export function ReviewRecommendationsLane({ linkedSlug = null, onReadyCountChang
   const loadVersion = useRef(0);
   const { confirm, dialog } = useConfirm();
   const { frozen } = useWriteFreeze();
-  /** Whether the linked recommendation was found on the first list: null until it loads. */
   const [linkFound, setLinkFound] = useState<boolean | null>(null);
   const linkApplied = useRef(false);
   const readyCountRef = useRef(onReadyCountChange);
@@ -95,7 +79,6 @@ export function ReviewRecommendationsLane({ linkedSlug = null, onReadyCountChang
       const next = await fetchReviewRecommendations();
       if (version !== loadVersion.current) return;
       setRows(next);
-      // A selection never outlives its row or survives the row going stale.
       const approvable = new Set(next.filter((row) => !row.stale).map((row) => row.slug));
       setSelected((previous) => new Set([...previous].filter((slug) => approvable.has(slug))));
       if (linkedSlug && !linkApplied.current) {
@@ -112,7 +95,6 @@ export function ReviewRecommendationsLane({ linkedSlug = null, onReadyCountChang
     }
   }, [linkedSlug]);
 
-  // Bring the linked row into view once it is on screen.
   useEffect(() => {
     if (!linkFound || !linkedSlug) return;
     const rowId = `recommendation-${linkedSlug}`;
@@ -172,7 +154,6 @@ export function ReviewRecommendationsLane({ linkedSlug = null, onReadyCountChang
       description:
         "Each article is signed off at the version the editor recommended, with you as the reviewer, and shows as reviewed on the public site. An article published again since then is left for another review.",
       confirmLabel: `Approve ${items.length}`,
-      // Who recommended each one and why stay in view at the moment of sign-off.
       body: (
         <ul className="theme-dev-link-list max-h-64 overflow-y-auto text-sm">
           {items.map((row) => (
@@ -324,11 +305,6 @@ function RecommendationGroup({ label, count, children }: { label: string; count:
   );
 }
 
-/**
- * One recommendation: the tick, the article, who recommended it and when,
- * their note, and a way to read the article in Review first. A stale one is
- * marked and offers only another review.
- */
 function RecommendationRow({
   row,
   linked,

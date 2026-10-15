@@ -1,24 +1,5 @@
 "use client";
 
-/**
- * Substance picker for the gallery curation portal.
- *
- * The trigger is the current substance; behind it sits a searchable flat list
- * with a curated dot and a `N matches · M curated` right rail on every row.
- *
- * The addition over the old inline combobox is the **needs-curation worklist**:
- * a toggle that drops every substance with stored curation and orders the rest
- * by match count, so the picker stops being a directory and becomes the queue
- * an editor actually works down. In that mode the dot (uniformly "never
- * curated") is replaced by the row's 1-based queue position.
- *
- * `status` drives the trigger: while the batched substance read walks the
- * whole article table the trigger renders disabled rather than not at all,
- * because a toolbar that appears late shifts everything beside it. When that
- * read fails the trigger stays disabled and says so; the retry lives in the
- * notice beside it, never a spinner next to a failure.
- */
-
 import { useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -47,7 +28,6 @@ function matchLabel(candidate: GalleryCandidate): string {
 export function GalleryPicker({ candidates, currentSlug, onSelect, status }: GalleryPickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  /** Session-only: a queue you are working down should not survive a reload. */
   const [worklistOnly, setWorklistOnly] = useState(false);
 
   const current = candidates.find((candidate) => candidate.slug === currentSlug) ?? null;
@@ -137,8 +117,6 @@ export function GalleryPicker({ candidates, currentSlug, onSelect, status }: Gal
               variant={worklistOnly ? "pillActive" : "pill"}
               size="chip"
               aria-pressed={worklistOnly}
-              // Keep the caret in the search field: the toggle narrows the list
-              // you are already typing against.
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => setWorklistOnly((active) => !active)}
             >

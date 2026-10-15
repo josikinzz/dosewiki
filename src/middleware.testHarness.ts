@@ -1,7 +1,6 @@
 import { vi } from "vitest";
 import { NextRequest } from "next/server";
 
-/** An editor-build request on the admin deployment host. */
 export function makeRequest(path: string): NextRequest {
   vi.stubEnv("NEXT_PUBLIC_EDITOR_BUILD", "true");
   return new NextRequest(
@@ -11,7 +10,6 @@ export function makeRequest(path: string): NextRequest {
   );
 }
 
-/** A public-build request on dose.wiki. */
 export function makePublicRequest(
   path: string,
   headers: Record<string, string> = {},

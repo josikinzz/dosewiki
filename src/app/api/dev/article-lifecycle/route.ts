@@ -35,7 +35,6 @@ export const POST = protectedRouteOperation<Body, Parsed>({
     if (typeof raw.slug !== "string" || !slugPattern.test(raw.slug)) throw new JsonBodyError(400, "A valid article slug is required.");
     if (typeof raw.baseHash !== "string" || !raw.baseHash || typeof raw.changeId !== "string" || !raw.changeId) throw new JsonBodyError(400, "The loaded base revision and a stable change ID are required.");
     if (raw.draftVersion !== undefined && (typeof raw.draftVersion !== "number" || !Number.isInteger(raw.draftVersion) || raw.draftVersion < 0)) throw new JsonBodyError(400, "The draft version must be a non-negative integer.");
-    // Only the feedback id and section travel: anything else a client adds is dropped here.
     const carriesFeedback = raw.action === "submit" || raw.action === "publish";
     const feedbackRef = carriesFeedback ? readFeedbackRef(raw.feedbackRef) : undefined;
     if (carriesFeedback && raw.feedbackRef !== undefined && raw.feedbackRef !== null && !feedbackRef) throw new JsonBodyError(400, "The reader feedback reference is not valid.");

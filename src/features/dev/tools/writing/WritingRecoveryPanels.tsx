@@ -13,20 +13,11 @@ function fieldText(value: unknown): string {
   return typeof value === "string" ? value || "Empty" : JSON.stringify(value, null, 2);
 }
 
-/** The fields one side's carried changes touched, in words, once each. */
 function changedFields(paths: string[], fieldLabels: Record<keyof WritingDraft, string>): string {
   const labels = [...new Set(paths.map((path) => fieldLabels[path as keyof WritingDraft] ?? path))];
   return labels.join(", ");
 }
 
-/**
- * The browser recovery copy of the open record, when one outlived the page,
- * and the merge review a newer saved version opens: the offer to restore or
- * discard a copy, then, for a copy made against an older saved version or a
- * reload under open edits, what each side changed. Fields only one side
- * changed are already in the draft; each field both changed shows both
- * versions and waits for a choice. Nothing here writes to the server.
- */
 export function WritingRecoveryPanels({
   controller,
   fieldLabels,
@@ -100,7 +91,6 @@ export function WritingRecoveryPanels({
   return null;
 }
 
-/** When the open record was last kept: in this browser while unsaved, or on the server once saved. */
 export function WritingSaveTime({ controller }: { controller: WritingWorkbenchController }) {
   const text = controller.isDirty && controller.checkpointSavedAt !== null
     ? `Unsaved changes kept in this browser at ${formatCheckpointTime(controller.checkpointSavedAt)}. Only you can restore them here.`

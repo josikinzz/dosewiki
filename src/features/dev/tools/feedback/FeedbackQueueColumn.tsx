@@ -31,11 +31,6 @@ export const SORT_LABELS: Record<QueueSort, string> = {
   importance: "By importance",
 };
 
-/**
- * Seven statuses in a four-column grid (waiting work, then the decided
- * history), label over count, so every choice shows on a phone without a
- * sideways scroll. A count that is not known yet is left off, never zero.
- */
 export function FeedbackStatusChoices({
   value,
   counts,
@@ -118,15 +113,9 @@ export type FeedbackColumnProps<Item extends FeedbackQueueItem> = {
   moreError: string | null;
   onDismissMoreError: () => void;
   ready: boolean;
-  /** A failed read, drawn where the list would be; rows already loaded stay under it. */
   error: ReactNode;
 };
 
-/**
- * The list column: the count and Refresh, the status choices, search and
- * order, the bulk bar, the windowed list, and the paging line. Sticky beside
- * the review pane from `lg`.
- */
 export function FeedbackQueueColumn<Item extends FeedbackQueueItem>(props: FeedbackColumnProps<Item>) {
   const {
     listRef,
@@ -398,11 +387,6 @@ function ListSkeleton({ noun }: { noun: string }) {
   );
 }
 
-/**
- * Two lines at one pitch for the windowed list: the title with its
- * importance (and status, when the filter spans statuses), then category,
- * age, who holds it, and the start of what the reader wrote.
- */
 function QueueRow({
   row,
   active,

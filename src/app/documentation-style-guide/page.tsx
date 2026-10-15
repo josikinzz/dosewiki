@@ -23,7 +23,6 @@ export async function generateMetadata() {
 }
 
 export default function DocumentationStyleGuideRoute() {
-  // Flavor gate first: on the dose.wiki build this route does not exist.
   requireEffectIndexFlavor();
 
   return <DocumentationStyleGuidePage />;

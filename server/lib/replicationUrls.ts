@@ -2,28 +2,14 @@ function isPlaceholderStorageId(storageId?: string | null) {
   return !storageId || storageId.startsWith("placeholder-");
 }
 
-/**
- * Canonical content-addressed archive key: `media/sha256/<first-two-hex>/<sha256>.<ext>`.
- * The shard directory must repeat the digest's first two hex characters, so a
- * traversal segment, a foreign prefix, uppercase hex, or a mis-sharded key all
- * fail the same single test.
- */
 const R2_KEY_PATTERN = /^media\/sha256\/([0-9a-f]{2})\/([0-9a-f]{64})\.[a-z0-9]{2,5}$/;
 
-/** True only for a well-formed key inside the media/sha256/ namespace. */
 export function isValidR2Key(key?: string | null): key is string {
   if (!key) return false;
   const match = R2_KEY_PATTERN.exec(key);
   return match !== null && match[2].startsWith(match[1]);
 }
 
-/**
- * Delivery hostname for R2-backed media, configured through the trusted server
- * process's REPLICATION_MEDIA_BASE_URL environment variable. Unset or malformed
- * means R2 keys are ignored and resolution uses the native storage manifest
- * and the stored direct URLs instead.
- * HTTPS only; trailing slashes are normalized away so key joins are stable.
- */
 export function replicationMediaBaseUrl(
   env: Record<string, string | undefined> = process.env,
 ): string | null {
@@ -32,11 +18,6 @@ export function replicationMediaBaseUrl(
   return raw;
 }
 
-/**
- * Resolve R2 first when configured, then native storage, then preserve the
- * row's direct-URL fallbacks (main and thumbnail only; preview and motion
- * variants deliberately have no direct-URL fallback).
- */
 export async function resolveReplicationUrls(
   ctx: { storage: { getUrl: (storageId: string) => Promise<string | null> } },
   rep: {
@@ -70,7 +51,6 @@ export async function resolveReplicationUrls(
     try {
       url = await ctx.storage.getUrl(rep.storage_id);
     } catch {
-      // Invalid or missing storage IDs fall through to the direct URL.
     }
   }
   if (!url && rep.url) url = rep.url;
@@ -84,7 +64,6 @@ export async function resolveReplicationUrls(
         try {
           thumbnail_url = await ctx.storage.getUrl(rep.thumbnail_storage_id!);
         } catch {
-          // Invalid or missing storage IDs fall through to the direct URL.
         }
       }
     }
@@ -97,7 +76,6 @@ export async function resolveReplicationUrls(
       try {
         preview_url = await ctx.storage.getUrl(rep.preview_storage_id!);
       } catch {
-        // Preview URLs deliberately have no direct-URL fallback.
       }
     }
   }
@@ -108,7 +86,6 @@ export async function resolveReplicationUrls(
       try {
         motion_url = await ctx.storage.getUrl(rep.motion_storage_id!);
       } catch {
-        // Motion renditions deliberately have no direct-URL fallback.
       }
     }
 
@@ -117,7 +94,6 @@ export async function resolveReplicationUrls(
       try {
         motion_poster_url = await ctx.storage.getUrl(rep.motion_poster_storage_id!);
       } catch {
-        // Motion posters deliberately have no direct-URL fallback.
       }
     }
   }
@@ -125,12 +101,10 @@ export async function resolveReplicationUrls(
   return { url, thumbnail_url, preview_url, motion_url, motion_poster_url };
 }
 
-/** A per-invocation storage URL reader; the unit `resolveReplicationUrls` reads through. */
 export interface StorageUrlReader {
   storage: { getUrl: (storageId: string) => Promise<string | null> };
 }
 
-/** Resolve each distinct storage ID at most once during one query invocation. */
 export function memoizedStorageUrls(ctx: StorageUrlReader): StorageUrlReader {
   const cache = new Map<string, Promise<string | null>>();
   return {

@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications/audio`, reached only through
- * the middleware rewrite from `zh.dose.wiki/replications/audio`. Same tab over
- * the localized effect names; `noindex` with a canonical link to the English
- * tab.
- */
 import {
   getReplicationAudioMetadata,
   ReplicationAudioRoute,

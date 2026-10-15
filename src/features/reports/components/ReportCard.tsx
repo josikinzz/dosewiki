@@ -13,9 +13,6 @@ interface ReportCardProps {
   surfaceTone?: TripReportCardSurfaceTone;
 }
 
-/**
- * Compatibility wrapper for report list cards.
- */
 export const ReportCard = memo(function ReportCard({
   report,
   href,

@@ -30,11 +30,6 @@ import type { LayoutSlot, MoveDirection } from "./layoutOps";
 import type { LayoutMoveRequest } from "./LayoutMoveDialog";
 import type { RowPlace } from "./LayoutDrugRow";
 
-/**
- * One 28px trigger (44px halo on touch), quiet at rest and full strength on
- * hover, focus or while open. Always drawn: it is the only way into a
- * category's or section's operations, so it never hides.
- */
 const HANDLE_CLASS = cn(
   "theme-text-faint h-7 w-7 shrink-0 rounded-control p-0 transition-colors hover:text-dose-text group-hover:text-dose-text data-[state=open]:text-dose-text",
   TOUCH_HALO,
@@ -42,14 +37,10 @@ const HANDLE_CLASS = cn(
 
 export interface BoardActions {
   destinations: readonly BoardDestination[];
-  /** Substances not yet placed anywhere in this dataset, for the add rows. */
   addOptions: readonly SearchablePickerOption[];
-  /** "Psychedelic, Common" for a list; the board names rows and moves with it. */
   listName: (slot: LayoutSlot) => string;
   onBump: (slot: LayoutSlot, slug: string, direction: MoveDirection) => void;
-  /** Move to the top or the end of its own list. */
   onPlace?: (slot: LayoutSlot, slug: string, place: RowPlace) => void;
-  /** Opens the list picker (the phone's way to do what a drag does). */
   onRequestMove: (request: LayoutMoveRequest) => void;
   onMove: (from: LayoutSlot, slug: string, to: LayoutSlot) => void;
   onRemoveSlug: (slot: LayoutSlot, slug: string) => void;
@@ -67,11 +58,9 @@ export interface BoardActions {
   onRemoveSection: (categoryKey: string, sectionKey: string) => void;
   onUpdateCategory: (categoryKey: string, patch: { label?: string; iconKey?: string }) => void;
   onRemoveCategory: (categoryKey: string) => void;
-  /** True for a row this session's working changes put where it is (moved, added or reordered). */
   isChanged?: (slot: LayoutSlot, slug: string) => boolean;
 }
 
-/** Name a section, or rename one. */
 function NameDialog({
   open,
   onOpenChange,
@@ -136,7 +125,6 @@ function NameDialog({
   );
 }
 
-/** Category name and icon, with the glyph previewed as the key resolves. */
 function CategoryIdentityDialog({
   open,
   onOpenChange,
@@ -222,7 +210,6 @@ function CategoryIdentityDialog({
   );
 }
 
-/** Everything you can do to one category, behind one trigger. */
 export function CategoryMenu({ category, actions }: { category: BoardCategory; actions: BoardActions }) {
   const [dialog, setDialog] = useState<"identity" | "section" | null>(null);
 
@@ -299,16 +286,10 @@ export function CategoryMenu({ category, actions }: { category: BoardCategory; a
   );
 }
 
-/** A disabled menu entry keeps its reason in sight, not in a hover title. */
 function MenuReason({ children }: { children: string }) {
   return <span className="theme-text-faint mt-0.5 block text-xs font-normal">{children}</span>;
 }
 
-/**
- * Everything you can do to one section. Common and Other are pinned by the
- * page's own ordering rule, so their move entries carry the reason instead of
- * disappearing.
- */
 export function SectionMenu({
   categoryKey,
   categoryLabel,

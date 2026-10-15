@@ -15,10 +15,6 @@ import { describeWriteRefusal } from "./glossaryModel";
 import { ChoiceGrid, ResultNotice, RowSkeletons, SearchField } from "./workbenchParts";
 import type { CorrectionReasonKind } from "@lib/translation/reviewReason";
 
-/**
- * What each label state is called, in the workbench's one vocabulary: the
- * pills, the counts line and the legend use the same words.
- */
 export const UI_STATUS_LABEL: Record<UiTranslationRow["status"], string> = {
   stale: "English changed",
   draft: "Unreviewed",
@@ -34,7 +30,6 @@ export const UI_STATUS_TONE: Record<UiTranslationRow["status"], EditorStatusPill
   missing: "neutral",
 };
 
-/** Unsaved work per label, kept across search and pagination: wording, note, reason kind, and "Fine here" choices. */
 export type UiEditDrafts = Map<string, { target: string; reason: string; kind?: CorrectionReasonKind | null; exceptions?: string[] }>;
 
 const endpoint = "/api/dev/translation-workbench";
@@ -44,11 +39,8 @@ type Mode = "cards" | "short" | "refresh";
 
 export function UiTranslationWorkbench({ locale, editDrafts, initialSearch = "", search: sharedSearch, onSearchChange, searchRef, onWaitingChange }: {
   locale: string; editDrafts?: UiEditDrafts; initialSearch?: string;
-  /** A search owned by the page (Terms and Interface text share one); the field here then edits that one search. */
   search?: string; onSearchChange?: (search: string) => void;
-  /** The search field, so the page's `/` key can focus it. */
   searchRef?: RefObject<HTMLInputElement | null>;
-  /** How many labels still want a person, for the view's tab; null while unknown. */
   onWaitingChange?: (waiting: number | null) => void;
 }) {
   const localEdits = useRef<UiEditDrafts>(new Map());
@@ -149,7 +141,6 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
   const inFlight = useRef(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- correctionOf reads the same edits entry keyed by editKey.
   useEffect(() => { setTarget(edits.get(editKey)?.target ?? row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? ""); setCorrection(correctionOf()); }, [row, edits, editKey]);
-  // Typing back to the stored wording with no reason is no unsaved work, so the entry goes.
   const remember = (nextTarget: string, next: CorrectionDraft) => {
     const untouched = nextTarget === (row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "") && !next.kind && !next.note && !next.exceptions.length;
     if (untouched) edits.delete(editKey);
@@ -168,7 +159,6 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
     ...(restoreRevision === undefined ? {} : { restoreRevision }),
     reason: reasonFor(correction, action === "save" ? "Saved the wording as it stands." : action === "approve" ? "Reviewed wording in its UI context." : `Restore revision ${restoreRevision} for review.`),
   })).row;
-  /** Save and approve saves first, then approves exactly the revision that save produced. */
   const write = async (action: "save" | "approve" | "restore" | "save-approve", restoreRevision?: number) => {
     if (inFlight.current) return;
     inFlight.current = true; setBusy(true); setNotice(null);
@@ -184,7 +174,6 @@ function UiLabel({ locale, row, update, edits }: { locale: string; row: UiTransl
       setNotice({ tone: "success", message: action === "approve" || action === "save-approve" ? "Approved. It goes live with the next site release." : action === "restore" ? "Restored as a draft. Review the wording before approving." : "Draft saved. The approved wording is unchanged." });
     } catch (cause) {
       setNotice({ tone: "danger", message: describeWriteRefusal(cause, "The change was not saved.").message });
-      // Keep the typed rendering on errors; a stale revision must be deliberately reviewed.
       throw cause;
     } finally { inFlight.current = false; setBusy(false); }
   };

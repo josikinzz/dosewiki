@@ -1,12 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/confirm
- *   { locale, terms: string[], expectedRevisions, reason?, collisionConfirmation? }
- *
- * Translator and up. Confirms live wording nobody has checked, unchanged, at
- * the revision the reviewer saw: each term gains a human approval in review
- * history. The wording already reaches prompts and the public glossary, so a
- * confirmation changes no prompt digest and queues no retranslation.
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

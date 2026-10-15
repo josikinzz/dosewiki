@@ -4,9 +4,6 @@ interface ListProps {
   ordered?: boolean;
 }
 
-/**
- * Ordered or unordered list.
- */
 export function List({ ordered = false, children }: PropsWithChildren<ListProps>) {
   const Component = ordered ? "ol" : "ul";
   const listClass = ordered
@@ -20,9 +17,6 @@ export function List({ ordered = false, children }: PropsWithChildren<ListProps>
   );
 }
 
-/**
- * List item.
- */
 export function ListItem({ children }: PropsWithChildren) {
   return (
     <li className="leading-[1.72]">

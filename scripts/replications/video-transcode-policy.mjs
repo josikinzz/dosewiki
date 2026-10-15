@@ -6,24 +6,10 @@ import { hasFlag } from "../lib/data-ops-run-context.mjs";
 
 const OPERATION = "transcode-replication-videos";
 
-// ---------------------------------------------------------------------------
-// Master preservation
-// ---------------------------------------------------------------------------
-
-/** Where a given source file's master must live inside the archive, mirroring subdirectories. */
 export function resolveMasterPath(sourcePath, sourceDir, mastersDir) {
   return path.join(mastersDir, path.relative(sourceDir, sourcePath));
 }
 
-/**
- * The hard precondition. Encoding is irreversible for the delivered file, so no
- * file is touched until its master is accounted for.
- *
- * `conflict` is deliberately terminal: an archive entry that exists with a
- * different size is either a different cut or a truncated copy, and overwriting
- * it to "fix" the mismatch is exactly the destructive act this guard exists to
- * prevent.
- */
 export function classifyPreservation({
   inPlace,
   masterExists,
@@ -45,10 +31,6 @@ export function classifyPreservation({
   };
 }
 
-/**
- * Refuse any layout where the run could write over its own inputs or into the
- * archive. Checked once, up front, before a single frame is decoded.
- */
 export function assertOutputSafety({ sourceDir, mastersDir, outputDir }) {
   const within = (child, parent) => {
     const relative = path.relative(parent, child);
@@ -83,10 +65,6 @@ export function sha256File(filePath) {
   return hash.digest("hex");
 }
 
-// ---------------------------------------------------------------------------
-// Tool discovery
-// ---------------------------------------------------------------------------
-
 export function assertToolsAvailable(runner = spawnSync) {
   const missing = [];
   for (const bin of ["ffmpeg", "ffprobe"]) {
@@ -100,7 +78,6 @@ export function assertToolsAvailable(runner = spawnSync) {
   }
 }
 
-/** Local gate. This script performs no Postgres write, so the deployment ceremony does not apply. */
 export function assertTranscodeAllowed(command, argv) {
   if (!command?.writeRequested) {
     throw new Error(`${OPERATION} requires --write to encode anything.`);
@@ -113,14 +90,6 @@ export function assertTranscodeAllowed(command, argv) {
   }
 }
 
-/**
- * Does a rendition at `outputPath` count as finished work to skip?
- *
- * Pure so the resumption rule is testable without encoding anything. It is
- * deliberately strict: `moov` at the head is what makes a truncated file look
- * healthy to a probe, so structural completeness and a duration that matches
- * the master are both required before a file is trusted.
- */
 export function isCompletedRendition(outputProbe, { expectedDurationSeconds = null, tolerance = 0.05 } = {}) {
   if (!outputProbe?.video?.width) return { complete: false, reason: "no decodable video stream" };
   if (outputProbe.truncated) return { complete: false, reason: "file is truncated (a box runs past EOF)" };

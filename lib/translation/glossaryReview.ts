@@ -1,4 +1,3 @@
-/** Human drafts are separate from the effective glossary until explicitly approved. */
 import "server-only";
 import { getPostgresClient } from "@server/postgres/runtime/backend";
 import { assertDataWritesNotFrozen } from "../runtime/dataWriteFreeze";
@@ -55,7 +54,6 @@ export function projectGlossaryReviewRows(
       source: review ? "human" : row.source,
       revision: glossaryRevision(row, review),
       approved_target: row.status === "approved" ? row.target : null,
-      // Legacy metadata is not proof that a human explicitly reviewed these exact bytes.
       review_provenance:
         humanApprovals.has(row.term) &&
         review?.approved &&
@@ -82,10 +80,6 @@ export async function readGlossaryReviewRows(
     await humanApprovedTerms(locale, rows),
   );
 }
-/**
- * Terms whose current effective row matches the newest recorded human
- * approval: same target, approved by the actor the row names.
- */
 async function humanApprovedTerms(
   locale: string,
   rows: readonly TranslationGlossaryRow[],
@@ -113,19 +107,13 @@ export { readReviewHistory as readGlossaryReviewHistory };
 type GlossaryMutation = {
   term: string;
   expectedRevision: string;
-  /**
-   * `confirm` records a human approval of live wording nobody has checked
-   * (`legacy_unverified`), exactly as it stands. It takes no target.
-   */
   action: "save" | "approve" | "restore" | "confirm";
   target?: string;
   restoreRevision?: number;
   kind?: string;
-  /** This change's history reason, when it differs from the batch reason. */
   reason?: ReviewReason | string;
 };
 
-/** Confirm reached a row that is a draft, already checked, or not live. */
 export class GlossaryNotUncheckedError extends TranslationReviewError {
   constructor(term: string) {
     super(
@@ -141,7 +129,6 @@ export async function mutateGlossaryReview(
   changes: GlossaryMutation[],
   actor: string,
   collisionConfirmation?: string,
-  /** The reviewer's chosen reason; callers that offer no choice keep the old default. */
   reason: ReviewReason | string = "Glossary review",
 ): Promise<GlossaryReviewRow[]> {
   assertDataWritesNotFrozen("mutateGlossaryReview");
@@ -170,7 +157,6 @@ export async function mutateGlossaryReview(
         checked.has(row.term))
     )
       throw new GlossaryNotUncheckedError(row.term);
-    // Confirm passes the same shared-rendering guard as Approve.
     if (change.action === "approve" || change.action === "confirm")
       candidates.push({
         term: row.term,
@@ -218,10 +204,6 @@ export async function mutateGlossaryReview(
         seedApproved: snapshot(row),
         seedDraft: snapshot(row),
         beforeTransition: lockRow(row),
-        // The wording and kind are unchanged, so the prompt digest is too.
-        // Only the reviewer is recorded: `reviewed_at` keeps meaning "this
-        // rendering last changed", so a confirmation never queues a
-        // retranslation.
         onApprove: async (tx, approved) => {
           if (approved.target !== row.target || approved.context !== row.kind)
             throw new TranslationReviewConflictError();
@@ -260,8 +242,6 @@ export async function mutateGlossaryReview(
       .map((_, i) => i)
       .sort((a, b) => inputs[a].sourceId.localeCompare(inputs[b].sourceId))) {
       const review = reviews.get(inputs[i].sourceId);
-      // An existing review entry without a draft has nothing to approve, so
-      // confirming first saves the live wording as the draft it approves.
       if (changes[i].action === "confirm" && review) {
         await mutateReviewEntryInTransaction(
           tx,
@@ -279,16 +259,6 @@ export async function mutateGlossaryReview(
   return readGlossaryReviewRows(locale);
 }
 
-/**
- * Confirms live glossary wording nobody has checked (`legacy_unverified`),
- * each at the revision the reviewer saw: one human approval per term, recorded
- * in review history with the actor, the reason, and that revision. The whole
- * batch fails, writing nothing, on a stale revision
- * (`TranslationReviewConflictError`), on a row that is a draft or already
- * checked (`GlossaryNotUncheckedError`), under the write freeze, and on a
- * shared rendering (`GlossaryCollisionError`) until the caller passes that
- * error's acknowledgement back.
- */
 export async function confirmLegacyGlossaryRows(
   locale: string,
   confirmations: readonly { term: string; expectedRevision: string }[],
@@ -303,7 +273,6 @@ export async function confirmLegacyGlossaryRows(
       term,
       expectedRevision,
       action: "confirm" as const,
-      // A chosen kind is kept; the revision always joins the note.
       reason: chosen ? { kind: chosen.kind, note: `${why} (revision ${expectedRevision})` } : `${why} (revision ${expectedRevision})`,
     })),
     actor,
@@ -311,7 +280,6 @@ export async function confirmLegacyGlossaryRows(
   );
 }
 
-/** CSV status is advisory input only. Every changed rendering enters human review. */
 export async function importGlossaryDrafts(
   locale: string,
   rows: GlossaryDraft[],

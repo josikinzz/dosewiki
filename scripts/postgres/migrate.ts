@@ -1,11 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Apply the repository's versioned Drizzle migrations to one explicit target.
- *
- *   bun scripts/postgres/migrate.ts --target <postgres-url> [--allow-remote]
- *   TARGET_POSTGRES_URL=<postgres-url> bun scripts/postgres/migrate.ts [--allow-remote]
- *   bun scripts/postgres/migrate.ts --target <postgres-url> --dry-run
- */
 
 import { spawnSync } from "node:child_process";
 import { guardTarget } from "./targetGuard.ts";

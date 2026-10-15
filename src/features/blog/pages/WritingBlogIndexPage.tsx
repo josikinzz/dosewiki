@@ -4,9 +4,6 @@ import { StateCard } from "@/components/common/StateCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
-// Imported from the module rather than the `@/components/ui` barrel: the barrel
-// is circular through the dialog/select primitives, and pulling it into this
-// server-rendered page fails the build at module evaluation.
 import { InteractiveContentCard } from "@/components/ui/surface";
 import type { PublicRouteEmptyState } from "@server/next/publicRouteOutcomes";
 import { icons } from "@/utils/iconNames";
@@ -19,14 +16,6 @@ interface WritingBlogIndexPageProps {
   emptyState?: PublicRouteEmptyState;
 }
 
-/**
- * The dose.wiki blog index.
- *
- * Cards rather than the archive's open rows: a post here is written with a cover
- * image and a teaser, and both are the point of the format — the index is meant
- * to be browsed by picture and standfirst, not scanned as a list of titles. The
- * Effect Index archive index (`BlogIndexPage`) stays exactly as it is.
- */
 export function WritingBlogIndexPage({ posts, emptyState }: WritingBlogIndexPageProps) {
   return (
     <PublicContentShell width="standard" focusTarget>
@@ -74,8 +63,6 @@ function WritingBlogCard({ post }: { post: WritingBlogIndexPost }) {
     <InteractiveContentCard asChild padding="none" className="overflow-hidden">
       <SmartLink href={href} className="group block">
         {post.coverImageUrl ? (
-          // Deliberately a plain <img>: cover URLs are editor-entered and can
-          // point at any host, which `next/image` would need configured up front.
           <img
             src={post.coverImageUrl}
             alt=""

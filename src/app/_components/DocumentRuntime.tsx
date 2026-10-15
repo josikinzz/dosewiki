@@ -8,10 +8,7 @@ import { getInitialAppearance } from "@/theme";
 import { isReplicationEmbedPath } from "@server/next/replicationEmbedPolicy";
 import { useUiLocale } from "@/i18n/client";
 
-// The embed does not render this boundary, so neither the editorial provider,
-// theme lab nor analytics runtime is fetched by its document.
 const PublicDocumentRuntime = dynamic(() => import("./PublicDocumentRuntime"));
-// SSR-enabled: translated HTML waits for its active messages, not an English fallback.
 const ChineseMessagesProvider = dynamic(() => import("@/i18n/ChineseMessagesProvider"));
 const RussianMessagesProvider = dynamic(() => import("@/i18n/RussianMessagesProvider"));
 const initialAppearance = getInitialAppearance();

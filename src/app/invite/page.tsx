@@ -25,12 +25,6 @@ type InvitePageProps = {
   }>;
 };
 
-/**
- * The page an invite link opens. No session is involved: the code is the
- * credential, checked by `/api/invite/redeem` when the form submits, after
- * which the form signs in with the new username and password. Someone who is
- * already signed in has nothing to redeem and goes to the editor.
- */
 export default async function InvitePage({ searchParams }: InvitePageProps) {
   const session = await getServerSession(authOptions);
   if (session?.user) {

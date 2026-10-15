@@ -1,18 +1,7 @@
-/**
- * Pure helpers for the prerender census (scripts/build/prerender-census.mjs):
- * group a Next prerender manifest's routes into the families a release cares
- * about and format the counts beside the build wrapper's timing record.
- */
-
-/** The manifest route pattern of the substance article page for one locale prefix. */
 function substanceRouteFor(pathPrefix) {
   return `${pathPrefix}/[slug]`;
 }
 
-/**
- * Route families in print order. `match` receives the manifest's `srcRoute`
- * (the page pattern for a dynamic route, `null` for a fully static page).
- */
 export function buildRouteFamilies(publicLocales, localeNames = {}) {
   const families = [
     { key: "substances:en", label: "English substances", match: (src) => src === substanceRouteFor("") },
@@ -37,11 +26,6 @@ export function buildRouteFamilies(publicLocales, localeNames = {}) {
   return families;
 }
 
-/**
- * Count the manifest's prerendered routes per family. Every route lands in
- * exactly one row; the trailing "everything else" row absorbs the rest so the
- * total always equals the manifest's route count.
- */
 export function censusFromManifest(manifest, families) {
   const routes = manifest && typeof manifest === "object" ? manifest.routes ?? {} : {};
   const counts = new Map(families.map((family) => [family.key, 0]));
@@ -65,7 +49,6 @@ function formatSeconds(seconds) {
   return minutes > 0 ? `${minutes}m ${String(rest).padStart(2, "0")}s (${Math.round(seconds)}s)` : `${Math.round(seconds)}s`;
 }
 
-/** Plain text, suitable for pasting into a ticket or a job summary. */
 export function formatCensus({ buildDirectory, census, timing }) {
   const width = Math.max(...census.rows.map((row) => row.label.length), "Total".length);
   const lines = [`Prerender census for ${buildDirectory}`, ""];
@@ -88,5 +71,4 @@ export function formatCensus({ buildDirectory, census, timing }) {
   return lines.join("\n");
 }
 
-/** The record `scripts/deploy/vercel-build.mjs` writes beside the build output. */
 export const BUILD_TIMING_FILE = "build-timing.json";

@@ -27,7 +27,6 @@ beforeEach(() => {
   io.action.mockReset().mockResolvedValue({ ran: true });
 });
 afterEach(() => { process.env = originalEnv; });
-// Re-import after resetModules so cached target state cannot leak between scenarios.
 
 const load = () => import("./serverWriteCapability");
 
@@ -106,8 +105,6 @@ describe("Postgres write capabilities", () => {
   it("offers no privileged path around the service allowlist for publication delivery", async () => {
     const module = await load();
     const client = module.getServerDataWriteCapabilityOrThrow().client;
-    // Translation completion enqueues into the publication outbox in its own
-    // transaction; the retired cache-retry mutation has no caller and no bypass.
     expect("mutationAsPublicationRecovery" in client).toBe(false);
     await expect(client.mutationAsService(cacheRetry, { targets: [] })).rejects.toThrow(/not allowlisted/);
     expect(io.mutation).not.toHaveBeenCalled();

@@ -1,35 +1,4 @@
 #!/usr/bin/env node
-/**
- * Sync Postgres data from development to production.
- *
- * Usage:
- *   bun scripts/data-ops/sync-data-to-production.mjs \
- *     --tables=prompts,quotes --write --confirm-production-sync \
- *     --confirm-write=sync-postgres-data-to-production \
- *     --expected-deployment=<target-deployment>
- *
- * Without --write (or with --dry-run) it prints the plan, including one
- * production backup per selected table, and opens no connection. A write
- * backs up every selected table from the target before its first write and
- * exits 1 when any row or batch reports an error. The confirmation phrase is
- * the operation name that `createDataOpsRunContext` derives; `--help` prints it.
- *
- * Environment:
- *   SOURCE_POSTGRES_URL - Dev deployment (defaults to .env.local POSTGRES_POOLED_URL)
- *   TARGET_POSTGRES_URL - Prod deployment (required)
- *
- * Available tables:
- *   - substanceIndex
- *   - categoryLayout
- *   - siteConfig (About page content)
- *   - indexLayouts
- *   - tripReports
- *   - subjectiveEffects
- *   - effectIndexArticles
- *   - prompts
- *   - quotes
- *   - replications (metadata only - file storage IDs are deployment-specific)
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import {
@@ -56,7 +25,7 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
 const tablesArg = process.argv.find((arg) => arg.startsWith("--tables="));
 const selectedTables = tablesArg
   ? tablesArg.replace("--tables=", "").split(",").map((table) => table.trim())
-  : null; // null means sync all
+  : null;
 
 const runContext = createDataOpsRunContext({
   operation: PRODUCTION_SYNC_OPERATION,
@@ -142,7 +111,6 @@ async function main() {
   });
 
   if (totalErrors > 0) {
-    // A rejected batch wrote none of its rows (each mutation is one transaction).
     console.log("\n⚠️  Some errors occurred. Check output above for details.");
   } else {
     console.log("\n✨ All data synced successfully!");

@@ -1,17 +1,3 @@
-/**
- * Lossless mapping between stored document values and Postgres rows.
- *
- * The persisted encoding follows the original document-export format, which
- * wrote one `documents.jsonl` per table. Values that JSON cannot carry use wrappers:
- * `{"$float": base64}` for NaN, infinities, and -0; `{"$integer": base64}` for
- * int64; `{"$bytes": base64}` for byte arrays.
- *
- * Top-level scalar columns decode those wrappers so Postgres stores the real
- * value (double precision accepts NaN and infinities). Values inside jsonb
- * columns keep the wrapper objects verbatim, so nested specials round-trip
- * byte-for-byte without inventing a second encoding.
- */
-
 import { createHash } from "node:crypto";
 import { tableColumns, type ColumnSpec, type TableName } from "./schema.generated";
 import type { Value } from "./runtime/values";
@@ -23,7 +9,6 @@ export type SqlRow = Record<string, unknown>;
 
 export type RowEncoding = {
   row: SqlRow;
-  /** Fields present in the document that the schema does not declare. */
   unknownFields: string[];
 };
 
@@ -61,7 +46,6 @@ function encodeInteger(value: bigint): string {
   return bytes.toString("base64");
 }
 
-/** A float needs the wrapper when plain JSON would lose it. */
 function needsFloatWrapper(value: number): boolean {
   return !Number.isFinite(value) || Object.is(value, -0);
 }
@@ -72,7 +56,6 @@ function validateDocumentField(field: string): void {
   }
 }
 
-/** Native values use the existing export wire format, including sorted object keys. */
 export function encodeDocumentValue(value: unknown): DocumentJson {
   if (value === null) return null;
   if (typeof value === "string" || typeof value === "boolean") return value;
@@ -93,7 +76,6 @@ export function encodeDocumentValue(value: unknown): DocumentJson {
   return document;
 }
 
-/** Decode nested wrappers without losing int64 precision, byte boundaries, or -0. */
 export function decodeDocumentValue(value: unknown): Value {
   if (value === null) return null;
   if (typeof value === "string" || typeof value === "boolean" || typeof value === "number") return value;
@@ -149,7 +131,6 @@ function describe(value: unknown): string {
   return typeof value;
 }
 
-/** Encode one top-level field the way `documentToRow` would; `null` on a non-jsonb column stays SQL NULL. */
 export function encodeField(table: TableName, field: string, value: unknown): unknown {
   const spec = (tableColumns[table] as Record<string, ColumnSpec>)[field];
   if (!spec) throw new Error(`Field ${table}.${field} is not declared in the schema`);
@@ -185,7 +166,6 @@ export function documentToRow(table: TableName, document: DataDocument): RowEnco
   return { row, unknownFields };
 }
 
-/** SELECT list that reads all or selected columns losslessly, preserving JSON null separately from SQL NULL. */
 export function losslessSelectList(table: TableName, fields?: readonly string[]): string {
   const specs: Record<string, ColumnSpec> = tableColumns[table];
   return (fields ?? Object.keys(specs))
@@ -198,7 +178,6 @@ export function losslessSelectList(table: TableName, fields?: readonly string[])
     .join(", ");
 }
 
-/** Rebuild the document from a row selected with `losslessSelectList` (float8 as number, jsonb as text). */
 export function rowToDocument(table: TableName, row: SqlRow): DataDocument {
   const specs: Record<string, ColumnSpec> = tableColumns[table];
   const document: DataDocument = {};
@@ -221,7 +200,6 @@ export function rowToDocument(table: TableName, row: SqlRow): DataDocument {
         document[field] = { $bytes: Buffer.from(value as Uint8Array).toString("base64") };
         break;
       case "jsonb":
-        // Rows must select jsonb columns as text (`col::text`): once `pg` parses jsonb, a JSON null and a SQL NULL collapse to the same value.
         if (typeof value !== "string") throw new Error(`jsonb column ${table}.${field} must be read as text`);
         document[field] = JSON.parse(value);
         break;
@@ -245,7 +223,6 @@ function canonicalize(value: unknown): unknown {
   return value;
 }
 
-/** Order-independent content hash used to reconcile export documents against reconstructed rows. */
 export function documentHash(document: DataDocument): string {
   return createHash("sha256").update(JSON.stringify(canonicalize(document))).digest("hex");
 }

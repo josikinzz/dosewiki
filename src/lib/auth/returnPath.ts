@@ -1,6 +1,5 @@
 const FALLBACK_RETURN_PATH = "/dev";
 
-/** Only local application destinations; decoding cannot turn a path into an authority. */
 export function safeAuthReturnPath(value: unknown, fallback = FALLBACK_RETURN_PATH): string {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return fallback;
   let decoded = value.split(/[?#]/, 1)[0];
@@ -8,7 +7,6 @@ export function safeAuthReturnPath(value: unknown, fallback = FALLBACK_RETURN_PA
     if (decoded.startsWith("//")) return fallback;
     for (let index = 0; index < decoded.length; index += 1) {
       const code = decoded.charCodeAt(index);
-      // Paths reject ASCII controls, spaces and backslashes before URL parsing.
       if (code <= 32 || code === 92 || code === 127) return fallback;
     }
     let next: string;

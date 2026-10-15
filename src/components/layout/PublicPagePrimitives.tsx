@@ -146,7 +146,6 @@ interface ContributorAvatarProps {
   imageUrl?: string | null;
   name: string;
   size?: ContributorAvatarSize;
-  /** Adds the neutral depth cast under the frame. */
   lifted?: boolean;
   className?: string;
 }

@@ -11,11 +11,6 @@ const PIRU_PILL_CLASSNAME = cn(
   TOUCH_PILL,
 );
 
-/**
- * "Log in Piru" at the end of the Dosage & Duration route row. The link carries
- * the substance and the selected route, so the tab the reader is on is the
- * route Piru stages.
- */
 export function PiruLogLink({
   slug,
   routeKey,
@@ -24,7 +19,6 @@ export function PiruLogLink({
 }: {
   slug: string;
   routeKey: string;
-  /** English route label, translated here like the route tabs translate it. */
   routeLabel: string;
   className?: string;
 }) {
@@ -43,11 +37,6 @@ export function PiruLogLink({
   );
 }
 
-/**
- * "Open in Piru" beside the article's alternative names. It opens the
- * substance in Piru, or, without the app, Piru's entry on the About page (see
- * `piruLinks`).
- */
 export function PiruOpenChip({ slug }: { slug: string }) {
   const t = useT();
   return (

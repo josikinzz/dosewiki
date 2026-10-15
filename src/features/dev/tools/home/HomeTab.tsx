@@ -1,23 +1,5 @@
 "use client";
 
-/**
- * Home: bare `/dev`. Each member's own work, by role, as rows that open the
- * exact item they name.
- *
- * - An admin sees everything waiting on an admin (the Inbox total leads, then
- *   each queue's count) and the invites nobody has redeemed yet, then their
- *   own drafts and proposals.
- * - An editor sees their saved article drafts and their open proposals.
- * - A translator sees the review inbox count per language they hold; each
- *   row continues into that language's Inbox.
- * - A contributor sees a checklist for their own public profile and their
- *   trip reports.
- *
- * Read-only. Counts come from the rail's badge reads, with their freshness: a
- * count that failed to load reads Unknown, never zero. The member's drafts and
- * proposals come from `/api/dev/my-work`, which Postgres scopes to the session.
- */
-
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 
@@ -72,21 +54,17 @@ import { fetchLocaleInboxTotal, fetchMyWork, fetchOwnProfile, type HomeProfile, 
 
 type HomeTabProps = {
   role: AppRole | null;
-  /** The signed-in member's own contributor profile key. */
   profileKey: string;
 };
 
-/** Entrance stagger step between sections, in reading order. */
 const STAGGER = 0.05;
 
-/** A tool's rail label for this role ("My submissions" for an editor's Change Review). */
 function toolLabel(id: string, role: AppRole | null): string {
   const tab = findDevTab(id);
   if (!tab) return id;
   return tab.labelFor?.(role) ?? tab.label;
 }
 
-/** Load one read, with its error, and reload on demand. */
 function useHomeRead<T>(read: () => Promise<T>, fallback: string) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -104,14 +82,10 @@ function useHomeRead<T>(read: () => Promise<T>, fallback: string) {
   return { data, error, load };
 }
 
-// ---------------------------------------------------------------------------
-// Admin
-
 function formatClock(time: number): string {
   return new Date(time).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
-/** The Inbox leads the section: the one place to claim and triage all of it. */
 function InboxLead({ total }: { total: HomeTotal }) {
   const allClear = total.kind === "known" && total.count === 0 && !total.stale;
   return (
@@ -234,10 +208,6 @@ function PendingInvitesCard({ delay }: { delay: number }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Editor
-
-/** Changes requested first: those wait on the member, the rest wait on a reviewer. */
 function openProposalsInOrder(proposals: readonly ProposalSummary[]): ProposalSummary[] {
   return [...proposals].sort(
     (a, b) => Number(b.status === "changes_requested") - Number(a.status === "changes_requested"),
@@ -269,7 +239,6 @@ function EditorWorkCards({ role, delay }: { role: AppRole | null; delay: number 
   const queueLabel = toolLabel("queue", role);
 
   if (error) {
-    // One read feeds both lists, so one failure and one retry.
     return (
       <EditorSection icon="lucide:file-pen-line" title="My drafts and proposals" delay={delay}>
         <LoadErrorState what="your drafts and proposals" message={error} onRetry={() => void load()} />
@@ -351,12 +320,8 @@ function EditorWorkCards({ role, delay }: { role: AppRole | null; delay: number 
   );
 }
 
-// ---------------------------------------------------------------------------
-// Translator
-
 type LocaleCount = { kind: "loading" } | { kind: "unknown" } | { kind: "known"; count: number };
 
-/** "Deutsch (German)" as its native name, marked with its language, and the English one. */
 function LanguageName({ locale }: { locale: string }) {
   const label = languageLabel(locale);
   const match = /^(.*) \((.*)\)$/.exec(label);
@@ -450,9 +415,6 @@ function TranslatorInboxCard({ locales, delay }: { locales: readonly string[]; d
   );
 }
 
-// ---------------------------------------------------------------------------
-// Contributor
-
 const PROFILE_CHECKS: readonly { label: string; done: (profile: HomeProfile) => boolean }[] = [
   { label: "Display name", done: (profile) => profile.displayName.trim() !== "" },
   { label: "Short bio", done: (profile) => profile.bio.trim() !== "" },
@@ -519,7 +481,6 @@ function ContributorProfileCard({ profileKey, delay }: { profileKey: string; del
   );
 }
 
-/** A submission still with the editors: not yet published or turned down. */
 const IN_REVIEW: ReadonlySet<MemberSubmission["status"]> = new Set(["new", "reviewing", "accepted"]);
 
 type MyReports = { inReview: MemberSubmission[]; published: OwnedReportRow[] };
@@ -575,8 +536,6 @@ function ContributorReportsCard({ role, delay }: { role: AppRole | null; delay: 
   );
 }
 
-// ---------------------------------------------------------------------------
-
 function HomeIntro({ name, role, summary }: { name: string | null; role: AppRole | null; summary: string }) {
   const first = name?.trim().split(/\s+/)[0];
   return (
@@ -594,7 +553,6 @@ function HomeIntro({ name, role, summary }: { name: string | null; role: AppRole
   );
 }
 
-/** A row of one or two sections; a lone section keeps a readable measure instead of stretching. */
 function HomeRow({ children, split }: { children: ReactNode; split?: "even" | "lead" }) {
   return (
     <div
@@ -614,7 +572,6 @@ export function HomeTab({ role, profileKey }: HomeTabProps) {
   const session = useSession();
   const sets = homeCardSetsFor(role);
   const locales = approvedGlossaryLocales({ role, glossaryLocales: session.data?.user?.glossaryLocales });
-  // Sections enter in reading order: each takes the next stagger step.
   let order = 0;
   const next = (steps = 1) => {
     const delay = STAGGER * order;

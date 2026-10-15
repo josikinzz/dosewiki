@@ -1,11 +1,3 @@
-/**
- * Pure reference normalization and collection operations.
- *
- * Contextual article publication uses the same identity and metadata rules as
- * reference intake. None of these helpers writes production independently:
- * prose, sources, revision guards and citation-evidence rechecks commit together
- * through the article lifecycle.
- */
 import {
   findEquivalentReference,
   hasUnsafeReferenceMarkup,
@@ -15,44 +7,23 @@ import {
 } from "../../lib/citations/referenceIdentity.mjs";
 import { referenceSchema, type Reference } from "../../src/schema/substance/shared";
 
-/**
- * Forced onto every reference a portal surface mints, whatever the client sent.
- *
- * A pasted identifier is a claim that a source exists, not evidence that anyone
- * read it against the sentence it will support. The citation workbench triages
- * on this field, so a portal-minted reference that arrived claiming `inspected`
- * would quietly leave that queue.
- */
 export const PORTAL_MINTED_REFERENCE_SUPPORT_STATUS = "needs_review" as const;
 
-/**
- * Ids must be addressable by a `[cite:...]` marker, so this is the marker
- * pattern from `referenceModel.ts` with a length bound. A reference whose id no
- * marker can name is unreachable content.
- */
 const REFERENCE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
-/** Titles are one line of bibliographic text, never prose. */
 export const ARTICLE_REFERENCE_TITLE_MAX_LENGTH = 500;
 
-/** Long enough for a real permalink, short enough to bound the document. */
 export const ARTICLE_REFERENCE_URL_MAX_LENGTH = 2048;
 
 export const ARTICLE_REFERENCE_MAX_AUTHORS = 100;
 
-/**
- * Ceiling on one article's reference list. Well above the largest real article;
- * it exists so a scripted caller cannot grow a document without limit.
- */
 export const MAX_ARTICLE_REFERENCES = 1000;
 
 export type AppendArticleReferenceResult =
   | {
       ok: true;
-      /** False when the same source identity was already present. */
       created: boolean;
       reference: Reference;
-      /** The full replacement array when an append or metadata enrichment changed it. */
       references?: Reference[];
     }
   | { ok: false; reason: string };
@@ -64,13 +35,6 @@ function existingReferences(document: Record<string, unknown>): Reference[] | nu
   return stored as Reference[];
 }
 
-/**
- * Validates one incoming reference against the canonical schema and stamps the
- * fields the server owns.
- *
- * The Zod parse is also the sanitizer: it strips keys the schema does not name,
- * so a client cannot smuggle an unknown field into a stored document.
- */
 export function normalizeIncomingReference(
   raw: unknown,
 ): { ok: true; reference: Reference } | { ok: false; reason: string } {
@@ -132,14 +96,6 @@ export function normalizeIncomingReference(
   };
 }
 
-/**
- * Appends one reference to a stored article document, or reports that it is
- * already there.
- *
- * Only the `references` key is read and returned, so the mutation patches that
- * one key and never carries the rest of the document back over a concurrent
- * edit to another section.
- */
 export function appendArticleReference(
   document: Record<string, unknown>,
   raw: unknown,
@@ -152,9 +108,6 @@ export function appendArticleReference(
     return { ok: false, reason: "This article's reference list is not a list." };
   }
 
-  // The stored marker id wins even when it predates deterministic ids. Matching
-  // canonical source identity prevents a second id for the same DOI/PMID/URL/
-  // ISBN — an alias the public renderer would deduplicate and leave dangling.
   const conflicting = current.find((reference) => (
     referenceIdentitiesOverlap(reference, normalized.reference)
     && !haveCompatibleReferenceIdentity(reference, normalized.reference)
@@ -199,21 +152,14 @@ export type RemoveArticleReferenceResult =
   | {
       ok: true;
       removed: true;
-      /** The removed reference's bibliographic title, for changelog messages. */
       title: string | null;
       markersStripped: number;
       routeIdsStripped: number;
-      /** Replacement values for every top-level key the removal changed. */
       patch: Record<string, unknown>;
     }
   | { ok: true; removed: false }
   | { ok: false; error: string };
 
-/**
- * Keys whose subtrees hold citation metadata rather than prose, mirroring the
- * skip set in `collectCitationTextFields` (editorReferenceDiagnostics.ts).
- * A `[cite:...]` string under these keys is data about citations, not a marker.
- */
 const MARKER_TRAVERSAL_SKIP_KEYS: Record<string, true> = {
   references: true,
   source_citations: true,
@@ -225,11 +171,6 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * Removes every `[cite:<id>]` marker for one id from a prose string, cleaning
- * the whitespace the marker occupied: no doubled spaces, no stray space left
- * before punctuation, no leading/trailing gap.
- */
 function stripMarkersFromText(
   value: string,
   marker: RegExp,
@@ -244,12 +185,6 @@ function stripMarkersFromText(
   return { value: stripped, count: matches.length };
 }
 
-/**
- * Walks every string leaf of the document (same generic traversal as
- * `collectCitationTextFields`) and strips the marker wherever it appears.
- * Untouched subtrees keep their identity so the caller can patch only the
- * top-level keys that actually changed.
- */
 function stripMarkersDeep(
   value: unknown,
   marker: RegExp,
@@ -290,10 +225,6 @@ function stripMarkersDeep(
   return changed ? next : value;
 }
 
-/**
- * Filters one reference id out of every `routes[*].reference_ids` array in a
- * dosage or duration section, preserving identity when nothing matched.
- */
 function stripRouteReferenceIds(
   section: unknown,
   referenceId: string,
@@ -320,15 +251,6 @@ function stripRouteReferenceIds(
   return { value: { ...(section as Record<string, unknown>), routes: nextRoutes }, removed };
 }
 
-/**
- * Removes one reference from a stored article document atomically with its
- * usages: every inline `[cite:<id>]` marker in prose and every
- * `routes[*].reference_ids` entry in dosage and duration. Idempotent — an
- * absent id reports `removed: false` and touches nothing.
- *
- * `patch` carries only the top-level keys the removal changed, so the mutation
- * never writes an untouched section back over a concurrent edit.
- */
 export function removeArticleReference(
   document: Record<string, unknown>,
   referenceId: string,

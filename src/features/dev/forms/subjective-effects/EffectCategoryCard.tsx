@@ -1,8 +1,3 @@
-/**
- * EffectCategoryCard - Collapsible card for editing Physical/Cognitive/Progressive Stages.
- * Uses useRecordFieldArray to manage the dynamic subcategory structure.
- */
-
 import { useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -16,17 +11,11 @@ import { useRecordFieldArray } from "./useRecordFieldArray";
 import type { SubstanceArticle, EffectEntry } from "@/schema";
 
 export interface EffectCategoryCardProps {
-  /** Field path for this category */
   fieldPath: "subjective_effects.cognitive" | "subjective_effects.physical" | "subjective_effects.progressive_stages";
-  /** Display title */
   title: string;
-  /** Icon name for iconify */
   icon: IconName;
-  /** Prefix for input IDs */
   idPrefix: string;
-  /** Whether this section is optional (e.g., progressive_stages) */
   optional?: boolean;
-  /** Field path for the category note (shown at top of section) */
   noteFieldPath?: "subjective_effects.notes.physical" | "subjective_effects.notes.cognitive";
   pairedIndicator?: boolean;
 }
@@ -61,7 +50,6 @@ export function EffectCategoryCard({
       }
     >
       <div className="space-y-4">
-        {/* Category-level note at top of section */}
         {noteFieldPath && (
           <div className="space-y-1">
             <Label htmlFor={noteId}>{title} Note</Label>
@@ -115,10 +103,6 @@ export function EffectCategoryCard({
   );
 }
 
-/**
- * Wrapper component that connects SubcategoryEditor to the form state.
- * Handles reading and writing the subcategory data through React Hook Form.
- */
 interface SubcategoryEditorWrapperProps {
   fieldPath: "subjective_effects.cognitive" | "subjective_effects.physical" | "subjective_effects.progressive_stages";
   subcategoryKey: string;
@@ -143,8 +127,7 @@ function SubcategoryEditorWrapper({
   onKeyChange,
 }: SubcategoryEditorWrapperProps) {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
-  
-  // Watch the specific subcategory
+
   const categoryData = useWatch({ name: fieldPath }) as Record<string, { note: string; effects: EffectEntry[] }> | undefined;
   const subcategoryData = categoryData?.[subcategoryKey] ?? { note: "", effects: [] };
 

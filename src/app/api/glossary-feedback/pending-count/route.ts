@@ -1,12 +1,3 @@
-/**
- * Pending glossary feedback count for the `/dev` Glossary rail badge.
- *
- * Its own endpoint for the same reason as the other badge counts: the shell
- * asks on every `/dev` visit, while the per-locale queue is only read when the
- * Glossary tab is open. The count covers every locale the reviewer may open.
- *
- *   GET /api/glossary-feedback/pending-count -> { total }
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getServerDataWriteCapabilityOrThrow } from "@server/data/serverWriteCapability";

@@ -10,14 +10,9 @@ import { normalizeVCodeContent } from "@/features/effects/vcode/normalize";
 
 interface WritingBlogPostPageProps {
   post: WritingBlogPost;
-  /**
-   * Drawn inside another page (the Writing editor's live preview): a plain
-   * block with no `main` landmark, page id or page padding.
-   */
   embedded?: boolean;
 }
 
-/** One writing-system blog post, rendered in its stored language. */
 export function WritingBlogPostPage({ post, embedded = false }: WritingBlogPostPageProps) {
   return (
     <PublicContentShell

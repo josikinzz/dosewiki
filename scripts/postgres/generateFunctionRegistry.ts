@@ -1,4 +1,3 @@
-/** Generates the server registry and browser-safe typed references from owned modules. */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

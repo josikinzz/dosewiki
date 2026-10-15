@@ -13,7 +13,6 @@ export const DECISION_LABEL: Record<InboxSourceId, Record<InboxDecision, string>
   "review-recommendations": { accept: "Approve", reject: "Reject", spam: "Mark as spam" },
 };
 
-/** What a pending button reads while its write is in flight. */
 export const PENDING_LABEL: Record<InboxSourceId, Record<PendingAction, string>> = Object.fromEntries(
   Object.entries(DECISION_LABEL).map(([source, labels]) => [
     source,
@@ -29,10 +28,8 @@ export const PENDING_LABEL: Record<InboxSourceId, Record<PendingAction, string>>
   ]),
 ) as Record<InboxSourceId, Record<PendingAction, string>>;
 
-/** The key each decision answers to, shown on the button and in aria-keyshortcuts. */
 export const DECISION_KEY: Record<InboxDecision, string> = { accept: "a", reject: "r", spam: "s" };
 
-/** The owning tool's glyph beside each source, read from the registry's icons. */
 export const SOURCE_ICON: Record<InboxSourceId, string> = {
   "trip-reports": "lucide:notebook-pen",
   "article-feedback": "lucide:message-square-text",
@@ -43,7 +40,6 @@ export const SOURCE_ICON: Record<InboxSourceId, string> = {
   "review-recommendations": "lucide:git-pull-request-arrow",
 };
 
-/** Plural name of what each rail count counts, for the freshness line. */
 export const NOUN: Record<string, string> = {
   "trip-reports": "trip reports",
   feedback: "feedback",

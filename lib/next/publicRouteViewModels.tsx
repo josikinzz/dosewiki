@@ -71,7 +71,6 @@ export function buildSubstanceMetadataDescription(
   return `${name} substance profile${classPhrase} covering dosage, duration, effects, interactions, tolerance, harm potential, legality, and references.`;
 }
 
-/** Bare page name only — buildPublicPageMetadata owns the " - <suffix>" tail. */
 export function buildSubstanceMetadataTitle(substance: PublicSubstanceRecord): string {
   return (
     substance.identification?.common_name?.trim() ||
@@ -142,24 +141,8 @@ export interface SubstanceArticleViewModel {
     contributorDirectory: ContributorDirectory;
     externalReagentData?: NormalizedReagentData | null;
     warningBanners: WarningBannerPreset[];
-    /**
-     * The site-wide banner glyph size. Optional, unlike `warningBanners`: a
-     * caller that omits it renders at `SAFETY_BANNER_ICON_SIZE_DEFAULT`, which is
-     * the size the site shipped with, whereas omitting the banners themselves
-     * would silently drop a warning.
-     */
     warningBannerIconSize?: number;
-    /**
-     * Render the sitewide beta disclaimer in place of the stored citation
-     * overhaul banner. True once the citation audit has stripped a refuted
-     * marker on this article (`substanceHasCitationNeeded` in the loader).
-     */
     showBetaDisclaimer?: boolean;
-    /**
-     * The article's two disclaimer copy blocks. Optional for the same reason as
-     * the glyph size: an omitted body renders the checked-in default sentence,
-     * not a bare table.
-     */
     dosageDisclaimer?: string;
     toleranceDisclaimer?: string;
     reviewStatusCopy?: string;
@@ -214,10 +197,6 @@ export function buildEffectsIndexViewModel(input: {
   };
 }
 
-/**
- * Attach the canonical Postgres depiction as the article's only molecule asset.
- * No override row means no depiction: the content builder emits none.
- */
 function applyMoleculeOverrideUrl(
   content: SubstanceContent | undefined,
   overrideUrl: string | null | undefined,
@@ -253,28 +232,13 @@ export function buildSubstanceArticleViewModel(input: {
   moleculeOverrideUrl?: string | null;
   externalReagentData?: NormalizedReagentData | null;
   hasRelatedTripReports?: boolean;
-  /**
-   * Already narrowed to this slug by `resolveEnabledBanners`. Required, not
-   * defaulted: a caller that forgets it should fail to compile rather than
-   * silently publish an article missing a safety banner an editor switched on.
-   */
   warningBanners: WarningBannerPreset[];
-  /** Site-wide glyph size from `getSafetyBannerIconSize`; omitted renders at the default. */
   warningBannerIconSize?: number;
-  /** See the pageProps field: swaps the citation banner for the beta disclaimer. */
   showBetaDisclaimer?: boolean;
-  /**
-   * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` bodies;
-   * omitted renders the checked-in defaults. Unlike the banners, a missing one
-   * costs the reader nothing an editor chose — the sentence is the same either
-   * way.
-   */
   dosageDisclaimer?: string;
   toleranceDisclaimer?: string;
-  /** The `review-status-banner` and `expert-review-credit` bodies; same contract. */
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
-  /** Human edits against this article, resolved by the route loader. */
   recentChanges?: ArticleRecentChange[];
 }): SubstanceArticleViewModel {
   const { slug: _resolvedSlug, ...article } = input.substance;

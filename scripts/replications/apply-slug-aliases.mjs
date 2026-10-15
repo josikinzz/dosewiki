@@ -1,28 +1,4 @@
 #!/usr/bin/env node
-/**
- * Apply the committed replication slug-alias plan to a Postgres deployment.
- *
- * `data/effects/replicationSlugAliases.json` records slug renames as
- * old -> new. The middleware 308s the old slug to the new one, and the
- * permalink route only prerenders slugs that exist in the database, so an alias
- * whose rename never landed turns a live permalink into a hard 404 (the row
- * still holds the old slug; the redirect target does not exist).
- *
- * That is exactly the state the corpus was left in: `normalize-slugs.mjs`
- * writes the alias file even on a dry run, and the write pass was never
- * executed. This script closes the gap: for every alias whose source is a
- * live slug, it renames the row to the alias target (resolving multi-hop
- * chains to their final target) via `replications:renameSlug`, which also
- * patches effect `gallery_order` arrays.
- *
- * Dry run (default) prints the plan and writes nothing:
- *   node scripts/replications/apply-slug-aliases.mjs
- * Write mode uses the shared production-write gate:
- *   node scripts/replications/apply-slug-aliases.mjs --write \
- *     --target=postgresql://<host>/<database> \
- *     --confirm-write=apply-replication-slug-aliases \
- *     --expected-deployment=<deployment>
- */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -43,7 +19,6 @@ const ALIAS_FILE = path.join(
   "../../data/effects/replicationSlugAliases.json",
 );
 
-/** Follow old -> new hops to the final target; a cycle returns null. */
 export function resolveAliasTarget(aliases, from) {
   let current = from;
   const seen = new Set([from]);
@@ -59,15 +34,6 @@ export function resolveAliasTarget(aliases, from) {
   return current === from ? null : current;
 }
 
-/**
- * Decide which alias entries can be applied as renames right now.
- *
- * - `renames`: source slug is held by exactly one row and the final target is
- *   free (or freed by this very plan, since the source row moves away).
- * - `skipped`: source held by more than one row (renameSlug would move an
- *   arbitrary twin) or the final target is occupied by a different row.
- * - `settled`: source is not a live slug — the alias is already historical.
- */
 export function planAliasApplications(aliases, replications) {
   const occurrences = new Map();
   for (const item of replications) {
@@ -78,7 +44,6 @@ export function planAliasApplications(aliases, replications) {
   const skipped = [];
   const settled = [];
 
-  // Every slug that stays put; sources being renamed vacate their slot.
   const sources = new Set(
     Object.keys(aliases).filter((from) => occurrences.has(from)),
   );

@@ -6,10 +6,6 @@ import { useRef } from "react";
 import { pickString, pickStringArray, postJson } from "./apiMutationClient";
 import type { ProposalBaseline } from "../../lib/proposals/proposalBaseline";
 
-// ============================================================================
-// Types
-// ============================================================================
-
 export interface SaveArticlePayload {
   operationId?: string;
   articleAdmissions?: Array<{ kind: "create"; slug: string } | { kind: "replace-existing"; slug: string; baseHash: string }>;
@@ -77,7 +73,6 @@ export interface SaveArticleResult {
   error?: string;
 }
 
-/** One copy block as `POST /api/dev/proposals` accepts it under `payload.copyBlocks`. */
 interface ProposalCopyBlock { key: string;
 kind: "markdown" | "plain" | "list";
 label: string;
@@ -86,12 +81,10 @@ flavor?: string;
 body?: string;
 items?: string[]; }
 
-/** The About document as `POST /api/dev/proposals` accepts it under `payload.about`. */
 interface ProposalAbout { aboutMarkdown: string;
 aboutSubtitle: string;
 founderProfileKeys: string[]; }
 
-/** One Writing row as `POST /api/dev/proposals` accepts it under `payload.writing`. */
 interface ProposalWriting { slug: string;
 kind: "article" | "blog";
 status: "draft" | "published";
@@ -104,7 +97,6 @@ tags: string[];
 authorProfileKeys: string[];
 publicationDate?: string; }
 
-/** Everything a proposal may carry: the save-article body plus the tab-local documents. */
 export type ProposalPayload = SaveArticlePayload & {
   copyBlocks?: ProposalCopyBlock[];
   about?: ProposalAbout;
@@ -115,17 +107,12 @@ export interface SubmitProposalPayload {
   payload: ProposalPayload;
   summary: string;
   baselines: ProposalBaseline[];
-  /** The returned proposal this submission rebases; the server supersedes it. */
   revisionOf?: string;
 }
 
 export interface SubmitProposalResult {
   proposalId: string;
 }
-
-// ============================================================================
-// API Functions
-// ============================================================================
 
 const SAVE_ARTICLE_TIMEOUT_MS = 60_000;
 async function saveArticle(payload: SaveArticlePayload & { operationId: string }): Promise<SaveArticleResult> {
@@ -172,10 +159,6 @@ async function submitProposal(input: SubmitProposalPayload): Promise<SubmitPropo
   }
   return { proposalId };
 }
-
-// ============================================================================
-// Mutation Hooks
-// ============================================================================
 
 export function useSaveArticleMutation() {
   const store = useDraftRecoveryStore();

@@ -9,20 +9,11 @@ import { Button } from "@/components/ui";
 import { ArticlePreviewFrame } from "@/features/dev/components/ArticlePreviewFrame";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-/**
- * The canvas's current depiction in the substance article's hero, in either
- * theme and at phone or desktop width, before Save. Closed by default: the
- * frame mounts the whole article, and the side column's brand preview already
- * answers "does the drawing look right" while the chemist works. A page that
- * fails to render stays inside this section, so the canvas and its unsaved
- * edit survive it. Phones open the frame at phone width.
- */
 export function MoleculeArticlePreview({
   slug,
   svg,
 }: {
   slug: string;
-  /** The rendered canvas, the same bytes Save publishes. */
   svg: string | null;
 }) {
   const [open, setOpen] = useState(false);

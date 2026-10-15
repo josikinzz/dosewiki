@@ -27,15 +27,6 @@ type ReviewPageProps = {
   }>;
 };
 
-/**
- * The dedicated review workbench (`/review`, `/review/[slug]`).
- *
- * This is the flip-through surface an editor lives in for a 250-article pass,
- * so it renders without the public site chrome or the dev-tools tab shell —
- * one sticky command bar over one article. Access is gated exactly like /dev:
- * the reviewer is an editor working on unpublished review state, and the local
- * screenshot viewer renders it under the same loopback and env gate.
- */
 export default async function ReviewPage({ params }: ReviewPageProps) {
   const resolvedParams = await params;
   const initialSlug = resolvedParams.slug?.[0];
@@ -50,9 +41,6 @@ export default async function ReviewPage({ params }: ReviewPageProps) {
     redirect(redirectTarget.href);
   }
 
-  // Resolved server-side on purpose: the privileged write URL must never be
-  // shipped to the browser, so the comparison happens here and only deployment
-  // names cross into the rendered output.
   const alignment = getEditorTargetAlignment();
 
   if (alignment.status === "split") {

@@ -1,25 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Backfill `has_audio` on video replications.
- *
- * Reads the public replications API (no credentials), detects an audio stream,
- * then decodes that stream through ffmpeg's `volumedetect`. `has_audio` is true
- * only when the delivered video contains signal above the conservative -80 dB
- * silence floor. GIF-format rows and images are never probed or written.
- *
- * Dry run (default) prints the tally and stops. Writing requires the full
- * production-write gate plus an explicit --confirm-production-write flag, and
- * applies the verdicts in batches via `replications.setAudioPresence`.
- *
- * Usage:
- *   node scripts/replications/backfill-audio-presence.mjs                # dry run, full corpus
- *   node scripts/replications/backfill-audio-presence.mjs --limit=5 --max-items=5
- *   node scripts/replications/backfill-audio-presence.mjs --write \
- *     --confirm-write=backfill-audio-presence \
- *     --expected-deployment=<fingerprint> --confirm-production-write
- */
-
 import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -86,7 +66,6 @@ async function fetchAllReplications(apiBase, pageLimit, maxItems) {
   return items.slice(0, maxItems);
 }
 
-/** True when the delivered file has at least one audio stream. */
 async function probeHasAudioStream(url) {
   const { stdout } = await execFileAsync(
     FFPROBE,
@@ -119,10 +98,6 @@ function isAudiblePeak(maxVolumeDb) {
   return Number.isFinite(maxVolumeDb) && maxVolumeDb > SILENCE_FLOOR_DB;
 }
 
-/**
- * Decode the complete first audio stream. A container track is not enough:
- * only measurable signal above the floor earns `has_audio: true`.
- */
 async function probeAudioPresence(url) {
   const audioStream = await probeHasAudioStream(url);
   if (!audioStream) {
@@ -259,8 +234,6 @@ async function main() {
   );
   const { analyses, errors } = await probeAll(candidates, knownAnalyses);
 
-  // Postgres row ids for the ledger and the write path. Reads need no
-  // credential; without a configured target the dry run leaves ids null.
   let idsBySlug = new Map();
   if (command.targetUrl) {
     const client = createDataClient({ target: command.targetUrl }).client;

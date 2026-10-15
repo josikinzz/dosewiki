@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-/**
- * Corpus-wide incremental refresh.
- *
- * Editing one paragraph on the site should cost one segment, not one corpus.
- * This command diffs the current sources against each corpus's own checkpoint,
- * reports what moved, drops the translations of segments that no longer exist,
- * re-translates only what is new or changed, and rebuilds the packs for the
- * corpora that actually changed.
- *
- * The diff baseline is the checkpoint the runs already keep: every translated
- * segment is stored under the hash of its English source, so a source that did
- * not change hashes to a translation that is already on disk and costs nothing.
- * That also means an unchanged translation is byte-identical across refreshes:
- * it is not retranslated, it is reused.
- *
- * Usage (the glossary lives in Postgres, so the same variables as translate.mjs):
- *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/refresh.mjs [--locale zh-Hans] [--corpus a,b] [--plan] [--no-packs]
- */
 
 import { readFile, writeFile, rename } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -44,17 +26,11 @@ async function loadCheckpoint(file) {
       const record = JSON.parse(line);
       if (record.hash && typeof record.target === "string") done.set(record.hash, record);
     } catch {
-      // A partially written final line is expected after an interrupted run.
     }
   }
   return done;
 }
 
-/**
- * Orphans are translations whose English no longer appears anywhere in the
- * corpus. Left in place they would be paid for once and then resurrect the day
- * an editor happens to retype the old sentence, so they are dropped.
- */
 function planFor({ units, checkpoint }) {
   const wanted = new Set(units.map((unit) => unit.hash));
   const fresh = units.filter((unit) => !checkpoint.has(unit.hash));
@@ -114,8 +90,6 @@ async function main() {
     if (values.plan) continue;
     if (plan.fresh.length === 0 && plan.orphans.length === 0) continue;
 
-    // Rewriting the checkpoint without the orphans is what makes the drop real:
-    // the runner resumes from this file, and a line left here is a line reused.
     if (plan.orphans.length > 0) {
       const kept = [...checkpoint.entries()].filter(([hash]) => !plan.orphans.includes(hash));
       const temporary = `${checkpointPath}.next`;

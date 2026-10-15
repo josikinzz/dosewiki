@@ -1,21 +1,6 @@
-/**
- * Pure logic for the Contributors tab: directory search, the profile form, and
- * the curated / auto-ordered split the two reorder panels render.
- *
- * The curation model is partial on purpose, matching what
- * `setContributorOrdering` stores: an ordering is a short list of pinned slugs,
- * not a permutation of everything the contributor made. Items in the list come
- * first in exactly that order; everything else follows in the surface's own
- * default sort. That is why the panel draws a divider rather than one flat
- * list — the line is the boundary between "I decided this" and "whatever the
- * page would have done", and dragging across it is the curate/un-curate gesture.
- *
- * Kept free of React so the ordering rules can be tested without a DOM.
- */
-
 export const MAX_BIO_LENGTH = 4000;
 export { MAX_CONTRIBUTOR_PROFILE_LINKS as MAX_LINKS } from "@server/contributorProfileIdentity";
-export const MAX_AVATAR_BYTES = 1024 * 1024 * 2; // 2 MiB
+export const MAX_AVATAR_BYTES = 1024 * 1024 * 2;
 export const ALLOWED_AVATAR_MIME_TYPES: ReadonlySet<string> = new Set([
   "image/png",
   "image/jpeg",
@@ -72,16 +57,9 @@ export type EditorContributorProfile = {
 export type OrderSplit<Item> = {
   curated: Item[];
   auto: Item[];
-  /** Curated slugs that no longer resolve to an item; surfaced as a warning. */
   danglingSlugs: string[];
 };
 
-/**
- * Directory search across the three things an editor actually knows about a
- * contributor: the name on the page, the key in the URL, and the bylines the
- * profile answers to. Aliases matter most — the reason to open this tab is
- * usually a report credited to a name whose profile you cannot find.
- */
 export function matchesContributorSearch(entry: ContributorDirectoryEntry, query: string): boolean {
   const needle = query.trim().toLowerCase();
   if (!needle) {
@@ -105,14 +83,6 @@ export function filterContributors<Entry extends ContributorDirectoryEntry>(
   return entries.filter((entry) => matchesContributorSearch(entry, query));
 }
 
-/**
- * Split items into the curated head and the auto-ordered tail.
- *
- * `items` must already be in the surface's default sort; this partitions and
- * never re-sorts. A curated slug with no item is reported rather than dropped
- * silently, because the server prunes those on the next save and an editor
- * should see what is about to disappear.
- */
 export function splitByOrder<Item extends { slug: string }>(
   items: readonly Item[],
   order: readonly string[],
@@ -143,7 +113,6 @@ export function splitByOrder<Item extends { slug: string }>(
   };
 }
 
-/** Pin a slug, at the end of the curated list unless a position is given. */
 export function curateSlug(order: readonly string[], slug: string, atIndex?: number): string[] {
   const without = order.filter((entry) => entry !== slug);
   const index =
@@ -151,7 +120,6 @@ export function curateSlug(order: readonly string[], slug: string, atIndex?: num
   return [...without.slice(0, index), slug, ...without.slice(index)];
 }
 
-/** Un-pin a slug; it falls back into the default sort with everything else. */
 export function uncurateSlug(order: readonly string[], slug: string): string[] {
   return order.filter((entry) => entry !== slug);
 }
@@ -177,14 +145,6 @@ export function moveCuratedSlug(
   return next;
 }
 
-/**
- * Resolve one drag into a new ordering.
- *
- * Dropping onto a curated item takes that item's position — including when the
- * dragged item was not curated at all, which is how dragging across the divider
- * curates something. Dropping anywhere in the auto section (an un-curated slug,
- * or the section's own drop id) un-curates instead.
- */
 export function applyOrderDrag({
   order,
   activeSlug,
@@ -216,7 +176,6 @@ export function ordersEqual(left: readonly string[], right: readonly string[]): 
   return left.length === right.length && left.every((slug, index) => slug === right[index]);
 }
 
-/** Newest first, with undated rows last rather than sorted as the epoch. */
 function sortByDateDescending<Item>(
   items: readonly Item[],
   getDate: (item: Item) => string | null,
@@ -265,12 +224,8 @@ export function toContributorForm(profile: EditorContributorProfile): Contributo
     bio: profile.bio ?? "",
     role: profile.role ?? "",
     avatarUrl: profile.avatarUrl ?? "",
-    // A self record the route hands back blank may omit the arrays; read them as empty.
     aliases: [...(profile.aliases ?? [])],
     links: (profile.links ?? []).map((link) => ({ ...link })),
-    // `=== true` rather than a passthrough: a deployment whose getEditorProfile
-    // predates the flag hydrates this from JSON as undefined, which must read
-    // as "included" and keep the checkbox controlled.
     exclude_from_gallery: profile.exclude_from_gallery === true,
     archival: profile.archival === true,
     approved_replicator: profile.approved_replicator === true,
@@ -291,20 +246,6 @@ export function isContributorFormDirty(
   return JSON.stringify(toContributorForm(profile)) !== JSON.stringify(form);
 }
 
-/**
- * The patch body for `/api/dev/contributor-profile`, shaped for the role that
- * is saving. `saveProfileAsEditor` refuses the trust fields (role, membership
- * email, gallery exclusion, archival, approved replicator, staff note) from
- * anyone below admin even when they are unchanged, so an editor's body must
- * not carry them at all. The membership email is not on the form: People
- * links a profile to an account as its own write, so a profile save never
- * carries (or reverts) the link.
- *
- * Emptied clearable fields become `null`, the only way a patch-only mutation
- * can be told to clear something rather than to leave it alone. `bio` is not
- * clearable that way: an empty bio is a stored empty string, and the public
- * page falls back to its generated blurb.
- */
 export type OwnContributorPatch = {
   displayName: string;
   bio: string;
@@ -338,8 +279,6 @@ export function buildContributorPatch(
     exclude_from_gallery: form.exclude_from_gallery,
     archival: form.archival,
     approved_replicator: form.approved_replicator,
-    // A blanked note clears the stored field (`null` is the patch spelling of
-    // "delete"); the attribution only travels alongside a kept note.
     staffNote: form.staffNoteMarkdown.trim()
       ? {
           markdown: form.staffNoteMarkdown,
@@ -351,11 +290,6 @@ export function buildContributorPatch(
   };
 }
 
-/**
- * The part of the patch a contributor may set on their own record: name,
- * bio, avatar, links. Everything else on the form is editor-curated, and the
- * route refuses to write it for a session without editor role.
- */
 export function buildOwnContributorPatch(form: ContributorFormState): OwnContributorPatch {
   return {
     displayName: form.displayName.trim(),

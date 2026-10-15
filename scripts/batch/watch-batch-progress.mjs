@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Watch Batch Progress
- *
- * Monitors batch-history-culture-progress.json and displays a progress bar.
- * Run in a separate terminal while the batch script is running.
- *
- * Usage:
- *   node scripts/watch-batch-progress.mjs
- */
 
 import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
@@ -83,7 +74,6 @@ function render() {
   return data.status !== "completed" && data.status !== "failed";
 }
 
-// Main loop
 const interval = setInterval(() => {
   if (!render()) {
     clearInterval(interval);

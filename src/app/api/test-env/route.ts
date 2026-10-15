@@ -6,8 +6,6 @@ import { createDiagnosticsDisclosureView } from "@server/runtime/diagnosticsDisc
 
 export const runtime = "nodejs";
 
-// Presence-only diagnostics for the secrets sign-in and editor writes need.
-// Member passwords live hashed in Postgres, not in env.
 const DIAGNOSTIC_KEYS = ["AUTH_SECRET", "DATA_ADMIN_KEY"];
 
 function hasConfiguredValue(key: string): boolean {

@@ -1,8 +1,3 @@
-/**
- * Transforms SubstanceArticle entries into the normalized structures
- * consumed by the UI. The source JSON uses the structured SubstanceArticle
- * schema which we transform into SubstanceContent for components.
- */
 import type { IconName } from "@/components/common/Icon";
 import { resolveEffectNameAlias, type EffectLocation } from "@/data/effectNameAliases";
 import { stripCitationTokens } from "@/lib/citations/citationTokens";
@@ -218,12 +213,6 @@ function buildNameVariants(identification: Identification | undefined, baseName:
   return variants;
 }
 
-/**
- * The canonical effect slug a chip name resolves to, mirroring what the renderer
- * links. Kept alongside the raw name so the effect -> substances join matches the
- * substance -> effect link: without it, an article saying "Euphoria" never appears
- * on the Cognitive Euphoria page even though its chip links there.
- */
 function resolveEffectRefSlug(name: string, location: EffectLocation): string | null {
   const nameSlug = slugify(name);
   const alias = resolveEffectNameAlias(nameSlug, location);
@@ -232,14 +221,11 @@ function resolveEffectRefSlug(name: string, location: EffectLocation): string | 
     return nameSlug;
   }
 
-  // Deliberately unlinked, or an umbrella term pointing at a category index:
-  // neither names a single effect, so neither belongs in the reverse join.
   return alias === null || alias.startsWith("/effects/category/")
     ? null
     : alias.slice("/effects/".length);
 }
 
-// Extract effect names from a flexible effect category (Record<string, { note, effects }>)
 function extractEffectNames(category: Record<string, { note: string; effects: { name: string; description: string }[] }> | undefined): string[] {
   if (!category || typeof category !== "object") {
     return [];
@@ -264,7 +250,6 @@ function extractEffectNames(category: Record<string, { note: string; effects: { 
   return names;
 }
 
-// Flatten subjective effects from categorized structure to flat array
 function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): {
   names: string[];
   slugs: (string | null)[];
@@ -286,7 +271,6 @@ function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): {
     }
   };
 
-  // Flatten sensory effects (each sense now has { note, subcategories })
   if (effects.sensory) {
     const sensory = effects.sensory;
     collect(sensory.visual?.subcategories, "sensory.visual");
@@ -297,7 +281,6 @@ function flattenSubjectiveEffects(effects: SubjectiveEffects | undefined): {
     collect(sensory.multisensory?.subcategories, "sensory.multisensory");
   }
 
-  // Add cognitive and physical effects (still Record<string, EffectEntry[]>)
   collect(effects.cognitive, "cognitive");
   collect(effects.physical, "physical");
 
@@ -318,18 +301,15 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
   const id = identity.id;
   const slug = slugifyDrugName(baseName, id !== null ? `article-${id}` : baseName);
 
-  // Categories derived from classification
   const psychoactiveClasses = taxonomy.psychoactiveClasses;
   const chemicalClasses = taxonomy.chemicalClasses;
   const categories = [...psychoactiveClasses, ...chemicalClasses];
   const normalizedCategories = categories.map((category) => normalizeKey(category));
 
-  // Index categories from article
   const indexCategories = taxonomy.indexCategories;
   const normalizedIndexCategories = indexCategories.map((value) => normalizeKey(value)).filter((value) => value.length > 0);
   const isHidden = isHiddenSubstance(normalizedIndexCategories);
 
-  // Priority from article (defaults to "normal")
   const priority = article.priority ?? "normal";
   const isDirectUrlOnly = isDirectUrlOnlySubstance(priority);
 
@@ -350,20 +330,15 @@ export function buildSubstanceRecord(article: SubstanceArticleProjectionInput): 
   );
   const mechanisms = buildMechanisms(projection.pharmacology.mechanismTags);
 
-  // Get addiction summary from harm_potential
   const addictionSummary = typeof (harmPotential as { addiction_liability?: unknown } | null | undefined)?.addiction_liability === "string"
     ? cleanString((harmPotential as { addiction_liability?: string }).addiction_liability) ?? ""
     : "";
 
-  // Flatten subjective effects
   const { names: subjectiveEffects, slugs: subjectiveEffectSlugs } =
     flattenSubjectiveEffects(article.subjective_effects);
 
   const content: SubstanceContent = {
     name: baseName,
-    // The search index shows this as a result's secondary line, and there is no
-    // citation marker to render into there, so the summary's inline
-    // `[cite:...]` tokens have to come out rather than ship as visible text.
     subtitle: cleanString(stripCitationTokens(article.summary ?? "")) ?? "",
     aliases: displayAliases,
     nameVariants,

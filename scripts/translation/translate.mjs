@@ -1,35 +1,4 @@
 #!/usr/bin/env node
-/**
- * Translate the published SubstanceIndex export into one locale.
- *
- * Reads the open-data export, extracts translatable segments, sends deduplicated
- * work units through OpenRouter, validates every returned segment, retries the
- * defective ones alone, and reassembles a same-structure locale artifact plus a
- * QA packet.
- *
- * Nothing here writes Postgres or Postgres. The input is the published export,
- * the glossary, its glosses, and the approved style guide are read from
- * Postgres (`translationGlossary` approved rows, `translationGlossaryTerms`,
- * the `style-guide` review scope), and the output is a local
- * artifact under notes-and-plans/exports.
- *
- * Usage:
- *   export OPENROUTER_API_KEY="sk-or-..."
- *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/translate.mjs --locale=zh-Hans --slug=2c-b
- *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/translate.mjs --locale=zh-Hans --concurrency=100 --resume
- *
- * Options:
- *   --locale=<code>        Target locale (zh-Hans, nl). Default zh-Hans.
- *   --slug=<a,b>           Restrict to these substance slugs (pilot runs).
- *   --limit=<n>            Stop after n work units (smoke runs).
- *   --concurrency=<n>      In-flight requests. Default 100.
- *   --model=<id>           OpenRouter model. Default z-ai/glm-5.3-flash.
- *   --batch-chars=<n>      Source characters per request. Default 6000.
- *   --source=<path|url>    Export location. Default the published open-data URL.
- *   --out=<dir>            Run directory. Default notes-and-plans/exports/translation/<locale>.
- *   --resume               Reuse checkpointed translations instead of recalling the model.
- *   --dry-run              Build the manifest and batches, call nothing.
- */
 
 import { mkdir, readFile, writeFile, appendFile, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -49,10 +18,6 @@ import { loadGlosses } from "../../lib/translation/glossaryGloss.ts";
 import { loadApprovedStyleGuide } from "../../lib/translation/approvedStyleGuide.ts";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
-/**
- * The prompt context each batch corpus maps to (`kindInContext` in locales.mjs);
- * a corpus not listed here is translated unscoped, as every corpus was before.
- */
 const CORPUS_CONTEXT_KIND = {
   substances: "article",
   effects: "effect",
@@ -61,14 +26,6 @@ const CORPUS_CONTEXT_KIND = {
   replications: "replication",
 };
 
-/**
- * Node's default dispatcher negotiates HTTP/2 with this endpoint and multiplexes
- * every request over a handful of connections. At this fan-out the streams
- * starve each other: a hundred requests in flight deliver a few completions a
- * minute while a single request on its own returns in seconds. One connection
- * per worker, over HTTP/1.1, keeps the pool honest. The timeouts recycle a
- * connection the far side has abandoned instead of parking a worker forever.
- */
 setGlobalDispatcher(
   new Agent({
     allowH2: false,
@@ -82,7 +39,6 @@ setGlobalDispatcher(
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** OpenRouter list price per million tokens, used for the run's cost report. */
 const MODEL_PRICING = {
   "z-ai/glm-5.3-flash": { input: 0.075, output: 0.25 },
   "z-ai/glm-5.3": { input: 1.4, output: 4.4 },
@@ -146,7 +102,6 @@ async function loadCheckpoint(checkpointPath) {
       const record = JSON.parse(line);
       if (record.hash && typeof record.target === "string") done.set(record.hash, record);
     } catch {
-      // A partially written final line is expected after an interrupted run.
     }
   }
   return done;
@@ -220,9 +175,6 @@ async function main() {
 
   const checkpoint = options.resume ? await loadCheckpoint(checkpointPath) : new Map();
 
-  // A gate that has since been corrected must not leave its verdict behind.
-  // Re-judging the checkpoint against the current validator is free, and the
-  // segments it rejects are the only ones worth paying the model for again.
   let revalidated = 0;
   if (options.revalidate && checkpoint.size > 0) {
     for (const unit of units) {
@@ -236,19 +188,10 @@ async function main() {
       }
       entry.defects = evaluation.defects;
     }
-    // The queue on disk was written by the gates that just changed, and so
-    // were the verdicts in the checkpoint: rewrite it, or the next plain
-    // resume reloads the stale ones and reports them as failures again.
     await rm(failurePath, { force: true });
     await writeFile(checkpointPath, [...checkpoint.values()].map((entry) => `${JSON.stringify(entry)}\n`).join(""));
   }
 
-  // A corpus translated before the glossary was frozen never saw the terms.
-  // Dropping the segments that mention a frozen term without using its agreed
-  // rendering sends exactly those back through, with the glossary in the
-  // prompt this time. It is a preference, not a substitution: a genuine
-  // homonym such as respiratory depression comes back reading the same, and
-  // stays visible in the audit for a reader to settle.
   let reglossaried = 0;
   if (options.reglossary && checkpoint.size > 0) {
     for (const unit of units) {
@@ -355,9 +298,6 @@ async function main() {
   await runPool({ batches, concurrency: options.concurrency, worker });
 
   const elapsed = Date.now() - started;
-  // A segment that failed a blocking gate keeps its English source in the
-  // artifact. Serving a translation with a dropped dose is worse than serving
-  // the sentence a reader can still check.
   const translationsByHash = new Map(
     [...translations]
       .filter(([, entry]) => !isBlocking(entry.defects ?? []))
@@ -368,9 +308,6 @@ async function main() {
     corpus,
     parse: parseRawVCodeContent,
   });
-  // A derived tree is rebuilt from the shipped raw rather than compared to the
-  // source tree string by string, so its own leaves are exempt from the
-  // structural check that guards everything else.
   const derivedKeys = new Set(Object.values(corpus.markupFields ?? {}));
   const diff = structuralDiff(dataset.items, assembled.dataset.items, [], [], 25, derivedKeys);
 

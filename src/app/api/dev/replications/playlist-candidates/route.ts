@@ -1,19 +1,3 @@
-/**
- * GET /api/dev/replications/playlist-candidates?q=<words>
- * GET /api/dev/replications/playlist-candidates?slugs=<slug>,<slug>
- *   → { ok, candidates }
- *
- * The Playlists tab's work lookup: a bounded search (at most 24 answers) and a
- * slug resolver (at most 250 slugs, the playlist ceiling). Contributor floor,
- * because every member may build a playlist. It reads only the published
- * corpus the public site already serves and returns only the fields a
- * thumbnail card draws, so nothing here is more than a visitor could see.
- * Works a playlist cannot hold (excluded, combinations, audio) never appear,
- * which is what lets the tab refuse a slug the moment it is added.
- *
- * Deliberately not under `/playlists/`: a static segment there would shadow a
- * playlist whose key is the same word.
- */
 import { NextResponse } from "next/server";
 import { getPublicReplications } from "@server/data/publicData";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

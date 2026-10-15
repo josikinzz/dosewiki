@@ -56,7 +56,6 @@ const SEARCH_INDEX_CACHE_TTL_MS = 10 * 60 * 1000;
 export type PublicDerivedDataCacheInvalidation = {
   source: PublicationSource;
   targets?: readonly PublicationTarget[];
-  /** An unnameable path is deliberately treated as a full dependency change. */
   conservative?: boolean;
 };
 
@@ -90,13 +89,7 @@ let publicLibraryCache:
 let publicSearchIndexCache:
   | {
       expiresAt: number;
-      /**
-       * The library instance the index was derived from. `getPublicLibrary`
-       * hands out a stable instance until its own cache turns over, so
-       * reference equality is an exact, free staleness check for substances.
-       */
       library: LibraryData;
-      /** Revision digest of the non-library sources. See {@link buildSearchSourceSignature}. */
       identity: string;
       sourceSignature: string;
       value: SearchIndex;
@@ -196,9 +189,6 @@ export const getPublicLibrary = cache(async (): Promise<LibraryData> => {
   return pending;
 });
 
-/**
- * The public search index, built at most once per target-aware cache identity.
- */
 export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
   const readTarget = getPublicServerReadTarget().selectedUrl;
   const durableIdentity = await getPublicDerivedCacheIdentity("search");
@@ -246,11 +236,6 @@ export const getPublicSearchIndex = cache(async (): Promise<SearchIndex> => {
   }).catch(() => undefined);
   return pending;
 });
-/**
- * Request-only locale projection of the shared canonical index. The stored
- * flat translations change display fields only; `localizeSearchIndex` retains
- * canonical labels and aliases as searchable identity.
- */
 const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<SearchIndex> => {
   const canonicalIndex = await getPublicSearchIndex();
   if (locale === "en") return canonicalIndex;
@@ -271,9 +256,6 @@ const getPublicLocalizedSearchIndex = cache(async (locale: string): Promise<Sear
           ? effectSummariesBySlug.get(slug)
           : reportSummariesBySlug.get(slug)?.introduction;
       const displayLeaves = [sourceSummary ?? secondary, description];
-      // Substance names and aliases are canonical editorial identity, not
-      // translatable display copy. Other result kinds retain their existing
-      // localized labels and aliases.
       if (type !== "substance") displayLeaves.push(label, ...(aliases ?? []));
       return displayLeaves.filter((value): value is string => Boolean(value));
     }),
@@ -321,7 +303,6 @@ export const getPublicSearchMatches = cache(async (query: string, limit = 20, lo
   return (await getPublicLocalizedSearchIndex(locale)).query(query, { limit });
 });
 
-// Keep search composition outside persistent leaves, including on cold instances.
 const getCachedSearchSuggestions = cache(
   async (query: string, limit: number, locale: string): Promise<SearchSuggestion[]> =>
     (await getPublicSearchMatches(query, limit, locale)).map(toSearchSuggestion),

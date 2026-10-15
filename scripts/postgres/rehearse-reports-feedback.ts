@@ -1,32 +1,3 @@
-/**
- * Rehearsal: private report intake, report publication, and
- * feedback review on Postgres, driven through the same native functions the
- * app calls (`PostgresClient` with `api.*` references) and, for intake,
- * through the real Next route handler with `DATA_BACKEND=postgres`.
- *
- *   bun scripts/postgres/rehearse-reports-feedback.ts [--target <url>] [--allow-remote] [--keep]
- *
- * Creates scratch memberships, submissions, reports, and feedback rows tagged
- * `t08-<random>` and deletes them unless `--keep`. Fixture rows are only read.
- * The report lands in runs/postgres-import/<timestamp>-reports-feedback/report.json.
- *
- * Scenarios (letters match the ticket acceptance list):
- *   a. intake: the route persists exactly one submission and returns its
- *      contract; replaying the same submission id writes nothing.
- *   b. queue-privacy: no apiKey, an empty apiKey, a viewer, and the intake
- *      token are all refused by every tripReportSubmissions query.
- *   c. route: 503 without a credential, 400 malformed, 400 validation, 413
- *      oversized, 429 at the in-process limit, 500 when persistence fails,
- *      and mutation-level refusal of wrong or wrongly scoped keys.
- *   d. publish: promote and update write content, tripReportSubstances,
- *      revision journal, and outbox in one transaction; a second-half failure
- *      (a substance name the join index cannot hold) leaves zero rows changed.
- *   e. public-projection: every unauthenticated tripReports query and every
- *      PublicDataReadAdapter report method exposes only projection fields.
- *   f. feedback: create, role floors, status transitions, and limit-based
- *      paging for articleFeedback and siteFeedback.
- */
-
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -61,9 +32,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const INTAKE_URL = "http://localhost/api/trip-report-submissions";
 const MAX_SUBMISSION_PAYLOAD_BYTES = 128 * 1024;
 
-/** Stored on `tripReports` but never part of the reader projection (`server/lib/tripReportPublicProjection.ts`). */
 const PRIVATE_REPORT_FIELDS = ["_id", "_creationTime", "owner_email", "attribution_review"] as const;
-/** `tripReportSubmissions` fields that exist only for intake and review (`server/schema.ts`). */
 const INTAKE_ONLY_FIELDS = [
   "id", "status", "schema_version", "author_name", "substance_names", "contact_email", "may_contact",
   "publish_consent", "age_confirmed", "ip_hash", "user_agent", "honeypot_triggered", "review_notes",
@@ -93,7 +62,6 @@ async function rejection(run: () => Promise<unknown>): Promise<unknown> {
 
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 const sqlCodeOf = (error: unknown): string | undefined => (error as { code?: string } | null)?.code;
-/** Key-order-insensitive equality: jsonb does not preserve object key order. */
 function stable(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
   if (value && typeof value === "object") {
@@ -105,7 +73,6 @@ function stable(value: unknown): string {
 const same = (a: unknown, b: unknown): boolean => stable(a) === stable(b);
 
 type SubmissionArg = FunctionArgs<typeof api.tripReportSubmissions.create>["submission"];
-/** The app row type widens `exported_trip_report_id` to string; a freshly minted row never carries one. */
 function asSubmissionArg(row: TripReportSubmissionRow): SubmissionArg {
   return { ...row, exported_trip_report_id: undefined };
 }
@@ -174,7 +141,6 @@ async function main() {
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
 
-  // The app boundaries read these exactly as they would under `next start`.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE;
@@ -187,8 +153,6 @@ async function main() {
 
   const tag = `t08-${randomBytes(4).toString("hex")}`;
   const intakeToken = `${tag}-intake-token`;
-  // A scoped token for an unrelated intent, minted for this run: the local
-  // .env.local reuses the admin key as every scoped token, which would pass.
   const otherIntentToken = `${tag}-prompt-migration-token`;
   process.env.DATA_ADMIN_TOKEN_PROMPT_MIGRATION_WRITE = otherIntentToken;
   const members = {
@@ -245,14 +209,12 @@ async function main() {
       scratch.membershipIds.push(await insertDocument(pool, "memberships", { email, role, createdAt: now, updatedAt: now }));
     }
 
-    // ---------------------------------------------------------------- c. route (credential absent)
     const missingCredential = await readResponse(await intakePost(intakeRequest("10.8.0.1", submissionInput(`${tag} no credential`, authorName, members.admin, tag))));
     expect("route", "503 when no intake credential is set", missingCredential.status === 503, missingCredential.status);
     expect("route", "503 wrote nothing", (await count("tripReportSubmissions", '"title" = $1', [`${tag} no credential`])) === 0);
 
     process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = intakeToken;
 
-    // ---------------------------------------------------------------- a. intake
     const title = `${tag} promoted report`;
     const input = submissionInput(title, authorName, members.admin, tag);
     const accepted = await readResponse(await intakePost(intakeRequest("10.8.0.2", input)));
@@ -282,7 +244,6 @@ async function main() {
     expect("intake", "replaying the stored row through tripReportSubmissions.create is refused", messageOf(replayDirect) === "Trip report submission already exists.", messageOf(replayDirect));
     expect("intake", "replay wrote nothing", (await count("tripReportSubmissions", '"title" = $1', [title])) === 1);
 
-    // ---------------------------------------------------------------- b. queue-privacy
     const submissionQueries = queriesOf("tripReportSubmissions");
     const privateQueryArgs: Record<string, Record<string, unknown>> = {
       list: {},
@@ -307,7 +268,6 @@ async function main() {
     expect("queue-privacy", "editor reads the queue (positive control)", editorList.some((row) => row.id === submissionId));
     expect("queue-privacy", "editor counts the queue (positive control)", (await client.query(api.tripReportSubmissions.countByStatus, { ...editorArgs, statuses: ["submitted"] })) >= 1);
 
-    // ---------------------------------------------------------------- c. route (malformed, oversized, rate-limited, unauthorized)
     const malformed = await readResponse(await intakePost(intakeRequest("10.8.0.3", null, "{")));
     expect("route", "400 Invalid JSON body for malformed JSON", malformed.status === 400 && same(malformed.body, { error: "Invalid JSON body." }), malformed);
     const empty = await readResponse(await intakePost(intakeRequest("10.8.0.3", {})));
@@ -344,7 +304,6 @@ async function main() {
     expect("route", "create with a token scoped to another intent is refused", messageOf(wrongIntent) === "Authentication failed: Invalid API key", messageOf(wrongIntent));
     expect("route", "refused creates wrote nothing", (await count("tripReportSubmissions", '"id" = $1', [`${tag}-wrong-key`])) === 0);
 
-    // ---------------------------------------------------------------- d. publish (promote)
     const editorTransition = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...editorArgs, id: submissionId, status: "accepted" }));
     expect("publish", "editor cannot transition a submission (admin floor)", messageOf(editorTransition) === "Admin access required", messageOf(editorTransition));
     const illegal = await rejection(() => client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "exported" }));
@@ -373,7 +332,6 @@ async function main() {
     const exportedPreview = await rejection(() => client.query(api.tripReportSubmissions.previewPromotion, { ...editorArgs, id: submissionId }));
     expect("publish", "an exported submission cannot be promoted twice", messageOf(exportedPreview) === "Only accepted submissions can be promoted. Current status: exported.", messageOf(exportedPreview));
 
-    // ---------------------------------------------------------------- d. publish (update: ordered content + associations)
     const typedReportId = reportId as Id<"tripReports">;
     const record = await client.query(api.tripReports.getPortalRecord, { ...adminArgs, id: typedReportId });
     const updates = {
@@ -402,9 +360,6 @@ async function main() {
     expect("publish", "replaying the same operationId returns the recorded result without a second revision",
       replayUpdate.updated === true && (await reportSnapshot(reportId, expectedSlug)).revisions === afterSnapshot.revisions, replayUpdate);
 
-    // Second half failure: content writes succeed, then the join-index insert
-    // for an oversized substance name fails (btree tuple limit), so the whole
-    // mutation must roll back.
     const hugeName = `${tag}-${randomBytes(6000).toString("base64")}`;
     const fresh = await client.query(api.tripReports.getPortalRecord, { ...adminArgs, id: typedReportId });
     const failing = { ...fresh.fields, introduction: "never visible", substances: [{ name: `${tag} Delta` }, { name: hugeName }] };
@@ -435,7 +390,6 @@ async function main() {
         && failingSubmission?.status === "accepted" && failingSubmission.exported_trip_report_id === null && failingSubmission.exported_at === null,
       failingSubmission && { status: failingSubmission.status, exported_trip_report_id: failingSubmission.exported_trip_report_id });
 
-    // ---------------------------------------------------------------- e. public-projection
     const publicQueryArgs: Record<string, Record<string, unknown>> = {
       getAll: {},
       getBySlug: { slug: expectedSlug },
@@ -462,7 +416,6 @@ async function main() {
     expect("public-projection", "getAll includes the promoted report", listedSlugs(publicResults.getAll).includes(expectedSlug));
     expect("public-projection", "getByAuthor matches the byline case-insensitively", same(listedSlugs(publicResults.getByAuthor), [expectedSlug]), publicResults.getByAuthor);
     expect("public-projection", "getByContributor does not attribute a reviewed byline to an unrelated profile", listedSlugs(publicResults.getByContributor).length === 0, publicResults.getByContributor);
-    // The fixture leaves the tripReports read index unready, so this is the legacy scan; the join rows themselves are asserted in d.
     expect("public-projection", "getBySubstance finds the report by substance name, case-insensitively", listedSlugs(publicResults.getBySubstance).includes(expectedSlug), publicResults.getBySubstance);
     expect("public-projection", "getBySubstanceNames finds the report once", same(listedSlugs(publicResults.getBySubstanceNames), [expectedSlug]), publicResults.getBySubstanceNames);
 
@@ -484,7 +437,6 @@ async function main() {
     expect("public-projection", "adapter by-slug read is served from Postgres (scratch slug exists nowhere else)", (adapterResults.getPublicTripReportBySlug as { slug?: string } | null)?.slug === expectedSlug);
     expect("public-projection", "adapter records include the promoted report", listedSlugs(adapterResults.getPublicTripReportRecords).includes(expectedSlug));
 
-    // ---------------------------------------------------------------- f. feedback
     const feedbackModules = [
       {
         module: "articleFeedback" as const,
@@ -527,7 +479,6 @@ async function main() {
       const editorRows = (await client.query(feedback.refs.list, { ...editorArgs, status: "new", limit: 250 })) as { id: string }[];
       expect(scenario, "editor lists the queue (positive control)", rows.every((row) => editorRows.some((listed) => listed.id === row.id)));
 
-      // Paging: the queue is newest-first by created_at and pages by limit.
       const full = (await client.query(feedback.refs.list, { ...adminArgs, status: "new", limit: 250 })) as { id: string; created_at: string }[];
       const sortedDesc = full.every((row, index) => index === 0 || full[index - 1].created_at >= row.created_at);
       const scratchOrder = full.filter((row) => row.id.startsWith(scratch.feedbackIdPrefix)).map((row) => row.id);
@@ -543,7 +494,6 @@ async function main() {
         same(paged, full.map((row) => row.id)) && new Set(paged).size === paged.length && pages.slice(0, -1).every((page) => page.length === 2) && rows.every((row) => paged.includes(row.id)),
         { pages: pages.length, paged: paged.length, full: full.length });
 
-      // Transitions: enumerated from VALID_TRANSITIONS in the module.
       const newBefore = await client.query(feedback.refs.countByStatus, { ...adminArgs, statuses: ["new"] });
       const reviewing = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "reviewing", note: "taking a look" });
       const resolved = await client.mutation(feedback.refs.transition, { ...adminArgs, id: rows[0].id, status: "resolved" });
@@ -562,7 +512,6 @@ async function main() {
       expect(scenario, "transition of an unknown id is refused", /not found\.$/.test(messageOf(missing)), messageOf(missing));
     }
 
-    // ---------------------------------------------------------------- c. route (persistence failure -> 500), last: it swaps the runtime target
     resetServerDataWriteCapabilityCacheForTests();
     process.env.POSTGRES_POOLED_URL = "postgres://localhost:1/dosewiki";
     process.env.POSTGRES_DIRECT_URL = process.env.POSTGRES_POOLED_URL;

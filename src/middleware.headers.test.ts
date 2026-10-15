@@ -1,8 +1,3 @@
-/**
- * Middleware cases that isolate module state: the per-host header cache, the
- * exported matcher, and the flavor-gated paths that reload the module under a
- * different site flavor. Routing and role policy live in middleware.test.ts.
- */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { unstable_doesMiddlewareMatch } from "next/experimental/testing/server";
 import { makePublicRequest, makeRequest } from "./middleware.testHarness";
@@ -14,8 +9,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next-auth/jwt", () => ({
   getToken: mocks.getToken,
 }));
-// This file owns dose.wiki host and editor-origin policy. Keep that publication
-// explicit when the whole suite is launched with another ambient flavor.
 vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "dosewiki");
 
 describe("middleware header memoization", () => {
@@ -24,7 +17,6 @@ describe("middleware header memoization", () => {
   });
 
   it("does not frame editor documents or compatibility and neighboring embed paths", async () => {
-    // Share the resettable middleware module boundary used by the cache cases above.
     const { middleware } = await import("./middleware");
     for (const path of ["/embed/replications/other", "/embed/other", "/preview/embed/replications"]) {
       const response = await middleware(makePublicRequest(path));
@@ -55,8 +47,6 @@ describe("middleware matcher", () => {
     "/dev/themes",
     "/api/v1/substances",
     "/api/molecules/2c-b",
-    // json/txt stay matched on purpose: the construction gate must keep fronting the
-    // open-data dumps on dose.wiki/www until launch.
     "/robots.txt",
     "/llms.txt",
     "/SubstanceIndex.json",
@@ -76,7 +66,6 @@ describe("the editor shell is dose.wiki-only", () => {
       mocks.getToken.mockResolvedValue({ email: "admin@example.com", role: "admin" });
 
       try {
-        // The flavor is read at module init, so the import has to follow the stub.
         const { middleware } = await import("./middleware");
         const response = await middleware(makePublicRequest(path));
 

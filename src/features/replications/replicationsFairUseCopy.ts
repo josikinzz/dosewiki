@@ -1,18 +1,3 @@
-/**
- * The replications gallery's fair-use / takedown notice, editable in the /dev
- * Copy Studio under the `replications-fair-use-notice` block (Replications
- * group).
- *
- * The string lives here, apart from the section that renders it, following the
- * `articleDisclaimerCopy` pattern: the gallery route loader is a server module
- * and reads this fallback to resolve the copy, and the migration pin test
- * (`copyBlockMigration.test.tsx`) holds it equal to the checked-in default in
- * `copyBlocks.json`, so an un-seeded deployment renders exactly this notice.
- *
- * The notice folds in the short rights footnote the gallery explorer used to
- * render on this page (creator-retained rights + the licensing-terms link), so
- * the page states its position once rather than twice.
- */
 export const REPLICATIONS_FAIR_USE_NOTICE_KEY = "replications-fair-use-notice";
 
 export const REPLICATIONS_FAIR_USE_NOTICE_FALLBACK =

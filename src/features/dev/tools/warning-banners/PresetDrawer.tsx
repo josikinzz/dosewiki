@@ -37,32 +37,20 @@ import { countNoun, TONE_LABEL } from "./bannerLabels";
 import type { EnablementChange } from "./enablement";
 import { presetDraftIssues } from "./presetDrafts";
 
-/**
- * Says where a preset renders, in words. The preview itself is never faded:
- * the state belongs in a sentence and a status pill, not in the legibility of
- * the thing being previewed.
- */
 const WHERE_IT_RENDERS: Record<Exclude<WarningBannerPresetState, "live">, string> = {
   dormant: "Enabled, but no substances selected. This renders nowhere yet.",
   off: "Switched off. This renders nowhere.",
 };
 
-/**
- * Half the per-preset cap. A list this long is usually a sitewide banner being
- * built by hand, and the cap will force it to be split into copies that then
- * drift apart; the drawer points at the checkbox before that happens.
- */
 const SITEWIDE_HINT_THRESHOLD = Math.ceil(WARNING_BANNER_LIMITS.maxEnabledSlugs / 2);
 
 type PresetDrawerProps = {
-  /** Contextual copy editing deliberately excludes coverage and deletion. */
   contextual?: boolean;
   draft: WarningBannerPreset;
   isNew: boolean;
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
   iconValid: boolean;
-  /** Read-only here: the size is edited once, in the global toolbar above. */
   iconSize: number;
   targets: WarningBannerTarget[];
   onIconValidityChange: (valid: boolean) => void;
@@ -71,14 +59,9 @@ type PresetDrawerProps = {
   onDiscard: () => void;
   onRequestEnablement?: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onInspectCoverage?: (slug: string) => void;
-  /**
-   * The studio passes the article preview frame here. Contextual editing sits
-   * on the article itself, so it omits this and keeps the lone banner.
-   */
   renderPreview?: (preview: DrawerPreview) => ReactNode;
 };
 
-/** What the drawer hands its preview: the draft and the article to show it on. */
 export type DrawerPreview = {
   draft: WarningBannerPreset;
   slug: string | null;
@@ -108,11 +91,6 @@ export function PresetDrawer({
   const [staged, setStaged] = useState<Set<string>>(new Set());
   const validationId = useId();
 
-  // Staging is per preset: carrying ticks from one drawer into the next would
-  // be a way to enable a class of substances on a preset nobody was looking at.
-  // It also clears once a write lands, which is the only way `enabledSlugs`
-  // changes identity, so a cancelled dialog keeps the ticks and a confirmed one
-  // does not leave them behind as ghosts.
   useEffect(() => {
     setStaged(new Set());
   }, [draft.key, draft.enabledSlugs]);
@@ -126,8 +104,6 @@ export function PresetDrawer({
     [targets],
   );
   const titleOf = (slug: string) => titles.get(slug) ?? slug;
-  // The articles the preview can open: the preset's own list, or every
-  // substance when it is sitewide or not on any list yet.
   const previewOptions = useMemo(
     () =>
       !draft.allSubstances && draft.enabledSlugs.length > 0
@@ -154,15 +130,7 @@ export function PresetDrawer({
     !draft.allSubstances && draft.enabledSlugs.length >= SITEWIDE_HINT_THRESHOLD;
   const canWrite = keyValid && iconValid && !overSlugBudget && saveState !== "saving" && !contentInvalid;
 
-  /**
-   * Enablement buttons change scope only. On a saved preset the controller
-   * confirms and writes the saved words with the new list, so unsaved copy in
-   * this drawer never rides along; on a new preset the list is a draft that
-   * publishes with it. Neither depends on the copy being valid.
-   */
   const canChangeScope = saveState !== "saving";
-  // Coverage opens on the article the preview shows, when that article is on
-  // the list; otherwise on the first listed substance.
   const readerSlug =
     activePreviewSlug && draft.enabledSlugs.includes(activePreviewSlug)
       ? activePreviewSlug
@@ -171,18 +139,6 @@ export function PresetDrawer({
 
   return (
     <div className="space-y-9">
-      {/* The one preview, full width, above the fields that feed it. In the
-          studio it is the article itself: the draft in the article's banner
-          stack, in either theme and at phone or desktop width. Either way it
-          renders at the saved global glyph size so the preview and a live
-          article cannot disagree; the primitive owns the dark severity chip and
-          the markdown list rule.
-
-          Never dimmed. An earlier pass faded a preset that was enabled nowhere,
-          reasoning that a full-strength preview of an invisible banner overstates
-          the state of the site. In practice it just made the thing an editor is
-          trying to look at harder to see. The status pill and the line under
-          this heading already say where it renders. */}
       <EditorSection
         headingLevel="h3"
         icon="lucide:eye"
@@ -323,9 +279,6 @@ export function PresetDrawer({
           onValidityChange={onIconValidityChange}
         />
 
-        {/* In the studio the save dock under the pane carries Publish, Discard
-            and the reason Publish is blocked; on the article the drawer keeps
-            its own actions. */}
         {contextual ? (
           <>
             <p className="theme-text-secondary text-sm">
@@ -349,7 +302,6 @@ export function PresetDrawer({
                   onClick={onSave}
                 >
                   <Icon icon="lucide:save" size={15} />
-                  {/* In-page, the button opens the shared review-and-publish sheet. */}
                   Review
                 </Button>
                 <Button
@@ -448,9 +400,6 @@ export function PresetDrawer({
               </p>
             ) : (
               <div className="flex flex-wrap gap-1.5">
-                {/* On a saved preset each X is a production write, so it is
-                    inked like one and asks before it lands; Discard edits
-                    never touches this list. */}
                 {draft.enabledSlugs.map((slug) => (
                   <TagToken
                     key={slug}
@@ -486,9 +435,6 @@ export function PresetDrawer({
             ) : null}
           </fieldset>
 
-          {/* One box for both jobs. Typing a drug name finds that drug; typing a
-              class finds everything carrying it, and the helper ranks names
-              first, so a specific substance is one search and one click. */}
           {!draft.allSubstances ? (
             <div className="space-y-2.5">
               <EditorField
@@ -516,8 +462,6 @@ export function PresetDrawer({
                 )}
               </EditorField>
 
-              {/* A bordered scroll well, not a card inside a card, capped so the
-                  page keeps one scroll context. */}
               {query.trim().length >= 2 || results.length > 0 ? (
                 <Surface
                   variant="subtle"
@@ -533,9 +477,6 @@ export function PresetDrawer({
                     </p>
                   ) : (
                     <div className="divide-y divide-dose-divider">
-                      {/* Name matches first, then class matches under their own
-                          heading: a class string is free-form, so a class hit is
-                          a claim the editor has to read before enabling. */}
                       {([
                         ["name", "Name matches"],
                         ["class", "Class matches, read before enabling"],
@@ -550,7 +491,6 @@ export function PresetDrawer({
                                 const isEnabled = enabled.has(result.slug);
                                 return (
                                   <li key={result.slug}>
-                                    {/* The whole row toggles its tick, so a phone tap need not find the box. */}
                                     <label
                                       className={cn(
                                         "flex items-start gap-2.5 px-3 py-2 [@media(pointer:coarse)]:py-3",
@@ -579,9 +519,6 @@ export function PresetDrawer({
                                           {result.title}
                                         </span>
                                         <span className="theme-text-faint block truncate font-mono text-xs">
-                                          {/* A name match is self-evident from the title above; a
-                                              class match has to print the string that hit or the
-                                              editor cannot judge it. */}
                                           {result.kind === "class"
                                             ? `${result.slug} · ${result.reason}`
                                             : result.slug}
@@ -619,9 +556,6 @@ export function PresetDrawer({
                     <Icon icon="lucide:plus" size={15} />
                     {`Enable on ${countNoun(stagedSlugs.length, "substance")}`}
                   </Button>
-                  {/* The class-wide escape hatch, and the one-click path for a single
-                      named drug: a search that returns exactly one row names it on the
-                      button, so enabling diazepam never needs a tick first. */}
                   <Button
                     type="button"
                     variant="outline"

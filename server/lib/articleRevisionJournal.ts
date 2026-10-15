@@ -20,9 +20,6 @@ export async function articleBaseHash(ctx: QueryCtx | MutationCtx, article: Arti
   return contentHash({ article, revision: latest?._id ?? null });
 }
 
-/** Source quotes and research never leave citationEvidence. Old support is retained
- * for audit but explicitly decertified when its owning section or source changes.
- */
 async function markChangedArticleEvidence(ctx: MutationCtx, before: ArticleDocument, after: ArticleDocument, actorEmail: string, changedSections: string[]) {
   if (!changedSections.length) return;
   const referencesChanged = changedSections.includes("references");
@@ -77,7 +74,6 @@ async function markChangedArticleEvidence(ctx: MutationCtx, before: ArticleDocum
 export async function recordArticleRevision(ctx: MutationCtx, input: {
   before: ArticleDocument; after: ArticleDocument; actor: Pick<AuthorizedActor, "email" | "role">;
   changeId: string; baseHash: string; summary: string; restoredFrom?: Id<"articleRevisions">; publicChangelog?: boolean;
-  /** False only for a snapshot of content another write already stored. */
   markEvidence?: boolean;
 }) {
   const now = new Date().toISOString();
@@ -91,7 +87,6 @@ export async function recordArticleRevision(ctx: MutationCtx, input: {
   const resultHash = contentHash({ article: input.after, revision: revisionId });
   await ctx.db.patch(revisionId, { resultHash });
   if (input.publicChangelog !== false) {
-    // Public history names changed sections, never dumps internal review/reference provenance.
     await ctx.db.insert("changelog", {
       entryId: `article-${revisionId}`, createdAt: now, message: input.summary,
       markdown: `Changed ${changed.join(", ")} on ${input.after.title}.`,
@@ -106,19 +101,12 @@ export function articleRevisionResult(revision: Doc<"articleRevisions">) {
   return { revisionId: revision._id, article: revision.after, baseHash: revision.resultHash, changeId: revision.changeId };
 }
 
-/** Revisions one article may carry before review lookups refuse to guess. */
 const REVIEW_REVISION_SCAN_LIMIT = 1000;
 
 async function moleculeChemistry(ctx: QueryCtx | MutationCtx, slug: string) {
   return ctx.db.query("moleculeOverrides").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
 }
 
-/**
- * The article's current published revision, as a review sign-off records it:
- * derived from the stored article and its molecule override (see
- * `articleReviewRevision`), so a write that bypasses the revision journal
- * still moves it and makes an earlier sign-off stale.
- */
 export async function publishedArticleRevision(ctx: QueryCtx | MutationCtx, slug: string): Promise<string> {
   const article = await loadArticle(ctx, slug);
   return articleReviewRevision(articleDocument(article), await moleculeChemistry(ctx, slug));
@@ -132,13 +120,6 @@ async function articleRevisionsOldestFirst(ctx: QueryCtx | MutationCtx, slug: st
   return revisions;
 }
 
-/**
- * Make sure the revision journal holds the article exactly as stored, so the
- * content a sign-off or recommendation covers can be read back later. When a
- * write bypassed the journal, one private snapshot row records the stored
- * content (against the last journaled state) without touching citation
- * evidence or the public changelog.
- */
 export async function journalStoredArticle(ctx: MutationCtx, slug: string, actor: Pick<AuthorizedActor, "email" | "role">) {
   const current = articleDocument(await loadArticle(ctx, slug));
   const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
@@ -156,14 +137,6 @@ export async function journalStoredArticle(ctx: MutationCtx, slug: string, actor
   });
 }
 
-/**
- * The article as it stood at a signed revision, or null when the revision
- * names no state of this article that can be read back. A derived revision is
- * found by content: the stored article, then journaled states newest first.
- * A legacy journal `resultHash` names its row, and the legacy
- * `REVIEW_INITIAL_REVISION` marker the first revision's `before` (the current
- * article when nothing was ever journaled).
- */
 export async function articleAtRevision(
   ctx: QueryCtx | MutationCtx,
   slug: string,
@@ -186,7 +159,6 @@ export async function articleAtRevision(
   return first && articleContentFingerprint(first) === fingerprint ? first : null;
 }
 
-/** Whether `revision` names a state of this article that a review can cover. */
 export async function isArticleRevision(ctx: QueryCtx | MutationCtx, slug: string, revision: string): Promise<boolean> {
   const current = articleDocument(await loadArticle(ctx, slug));
   return (await articleAtRevision(ctx, slug, revision, current)) !== null;

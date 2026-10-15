@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-/**
- * Prepare one permanently local citation-workbench run from an immutable
- * section proposal. This script reads repository-local proposal artifacts and
- * an existing workbench input packet; it never contacts Postgres, applies a
- * draft, or updates queue/tracker state.
- */
 
 import { COPYFILE_EXCL } from "node:constants";
 import { createHash, randomUUID } from "node:crypto";
@@ -134,12 +128,6 @@ function referenceIdentity(reference) {
   return reference?.id ? `id:${reference.id}` : null;
 }
 
-/**
- * Match the workbench's task-candidate traversal and canonical identity order.
- * Later discovery references that identify an earlier allowed/Wikipedia source
- * are remapped to the first candidate id, preventing proactive-scan collisions
- * without changing source prose or dropping discovery metadata.
- */
 export function canonicalizeSourcePacketReferenceIds(sourcePacket = {}) {
   const normalized = structuredClone(sourcePacket);
   const canonicalByIdentity = new Map();
@@ -343,12 +331,6 @@ function copyReadonly(source, destination) {
   chmodSync(destination, 0o444);
 }
 
-/**
- * `mkdir` is the run lock. A retry must never reuse an existing attempt,
- * including the astronomically unlikely UUID collision or a concurrently
- * reserved name. Retrying the reservation is safe because no files exist in a
- * directory that this invocation did not create.
- */
 function reserveAttemptDirectory({ runsRoot, runIdPrefix }) {
   for (let attempt = 0; attempt < ATTEMPT_RESERVATION_LIMIT; attempt += 1) {
     const runId = `${runIdPrefix}--attempt-${randomUUID()}`;
@@ -407,9 +389,6 @@ export function prepareLocalProposalRun({
   });
   const digestPrefix = proposal.artifactDigest.slice(0, 12);
   const bridgeDigestPrefix = bridgeInputDigest.slice(0, 12);
-  // The immutable proposal binding identifies the content, not one mutable
-  // workbench directory. Reserve a fresh attempt directory atomically so a
-  // retry (or a concurrent coordinator) cannot attach to another attempt.
   const requestedRunsRoot = resolve(workbench, "runs");
   mkdirSync(requestedRunsRoot, { recursive: true });
   const runsRoot = realpathSync(requestedRunsRoot);
@@ -475,9 +454,6 @@ export function prepareLocalProposalRun({
     writeReadonlyJson(resolve(inputDir, "binding.json"), binding);
     writeReadonlyJson(resolve(runPath, "citation-task.json"), task);
   } catch (error) {
-    // This invocation has already reserved runPath with mkdir. It is therefore
-    // safe to remove only that incomplete attempt; no existing/concurrent run
-    // can be affected.
     rmSync(runPath, { recursive: true, force: true });
     throw error;
   }

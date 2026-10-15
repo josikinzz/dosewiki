@@ -19,16 +19,13 @@ type WorkingChangesPanelProps = {
   hasDatasetChanges: boolean;
   onCopyDiff: () => void;
   onDownloadDiff: () => void;
-  /** The copy or download result. */
   diffNotice: TagNoticeState | null;
   isApplying: boolean;
   saveKeyLabel: string;
-  /** Commits (or submits) with the tag changes named in the confirm. */
   onCommit: () => void;
   headingRef?: RefObject<HTMLHeadingElement | null>;
 };
 
-/** The tag changes in words, for the commit confirm: what readers will see change. */
 export function TagChangeLead({ changes }: { changes: TagChange[] }) {
   if (changes.length === 0) return null;
   return (
@@ -52,13 +49,6 @@ export function TagChangeLead({ changes }: { changes: TagChange[] }) {
   );
 }
 
-/**
- * Everything Tags has changed and not yet committed, in one place: how much
- * waits, which tags moved (new, gone, on more or fewer articles), the one
- * commit button with its server check, the result of the last commit, and
- * the full diff with copy and download folded underneath. The shared
- * `DevWorkingChangesPanel` draws the frame; this supplies the tag words.
- */
 export function WorkingChangesPanel(
   { commit, tagChanges, datasetMarkdown, hasDatasetChanges, onCopyDiff, onDownloadDiff, diffNotice, isApplying, saveKeyLabel, onCommit, headingRef }: WorkingChangesPanelProps,
 ) {

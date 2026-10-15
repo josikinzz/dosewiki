@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-/**
- * Workflow entry point for artifact identity (scripts/build/build-surface.mjs).
- * Workflows call this instead of re-encoding the artifact tables in shell.
- * Uses only Node built-ins so it runs before `bun install`.
- *
- * Usage:
- *   node scripts/build/build-surface-cli.mjs outputs <artifact>
- *     Print surface, flavor, dir, and (inside a workflow run) deployment_id
- *     as `key=value` lines for `$GITHUB_OUTPUT`.
- *   node scripts/build/build-surface-cli.mjs public-build-inputs <env file>
- *     Print the file's NEXT_PUBLIC_* and NODE_OPTIONS lines; a missing file
- *     prints nothing.
- *   node scripts/build/build-surface-cli.mjs unignore-build-directories [.vercelignore]
- *     Drop the .next-*\/ rule in place; fails when the rule is gone.
- */
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { artifactOutputs, keepPublicBuildInputs, unignoreBuildDirectories } from "./build-surface.mjs";

@@ -205,7 +205,7 @@ export function requireGeneratedPublicationDeploymentFingerprint(
     const database = fingerprint.slice(slash + 1);
     const urlHost = host.includes(":") ? `[${host}]` : host;
     try { canonicalIdentity = parsePostgresTarget(`postgres://${urlHost}/${encodeURIComponent(database)}`).identity; }
-    catch { /* Invalid destination labels fail closed below. */ }
+    catch {   }
   }
   if (!fingerprint || canonicalIdentity !== fingerprint || !actualTargetIdentity) {
     fail(

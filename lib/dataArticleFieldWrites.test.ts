@@ -45,9 +45,6 @@ describe("editable article field paths", () => {
 });
 
 describe("wildcard segments", () => {
-  // A `*` matches whatever key the client sends, and the walker assigns with
-  // `cursor[key] = value`, so these are the paths that would turn one inline
-  // edit into a runtime-wide prototype write.
   it.each([
     "legality.countries.__proto__.notes",
     "subjective_effects.sensory.constructor.note",

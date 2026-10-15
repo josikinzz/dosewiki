@@ -34,7 +34,6 @@ import {
   type FeedbackHold,
 } from "./feedbackReviewModel";
 
-/** What a pending control reads while its write is in flight. */
 export type FeedbackPendingAction =
   | "claim"
   | "release"
@@ -58,7 +57,6 @@ const PENDING_LABEL: Record<FeedbackPendingAction, string> = {
   no_change_needed: "Closing",
 };
 
-/** What each outcome does, in the words of the decision it records. */
 const OUTCOME_HINT: Record<FeedbackOutcome, string> = {
   duplicate: "Resolves it: another report covers the same thing.",
   explanation_provided: "Resolves it: you answered the reader.",
@@ -82,12 +80,10 @@ export type FeedbackReviewPaneProps = {
   hold: FeedbackHold;
   headingId: string;
   headingRef?: RefObject<HTMLHeadingElement | null>;
-  /** "N of M" and previous/next; null when the item is not in the list. */
   position: { index: number; total: number } | null;
   onMove: (direction: 1 | -1) => void;
   onBackToList: () => void;
   onCopyLink?: () => void;
-  /** Said when the list's filter or search does not show this item. */
   hiddenByList?: ReactNode;
   facts: ReactNode;
   details: string;
@@ -113,13 +109,6 @@ export type FeedbackReviewPaneProps = {
   onReopen: () => void;
 };
 
-/**
- * One feedback item under review, docked beside the list: a header that names
- * it once (title, category, age, importance, status, Copy link, pager), what
- * the reader sent, the correction, the history and the note, and a decision
- * dock that sticks to the bottom of the screen while the pane is on it (the
- * phone thumb zone). The Inbox's `ReviewPane` is the pattern.
- */
 export function FeedbackReviewPane(props: FeedbackReviewPaneProps) {
   const {
     title,
@@ -315,7 +304,6 @@ export function FeedbackReviewPane(props: FeedbackReviewPaneProps) {
                 onClick={() => onDecide(decision.status)}
               >
                 {pending === decision.status ? PENDING_LABEL[decision.status] : decision.label}
-                {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
                 <span aria-hidden className="[@media(pointer:coarse)]:hidden">
                   <kbd className="theme-dev-kbd !text-current opacity-70">{decision.key}</kbd>
                 </span>
@@ -336,7 +324,6 @@ export function FeedbackReviewPane(props: FeedbackReviewPaneProps) {
   );
 }
 
-/** Close without a correction: Duplicate, Explanation provided, No change needed, each with what it records. */
 function OutcomeMenu({
   pending,
   can,
@@ -375,7 +362,6 @@ function OutcomeMenu({
   );
 }
 
-/** Who has this item, or who decided it, with the one action that changes that. */
 function HoldLine({ hold, status, validTargets, busy, pending, onClaim, onRelease, onReopen }: FeedbackReviewPaneProps) {
   let icon = "lucide:user-round";
   let iconClass = "theme-text-faint";

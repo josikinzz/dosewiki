@@ -1,11 +1,3 @@
-/**
- * Translation validators. Pure functions, no network, no clock.
- *
- * Every gate returns a defect code rather than a boolean, because the runner
- * routes on the code: a NUMBER_MISMATCH retries with a stricter reminder, a
- * SCRIPT_LEAK retries under the script rule, and an EMPTY_OUTPUT retries plain.
- */
-
 import traditionalCharset from "./traditional-charset.json" with { type: "json" };
 
 import { isLatinName } from "./locales.mjs";
@@ -25,68 +17,39 @@ export const DEFECT_CODES = Object.freeze({
   NUMBER_ADDED: "NUMBER_ADDED",
   MARKUP_LOSS: "MARKUP_LOSS",
   PLACEHOLDER_LOSS: "PLACEHOLDER_LOSS",
-  // Two adjacent full-width marks ("，，") the source does not repeat. Blocking.
   REPEATED_PUNCTUATION: "REPEATED_PUNCTUATION",
-  // An English word left in Chinese output. A review finding, not a retry.
   LEFTOVER_LATIN: "LEFTOVER_LATIN",
-  // Not a content defect: the provider never answered. It fails the job for a
-  // later retry and is never written as a rejection.
   TRANSPORT_FAILURE: "TRANSPORT_FAILURE",
 });
 
-/**
- * Inline markers travel through translation untouched. Both shapes appear in
- * the corpus: resolved citations and the unresolved placeholder.
- */
 const CITE_MARKER = /\[cite:[^\]]+\]|\[citation-needed\]/g;
 
 export function extractCiteMarkers(text) {
   return (text.match(CITE_MARKER) ?? []).sort();
 }
 
-/** `{{substanceCount}}` and friends are substituted at render, not translated. */
 const PLACEHOLDER = /\{\{\s*[A-Za-z0-9_]+\s*\}\}/g;
 
 export function placeholderTokens(text) {
   return (text.match(PLACEHOLDER) ?? []).map((token) => token.replace(/\s+/g, "")).sort();
 }
 
-/** Markdown link and image targets: prose on the left, a route on the right. */
 const LINK_TARGET = /\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 
 export function linkTargets(text) {
   return [...text.matchAll(LINK_TARGET)].map((match) => match[1]).sort();
 }
 
-/**
- * Units that bind tightly to a number: "330-650mg" is a dose, not a name, and
- * "11.7-fold" is a multiplier that survives translation as a number.
- */
 const UNIT_SUFFIX =
   /(\d)\s*-?\s*(fold|mg|µg|ug|mcg|ng|kg|g|ml|l|mol|nm|um|%|hours?|hrs?|h|minutes?|mins?|min|seconds?|secs?|days?|weeks?|months?|years?)\b/gi;
 
-/** Ring-position locants: "1,4-benzodiazepines", "pyrazolo[4,3-a]". */
 const LOCANT_SET = /\d+(?:,\d+)+\s*-/g;
 
-/**
- * Digits that belong to a name rather than a measurement: 5-HT2A, 2C-B,
- * pyrazolo[4,3-a], and the Chinese rendering of serotonin (5-羟色胺). Comparing
- * these across languages is meaningless, because a faithful translation both
- * keeps the Latin token and introduces new digit-bearing terms of its own.
- *
- * Units detach from their number first, so a dose never disappears into an
- * identifier, and the digit-initial pattern runs before the letter-initial one,
- * so "5-HT2A" leaves as a whole rather than shedding its leading 5.
- */
 function stripNonMeasurementDigits(text) {
   return text
     .replace(CITE_MARKER, " ")
     .replace(UNIT_SUFFIX, "$1 $2 ")
     .replace(LOCANT_SET, " ")
-    // Serotonin is conventionally rendered as 5-羟色胺 in Chinese even when
-    // the English source says only "serotonin". Do not generalize this to
-    // every digit before Han text: that hid real title numbers (`1 - 标题`)
-    // and chemical locants translated as `3-和 6-葡萄糖醛酸苷`.
     .replace(/(?<![:\d])5-(?=羟色胺)/gu, " ")
     .replace(/\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ")
     .replace(/[A-Za-z\u0370-\u03ff][A-Za-z0-9.\u0370-\u03ff,[\]-]*\d[A-Za-z0-9.\u0370-\u03ff,[\]-]*/g, " ");
@@ -100,15 +63,8 @@ function normalizeDigits(text) {
   );
 }
 
-/** Range connectors that let "2 to 3 billion" share one scale word. */
 const RANGE_GAP = /^[\s$€£¥]*(?:to|and|or|through|[-–—~])?[\s$€£¥]*$/i;
 
-/**
- * Numbers with the English scale word that governs them, because Chinese counts
- * in myriads: "$2 to $3 billion" is written "20亿至30亿", and "2.5 million"
- * becomes "250万". The digits change while the quantity does not. In a range
- * the scale word appears once, at the end, and governs both endpoints.
- */
 export function extractNumberTokens(text) {
   const normalized = normalizeDigits(text);
   const pattern = /(\d+(?:[.,]\d+)*)(\s*(?:thousand|million|billion|trillion))?/gi;
@@ -134,15 +90,10 @@ export function extractNumberTokens(text) {
   return tokens;
 }
 
-/**
- * Numbers that carry dose, duration, or law. Full-width digits normalise to
- * ASCII, thousands separators collapse, and name-borne digits are gone.
- */
 export function extractNumbers(text) {
   return extractNumberTokens(text).map((token) => token.value);
 }
 
-/** Digit strings a faithful Chinese rendering may use for a scaled quantity. */
 export function myriadForms(value, scale) {
   if (scale === 1) return [];
   const quantity = Number(value.replace(/,/g, "")) * scale;
@@ -160,17 +111,10 @@ export function myriadForms(value, scale) {
 
 const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
 
-/**
- * "Category 1" becomes "第一类" in any competent translation, so a small
- * integer that reappears as a Chinese numeral has survived, not vanished.
- * Anything above 99 stays Arabic in this register and gets no such allowance.
- */
 export function chineseNumeralForms(value) {
   const number = Number(value);
   if (!Number.isInteger(number) || number < 0 || (number > 99 && number !== 100)) return [];
-  // 两 is the counter form: "the other 2 metabolites" is "另外两种".
   if (number === 2) return ["二", "两"];
-  // "100%" is idiomatically 百分之百 and "100" reads as 一百.
   if (number === 100) return ["一百", "百分之百"];
   if (number < 10) return [CHINESE_DIGITS[number]];
   const tens = Math.floor(number / 10);
@@ -179,13 +123,6 @@ export function chineseNumeralForms(value) {
   return [ones === 0 ? head : `${head}${CHINESE_DIGITS[ones]}`];
 }
 
-/**
- * Every source quantity must survive. A quantity counts as surviving when its
- * digits reappear, when a small integer reappears as a Chinese numeral, or when
- * a scaled quantity reappears in myriad form. Extra numbers in the target are
- * reported separately: translation legitimately introduces some, while a
- * fabricated dose must still be visible to a reviewer.
- */
 export function compareNumbers(source, target) {
   const sourceTokens = extractNumberTokens(source);
   const targetCounts = new Map();
@@ -205,13 +142,10 @@ export function compareNumbers(source, target) {
     if (consume(value)) continue;
     if (myriadForms(value, scale).some((form) => consume(form))) continue;
     if (chineseNumeralForms(value).some((form) => target.includes(form))) continue;
-    // "06.05.2000" is written 2000年5月6日: a zero-padded day or month keeps
-    // its value without the padding, and a dotted date survives as its parts.
     const unpadded = value.replace(/^0+(?=\d)/, "");
     if (unpadded !== value && consume(unpadded)) continue;
     const dateParts = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value);
     if (dateParts && dateParts.slice(1).every((part) => consume(part) || consume(part.replace(/^0+(?=\d)/, "")))) continue;
-    // A plain "10,000" is idiomatically 一万 or 1万 even with no scale word.
     if (scale === 1 && /^\d+0000$/.test(unpadded)) {
       const wan = String(Number(unpadded) / 1e4);
       if (consume(wan) || chineseNumeralForms(wan).some((form) => target.includes(`${form}万`))) continue;
@@ -223,28 +157,12 @@ export function compareNumbers(source, target) {
   return { dropped, added, sourceNumbers: sourceTokens.map((token) => token.value) };
 }
 
-/**
- * Traditional-only characters, generated from OpenCC's TSCharacters table by
- * scripts/translation/build-traditional-charset.mjs. A model drifting to
- * Traditional is the classic zh-Hans failure and is invisible to a reviewer who
- * does not read Chinese.
- */
 const TRADITIONAL_CHARSET = new Set(traditionalCharset.characters);
 
-/**
- * A Traditional character the source already contains was carried over, not
- * drifted into: Japanese statute titles such as 指定薬物及び医療等の用途を定める省令
- * are quoted verbatim and must stay that way.
- */
 export function findTraditionalCharacter(text, source = "") {
   const characters = Array.from(text);
   for (let index = 0; index < characters.length; index += 1) {
     const character = characters[index];
-    // OpenCC maps 噁 to 恶 in ordinary prose, but Mainland chemical names
-    // retain the 噁唑 stem, including 异噁唑 and 噁唑啉. Only exempt this stem;
-    // 噁心 and surrounding Traditional characters must still fail.
-    // Primary usage: Ministry of Agriculture detection standards, entries36/50:
-    // https://xmsyj.moa.gov.cn/zcjd/202403/t20240321_6452006.htm
     if (character === "噁" && characters[index + 1] === "唑") continue;
     if (TRADITIONAL_CHARSET.has(character) && !source.includes(character)) return character;
   }
@@ -254,15 +172,6 @@ export function findTraditionalCharacter(text, source = "") {
 const HAN = /[\u4E00-\u9FFF]/u;
 const LATIN_WORD = /[A-Za-z]{3,}/g;
 
-/**
- * Prose worth translating, as opposed to a name, a statute citation, or a
- * measurement. "Anton Köllisch", "58 nM (norquetiapine)", and
- * "A.R.S. §§ 13-3401(6)(c)(xliii)" come back unchanged from any honest
- * translator, so they must not read as a defect. Lowercase-word counting cannot
- * tell them apart from prose: a chemical name, a roman numeral, and the tail of
- * an accented surname all look like words. An English function word cannot be
- * faked that way, and no real sentence lacks one.
- */
 const FUNCTION_WORDS =
   /\b(?:the|and|with|for|from|that|which|are|is|was|were|been|be|may|can|not|this|these|those|has|have|had|than|then|when|after|before|under|into|more|most|also|such|both|each|per|over|between|during|without|including|its|their|his|her|it|as|at|by|of|on|in|to|or|but|if|while|about|through|because|although|however)\b/i;
 
@@ -274,15 +183,9 @@ export function hasChinese(text) {
   return HAN.test(text);
 }
 
-/** Full-width marks and the ASCII mark each one renders. */
 const FULL_WIDTH_MARKS = { "，": ",", "。": ".", "、": ",", "；": ";", "：": ":", "！": "!", "？": "?" };
 const REPEATED_MARKS = /[，。、；：！？](?:\s*[，。、；：！？])+/gu;
 
-/**
- * Runs of two or more adjacent full-width marks ("，，", "，。"), each once.
- * A run the source already carries, in full width or as its ASCII marks
- * ("?!" rendered "？！"), is faithful rather than broken.
- */
 export function findRepeatedPunctuation(source, target) {
   const runs = new Set();
   for (const [match] of target.matchAll(REPEATED_MARKS)) {
@@ -294,23 +197,13 @@ export function findRepeatedPunctuation(source, target) {
   return [...runs];
 }
 
-/**
- * Latin letter runs split into words. A token carrying a digit ("2C-B",
- * "5-MeO-DMT", "EC50") is an identifier as a whole and yields no words.
- */
 const LATIN_TOKEN = /[A-Za-z0-9À-ɏ]+(?:['’.-][A-Za-z0-9À-ɏ]+)*/gu;
 const LEFTOVER_MIN_LETTERS = 4;
 
-/** Latin words of a rendering or a name, the forms a kept term may take. */
 function latinWords(text) {
   return text.match(/[A-Za-z]{3,}/g) ?? [];
 }
 
-/**
- * The kept forms of one glossary and name list, as a term finder. Scans call
- * `findLeftoverLatin` once per stored target with the same two objects, so
- * the forms are derived once per pair, by identity; callers do not mutate them.
- */
 const keptFinders = new WeakMap();
 function keptFinder(glossary, latinNames) {
   let byNames = keptFinders.get(glossary);
@@ -323,20 +216,6 @@ function keptFinder(glossary, latinNames) {
   return finder;
 }
 
-/**
- * English words of four or more letters left in Chinese output, in order and
- * once each (as the output spells them). Not a leftover:
- * - protected syntax: citation markers, `{{placeholders}}`, Markdown link
- *   targets, URLs, email addresses, file paths, code spans, HTML tags, identifiers with a
- *   digit or an inner dot, and inline tags when `markup` is set;
- * - a parenthetical gloss, which the zh-Hans prompt asks for on the first
- *   mention of a medical term without a standard rendering;
- * - an approved glossary rendering kept in Latin ("Phenidate -> Phenidate"
- *   covers "phenidates"), by the shared term matcher;
- * - a name the locale rules keep in Latin (`isLatinName`), or one of
- *   `latinNames`, the caller's names known to stay in Latin (substance slugs).
- * Pure, so the Inbox and coverage can run it over stored targets.
- */
 export function findLeftoverLatin({ source, target, glossary = {}, latinNames = [], markup = false }) {
   let text = target
     .replace(CITE_MARKER, " ")
@@ -353,7 +232,6 @@ export function findLeftoverLatin({ source, target, glossary = {}, latinNames = 
   const keptIn = keptFinder(glossary, latinNames);
   const found = [];
   for (const [token] of text.matchAll(LATIN_TOKEN)) {
-    // Digits or an inner dot mark an identifier: "2C-B", "EC50", "dose.wiki".
     if (/\d|[A-Za-z]\.[A-Za-z]/.test(token)) continue;
     for (const word of token.match(/[A-Za-zÀ-ɏ]+/gu) ?? []) {
       if (word.length < LEFTOVER_MIN_LETTERS || found.includes(word)) continue;
@@ -373,16 +251,6 @@ function latinWordRatio(source, target) {
   return carried.length / sourceWords.length;
 }
 
-/**
- * @param {object} input
- * @param {string} input.source - English source segment
- * @param {string} input.target - model output
- * @param {object} input.locale - locale config (script gate, length band)
- * @param {Record<string, string>} [input.glossary] - approved `term -> target` map to hold the segment to
- * @param {string} [input.exactTarget] - approved rendering for this exact contextual label, never inferred from a prose mention
- * @param {Iterable<string>} [input.latinNames] - names known to stay in Latin script, such as substance slugs, for the leftover-Latin finding
- * @returns {{defects: string[], details: object}}
- */
 export function validateSegment({ source, target, locale, glossary = {}, markup = false, exactTarget, latinNames = [] }) {
   const defects = [];
   const details = {};
@@ -418,14 +286,7 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
     details.citations = { source: sourceMarkers, target: targetMarkers };
   }
 
-  // A field holds one markup language, and the two look alike enough that
-  // running both gates on one segment reports every correct translation as
-  // broken. VCode's `[sup](common)` reads as a Markdown link, and Markdown's
-  // `[CC0](/docs/license)` reads as a VCode tag. So: markup fields get the tag
-  // gate, everything else gets the link-target gate.
   if (markup) {
-    // Chinese word order moves an emphasis span or a link, which is fine.
-    // Losing one, inventing one, or rewriting a target is not.
     const sourceMarkup = markupTokens(source);
     const targetMarkup = markupTokens(trimmed);
     if (sourceMarkup.join("|") !== targetMarkup.join("|")) {
@@ -433,8 +294,6 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
       details.markup = { source: sourceMarkup, target: targetMarkup };
     }
   } else {
-    // In Markdown copy the label is prose and the target is a route.
-    // Translating a route silently breaks it.
     const sourceTargets = linkTargets(source);
     const targetTargets = linkTargets(trimmed);
     if (sourceTargets.join("|") !== targetTargets.join("|")) {
@@ -443,8 +302,6 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
     }
   }
 
-  // Copy blocks interpolate counts and names at render. An unmatched token is
-  // printed literally on the page, so a translated brace is a visible defect.
   const sourcePlaceholders = placeholderTokens(source);
   const targetPlaceholders = placeholderTokens(trimmed);
   if (sourcePlaceholders.join("|") !== targetPlaceholders.join("|")) {
@@ -463,7 +320,6 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
     if (translatable && !hasChinese(trimmed)) {
       defects.push(DEFECT_CODES.UNTRANSLATED);
     }
-    // Output with no Chinese at all is either a name kept whole or UNTRANSLATED.
     const leftover = hasChinese(trimmed) ? findLeftoverLatin({ source, target: trimmed, glossary, latinNames, markup }) : [];
     if (leftover.length > 0) {
       defects.push(DEFECT_CODES.LEFTOVER_LATIN);
@@ -481,8 +337,6 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
     defects.push(DEFECT_CODES.UNTRANSLATED);
   }
 
-  // A segment with nothing to translate keeps its source length, so the band
-  // would fire on every name and statute citation.
   const ratio = trimmed.length / Math.max(source.length, 1);
   const [low, high] = locale.lengthBand;
   if (translatable && (ratio < low || ratio > high)) {
@@ -504,7 +358,6 @@ export function validateSegment({ source, target, locale, glossary = {}, markup 
   return { defects, details };
 }
 
-/** Defects that must never survive into a published artifact. */
 export const BLOCKING_DEFECTS = Object.freeze([
   DEFECT_CODES.EXACT_TRANSLATION_MISMATCH,
   DEFECT_CODES.EMPTY_OUTPUT,
@@ -522,10 +375,6 @@ export function isBlocking(defects) {
   return defects.some((code) => BLOCKING_DEFECTS.includes(code));
 }
 
-/**
- * Model replies arrive as a JSON object. Fences and prose around it are common
- * enough that stripping them is part of parsing, not a fallback.
- */
 export function parseModelJson(raw) {
   if (typeof raw !== "string" || raw.trim().length === 0) {
     return { ok: false, code: DEFECT_CODES.EMPTY_OUTPUT, value: null };

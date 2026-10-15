@@ -2,10 +2,6 @@ import { encodeDocumentValue } from "../documentCodec";
 import { tableColumns, type ColumnSpec, type TableName } from "../schema.generated";
 import { quote } from "./dbRows";
 
-// ---------------------------------------------------------------------------
-// Index ranges (`withIndex("by_x", q => q.eq("x", 1).gt("y", 2))`) as SQL.
-// ---------------------------------------------------------------------------
-
 type Bound = { field: string; op: "=" | ">" | ">=" | "<" | "<="; value: unknown };
 
 export class IndexRange {
@@ -47,16 +43,10 @@ export function sqlParam(spec: ColumnSpec, value: unknown): unknown {
 
 export type Fetch = { where: string[]; params: unknown[] };
 
-/**
- * SQL expression and comparison type for an index field. Nested paths
- * (`subject.profile_key`) live inside jsonb and are indexed as text with
- * `->>`, matching `generateDrizzleSchema.ts`, so they compare as text.
- */
 export function columnExpr(table: TableName, field: string): { sql: string; kind: ColumnSpec["kind"]; nested: boolean } {
   const [head, ...rest] = field.split(".");
   const spec = (tableColumns[table] as Record<string, ColumnSpec>)[head];
   if (!spec) throw new Error(`Column ${table}.${head} is not declared`);
-  // `COLLATE "C"` gives deterministic string ordering and matches the generated indexes.
   if (rest.length === 0) return { sql: spec.kind === "text" ? `${quote(head)} COLLATE "C"` : quote(head), kind: spec.kind, nested: false };
   if (spec.kind !== "jsonb") throw new Error(`Nested index field ${table}.${field} on non-jsonb column`);
   const path = rest.map((segment, i) => `${i === rest.length - 1 ? "->>" : "->"}'${segment.replace(/'/g, "''")}'`).join("");

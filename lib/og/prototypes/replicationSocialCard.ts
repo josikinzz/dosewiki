@@ -1,15 +1,3 @@
-/**
- * THESIS: A black gallery mat lets one experiential artwork carry the card;
- * the template refuses a dashboard of decorative badges around it.
- * OWN-WORLD: Fun/dark dose.wiki tokens, Blinker, a quiet hairline frame, and
- * one fuchsia association cue on an otherwise neutral information rail.
- * STORY: See the work first, then identify its title, creator, effect, medium,
- * and exact rights status without competing chrome.
- * FIRST VIEWPORT: The existing top-left lockup sits above an almost full-width
- * 16:9 artwork; title and credit lead into a three-column provenance footer.
- * FORM: Art-catalog plate, selected for this tightly specified prototype.
- */
-
 import sharp from "sharp";
 
 import {

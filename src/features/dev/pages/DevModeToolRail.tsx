@@ -17,10 +17,6 @@ import type {
   ToolTabItem,
 } from "./DevModeToolTypes";
 
-/**
- * The rail is one 44px row: 32px tabs (the ladder's tab height) inside a
- * 6px inset, on the chrome-rail material, with the card corner role.
- */
 export const RAIL_CLASS =
   "theme-dev-rail hidden min-h-11 w-full flex-nowrap items-center gap-1 rounded-card border px-1.5 py-1.5 md:flex";
 
@@ -37,12 +33,10 @@ export const RAIL_EDGE_SLACK_PX = 4;
 export const RAIL_TAB_CLASS =
   "theme-dev-rail-tab inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control px-2 text-sm 2xl:px-2.5 font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45 [@media(pointer:coarse)]:min-h-11";
 
-/** A row inside a rail menu: the 36px menu row, with room for a glyph, a count and a reason. */
 export const MENU_ROW_CLASS =
   "theme-dev-rail-tab flex min-h-9 w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-left text-sm font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11";
 const MENU_CONTENT_CLASS = "p-1.5 motion-reduce:animate-none";
 
-/** Group captions in menus and the phone sheet: the one uppercase label recipe. */
 export const RAIL_GROUP_CAPTION_CLASS = "theme-dev-rail-group type-meta-label shrink-0 select-none";
 
 export const RAIL_ICON_BUTTON_CLASS =
@@ -53,17 +47,10 @@ export function RailDivider({ className }: { className?: string }) {
   return <span aria-hidden className={cn("theme-dev-rail-divider mx-1 h-5 w-px shrink-0", className)} />;
 }
 
-/** The words a count badge adds to its control's accessible name. */
 export function countBadgeSuffix(count: number, label = "awaiting review", stale = false, atLeast = false) {
   return `, ${atLeast ? "at least " : ""}${count} ${label}${stale ? ", may be out of date" : ""}`;
 }
 
-/**
- * Work waiting on this member: a small accent capsule on the tab. The number
- * is decoration; the words ride in the tab's accessible name. Pass
- * `announce={false}` when the control already carries `countBadgeSuffix` in
- * its label text (see `ToolLabel`).
- */
 export function CountBadge({
   count,
   label = "awaiting review",
@@ -75,7 +62,6 @@ export function CountBadge({
   label?: string;
   announce?: boolean;
   stale?: boolean;
-  /** A sum with a part that never loaded is a floor: drawn "13+" and said "at least 13", as Home says it. */
   atLeast?: boolean;
 }) {
   const counted = `${atLeast ? "At least " : ""}${count} ${label}${stale ? " when last checked" : ""}`;
@@ -94,11 +80,6 @@ export function CountBadge({
   );
 }
 
-/**
- * Marks a tab that holds unsaved work. The dot is decoration; the words ride
- * in the tab's accessible name so a screen reader hears "Writing, unsaved
- * changes".
- */
 export function UnsavedDot({ announce = true }: { announce?: boolean }) {
   return (
     <>
@@ -108,13 +89,6 @@ export function UnsavedDot({ announce = true }: { announce?: boolean }) {
   );
 }
 
-/**
- * A label that is spoken with more words than it shows ("Locked" read as
- * "Locked, 9 locked"). Browsers put a space before a visually hidden child,
- * which would read "Locked , 9 locked", so the spoken name is one hidden run
- * and the visible word is hidden from assistive tech. Without extra words it
- * is just the text.
- */
 export function SpokenLabel({ visible, spoken, className }: { visible: string; spoken: string; className?: string }) {
   if (spoken === visible) {
     return <span className={className}>{visible}</span>;
@@ -127,17 +101,11 @@ export function SpokenLabel({ visible, spoken, className }: { visible: string; s
   );
 }
 
-/**
- * A tool's visible label with its spoken suffixes, so an accessible name
- * reads "Inbox, 3 awaiting review" with no stray gap. Draw the dot and badge
- * after it with `ToolMarks`, which stay silent.
- */
 export function ToolLabel({ label, unsaved, badge, stale, atLeast, className }: { label: string; unsaved?: boolean; badge?: number; stale?: boolean; atLeast?: boolean; className?: string }) {
   const suffix = `${unsaved ? ", unsaved changes" : ""}${badge ? countBadgeSuffix(badge, undefined, stale, atLeast) : ""}`;
   return <SpokenLabel visible={label} spoken={`${label}${suffix}`} className={className} />;
 }
 
-/** The dot and badge that follow a `ToolLabel`, silent because the label already speaks them. */
 export function ToolMarks({ unsaved, badge, stale, atLeast, pushBadge = false }: { unsaved?: boolean; badge?: number; stale?: boolean; atLeast?: boolean; pushBadge?: boolean }) {
   return (
     <>
@@ -147,12 +115,6 @@ export function ToolMarks({ unsaved, badge, stale, atLeast, pushBadge = false }:
   );
 }
 
-/**
- * Props for a link that leaves the shell (Review, the utilities). A plain
- * click asks the unsaved-work registry first through `onOpenHref`; a
- * modified click (new tab or window) keeps the browser's own behavior,
- * because nothing in this tab is lost.
- */
 export function guardedLinkProps(href: string, onOpenHref: ((href: string) => void) | undefined) {
   return {
     href,
@@ -164,15 +126,10 @@ export function guardedLinkProps(href: string, onOpenHref: ((href: string) => vo
   };
 }
 
-/** The glyph a tool wears beside its label in menus, the sheet and the palette. */
 export function ToolGlyph({ icon, className }: { icon: string; className?: string }) {
   return <Icon icon={icon} size={16} className={cn("theme-dev-tool-glyph shrink-0", className)} />;
 }
 
-/**
- * Rail and account menus open with a plain chevron: the kit's expand policy
- * keeps the doubled cue for content reveals, and a menu is navigation.
- */
 export function MenuChevron({ open }: { open: boolean }) {
   return <Icon icon="lucide:chevron-down" size={14} className={cn("theme-text-faint shrink-0 transition-transform duration-200 motion-reduce:transition-none", open && "rotate-180")} />;
 }
@@ -208,12 +165,6 @@ export function RailInlineGroup({ label, tabs, activeTab, isToolsSection, onTabC
   );
 }
 
-/**
- * `rollUpBadges` false keeps the trigger free of a count: the Inbox already
- * shows the same items, and a second total beside it would count them twice.
- * An active trigger names the tool it holds, so the rail says where the
- * editor is without opening the menu.
- */
 export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabChange, onOpenHref, showDivider, rollUpBadges = true }: DevModeToolNavigationProps & { label: string; tabs: readonly ToolTabItem[]; showDivider: boolean; rollUpBadges?: boolean }) {
   const [open, setOpen] = useState(false);
   const activeItem = isToolsSection ? tabs.find((tab) => tab.id === activeTab) : undefined;
@@ -263,7 +214,6 @@ export function RailGroupMenu({ label, tabs, activeTab, isToolsSection, onTabCha
   );
 }
 
-/** Locked tools grouped by what they need, in first-seen order ("Admin role required" first for an editor). */
 export function groupLockedByReason(locked: readonly LockedToolItem[]): { reason: string; items: LockedToolItem[] }[] {
   const groups = new Map<string, LockedToolItem[]>();
   for (const item of locked) {
@@ -274,19 +224,12 @@ export function groupLockedByReason(locked: readonly LockedToolItem[]): { reason
   return [...groups].map(([reason, items]) => ({ reason, items }));
 }
 
-/**
- * Tools above the signed-in role, grouped under what they need. It sits at
- * the trailing end of the strip, after every tool the editor can open, so it
- * never outranks real work. The panel is text, not a menu of dead items, so a
- * keyboard or screen reader reaches every reason.
- */
 export function RailLockedMenu({ locked, showDivider = true }: { locked: readonly LockedToolItem[]; showDivider?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <div role="group" aria-label="Locked tools" className="flex shrink-0 items-center">
       {showDivider ? <RailDivider /> : null}
       <Popover open={open} onOpenChange={setOpen}>
-        {/* A neutral lock and a plain count: locked tools are not work waiting, so they never borrow the work-count badge. */}
         <PopoverTrigger asChild>
           <button type="button" className={cn(RAIL_TAB_CLASS, "theme-text-faint")}>
             <Icon icon="lucide:lock" size={13} className="shrink-0" />
@@ -303,7 +246,6 @@ export function RailLockedMenu({ locked, showDivider = true }: { locked: readonl
   );
 }
 
-/** The locked tools as readable text, one section per requirement. Shared by the rail popover and the phone sheet. */
 export function LockedToolList({ locked }: { locked: readonly LockedToolItem[] }) {
   return (
     <div className="flex flex-col gap-1">

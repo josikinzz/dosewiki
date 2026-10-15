@@ -8,28 +8,11 @@ import { Icon } from "./Icon";
 import { useT } from "@/i18n/client";
 
 export interface SearchingIndicatorProps {
-  /** Headline copy shown before the animated ellipsis. */
   title?: string;
-  /** Supporting copy under the title. */
   description?: React.ReactNode;
-  /** Extra classes merged onto the centered flex stack. */
   className?: string;
 }
 
-/**
- * Animated counterpart to {@link SearchEmptyState} used while a search request
- * is in flight. It keeps the same centered icon + title + description layout so
- * it sits cleanly inside the search result panel, but makes "loading" obvious:
- *
- *  - the `line-md:search` Iconify glyph re-draws on a gentle loop (remounted via
- *    `key`, since line-md glyphs play their SMIL animation once per mount),
- *  - the icon tile emits a soft expanding accent ring,
- *  - the title gains a looping "growing dots" ellipsis.
- *
- * All motion is gated on `prefers-reduced-motion`: the JS replay loop pauses and
- * the glyph falls back to the static `lucide:search`, while the CSS dot/ring
- * animations disable themselves via media query.
- */
 const ICON_REPLAY_MS = 1900;
 
 export function SearchingIndicator({

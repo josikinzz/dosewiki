@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 
-/** Bounded copy/layout reads use the authenticated HTTP bridge, never browser admin credentials. */
 export function useCopyIndexSource<T>(url: string | null) {
   const [generation, setGeneration] = useState(0);
   const [state, setState] = useState<{ url: string | null; data?: T; error: string | null }>({ url: null, error: null });

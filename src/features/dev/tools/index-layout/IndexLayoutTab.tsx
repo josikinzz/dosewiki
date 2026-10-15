@@ -77,7 +77,6 @@ const DATASET_ICONS: Record<ManualDatasetKey, IconName> = {
   mechanism: "fa-solid:cogs",
 };
 
-/** The board's window-wide keys, for the shell's `?` sheet. */
 const HISTORY_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "/", label: "Find a substance on the board" },
   { keys: "Cmd+Z or Ctrl+Z", label: "Undo the last layout change" },
@@ -88,7 +87,6 @@ const WORKING_CHANGES_ID = "index-layout-working-changes";
 
 type DatasetState = { manual: ManualIndexConfig; original: ManualIndexConfig; dirty: boolean };
 
-/** The three datasets as one choice, label over a quiet state line, one row on a phone. */
 function DatasetChoices({
   value,
   onChange,
@@ -210,12 +208,6 @@ function NewCategoryPopover({
 
 type FinderHit = { key: string; name: string; where: string; slot: LayoutSlot | null; slug: string };
 
-/**
- * "Where does 2C-B live?" in one field: every list on the board that holds a
- * match, and the tray when it holds none. Picking a hit focuses that row (the
- * view switches to All when the open tab hides it); a substance outside the
- * index opens the list picker.
- */
 function BoardFinder({
   hits,
   query,
@@ -293,7 +285,6 @@ function BoardFinder({
   );
 }
 
-/** The layout changes in words, per dataset, for the Working changes panel and the commit confirm. */
 function LayoutChangeList({ groups, compact = false }: { groups: Array<{ key: ManualDatasetKey; changes: LayoutChange[] }>; compact?: boolean }) {
   return (
     <div className={cn("space-y-4", compact && "space-y-3")}>
@@ -323,12 +314,6 @@ function LayoutChangeList({ groups, compact = false }: { groups: Array<{ key: Ma
   );
 }
 
-/**
- * The public Substance Index, editable in place: the same tab strip, the same
- * column arrangement, the same panels, with handles on every row. Every
- * gesture writes straight into the working changes; undo is the safety net,
- * and the Working changes panel is the only thing that reaches production.
- */
 export function IndexLayoutTab({
   commitPanel,
   commit,
@@ -364,8 +349,6 @@ export function IndexLayoutTab({
   const finderRef = useRef<HTMLInputElement | null>(null);
   const [diffNotice, setDiffNotice] = useState<{ tone: "success" | "danger"; message: string } | null>(null);
   const changesHeadingRef = useRef<HTMLHeadingElement | null>(null);
-  // A row a menu or the list picker just moved or removed: focus goes to it
-  // (or to the row that took its place) once the board has redrawn.
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
 
   const datasets = useMemo<Record<ManualDatasetKey, DatasetState>>(() => {
@@ -402,8 +385,6 @@ export function IndexLayoutTab({
   );
 
   const history = useLayoutHistory({ dataset, manual: rawManual, replace });
-  // Every op reads a manual with both lists present; a no-op hands back the
-  // stored manual itself, so the trail never records a step that changed nothing.
   const { edit: recordEdit } = history;
   const edit = useCallback(
     (transform: (current: ManualIndexConfig) => ManualIndexConfig, label?: string) => {
@@ -494,15 +475,12 @@ export function IndexLayoutTab({
     return { publicGaps, hidden };
   }, [allSubstanceRecords, placed]);
 
-  // The add pickers accept anything unplaced, hidden articles included: an
-  // editor placing one is how a hidden substance gets staged for release.
   const addOptions = useMemo(
     () =>
       [...unplaced.publicGaps, ...unplaced.hidden]
         .sort((first, second) => first.name.localeCompare(second.name))
         .map((item) => {
           const alias = allSubstancesBySlug.get(item.slug)?.aliases?.[0];
-          // Placing a hidden article stages it for release, so the picker says so.
           const hidden = item.issues.includes("hidden") ? "Hidden on the site" : undefined;
           return {
             value: item.slug,
@@ -535,8 +513,6 @@ export function IndexLayoutTab({
     },
   });
 
-  // Where each substance sat when the dataset was loaded, so a row the
-  // working changes moved, added or reordered carries a quiet mark.
   const originalLists = useMemo(() => {
     const lists = new Map<string, string[]>();
     for (const category of normalizeManual(datasets[dataset].original).categories) {
@@ -641,8 +617,6 @@ export function IndexLayoutTab({
         return;
       }
       if (slotsEqual(from, UNPLACED_SLOT)) {
-        // Appended first, then reordered: `addSlug` owns the slugify and the
-        // "already listed" case, and `moveSlug` owns the landing position.
         edit((current) => moveSlug(addSlug(current, to, slug), to, slug, to, index), `Placed ${name} in ${listName(to)}`);
         return;
       }
@@ -742,7 +716,6 @@ export function IndexLayoutTab({
     if (history.canRedo) setLastChange(label ? `Redid: ${label.charAt(0).toLowerCase()}${label.slice(1)}.` : "Redid the change.");
   }, [history]);
 
-  // The layout changes of every dataset, in words, for the panel and the confirm.
   const changeGroups = useMemo(
     () =>
       DATASET_ORDER.filter((key) => datasets[key].dirty)
@@ -765,9 +738,6 @@ export function IndexLayoutTab({
     [commit, production],
   ));
 
-  // The whole tab is one editing surface, so undo belongs to the window rather
-  // than to any control: a drag ends with the pointer anywhere. Cmd+S does what
-  // the commit button does.
   const keyRef = useRef({ undo, redo, commit, requestCommit });
   keyRef.current = { undo, redo, commit, requestCommit };
   useEffect(() => {
@@ -803,16 +773,11 @@ export function IndexLayoutTab({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  // A refused commit because a layout moved on: fetch the latest now, so
-  // "Load the latest layout" has it when the editor asks.
   const conflictNotice = commit?.notice?.type === "error" && isLayoutConflictMessage(commit.notice.message);
   useEffect(() => {
     if (conflictNotice) retryIndexLayouts?.();
   }, [conflictNotice, retryIndexLayouts]);
 
-  // A commit or a submission makes the drafts the new starting point: the
-  // undo trail no longer leads anywhere safe, so it goes. A submission is not
-  // live, so the dataset line says it waits for review.
   const [submittedDatasets, setSubmittedDatasets] = useState<ManualDatasetKey[]>([]);
   const dirtyBeforeCommit = useRef<ManualDatasetKey[]>([]);
   if (changedDatasets.length > 0) dirtyBeforeCommit.current = changedDatasets;
@@ -980,7 +945,6 @@ export function IndexLayoutTab({
       </DevToolSection>
 
       <div className="space-y-6">
-        {/* The reader's strip from md; a phone gets one select, since the strip wraps to six rows there. */}
         <div data-nosnippet className="hidden md:block">
           <PublicSegmentedTabs
             ariaLabel="Edit a tab of the public index"

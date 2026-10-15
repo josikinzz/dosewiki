@@ -25,11 +25,6 @@ type ArticleRow = {
   publicationDate?: string;
 };
 
-/**
- * Same mocked-ctx shape as `dataSubstanceIndexEditorReadAuth.test.ts`, with a
- * tiny in-memory `effectIndexArticles` table so the draft filter and the patch
- * semantics can be exercised without a Postgres runtime.
- */
 function createCtx({
   rows = [],
   memberships = {},
@@ -45,7 +40,7 @@ function createCtx({
   const ctx = {
     auth: { getUserIdentity: vi.fn(async () => null) },
     db: {
-      normalizeId: () => null, // Effect Index posts are not indexed source tables.
+      normalizeId: () => null,
       get: async (id: string) => rows.find(row => row._id === id) ?? null,
       query: vi.fn((table: string) => {
         if (table === "narrativeRevisions") {
@@ -189,7 +184,6 @@ describe("effectIndexArticles writing extensions", () => {
       }),
     ).rejects.toThrow("Admin access required");
 
-    // Editors can read and preview, but no writing proposal type grants publication.
     const editor = createCtx({ rows: [publishedRow], memberships });
     await expect(
       handlerOf(listForEditor)(editor.ctx, editorArgs),

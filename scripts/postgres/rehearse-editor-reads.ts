@@ -1,29 +1,3 @@
-/**
- * Rehearsal: the editor surfaces read through `/api/editor/*` route
- * handlers backed by the server read client, on Postgres, with no browser
- * database client. Every route handler is imported and invoked in-process with
- * `DATA_BACKEND=postgres`.
- *
- *   bun scripts/postgres/rehearse-editor-reads.ts [--target <url>] [--allow-remote]
- *
- * Read-only: nothing is written to the target. The report lands in
- * runs/postgres-import/<timestamp>-editor-reads/report.json.
- *
- * The session is forged the way the route tests forge it: the module behind
- * `requireRoleSession` is replaced (a Bun loader plugin, registered before the
- * routes load) with one that answers from a per-call role, so each route is
- * exercised signed out (401), from a foreign origin (403), and as an admin.
- *
- * Per route:
- *   1. auth: no session -> 401; foreign Origin / cross-site Sec-Fetch-Site -> 403.
- *   2. parity: the JSON body equals the registered query's own answer, so the
- *      hook receives exactly the native callable result shape.
- *   3. hygiene: the body never carries a Postgres URL, the admin key, or an
- *      admin intent token.
- * Plus: the paginated substance reads drain the fixture by continueCursor
- * without gaps or duplicates, and malformed query strings are 400s.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,8 +14,6 @@ type ForgedSessionState = { role: ForgedRole };
 const forgedSession: ForgedSessionState = { role: "admin" };
 (globalThis as { __t20Session?: ForgedSessionState }).__t20Session = forgedSession;
 
-// `bun` types are not in tsconfig.scripts.json; the global is present at runtime
-// (same shape as scripts/postgres/preload-server-only.ts).
 type BunLoaderPlugin = {
   plugin(spec: {
     name: string;
@@ -51,8 +23,6 @@ type BunLoaderPlugin = {
 const bun = (globalThis as { Bun?: BunLoaderPlugin }).Bun;
 if (!bun) throw new Error("rehearse-editor-reads.ts runs under Bun only");
 
-// Registered before any route module resolves `@/lib/auth/requireEditorSession`,
-// so `getServerSession` (which needs Next's request scope) is never reached.
 bun.plugin({
   name: "rehearsal-forged-session",
   setup(build) {
@@ -123,8 +93,6 @@ async function main() {
   const leakNeedles = ["postgres://", "postgresql://", ...secrets()];
 
   try {
-    // Dynamic on purpose: these modules must resolve after the forged-session
-    // plugin above is registered, or the real `getServerSession` gate loads.
     const { api } = await import("../../lib/postgres/runtime/api");
     const { getServerDataReadClient } = await import("../../lib/data/serverClient");
     const client = getServerDataReadClient();
@@ -140,7 +108,6 @@ async function main() {
       "banner-display": (await import("../../src/app/api/editor/banner-display/route")).GET,
     } satisfies Record<string, RouteHandler>;
 
-    // Fixture handles for the by-slug reads.
     const [{ slug: substanceSlug }] = (await pool.query<{ slug: string }>('select slug from "substanceIndex" order by _id limit 1')).rows;
     const [{ slug: overrideSlug }] = (await pool.query<{ slug: string }>('select slug from "moleculeOverrides" order by _id limit 1')).rows;
     const [{ count: substanceCount }] = (await pool.query<{ count: string }>('select count(*)::text as count from "substanceIndex"')).rows;
@@ -178,7 +145,6 @@ async function main() {
       expect(scenario, "no Postgres URL or credential in the body", leaked.length === 0, leaked.map((needle) => needle.slice(0, 12)));
     }
 
-    // Role floors: the shell-wide reads admit a contributor; tool reads do not.
     const contributorLayouts = await call(routes["index-layouts"], "/api/editor/index-layouts", "contributor");
     expect("floors", "index-layouts admits a contributor", contributorLayouts.status === 200, contributorLayouts.status);
     const contributorCopy = await call(routes["copy-blocks"], "/api/editor/copy-blocks", "contributor");
@@ -186,7 +152,6 @@ async function main() {
     const editorBanner = await call(routes["banner-display"], "/api/editor/banner-display", "editor");
     expect("floors", "banner-display refuses an editor", editorBanner.status === 403, editorBanner.status);
 
-    // Pagination: drain both projections by continueCursor.
     for (const page of ["lookup", "search-input"] as const) {
       const scenario = `substances?page=${page}`;
       const seen = new Set<string>();
@@ -215,7 +180,6 @@ async function main() {
       expect(scenario, "drain took more than one page", requests > 1, { requests });
     }
 
-    // Malformed query strings are refused before the query runs.
     const noArgs = await call(routes.substances, "/api/editor/substances", "admin");
     expect("validation", "substances without slug or page -> 400", noArgs.status === 400, noArgs.status);
     const badPage = await call(routes.substances, "/api/editor/substances?page=lookup&numItems=abc", "admin");

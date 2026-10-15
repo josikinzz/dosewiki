@@ -37,11 +37,6 @@ function resultLabel(result: PlacementTargetResult): string {
   return "Gallery saved";
 }
 
-/**
- * A one-time copy of a saved playlist into several independently-versioned drug
- * galleries. Nothing here stores the playlist key on a gallery: later playlist
- * edits therefore cannot rewrite an application that already happened.
- */
 export function ApplyPlaylistToDrugsAction({
   playlist,
   onReviewGallery,

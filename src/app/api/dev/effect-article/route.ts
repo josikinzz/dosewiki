@@ -27,7 +27,6 @@ export const POST = protectedRouteOperation<Body, Body>({
   operation: async ({ body, actorEmail, dataWrite }) => {
     if (!dataWrite) throw new Error("Postgres capability is required.");
     const result = await dataWrite.client.mutation(api.subjectiveEffects.publishFromEditor, { ...body, actorEmail, apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey });
-    // The published effect page and the effects index both read this row.
     await publishPublicCache({ targets: [{ kind: "effect", slug: body.slug }], source: "manual" });
     return NextResponse.json({ ok: true, ...result });
   },

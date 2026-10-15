@@ -23,15 +23,6 @@ import {
   updateHandler,
 } from "./lib/tripReportPortalHandlers";
 
-/**
- * Trip report functions.
- * 
- * These functions provide CRUD operations for trip reports imported from EffectIndex.
- */
-
-/**
- * Get all trip reports.
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -51,7 +42,6 @@ function clampPublicReportPageSize(requested: number | undefined): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_REPORT_MAX_PAGE_SIZE);
 }
 
-/** Bounded compact corpus page for public lists and contributor references. */
 export const getPublicPreviewsPage = query({
   args: {
     ...publicReportPageArgs,
@@ -76,11 +66,6 @@ export const getPublicPreviewsPage = query({
   },
 });
 
-/**
- * Complete compact browse corpus in one native read. The Next browse projector
- * retains exact corpus-wide facets, highlights, ordering, and cursor identity
- * without draining storage through serial pages or transporting report bodies.
- */
 export const getPublicBrowseIndex = query({
   args: {},
   handler: async (ctx) => {
@@ -91,7 +76,6 @@ export const getPublicBrowseIndex = query({
   },
 });
 
-/** Bounded full public records for open-data and other detail-corpus consumers. */
 export const getPublicDetailsPage = query({
   args: publicReportPageArgs,
   handler: async (ctx, args) => {
@@ -107,9 +91,6 @@ export const getPublicDetailsPage = query({
   },
 });
 
-/**
- * Get a single trip report by slug.
- */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -118,9 +99,6 @@ export const getBySlug = query({
   },
 });
 
-/**
- * Get featured trip reports.
- */
 export const getFeatured = query({
   args: {},
   handler: async (ctx) => {
@@ -128,23 +106,11 @@ export const getFeatured = query({
   },
 });
 
-/**
- * Get trip reports by substance name.
- * Filters reports where any substance matches the given name (case-insensitive).
- */
 export const getBySubstance = query({
   args: { substanceName: v.string() },
   handler: async (ctx, args) => (await findTripReportsBySubstanceNames(ctx, [args.substanceName])).map(publicTripReport),
 });
 
-/**
- * Get trip reports by multiple substance names (batch query).
- * Filters reports where any substance matches any of the given names (case-insensitive).
- * This consolidates multiple getBySubstance calls into a single query.
- *
- * The native public-field projection uses the `tripReportSubstances` join
- * index when ready and retains a projected pre-backfill scan otherwise.
- */
 export const getBySubstanceNames = query({
   args: { substanceNames: v.array(v.string()) },
   handler: async (ctx, args) => {
@@ -160,10 +126,6 @@ export const getBySubstanceNames = query({
   },
 });
 
-/**
- * Get trip reports by author name.
- * Filters reports where subject.name matches (case-insensitive).
- */
 export const getByAuthor = query({
   args: { authorName: v.string() },
   handler: async (ctx, args) => {
@@ -202,9 +164,6 @@ export const getByContributor = query({
   },
 });
 
-/**
- * Get all unique substance names from reports.
- */
 export const getSubstanceNames = query({
   args: {},
   handler: async (ctx) => {
@@ -221,9 +180,6 @@ export const getSubstanceNames = query({
   },
 });
 
-/**
- * Get all unique author names from reports.
- */
 export const getAuthorNames = query({
   args: {},
   handler: async (ctx) => {
@@ -238,14 +194,6 @@ export const getAuthorNames = query({
   },
 });
 
-/**
- * The subject fields the Trip Report Portal's form owns.
- *
- * `profile_key` is absent on purpose: attribution is decided by the `profileKey`
- * argument below, which resolves against `contributorProfiles` and runs the
- * name-claim guard. `avatar_url` and `pdf_url` are absent because the form does
- * not surface them, and an update preserves whatever the stored row carried.
- */
 const editableSubjectValidator = v.object({
   name: v.string(),
   trip_date: v.optional(v.string()),
@@ -257,11 +205,6 @@ const editableSubjectValidator = v.object({
   setting: v.optional(v.string()),
 });
 
-/**
- * The editable slice of a stored report. A compact validator rather than the
- * whole `storedTripReportValidator`, so `slug`, `featured`, `license`, and
- * `attribution_review` cannot be rewritten by a field edit.
- */
 const editableTripReportFieldsValidator = v.object({
   title: v.string(),
   subject: editableSubjectValidator,
@@ -274,38 +217,10 @@ const editableTripReportFieldsValidator = v.object({
   tags: v.array(v.string()),
 });
 
-/**
- * Index rows for the Trip Report Portal (`/dev` → Trip reports).
- *
- * A projection, not the corpus: the portal's list, search, facets, grouping and
- * stats only ever read a report's identity, byline, substances, tags and date,
- * while the bulk of a stored row is prose — introduction, three timelines,
- * conclusion — which nothing on the index renders. Shipping that prose for every
- * report made the tab's first payload grow with the corpus for no visible gain,
- * so the body now arrives per report from `getPortalRecord` when a row is
- * opened.
- *
- * The projected values still come off the shared normalizer, so a title or a
- * substance name reads identically in the list and in the editor.
- *
- * Editor-gated because the portal shows unpublished-adjacent metadata
- * (attribution decisions, license) that no public projection returns.
- */
 export const getPortalRows = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: getPortalRowsHandler,
 });
-/**
- * The full editable slice of one report, for the portal's editor pane.
- *
- * The other half of the index projection above. It is deliberately the same
- * `editableSnapshotOf` the mutation compares against, so the `expected` snapshot
- * the editor opens with is byte-identical to what a concurrent-save check will
- * derive from storage.
- *
- * Contributor floor: an editor opens any report, a contributor only one they
- * own (My reports reads through the same endpoint the portal does).
- */
 export const getPortalRecord = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -317,31 +232,6 @@ export const getPortalRecord = query({
   handler: getPortalRecordHandler,
 });
 
-/**
- * Update one published report's editable fields.
- *
- * The corpus previously had no per-record write: reports arrived through
- * `bulkImport` or submission promotion, and an editor who wanted to fix a typo
- * had to re-run a migration. This is the field-level path the portal saves
- * through.
- *
- * Concurrency binds the complete stored row and latest canonical journal ID.
- * The opaque token catches metadata changes and A→B→A content cycles; the
- * expected editable snapshot remains a separate lossless field guard.
- *
- * Byline changes go through the same adjudication as promotion. Renaming a
- * report onto a name a contributor profile answers to would otherwise hand that
- * contributor's page and report list to whoever typed the name, and the read
- * path resolves bylines by exact name.
- *
- * Contributor floor plus ownership: an admin saves any report with the full
- * form; an editor or contributor saves only a report whose `owner_email` is
- * theirs, and only its content. Editors read every report (`getPortalRecord`)
- * but do not write reports they do not own. Attribution (`profileKey`, the
- * byline) stays an admin decision, and `featured` and `slug` were never part
- * of this write.
- */
-
 export const update = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -350,17 +240,12 @@ export const update = mutation({
     expected: editableTripReportFieldsValidator,
     expectedRevision: v.string(),
     updates: editableTripReportFieldsValidator,
-    // Omitted leaves the stored attribution alone; "" clears it.
     profileKey: v.optional(v.string()),
     confirmAuthorNameClaim: v.optional(v.boolean()),
     operationId: v.optional(v.string()),
   },
   handler: updateHandler,
 });
-/**
- * The reports the actor owns, for My reports (`/dev/my-reports`). Contributor
- * floor. An admin may pass `all: true` for every report that has an owner.
- */
 export const listOwned = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -370,12 +255,6 @@ export const listOwned = query({
   handler: listOwnedHandler,
 });
 
-/**
- * Hand a report to a member. Admin only: ownership is what lets a contributor
- * rewrite a published page, so it is granted by the same role that publishes.
- * The email must belong to an existing membership; a typo cannot create a
- * dangling owner.
- */
 export const assignOwner = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -386,11 +265,6 @@ export const assignOwner = mutation({
   handler: assignOwnerHandler,
 });
 
-/**
- * Internal mutation: Bulk import trip reports (for migration).
- * Not exposed to clients. Validation errors return with nothing written; the
- * first SQL failure rejects the whole batch (see `bulkImportFailures`).
- */
 export const bulkImport = internalMutation({
   args: {
     reports: v.array(tripReportImportInputValidator),
@@ -426,10 +300,6 @@ export const bulkImport = internalMutation({
   },
 });
 
-/**
- * Internal mutation: Delete all trip reports (for re-migration).
- * Not exposed to clients.
- */
 export const deleteAll = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -443,13 +313,6 @@ export const deleteAll = internalMutation({
   },
 });
 
-/**
- * Delete a trip report by ID.
- *
- * Editor-gated: the Trip Report Portal puts this behind a type-to-confirm
- * control, so it is now reachable from a browser session rather than only from
- * a script holding the admin key.
- */
 export const deleteById = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -474,11 +337,6 @@ export const deleteById = mutation({
   },
 });
 
-/**
- * Rename an author across all their trip reports.
- *
- * @param apiKey - Required API key for authentication
- */
 export const renameAuthor = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -510,14 +368,6 @@ export const renameAuthor = mutation({
   },
 });
 
-
-/**
- * Internal mutation: (re)build one page of the `tripReportSubstances` join
- * table from the stored reports. Idempotent: rows already in place are kept,
- * stale ones removed. Run to completion by
- * `scripts/data-ops/backfill-trip-report-substance-index.mjs`, which follows
- * `cursor` until `isDone`.
- */
 export const backfillSubstanceIndex = internalMutation({
   args: {
     cursor: v.optional(v.string()),
@@ -526,13 +376,11 @@ export const backfillSubstanceIndex = internalMutation({
   handler: (ctx, args) => backfillPublicReadIndexPage(ctx, { ...args, name: "tripReports" }),
 });
 
-/** Every stored report with its private fields, for the production sync's pre-write backup. */
 export const getAllDocumentsForBackup = internalQuery({
   args: {},
   handler: async (ctx) => await ctx.db.query("tripReports").collect(),
 });
 
-/** Bounded durable completion status, not a whole-corpus counting query. */
 export const getSubstanceIndexBackfillStatus = internalQuery({
   args: {},
   handler: (ctx) => getPublicReadIndexStatus(ctx, "tripReports"),

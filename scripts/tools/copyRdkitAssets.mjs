@@ -1,15 +1,4 @@
 #!/usr/bin/env node
-/**
- * Copy the RDKit.js MinimalLib runtime (loader + WASM) from the installed
- * `@rdkit/rdkit` package into `public/rdkit/` so it can be served as a static
- * asset and lazy-loaded by the `/dev` Molecule editor.
- *
- * The published loader uses two `new Function` code-generation paths from
- * Emscripten. Those paths are incompatible with the app's intentional CSP
- * prohibition on JavaScript `unsafe-eval`, so the copy step replaces them
- * with the equivalent generic invokers used by Emscripten when
- * `DYNAMIC_EXECUTION=0`.
- */
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";

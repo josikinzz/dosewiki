@@ -26,19 +26,10 @@ import { publicHref } from "@/utils/publicHref";
 
 interface RecentChangesListProps {
   changes: ArticleRecentChange[];
-  /**
-   * On an article page: that article's citation numbering, section anchors
-   * on this page. Absent (the site-wide feed): each row names its article and
-   * links into it; citations render as "source" chips into that article.
-   */
   article?: { citations: CitationContext } | null;
-  /** Site-wide list already filtered to one article: skip naming it on every row. */
   hideArticleNames?: boolean;
 }
 
-// Zone is fixed (UTC) so every render agrees; the locale follows the page's
-// UI locale, which is hydration-stable because both the server render and the
-// client hydrate read it from the same matched route segments.
 const dayFormats = Object.fromEntries(
   UI_LOCALES.map((locale) => [
     locale,
@@ -71,7 +62,6 @@ const nameClassName = cn("theme-accent-heading font-semibold", linkClassName);
 
 const targetClassName = cn("theme-text-primary", linkClassName);
 
-/** "Routes 1 › Dose ranges › Heavy": each label translates alone, the index stays a number. */
 function fieldLabel(segments: ChangeFieldSegment[], t: Translate): string {
   return fieldWords(segments, t);
 }
@@ -88,18 +78,13 @@ function RecentChangeRow({
   const t = useT();
   const locale = useUiLocale();
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
-  // Source rows say everything in their own line; only prose and bulk edits
-  // have a passage worth opening.
   const hasDiff = change.kind !== "source" && change.hasDiff;
   const diffId = `recent-change-diff-${change.id}`;
   const contributorName = change.contributor?.name ?? t("Editor");
-  // Site-wide, a row's anchors point into the article it touched. A bulk
-  // save across several articles has no single home; its rows link each one.
   const siblings = article
     ? change.articles.filter((touched) => touched.slug !== change.subjectSlug)
     : [];
   const named = siblings.slice(0, NAMED_SIBLINGS);
-  // Trimmed projections carry the real count; the site-wide feed has them all.
   const siblingTotal = change.siblingTotal ?? siblings.length;
   const primary = article
     ? null
@@ -257,11 +242,6 @@ function RecentChangeRow({
   );
 }
 
-/**
- * Human edits, newest first, grouped by day with a time on every row. Diff
- * text stays hidden until the row's own expander is pressed, so the resting
- * list is as tall as its rows and nothing more.
- */
 export function RecentChangesList({
   changes,
   article = null,

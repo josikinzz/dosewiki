@@ -1,15 +1,12 @@
-/** Exact saved-file measurements, never estimated from a page's record counts. */
 export type PublicDownloadStats = {
   count: number;
   bytes: number;
 };
 
 export type OpenDataDownloadStats = PublicDownloadStats & {
-  /** SHA-256 of the decoded JSON document, including its generation timestamp. */
   revision: string;
 };
 
-/** Read metadata attached to the download itself, not a separately rebuilt export. */
 export function getOpenDataDownloadStats(headers: Headers): OpenDataDownloadStats | null {
   const countHeader = headers.get("X-Open-Data-Count");
   const bytesHeader = headers.get("X-Open-Data-Bytes");

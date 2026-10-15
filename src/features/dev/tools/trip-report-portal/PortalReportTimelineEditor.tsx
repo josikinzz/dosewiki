@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * A report body on the phase rail the public page draws: the introduction,
- * timestamped Onset, Peak and Offset entries, and the conclusion. Shared by
- * the Trip reports editing pane, My reports and the public correction panel.
- *
- * Each phase adds entries from one place (the button under its last entry, or
- * the phase's own button while it is empty), and every text box grows with
- * its words, so a long account never scrolls inside a small box.
- */
-
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +14,6 @@ import type {
 type Phase = {
   key: keyof TripReportEditableFields;
   label: string;
-  /** What the empty phase's button adds, in words ("Add a conclusion"). */
   addLabel: string;
   kind: "prose" | "timeline";
   dot: string;
@@ -65,8 +54,6 @@ const PHASES: readonly Phase[] = [
     text: "theme-report-phase-offset-text",
   },
   {
-    // The public page heads this part "Conclusion / Aftermath"; the editor
-    // names it once, as the submission review and the save confirm do.
     key: "conclusion",
     label: "Conclusion",
     addLabel: "Add a conclusion",
@@ -76,7 +63,6 @@ const PHASES: readonly Phase[] = [
   },
 ];
 
-/** Text boxes grow with their words (up to most of the screen), so nothing scrolls inside a small box. */
 const GROWING_TEXT = "[field-sizing:content] max-h-[70vh] text-[16px] leading-6 md:text-sm";
 
 export function PortalReportTimelineEditor({
@@ -129,7 +115,6 @@ function PhaseMarker({ tone }: { tone: string }) {
   );
 }
 
-/** Adds to a phase: a quiet dashed pill with a drawn plus, named in words. */
 function AddButton({ children, onClick, label }: { children: React.ReactNode; onClick: () => void; label?: string }) {
   return (
     <button
@@ -241,7 +226,6 @@ function TimelineBlock({
                 }
               />
               <span className="flex-1" />
-              {/* Reordering within a phase, because chronology is the content. */}
               <Button
                 type="button"
                 variant="iconGhost"

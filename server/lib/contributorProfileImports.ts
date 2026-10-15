@@ -164,11 +164,6 @@ type ReviewedProfileState = Infer<typeof reviewedProfileStateValidator>;
 
 const PROFILE_KEY = /^[A-Z0-9-]+$/;
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
-// The Reddit attribution remediation tops out below 2,100 contributor rows.
-// Keep the alias-aware collision check bounded, but large enough to validate
-// the complete reviewed rollout instead of failing midway at the old 500-row
-// limit. A future corpus above this ceiling should move identity tokens into a
-// dedicated indexed registry rather than widening this scan again.
 const MAX_PROFILE_IDENTITY_SCAN = 4096;
 const NON_PROFILE_IDENTITIES = new Set(["unknown artist", "unknown", "unattributed", "anonymous"]);
 
@@ -351,9 +346,6 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
     }
   >();
 
-  // Validate the whole batch before its first write. Native mutations are
-  // transactional, but an eager preflight also keeps dry-run and write-mode
-  // failures identical and avoids doing work that is guaranteed to roll back.
   for (const [index, entry] of args.entries.entries()) {
     if (entry.outcome !== "reviewed-new" && entry.outcome !== "existing-profile") continue;
     if (entry.profile.links.length > MAX_CONTRIBUTOR_PROFILE_LINKS) {
@@ -401,7 +393,6 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
       try {
         resolvedUrl = await ctx.storage.getUrl(desired.avatarStorageId);
       } catch {
-        // Missing and malformed storage references fail closed below.
       }
       if (!resolvedUrl) {
         const entry = args.entries[index];
@@ -414,8 +405,6 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
     }
     if (desired.avatarR2Key) {
       const entry = args.entries[index];
-      // Preserving an existing avatar introduces no new identity. The final
-      // profile CAS still proves this expected state before any mutation.
       const preservesExisting = entry.outcome === "existing-profile"
         && entry.expected.avatarR2Key === desired.avatarR2Key;
       if (!preservesExisting) {
@@ -583,15 +572,6 @@ export async function importReviewedProfilePlanHandler(ctx: MutationCtx, args: R
   return result;
 }
 
-/**
- * Exact inverse of a reviewed profile import batch.
- *
- * The import's operation-scoped `updatedBy` marker proves that a row was
- * created or changed by this specific campaign. Rollback refuses to touch a
- * row whose reviewed fields or marker drifted. An already absent reviewed-new
- * row and an existing row already restored to its expected snapshot are safe,
- * idempotent retries.
- */
 export async function rollbackReviewedProfilePlanHandler(
   ctx: MutationCtx,
   args: ReviewedProfileRollbackArgs,
@@ -623,8 +603,6 @@ export async function rollbackReviewedProfilePlanHandler(
     }>,
   };
 
-  // Validate and read the entire batch before the first write so dry-run and
-  // write mode have the same fail-closed CAS behavior.
   const prepared: Array<
     | { kind: "skip"; creatorName: string }
     | {

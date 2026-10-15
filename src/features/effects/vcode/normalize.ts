@@ -3,7 +3,6 @@ import type { VCodeContent, VCodeNode } from "./types";
 const RAW_VCODE_TAG_PATTERN = /\[(\/?)([a-z][\w-]*)([^\]]*)\]/gi;
 const VOID_VCODE_TAGS = new Set(["br", "hr", "ref", "toc"]);
 
-// Mirrors the `vcodeRenderers` registry keys; normalize.test.ts fails on drift.
 export const VCODE_TAG_NAMES = new Set([
   "audio-player",
   "b",
@@ -65,8 +64,6 @@ const HASH_BLOCK_TAG_NAMES = new Set([
   "youtube-embed",
 ]);
 
-// Hash-dialect containers hold multi-paragraph prose, so their bodies get the
-// same blank-line paragraph grouping as top-level content.
 const HASH_CONTAINER_TAG_NAMES = new Set([
   "column",
   "columns",
@@ -113,13 +110,6 @@ export function normalizeVCodeContent(ast: unknown, raw: string | undefined): VC
   return raw && raw.trim().length > 0 ? parseRawVCodeContent(raw) : undefined;
 }
 
-/**
- * Unwrap top-level quote nodes into their prose, regrouping loose text into
- * paragraphs. Personal commentary renders inside a speech-bubble surface that
- * already supplies the quote chrome and attribution, so a nested blockquote
- * card would double the framing. Quotes nested deeper in the content keep
- * their normal chrome.
- */
 export function unwrapTopLevelQuotes(content: (string | VCodeNode)[]): (string | VCodeNode)[];
 export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent;
 export function unwrapTopLevelQuotes(content: VCodeContent): VCodeContent {
@@ -168,8 +158,6 @@ function hasBracketClosingTag(raw: string, name: string, fromIndex: number) {
   return new RegExp(`\\[/${name}\\s*\\]`, "i").test(raw.slice(fromIndex));
 }
 
-// Prose such as `[Alan Watts]` or `[Monism](url)` must stay literal text instead
-// of opening a node that swallows every following sibling.
 function isBracketTagOpening(
   raw: string,
   name: string,
@@ -337,8 +325,6 @@ function readHashDirective(raw: string, start: number) {
 
   const name = HASH_DIRECTIVE_ALIASES[nameMatch[0].toLowerCase()] ?? nameMatch[0].toLowerCase();
 
-  // Unclosed and unknown directives degrade to their inner text so readers never
-  // meet a half-parsed directive.
   if (!closed || !VCODE_TAG_NAMES.has(name)) {
     return { content: children, end: cursor };
   }
@@ -444,8 +430,6 @@ function trimInlineRun(run: (string | VCodeNode)[]): (string | VCodeNode)[] {
   return trimmed;
 }
 
-// Hash-dialect source is a flat run of prose and directives; blank lines are its
-// only paragraph signal, so rebuild the same shape the bracket dialect stores.
 function groupHashContent(content: (string | VCodeNode)[]): (string | VCodeNode)[] {
   const grouped: (string | VCodeNode)[] = [];
   let inlineRun: (string | VCodeNode)[] = [];

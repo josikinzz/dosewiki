@@ -1,14 +1,3 @@
-/**
- * The signed-in member's own work, for the `/dev` Home.
- *
- *   GET /api/dev/my-work → { drafts, proposals }
- *
- * Editor floor. `drafts` are the member's saved private article drafts and
- * `proposals` their proposals still awaiting review or returned for changes.
- * The member is the session's actor, never a query parameter; Postgres scopes
- * both lists to that actor, and each row is re-projected here so only the
- * listed fields can leave.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

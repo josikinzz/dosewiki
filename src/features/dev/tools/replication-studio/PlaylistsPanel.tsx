@@ -22,12 +22,9 @@ import { usePlaylistsController } from "./usePlaylistsController";
 import { VisualPlaylistComposer } from "./VisualPlaylistComposer";
 
 export type PlaylistsPanelProps = {
-  /** Complete corpus: selected members must remain resolvable when the rail filters them out. */
   allRows: readonly StudioRow[];
-  /** Current search/facet result: only the add-candidate grid follows the rail. */
   filteredRows: readonly StudioRow[];
   onDirtyChange?: (dirty: boolean) => void;
-  /** Feature integration point for actions that operate on one stored playlist. */
   renderSavedPlaylistAction?: (playlist: ReplicationPlaylistSummary) => ReactNode;
 };
 
@@ -101,8 +98,6 @@ export function PlaylistsPanel({
   } = controller;
   const { confirm, dialog: deleteDialog } = useConfirm();
   const titleFieldId = useId();
-  // A saved playlist changes no gallery, so the shell may save it as well as
-  // discard it.
   const { save, resetDraft } = controller;
   useUnsavedWork({
     id: "replications/playlist",

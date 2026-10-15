@@ -22,9 +22,6 @@ interface EffectCategoryCardProps {
   toggleLabel?: string;
 }
 
-/**
- * Category card showing effects within a category.
- */
 export function EffectCategoryCard({
   title,
   icon,

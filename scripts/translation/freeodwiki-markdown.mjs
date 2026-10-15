@@ -1,25 +1,10 @@
-/**
- * Markdown for a FreeODwiki page: text helpers that survive their MkDocs
- * extension set, the link registry that maps dose.wiki paths into their tree,
- * the VCode-to-Markdown renderer, and the page shell (front matter, source
- * statement). Nothing here knows what a substance or a report looks like.
- */
-
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 import { INLINE_TAGS } from "./markup.mjs";
 
-// ---------------------------------------------------------------- text helpers
-
-/**
- * `pymdownx.tilde` turns `~x~` into a subscript, so a dose or duration range
- * written `10~20` loses its middle. Escaping is the only fix that survives
- * their build unchanged.
- */
 export function escapeProse(text) {
   return text.replace(/~/g, "\\~");
 }
 
-/** Citation plumbing from the dose.wiki renderer, meaningless as page text. */
 function stripCitationMarkers(text, counters) {
   let stripped = 0;
   const out = text
@@ -35,7 +20,6 @@ function stripCitationMarkers(text, counters) {
   return out.replace(/[ \t]+([,.;:，。；：])/g, "$1").trim();
 }
 
-/** Plain source prose to page prose: markers out, tildes escaped. */
 export function prose(text, counters) {
   if (typeof text !== "string") return "";
   return escapeProse(stripCitationMarkers(text, counters));
@@ -45,32 +29,20 @@ export function cell(text) {
   return text.replace(/\|/g, "\\|").replace(/\n+/g, "<br>").trim();
 }
 
-/** JSON quoting is valid YAML flow scalar quoting, and titles carry colons. */
 function yamlString(value) {
   return JSON.stringify(String(value ?? "").replace(/\s+/g, " ").trim());
 }
 
-/** Their filenames are the page title, so only path-hostile characters go. */
 export function fileNameFor(title, fallback) {
   const base = String(title ?? "").replace(/[\\/:*?"<>|#]/g, "").replace(/\s+/g, " ").trim();
   const safe = base.replace(/^\.+/, "").trim();
   return `${safe.length > 0 ? safe : fallback}.md`;
 }
 
-/**
- * A file name inside a Markdown link destination. Their own links carry raw
- * CJK, so only the three characters that end a destination are encoded; a
- * blanket `encodeURI` would turn every page name into percent escapes.
- */
 export function linkSafe(fileName) {
   return fileName.replace(/ /g, "%20").replace(/\(/g, "%28").replace(/\)/g, "%29");
 }
 
-/**
- * An outbound URL, or null when the value cannot be one. A handful of stored
- * `ext-link` targets carry a stray leading slash before the scheme, which
- * would otherwise publish as a site-relative path resolving nowhere.
- */
 function externalHref(value) {
   const trimmed = String(value ?? "").trim().replace(/^\/+(?=https?:|mailto:)/i, "");
   if (trimmed.length === 0) return null;
@@ -94,7 +66,6 @@ export function routeLabel(route, labels) {
   return labels.ROUTE_LABELS[key] ?? String(route ?? "").trim();
 }
 
-/** A `{min, max, unit}` range as a reader sees it, never as a tilde range. */
 export function formatRange(range, labels) {
   if (!range || typeof range !== "object") return "";
   const unit = unitLabel(range.unit, labels);
@@ -106,13 +77,6 @@ export function formatRange(range, labels) {
   return "";
 }
 
-// -------------------------------------------------------------- link registry
-
-/**
- * Every page this run will write, keyed by the dose.wiki path shapes that
- * point at it. The registry is built before any page renders, because a page
- * body may link to a page written later in the run.
- */
 export function buildRegistry(pages, labels) {
   const registry = new Map();
   const add = (key, target) => {
@@ -128,8 +92,6 @@ export function buildRegistry(pages, labels) {
         add(`/${slug}`, target);
         break;
       case "effect":
-        // dose.wiki stores effect links three ways, including the historical
-        // `/effects` prefix concatenated straight onto the slug.
         add(`/effects${slug}`, target);
         add(`/effects/${slug}`, target);
         add(`/effect/${slug}`, target);
@@ -153,7 +115,6 @@ export function buildRegistry(pages, labels) {
     }
   }
 
-  // Index pages that already exist upstream, verified against the `main` tree.
   add("/", `/${labels.TREE.substance}/index.md`);
   add("/effects", `/${labels.TREE.effect}/index.md`);
   add("/reports", `/${labels.TREE.report}/index.md`);
@@ -162,11 +123,6 @@ export function buildRegistry(pages, labels) {
   return registry;
 }
 
-/**
- * A dose.wiki link target as a path inside their tree, or null when nothing
- * there can serve it. Anchors and query strings are dropped: their headings
- * are translated, so a source anchor would not resolve.
- */
 export function resolveLink(target, ctx) {
   if (typeof target !== "string") return null;
   const trimmed = target.trim();
@@ -182,8 +138,6 @@ export function resolveLink(target, ctx) {
   return resolved;
 }
 
-// ------------------------------------------------------------ vcode rendering
-
 function isNode(value) {
   return value != null && typeof value === "object" && typeof value.name === "string";
 }
@@ -198,7 +152,6 @@ function citationFor(key, ctx) {
   return ctx.citations.get(String(key)) ?? null;
 }
 
-/** Their own pages mark citations this way, so their build already renders it. */
 function citationMarker(node, ctx) {
   const key = node.properties?.to ?? node.properties?.no;
   const citation = citationFor(key, ctx);
@@ -262,7 +215,6 @@ function renderInline(content, ctx) {
         break;
       }
       default:
-        // A block tag inside a text run: keep its words, drop its box.
         out += renderInline(item.children, ctx);
         break;
     }
@@ -306,7 +258,6 @@ function renderList(node, ctx, depth) {
     .join("\n");
 }
 
-/** A boxed aside, rendered as a blockquote: it survives any extension set. */
 function renderCallout(title, bodyBlocks, ctx, depth) {
   const parts = [];
   if (title) parts.push(`**${escapeProse(title.trim())}**`);
@@ -320,7 +271,6 @@ function renderCallout(title, bodyBlocks, ctx, depth) {
 }
 
 function headingHash(level, depth) {
-  // The page title owns `#`, so a body `h1` starts at `##`.
   return "#".repeat(Math.min(6, level + 1 + Math.min(depth, 1)));
 }
 
@@ -393,14 +343,11 @@ function renderBlocks(content, ctx, depth = 0) {
       }
       case "columns":
       case "column":
-        // Markdown has no columns; the reading order is the column order.
         blocks.push(...renderBlocks(item.children, ctx, depth));
         break;
       case "subarticle": {
         const body = renderBlocks(item.children, ctx, depth);
         const title = ctx.subarticleTitles?.get(String(properties.id)) ?? properties.id;
-        // Most subarticle bodies open with their own heading; a second one
-        // synthesised from the id would repeat it, and at the wrong depth.
         if (title && !body[0]?.startsWith("#")) {
           blocks.push(`${headingHash(3, depth)} ${escapeProse(String(title))}`);
         }
@@ -415,8 +362,6 @@ function renderBlocks(content, ctx, depth = 0) {
       }
       case "captioned-image":
       case "audio-player":
-        // Replication media is not open-licensed and its files do not exist in
-        // their `文件/` tree either, so only the caption's words can travel.
         ctx.counters.mediaDropped += 1;
         break;
       case "youtube-embed": {
@@ -424,7 +369,6 @@ function renderBlocks(content, ctx, depth = 0) {
         break;
       }
       case "toc":
-        // Their theme builds its own table of contents from the headings.
         break;
       default:
         blocks.push(...renderBlocks(item.children, ctx, depth));
@@ -440,7 +384,6 @@ export function renderMarkupField(raw, ctx) {
   return renderBlocks(parseRawVCodeContent(stripCitationMarkers(raw, ctx.counters)), ctx);
 }
 
-/** Plain-text prose that arrives with blank-line paragraphs, not VCode. */
 export function renderPlainProse(text, ctx) {
   if (typeof text !== "string") return [];
   return String(text)
@@ -448,8 +391,6 @@ export function renderPlainProse(text, ctx) {
     .map((paragraph) => prose(paragraph.replace(/\n/g, " "), ctx.counters))
     .filter((paragraph) => paragraph.length > 0);
 }
-
-// ------------------------------------------------------------------ page shell
 
 function frontMatter(title, description) {
   return ["---", `title: ${yamlString(title)}`, `description: ${yamlString(description)}`, "---"].join("\n");
@@ -459,9 +400,6 @@ function frontMatter(title, description) {
 export function sourceStatement({ title, url, licence, translation, generatedAt, labels }) {
   const date = String(generatedAt ?? "").slice(0, 10);
   const ui = labels.ui;
-  // A blockquote rather than a Material admonition: `mkdocs.yml` is not on
-  // their `main`, so the enabled extension set cannot be asserted, and a
-  // blockquote renders identically under any of them.
   return [
     "---",
     "",

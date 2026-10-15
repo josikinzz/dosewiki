@@ -38,12 +38,6 @@ const PHASE_CONFIG: Record<TimelinePhase, {
   },
 };
 
-/**
- * One phase (onset, peak, or offset) of the report timeline. Renders as open
- * typography on the shared timeline rail: a phase heading marked by a large
- * dot, then entries whose timestamps hang on the rail. No card containers —
- * the narrative reads as one continuous article.
- */
 export const TimelineSection = memo(function TimelineSection({
   phase,
   entries,

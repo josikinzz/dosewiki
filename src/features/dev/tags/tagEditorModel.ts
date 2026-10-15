@@ -7,20 +7,10 @@ import {
   type TagUsage,
 } from "@/utils/data/tagRegistry";
 
-/**
- * Pure reads the Tags view makes over the registry: what a rename would merge
- * into, which labels look like the same tag written twice, and how the
- * working changes moved each tag against what the server holds. None of it
- * changes the state machine; it only says what an action will do before it
- * runs and what it did afterwards.
- */
-
 export const usageKey = (usage: Pick<TagUsage, "field" | "key">): string => `${usage.field}:${usage.key}`;
 
-/** "1 article" / "58 articles". */
 export const articleWord = (count: number): string => `${count} article${count === 1 ? "" : "s"}`;
 
-/** Articles that carry either of two tags, counted once (a merge's reach). */
 export function unionArticleCount(first: TagUsage, second: TagUsage): number {
   const seen = new Set<string>();
   for (const ref of [...first.articleRefs, ...second.articleRefs]) {
@@ -29,11 +19,6 @@ export function unionArticleCount(first: TagUsage, second: TagUsage): number {
   return seen.size;
 }
 
-/**
- * The tag a label already names in a field, other than `current`. Renaming to
- * it merges the two, because the rewrite drops a label an article already
- * carries.
- */
 export function existingTagFor(
   registry: TagRegistry,
   field: TagField,
@@ -54,7 +39,6 @@ export type RenameCheck =
   | { kind: "merge"; label: string; into: TagUsage; total: number }
   | { kind: "rename"; label: string };
 
-/** What pressing Rename with `value` would do, read before it runs. */
 export function checkRename(registry: TagRegistry, usage: TagUsage, value: string): RenameCheck {
   const label = normalizeTagLabel(value);
   if (!label) return { kind: "empty" };
@@ -65,7 +49,6 @@ export function checkRename(registry: TagRegistry, usage: TagUsage, value: strin
   return { kind: "rename", label };
 }
 
-/** A label reduced to its letters and digits, singular, for spotting the same tag written twice. */
 function looseKey(label: string): string {
   const letters = toTagKey(label).replace(/[^a-z0-9]+/g, "");
   if (letters.endsWith("ies") && letters.length > 4) return `${letters.slice(0, -3)}y`;
@@ -74,11 +57,6 @@ function looseKey(label: string): string {
   return letters;
 }
 
-/**
- * Other tags in the same field that read as this one written differently
- * ("Stimulant" and "Stimulants", "Benzo-diazepine" and "Benzodiazepine"),
- * most used first. They are the likely merges.
- */
 export function similarTags(registry: TagRegistry, usage: TagUsage): TagUsage[] {
   const key = looseKey(usage.tag);
   if (!key) return [];
@@ -91,14 +69,8 @@ export type TagChange = {
   field: TagField;
   key: string;
   tag: string;
-  /** Articles carrying it on the server. */
   before: number;
-  /** Articles carrying it with the working changes applied. */
   after: number;
-  /**
-   * The label this tag replaced on the same articles (a rename), or the
-   * labels folded into it (a merge), read off matching article sets.
-   */
   from?: string[];
   kind: "new" | "gone" | "count" | "renamed" | "merged";
 };
@@ -109,13 +81,6 @@ const refSet = (usage: TagUsage | undefined): Set<string> =>
 const sameSet = (left: Set<string>, right: Set<string>): boolean =>
   left.size === right.size && [...left].every((value) => right.has(value));
 
-/**
- * Every tag whose articles differ between the server and the working changes,
- * in field order. A label that vanished from exactly the articles another
- * label arrived on reads as a rename; labels that vanished into one that grew
- * to cover them read as a merge; the rest are new, gone, or on a different
- * number of articles.
- */
 export function tagChanges(server: TagRegistry, projected: TagRegistry): TagChange[] {
   const changes: TagChange[] = [];
   for (const field of TAG_FIELDS) {
@@ -165,7 +130,6 @@ export function tagChanges(server: TagRegistry, projected: TagRegistry): TagChan
   return changes;
 }
 
-/** One phrase for a tag change, e.g. "renamed from Benzodiazepines, on 2 articles". */
 export function describeTagChange(change: TagChange): string {
   const from = (change.from ?? []).map((label) => `“${label}”`).join(", ");
   switch (change.kind) {
@@ -184,7 +148,6 @@ export function describeTagChange(change: TagChange): string {
   }
 }
 
-/** Tags in other fields whose label matches a search that found nothing in this one. */
 export function matchesInOtherFields(registry: TagRegistry, field: TagField, query: string): { field: TagField; count: number }[] {
   const needle = query.trim().toLowerCase();
   if (!needle) return [];

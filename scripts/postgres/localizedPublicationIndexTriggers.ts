@@ -1,6 +1,5 @@
 import { writeFileSync } from "node:fs";
 
-/** Producer for the custom Drizzle migration. Never executes SQL. */
 export const LOCALIZED_PUBLICATION_INDEX_TRIGGERS = String.raw`
 INSERT INTO "localizedPublicationIndexState" ("key", "revision") VALUES ('all', 0);
 --> statement-breakpoint

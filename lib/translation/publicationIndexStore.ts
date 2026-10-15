@@ -9,7 +9,6 @@ import type { ArticleIndexEntry } from "../../src/features/articles/domain/artic
 type IndexSqlClient = Pick<SqlExecutor, "query">;
 type PendingIndex = { locale: string; publication_id: string; source_revision: string };
 
-/** The SQL migration's BEFORE triggers take the same transaction lock. */
 export async function lockLocalizedPublicationIndexes(client: IndexSqlClient): Promise<void> {
   const result = await client.query(
     'UPDATE "localizedPublicationIndexState" SET "revision" = "revision" + 1 WHERE "key" = $1',
@@ -18,20 +17,11 @@ export async function lockLocalizedPublicationIndexes(client: IndexSqlClient): P
   if (result.rowCount !== 1) throw new Error("Localized publication index producer state is not initialized");
 }
 
-/**
- * Which dirty rows one refresh materializes. A producer refreshes exactly what
- * its own write dirtied, so an editorial save never pays for the backlog:
- * - `publicationId`: every locale of one effect article the write touched.
- * - `segments`: rows whose dependency hashes include a written segment.
- * - `backlog`: every dirty row, optionally in one locale. Only the approved
- *   backfill command asks for this.
- */
 export type LocalizedPublicationIndexScope =
   | { publicationId: string }
   | { segments: readonly { locale: string; hash: string }[] }
   | { backlog: true; locale?: string };
 
-/** Call inside the producer's transaction, never from a public read. */
 export async function refreshLocalizedPublicationIndexes(client: IndexSqlClient, scope: LocalizedPublicationIndexScope): Promise<number> {
   if ("segments" in scope && scope.segments.length === 0) return 0;
   await lockLocalizedPublicationIndexes(client);
@@ -76,7 +66,6 @@ export async function refreshLocalizedPublicationIndexes(client: IndexSqlClient,
   return pending.rows.length;
 }
 
-/** One compact snapshot query; no English or translated narrative crosses the connection. */
 export async function readLocalizedPublicationIndex(client: IndexSqlClient, locale: string): Promise<ArticleIndexEntry[]> {
   type IndexRow = {
     slug: string; tags: string[]; publicationDate: string | null; kind: "article" | "blog" | null;

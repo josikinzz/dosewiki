@@ -1,8 +1,3 @@
-/**
- * SubjectiveEffectsFieldsRHF - Main form component for editing subjective effects.
- * Provides a nested subsection structure similar to HistoryCultureFieldsRHF.
- */
-
 import { useFormContext } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
 import { SENSORY_CATEGORIES } from "@/data/subjectiveEffectSubcategories";
@@ -17,7 +12,6 @@ import { SenseCategoryCard, type SenseType } from "./SenseCategoryCard";
 import { AttributionEditor } from "./AttributionEditor";
 import type { SubstanceArticle } from "@/schema";
 
-// Sensory categories configuration (shared with the public article renderer)
 const SENSORY_SENSES: Array<{ sense: SenseType; label: string; icon?: IconName }> =
   SENSORY_CATEGORIES.map(({ key, label, icon }) => ({
     sense: key as SenseType,
@@ -35,7 +29,6 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
 
   return (
     <section className="space-y-6">
-      {/* Overview Note */}
       <FormEditorField
         name="subjective_effects.notes.overview"
         htmlFor={`${idPrefix}-notes-overview`}
@@ -54,7 +47,6 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
         />
       </FormEditorField>
 
-      {/* Physical Effects */}
       <EffectCategoryCard
         fieldPath="subjective_effects.physical"
         title="Physical Effects"
@@ -64,7 +56,6 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
         noteFieldPath="subjective_effects.notes.physical"
       />
 
-      {/* Cognitive Effects */}
       <EffectCategoryCard
         fieldPath="subjective_effects.cognitive"
         title="Cognitive Effects"
@@ -74,9 +65,7 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
         noteFieldPath="subjective_effects.notes.cognitive"
       />
 
-      {/* Sensory Effects (collapsible container with 6 senses) */}
       <CollapsibleSubsection title="Sensory Effects" pairedIndicator={pairedIndicator} icon={<Icon icon="lucide:eye" className="h-5 w-5" size={20} />}>
-        {/* Sensory Note at top of section */}
         <FormEditorField
           htmlFor={`${idPrefix}-notes-sensory`}
           label="Sensory Note"
@@ -102,7 +91,6 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
         ))}
       </CollapsibleSubsection>
 
-      {/* Progressive Stages (optional) */}
       <EffectCategoryCard
         fieldPath="subjective_effects.progressive_stages"
         title="Progressive Stages"
@@ -112,7 +100,6 @@ export function SubjectiveEffectsFieldsRHF({ idPrefix, pairedIndicator = false }
         optional
       />
 
-      {/* Attribution */}
       <AttributionEditor idPrefix={idPrefix} pairedIndicator={pairedIndicator} />
     </section>
   );

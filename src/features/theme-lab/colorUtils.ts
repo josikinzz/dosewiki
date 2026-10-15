@@ -1,17 +1,3 @@
-/**
- * Color parsing/serialization helpers for the Theme Lab.
- *
- * The site's color tokens are authored in a mix of formats (#hex, rgba(),
- * oklch(), color-mix()). To drive an HSV wheel we need a single, reliable way
- * to turn ANY CSS color string into sRGB. Rather than ship an oklch math
- * library, we rasterize one pixel on a canvas and read it back — the browser
- * resolves every color syntax to sRGB bytes for us.
- *
- * On the way out we serialize to #hex (opaque) or rgba() (translucent): both
- * are universally valid CSS and easy for a human or an agent to read. The
- * integrating agent re-expresses them as oklch per the palette rules.
- */
-
 export type Rgba = { r: number; g: number; b: number; a: number };
 export type Hsv = { h: number; s: number; v: number };
 
@@ -31,10 +17,6 @@ function getProbe(): CanvasRenderingContext2D | null {
   return probeCtx;
 }
 
-/**
- * Resolve any CSS color string to sRGB bytes + straight alpha (0–1).
- * Returns null for empty input or strings the canvas cannot interpret.
- */
 export function parseColorToRgba(input: string): Rgba | null {
   const value = input.trim();
   if (colorParseCache.has(value)) return colorParseCache.get(value) ?? null;
@@ -50,8 +32,6 @@ export function parseColorToRgba(input: string): Rgba | null {
   const ctx = getProbe();
   if (!ctx) return cache(null);
 
-  // Detect invalid input: an unparseable fillStyle is silently ignored, so we
-  // seed two distinct sentinels and confirm the value actually "took".
   ctx.fillStyle = "#010203";
   ctx.fillStyle = value;
   const firstAttempt = ctx.fillStyle;
@@ -78,7 +58,6 @@ export function rgbToHex({ r, g, b }: Pick<Rgba, "r" | "g" | "b">): string {
   return `#${channelToHex(r)}${channelToHex(g)}${channelToHex(b)}`;
 }
 
-/** Accepts #rgb, #rrggbb, #rgba, #rrggbbaa (with or without leading #). */
 export function hexToRgba(hex: string): Rgba | null {
   const cleaned = hex.trim().replace(/^#/, "");
   if (!/^[0-9a-fA-F]+$/.test(cleaned)) return null;
@@ -105,11 +84,6 @@ export function hexToRgba(hex: string): Rgba | null {
   return { r, g, b, a: Math.round(a * 1000) / 1000 };
 }
 
-/**
- * Parse a bare `R G B` channel triple — the form used by the `--c-*` primitive
- * seeds so they can compose with any alpha via `rgb(var(--c-x) / a)`. Commas or
- * whitespace separate the channels; alpha (if any) is ignored.
- */
 export function parseChannelsToRgba(input: string): Rgba | null {
   const parts = input.trim().split(/[\s,/]+/).filter(Boolean).map(Number);
   if (parts.length < 3 || parts.slice(0, 3).some((n) => Number.isNaN(n))) return null;
@@ -121,7 +95,6 @@ export function parseChannelsToRgba(input: string): Rgba | null {
   };
 }
 
-/** Serialize back to a bare `R G B` channel triple (alpha is dropped). */
 export function formatChannels({ r, g, b }: Pick<Rgba, "r" | "g" | "b">): string {
   return `${clamp(Math.round(r), 0, 255)} ${clamp(Math.round(g), 0, 255)} ${clamp(Math.round(b), 0, 255)}`;
 }
@@ -174,14 +147,12 @@ function roundAlpha(a: number): number {
   return Math.round(clamp(a, 0, 1) * 1000) / 1000;
 }
 
-/** Serialize for CSS/JSON: #hex when opaque, rgba() when translucent. */
 export function formatColor({ r, g, b, a }: Rgba): string {
   const alpha = roundAlpha(a);
   if (alpha >= 1) return rgbToHex({ r, g, b });
   return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
 }
 
-/** A compact "#rrggbb · 72%" readout for swatch rows. */
 export function describeColor(rgba: Rgba): string {
   const hex = rgbToHex(rgba);
   const alpha = roundAlpha(rgba.a);

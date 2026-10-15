@@ -1,7 +1,6 @@
 import sharp from "sharp";
 import { RESPONSIVE_WIDTHS } from "../next/r2ImagePolicy";
 
-/** Identical bytes and private keys for operator preparation and new uploads. */
 export async function* encodeR2ImageRenditions(source: Buffer | string, key: string) {
   const image = sharp(source, { animated: true, limitInputPixels: 100_000_000 });
   const metadata = await image.metadata();

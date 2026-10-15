@@ -1,12 +1,5 @@
 import { useCallback, useId, useRef, useState } from "react";
 
-/**
- * Row keys for the plain-array entry editors that cannot use `useFieldArray`'s
- * `field.id`. Index keys reuse DOM and local control state for the wrong row
- * when a middle entry is removed, so each row carries an identity that survives
- * removal. A length change that did not come through `appendKey`/`removeKey`
- * (article load/reset) re-keys the whole list.
- */
 export function useEntryKeys(count: number) {
   const prefix = useId();
   const nextIdRef = useRef(0);

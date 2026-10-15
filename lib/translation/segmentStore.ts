@@ -1,12 +1,3 @@
-/**
- * Postgres access for the two runtime-owned translation tables
- * (`lib/postgres/schema.runtime.ts`). Segments are keyed by the English text's
- * content hash so a read is one `= ANY($hashes)` lookup and a refresh only
- * translates hashes that are missing. Jobs are a queue with a lease: an
- * editorial write upserts, the cron claims, and completion clears the row.
- * Completion hands public delivery to the publication outbox
- * (`lib/next/publicationOutbox.ts`); this module owns no delivery retries.
- */
 import "server-only";
 
 import { getPostgresClient } from "@server/postgres/runtime/backend";
@@ -40,16 +31,12 @@ export type TranslationJobRow = {
 
 export type TranslationJobMode = "incremental" | "bulk";
 
-/** A stale lease is retaken after this long; the cron's own budget is shorter. */
 const JOB_LEASE_MS = 10 * 60 * 1000;
 export const MAX_TRANSLATION_JOB_ATTEMPTS = 5;
-/** First retry delay; each later failure doubles it, so five failures span over half an hour. */
 const JOB_RETRY_BASE_MS = 150_000;
 const JOB_RETRY_MAX_MS = 60 * 60 * 1000;
-/** Run rows older than this are pruned when the same lane records a new run. */
 const WORKER_RUN_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
-/** `hash -> target` for every stored segment among `hashes`. */
 export async function readTranslations(locale: string, hashes: readonly string[]): Promise<Map<string, string>> {
   if (hashes.length === 0) return new Map();
   const rows = await getPostgresClient().sql<{ hash: string; target: string }>(
@@ -59,13 +46,11 @@ export async function readTranslations(locale: string, hashes: readonly string[]
   return new Map(rows.map((row) => [row.hash, row.target]));
 }
 
-/** Hashes among `hashes` with no stored row for `locale`. */
 export async function missingTranslationHashes(locale: string, hashes: readonly string[]): Promise<string[]> {
   const stored = await readTranslations(locale, hashes);
   return hashes.filter((hash) => !stored.has(hash));
 }
 
-/** Hashes among `hashes` with no row, or a row stamped with another prompt digest: what a record refresh sends to the model. */
 export async function pendingTranslationHashes(locale: string, hashes: readonly string[], promptVersion: string): Promise<string[]> {
   if (hashes.length === 0) return [];
   const rows = await getPostgresClient().sql<{ hash: string }>(
@@ -76,12 +61,10 @@ export async function pendingTranslationHashes(locale: string, hashes: readonly 
   return hashes.filter((hash) => !current.has(hash));
 }
 
-/** Record each actual text replacement atomically with its previous rendering. */
 export async function writeTranslations(rows: readonly TranslationSegmentRow[]): Promise<void> {
   if (rows.length === 0) return;
   assertDataWritesNotFrozen("writeTranslations");
   const now = Date.now();
-  // Canonical lock order and one final value per identity avoid intra-batch conflicts.
   const unique = [...new Map(rows.map((row) => [JSON.stringify([row.locale, row.hash]), row])).values()]
     .sort((a, b) => a.locale.localeCompare(b.locale) || a.hash.localeCompare(b.hash));
   const values = [unique.map((r) => r.locale), unique.map((r) => r.hash), unique.map((r) => r.source), unique.map((r) => r.target), unique.map((r) => r.model), unique.map((r) => r.prompt_version), unique.map(() => now)];
@@ -119,7 +102,6 @@ export type TranslationRejectionRow = {
   last_tried_at: number;
 };
 
-/** Record the units the model failed; a unit that later stores is cleared by `writeTranslations`' caller. */
 export async function writeTranslationRejections(
   rows: readonly Pick<TranslationRejectionRow, "locale" | "hash" | "source" | "defects">[],
 ): Promise<void> {
@@ -148,7 +130,6 @@ export async function clearTranslationRejections(locale: string, hashes: readonl
   await getPostgresClient().sql('DELETE FROM "translationRejections" WHERE "locale" = $1 AND "hash" = ANY($2::text[])', [locale, [...hashes]]);
 }
 
-/** `hash -> rejection` among `hashes`; an empty `hashes` reads every rejection for the locale. */
 export async function readTranslationRejections(locale: string, hashes?: readonly string[]): Promise<Map<string, TranslationRejectionRow>> {
   if (hashes?.length === 0) return new Map();
   const rows = await getPostgresClient().sql<Omit<TranslationRejectionRow, "defects"> & { defects: string }>(
@@ -160,7 +141,6 @@ export async function readTranslationRejections(locale: string, hashes?: readonl
   return new Map(rows.map((row) => [row.hash, { ...row, defects: row.defects.split(",").filter(Boolean) }]));
 }
 
-/** Rows whose prompt digest differs from the current one; the backfill script retranslates them. */
 export async function readStaleTranslationHashes(locale: string, promptVersion: string): Promise<string[]> {
   const rows = await getPostgresClient().sql<{ hash: string }>(
     'SELECT "hash" FROM "translationSegments" WHERE "locale" = $1 AND "prompt_version" <> $2',
@@ -169,7 +149,6 @@ export async function readStaleTranslationHashes(locale: string, promptVersion: 
   return rows.map((row) => row.hash);
 }
 
-/** How many segments the locale stores and how many carry the current digest; the rest are due for a stale replay. */
 export async function translationSegmentCounts(locale: string, promptVersion: string): Promise<{ total: number; current: number }> {
   const [row] = await getPostgresClient().sql<{ n: string; current: string }>(
     'SELECT COUNT(*)::text AS n, COUNT(*) FILTER (WHERE "prompt_version" = $2)::text AS current FROM "translationSegments" WHERE "locale" = $1',
@@ -190,7 +169,6 @@ export type TranslationJobCounts = {
   exhausted: number;
 };
 
-/** The newest enqueue generation only, so old completed editorial jobs do not distort bulk-run progress. */
 export async function translationJobCounts(locale: string): Promise<TranslationJobCounts> {
   const [row] = await getPostgresClient().sql<{
     run_id: string | null;
@@ -235,12 +213,6 @@ export async function translationJobCounts(locale: string): Promise<TranslationJ
   };
 }
 
-/**
- * Stored rows whose English mentions any of `terms`, by the shared matcher
- * the prompt builder injects glossary lines with (whole word, case
- * insensitive, inflections included). The database narrows by the term's
- * literal fragments in order; the matcher decides.
- */
 export async function readTranslationsMentioning(locale: string, terms: readonly string[]): Promise<Array<{ hash: string; source: string }>> {
   const matched = new Map<string, { hash: string; source: string }>();
   for (const term of terms) {
@@ -255,10 +227,8 @@ export async function readTranslationsMentioning(locale: string, terms: readonly
   return [...matched.values()];
 }
 
-/** A digest no run ever produces; a row carrying it is stale whatever the current digest is. */
 const STALE_MARK = "stale";
 
-/** Mark only the selected hashes stale. Unrelated old digests are not proven current. */
 export async function scopeStaleTranslations(
   locale: string,
   hashes: readonly string[],
@@ -269,12 +239,9 @@ export async function scopeStaleTranslations(
     'UPDATE "translationSegments" SET "prompt_version" = $3 WHERE "locale" = $1 AND "hash" = ANY($2::text[]) RETURNING "hash"',
     [locale, [...hashes], STALE_MARK],
   );
-  // A different digest may reflect other unpropagated terms or a prompt change.
-  // Restamping it would hide that work without producing a new translation.
   return { marked: marked.length, restamped: 0 };
 }
 
-/** Read-only coverage metadata for a bounded source-derived set of hashes. */
 export async function readTranslationCoverageRows(locale: string, hashes: readonly string[]): Promise<Array<{ hash: string; target: string; prompt_version: string; model: string }>> {
   if (hashes.length === 0) return [];
   return getPostgresClient().sql<{ hash: string; target: string; prompt_version: string; model: string }>(
@@ -283,7 +250,6 @@ export async function readTranslationCoverageRows(locale: string, hashes: readon
   );
 }
 
-/** A queue snapshot is separate from source coverage and publication evidence. */
 export async function translationQueueCoverage(locale: string): Promise<TranslationQueueCoverage> {
   const [row] = await getPostgresClient().sql<Record<keyof TranslationQueueCoverage, string>>(
     `WITH jobs AS (
@@ -304,10 +270,6 @@ export async function translationQueueCoverage(locale: string): Promise<Translat
   };
 }
 
-/**
- * Mark records as needing a locale refresh. The request timestamp is also a
- * strictly increasing generation, even for repeated requests in one millisecond.
- */
 export async function enqueueTranslationJobs(
   locales: readonly string[],
   slugs: readonly string[],
@@ -333,8 +295,6 @@ export async function enqueueTranslationJobs(
   await getPostgresClient().sqlTransaction(async (client) => {
     if (!options.publication) return enqueue(client);
     const publication = options.publication;
-    // Lock the outbox generation and commit its receipt with the queue writes.
-    // A crash or dispatch retry cannot reset active jobs for this generation.
     const row = await selectDocumentById(client, "publicCachePublications", publication.id, true);
     if (!row || row.generation !== publication.generation || !row.pending) return;
     const receipts = (row.receipts ?? []) as Array<{ target?: string; generation?: number }>;
@@ -347,11 +307,6 @@ export async function enqueueTranslationJobs(
   });
 }
 
-/**
- * Give the exhausted jobs of one bulk run a fresh set of attempts. The run id
- * and request time stay, so the workbench keeps counting them in the same run;
- * a job still inside a live lease is left to its worker. Returns the slugs.
- */
 export async function requeueExhaustedTranslationJobs(locale: string, runId: string): Promise<string[]> {
   assertDataWritesNotFrozen("requeueExhaustedTranslationJobs");
   const rows = await getPostgresClient().sql<{ slug: string }>(
@@ -364,11 +319,6 @@ export async function requeueExhaustedTranslationJobs(locale: string, runId: str
   return rows.map((row) => row.slug);
 }
 
-/**
- * Lease up to `limit` due rows to this worker, optionally from one locale.
- * Atomic: concurrent crons never take the same row. A row waiting out a
- * failure backoff is not due.
- */
 export async function claimTranslationJobs(limit: number, mode: TranslationJobMode = "incremental", locale?: string): Promise<TranslationJobRow[]> {
   assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();
@@ -390,14 +340,12 @@ type JobFinish = {
   completed: boolean;
   terminalStatus: "rejected" | null;
   nextAttemptAt: number | null;
-  /** Give back the attempt the claim spent. */
   refundAttempt: boolean;
 };
 
 async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, publications: readonly PublicationTarget[] = []): Promise<boolean> {
   const entries = finish.completed ? publications.map((target) => ({ target })) : [];
   return getPostgresClient().sqlTransaction(async (client) => {
-    // Outbox rows before the job row: the lock order publication delivery uses.
     if (entries.length > 0) await lockPublications(client, entries);
     const current = await client.query<TranslationJobRow & { completed_at: string | null }>(
       `SELECT "locale", "slug", "requested_at"::text, "claimed_at"::text, "attempts", "completed_at"::text
@@ -419,11 +367,6 @@ async function finishTranslationJob(job: TranslationJobRow, finish: JobFinish, p
   });
 }
 
-/**
- * Complete the current lease. `publications` are the public surfaces the
- * stored segments change; they enter the publication outbox in the same
- * transaction, so a completed job can never lose its delivery.
- */
 export async function completeTranslationJob(
   job: TranslationJobRow,
   terminalDetail: string | null = null,
@@ -435,22 +378,11 @@ export async function completeTranslationJob(
   }, publications);
 }
 
-/**
- * Exponential backoff with upward jitter after the `attempts`-th failure:
- * 150 s, 300 s, 600 s, 1200 s, capped at one hour, each stretched by up to 20%.
- */
 export function translationJobRetryDelayMs(attempts: number, random: () => number = Math.random): number {
   const base = Math.min(JOB_RETRY_MAX_MS, JOB_RETRY_BASE_MS * 2 ** Math.max(0, attempts - 1));
   return Math.round(base * (1 + 0.2 * random()));
 }
 
-/**
- * Release only this lease. A failure waits out its backoff before the next
- * claim; the five-attempt cap leaves exhausted errors inspectable. A run
- * budget abort after the record stored segments (`progressed`) gives back its
- * attempt and stays due, so a large record that keeps making progress never
- * exhausts.
- */
 export async function failTranslationJob(job: TranslationJobRow, error: string, options: { progressed?: boolean } = {}): Promise<boolean> {
   assertDataWritesNotFrozen("failTranslationJob");
   const progressed = options.progressed === true;
@@ -463,7 +395,6 @@ export async function failTranslationJob(job: TranslationJobRow, error: string, 
   });
 }
 
-/** Acquire one cross-process lease for a worker lane. */
 export async function acquireTranslationWorkerLease(lane: string, owner: string, leaseMs: number): Promise<boolean> {
   assertDataWritesNotFrozen("acquireTranslationWorkerLease");
   const now = Date.now();
@@ -477,7 +408,6 @@ export async function acquireTranslationWorkerLease(lane: string, owner: string,
   return rows[0]?.owner === owner;
 }
 
-/** Release only the lease owned by this invocation. */
 export async function releaseTranslationWorkerLease(lane: string, owner: string): Promise<void> {
   assertDataWritesNotFrozen("releaseTranslationWorkerLease");
   await getPostgresClient().sql(
@@ -486,7 +416,6 @@ export async function releaseTranslationWorkerLease(lane: string, owner: string)
   );
 }
 
-/** One worker invocation's summary, as `runTranslationJobs` returns it. */
 export type TranslationWorkerRunRecord = {
   id: string;
   mode: TranslationJobMode;
@@ -497,13 +426,11 @@ export type TranslationWorkerRunRecord = {
   completed: number;
   failed: number;
   exhausted: number;
-  /** Completed records whose public delivery was handed to the publication outbox. */
   cachePending: number;
   usage: { prompt: number; completion: number; requests: number };
   firstError: string | null;
 };
 
-/** Store one run row and prune this lane's rows past the retention window. */
 export async function recordTranslationWorkerRun(run: TranslationWorkerRunRecord): Promise<void> {
   assertDataWritesNotFrozen("recordTranslationWorkerRun");
   await getPostgresClient().sqlTransaction(async (client) => {
@@ -530,7 +457,6 @@ type TranslationWorkerRunRow = {
   prompt_tokens: string; completion_tokens: string; requests: number; first_error: string | null;
 };
 
-/** The newest run row of each lane, for operators asking whether a lane is moving. */
 export async function readLatestTranslationWorkerRuns(): Promise<TranslationWorkerRunRecord[]> {
   const rows = await getPostgresClient().sql<TranslationWorkerRunRow>(
     `SELECT DISTINCT ON ("mode") "id", "mode", "lease_held", "started_at"::text, "duration_ms", "claimed", "completed",

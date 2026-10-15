@@ -1,54 +1,12 @@
-/**
- * The allow-list — and the minimal path walker — behind
- * `substanceIndex.setArticleField`, the single-field write the review portal's
- * inline click-to-edit uses.
- *
- * The canonical list is shared by native handlers and the Next API route.
- * Keeping one source of truth for permitted inline edits prevents a typo in
- * a client-driven field path from overwriting an entire article section.
- *
- * Keep this module dependency-free so server handlers and route-side guards
- * use the same rules without importing unrelated runtime code.
- */
-
-/**
- * What a leaf holds. `text` is a plain string; `range` is the
- * `{min, max, unit}` shape shared by dose tiers and duration stages; `aliases`
- * is the exact alternative-name array, with separate append-only guards.
- */
 export type EditableFieldKind = "text" | "range" | "aliases";
 
-/**
- * Template field paths an inline edit may write, in `fieldPath.ts` notation,
- * mapped to the kind of value that leaf holds.
- *
- * Two kinds of variable segment appear here:
- *
- * - `[]` marks an array whose concrete index the caller supplies.
- * - `*` marks a record key the *data* chooses rather than the schema — the
- *   country in `legality.countries`, the subcategory under an effect family.
- *   A fixed template cannot enumerate those, so the matcher compares
- *   segment-by-segment instead of by string equality.
- *
- * The kind is enforced in both directions: the walker refuses to put a string
- * where a range lives, an object where text lives, or either where a path has
- * somehow reached a whole subtree.
- *
- * Every entry here is a leaf the public article actually renders as prose or as
- * a dose/duration range. Status, level, and classification leaves are
- * deliberately absent: those render as canonical badges derived from the stored
- * value, so a free-text edit of one would not survive its own round trip.
- */
 export const EDITABLE_ARTICLE_FIELD_KINDS = {
-  // Hero
   title: "text",
   summary: "text",
   "identification.substitutive_name": "text",
   "identification.botanical_name": "text",
   "identification.common_name": "text",
-  // Guarded append-only names, not a generic array editing surface.
   "identification.alternative_names": "aliases",
-  // Dosage & duration
   "dosage.routes[].notes": "text",
   "dosage.routes[].bioavailability": "text",
   "dosage.routes[].bioavailability_notes": "text",
@@ -65,12 +23,10 @@ export const EDITABLE_ARTICLE_FIELD_KINDS = {
   "duration.routes[].stages.offset": "range",
   "duration.routes[].stages.after_effects": "range",
   "duration.routes[].stages.total_duration": "range",
-  // Tolerance
   "tolerance.full_tolerance": "text",
   "tolerance.half_tolerance": "text",
   "tolerance.baseline_tolerance": "text",
   "tolerance.cross_tolerance[]": "text",
-  // Subjective effects
   "subjective_effects.notes.overview": "text",
   "subjective_effects.notes.physical": "text",
   "subjective_effects.notes.cognitive": "text",
@@ -79,16 +35,13 @@ export const EDITABLE_ARTICLE_FIELD_KINDS = {
   "subjective_effects.physical.*.note": "text",
   "subjective_effects.cognitive.*.note": "text",
   "subjective_effects.progressive_stages.*.note": "text",
-  // Pharmacology
   "pharmacology.pharmacodynamics": "text",
   "pharmacology.pharmacokinetics": "text",
-  // Legality
   "legality.international[]": "text",
   "legality.countries.*.notes": "text",
   "legality.usStatesNote": "text",
   "legality.usStates.*.notes": "text",
   "legality.usStates.*.cities.*.notes": "text",
-  // Harm potential
   "harm_potential.addiction.psychological.description": "text",
   "harm_potential.addiction.physical_dependence.description": "text",
   "harm_potential.psychosis.description": "text",
@@ -97,7 +50,6 @@ export const EDITABLE_ARTICLE_FIELD_KINDS = {
   "harm_potential.toxicity.organ_toxicity[].findings": "text",
   "harm_potential.toxicity.organ_toxicity[].mechanism": "text",
   "harm_potential.toxicity.organ_toxicity[].notes": "text",
-  // History & culture
   "history_culture.content": "text",
   "history_culture.sections[].content": "text",
   "history_culture.sections[].subsections[].content": "text",
@@ -109,7 +61,6 @@ export const EDITABLE_ARTICLE_FIELD_TEMPLATES = Object.keys(
   EDITABLE_ARTICLE_FIELD_KINDS,
 ) as EditableArticleFieldTemplate[];
 
-/** The declared kind for a concrete path, or `null` when it is not editable. */
 export function editableFieldKindForPath(path: string): EditableFieldKind | null {
   const parts = parseEditableFieldPath(path);
   if (!parts) return null;
@@ -119,7 +70,6 @@ export function editableFieldKindForPath(path: string): EditableFieldKind | null
   return kinds[template] ?? null;
 }
 
-/** The `{min, max, unit}` leaf shared by dose tiers and duration stages. */
 export interface EditableRangeValue {
   min: number | null;
   max: number | null;
@@ -132,7 +82,6 @@ export const EDITABLE_ALIAS_MAX_COUNT = 128;
 export const EDITABLE_ALIAS_MAX_LENGTH = 512;
 export const EDITABLE_ALIAS_MAX_TOTAL_LENGTH = 16_384;
 
-/** Exact stored identity strings: never trim, normalize or deduplicate a write. */
 function isEditableAliasArray(value: unknown): value is string[] {
   if (!Array.isArray(value) || value.length > EDITABLE_ALIAS_MAX_COUNT) return false;
   let length = 0;
@@ -171,10 +120,8 @@ function applyAlternativeNameAppend(
   return { ok: true, topLevelKey: "identification", topLevelValue: { ...identification, alternative_names: names }, value: names };
 }
 
-/** Units are short labels (`mg`, `hours`), never prose. */
 export const EDITABLE_RANGE_UNIT_MAX_LENGTH = 32;
 
-/** Strict check for an incoming range: exactly the three known keys. */
 export function isEditableRangeValue(value: unknown): value is EditableRangeValue {
   if (!isRecord(value)) return false;
   const keys = Object.keys(value);
@@ -188,10 +135,6 @@ export function isEditableRangeValue(value: unknown): value is EditableRangeValu
   return typeof value.unit === "string" && value.unit.length <= EDITABLE_RANGE_UNIT_MAX_LENGTH;
 }
 
-/**
- * Lenient check for what is already stored. Legacy rows may carry extra keys,
- * and refusing to edit them would strand exactly the data most in need of it.
- */
 function looksLikeStoredRange(value: unknown): boolean {
   return isRecord(value) && "min" in value && "max" in value && "unit" in value;
 }
@@ -204,40 +147,17 @@ function rangesEqual(a: unknown, b: EditableRangeValue): boolean {
   return min === b.min && max === b.max && unit === b.unit;
 }
 
-/** Guards the request body before the handler runs; prose fields are short. */
 export const EDITABLE_ARTICLE_FIELD_MAX_LENGTH = 4000;
 
-/** Keeps a hostile path from forcing a long walk or a sparse-array blowup. */
 const MAX_PATH_LENGTH = 200;
 const MAX_ARRAY_INDEX = 999;
 
-/**
- * A segment key as it travels inside a path.
- *
- * Schema keys are identifiers, but the record keys behind a `*` come from
- * article data — `"United States"`, `"1. Taking Off"` — and carry spaces,
- * punctuation, and dots that no `split(".")` survives. Those keys travel
- * percent-encoded, which keeps every segment inside a charset that cannot be
- * confused with the path syntax around it. Mirrors `encodeFieldPathKey` in
- * `src/data/schema/fieldPath.ts`; this file cannot import it.
- */
 const SEGMENT_PATTERN = /^([A-Za-z0-9_%-]+)(?:\[(\d+)\])?$/;
 const PLAIN_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const EXTRA_ESCAPED_CHARACTERS = /[.*!'()~]/g;
 
-/**
- * Keys a segment may never resolve to.
- *
- * The walker assigns with `cursor[key] = value` and a `*` matches whatever key
- * the caller supplies, so without this an inline edit is a prototype-pollution
- * primitive: `legality.countries.__proto__.notes` would write through every
- * object in the runtime rather than into one country's note. This allow-list is
- * the security boundary for a client-driven database write, so the rejection
- * lives in three places — the parser, the wildcard matcher, and the walker.
- */
 const FORBIDDEN_SEGMENT_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
-/** Encodes one record key for use as a field-path segment. */
 export function encodeArticleFieldPathKey(key: string): string {
   if (PLAIN_KEY_PATTERN.test(key)) return key;
   return encodeURIComponent(key).replace(
@@ -259,7 +179,6 @@ function decodeSegmentKey(raw: string): string | null {
 
 interface FieldPathSegment {
   key: string;
-  /** `null` for a plain property segment. */
   index: number | null;
 }
 
@@ -289,19 +208,10 @@ const PARSED_EDITABLE_TEMPLATES: Array<{
   segments: parseTemplateSegments(template),
 }));
 
-/**
- * The allow-list template a concrete path instantiates, or `null`.
- *
- * Matching is segment-by-segment rather than by string equality because a `*`
- * stands in for a key only the data knows. An exact key matches itself, `key[]`
- * matches an indexed segment, and `*` matches any single plain property segment
- * that is not one of the reserved prototype keys.
- */
 export function resolveEditableFieldTemplate(
   parts: EditableFieldPathParts,
 ): string | null {
   const kinds = EDITABLE_ARTICLE_FIELD_KINDS as Record<string, EditableFieldKind>;
-  // Fast path: a fully literal template is its own key.
   if (Object.prototype.hasOwnProperty.call(kinds, parts.template)) {
     return parts.template;
   }
@@ -334,9 +244,7 @@ export function resolveEditableFieldTemplate(
 }
 
 export interface EditableFieldPathParts {
-  /** `dosage.routes[3].notes` → `dosage.routes[].notes`. */
   template: string;
-  /** The one document key a write is allowed to patch. */
   topLevelKey: string;
   segments: FieldPathSegment[];
 }
@@ -345,10 +253,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/**
- * Parses a concrete field path into segments plus its template form. Returns
- * `null` for anything that is not a well-formed, fully indexed path.
- */
 export function parseEditableFieldPath(path: string): EditableFieldPathParts | null {
   if (typeof path !== "string" || path.length === 0 || path.length > MAX_PATH_LENGTH) {
     return null;
@@ -362,8 +266,6 @@ export function parseEditableFieldPath(path: string): EditableFieldPathParts | n
     if (!match) return null;
 
     const key = decodeSegmentKey(match[1]);
-    // The first of three refusals: a reserved prototype key never becomes a
-    // segment at all, so nothing downstream has to remember to check.
     if (key === null || FORBIDDEN_SEGMENT_KEYS.has(key)) return null;
     const encodedKey = encodeArticleFieldPathKey(key);
     const indexText = match[2];
@@ -381,8 +283,6 @@ export function parseEditableFieldPath(path: string): EditableFieldPathParts | n
     templateParts.push(`${encodedKey}[]`);
   }
 
-  // A single-segment path is allowed, but only where the allow-list names that
-  // exact top-level key — it patches that one key and nothing around it.
   if (segments.length === 0) return null;
 
   return {
@@ -392,7 +292,6 @@ export function parseEditableFieldPath(path: string): EditableFieldPathParts | n
   };
 }
 
-/** True when `path` is a concrete instance of an allow-listed template. */
 export function isEditableArticleFieldPath(path: string): boolean {
   const parts = parseEditableFieldPath(path);
   if (!parts) return false;
@@ -403,45 +302,18 @@ export type EditableFieldWriteResult =
   | {
       ok: true;
       topLevelKey: string;
-      /** The cloned, updated value for `topLevelKey` — patch it wholesale. */
       topLevelValue: unknown;
       value: EditableFieldValue;
     }
   | { ok: false; reason: string; conflict?: true };
 
 export interface EditableFieldWriteOptions {
-  /**
-   * What the caller believes the field currently holds.
-   *
-   * An inline edit addresses a route by index, and the index comes from a
-   * client-side draft that may have been reordered, shortened, or edited
-   * without ever reaching storage — `dosage.routes[0]` on screen is not
-   * necessarily `dosage.routes[0]` in the database. Comparing the stored value
-   * against what the editor was actually looking at turns that mismatch into a
-   * refusal instead of a silent overwrite of a different route's note.
-   */
   expected?: EditableFieldValue;
 }
 
-/**
- * The stored value moved under the editor; nothing was written.
- *
- * This reaches the reviewer verbatim: `setArticleField` rethrows it as a
- * `PostgresError` coded `FIELD_CONFLICT`, and the route layer renders that in the
- * inline editor. Keep it addressed to a person, and keep the instruction in it.
- */
 export const EDITABLE_FIELD_CONFLICT_REASON =
   "This field changed since the article was loaded. Reload the article, then make the edit again.";
 
-/**
- * Applies one guarded leaf write to a stored article document, cloning only the
- * top-level key the path touches so a patch never carries the rest of the
- * document back over concurrent edits.
- *
- * Refuses out-of-range array indices and any target that currently holds
- * something other than a string, so a mistyped path degrades to an error
- * instead of flattening a nested object.
- */
 export function applyEditableFieldWrite(
   document: Record<string, unknown>,
   path: string,
@@ -480,18 +352,12 @@ export function applyEditableFieldWrite(
 
   const { segments, topLevelKey } = parts;
 
-  // Third refusal, after the parser and the wildcard matcher. The walk below
-  // assigns straight into a plain object, so a reserved key reaching it would
-  // write through the prototype chain instead of into the article.
   for (const segment of segments) {
     if (FORBIDDEN_SEGMENT_KEYS.has(segment.key)) {
       return { ok: false, reason: `Field "${path}" is not inline-editable.` };
     }
   }
 
-  // An absent leaf is editable (that is how a missing note gets written), but a
-  // leaf holding the wrong kind means the path is addressing something other
-  // than what the caller thinks it is.
   const targetTypeMismatch = (existing: unknown): string | null => {
     if (existing === undefined || existing === null) return null;
     if (kind === "text") {
@@ -508,11 +374,6 @@ export function applyEditableFieldWrite(
     return rangesEqual(existing, options.expected as EditableRangeValue);
   };
 
-  // A single-segment path names the top-level key itself — `title`, `summary`.
-  // There is nothing to walk and nothing to clone: the whole patched value is
-  // the new leaf. The kind guard is what keeps such a path from flattening a
-  // whole section, since a bare key that currently holds an object or an array
-  // is refused rather than replaced.
   if (segments.length === 1) {
     const existing = document[topLevelKey];
     const mismatch = targetTypeMismatch(existing);
@@ -528,8 +389,6 @@ export function applyEditableFieldWrite(
     return { ok: false, reason: `Article has no "${topLevelKey}" section to edit.` };
   }
 
-  // Editable article documents are JSON-shaped; clone before applying a write
-  // so validation cannot mutate the caller's original document.
   let cursor: unknown;
   let clone: unknown;
   try {
@@ -591,10 +450,6 @@ export function applyEditableFieldWrite(
   return { ok: true, topLevelKey, topLevelValue: clone, value };
 }
 
-/**
- * Applies a compare-and-set update to the stored IUPAC name without making
- * chemical identifiers available to the review portal's generic inline editor.
- */
 export function applyIupacNameWrite(
   document: Record<string, unknown>,
   value: string,

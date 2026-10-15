@@ -1,9 +1,3 @@
-/**
- * The public paths a production save invalidates. Pure and dependency-free so
- * the Next save route and the native change-proposal apply derive the same
- * list: every article path the ingestion reported, plus the index pages a
- * layout write redraws.
- */
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
 
 export function indexLayoutRevalidationPath(type: IndexLayoutType): string {
@@ -17,7 +11,6 @@ export function indexLayoutRevalidationPath(type: IndexLayoutType): string {
   }
 }
 
-/** Unique, sorted union of article paths and the pages each layout type feeds. */
 export function saveRevalidationPaths(
   articlePaths: Iterable<string>,
   layoutTypes: Iterable<IndexLayoutType>,

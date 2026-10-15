@@ -116,7 +116,6 @@ export async function updateMotionStorageIdsHandler(
   return { success: true, updated: validated.length };
 }
 
-/** Publish verified native media without allowing a stale operator plan to repoint newer bytes. */
 export async function updateMediaRenditionsHandler(ctx: MutationCtx, args: UpdateMediaRenditionsArgs) {
   assertDataWritesNotFrozen("replication-media.publish");
   const actor = await requireRole(ctx, { ...args, adminIntent: "replicationMaintenance" }, "admin");
@@ -159,7 +158,6 @@ export async function updateMediaRenditionsHandler(ctx: MutationCtx, args: Updat
     patch.format = resultingFormat;
   }
   if (main && row.r2_key !== main.r2Key) {
-    // The historical identity map is retained; row locators must not resurrect stale derivatives.
     for (const field of ["thumbnail", "preview", "motion", "motion_poster"] as const) {
       const key = `${field}_r2_key` as const;
       if (args.keys[key] === undefined) {
@@ -192,18 +190,6 @@ const R2_KEY_ROLES = [
   { keyField: "motion_poster_r2_key", storageField: "motion_poster_storage_id", expectedField: "expectedMotionPosterStorageId" },
 ] as const;
 
-/**
- * Pure compare-and-swap check for one R2 key batch entry. Returns the patch to
- * apply, or throws. Rules, per variant whose `*_r2_key` is present:
- *
- * 1. The key must be a canonical `media/sha256/` content-addressed key.
- * 2. The caller must state the storage ID it derived that key from
- *    (`expected*StorageId`), and the row must still carry exactly that ID —
- *    so a repoint racing the batch fails loudly instead of pinning old bytes.
- *
- * `expectedStorageId` is additionally checked unconditionally: it is the row
- * identity anchor for every entry, whichever variants the entry patches.
- */
 export function validateR2KeyUpdate(
   row: {
     slug: string;

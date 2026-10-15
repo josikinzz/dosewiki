@@ -13,18 +13,6 @@ function buildAuditFilename(operation, slug) {
   return `${ts}-${safeName}.json`;
 }
 
-/**
- * Write a new audit log entry for a data operation.
- *
- * @param {object} options
- * @param {string} options.operation - Name of the data operation.
- * @param {string} options.intent - Admin intent used for the operation.
- * @param {string} [options.slug] - Optional article/entity slug.
- * @param {Array} [options.mutations] - List of mutation details (fields, changes, etc.).
- * @param {string} [options.logDir] - Directory to write the log file. Defaults to `scripts/data/audit-logs`.
- * @param {string} [options.repoRoot] - Repository root for resolving default logDir.
- * @returns {{ path: string, entry: object }} The path to the audit log and the entry written.
- */
 export function writeAuditLog({
   operation,
   intent,
@@ -57,13 +45,6 @@ export function writeAuditLog({
   return { path: outputPath, entry };
 }
 
-/**
- * Update an existing audit log file with additional fields.
- *
- * @param {string} path - Absolute path to the existing audit log.
- * @param {object} updates - Key-value pairs to merge into the existing entry.
- * @returns {object} The updated audit entry.
- */
 export function updateAuditLog(path, updates = {}) {
   if (!path || !existsSync(path)) {
     throw new Error(`updateAuditLog: audit log not found at ${path}`);

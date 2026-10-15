@@ -1,11 +1,3 @@
-/**
- * Postgres-only client factory for operator scripts. DATA_BACKEND=postgres is
- * mandatory. An explicit target is never discarded or replaced with an
- * environment fallback. Remote targets require the existing host confirmation.
- * The runtime loads on first use; construction validates configuration without
- * opening a database connection.
- */
-
 import { getFunctionName } from "../../lib/postgres/runtime/api.ts";
 import type { ArgsAndOptions, FunctionReference, FunctionReturnType, OptionalRestArgs, HttpMutationOptions } from "../../lib/postgres/runtime/api.ts";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
@@ -23,14 +15,12 @@ export const POSTGRES_FALLBACK_TARGET_ENV_VARS: readonly string[] = Object.freez
   "POSTGRES_DIRECT_URL",
 ]);
 
-/** The owned callable client surface used by operator scripts. */
 export type DataClient = Pick<PostgresClient, "query" | "mutation" | "action"> & {
   end?: () => Promise<void>;
 };
 
 export type ResolvedTarget = {
   url: string | null;
-  /** CLI flag or environment variable that supplied the target. */
   source: string | null;
 };
 
@@ -45,7 +35,6 @@ export type CreatedDataClient = {
   backend: DataBackend;
   client: DataClient;
   target: string;
-  /** Credential-free `<host>/<database>` fingerprint used for operator confirmation. */
   fingerprint: string | null;
 };
 
@@ -63,27 +52,14 @@ function flagValue(argv: string[], name: string): string | null {
   return null;
 }
 
-/** Normal operation accepts only the Postgres backend. */
 export function getDataBackend(env: NodeJS.ProcessEnv = process.env): DataBackend {
   return requirePostgresBackend(env);
 }
 
-/**
- * The Postgres target fingerprint: `<hostname>/<database>`.
- * Loopback hosts are included on purpose; a local rehearsal spells out
- * `--expected-deployment=localhost/dosewiki` like any other target.
- */
 export function postgresFingerprintFromUrl(targetUrl: string | null | undefined): string | null {
   return targetUrl ? parsePostgresTarget(targetUrl).identity : null;
 }
 
-/**
- * `--target <url>` > TARGET_POSTGRES_URL > POSTGRES_POOLED_URL > POSTGRES_DIRECT_URL.
- * The explicit pair comes from the target guard, so every writer agrees on it.
- * `explicitOnly` drops the two fallback variables,
- * which is what production write commands use so a preview environment cannot
- * inherit a writer.
- */
 export function resolvePostgresTarget({
   argv = process.argv.slice(2),
   env = process.env,
@@ -103,7 +79,6 @@ export function resolvePostgresTarget({
   return { url: null, source: null };
 }
 
-/** Independent read source; an absent source uses the selected Postgres target. */
 export function resolvePostgresSource({
   argv = process.argv.slice(2),
   env = process.env,
@@ -125,12 +100,6 @@ export function isPostgresTargetExplicit(source: string | null): boolean {
   return source === "--target" || source === POSTGRES_EXPLICIT_TARGET_ENV_VAR;
 }
 
-
-/**
- * Loads `lib/postgres/runtime/client.ts` (and with it every registered Postgres
- * module) on the first query or mutation. Construction is synchronous so the
- * factory can support constructor-based operator scripts.
- */
 class LazyPostgresDataClient implements DataClient {
   readonly #url: string;
   #loading: Promise<PostgresClient> | null = null;
@@ -146,7 +115,6 @@ class LazyPostgresDataClient implements DataClient {
           import("../../lib/postgres/runtime/client.ts"),
           import("pg"),
         ]);
-        // allowExitOnIdle: scripts that fall off the end must not wait for the pool.
         return new PostgresClient(new Pool({ connectionString: this.#url, max: 4, allowExitOnIdle: true, ...RUNTIME_POOL_OPTIONS }));
       })();
     }
@@ -178,14 +146,6 @@ function frozenReferenceName(reference: FunctionReference<"mutation" | "action">
   }
 }
 
-/**
- * The freeze the cutover runbook sets (`DATA_WRITES_FROZEN`) has to hold for
- * operator scripts too, not just app routes: during the window every one of the
- * 177 scripts that take their client from this factory must refuse to write on
- * either backend, while their reads keep working. Refusal carries
- * `code: "DATA_WRITES_FROZEN"` and happens before the reference reaches the
- * backend, so nothing is sent and no SQL statement runs.
- */
 class FreezeGuardedDataClient implements DataClient {
   readonly #inner: DataClient;
   readonly #env: NodeJS.ProcessEnv;
@@ -214,10 +174,6 @@ class FreezeGuardedDataClient implements DataClient {
   }
 }
 
-/**
- * Constructor-shaped adapter for the scripts that inject a `Client` class and
- * call `new Client(url)`; tests keep passing their fakes through that seam.
- */
 export const BackendClient = function BackendClient(this: unknown, url: string): DataClient {
   return createDataClient({ target: url }).client;
 } as unknown as new (url: string) => DataClient;

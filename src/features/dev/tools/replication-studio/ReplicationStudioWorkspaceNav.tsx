@@ -18,12 +18,6 @@ const WORKSPACES: { value: StudioWorkspace; label: string; icon: string }[] = [
   { value: "featured", label: "Featured", icon: "lucide:star" },
 ];
 
-/**
- * The studio's one toolbar row: its name and corpus counts, the four
- * workspaces as a single segmented group, then the save model and the two
- * corpus actions. Reload and Upload hold their place on every workspace so
- * the row never reflows when the workspace changes.
- */
 export function ReplicationStudioWorkspaceNav({
   activePanel,
   rowCount,
@@ -58,9 +52,6 @@ export function ReplicationStudioWorkspaceNav({
         </p>
       </div>
 
-      {/* Every workspace keeps its visible name at every width. On a phone the
-          row takes a line of its own, drops the icons to make room, and
-          scrolls sideways if the names still do not fit. */}
       <nav
         aria-label="Replication Studio workspace"
         className="inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full border max-sm:order-2 max-sm:w-full border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] p-1"
@@ -84,9 +75,6 @@ export function ReplicationStudioWorkspaceNav({
         })}
       </nav>
 
-      {/* One group from sm up, so the save model and the corpus actions wrap
-          together. On a phone the group dissolves: the actions ride beside
-          the workspace tabs and the save model takes the last line. */}
       <div className="contents sm:ml-auto sm:flex sm:items-center sm:gap-2">
         <SaveLine model={findDevTab("replications").saveModel} className="whitespace-nowrap max-sm:order-4" />
         <div className="flex items-center gap-2 max-sm:order-3 max-sm:ml-auto">

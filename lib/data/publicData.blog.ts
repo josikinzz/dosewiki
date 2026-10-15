@@ -6,14 +6,6 @@ import { cache } from "react";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicEffectIndexPost } from "../../src/data/projections/effectIndexArchiveProjections";
 
-/**
- * Public reader for the archived Effect Index blog. The posts live in the lossless
- * `effectIndexArchive` table rather than a first-class content table, so the read adapter
- * decodes them through the archive read projection before they reach any page.
- *
- * Only reached from the Effect Index flavor's routes; on dose.wiki the pages 404 before
- * a read is issued.
- */
 export const getPublicEffectIndexPosts = cache(
   publicDataCache(async (): Promise<PublicEffectIndexPost[]> =>
     await getPublicDataReadAdapter().getPublicEffectIndexPosts(),

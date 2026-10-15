@@ -3,7 +3,6 @@ import type { VCodeContent } from "./types";
 
 const VOID_TAGS: Record<string, true> = { br: true, hr: true, ref: true, toc: true };
 
-/** Editing is strict; the public reader remains tolerant of historic source. */
 export function prepareVCode(raw: string, previous?: { raw?: string; ast?: unknown }): VCodeContent {
   if (raw.length > 400_000) throw new Error("VCode must be 400,000 characters or fewer.");
   if (previous?.raw === raw) return normalizeVCodeContent(previous.ast, raw) ?? "";
@@ -13,7 +12,7 @@ export function prepareVCode(raw: string, previous?: { raw?: string; ast?: unkno
     const name = originalName.toLowerCase();
     if (!VCODE_TAG_NAMES.has(name)) {
       if (closing || attributes.trim().endsWith("/")) throw new Error(`Unknown VCode tag [${name}].`);
-      continue; // Standalone bracketed prose is not markup.
+      continue;
     }
     if (closing) {
       if (stack.pop() !== name) throw new Error(`Unmatched closing VCode tag [/${name}].`);
@@ -25,7 +24,6 @@ export function prepareVCode(raw: string, previous?: { raw?: string; ast?: unkno
     if (remainder.trim()) throw new Error(`Invalid attributes on [${name}].`);
   }
   if (stack.length) throw new Error(`Close the [${stack[stack.length - 1]}] VCode tag before publishing.`);
-  // Hash directives use balanced braced bodies, including nested directives.
   for (const match of raw.matchAll(/##([a-z][\w-]*)/gi)) {
     const name = match[1].toLowerCase();
     if (!VCODE_TAG_NAMES.has(HASH_DIRECTIVE_ALIASES[name] ?? name)) throw new Error(`Unknown VCode directive ##${name}.`);

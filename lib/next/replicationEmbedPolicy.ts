@@ -2,7 +2,6 @@ const REPLICATION_EMBED_PATH = "/embed/replications";
 const PRODUCTION_PARENT_ORIGINS = [
   "https://osmanthus.io",
   "https://www.osmanthus.io",
-  // Approved Osmanthus development clients of the production publisher.
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ] as const;
@@ -15,8 +14,6 @@ export function isReplicationEmbedPath(pathname: string): boolean {
 function parseExactOrigin(origin: string): URL | null {
   try {
     const url = new URL(origin);
-    // Reject URL normalization, credentials, paths (even /), query, and fragments.
-    // postMessage event.origin is already serialized in this canonical form.
     return (url.protocol === "https:" || url.protocol === "http:") && url.origin === origin
       ? url
       : null;

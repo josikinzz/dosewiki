@@ -10,22 +10,12 @@ import { currentNarrativeRevision, narrativeRevision, recordNarrativeMaintenance
 import { articleReadMinutes, deriveDescription } from "../src/features/articles/domain/articlesIndex";
 import { buildBlogPostExcerpt } from "../src/features/blog/domain/blogPostModel";
 
-/**
- * `getAll`, `getBySlug` and `getByTag` are unauthenticated public reads, so the
- * draft filter lives here rather than in a caller: a row whose `status` is
- * "draft" never leaves the database through a public function. Legacy rows have
- * no `status` at all and are treated as published, which is the pre-existing
- * behaviour.
- */
 function isPublicallyReadable(article: Doc<"effectIndexArticles">): boolean {
   return article.status !== "draft";
 }
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/**
- * Get all EffectIndex articles. Drafts are excluded.
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -34,7 +24,6 @@ export const getAll = query({
   },
 });
 
-/** Every stored article including drafts, for the production sync's pre-write backup. */
 export const getAllDocumentsForBackup = internalQuery({
   args: {},
   handler: async (ctx) => await ctx.db.query("effectIndexArticles").collect(),
@@ -66,9 +55,6 @@ export const getPublishedIndex = query({
   },
 });
 
-/**
- * Get a single EffectIndex article by slug. A draft reads as missing.
- */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -81,9 +67,6 @@ export const getBySlug = query({
   },
 });
 
-/**
- * Get EffectIndex articles by tag. Drafts are excluded.
- */
 export const getByTag = query({
   args: { tag: v.string() },
   handler: async (ctx, args) => {
@@ -94,11 +77,6 @@ export const getByTag = query({
   },
 });
 
-/**
- * Slim editor listing for the Writing tab. Editor-gated because it is the one
- * read that sees drafts; it carries no bodies, so the tab can list the whole
- * corpus without paying for `body_raw`/`body_ast`.
- */
 export const listForEditor = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -126,11 +104,6 @@ export const listForEditor = query({
   },
 });
 
-/**
- * The whole row for one slug, drafts included: the read the Writing tab opens
- * an entry with. Editor-gated for the same reason `listForEditor` is: it is the
- * only way to see a draft body, and `getBySlug` must keep hiding one.
- */
 export const getForEditor = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -154,26 +127,10 @@ export const getForEditor = query({
   },
 });
 
-/**
- * Admin-gated slug-keyed upsert for the Writing/Blog system. Editors read the
- * listing and detail (`listForEditor`, `getForEditor`); publishing or saving a
- * row directly is an admin action because it lands on the public site with no
- * review step. An editor's change reaches it only as an approved Writing
- * proposal (`server/lib/changeProposalApply.ts`), written as the approver.
- *
- * Update is a patch: any field the caller omits keeps its stored value, so a
- * partial save from one editor pane cannot clear what another pane owns.
- *
- * A save that carries `originalSlug` different from `slug` is a rename: the row
- * loaded under `originalSlug` moves to `slug`, and exactly one row survives.
- * Without it, saving under a new slug would insert a second row and leave the
- * old one behind.
- */
 const upsertArticleArgs = {
   apiKey: v.optional(v.string()),
   actorEmail: v.optional(v.string()),
   slug: v.string(),
-  /** The slug the editor loaded the row with; differs from `slug` on a rename. */
   originalSlug: v.optional(v.string()),
   expectedRevision: v.string(),
   operationId: v.string(),
@@ -182,13 +139,6 @@ const upsertArticleArgs = {
   tags: v.optional(v.array(v.string())),
   kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
   status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
-  /**
-   * The legacy publication flag. It is redundant with `status`, but the
-   * public normalizer (`normalizePublicEffectIndexArticle`) drops any row
-   * whose `publication_status` is not a string, so a row saved without it
-   * would be invisible on every public surface. The editor save path sends
-   * it alongside `status`.
-   */
   publication_status: v.optional(v.string()),
   bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),
   body_raw: v.optional(v.string()),
@@ -207,7 +157,6 @@ const upsertArticleArgs = {
 
 export type UpsertWritingArticleArgs = ObjectType<typeof upsertArticleArgs>;
 
-/** The upsert itself, shared by the admin route and an approved Writing proposal. */
 export async function upsertWritingArticleHandler(ctx: MutationCtx, args: UpsertWritingArticleArgs) {
   assertDataWritesNotFrozen("effectIndexArticles:upsertArticle");
   const actor = await requireRole(ctx, {
@@ -269,8 +218,6 @@ export async function upsertWritingArticleHandler(ctx: MutationCtx, args: Upsert
     }
   }
 
-  // Only fields the caller actually sent are written, so an update never
-  // clears an omitted field.
   const patch = Object.fromEntries(
     Object.entries(rest).filter(([, value]) => value !== undefined),
   ) as Partial<Doc<"effectIndexArticles">>;
@@ -320,11 +267,6 @@ export const upsertArticle = mutation({
   handler: upsertWritingArticleHandler,
 });
 
-/**
- * One Writing row as a change proposal carries it: the content fields the
- * editor edits, parsed at the HTTP boundary exactly as the admin's save is.
- * The slug is the row's key; a proposal never renames.
- */
 export const writingProposalDocumentValidator = v.object({
   slug: v.string(),
   kind: v.union(v.literal("article"), v.literal("blog")),
@@ -341,7 +283,6 @@ export const writingProposalDocumentValidator = v.object({
 
 export type WritingProposalDocument = Infer<typeof writingProposalDocumentValidator>;
 
-/** The upsert fields a proposal document writes, the same set the admin route sends. */
 export function writingUpsertFields(document: WritingProposalDocument) {
   return {
     slug: document.slug,
@@ -360,9 +301,6 @@ export function writingUpsertFields(document: WritingProposalDocument) {
   };
 }
 
-/**
- * Bulk import EffectIndex articles. Script-only; admin floor.
- */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -399,21 +337,17 @@ export const bulkImport = mutation({
       errors: [] as string[],
     };
 
-    // Let a failure abort the transaction: content and history must commit together.
     for (const article of args.articles) {
-        // Check if article already exists
         const existing = await ctx.db
           .query("effectIndexArticles")
           .withIndex("by_slug", (q) => q.eq("slug", article.slug))
           .first();
 
         if (existing) {
-          // Update existing article
           await ctx.db.patch(existing._id, article);
           await recordNarrativeMaintenance(ctx, { kind: "writing", key: article.slug, actor, before: existing, after: (await ctx.db.get(existing._id))! });
           results.updated++;
         } else {
-          // Create new article
           const id = await ctx.db.insert("effectIndexArticles", article);
           await recordNarrativeMaintenance(ctx, { kind: "writing", key: article.slug, actor, before: null, after: (await ctx.db.get(id))! });
           results.created++;

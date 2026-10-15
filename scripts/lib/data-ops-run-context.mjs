@@ -150,12 +150,6 @@ export function productionOperationName(operation) {
     .replace(/^-|-$/g, "");
 }
 
-
-/**
- * Postgres reads may select --source-url or SOURCE_POSTGRES_URL independently.
- * Writes always require an explicit --target or TARGET_POSTGRES_URL plus the
- * operation confirmation and exact host/database fingerprint.
- */
 export function createDataOpsRunContext({
   operation,
   intent,
@@ -242,7 +236,6 @@ export function printDataOpsRunContext(context, { logger = console } = {}) {
   }
 }
 
-/** Never print database credentials or connection parameters. */
 function redactUrl(url) {
   return parsePostgresTarget(url).displayUrl;
 }
@@ -290,11 +283,6 @@ export function assertDataOpsWriteAllowed(context) {
   });
 }
 
-/**
- * The operator's two confirmations for a privileged write: the phrase names
- * the operation, and the expected `<host>/<database>` matches the target.
- * Shared by the data-ops context and the production write command.
- */
 export function assertDeploymentConfirmed({
   operation,
   operationName,
@@ -373,25 +361,6 @@ export function requireAdminIntentToken(intent, options = {}) {
   return resolved;
 }
 
-
-// -----------------------------------------------------------------------------
-// Backup before write
-// -----------------------------------------------------------------------------
-
-/**
- * Create a timestamped JSON backup of data before performing a destructive write.
- *
- * @param {object} options
- * @param {object} options.sourceClient - Postgres HTTP client to fetch data from.
- * @param {Function} [options.queryGetAll] - Postgres query function returning one document or a document array.
- * @param {Function} [options.queryAll] - Optional callback that returns all documents through a bounded pagination helper.
- * @param {object} [options.queryArgs] - Optional args to pass to the query.
- * @param {string} options.label - Label for the backup (e.g., table name or operation).
- * @param {string} [options.backupDir] - Directory to write backups. Defaults to `scripts/data/backups`.
- * @param {string} [options.existingBackupPath] - Non-empty backup already verified by the caller. Skips the Postgres backup query.
- * @param {string} [options.repoRoot] - Repository root for resolving backup paths.
- * @returns {Promise<{ path: string, documentCount: number | null, reused?: boolean }>} The backup used for the write.
- */
 export async function backupBeforeWrite({
   sourceClient,
   queryGetAll,
@@ -457,28 +426,6 @@ export async function backupBeforeWrite({
   return { path: outputPath, documentCount: documents.length };
 }
 
-// -----------------------------------------------------------------------------
-// Batch mutation helper
-// -----------------------------------------------------------------------------
-
-/**
- * Execute mutations in batches with dry-run support and error aggregation.
- *
- * @param {object} options
- * @param {Array} options.items - Array of items to process.
- * @param {number} [options.batchSize=50] - Number of items per batch.
- * @param {Function} options.mutation - Postgres mutation function to call.
- * @param {Function} [options.transformBatch] - Optional function to transform a batch before mutation.
- *        Signature: (batch, batchIndex) => mutationArgs
- * @param {Function} [options.onBatchResult] - Optional callback after each successful batch.
- *        Signature: (result, batchIndex, batch) => void
- * @param {Function} [options.onBatchError] - Optional callback after each failed batch.
- *        Signature: (error, batchIndex, batch) => void
- * @param {object} options.client - Postgres HTTP client.
- * @param {object} [options.runContext] - Data ops run context (for dry-run checks).
- * @param {object} [options.logger] - Logger with log() method. Defaults to console.
- * @returns {Promise<{ totalCreated: number, totalUpdated: number, allErrors: Array, failed: boolean }>}
- */
 export async function batchAndApplyMutations({
   items,
   batchSize = 50,
@@ -500,7 +447,6 @@ export async function batchAndApplyMutations({
     throw new Error("batchAndApplyMutations: client is required");
   }
 
-  // Respect dry-run mode from run context
   if (runContext?.dryRun) {
     const totalBatches = Math.ceil(items.length / batchSize);
     logger.log(`[DRY RUN] Would process ${items.length} items in ${totalBatches} batches of ${batchSize}`);
@@ -513,7 +459,6 @@ export async function batchAndApplyMutations({
     };
   }
 
-  // Check write is allowed if runContext provided
   if (runContext && !runContext.writeEnabled) {
     logger.log(`[BLOCKED] Writes not enabled. Run with appropriate flags to enable writes.`);
     return {

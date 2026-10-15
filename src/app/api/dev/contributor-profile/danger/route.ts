@@ -1,21 +1,3 @@
-/**
- * The destructive third of the Contributors tab: merge, delete, retarget.
- *
- *   POST /api/dev/contributor-profile/danger
- *     { action: "merge",    fromKey, toKey, confirmKey, discardSourceContent? }
- *     { action: "delete",   key, confirmKey }
- *     { action: "retarget", authorName, contributorKey, confirmKey, embeddedAuthorName? }
- *
- * These three were script-only until now, and each rewrites identity rather
- * than content: a merge and a delete remove a row that bylines resolve through,
- * and a retarget re-points existing reports at a different person. None has an
- * undo, so the route sits at the admin floor and every one requires
- * `confirmKey` to be typed to match the profile that is about to change: the
- * source of a merge, the profile being deleted, the contributor being credited.
- * The check lives here as well as in the UI because a confirmation that only
- * exists in the browser is not a confirmation, and the Postgres mutations see
- * only intent flags.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -51,11 +33,6 @@ function requireText(raw: unknown, label: string): string {
   return value;
 }
 
-/**
- * The typed confirmation. Compared case-insensitively because profile keys are
- * normalized to upper case on the Postgres side, and a correct answer in the
- * wrong case is not a different answer.
- */
 function requireConfirmation(raw: unknown, expected: string, label: string): void {
   const typed = typeof raw === "string" ? raw.trim() : "";
   if (typed.toLowerCase() !== expected.trim().toLowerCase()) {

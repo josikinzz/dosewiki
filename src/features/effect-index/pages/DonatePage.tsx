@@ -9,16 +9,6 @@ import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { ContentCard, InteractiveSurface } from "@/components/ui/surface";
 import { icons } from "@/utils/iconNames";
 
-/**
- * Effect Index's donation page, transcribed from the old site's `pages/donate.vue`.
- *
- * The copy, the donation destinations and the Ethereum address are ported verbatim — this
- * is a funding page, so paraphrasing an address or a platform name would be a defect. The
- * old page's `<FrontpageArticle />` promo slot is dropped: it rendered whichever article
- * carried `frontpage: true` in a store this codebase does not have, and it was never
- * donation copy.
- */
-
 const ETHEREUM_ADDRESS = "0xaaAcEF54d563CE7d3Cff5bE5cBeEcAbAf5816f78";
 const ETHEREUM_EXPLORER_URL = `https://etherscan.io/address/${ETHEREUM_ADDRESS}`;
 
@@ -69,8 +59,6 @@ export function DonatePage({ intro }: { intro?: string } = {}) {
               key: "paypal",
               icon: icons.mail,
               label: "Paypal",
-              // Plain text on the old site, and kept that way: it is a PayPal account
-              // identifier rather than an address to start a mail client with.
               value: "contact@dose.wiki",
             },
           ]}
@@ -82,9 +70,6 @@ export function DonatePage({ intro }: { intro?: string } = {}) {
 
         <ContentCard variant="public" padding="lg" radius="xl">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-            {/* The QR art is transparent with dark modules, so it needs a light plate and
-                a quiet zone around it to stay scannable — that is what the subtle surface
-                and its padding provide. */}
             <InteractiveSurface
               asChild
               variant="quiet"

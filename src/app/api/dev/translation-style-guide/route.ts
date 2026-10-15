@@ -1,17 +1,3 @@
-/**
- * GET  /api/dev/translation-style-guide?locale=zh-Hans[&history=1]
- * POST /api/dev/translation-style-guide { locale, action: "save" | "approve" | "restore", expectedRevision, guide?, reason, restoreRevision? }
- * POST /api/dev/translation-style-guide { locale, action: "promote", correction: { kind: "article", slug, segment, revision }, why? }
- *
- * A locale's style guide: rules and example corrections the translation
- * prompt reads once approved. Translator and up, for an assigned locale only,
- * for reads, drafts, and approval alike; writes obey the write freeze and the
- * revision the reviewer saw. `promote` appends one saved Fluency correction
- * from the article reader to the draft; it never approves.
- *
- * Approving changes the prompt version digest, so stored translations read as
- * stale; nothing is enqueued and nothing public changes until a run.
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

@@ -168,7 +168,6 @@ export type LegalityDraftValidation = {
 type ReaderField = "notes" | "status" | "designation" | "instrument";
 type ReaderFieldValues = Partial<Record<ReaderField, string | null | undefined>>;
 
-/** Every reader field carrying process language: `path: message` error strings. */
 function voiceErrors(path: string, entry: ReaderFieldValues): string[] {
   const errors: string[] = [];
   for (const field of ["notes", "status", "designation", "instrument"] as const) {

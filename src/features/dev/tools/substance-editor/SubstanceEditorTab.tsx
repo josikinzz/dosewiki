@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Substances: the editor workspace for substance articles. The list column
- * (Listed, Your work, All; review state; search; order) sits left and sticky;
- * the open article sits right in a pane, drawn by the real public
- * `ArticleLayout` through the editor-only contextual editing layer
- * (`ArticleContextBridge` with `chrome="dock"`), with a strip over it that
- * says what the preview shows and a save dock under it. Phones show the list,
- * then the article with Back to list.
- */
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -60,7 +51,6 @@ const SHORTCUTS = [
 
 const REVIEW_FALLBACK = getDefaultEditorialReview().status;
 
-/** The member's drafts and open proposals, keyed by article, for the row marks. */
 function useArticleWork() {
   const [work, setWork] = useState<Map<string, ArticleWork> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +91,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState<SortOrder>("alpha-asc");
   const [review, setReview] = useState<ReviewFilter>("any");
-  // A deep link to an address-only article opens on All, so the list shows it.
   const [view, setView] = useState<SubstanceView>(() =>
     corpus.some((article) => resolveEditorArticleSlug(article) === initialSlug && isDirectUrlOnlySubstance(article.priority)) ? "all" : "listed");
 
@@ -110,7 +99,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   const reviewCounts = useMemo(() => countReviews(rows, query, view), [rows, query, view]);
   const selectedRow = rows.find((row) => row.slug === selected) ?? null;
 
-  // An address that names no article says so at the list and leaves the address.
   useEffect(() => {
     if (!selected || selectedRow) return;
     setMissingSlug(selected);
@@ -130,10 +118,8 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
     onSave: operationLocked ? undefined : saveDraft,
     onDiscard: () => draftGuardRef.current?.discard(),
     canDiscard: !operationLocked,
-    // The shell's unsaved-work registry owns the browser tab.
     warnOnUnload: false,
   });
-  // A rail switch, Leave or sign-out asks first while the open article holds unsaved edits.
   useUnsavedWork({
     id: "articles",
     label: `Substances: ${selectedRow?.name ?? "article"}`,
@@ -149,7 +135,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   useEffect(() => {
     if (selected === urlSlugRef.current) return;
     urlSlugRef.current = selected;
-    // Keep Next's history state: a null state reads as a navigation that scrolls to the top.
     window.history.replaceState(window.history.state, "", viewToPath({ type: "dev", tab: "articles", slug: selected ?? undefined }));
   }, [selected]);
 
@@ -169,7 +154,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   const searchRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   useScrollToDetail(paneRef, selected);
-  // A deep link on a phone opens on the article, not the list above it.
   const deepLinked = useRef(!!initialSlug);
   useEffect(() => {
     if (!deepLinked.current || !article) return;
@@ -297,7 +281,6 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
   );
 });
 
-/** The pane header: the article, its review state and address, View live, Close and Back to list. */
 function PaneHeader({ row, headingRef, onClose, onBackToList }: {
   row: SubstanceRow;
   headingRef: React.RefObject<HTMLHeadingElement | null>;
@@ -357,7 +340,6 @@ function PaneHeader({ row, headingRef, onClose, onBackToList }: {
   );
 }
 
-/** What the pane says on desktop before an article is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({ canPublish }: { canPublish: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6">

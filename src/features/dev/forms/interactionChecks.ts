@@ -1,9 +1,3 @@
-/**
- * A substance listed in two interaction tiers of one article reads as two
- * contradicting warnings on the public page. Entries are free text, "Alcohol
- * (both depress breathing)", so the name is the text before the first bracket.
- */
-
 export type InteractionTier = "dangerous" | "unsafe" | "caution";
 
 export const INTERACTION_TIER_LABELS: Record<InteractionTier, string> = {
@@ -14,12 +8,10 @@ export const INTERACTION_TIER_LABELS: Record<InteractionTier, string> = {
 
 const TIERS: readonly InteractionTier[] = ["dangerous", "unsafe", "caution"];
 
-/** The substance an entry names: the text before its first bracket, trimmed. */
 export function interactionName(entry: string): string {
   return entry.split("(", 1)[0].trim();
 }
 
-/** Every substance named in more than one tier, with the tiers in severity order. */
 export function interactionOverlaps(
   interactions: Partial<Record<InteractionTier, readonly string[] | null | undefined>> | null | undefined,
 ): Array<{ name: string; label: string; tiers: InteractionTier[] }> {

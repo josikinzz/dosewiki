@@ -1,7 +1,3 @@
-/**
- * RHF-based Overview fields component.
- */
-
 import { Controller, useFormContext } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 
@@ -32,7 +28,6 @@ export function OverviewFieldsRHF({
 }: OverviewFieldsRHFProps) {
   const { register, watch, setValue, control, getValues } = useFormContext<SubstanceArticle>();
 
-  // Sync title and common_name together
   const handleDisplayTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setValue("title", value);
@@ -44,7 +39,6 @@ export function OverviewFieldsRHF({
 
   return (
     <section className="space-y-6">
-      {/* Article metadata - first for quick reference */}
       {!identificationOnly && (
       <FieldGroup label="Article Metadata">
         <EditorFieldRow layout="twoColumn">
@@ -90,7 +84,6 @@ export function OverviewFieldsRHF({
       </FieldGroup>
       )}
 
-      {/* Primary identification - matches HeroSection visual order */}
       <FormEditorField
         htmlFor={`${idPrefix}-display-title`}
         label="Display Name / Title"
@@ -155,7 +148,6 @@ export function OverviewFieldsRHF({
       />
       )}
 
-      {/* Chemical identification - expandable details in hero */}
       <CollapsibleSubsection
         title={chemistryGroupLabel}
         icon={<Icon icon="lucide:fingerprint" size={20} />}

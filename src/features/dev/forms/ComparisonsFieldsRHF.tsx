@@ -1,19 +1,3 @@
-/**
- * Comparisons: the article's own comparative claims about other substances.
- *
- * The reader prints each substance name followed by its comparison under the
- * Comparisons heading of the subjective-effects section, so the editor keeps
- * that identity instead of two anonymous strings: the compared substance names
- * its own card beside the reader's `git-compare-arrows` mark, and the published
- * shape is stated once rather than guessed from the labels.
- *
- * Removal is the only destructive act here and there is no row-level undo, so
- * the entry list is never the panel's first focusable node (the dialog would
- * otherwise autofocus a delete control), each remove control names the entry it
- * destroys, a populated entry confirms before it goes, and both add and remove
- * report what happened through a live status line.
- */
-
 import { useCallback, useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 
@@ -29,8 +13,6 @@ import { useConfirm } from "@/features/dev/components";
 import { useArticleFormContext } from "./ArticleFormContext";
 import { FormEditorField } from "./FormEditorField";
 import { EntryCard } from "./EntryCard";
-// The nested-effects fields already own this growth behaviour; a comparison is
-// the longest prose in this section, so it shares the hook rather than a copy.
 import { useGrowToContent } from "./subjective-effects/useGrowToContent";
 
 function entryLabel(drug: string, index: number) {
@@ -133,8 +115,6 @@ export function ComparisonsFieldsRHF() {
         const remaining = count - 1;
         comparisons.remove(index);
         setStatus(`Removed ${label}. ${remaining === 1 ? "1 comparison remains" : `${remaining} comparisons remain`}.`);
-        // The removed row took the focused control with it; land on a real
-        // neighbour instead of the dialog container.
         requestAnimationFrame(() => {
           if (remaining > 0) setFocus(`comparisons.${Math.min(index, remaining - 1)}.drug`);
           else addButton.current?.focus();
@@ -159,13 +139,10 @@ export function ComparisonsFieldsRHF() {
     const last = count - 1;
     const pending = last >= 0 ? getValues(`comparisons.${last}`) : undefined;
     if (pending && !pending.drug?.trim() && !pending.comparison?.trim()) {
-      // Appending onto an untouched row is how blank entries reach readers.
       setStatus(`Comparison ${count} is still empty. Fill it in before adding another.`);
       setFocus(`comparisons.${last}.drug`);
       return;
     }
-    // `append`'s own focus lands on the row's last registered control; the
-    // substance name is where the entry starts.
     comparisons.append({ drug: "", comparison: "" }, { shouldFocus: false });
     setStatus(`Added comparison ${count + 1}.`);
     requestAnimationFrame(() => setFocus(`comparisons.${count}.drug`));

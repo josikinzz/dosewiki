@@ -8,11 +8,6 @@ import {
 } from "@/data/userProfiles";
 import { useEditorRead } from "./useEditorRead";
 
-/**
- * @param active - Callers that only need the directory on some surfaces pass
- * false to skip the read entirely; the shape of the result is unchanged (an
- * empty directory that is not loading).
- */
 export function useContributorProfiles(active = true) {
   const queryResult = useEditorRead("contributorProfiles:getAll", active ? {} : "skip", "list");
 

@@ -297,7 +297,6 @@ describe("memberships account functions", () => {
       expect(row).not.toHaveProperty("resetTokenHash");
       expect(row).not.toHaveProperty("resetTokenExpiresAt");
 
-      // The same link cannot be used twice.
       await expect(
         consumeResetHandler(ctx, { apiKey: SERVER_KEY, tokenHash: "deadbeef", passwordHash: "scrypt$again" }),
       ).rejects.toThrow(/invalid or has expired/);

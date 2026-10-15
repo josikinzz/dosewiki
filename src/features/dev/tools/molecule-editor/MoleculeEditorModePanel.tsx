@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * The open structure's other starting points and its load failures. Picking
- * the kind of structure and the record moved to the list column
- * (`MoleculeListColumn`); what stays here replaces the canvas: another saved
- * structure as an analogue or scaffold, or pasted SMILES as an automatic
- * layout. Each asks first over unsaved work (the session owns that).
- */
 import { useId } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button, Input } from "@/components/ui";
@@ -41,7 +34,6 @@ export function MoleculeStartingPoints({
   pasteSmilesInput: string;
   onPasteSmilesInputChange: (smiles: string) => void;
   onImportSmiles: () => void;
-  /** Local SMILES layout on the canvas; nothing publishes until Save. Not offered for templates. */
   onRevertToAuto: () => void;
   canRevertToAuto: boolean;
 }) {
@@ -151,7 +143,6 @@ export function MoleculeStartingPoints({
   );
 }
 
-/** Reads that failed for the open record, each with its way forward. */
 export function MoleculeLoadNotices({
   mode,
   templateLoadError,

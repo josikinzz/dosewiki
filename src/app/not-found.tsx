@@ -4,9 +4,6 @@ import { buildPageMetadata } from "@server/next/metadata";
 import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";
 import { NotFoundBody } from "./_components/NotFoundBody";
 
-// `not-found.tsx` takes a static `metadata` export — Next does not run
-// `generateMetadata` for it — so the 404's SEO description stays in code while
-// its on-page prose is editable below.
 export const metadata: Metadata = buildPageMetadata({
   title: "Page not found",
   description: "The page you requested does not exist or may have moved.",

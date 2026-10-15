@@ -10,7 +10,6 @@ import { foldSparseGroups, groupTripReports, selectFeaturedReports, selectRecent
 import { DEFAULT_SORT_ID, SORT_OPTIONS, type ReportBrowsePage, type ReportBrowseQuery } from "../../src/features/reports/domain/reportBrowsePage";
 import { toReportCardModel, type ReportCardModel } from "../../src/types/tripReport";
 
-// Matches the existing open-shelf ceiling. Recalibrate against matched route measurements.
 export const REPORT_BROWSE_PAGE_SIZE = 24;
 
 type CorpusFacets = Pick<ReportBrowsePage, "total" | "authorCount" | "substanceOptions" | "featured" | "recentlyAdded">;
@@ -64,7 +63,6 @@ function selectMembership(index: BrowseIndex, input: ReportBrowseQuery, locale: 
   if (existing) return existing;
   const { reports } = index;
   const filtered = reports.filter((report) => (!substance || report.substances.some((entry) => entry.name.trim() === substance)) && (!query || [report.title, report.subject.name, ...report.substances.map((entry) => entry.name)].some((value) => value.toLowerCase().includes(query))));
-  // Give equal titles/dates a deterministic identity tie-break before the stable grouping sorts.
   let groups = groupTripReports([...filtered].sort((a, b) => a.slug.localeCompare(b.slug)), input.view, sort.direction, sort.key);
   if (input.view === "substance") {
     groups = foldSparseGroups(groups);

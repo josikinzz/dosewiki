@@ -39,46 +39,23 @@ import {
   type WriteFailureKind,
 } from "./profileEditModel";
 
-/** `all`: the whole directory. `me`: the signed-in user's own record only. */
 export type ContributorScope = "all" | "me";
 
 export type ContributorsControllerOptions = {
-  /** The shared contributor directory, fetched by the dev shell. */
   profiles: readonly NormalizedUserProfile[];
-  /** Editor role: the directory, the curated fields, and the danger zone. Otherwise self only. */
   canEdit: boolean;
-  /** Admin role: the trust fields. Without it they are shown but not sent. */
   canApprove: boolean;
-  /** The signed-in user's own key; resolved against the directory by key or alias. */
   sessionProfileKey: string;
-  /**
-   * The signed-in address. With it, an editor below admin sees a record they
-   * may not change (another member's, or an unclaimed one that is not theirs)
-   * as read only, the way the route would refuse the save.
-   */
   viewerEmail?: string | null;
-  /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
   initialScope?: string;
-  /** `/dev/contributors/<key or alias>`: the profile the tool opens on. */
   initialKey?: string;
-  /** One contextual record, without fetching or navigating the directory. */
   contextualKey?: string;
-  /**
-   * Load only the record `selectProfile` names, never the first visible row:
-   * the People view picks the profile for the person it shows, and a person
-   * without one loads nothing.
-   */
   explicitSelection?: boolean;
-  /**
-   * Open nothing until a row is picked (phones, where the list is the whole
-   * view). Wide screens open the first row; either way Close empties the pane.
-   */
   startClosed?: boolean;
 };
 
 export type ContributorSaveState = EditorActionStatusState | "idle";
 
-/** A write result held with how it failed, so the pane can offer the way forward. */
 export type ContributorWriteNotice = NoticeMessage & { failure?: WriteFailureKind };
 
 type ContributorDetail = {
@@ -126,11 +103,9 @@ export function useContributorsController({
 }: ContributorsControllerOptions) {
   const routeScope: ContributorScope = initialScope === "me" ? "me" : "all";
   const [chosenScope, setChosenScope] = useState<ContributorScope>(routeScope);
-  // A contributor without editor role never leaves their own record.
   const scope: ContributorScope = canEdit ? chosenScope : "me";
   const [search, setSearch] = useState("");
   const [selectedKey, setSelectedKey] = useState(() => (canEdit && initialKey ? normalizeProfileKey(initialKey) : ""));
-  /** Close emptied the pane; picking a row or switching scope opens one again. */
   const [closed, setClosed] = useState(startClosed && !initialKey);
   const [detail, setDetail] = useState<ContributorDetail | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -142,15 +117,10 @@ export function useContributorsController({
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const [avatarRemoved, setAvatarRemoved] = useState(false);
   const [profileSaveState, setProfileSaveState] = useState<ContributorSaveState>("idle");
-  /** Results about the directory: a merge or delete, a failed deep link. */
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
-  /** The last profile save, shown in the save dock. */
   const [profileNotice, setProfileNotice] = useState<ContributorWriteNotice | null>(null);
-  /** A picked or rejected picture, shown beside the picture. */
   const [avatarNotice, setAvatarNotice] = useState<NoticeMessage | null>(null);
-  /** The last save of each order, shown in its own panel. */
   const [orderNotices, setOrderNotices] = useState<Record<OrderKind, ContributorWriteNotice | null>>({ works: null, reports: null });
-  /** A retarget result, shown in the identity operations. */
   const [dangerNotice, setDangerNotice] = useState<NoticeMessage | null>(null);
   const [workOrder, setWorkOrder] = useState<string[]>([]);
   const [reportOrder, setReportOrder] = useState<string[]>([]);
@@ -159,9 +129,7 @@ export function useContributorsController({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const pendingPublication = useRef<string | null>(null);
   const [publicationUncertain, setPublicationUncertain] = useState(false);
-  /** What to say once the next load lands (after "Load the latest version"). */
   const afterLoad = useRef<{ where: "profile" | OrderKind; message: string } | null>(null);
-  /** The parts the next reload of the same record refreshes; null refreshes all of them. */
   const refreshParts = useRef<Set<"profile" | OrderKind> | null>(null);
   const loadedKey = useRef<string | null>(null);
   const reloadParts = useCallback((...parts: Array<"profile" | OrderKind>) => {
@@ -173,10 +141,6 @@ export function useContributorsController({
     () => [...profiles].sort((left, right) => left.displayName.localeCompare(right.displayName)),
     [profiles],
   );
-  // The record the session owns, matched the way the retired profile editor
-  // matched it: by key, then by alias. With no directory entry the derived key
-  // itself is the target; the route hands back a blank record for it, and the
-  // first save creates it.
   const selfKey = useMemo(
     () =>
       findContributorProfileByKeyOrAlias(directory, sessionProfileKey)?.key ??
@@ -190,7 +154,6 @@ export function useContributorsController({
         : filterContributors(directory, search),
     [directory, scope, search, selfKey],
   );
-  // A deep link may name a key in any case, or an alias.
   const selectedEntryKey = useMemo(
     () => (selectedKey ? findContributorProfileByKeyOrAlias(directory, selectedKey)?.key ?? "" : ""),
     [directory, selectedKey],
@@ -203,8 +166,6 @@ export function useContributorsController({
     return visibleProfiles[0]?.key ?? "";
   }, [closed, contextualKey, explicitSelection, scope, selectedEntryKey, selfKey, visibleProfiles]);
 
-  // A deep link to a key the directory does not hold says so once the
-  // directory has loaded, and drops the key from the address.
   const deepLinkChecked = useRef(!initialKey);
   useEffect(() => {
     if (deepLinkChecked.current || directory.length === 0 || !initialKey) return;
@@ -218,10 +179,6 @@ export function useContributorsController({
     });
   }, [directory.length, initialKey, selectedEntryKey]);
 
-  // The address says the scope and the profile picked by hand. Only a change
-  // writes: the address the user arrived on (`/dev/profile`,
-  // `/dev/contributors?scope=me`) is left alone, a first-row fallback never
-  // writes, and a non-editor's forced scope never rewrites anything.
   const addressedKey = scope === "all" ? selectedEntryKey : "";
   const addressRef = useRef({ scope: routeScope, key: initialKey ? normalizeProfileKey(initialKey) : "" });
   useEffect(() => {
@@ -230,7 +187,6 @@ export function useContributorsController({
     const current = addressRef.current;
     if (scope === current.scope && addressedKey === current.key) return;
     addressRef.current = { scope, key: addressedKey };
-    // Hand Next its own history state back, or the router treats the change as a navigation.
     window.history.replaceState(
       window.history.state,
       "",
@@ -269,7 +225,6 @@ export function useContributorsController({
           throw new Error(payload.error ?? "That contributor could not be loaded.");
         }
         if (cancelled) return;
-        // A blank self record may omit the arrays; every reader below expects them.
         const loaded: EditorContributorProfile = {
           ...payload.profile,
           aliases: payload.profile.aliases ?? [],
@@ -278,9 +233,6 @@ export function useContributorsController({
           reportOrder: payload.profile.reportOrder ?? [],
         };
 
-        // A reload after one part's save or "load latest" refreshes that part
-        // only, so saving an order never drops an unsaved profile edit (or the
-        // other order). Opening a different record resets everything.
         const parts = loadedKey.current === loaded.key ? refreshParts.current : null;
         refreshParts.current = null;
         loadedKey.current = loaded.key;
@@ -392,7 +344,6 @@ export function useContributorsController({
         expectedUpdatedAt: detail.profile.updatedAt ?? null,
         operationId: crypto.randomUUID(),
         ...(canEdit && !contextualKey ? buildContributorPatch(form, { canApprove }) : buildOwnContributorPatch(form)),
-        // A bio-only edit must not clear an existing uploaded avatar.
         avatarUrl: avatarUpload ? undefined : avatarRemoved ? null :
           form.avatarUrl === (detail.profile.avatarUrl ?? "") ? undefined : (form.avatarUrl.trim() || null),
         ...(avatarUpload ? { avatarUpload } : {}),
@@ -543,10 +494,7 @@ export function useContributorsController({
     detail && form ? isContributorFormDirty(detail.profile, form, avatarFile !== null || avatarRemoved) : false;
   const isWorkOrderDirty = detail !== null && !ordersEqual(workOrder, detail.profile.replicationOrder);
   const isReportOrderDirty = detail !== null && !ordersEqual(reportOrder, detail.profile.reportOrder);
-  // Anything a row change or scope flip would throw away: the profile draft
-  // and either unsaved order.
   const hasUnsavedChanges = isProfileDirty || isWorkOrderDirty || isReportOrderDirty;
-  /** Whether the route would take a save of this record from this viewer. */
   const canWrite = detail
     ? contextualKey !== undefined || !canEdit || canWriteContributorProfile({ canApprove, viewerEmail, profile: detail.profile })
     : true;
@@ -576,7 +524,6 @@ export function useContributorsController({
   const retryDetail = useCallback(() => {
     setReloadToken((token) => token + 1);
   }, []);
-  /** Drops the local draft of one part and reloads the stored record, saying so where the write failed. */
   const loadLatest = useCallback((where: "profile" | OrderKind) => {
     afterLoad.current = {
       where,
@@ -619,18 +566,11 @@ export function useContributorsController({
     setReportOrder([...detail.profile.reportOrder]);
     setReportSaveState("idle");
   }, [detail]);
-  /**
-   * An identity operation finished. A merge or a delete removes the open
-   * profile, so its result lands with the list; a retarget keeps it open, so
-   * its result stays in the operations block.
-   */
   const completeDangerOperation = useCallback((message: string, where: "list" | "zone" = "list") => {
-    // A retarget adds an alias to the stored record, so the whole record reloads.
     if (where === "zone") setDangerNotice({ tone: "success", message });
     else setNotice({ tone: "success", message });
     setReloadToken((token) => token + 1);
   }, []);
-  /** The open profile was merged or deleted: open where a merge went, else close (People keeps its own pick). */
   const removeSelectedProfile = useCallback((nextKey?: string) => {
     const next = nextKey && !explicitSelection ? nextKey : "";
     setSelectedKey(next);
@@ -642,7 +582,6 @@ export function useContributorsController({
   return {
     canEdit,
     canApprove,
-    /** False when the route would refuse this viewer's save of the open record. */
     canWrite,
     scope,
     setScope: changeScope,
@@ -651,7 +590,6 @@ export function useContributorsController({
     directory,
     visibleProfiles,
     resolvedKey,
-    /** The key the editor tapped, unlike `resolvedKey` which also falls back to the first visible row. */
     selectedKey,
     selfKey,
     selectProfile,
@@ -679,11 +617,6 @@ export function useContributorsController({
     saveProfile,
     publicationUncertain,
     discardProfile,
-    /**
-     * The result that belongs above the editor: a merge, a delete or a failed
-     * deep link. In contextual mode, which draws no dock, every profile and
-     * picture result lands here too.
-     */
     notice: contextualKey ? (profileNotice ?? avatarNotice ?? notice) : notice,
     dismissNotice: () => setNotice(null),
     profileNotice,

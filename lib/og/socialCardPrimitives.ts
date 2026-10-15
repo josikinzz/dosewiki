@@ -6,8 +6,6 @@ import { Resvg } from "@resvg/resvg-js";
 export const SOCIAL_CARD_SIZE = 1200;
 
 export const SOCIAL_CARD_COLORS = Object.freeze({
-  // Resolved CSS tokens from the default Fun/dark theme. The card canvas stays
-  // pure black by design; every foreground and Surface value mirrors the site.
   background: "#000000",
   accent: "#e7aeff",
   accentStrong: "#e494ff",
@@ -38,24 +36,18 @@ const SOCIAL_CARD_FONT = {
   fontFiles: [
     path.join(FONT_DIR, "Blinker-Regular.ttf"),
     path.join(FONT_DIR, "Blinker-SemiBold.ttf"),
-    // Noto Sans CJK SC Bold (SIL OFL), subset to the glyphs the /china card sets.
     path.join(FONT_DIR, "NotoSansCJKsc-Bold.china-card-subset.otf"),
   ],
   defaultFontFamily: "Blinker",
   sansSerifFamily: "Blinker",
 }
 
-/** Latin in Blinker, Han in the bundled Noto subset. */
 export const SOCIAL_CARD_CJK_FONT_FAMILY = "Blinker, 'Noto Sans CJK SC'";
 
 const doseWikiLogoSvg = readFileSync(
   path.join(process.cwd(), "src/assets/dosewiki-logo.svg"),
   "utf8",
 )
-  // The website paints this silhouette with --theme-logo-fill at 140% size
-  // and 48% 50% position. SVG objectBoundingBox gradients resolve against the
-  // tighter path box, so this calibrated vector reproduces the same visible
-  // stop range rather than merely copying the CSS percentages.
   .replace(
     /<linearGradient\s+inkscape:collect="always"\s+xlink:href="#linearGradient36"[\s\S]*?\/>/,
     `<linearGradient id="linearGradient93" xlink:href="#linearGradient36" gradientUnits="objectBoundingBox" x1="-27.87%" y1="7.79%" x2="131.07%" y2="92.21%"/>`,

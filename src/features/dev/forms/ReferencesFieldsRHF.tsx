@@ -32,13 +32,6 @@ import {
   parseReferenceYear,
 } from "./referenceFormShared";
 
-/**
- * The diagnostics panel needs every prose field in the article — `[cite:]`
- * tokens live anywhere — so the subscription cannot be narrowed to a field
- * list. It is isolated here so a keystroke anywhere in the form no longer
- * re-renders every reference card, and deferred so the panel's whole-document
- * work runs once the typing settles instead of once per keystroke.
- */
 function ReferencesCitationDiagnostics({ control }: { control: Control<SubstanceArticle> }) {
   const article = useWatch({ control }) as SubstanceArticle;
   const settledArticle = useDeferredValue(article);
@@ -427,14 +420,6 @@ export function ReferencesFieldsRHF({ embedded = false }: { embedded?: boolean }
   const [copyError, setCopyError] = useState("");
   const { confirm, dialog } = useConfirm();
 
-  /**
-   * A reference is the resolution target for every `[cite:id]` token and route
-   * `reference_ids` entry in the article, so removal is not a leaf edit and
-   * there is no undo to fall back on. Accepting the confirm therefore also
-   * strips the reference's inline markers and route reference IDs from form
-   * state (dirtied, saved with the whole article), and the confirm message
-   * states exactly how much is about to be deleted.
-   */
   const confirmRemoveReference = (index: number, id: string) => {
     const trimmedId = id.trim();
     const label = trimmedId ? `"${trimmedId}"` : `reference ${index + 1}`;

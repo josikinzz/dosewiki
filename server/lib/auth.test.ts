@@ -15,7 +15,6 @@ function createCtx(row: MembershipRow, identity: Identity = null) {
   } as never;
 }
 
-/** Stored role, or `null` for an email with no membership row at all. */
 const STORED_ROLES: Array<{ label: string; role: AuthorizedRole | null; passes: RoleFloor[] }> = [
   { label: "admin", role: "admin", passes: ["admin", "editor", "translator", "contributor"] },
   { label: "both", role: "editor_translator", passes: ["editor", "translator", "contributor"] },

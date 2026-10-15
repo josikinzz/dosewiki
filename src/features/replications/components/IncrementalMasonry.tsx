@@ -25,7 +25,6 @@ interface IncrementalMasonryProps {
   viewerSourcePath: string;
 }
 
-/** Mounts a large, already-loaded result set in bounded rendering pages. */
 export function IncrementalMasonry({
   items,
   showByline = true,
@@ -67,7 +66,6 @@ export function IncrementalMasonry({
       const node = nodes?.[index];
       if (!node || reduceMotion) return;
       const rect = node.getBoundingClientRect();
-      // Never choreograph a whole masonry column or queue offscreen entrances.
       if (rect.top < window.innerHeight && rect.bottom > 0) {
         node.classList.add("theme-reveal-enter");
       }

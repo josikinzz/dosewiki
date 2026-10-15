@@ -19,10 +19,6 @@ import { countNoun, TONE_LABEL } from "./bannerLabels";
 import { CoverageView, type CoverageViewProps } from "./CoverageView";
 import { PresetsView, type PresetsViewProps } from "./PresetsView";
 
-/**
- * The same tone tokens the banner itself renders with, so the readout and the
- * preview cannot disagree about what "danger" looks like.
- */
 const TONE_CHIP_CLASS: Record<WarningBannerTone, string> = {
   danger: "theme-semantic-danger-badge",
   unsafe: "theme-semantic-unsafe-badge",
@@ -35,14 +31,6 @@ const TONE_INK_CLASS: Record<WarningBannerTone, string> = {
   caution: "text-dose-caution-badge",
 };
 
-/**
- * The rollout readout, and the loudest thing in the tool: no other /dev
- * surface leads with the blast radius of its own data, and it stays at zero
- * until an editor acts. One figure per tone, because "577 of 577 show a
- * banner" was true and useless once a sitewide caution notice existed;
- * sitewide presets are named as such rather than counted as every slug in the
- * corpus. One strip of three, so it reads at a glance on a phone too.
- */
 function CoverageReadout({
   coverage,
   capped,
@@ -114,7 +102,6 @@ type WarningBannersStudioViewProps = {
   targetsError: string | null;
   coverage: BannerCoverage;
   view: WarningBannersStudioViewMode;
-  /** The `useConfirm` and dirty-guard dialogs, rendered once here for every guarded write. */
   confirmDialog: ReactNode;
   onRetryTargets: () => void;
   onViewChange: (view: WarningBannersStudioViewMode) => void;
@@ -122,10 +109,6 @@ type WarningBannersStudioViewProps = {
   coverageProps: CoverageViewProps;
 };
 
-/**
- * Presentation for the studio. Its parent owns every query, draft and write so
- * switching between Presets and Coverage cannot fork state or save feedback.
- */
 export function WarningBannersStudioView({
   presetCount,
   capped,

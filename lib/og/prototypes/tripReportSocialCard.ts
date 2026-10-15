@@ -1,13 +1,3 @@
-/**
- * Individual trip-report social card prototype.
- *
- * The report remains an authored narrative: its title and a verbatim passage
- * lead an open, timeline-inspired composition, while byline, substance, date,
- * dose, route, and tags stay in compact supporting roles. The visual language
- * extends the approved Fun/dark social cards: pure black, Blinker, orchid
- * accents, an upper-left dose.wiki lockup, and one upper-left lighting model.
- */
-
 import sharp from "sharp";
 
 import {

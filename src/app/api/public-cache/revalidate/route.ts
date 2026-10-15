@@ -1,29 +1,3 @@
-/**
- * Publication receiver: the endpoint a public deployment exposes so an
- * editorial write on the editor deployment can refresh it immediately.
- *
- * Next cache invalidation is project-local, so without this route a saved
- * article stays stale on dose.wiki and effectindex.com until their own
- * interval elapses. This route closes that gap without giving the public
- * projects any editorial capability:
- *
- *   POST /api/public-cache/revalidate
- *   x-dosewiki-publication-signature: <hex hmac of the exact body>
- *   { "version": 2, "source": "save-article", "issuedAt": 1757260000000,
- *     "dispatchId": "abc12345", "targets": [{ "kind": "article", "slug": "2c-b" }] }
- *   -> { ok: true, dispatchId, applied: { paths: [...], tags: [...] } }
- *
- * It accepts content identities only. Tags and route paths are derived here
- * from the shared contract, so a caller cannot name a tag, a URL or a path of
- * its own. The only authority the shared secret grants is cache expiry, which
- * makes the next read fetch current Postgres data; it can never publish content
- * or restore an older revision, so a duplicate or out-of-order delivery is
- * harmless by construction.
- *
- * Reachable on the public hosts only. Middleware requires an editor session
- * for every non-bootstrap path on the editor hosts, and the editor deployment
- * invalidates its own caches inline, so it never needs to receive.
- */
 import { after, NextResponse } from "next/server";
 import {
   PUBLICATION_SIGNAL_MAX_BODY_BYTES,
@@ -52,11 +26,6 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" } as const;
 
-/**
- * Refuses a request that has not proven the shared secret. It is charged to the
- * public IP limit first, so unverified traffic keeps its old ceiling while it
- * can never spend the bucket that signed editor fan-out uses.
- */
 async function refuseUnverified(
   request: Request,
   error: string,
@@ -73,7 +42,6 @@ async function refuseUnverified(
 export async function POST(request: Request) {
   const secret = getPublicationSecret();
   if (!secret) {
-    // Fail closed: an unconfigured deployment must not accept unsigned refreshes.
     return refuseUnverified(request, "publication_unconfigured", 503);
   }
 
@@ -90,8 +58,6 @@ export async function POST(request: Request) {
     return refuseUnverified(request, "invalid_signature", 401);
   }
 
-  // Verified before limited: editor fan-out sends one signed request per
-  // outbox row, which the public IP limit would otherwise refuse as abuse.
   const rateLimited = await enforceRateLimit(
     request,
     "publicationSignalVerified",
@@ -111,8 +77,6 @@ export async function POST(request: Request) {
 
   const parsed = parsePublicationSignal(parsedBody);
   if (parsed.status === "refused") {
-    // A refusal is explicit so the editor's receipt shows an unrefreshed target
-    // instead of reporting a delivery that expired nothing.
     return NextResponse.json(
       { ok: false, error: parsed.reason },
       {

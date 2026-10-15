@@ -1,9 +1,3 @@
-/**
- * The Substance Index tab row: which tabs exist, in which order, and which
- * categories each umbrella tab collects. The public page and the /dev index
- * layout editor both read this file, so an editor never reorders panels
- * against a strip the reader sees differently.
- */
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 import { msg } from "@/i18n/messages";
 import type { IconName } from "@/components/common/Icon";
@@ -17,19 +11,9 @@ export type SubstanceIndexSuperTab = {
   label: string;
   icon: IconName;
   memberKeys: readonly string[];
-  /**
-   * Intro content for the umbrella tab. These tabs aren't categories in the
-   * manual index JSON, so their `definition`/`warning` live here rather than
-   * in `psychoactiveIndexManual.json`.
-   */
   content: CategoryTabContent;
 };
 
-/**
- * Overarching tabs that aggregate several category panels into one view.
- * These sit between "All" and the per-category tabs and render more
- * prominently than the per-category tier.
- */
 export const SUBSTANCE_INDEX_SUPER_TABS: readonly SubstanceIndexSuperTab[] = [
   {
     id: "super:hallucinogens",
@@ -57,12 +41,6 @@ export const SUBSTANCE_INDEX_SUPER_TABS: readonly SubstanceIndexSuperTab[] = [
   },
 ];
 
-/**
- * Tab row order. Categories absent from this list (a-typical hallucinogen,
- * miscellaneous) get no tab of their own; the a-typical hallucinogen panel
- * still shows under the Hallucinogens tab. "nootropic" is listed ahead of
- * its category existing so it slots in automatically once added.
- */
 export const SUBSTANCE_INDEX_TAB_ORDER: readonly string[] = [
   "super:hallucinogens",
   "psychedelic",
@@ -79,23 +57,16 @@ export const SUBSTANCE_INDEX_TAB_ORDER: readonly string[] = [
   "antipsychotic",
 ];
 
-/** The least a category has to carry to earn its tab. */
 export type SubstanceIndexTabGroup = { key: string; name: string; icon: IconName };
 
-/** Umbrella tab ids carry a `super:` prefix; no category key ever does. */
 const SUBSTANCE_INDEX_SUPER_TAB_PREFIX = "super:"
 
-/** Umbrella tabs with at least one category behind them. */
 export function resolveSubstanceIndexSuperTabs(
   hasCategory: (key: string) => boolean,
 ): SubstanceIndexSuperTab[] {
   return SUBSTANCE_INDEX_SUPER_TABS.filter((tab) => tab.memberKeys.some(hasCategory));
 }
 
-/**
- * The strip as the reader sees it: All, then the order above, skipping
- * umbrella tabs with no members and categories the layout does not define.
- */
 export function buildSubstanceIndexTabItems(
   groups: readonly SubstanceIndexTabGroup[],
 ): PublicSegmentedTabItem[] {
@@ -119,8 +90,6 @@ export function buildSubstanceIndexTabItems(
       id: group.key,
       label: group.name,
       icon: group.icon,
-      // When the strip collapses to two rows on wide screens, keep the
-      // first row ending on Cannabinoid and start the second on Entactogen.
       ...(entry === "cannabinoid" ? { breakAfter: true, breakAfterClassName: "hidden xl:block" } : {}),
     });
   }
@@ -128,12 +97,6 @@ export function buildSubstanceIndexTabItems(
   return items;
 }
 
-/**
- * Reading order for the All tab: the tabbed categories first, in strip order,
- * then any category without a tab. Column placement comes from
- * `SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT`; this only decides where a category
- * missing from that table lands.
- */
 export function orderCategoriesForAllTab<T extends { key: string }>(groups: readonly T[]): T[] {
   const byKey = new Map(groups.map((group) => [group.key, group]));
   const seen = new Set<string>();

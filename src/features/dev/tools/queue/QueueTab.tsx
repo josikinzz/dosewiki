@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * Change Review (`/dev/queue`): admins review every editor proposal and sign
- * off review recommendations; editors follow their own proposals. Server
- * routes enforce that scope, the admin floor and the revision checks; this
- * tab asks before every decision and says what each will do.
- *
- * Layout: the triage workspace. The proposals list (grouped by what each
- * waits on) sits left and sticky, the open proposal docks right with a
- * decision dock. Admins get a second, kept-mounted view for review
- * recommendations (`#recommendations`, or a `?recommendation=` task link).
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
@@ -80,13 +68,9 @@ import {
 
 type QueueTabProps = {
   viewerRole: AppRole | null;
-  /** Admin: renders approve, reject and revert. Threaded from the shell like ContributorsTab's `canApprove`. */
   canApprove: boolean;
-  /** Seeds the working set from the proposal and opens the editor; the shell composes it from the dev context. */
   onLoadIntoEditor: (seed: DevProposalSeed) => Promise<void>;
-  /** The proposal a deep link opens on. */
   initialProposalId?: string;
-  /** The signed-in address, so the hold line can tell your claim from another admin's. */
   actorEmail?: string | null;
 };
 
@@ -96,7 +80,6 @@ type DetailState =
   | { status: "ready"; id: string; proposal: ProposalDetail }
   | { status: "error"; id: string; message: string; missing: boolean };
 
-/** A result kept with the proposal it came from, so it never shows on another. */
 type ScopedNotice = NoticeMessage & { id: string };
 
 type QueueSection = "proposals" | "recommendations";
@@ -118,12 +101,10 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
   const [drafts, setDrafts] = useState<Record<string, { comment: string; rejection: string }>>({});
   const [listLoading, setListLoading] = useState(true);
   const [search, setSearch] = useState("");
-  /** Claims from the Inbox's claim table; null until read, and after a failed read. */
   const [claims, setClaims] = useState<Map<string, ProposalClaim> | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [copied, setCopied] = useState(false);
   const [readyCount, setReadyCount] = useState<number | null>(null);
-  // The address carries the saved view and a linked recommendation; read once, before first render.
   const [fromUrl] = useState(() =>
     typeof window === "undefined" ? { view: null, recommendation: null } : readQueueTaskParams(window.location.search),
   );
@@ -133,7 +114,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
   );
   const { frozen } = useWriteFreeze();
   const actionInFlight = useRef(false);
-  /** Older requests must never replace the currently selected detail or list. */
   const detailVersion = useRef(0);
   const listVersion = useRef(0);
   const baseId = useId();
@@ -145,7 +125,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
   const rejectRef = useRef<HTMLTextAreaElement | null>(null);
   const commentRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // `#recommendations` opens that view; the address keeps the view as it changes.
   useEffect(() => {
     if (canApprove && window.location.hash === "#recommendations") setSection("recommendations");
   }, [canApprove]);
@@ -201,8 +180,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     }
   }, []);
 
-  // A deep link (`/dev/queue/<id>`, as the Inbox opens it) selects its
-  // proposal once; a later role change starts clean like any other reload.
   const initialIdRef = useRef(initialProposalId);
 
   useEffect(() => {
@@ -213,8 +190,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     setCommentNotice(null);
     void loadList();
     void loadClaims();
-    // Consumed once its read settles, not when it starts: React's development
-    // mode runs this effect twice, and the second run must open it again.
     const initialId = initialIdRef.current;
     if (initialId) {
       void loadDetail(initialId).then(() => {
@@ -236,12 +211,10 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
       [id]: { ...(current[id] ?? { comment: "", rejection: "" }), [field]: value },
     }));
   };
-  // Below the lg split the list stacks above the review pane.
   const detailRef = useRef<HTMLElement | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   useScrollToDetail(detailRef, picked);
 
-  // My pending proposals lists exactly the rows its count counts, from the same list read.
   const myPending = useMemo(() => (proposals ?? []).filter(isMyPendingProposal), [proposals]);
   const matching = useMemo(
     () => (view === "mine" ? myPending : proposals ?? []).filter((row) => proposalMatches(row, search)),
@@ -258,7 +231,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     }
     setCopied(false);
     setPicked(id);
-    // The address is the task link, so a reload or a copied link opens this proposal.
     window.history.replaceState(window.history.state, "", proposalTaskHref(id, view));
     void loadDetail(id);
   };
@@ -294,7 +266,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
   const failureMessage = (error: unknown, fallback: string) =>
     isWriteFreezeError(error) || frozen ? QUEUE_FREEZE_COPY : error instanceof Error ? error.message : fallback;
 
-  /** Runs one review action against the open proposal, then refetches both panes. */
   const run = async (
     kind: "approve" | "reject" | "revert",
     action: (id: string) => Promise<NoticeMessage>,
@@ -308,12 +279,10 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     setNotice(null);
     try {
       const outcome = await action(id);
-      // Every action can move the row in or out of the submitted bucket the rail counts.
       invalidateDevRailBadge("proposals");
       await Promise.all([loadList(), loadDetail(id), loadClaims()]);
       setNotice({ ...outcome, id });
     } catch (error) {
-      // The result lands in the dock, where the decision was made.
       const message = failureMessage(error, "The action did not go through.");
       setNotice({ tone: "danger", message, id });
     } finally {
@@ -347,7 +316,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
       return { tone: "success", message: "Reverted. The content from before this proposal was published has been restored." };
     });
 
-  /** Publication and decisions require confirmation naming their exact scope. */
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const confirmApprove = () => {
@@ -355,7 +323,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
       return;
     }
     const proposal = detail.proposal;
-    // The same refusals the button shows; a key press never gets past them.
     if (!reviewActionsFor(proposal.status).approve || approveBlocker(proposal)) return;
     const targets = targetDrift(proposal);
     const drifted = targets.filter((target) => target.drifted).length;
@@ -382,7 +349,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     const proposal = detail.proposal;
     if (!reviewActionsFor(proposal.status).reject) return;
     if (!rejectNote.trim()) {
-      // A rejection always explains itself: send the reviewer to the note.
       rejectRef.current?.focus();
       return;
     }
@@ -432,7 +398,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     }
   };
 
-  /** Claims and releases are advisory, so they are announced rather than shown as a result. */
   const hold = async (action: "claim" | "release") => {
     if (!selectedId || actionInFlight.current) return;
     const id = selectedId;
@@ -457,7 +422,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
     }
   };
 
-  /** Re-read before handing the saved proposal to the substances editor. */
   const loadIntoEditor = async () => {
     if (!selectedId || actionInFlight.current) {
       return;
@@ -556,7 +520,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
       : "Loading";
 
   const nextWaiting = (() => {
-    // Only after a decision went through: a refusal keeps the reviewer on this one.
     if (!notice || notice.tone === "danger" || !selectedId) return null;
     const next = ordered.find((row) => row._id !== selectedId && row.status === "submitted");
     return next ? { summary: next.summary || "Untitled proposal", onOpen: () => select(next._id) } : null;
@@ -582,7 +545,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
   ];
 
   const paneVisible = detail.status !== "idle";
-  // The idle hint only helps when there is something to pick.
   const idleHint = !paneVisible && ordered.length > 0;
 
   return (
@@ -610,7 +572,6 @@ export function QueueTab({ viewerRole, canApprove, onLoadIntoEditor, initialProp
 
       {canApprove ? (
         <div id={`${baseId}-recommendations`} role="tabpanel" aria-label="Recommendations" hidden={section !== "recommendations"}>
-          {/* Editors recommend sign-offs from /review; approving them is admin work. */}
           <ReviewRecommendationsLane linkedSlug={fromUrl.recommendation} onReadyCountChange={setReadyCount} />
         </div>
       ) : null}

@@ -41,7 +41,6 @@ export const GET = replicationViewerEditorRoute(protectedRouteOperation({
 
 type Metadata = Omit<FunctionArgs<typeof api.replicationContextualEditing.publishMetadata>, "apiKey" | "actorEmail">;
 type Collection = Omit<FunctionArgs<typeof api.replicationContextualEditing.publishCollection>, "apiKey" | "actorEmail">;
-/** A metadata publish names the work's slug beside its id: the mutation keys by id, the caches and the translation queue by slug. */
 type Publication = { mode: "metadata"; change: Metadata; slug: string } | { mode: "collection"; change: Collection };
 const REPLICATION_SLUG = /^[a-z0-9][a-z0-9_-]{0,127}$/;
 export const POST = replicationViewerEditorRoute(protectedRouteOperation<Publication>({

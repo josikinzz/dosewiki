@@ -8,7 +8,6 @@ const insert = vi.fn(async () => "copy-block-id");
 const patch = vi.fn(async () => undefined);
 const remove_ = vi.fn(async () => undefined);
 
-/** Mirrors the ctx shape in `dataSubstanceIndexEditorReadAuth.test.ts`. */
 function createCtx({
   identity,
   memberships = {},
@@ -21,7 +20,7 @@ function createCtx({
       getUserIdentity: vi.fn(async () => identity ?? null),
     },
     db: {
-      normalizeId: () => null, // Copy blocks are not indexed source tables.
+      normalizeId: () => null,
       get: vi.fn(async () => null),
       insert,
       patch,
@@ -54,8 +53,6 @@ function createCtx({
   } as never;
 }
 
-// Postgres registered functions keep the original handler on `_handler`; there is
-// no in-repo Postgres runtime harness, so the handler is exercised directly.
 function handlerOf(fn: unknown) {
   return (fn as { _handler: (ctx: never, args: unknown) => Promise<unknown> })._handler;
 }
@@ -83,8 +80,6 @@ describe("copyBlocks write authorization", () => {
   it("rejects anyone below admin on the upsert, an editor included", async () => {
     process.env.DATA_ADMIN_KEY = "secret";
 
-    // An editor's copy edits arrive as change proposals; the direct upsert is
-    // refused at the handler seam so a misconfigured route cannot escalate.
     for (const actorEmail of ["viewer@example.com", "editor@example.com"]) {
       await expect(
         upsertHandler(

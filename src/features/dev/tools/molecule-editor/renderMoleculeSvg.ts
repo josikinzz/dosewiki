@@ -1,21 +1,3 @@
-/**
- * Brand-styled skeletal SVG renderer on OpenChemLib — the same engine that
- * drives the editing canvas (`OclEditor.tsx`).
- *
- * One engine end to end means the preview, the saved public asset, and the
- * canvas all draw from the same MOL block interpretation: no phantom stereo
- * hydrogens (RDKit's `addChiralHs`), no re-kekulized double bonds, and real
- * `<text>` atom labels (Greek included) instead of baked glyph paths.
- *
- * Pipeline: `Molecule.fromMolfile` (verbatim coords, wedges, and Kekulé
- * pattern) → optional per-atom custom labels → `toSVG` → three pure
- * post-processing passes:
- *   1. `stripEventLayer`  — drop OCL's invisible hit-target elements.
- *   2. `applyBrandColors` — map OCL's fixed CPK colors to the brand palette.
- *   3. `floorViewBox`     — pad tiny molecules so they don't over-zoom.
- */
-
-/** Minimal structural shape of the OpenChemLib objects we use (decouples from the lib). */
 interface OclMoleculeLike { getAllAtoms(): number;
 getAllBonds(): number;
 setAtomCustomLabel(atom: number, label: string | null): boolean;
@@ -27,81 +9,48 @@ export interface OclModuleLike {
   };
 }
 
-// fuchsia-300 — carbon skeleton / bonds / default (retired Python renderer's CARBON).
 export const CARBON_COLOR = "#f0abfc";
 
-/** violet-400 — class-mode R-group labels, matching the legacy class artwork. */
 export const R_LABEL_COLOR = "#c084fc";
 
-/**
- * OpenChemLib hardcodes CPK atom-label colors (AbstractDepictor). Map each
- * emitted `rgb(...)` string to the brand palette decoded from the retired
- * Python renderer. Bonds and carbon labels come out `rgb(0,0,0)` and share
- * the carbon color.
- */
 export const OCL_COLOR_TO_BRAND: Record<string, string> = {
-  "rgb(0,0,0)": CARBON_COLOR, //     C / bonds / custom labels
-  "rgb(48,80,248)": "#c4b5fd", //    N  violet-300
-  "rgb(255,13,13)": "#fda4af", //    O  rose-300
-  "rgb(144,224,80)": "#fbbf24", //   F  amber-400
-  "rgb(255,128,0)": "#fbbf24", //    P  amber-400
-  "rgb(205,205,38)": "#bef264", //   S  lime-300
-  "rgb(31,240,31)": "#6ee7b7", //    Cl emerald-300
-  "rgb(166,41,41)": "#fb7185", //    Br rose-400
-  "rgb(148,0,148)": "#e879f9", //    I  fuchsia-400
+  "rgb(0,0,0)": CARBON_COLOR,
+  "rgb(48,80,248)": "#c4b5fd",
+  "rgb(255,13,13)": "#fda4af",
+  "rgb(144,224,80)": "#fbbf24",
+  "rgb(255,128,0)": "#fbbf24",
+  "rgb(205,205,38)": "#bef264",
+  "rgb(31,240,31)": "#6ee7b7",
+  "rgb(166,41,41)": "#fb7185",
+  "rgb(148,0,148)": "#e879f9",
 };
 
-/**
- * The same OCL CPK keys mapped to the RDKit standard textbook palette (black
- * skeleton, blue N, red O — the `--palette standard` block in
- * moleculePalette.ts). Used by the download-pack builder's standard colourway.
- */
 export const OCL_COLOR_TO_STANDARD: Record<string, string> = {
-  "rgb(0,0,0)": "#000000", //        C / bonds / custom labels
-  "rgb(48,80,248)": "#0000ff", //    N
-  "rgb(255,13,13)": "#ff0000", //    O
-  "rgb(144,224,80)": "#33cccc", //   F
-  "rgb(255,128,0)": "#ff7f00", //    P
-  "rgb(205,205,38)": "#cccc00", //   S
-  "rgb(31,240,31)": "#00cc00", //    Cl
-  "rgb(166,41,41)": "#7f4c19", //    Br
-  "rgb(148,0,148)": "#a01eef", //    I
+  "rgb(0,0,0)": "#000000",
+  "rgb(48,80,248)": "#0000ff",
+  "rgb(255,13,13)": "#ff0000",
+  "rgb(144,224,80)": "#33cccc",
+  "rgb(255,128,0)": "#ff7f00",
+  "rgb(205,205,38)": "#cccc00",
+  "rgb(31,240,31)": "#00cc00",
+  "rgb(166,41,41)": "#7f4c19",
+  "rgb(148,0,148)": "#a01eef",
 };
 
 const BOND_LENGTH = 28
 const FLOOR_MULT = 2.0
-/** viewBox floor so 2–3 atom molecules don't over-zoom (retired Python renderer's floor). */
-export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT; // 56
+export const VIEWBOX_FLOOR = BOND_LENGTH * FLOOR_MULT;
 
-/** Brand stroke width for standard bonds (retired Python renderer's bondLineWidth). */
 const BRAND_STROKE_WIDTH = 1.1
-/** OCL's own standard line width at our pinned 28 px bond length (AVBL × 0.06). */
-export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06; // 1.68
+export const OCL_BASE_STROKE_WIDTH = BOND_LENGTH * 0.06;
 
-// Bold-bond ribbon spec, tuned by Lyrea on the slider tool (revised 7 Aug 2026):
-/** Bold body width in px at the 28 px bond length (~3 × the brand line). */
 export const BOLD_BODY_WIDTH = 3.25;
-/** See-through halo where a bold line crosses another bond; wedges cast none. */
 export const BOLD_CROSSING_GAP = 3.3;
-/** Hairline edge shared by every ribbon piece so joints render as one shape. */
 export const RIBBON_HAIRLINE = 0.5;
-/** Free bold ends are rounded: every non-joint endpoint carries a join disc. */
 const BOLD_ROUNDED_ENDS = true
 
-/**
- * Canvas passed to `toSVG`. `inflateToMaxAVBL` (default true) scales the
- * depiction up to `maxAVBL` px per bond but never past the canvas, so the
- * canvas must comfortably exceed any real molecule at 28 px/bond; `autoCrop`
- * then trims the result to a tight viewBox.
- */
 const RENDER_CANVAS = 4000;
 
-/**
- * `toSVG` options shared by every brand render. The stroke width is NOT set
- * here: the wrapper's strokeWidth option cannot tell base strokes from bold
- * ones, so `rebaseStrokeWidths` rewrites the (deterministic, maxAVBL-pinned)
- * base width after the fact and leaves bold strokes at wedge width.
- */
 export function buildRenderOptions(): Record<string, unknown> {
   return {
     autoCrop: true,
@@ -115,14 +64,6 @@ export function buildRenderOptions(): Record<string, unknown> {
   };
 }
 
-/**
- * Thin OCL's standard line width down to the brand width. Only strokes at the
- * engine's base width (±2 %) are rewritten; bold-bond strokes keep their
- * absolute width so they stay exactly as wide as a solid wedge's broad end —
- * wedges are filled polygons a stroke rewrite cannot touch. Deterministic
- * because the render canvas is large enough that `maxAVBL` always pins the
- * drawn bond length to {@link BOND_LENGTH}.
- */
 export function rebaseStrokeWidths(
   svg: string,
   base: number = OCL_BASE_STROKE_WIDTH,
@@ -136,12 +77,6 @@ export function rebaseStrokeWidths(
   });
 }
 
-/**
- * Remove OpenChemLib's interaction layer: invisible `class="event"` hit
- * elements (per-atom circles, per-bond lines) and the `pointer-events` style
- * rules that exist only to serve them. The visible drawing keeps its scoped
- * `stroke-linecap:round` / `stroke-linejoin:round` rules.
- */
 export function stripEventLayer(svg: string): string {
   return svg
     .replace(/[ \t]*<(?:line|circle|rect|polygon)[^>]*class="event"[^>]*\/>\s*\n?/g, "")
@@ -151,13 +86,6 @@ export function stripEventLayer(svg: string): string {
 
 const RGB_RE = /rgb\(\d+,\d+,\d+\)/g;
 
-/**
- * Map OCL's CPK colors to a display palette (brand by default). Colors outside
- * the map (exotic elements) fall back to the map's carbon/bond entry
- * (`rgb(0,0,0)`), mirroring the old renderer's default palette entry.
- * Class-mode R-group labels — matched by their exact injected text — are
- * recolored to the R-label violet regardless of the element they sit on.
- */
 export function applyBrandColors(
   svg: string,
   rGroupLabels?: string[],
@@ -178,17 +106,10 @@ export function applyBrandColors(
 const SVG_DIMS_RE =
   /width="(\d+(?:\.\d+)?)px" height="(\d+(?:\.\d+)?)px" viewBox="(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?) (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/;
 
-/** Format like Python's `%g`: up to 6 significant digits, trailing zeros stripped. */
 function fmtG(n: number): string {
   return parseFloat(n.toPrecision(6)).toString();
 }
 
-/**
- * Pad the viewBox of a tight SVG up to `floor` so a tiny molecule (2–3 atoms)
- * does not zoom to fill the whole card with cartoonishly heavy strokes. The
- * padding is centered, and OCL's non-zero autoCrop origin is preserved.
- * Molecules already larger than `floor` in both dimensions are untouched.
- */
 export function floorViewBox(svg: string, floor: number = VIEWBOX_FLOOR): string {
   const m = SVG_DIMS_RE.exec(svg);
   if (!m) return svg;
@@ -206,7 +127,6 @@ export function floorViewBox(svg: string, floor: number = VIEWBOX_FLOOR): string
 
 type Point = [number, number];
 
-/** Drawn (device-space) endpoints of every bond, read from the event hit layer. */
 function parseEventBondGeometry(svg: string): Map<number, [Point, Point]> { const map = new Map<number, [Point, Point]>();
 const re =
   /<line id="[^"]*:Bond:(\d+)" class="event" x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"/g;
@@ -218,12 +138,6 @@ for (const m of svg.matchAll(re)) {
 }
 return map; }
 
-/**
- * Thin the engine's fat rounded outline on wedge polygons to the ribbon
- * hairline. The stroke otherwise bulges past the wedge's geometric corners,
- * which both widens the wedge beyond its tuned size and breaks the shared-edge
- * joint with bold bonds.
- */
 export function thinWedgeOutlines(svg: string): string {
   return svg.replace(/(<polygon [^>]*?stroke-width=")([^"]+)("[^>]*\/>)/g, (m, pre, w, post) => {
     const width = Number(w);
@@ -235,17 +149,6 @@ export function thinWedgeOutlines(svg: string): string {
 
 const dist = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
-/**
- * Draw the bold-bond ribbon per the tuned spec: each bold bond becomes a
- * filled trapezoid at {@link BOLD_BODY_WIDTH}; an end that butts a solid
- * wedge's broad end takes the wedge's own two drawn corners (one connected
- * shape); bold-to-bold elbows get a join disc; free ends are squared off.
- * Every plain line then renders through a mask that opens a
- * {@link BOLD_CROSSING_GAP} halo around the ribbon — a genuinely transparent
- * gap wherever a bold line crosses another bond. Wedges cast no gap and are
- * never cut. Runs on the raw SVG (event layer still present) and leaves the
- * event layer for `stripEventLayer`.
- */
 function applyBoldRibbon(
   svg: string,
   boldBonds: readonly number[],
@@ -254,9 +157,6 @@ function applyBoldRibbon(
   if (boldBonds.length === 0) return svg;
   const eventGeometry = parseEventBondGeometry(svg);
 
-  // Visible (label-clipped) geometry per bold bond: the plain line lying on
-  // that bond's event segment. Collinearity within a small band, endpoints
-  // inside the segment span; the longest candidate wins.
   const lineRe = /[ \t]*<line x1="([\d.-]+)" y1="([\d.-]+)" x2="([\d.-]+)" y2="([\d.-]+)"[^>]*\/>\n?/g;
   const visible = [...svg.matchAll(lineRe)].map((m) => ({
     text: m[0],
@@ -299,8 +199,6 @@ function applyBoldRibbon(
   if (pieces.length === 0) return svg;
   for (const text of removed) svg = svg.replace(text, "");
 
-  // Wedges: consecutive (triangle, quad) polygon pairs; a wedge whose drawn
-  // broad end sits at a bold endpoint donates its corners to that end.
   const polyRe = /<polygon points="([^"]+)"[^>]*\/>/g;
   const polys = [...svg.matchAll(polyRe)].map((m) =>
     m[1]
@@ -319,8 +217,6 @@ function applyBoldRibbon(
     }
   }
 
-  // Ribbon shapes. Colors stay in OCL's rgb() vocabulary so the brand pass
-  // recolors them exactly like every other bond.
   const half = BOLD_BODY_WIDTH / 2;
   const shapeAttrs = `fill="rgb(0,0,0)" stroke="rgb(0,0,0)" stroke-width="${RIBBON_HAIRLINE}" stroke-linejoin="round"`;
   const shapes: string[] = [];
@@ -347,8 +243,6 @@ function applyBoldRibbon(
     const pts = [c1[0], c2[0], c2[1], c1[1]].map((p) => `${fmt(p[0])},${fmt(p[1])}`).join(" ");
     shapes.push(`<polygon points="${pts}" ${shapeAttrs}/>`);
   }
-  // Join discs: always where two bold bonds share an endpoint; with rounded
-  // ends, every non-joint endpoint gets one. Joint (wedge-flush) ends never do.
   const discAt: Point[] = [];
   const wantDisc = (end: Point, shared: boolean) =>
     (shared || BOLD_ROUNDED_ENDS) && !discAt.some((p) => dist(p, end) < 0.5);
@@ -363,8 +257,6 @@ function applyBoldRibbon(
       const shared = endpoints.some((p) => dist(p, end) < 0.5);
       if (wantDisc(end, shared)) {
         discAt.push(end);
-        // The disc caps the VISIBLE (label-clipped) end of this piece, which
-        // is whichever drawn endpoint sits nearest this bond end.
         const at = dist(piece.p1, end) <= dist(piece.p2, end) ? piece.p1 : piece.p2;
         shapes.push(
           `<circle cx="${fmt(at[0])}" cy="${fmt(at[1])}" r="${fmt(half)}" ${shapeAttrs}/>`,
@@ -374,8 +266,6 @@ function applyBoldRibbon(
     }
   }
 
-  // Crossing-gap mask over every plain line: white field, black halo-stroked
-  // ribbon copies. Only lines are masked — wedges are never cut.
   const dims = SVG_DIMS_RE.exec(svg);
   const [, , , vx, vy, vw, vh] = dims ? dims.map(Number) : [0, 0, 0, 0, 0, 0, 0];
   const haloAttrs = `fill="black" stroke="black" stroke-width="${(BOLD_CROSSING_GAP * 2).toFixed(2)}" stroke-linejoin="round" stroke-linecap="round"`;
@@ -391,8 +281,6 @@ function applyBoldRibbon(
     maskShapes +
     `</mask></defs>`;
 
-  // Wrap the remaining plain lines in the masked group, preserving z-order,
-  // and paint the ribbon after everything else.
   const remaining = [...svg.matchAll(lineRe)].map((m) => m[0]);
   const first = svg.indexOf(remaining[0] ?? "</svg>");
   for (const text of remaining) svg = svg.replace(text, "");
@@ -401,14 +289,11 @@ function applyBoldRibbon(
   return svg.replace("</svg>", `${shapes.join("\n")}\n</svg>`);
 }
 
-/** Stable per-molblock SVG id (FNV-1a) so identical input renders byte-identical output. */
 export function svgIdFor(
   molblock: string,
   atomLabels?: Record<number, string>,
   boldBonds?: readonly number[],
 ): string {
-  // An empty bold list contributes nothing, so bold-free renders keep the ids
-  // (and therefore the exact bytes) of renders made before bold bonds existed.
   const input =
     molblock +
     JSON.stringify(atomLabels ?? {}) +
@@ -421,18 +306,11 @@ export function svgIdFor(
   return `mol-${(hash >>> 0).toString(16)}`;
 }
 
-/**
- * Render a skeletal SVG from an explicit MOL block, brand-styled by default.
- * Returns null when the MOL block can't be parsed into a non-empty molecule.
- */
 export function renderMoleculeSvg(
   ocl: OclModuleLike,
   molblock: string,
-  /** Class-mode R-group display labels, atom index -> "R2"/"Rα"/"RN". */
   atomLabels?: Record<number, string>,
-  /** Bond indices to draw with the bold (thicker) line weight. */
   boldBonds?: readonly number[],
-  /** OCL `rgb(...)` -> display hex; defaults to the brand palette. */
   colorMap: Record<string, string> = OCL_COLOR_TO_BRAND,
 ): string | null {
   let mol: OclMoleculeLike;
@@ -448,9 +326,6 @@ export function renderMoleculeSvg(
       mol.setAtomCustomLabel(Number(index), label);
     }
   }
-  // Bold is NOT drawn by the engine here: the molecule renders plain and the
-  // ribbon (tapered joints, join discs, crossing-gap mask) is composed in the
-  // post-processing passes below, where the halo can be genuinely transparent.
   const bondCount = mol.getAllBonds();
   const bold = (boldBonds ?? []).filter(
     (bond) => Number.isInteger(bond) && bond >= 0 && bond < bondCount,

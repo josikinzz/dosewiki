@@ -11,7 +11,7 @@ export interface ReagentColor {
 }
 
 export interface ReagentResult {
-  reagent: string; // e.g., "marq_desc", "meck_desc"
+  reagent: string;
   colors: ReagentColor[];
   hint: string;
   isReacting: boolean;

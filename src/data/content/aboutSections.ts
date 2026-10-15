@@ -4,7 +4,6 @@ import type { Definition, Nodes } from "mdast";
 type AboutSections = { introduction: string; sources: string; history: string };
 type Section = keyof AboutSections;
 
-/** Project one editable document into public sections without matching code or quotes. */
 export function splitAboutMarkdown(content: string): AboutSections {
   const tree = fromMarkdown(content);
   const sections: AboutSections = { introduction: "", sources: "", history: "" };
@@ -40,8 +39,6 @@ export function splitAboutMarkdown(content: string): AboutSections {
   if (!sectioned) return { introduction: content, sources: "", history: "" };
   sections[section] += content.slice(offset);
 
-  // Definitions have document-wide scope, including those nested in blockquotes.
-  // Rebuild only copied definitions so quote/list prefixes cannot corrupt them.
   const definitionMarkdown = (definition: Definition) => {
     const label = definition.identifier.replace(/[\\&[\]]/g, "\\$&");
     const url = definition.url.replace(/[\\&<>]/g, "\\$&");
@@ -58,7 +55,6 @@ export function splitAboutMarkdown(content: string): AboutSections {
       if (!local) missing.push(definitionMarkdown(definition));
       else if (local !== definition) overrides.push(definitionMarkdown(definition));
     }
-    // CommonMark resolves duplicate labels to the first document definition.
     if (overrides.length) sections[key] = `${overrides.join("\n")}\n\n${sections[key]}`;
     if (missing.length) sections[key] += `\n\n${missing.join("\n")}`;
   }

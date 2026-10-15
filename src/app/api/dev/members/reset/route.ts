@@ -1,11 +1,3 @@
-/**
- * POST /api/dev/members/reset  { email }
- *
- * Admin only. Mints a one-time password reset link for a non-admin member.
- * The token is 32 random bytes; only its sha256 lands in Postgres, and the
- * plaintext appears exactly once in this response. The link is valid for an
- * hour and dies when redeemed (`memberships.consumePasswordReset`).
- */
 import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";

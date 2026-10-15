@@ -18,20 +18,12 @@ import { glossaryLocaleAccess, parseLocale } from "../translation-glossary/gloss
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-/**
- * The whole-corpus audit, shared by every instance for five minutes and then
- * served stale while one refresh runs, so opening Articles never waits on a
- * full pass after the first. Keyed by the prompt digest and the approved
- * terms' kinds, so approving a rendering is counted at once; stored
- * translations a run writes reach it within one refresh.
- */
 const cachedCoverage = publicDataCache(
   async (locale: string, _promptVersion: string, _kinds: string) => getTranslationCoverage(getPublicDataReadAdapter(), await loadTranslationContext(locale)),
   ["dev-translation-coverage-v1"],
   { revalidate: 300 },
 );
 
-/** Explicit, read-only audit, never polled while typing. The run queue is read fresh on every request. */
 export const GET = protectedRouteOperation({
   auth: "translator",
   rateLimit: "editorPolledRead",
@@ -55,7 +47,6 @@ export const GET = protectedRouteOperation({
       readApprovedUiTranslations(locale),
     ]);
     const metadata = (publicationMetadata as Record<string, UiCatalogPublication>)[locale];
-    // The shared audit is copied, never changed, so no request sees another's queue.
     return NextResponse.json({
       ...coverage,
       queue,

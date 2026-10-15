@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Generate controllable MP4 + poster pairs for animated GIF replications and
- * attach them without replacing the original rights/provenance asset.
- *
- * Dry run:
- *   node scripts/replications/generate-gif-motion-renditions.mjs \
- *     --target=postgresql://<host>/<database>
- *
- * Apply (requires the repository's production-write gates):
- *   node scripts/replications/generate-gif-motion-renditions.mjs \
- *     --write --confirm-write=generate-gif-motion-renditions \
- *     --expected-deployment=<host>/<database> \
- *     --target=postgresql://<host>/<database>
- */
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -91,7 +77,6 @@ export function planGifMotionGeneration(rows, { force = false } = {}) {
   return { actions, skipped, gifRowCount: gifRows.length };
 }
 
-/** Preserve every source pixel; pad odd edges instead of scaling the composition. */
 export function buildGifMotionFfmpegArgs({
   inputPath,
   outputPath,

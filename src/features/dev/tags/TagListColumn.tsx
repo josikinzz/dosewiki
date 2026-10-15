@@ -26,7 +26,6 @@ type TagListColumnProps = {
   filteredTags: TagUsage[];
   selectedKey: string | null;
   onSelectUsage: (usage: TagUsage) => void;
-  /** Tags the working changes moved, as `field:key`. */
   changedKeys: ReadonlySet<string>;
   otherFieldMatches: { field: TagField; count: number }[];
   reload: TagReloadState;
@@ -34,15 +33,8 @@ type TagListColumnProps = {
   onDismissReloadFailure: () => void;
 };
 
-/** Row height plus the option's 4px gap, so the windowed list sizes itself before it measures. */
 const ROW_ESTIMATE = 48;
 
-/**
- * The list column: the four tag fields as a two-by-two choice (every field
- * visible at once, with its count), a search that also points at other
- * fields when this one has no match, and the windowed listbox of tags with
- * their article counts and a mark on each tag the working changes moved.
- */
 export const TagListColumn = forwardRef<HTMLElement, TagListColumnProps>(function TagListColumn(
   {
     totalTags,
@@ -223,7 +215,6 @@ export const TagListColumn = forwardRef<HTMLElement, TagListColumnProps>(functio
   );
 });
 
-/** One line at one pitch: the label (matches marked), a changed mark, and the article count. */
 function TagRow({ usage, active, changed, query }: { usage: TagUsage; active: boolean; changed: boolean; query: string }) {
   return (
     <EditorListRow active={active} className="h-11 overflow-hidden py-0">

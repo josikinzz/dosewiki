@@ -49,36 +49,6 @@ import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 import { t } from "@/i18n/server";
 import { getGalleryBrowseIndex, hydrateGalleryPage } from "@server/next/galleryBrowseIndex";
 
-/**
- * The Artist Page: one artist's works, addressable as
- * /replications/artist/<key> — every credited artist's single public surface
- * (see the address decision record in
- * src/features/replications/galleryFocus.ts). Unclaimed keys derive from
- * gallery credit lines; claimed identities use the profile display-name key
- * and retain old credit-line keys as redirects. `unknown` names the
- * unattributed bucket, and an unrecognized key is a real 404 rather than an
- * empty page. When a Contributor Profile claims the credit line, the identity
- * header is decorated with their avatar, role, bio, and links;
- * /contributors/<key> permanently forwards here for such profiles. The
- * Unattributed bucket gets the same works view but never an identity claim.
- * Advertised in the sitemap from the same gallery corpus, but detail pages
- * scale with reader demand rather than roster size: a real key renders on
- * first request and then enters the hourly ISR cache; all reads sit on the
- * shared hourly `unstable_cache`
- * window. The `?viewer=` deep link is resolved on the client inside
- * ArtistShowcase against the artist's whole collection.
- *
- * Like the playlist pages, this sits outside the `(tabs)` group on purpose: a
- * profile is not a section view, so it gets no "Replications" masthead or tab
- * bar and brings its own `<main>`. The works render as one showcase stage
- * over the whole body of work rather than the browse gallery's masonry: a
- * profile presents a body of work, it is not a querying surface.
- *
- * The English route and every locale mirror render this same component; a
- * mirror passes its locale so canonical works, effect names, and profile prose
- * are localized before display projection while artist identity stays original.
- */
-
 interface LoadedArtistFocus {
   replications: PublicGalleryReplicationPreview[];
   effects: Array<Pick<PublicEffectPreview, "slug" | "name">>;
@@ -90,10 +60,6 @@ const loadArtistFocus = cache(async (
   key: string,
   locale: LiveLocale | null,
 ): Promise<LoadedArtistFocus> => {
-  // Artist URL identity is canonical and does not depend on translated titles.
-  // Resolve the requested/aliased key before touching localization so a zh
-  // artist permalink does not translate the complete gallery merely to find
-  // one canonical group.
   const index = await getGalleryBrowseIndex("en");
   const focus = resolveGalleryFocus({ kind: "artist", key }, index.rows, {
     effects: index.effects,
@@ -130,11 +96,6 @@ const loadArtistFocus = cache(async (
   };
 });
 
-/**
- * A key that resolves to no group is a 404 — unless it is a retired alias
- * (the folded "Anonymous" marker section), whose old address forwards to the
- * page that now holds its works.
- */
 function forwardRetiredKeyOr404(key: string): never {
   const aliasTarget = getReplicationArtistRouteAlias(key);
   if (aliasTarget) {
@@ -154,9 +115,6 @@ export async function getReplicationArtistMetadata(
 ): Promise<Metadata> {
   const { focus, contributorDirectory } = await loadArtistFocus(key, locale);
 
-  // Thrown here, not just in the page body: metadata resolves before the
-  // response starts streaming, so this is what turns a bogus key into a real
-  // HTTP 404 instead of a soft 404 streamed into an already-committed 200.
   if (!focus) {
     forwardRetiredKeyOr404(key);
   }
@@ -196,9 +154,6 @@ export async function ReplicationArtistRoute({
     forwardRetiredKeyOr404(key);
   }
 
-  // A source-era handle remains resolvable, but a claimed merged identity has
-  // exactly one public address: the profile's canonical display-name key.
-  // This redirect changes no stored replication credit or search token.
   const canonicalRedirectKey = canonicalArtistPageRedirectKey(key, focus);
   if (canonicalRedirectKey) {
     permanentRedirect(
@@ -209,9 +164,6 @@ export async function ReplicationArtistRoute({
     );
   }
 
-  // The claimed Contributor Profile decorates the page; the Unattributed
-  // bucket never resolves one (resolveArtistPageProfileKey), and an unclaimed
-  // credit renders the same page shape without avatar image, role, or links.
   const profileKey = resolveArtistPageProfileKey(
     focus.group,
     contributorDirectory,
@@ -233,8 +185,6 @@ export async function ReplicationArtistRoute({
     params: { key: focus.key },
   });
 
-  // Only the opening strip crosses the server/client boundary. The same
-  // focused collection resolves on viewer intent, including distant deep links.
   const group = buildArtistShowcaseGroup(focus.group.items, t);
   const openingItems = await hydrateGalleryPage(group.items.slice(0, SHOWCASE_WORK_CAP), parseUiLocale(locale?.code));
   const collectionLabel = attributed

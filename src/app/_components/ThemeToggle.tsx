@@ -5,13 +5,6 @@ import { useTheme } from "@/context/ThemeContext";
 import { AppearanceTogglePill } from "./AppearanceTogglePill";
 import { useT } from "@/i18n/client";
 
-/**
- * Mode control for the colour-scheme axis: Dark, System (follow the OS
- * `prefers-color-scheme` live), Light. Renders the *preference* — a system
- * reader stays on "System" while the painted scheme follows their OS. Icons
- * are 16px and the labels ride the pill's compact segment padding so all
- * three fit the appearance popover without widening it.
- */
 export function ThemeToggle() {
   const { colorSchemePreference, setColorSchemePreference } = useTheme();
   const t = useT();

@@ -16,7 +16,6 @@ type ChemicalClassPageProps = {
   }>;
 };
 
-// Keep the build bounded; published keys enter the ISR cache on first request.
 export function generateStaticParams() {
   return [];
 }

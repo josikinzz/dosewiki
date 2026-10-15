@@ -1,10 +1,3 @@
-/**
- * Library builder - factory function to build all library data from articles.
- *
- * This module converts the module-level execution from library.ts into a
- * factory function that can be called lazily after articles are loaded.
- */
-
 import { buildInteractionIndex } from "./libraryBuilderInteractions";
 import type {
   NormalizedManualIndexConfig,
@@ -17,10 +10,6 @@ import { projectTaxonomy } from "./taxonomyProjection";
 import { projectManualIndexes } from "./manualIndexProjection";
 import { createPublicLibraryFacade } from "./publicLibraryFacade";
 
-/**
- * Index configs required by buildLibrary.
- * These are loaded from Postgres at runtime via useIndexLayouts hook.
- */
 export interface IndexConfigs {
   psychoactive: NormalizedManualIndexConfig;
   chemical: NormalizedManualIndexConfig;
@@ -28,7 +17,6 @@ export interface IndexConfigs {
 }
 import type { LibraryData } from "../SubstanceIndexProvider";
 
-// Re-export types from library.ts for convenience
 export type {
   CategoryDefinition,
   DosageCategoryGroup,
@@ -41,15 +29,6 @@ export type {
   InteractionIndex,
 } from "./library";
 
-/**
- * Build all library data from articles.
- *
- * This is the main factory function that computes all indexes and lookups
- * from the raw articles array.
- *
- * @param articles - The substance articles to build the library from
- * @param configs - Index configs loaded from Postgres via useIndexLayouts hook.
- */
 export function buildLibrary<TArticle extends LibraryArticleInput>(
   articles: TArticle[],
   configs: IndexConfigs,

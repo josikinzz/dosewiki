@@ -2,12 +2,6 @@ import { SmartLink } from "@/components/common/SmartLink";
 import type { PublicTranslationCredit } from "@/data/content/translationCredits";
 import { cn } from "@/lib/utils";
 
-/**
- * The people credited for a translation locale, shown on that language's
- * glossary and About mirror. Hook-free so server and client pages can both
- * render it; the caller passes the already-localized title. Renders nothing
- * when no one is credited.
- */
 export function TranslationCredits({
   title,
   credits,

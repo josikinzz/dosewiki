@@ -17,18 +17,6 @@ export interface EditorPanelProps extends HTMLAttributes<HTMLDivElement> {
   variant?: EditorPanelVariant;
 }
 
-/**
- * Each EditorPanel variant maps onto the public frosted Surface vocabulary so
- * dev panels read as the same material as the live article cards:
- *  - default => Surface variant="public" (theme-public-card + backdrop-blur-sm
- *    backdrop-safe -> --theme-frosted-panel-*). The frost comes from the
- *    Surface variant; re-pointing --editor-panel-bg alone would NOT add it.
- *  - subtle  => theme-public-card-subtle (Surface variant="subtle").
- *  - inset   => --theme-field-surface well (Surface variant="none" + field bg).
- *  - danger  => Surface variant="danger" semantic danger tokens (no baked hex).
- *  - empty   => dashed reverso-safe placeholder well.
- *  - toolbar => subtle frosted strip used for sticky action rails.
- */
 const editorPanelSurfaceVariant: Record<
   EditorPanelVariant,
   NonNullable<SurfaceProps["variant"]>
@@ -80,10 +68,6 @@ export interface EditorPanelHeaderProps
   description?: ReactNode;
   meta?: ReactNode;
   actions?: ReactNode;
-  /**
-   * Swap the solid header border for the gradient hairline (accent "spine")
-   * used by primary public panels. Defaults to the gradient divider.
-   */
   divider?: "hairline" | "border" | "none";
 }
 
@@ -103,9 +87,6 @@ const headerDividerClasses: Record<
   NonNullable<EditorPanelHeaderProps["divider"]>,
   string
 > = {
-  // Canonical gradient hairline: a 1px ::after rail painted with the shared
-  // divider image (matches SectionHeader / CollapsibleEditorCard), so the
-  // "spine" reverso-maps cleanly in both themes.
   hairline:
     "relative after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[image:var(--theme-horizontal-divider-image)]",
   border: "border-b border-[color:var(--editor-panel-border)]",

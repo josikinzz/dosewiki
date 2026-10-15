@@ -153,9 +153,6 @@ export function projectPublicApiReplication(replication: GalleryReplication) {
     ...(replication.has_audio !== undefined
       ? { has_audio: replication.has_audio }
       : {}),
-    // The documented `order_index` is the owning effect's rank, explicitly not
-    // the requested collection's order (see docs/api.md). Derived from the
-    // per-effect map so the published contract stays a single number.
     ...(curatedEffectPosition(replication) !== undefined
       ? { order_index: curatedEffectPosition(replication) }
       : {}),

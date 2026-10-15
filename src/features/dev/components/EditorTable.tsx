@@ -2,24 +2,11 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-/**
- * One row, two layouts. Above `md` the elements lay out as a real table; below
- * it every row becomes a two-column card and each labelled cell shows its
- * column name inline. The switch is CSS only, so a row has one DOM node, one
- * set of handlers, and one source of data in both layouts.
- *
- * `display: block` on a table strips its semantics in Chrome and Safari, so
- * the table, row, and column-header roles are set explicitly and survive the
- * mobile layout. The header row is hidden below `md`; the per-cell labels
- * carry the column names there instead.
- */
-
 const HEADER_CELL_CLASS =
   "type-meta-label theme-text-faint px-3 py-2";
 
 export type EditorTableProps = {
   children: ReactNode;
-  /** Applied to the `<table>`, e.g. `md:min-w-[56rem]` for the desktop layout. */
   className?: string;
 };
 
@@ -77,9 +64,7 @@ export function EditorTableRow({ className, children, ...rest }: EditorTableRowP
 }
 
 export type EditorTableCellProps = ComponentPropsWithoutRef<"td"> & {
-  /** Column name shown above the value in the card layout only. */
   label?: string;
-  /** Spans both card columns; no effect in the table layout. */
   wide?: boolean;
 };
 

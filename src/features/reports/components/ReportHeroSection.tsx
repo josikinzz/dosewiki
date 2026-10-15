@@ -10,12 +10,6 @@ import { publicHref } from "@/utils/publicHref";
 import { AuthorAvatar } from "./AuthorAvatar";
 import { AuthorLink } from "./AuthorLink";
 
-/**
- * Minimal projection of a `TripReport` containing only the fields the hero
- * renders. The full report carries the entire narrative (introduction,
- * timeline phases, conclusion), so projecting here keeps that bulk out of the
- * `"use client"` RSC/HTML payload for this component.
- */
 export interface ReportHeroProps {
   title: string;
   featured?: boolean;
@@ -29,10 +23,6 @@ export interface ReportHeroProps {
   };
 }
 
-/**
- * Hero for trip reports: title, byline, and tags set directly on the page
- * canvas so the story itself is the most prominent surface on the page.
- */
 export const ReportHeroSection = memo(function ReportHeroSection(
   report: ReportHeroProps,
 ) {
@@ -70,10 +60,6 @@ export const ReportHeroSection = memo(function ReportHeroSection(
       <div className="theme-text-muted flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
         {hasAvatar ? (
           profileUrl ? (
-            // The adjacent author name (AuthorLink) is the announced, tabbable
-            // link to this same profile; the avatar is a decorative second
-            // affordance to it, so keep it out of the tab order and the a11y
-            // tree to avoid a duplicate stop announcing one destination.
             <Link
               href={profileUrl}
               aria-hidden="true"

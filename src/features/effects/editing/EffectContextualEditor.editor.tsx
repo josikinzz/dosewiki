@@ -28,8 +28,6 @@ type History = NarrativeHistoryEntry;
 export default function EffectContextualEditor(props: Props) {
   const { enabled, mode, role } = useContextualEditing();
   if (!enabled) return null;
-  // Every member declares the record so the launcher can hide its Edit toggle
-  // here for roles below admin; only an admin session ever mounts the editor.
   return <>
     <EditorLauncherTarget target={{ kind: "effect", slug: props.slug, name: props.pageProps.article.hero.name }} />
     {mode === "edit" && role === "admin" ? <EffectSession key={props.slug} {...props} /> : null}
@@ -119,8 +117,6 @@ function EffectSession({ slug, pageProps }: Props) {
       setDocument({ ...document, effect: saved, baseRevision: result.revision });
       resetDraft(effectDraftFromRow(saved));
       setReviewed(null);
-      // The route answers once the editor host has the change; the receipt
-      // tracks when the public site serves it.
       setMessage("Saved on the editor host. Public delivery is tracked below.");
       startReceipt([{ kind: "effect", slug }]);
       router.refresh();

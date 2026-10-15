@@ -1,34 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Attach R2 archive keys to production replication rows, from the
- * retained historical reconciliation ledger reviewed for the storage migration.
- *
- * This writes ONLY the five optional `*_r2_key` fields, through the
- * compare-and-swap mutation `replications.updateR2Keys`: every key travels
- * with the storage ID it was derived from, and the mutation refuses the whole
- * batch entry when the row moved since the ledger was built. Storage IDs,
- * `url`, and `thumbnail_url` are never touched — they are the rollback source.
- *
- * Only ledger entries with `status: "exact"` (a single byte-identical R2
- * object) are ever written. Missing/ambiguous/error entries stay on Postgres
- * and are reported.
- *
- * Dry run (default — prints the plan, writes nothing):
- *   node scripts/replications/backfill-r2-keys.mjs --ledger <ledger.json>
- *
- * Canary (bounded set, then stop and verify end-to-end before expanding):
- *   node scripts/replications/backfill-r2-keys.mjs --ledger <ledger.json> \
- *     --slugs slug-a,slug-b --write --confirm-write=backfill-r2-keys \
- *     --expected-deployment=<host>/<database>
- *
- * Full run: same command without --slugs (batches of 100; add --limit N to
- * bound a batch-sized expansion wave).
- *
- * Requires TARGET_POSTGRES_URL and the replicationMaintenance credential; run
- * `npm run postgres:check-env-isolation` first, per docs/operations/data-credentials.md.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,7 +16,6 @@ import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 const OPERATION = "backfill-r2-keys";
 const WRITE_BATCH_SIZE = 100;
 
-/** Ledger role -> mutation argument field carrying that role's CAS basis. */
 const EXPECTED_FIELD_BY_KEY_FIELD = {
   r2_key: "expectedStorageId",
   thumbnail_r2_key: "expectedThumbnailStorageId",
@@ -54,13 +24,6 @@ const EXPECTED_FIELD_BY_KEY_FIELD = {
   motion_poster_r2_key: "expectedMotionPosterStorageId",
 };
 
-/**
- * Group exact-match ledger entries into updateR2Keys updates, one per row.
- * `liveRows` supplies the current row state so a rerun skips keys that are
- * already attached with the planned value (idempotence) and refuses rows
- * whose storage IDs moved since the ledger was built (the plan is stale;
- * rebuild the ledger rather than trusting it).
- */
 export function planR2KeyBackfill(ledgerEntries, liveRows, { slugs = null, limit = null } = {}) {
   const rowById = new Map(liveRows.map((row) => [row._id, row]));
   const wanted = slugs ? new Set(slugs) : null;
@@ -174,7 +137,6 @@ async function main() {
     console.log(`  wrote ${written}/${plan.updates.length}`);
   }
 
-  // Read back every patched row and require the planned keys to have landed.
   const failures = [];
   for (const update of plan.updates) {
     const live = await writeClient.query(api.replications.getResolvedById, { apiKey, id: update.id });

@@ -10,22 +10,13 @@ import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
 export type DevModePageProps = {
   activeTab: DevModeTab;
   initialArticleSlug?: string;
-  /** See `DevModePageControllerState.initialFilter`. */
   initialFilter?: string;
   initialProfileKey?: string;
-  /** True while the editor corpus is still draining behind the shell. */
   isLibraryLoading?: boolean;
-  /** Why the corpus could not load, when it failed; the waiting tools show it with Try again. */
   libraryError?: string | null;
   onRetryLibrary?: () => void;
   onTabChange: (tab: DevModeTab) => void;
-  /**
-   * Opens an App Path inside the shell (a Cmd+K record). The route client
-   * remounts the open tool once the address lands, so the tool reads the
-   * record from its initial props the way a deep link does.
-   */
   onOpenPath?: (path: string) => void;
-  /** Changes when the open tool must remount onto a new record; the tool subtree is keyed by it. */
   toolMountKey?: number;
 };
 
@@ -38,23 +29,16 @@ export type DevModePageControllerState = {
   activePrimaryTab: DevModePrimaryTab;
   mainClassName: string;
   contentWrapperClass: string;
-  /** True on a fine pointer: tools may pin their toolbars and side panels. */
   enableStickyPanels: boolean;
-  /** An Auth.js session is present. */
   isSignedIn: boolean;
-  /** The session role, null while signed out; the rail disables every tab above it. */
   role: AppRole | null;
-  /** Admin or editor: may draft saves; the commit panel and save buttons disable without it. */
   canDraft: boolean;
-  /** Admin: may approve, delete, and use admin-only fields. */
   canApprove: boolean;
-  /** Why the active tab is closed to the settled session, or null when it is open. */
   activeTabLockReason: string | null;
   sessionStatus: DevModePageChromeSessionStatus;
   userEmail?: string | null;
   userImage?: string | null;
   userName?: string | null;
-  /** The session's glossary grant. */
   glossaryLocales?: readonly string[];
   articlesLength: number;
   isLibraryLoading: boolean;
@@ -67,66 +51,33 @@ export type DevModePageControllerState = {
   commitPanel: ReturnType<
     typeof import("./useDevModeSaveActions").useDevModeSaveActions
   >["commitPanel"];
-  /** The staged working set's browser recovery copy (see `useStagedArticlesRecovery`). */
   stagedRecovery: StagedArticlesRecovery;
-  /** `/dev/articles/<slug>`: the substance the editor opens on. */
   articlesInitialSlug?: string;
   citationReviewInitialSlug?: string;
   moleculeEditorInitialSlug?: string;
   replicationsInitialSlug?: string;
   bannersInitialSlug?: string;
-  /**
-   * The Writing deep link: `/dev/writing/<slug>`, `/dev/blog/<slug>`, or
-   * the literal `about` that `/dev/about` now resolves to.
-   */
   writingInitialSlug?: string;
-  /** `/dev/copy-studio/<block key>`: the block Copy Studio opens on. */
   copyStudioInitialKey?: string;
-  /** `/dev/trip-report-submissions/<submission id>`: the submission Trip reports opens on. */
   tripReportsInitialId?: string;
-  /** `/dev/queue/<proposal id>`: the proposal Change Review opens on. */
   queueInitialId?: string;
-  /** `/dev/article-feedback/<feedback id>?source=`: the feedback item the Feedback tab opens on. */
   feedbackInitialId?: string;
-  /** `/dev/playlists/<key>`: the playlist the tab opens on. */
   playlistsInitialKey?: string;
-  /** `/dev/people/<email or profile key>` (and `/dev/members/<email>`): the person People opens on. */
   peopleInitialKey?: string;
-  /** `/dev/contributors/<key or alias>`: the profile Contributors opens on. */
   contributorsInitialKey?: string;
-  /** Keys the tool subtree; see `DevModePageProps.toolMountKey`. */
   toolMountKey: number;
-  /**
-   * The active tab's URL filter value (`/dev/writing?kind=blog`), already
-   * validated against the registry descriptor's `filter.values`. Each tab
-   * narrows it to its own union.
-   */
   initialFilter?: string;
   tagEditorTabProps: ReturnType<typeof useDevSupportTabsController>["tagEditorTabProps"];
-  /** Index layout's Working changes panel parts (the same commit, diff and copy as Tags). */
   indexLayoutTabProps?: ReturnType<typeof useDevSupportTabsController>["indexLayoutTabProps"];
-  /**
-   * The signed-in user's own contributor key, for the Contributors tab's
-   * "Just me" scope: the canonical owned key once the server resolves it,
-   * else the key derived from the session email.
-   */
   sessionProfileKey: string;
-  /**
-   * The contributor directory, for the Contributors tab's list rail. Fetched by
-   * the shell (see `tabNeedsContributorProfiles`) rather than by the tab, so the
-   * tab and the save flows share one subscription.
-   */
   contributorDirectory: {
     profiles: NormalizedUserProfile[];
     isLoading: boolean;
   };
   onPrimaryTabChange: (tab: DevModePrimaryTab) => void;
   onTabChange: (tab: DevModeTab) => void;
-  /** Opens an App Path in the shell (a Cmd+K record); the chrome asks the unsaved-work registry first. */
   onOpenPath: (path: string) => void;
-  /** Queue: seed the working set from a proposal, then open the substances editor. */
   onLoadProposal: (seed: DevProposalSeed) => Promise<void>;
   onSignIn: () => void;
-  /** Visible "Leave editor" action: back to the page the editor came from. The chrome asks the unsaved-work registry first. */
   onLeave: () => void;
 };

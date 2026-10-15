@@ -1,19 +1,8 @@
-/**
- * Pure helpers shared by the post-deploy warmer CLI
- * (scripts/deploy/warm-public-routes.mjs) and the cron-driven route handler
- * (src/app/api/warm/route.ts). No Node-only imports: the route handler bundles
- * this module into a serverless function.
- */
 import { prepareFlightRouterStateForRequest } from "next/dist/client/flight-data-helpers.js";
 import { computeCacheBustingSearchParam } from "next/dist/shared/lib/router/utils/cache-busting-search-param.js";
 
 export { parseWarmArgs } from "./warm-public-routes.args.mjs";
 
-/**
- * Root path segments that are pages of their own rather than substance
- * articles. `/[slug]` is the single-segment catch-all, so a sitemap URL with one
- * path segment is a substance article unless it is one of these.
- */
 export const NON_SUBSTANCE_ROOT_SEGMENTS = new Set([
   "about",
   "articles",
@@ -42,11 +31,6 @@ function decodeXmlEntities(value) {
     .replace(/&amp;/g, "&");
 }
 
-/**
- * Every `<loc>` in a sitemap document. Works for both a `<urlset>` and a
- * `<sitemapindex>`; the caller decides whether a location is a page or a
- * nested sitemap (see {@link isSitemapIndex}).
- */
 export function parseSitemapLocations(xml) {
   const locations = [];
   for (const match of String(xml).matchAll(LOC_PATTERN)) {
@@ -60,11 +44,9 @@ export function isSitemapIndex(xml) {
   return /<sitemapindex[\s>]/i.test(String(xml));
 }
 
-/** `true` when the URL is a single-segment substance article path on the site. */
 export function isSubstanceArticleUrl(url, baseUrl) {
   let parsed;
   try {
-    // Sitemap locations are absolute; a relative or malformed value is not a page.
     parsed = new URL(url);
   } catch {
     return false;
@@ -81,16 +63,6 @@ export function isSubstanceArticleUrl(url, baseUrl) {
   return !NON_SUBSTANCE_ROOT_SEGMENTS.has(segments[0].toLowerCase());
 }
 
-/**
- * Classify a response by its edge/ISR cache headers.
- *
- * Vercel reports `x-vercel-cache` (HIT, STALE, PRERENDER, REVALIDATED, MISS,
- * BYPASS); a self-hosted Next server reports `x-nextjs-cache` (HIT, STALE,
- * MISS). STALE and REVALIDATED both mean a reader got a cached body, so they
- * count as hits; PRERENDER means the build's static output served. A missing
- * header is `unknown` rather than a miss so a non-Vercel target does not read
- * as a 100% miss rate.
- */
 export function classifyCacheHeaders(headers) {
   const read = (name) => {
     if (!headers) return null;
@@ -110,11 +82,6 @@ export function classifyCacheHeaders(headers) {
   return { status: "unknown", raw: value };
 }
 
-/**
- * Run `worker` over `items` with at most `limit` in flight. Results keep the
- * input order. A worker that throws yields its rejection as the result entry
- * (`{ error }`) rather than aborting the pool.
- */
 export async function runWithConcurrency(items, limit, worker) {
   const list = Array.from(items);
   const results = new Array(list.length);
@@ -159,9 +126,6 @@ async function fetchWithTimeout(fetchImpl, url, timeoutMs, headers) {
 }
 
 async function navigationRequest(url, headers = {}) {
-  // This is the smallest valid current router state: a client at the app root
-  // with no materialized parallel routes. Next owns both serialization and the
-  // cache-key digest, so upgrades cannot leave a copied tree shape or hash stale.
   const state = prepareFlightRouterStateForRequest(["", {}]);
   const requestHeaders = {
     ...headers,
@@ -255,11 +219,6 @@ async function warmRepresentation(
   };
 }
 
-/**
- * Warm and validate both representations used by a real App Router visit.
- * The two receipts remain separate so an HTML hit cannot conceal a broken
- * navigation response.
- */
 export async function warmUrl(
   url,
   {
@@ -298,12 +257,6 @@ export async function warmUrl(
   };
 }
 
-/**
- * Warm a list of URLs with bounded concurrency. `deadlineAt` (epoch ms) stops
- * dispatching new requests once passed, so a time-boxed caller (the cron
- * handler) returns a partial summary instead of timing out; the skipped URLs
- * are reported as `remaining`.
- */
 export async function warmUrls(urls, options = {}) {
   const {
     concurrency = 4,
@@ -319,9 +272,6 @@ export async function warmUrls(urls, options = {}) {
     }
     return warmUrl(url, { ...options, now });
   });
-  // Skipped lanes return null; `warmUrl` never throws, so a `{ error }` pool
-  // wrapper has no `url`. A failed request is a result with `error` set and
-  // must stay in the list, or the summary can never report a failure.
   return {
     results: results.filter(
       (entry) => entry !== null && typeof entry.url === "string",
@@ -330,9 +280,6 @@ export async function warmUrls(urls, options = {}) {
   };
 }
 
-/**
- * Aggregate warm results into the printed / returned summary.
- */
 export function summarizeWarmResults(
   results,
   { slowest = 10, totalMs = null, remaining = [] } = {},
@@ -411,7 +358,6 @@ export function summarizeWarmResults(
   };
 }
 
-/** Render the summary as the lines the CLI prints. */
 export function formatWarmSummary(summary) {
   const lines = [
     `Warmed ${summary.count} URL(s) in ${(summary.totalMs / 1000).toFixed(1)}s ` +
@@ -445,13 +391,6 @@ export function formatWarmSummary(summary) {
   return lines.join("\n");
 }
 
-/**
- * The locations of one sitemap, moved onto the origin being warmed. A locale
- * mirror publishes no sitemap of its own (its `/sitemap.xml` is the English
- * list with the English origin), so without this every mirror location would
- * fail the same-origin filter and the mirror would warm nothing. A malformed
- * location is dropped; duplicates after rehosting collapse.
- */
 export function rehostUrls(urls, baseUrl) {
   const origin = new URL(baseUrl).origin;
   const rehosted = [];
@@ -467,10 +406,6 @@ export function rehostUrls(urls, baseUrl) {
   return Array.from(new Set(rehosted));
 }
 
-/**
- * Resolve the sitemap URL for a base URL and pick the URLs to warm from it.
- * Nested sitemaps (a `<sitemapindex>`) are followed one level deep.
- */
 export async function collectSitemapUrls(
   baseUrl,
   { fetchImpl = globalThis.fetch, timeoutMs = 20000 } = {},
@@ -514,7 +449,6 @@ async function fetchWithTimeoutText(fetchImpl, url, timeoutMs) {
   }
 }
 
-/** Choose the warm set: substance articles only, or everything with `all`. */
 export function selectWarmUrls(urls, { baseUrl, all = false }) {
   const unique = Array.from(new Set(urls));
   if (all) return unique;

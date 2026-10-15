@@ -1,23 +1,4 @@
 #!/usr/bin/env node
-/**
- * Screenshot a `/dev` tool from a local screenshot-viewer dev server.
- *
- *   npm run dev:journeys-server              # terminal 1, serves 127.0.0.1:3100
- *   npm run dev:screenshot -- /dev/replications
- *   npm run dev:screenshot -- /dev/writing/launch-post --role editor --state frozen --theme light
- *
- * The server side is `lib/auth/devScreenshotViewer.ts`: `/dev` documents render
- * without an account, while every `/api/*` route keeps its own session check.
- * This browser answers the API itself from the deterministic fixtures in
- * `scripts/tools/journeys/fixtures.mjs` (a role, a tool state, synthetic
- * records), so a capture needs no private data and no database, and nothing is
- * posted to the server. `--no-fixtures` skips that and lets the private reads
- * fail as they would for any signed-out visitor, with every non-GET aborted.
- *
- * The capture waits for the shell to settle (see `waitForDevShellReady`) and,
- * with `--ready`, for a specific piece of text, instead of network idle plus a
- * fixed sleep.
- */
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -79,7 +60,6 @@ try {
     colorScheme: values.theme,
     ...(values.touch ? { hasTouch: true, isMobile: true, deviceScaleFactor: 3 } : {}),
   });
-  // "system" lets the emulated colour scheme pick the theme; the site otherwise paints dark.
   await context.addInitScript(() => window.localStorage.setItem("dosewiki-theme", "system"));
   const { blocked } = await installFixtureRoutes(context, { base, fixture, log: (line) => console.warn(line) });
 
@@ -97,7 +77,6 @@ try {
   }
   await waitForDevShellReady(page);
   if (fixture) {
-    // The fixture's session replaces the one the server rendered; wait for it, then settle again.
     await page.getByText(fixture.session.user.name, { exact: true }).first().waitFor({ state: "attached", timeout: 30_000 });
     await waitForDevShellReady(page);
   }

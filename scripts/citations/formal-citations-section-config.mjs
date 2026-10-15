@@ -65,8 +65,6 @@ export const FORMAL_CITATION_SECTIONS = Object.freeze(
   FORMAL_CITATION_SECTION_CONFIG.map((entry) => entry.key),
 );
 
-// Canonical citable article surface, in article order. Every entry must exist
-// in FORMAL_CITATION_SECTION_CONFIG (and vice versa) so the two cannot drift.
 const CITABLE_ARTICLE_SURFACE_ORDER = Object.freeze([
   "summary",
   "pharmacology",
@@ -92,7 +90,6 @@ if (CITABLE_ARTICLE_SURFACE.length !== FORMAL_CITATION_SECTION_CONFIG.length) {
   );
 }
 
-// Article sections that must never receive new public [cite:*] markers.
 export const EXCLUDED_CITATION_SURFACE = Object.freeze([
   "dosage",
   "duration",

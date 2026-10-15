@@ -14,22 +14,6 @@ import {
 } from "@/features/effects/gallery/galleryTypes";
 import { getPublicRoutePath } from "@/utils/publicRouteIdentity";
 
-/**
- * The gallery's URL contract: gallery browse/focus states own their URLs,
- * while an effect's article is the canonical source page for that collection.
- * Defaults are omitted so the canonical browse view is `/replications`.
- *
- *   /replications                       by-artist browse (default)
- *   /replications?view=effect          by-effect browse
- *   /replications?view=year            by-year browse
- *   /replications?q=…&type=…&sort=…    search / media type / time order
- *   /replications/artist/<key>[?type=] one artist's works
- *   /effects/<slug>                    one effect's article collection
- *
- * Parsing is tolerant: junk parameter values read as the default rather than
- * producing an unrepresentable state.
- */
-
 export const REPLICATIONS_PATH = "/replications";
 export const REPLICATION_VIEWER_PARAM = "viewer";
 export const GALLERY_BROWSE_COVER_ID = "replications-gallery-browse";
@@ -48,7 +32,6 @@ export const GALLERY_BROWSE_QUERY_KEYS = [
 ] as const;
 
 const REPLICATION_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
-/** A year rail's key: `2020`, a merged span `1939-1952`, or `undated`. */
 const YEAR_FILTER_PATTERN = /^(?:\d{4}(?:-\d{4})?|undated)$/;
 
 export interface GalleryBrowseState {
@@ -65,14 +48,6 @@ export interface GalleryBrowseState {
   family: GalleryContentFamilyFilter;
 }
 
-/**
- * The canonical browse view: the by-artist axis, newest work first.
- *
- * `sort` is the artist axis's own default, not a global one. Each mode brings
- * its own through `defaultGalleryOrder` — "By effect" defers to the editor's
- * curation — so URL writing and parsing read the default against the view
- * rather than against this object.
- */
 export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
   view: "artist",
   query: "",
@@ -82,14 +57,8 @@ export const GALLERY_BROWSE_DEFAULTS: GalleryBrowseState = {
   ...DEFAULT_GALLERY_TAXONOMY_FILTERS,
 };
 
-/**
- * A focused gallery view: one artist's or one effect's works. A year has no
- * focus page of its own — nothing in the corpus belongs to a year the way a
- * work belongs to an artist or an effect, so a year is a browse grouping only.
- */
 export interface GalleryFocus {
   kind: "artist" | "effect";
-  /** Artist URL key (see `artistUrlKey`) or effect slug. */
   key: string;
 }
 
@@ -118,8 +87,6 @@ export function parseGalleryBrowseState(
     query: params.get("q") ?? "",
     type:
       type === "image" || type === "video" || type === "audio" ? type : "all",
-    // `curated` is an effect-view answer only: there is no editorial playlist
-    // to defer to on an artist or a year, so it reads as that mode's default.
     sort:
       sort === "newest" || sort === "oldest" || (sort === "curated" && view === "effect")
         ? sort
@@ -151,7 +118,6 @@ export function parseGalleryBrowseState(
   };
 }
 
-/** Parse the active overlay work; invalid values fail closed. */
 export function parseReplicationViewerSlug(params: ParamsLike): string | null {
   const slug = params.get(REPLICATION_VIEWER_PARAM);
   return slug && REPLICATION_SLUG_PATTERN.test(slug) ? slug : null;
@@ -161,7 +127,6 @@ function relativeUrl(url: URL): string {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-/** Add or replace the active viewer work without disturbing source state. */
 export function buildReplicationViewerUrl(
   sourceUrl: string,
   slug: string,
@@ -172,7 +137,6 @@ export function buildReplicationViewerUrl(
   return relativeUrl(url);
 }
 
-/** Remove only the overlay work, preserving collection filters and focus. */
 export function closeReplicationViewerUrl(sourceUrl: string): string {
   const url = new URL(sourceUrl, "https://dose.wiki");
   url.searchParams.delete(REPLICATION_VIEWER_PARAM);
@@ -192,10 +156,6 @@ export function buildGalleryBrowseUrl(
   if (state.type && state.type !== "all") {
     params.set("type", state.type);
   }
-  // Omitted when it matches the view's own default, so the canonical URL of
-  // each mode stays clean: `/replications` and `?view=effect` carry no sort.
-  // A named direction survives a round trip through another view so toggling
-  // back does not silently lose the reader's ordering.
   if (state.sort && state.sort !== defaultGalleryOrder(state.view ?? "artist")) {
     params.set("sort", state.sort);
   }

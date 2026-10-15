@@ -9,72 +9,26 @@ import { Icon, type IconName } from "./Icon";
 import { cn } from "@/lib/utils";
 
 interface IndexCardProps {
-  /** Card title */
   title: string;
-  /** Icon to display */
   icon: IconName;
-  /** Count to display in parentheses after title */
   count: number;
-  /** Card content */
   children: ReactNode;
-  /** Whether the card starts expanded (default: true) */
   defaultExpanded?: boolean;
-  /** Controlled expanded state. */
   expanded?: boolean;
-  /** Called when the expand/collapse control changes. */
   onExpandedChange?: (expanded: boolean) => void;
-  /** Stable id for the collapsible content region. */
   contentId?: string;
-  /** Optional small text below the title. */
   description?: ReactNode;
-  /** Optional title href. */
   titleHref?: string;
-  /** Optional click handler for the title (makes it a link) */
   onTitleClick?: () => void;
-  /** Optional click handler for the icon */
   onIconClick?: () => void;
-  /** Accessible label for the optional icon action */
   iconActionLabel?: string;
-  /** Icon to show when onIconClick has been triggered (e.g., checkmark for "copied") */
   iconActiveState?: boolean;
-  /** Optional accessible label override for the expand/collapse button. */
   toggleLabel?: string;
-  /** Surface tone: "dim" = neutral grey panel instead of the purple index surface. */
   tone?: "default" | "dim";
-  /**
-   * Hide the leading icon entirely. Use when the icon would be redundant —
-   * e.g. single-class substance-index tabs where every panel shares the same
-   * category glyph. The header collapses to title + chevron. Note: the icon
-   * doubles as the copy-list control, so that affordance is dropped too.
-   */
   hideIcon?: boolean;
-  /**
-   * Controls that sit between the title and the expand toggle. The public
-   * index passes none; the /dev index layout editor passes its per-panel
-   * handles so the editable card keeps the reader's header composition.
-   */
   actions?: ReactNode;
 }
 
-/**
- * Vertical centring of the digits, in two layers:
- *
- * 1. The inner block is trimmed to cap height with `text-box`, so a flex
- *    centre puts the cap-height centre on the pill centre by definition,
- *    whatever the face's ascent/descent split (Inter's is mild, Titillium
- *    Web's is not).
- * 2. The pill's line-height equals its height, so where `text-box` is not
- *    supported the single line box fills the pill and the glyphs centre on
- *    the font's content area instead, which both shipped faces land within
- *    a pixel of centre.
- *
- * No sub-pixel transform anywhere in the badge or around it: Safari and
- * Chromium snap glyphs and backgrounds to the device grid independently
- * under a fractional translate, which is how the Clinical face ended up a
- * pixel high in some clients and low in others.
- *
- * `leading-*` stays after `text-[..]`: tailwind-merge otherwise drops it.
- */
 export function IndexCardCountBadge({
   count,
   size = "md",
@@ -85,10 +39,6 @@ export function IndexCardCountBadge({
   return (
     <span
       className={cn(
-        // 0.62rem computed to 9.92px, under any legible floor for functional
-        // text; these are the only numbers three public indexes print, so
-        // both sizes share one 11px face in one 20px box, and `sm` differs
-        // only by its quieter fill.
         "theme-index-card-count inline-flex h-5 min-w-6 shrink-0 items-center justify-center rounded-chip px-1.5 text-[11px] font-semibold leading-5 tabular-nums tracking-normal",
         size === "sm" && "theme-index-card-count-sm",
       )}
@@ -99,14 +49,6 @@ export function IndexCardCountBadge({
   );
 }
 
-/**
- * Shared card component for index pages (Substance Index, Effect Index).
- *
- * Provides consistent styling for:
- * - Card container with glass effect
- * - Header with icon, title (with count), and expand/collapse chevron
- * - Collapsible content area
- */
 export const IndexCard = memo(function IndexCard({
   title,
   icon,
@@ -175,21 +117,11 @@ export const IndexCard = memo(function IndexCard({
     <div className={iconClassName}>{iconContent}</div>
   );
 
-  // The count badge rides inline with the title and only drops to its own line
-  // when a narrow panel leaves no room beside it. `flex-wrap` + `min-w-0` let
-  // the title claim the row and bump the badge down at thin widths, while short
-  // titles keep it inline, centered on the title's line box. Same treatment
-  // whether or not the leading icon is shown; the icon is rendered separately
-  // in the header grid.
   const titleElement = (
     <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-left">
       <h2 className="theme-index-card-title theme-index-card-title-accent min-w-0 text-lg font-bold leading-snug tracking-tight">
         <span className="line-clamp-2 break-words">{title}</span>
       </h2>
-      {/* The title line box carries more ascender than descender room, so
-          centering on it lands the badge about a pixel below the cap-height
-          center in both faces. A whole-pixel layout offset corrects that; a
-          fractional transform would take the pill off the device grid. */}
       <span className="relative -top-px flex">
         <IndexCardCountBadge count={count} />
       </span>
@@ -206,7 +138,6 @@ export const IndexCard = memo(function IndexCard({
       className="group w-full"
     >
       <section>
-        {/* Header */}
         <header
           className={cn(
             "grid items-center gap-3 pb-2",
@@ -274,30 +205,15 @@ export const IndexCard = memo(function IndexCard({
 });
 
 interface IndexCardSectionProps {
-  /** Anchor id, when the section is a link or table-of-contents destination. */
   id?: string;
-  /** Section title (optional - if not provided, no header is shown) */
   title?: string;
-  /** Section icon (optional) */
   icon?: IconName;
-  /** Count to display after title */
   count?: number;
-  /** Section content */
   children: ReactNode;
-  /** Whether to show a divider above this section */
   showDivider?: boolean;
-  /** Destination of the section's own page, when it has one. */
   titleHref?: string;
 }
 
-/**
- * Section within an IndexCard for grouping content with optional headers.
- *
- * A section that owns a page links from its title, the same affordance the card
- * title uses. Only the name is the link — the icon and the count describe the
- * group rather than naming the destination, and a link that swallows them
- * leaves a wide dead-looking target beside the words that matter.
- */
 export const IndexCardSection = memo(function IndexCardSection({
   id,
   title,
@@ -345,9 +261,6 @@ interface IndexCardListProps {
   children: ReactNode;
 }
 
-/**
- * List container for IndexCard items with consistent spacing.
- */
 export const IndexCardList = memo(function IndexCardList({
   children,
 }: IndexCardListProps) {
@@ -355,41 +268,17 @@ export const IndexCardList = memo(function IndexCardList({
 });
 
 interface IndexCardListItemProps {
-  /** Optional anchor id for deep links to this item */
   id?: string;
-  /** Item label */
   label: string;
-  /** Optional href for direct navigation */
   href?: string;
-  /** Click handler - use this OR (slug + onSelect) */
   onClick?: () => void;
-  /** Item slug - use with onSelect for stable callbacks */
   slug?: string;
-  /** Select handler - receives slug, use with slug prop for stable callbacks */
   onSelect?: (slug: string) => void;
-  /**
-   * Trailing qualifier for the row — the frequency an effect occurs at, say.
-   * Set quietly at the row's far edge so a column of them reads as one scannable
-   * rail rather than competing with the labels.
-   */
   meta?: ReactNode;
-  /** Optional contextual controls, outside the navigation link or button. */
   actions?: ReactNode;
-  /**
-   * Indent level. `1` marks a row as belonging to the one above it — a
-   * sub-effect under its parent effect — with a hollow bullet, so the
-   * relationship reads without a second list nested inside the first.
-   */
   depth?: 0 | 1;
 }
 
-/**
- * List item for IndexCard with bullet point styling.
- *
- * For optimal memoization, prefer using slug+onSelect pattern over inline onClick:
- * - Good: <IndexCardListItem label="..." slug={item.slug} onSelect={handleSelect} />
- * - Avoid: <IndexCardListItem label="..." onClick={() => handleSelect(item.slug)} />
- */
 export const IndexCardListItem = memo(function IndexCardListItem({
   id,
   label,

@@ -108,11 +108,6 @@ function ShowcasePoster({
   );
 }
 
-/**
- * The autoplay gate's viewport half. Where IntersectionObserver does not
- * exist the gate stays closed, which degrades to poster + play rather than
- * to a video looping off-screen.
- */
 function useStageInView() {
   const ref = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
@@ -129,20 +124,9 @@ function useStageInView() {
   return { ref, inView };
 }
 
-/**
- * The crossfade: 240ms ease-out-quart between works. Reduced motion collapses
- * it to a short linear fade — an opacity-only change with no eased flourish —
- * and the gate above separately kills autoplay.
- */
 const slideFadeClassName =
   "absolute inset-0 transition-opacity duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:duration-100 motion-reduce:ease-linear";
 
-/**
- * The round on-media control chip shared by arrows, pause, mute, and the +N
- * tile. Literal black + `--theme-text-on-media`, not surface tokens: the stage
- * below is a theme-invariant dark media well, so its chrome must not follow
- * the page theme either — the same reasoning as MediaTile's black scrim.
- */
 const mediaControlClassName = cn(
   "theme-media-tile-title grid flex-none place-items-center rounded-full bg-black/60",
   "opacity-70 backdrop-blur-sm transition-opacity hover:opacity-100 focus-visible:opacity-100",
@@ -150,7 +134,6 @@ const mediaControlClassName = cn(
   focusRingClassName,
 );
 
-/** The stored session sound choice, muted when storage is denied or unset. */
 function readStoredViewerMuted(): boolean {
   try {
     return resolveViewerMuted(
@@ -162,78 +145,20 @@ function readStoredViewerMuted(): boolean {
 }
 
 export interface ReplicationShowcaseProps {
-  /** Compact works rendered in the article card. */
   works: readonly ShowcaseWork[];
-  /** Complete source collection walked by the expanded viewer. */
   collectionWorks?: readonly ShowcaseWork[];
-  /** The full matched-corpus size; drives the "+N" affordance. */
   totalCount?: number;
-  /**
-   * Where the complete collection can be lazily fetched
-   * (`/api/replications/showcase`). When set, the server serializes only the
-   * compact `works` strip; the expanded viewer's long tail — and `?viewer=`
-   * deep links to works beyond the strip resolve against the fetched collection.
-   * Read failures remain retryable instead of silently truncating the viewer.
-   * Locale mirrors request their own translated collection.
-   */
   collectionSource?: { kind: "substance" | "effect"; slug: string };
-  /** The owning substance article's slug. */
   substanceSlug?: string;
-  /** The owning effect article's slug. */
   effectSlug?: string;
-  /** Persistent identity shown by the expanded viewer. */
   collectionLabel?: string;
-  /**
-   * Show the active work's creator line in the top scrim. The Artist Page
-   * passes false: its identity header already names the artist, and a
-   * per-stage byline would only link the page to itself.
-   */
   showCreator?: boolean;
-  /**
-   * Render the collection heading (label · count) above the card. The
-   * embed passes false: its host already heads the section, so the card
-   * stands alone and the section carries the label as `aria-label`.
-   */
   showHeading?: boolean;
-  /** Only an above-the-fold opening stage should request eager poster loading. */
   priority?: boolean;
-  /**
-   * The heading's document level. Article embeds sit under a section `h2`, so
-   * `3` is right there and is the default. A page whose only heading above
-   * this is its `h1` (the Artist Page) passes `2`, because skipping straight
-   * to `h3` leaves that outline with a hole in it.
-   */
   headingLevel?: 2 | 3;
-  /**
-   * Page-level viewer ownership. A page that renders several showcases over
-   * one collection (the Artist Page) resolves the `?viewer=` deep link and
-   * mounts the overlay itself; a controlled showcase reports launches through
-   * `onOpenWork` instead of opening its own overlay, renders no deep-link
-   * cover, unavailable notice, or rights footnote, and writes its fallback
-   * hrefs against the controller's `sourcePath`. Callers must keep the object
-   * referentially stable.
-   */
   controller?: ReplicationShowcaseController;
 }
 
-/**
- * The Replication Showcase: a height-capped 16:9 stage carrying every control
- * as a compact on-media overlay, rendered as the last child of the Subjective
- * Effects visual group. Figure scale, not hero scale: callers cap `works`
- * (SHOWCASE_WORK_CAP) and the rail closes with a "+N" gallery link.
- *
- * Overlay anatomy — none of it changes the stage's shape or size:
- *  - top scrim: title (→ permalink), artist (→ profile / own site), the
- *    demonstrated effect chip, and the rights glyph;
- *  - bottom scrim: the manual-selection thumbnail tablist plus the separate
- *    inline play/pause control.
- *
- * Selection is static — no auto-advance timer; the only motion loop is the
- * active motion itself, under the autoplay gate (in viewport ∧ fine pointer ∧
- * motion-ok) unless the reader's own play/pause verdict overrides it. Inline
- * motion is always muted and letterboxed with `object-contain`, never cropped:
- * a replication's composition is the content.
- */
 export function ReplicationShowcase({
   works,
   collectionWorks = works,
@@ -252,10 +177,6 @@ export function ReplicationShowcase({
   const baseId = useId();
   const CollectionHeading = headingLevel === 2 ? "h2" : "h3";
   const [activeIndex, setActiveIndex] = useState(0);
-  /**
-   * The reader's explicit play/pause verdict for one work; it outranks the
-   * autoplay gate in both directions until the selection changes.
-   */
   const [playOverride, setPlayOverride] = useState<{
     slug: string;
     playing: boolean;
@@ -283,27 +204,14 @@ export function ReplicationShowcase({
     collectionLabel,
     controller,
   });
-  /**
-   * The inline stage's mute state, shared with the fullscreen viewer through
-   * its session sound preference. Muted until the mount effect below reads
-   * storage, keeping the server and first client render identical.
-   */
   const [inlineMuted, setInlineMuted] = useState(true);
   const [readyMotionSource, setReadyMotionSource] = useState<string | null>(null);
   const [failedMotionSource, setFailedMotionSource] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  /** Latest effective muted value, readable from the stable attach callback. */
   const effectiveMutedRef = useRef(true);
-  // Identity-stable on purpose: an inline ref callback re-runs per render,
-  // and its detach pass would tear down the live element. On detach the
-  // media pipeline is released immediately. A discarded video otherwise
-  // holds its player (and any in-flight fetch) until GC, and browsers cap
-  // live players per page before silently refusing new loads.
   const attachStageVideo = useCallback((element: HTMLVideoElement | null) => {
     if (element) {
       videoRef.current = element;
-      // Applied by ref as well as prop: React has been unreliable about
-      // reflecting `muted` onto the element.
       element.muted = effectiveMutedRef.current;
       return;
     }
@@ -349,16 +257,11 @@ export function ReplicationShowcase({
   const activeIsMoving = active.type === "video" || activeGifReady;
   const activeHasAudio = active.type === "video" && active.hasAudio !== false;
   const activeEffectiveMuted = activeHasAudio ? inlineMuted : true;
-  // Autoplay uses the stored compact, silent preview when available. Explicit
-  // play or sound intent retains the full work; missing previews keep the
-  // existing viewport-gated full-source behavior.
   const useCompactPreview =
     active.type === "video" &&
     Boolean(active.previewUrl) &&
     activeEffectiveMuted &&
     playOverride?.slug !== active.slug;
-  // Render-phase mirror write: idempotent, read only from commit-phase
-  // code (the attach callback) and gesture handlers.
   effectiveMutedRef.current = activeEffectiveMuted;
   const activeMotionSource = activeGifLike
     ? activeGifReady
@@ -369,8 +272,6 @@ export function ReplicationShowcase({
     ? active.motionPosterUrl
     : activeIsMoving
       ? active.thumbnailUrl
-      // Resize from the master for dense stages rather than enlarging a small
-      // thumbnail. AppImage delivers a responsive rendition, not master bytes.
       : isManagedResponsiveImage(active.url)
         ? active.url
         : (active.thumbnailUrl ?? active.url);
@@ -401,7 +302,6 @@ export function ReplicationShowcase({
     });
   };
 
-  /** Manual-activation tablist: arrows/Home/End move focus, Enter/Space activates. */
   const handleTabKeyDown = (
     event: React.KeyboardEvent<HTMLButtonElement>,
     index: number,
@@ -423,7 +323,6 @@ export function ReplicationShowcase({
     }
   };
 
-  /** Pause remains separate from the preview tap, which always opens the viewer. */
   const videoControls =
     activeIsMoving && activePlaying ? (
       <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
@@ -437,8 +336,6 @@ export function ReplicationShowcase({
             }
             onClick={() => {
               const nextMuted = !inlineMuted;
-              // Flip the live element inside the gesture: browsers only
-              // honor an unmute that happens during user activation.
               if (videoRef.current) videoRef.current.muted = nextMuted;
               setInlineMuted(nextMuted);
               setPlayOverride({ slug: active.slug, playing: true });
@@ -448,8 +345,6 @@ export function ReplicationShowcase({
                   nextMuted ? "off" : "on",
                 );
               } catch {
-                // Best effort: a blocked write only means the choice
-                // lasts until this stage unmounts.
               }
               setLiveMessage(
                 nextMuted
@@ -479,18 +374,12 @@ export function ReplicationShowcase({
       </div>
     ) : null;
 
-  // One key for the whole footnote; the link is spliced back in at its
-  // placeholder so a translation can move it.
   const [rightsBefore, rightsAfter] = t(
     "Replication media is credited to its creator; rights remain with the rightsholder. See the {{terms}} to correct a credit or request removal.",
   ).split("{{terms}}");
 
   return (
     <>
-      {/* Before the article card in document order: a `?viewer=` deep link's
-          first paint is black, and the resolution effect above dismisses the
-          cover if the slug is unknown here. A controlled showcase renders no
-          cover or notice — the page-level controller owns both. */}
       {controller ? null : <ViewerDeepLinkCover />}
       <section
         aria-labelledby={showHeading ? collectionHeadingId : undefined}
@@ -523,14 +412,7 @@ export function ReplicationShowcase({
           </Alert>
         ) : null}
 
-        {/* One dark media card. On phones the on-media chrome leaves the
-          artwork entirely: the info row sits above the media and the thumb
-          band below it, as compact card rows. From `sm` up both float over
-          the stage as scrim overlays (absolute positioning ignores the DOM
-          order, which is kept caption-first for readers). */}
         <div className="border-dose-border relative overflow-hidden rounded-2xl border bg-[oklch(0.14_0.024_318)]">
-          {/* Title, artist, demonstrated effect, rights — compact, spread
-            across the card's width, never resizing the media. */}
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2.5 py-1.5 sm:gap-y-1 sm:px-3 sm:pb-7 sm:pt-2 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:top-0 sm:z-10 sm:bg-gradient-to-b sm:from-black/75 sm:via-black/35 sm:to-transparent">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
               <Link
@@ -628,10 +510,6 @@ export function ReplicationShowcase({
               />
 
               {activePlaying ? (
-                // Replications are non-verbal visual media: there is no
-                // dialogue to caption, and title, artist and rights context
-                // are exposed by the surrounding showcase chrome (same
-                // grounds as the fullscreen viewer's stage video).
                 // eslint-disable-next-line jsx-a11y/media-has-caption
                 <video
                   src={activeMotionSource}
@@ -649,9 +527,6 @@ export function ReplicationShowcase({
                     active.duration,
                   )}
                   playsInline
-                  // A non-looping work (no recorded duration, or 60s+) ends on
-                  // whatever its last frame is — often black. Drop back to the
-                  // poster + play state instead of sitting on the dead frame.
                   onEnded={() => {
                     setPlayOverride({ slug: active.slug, playing: false });
                   }}
@@ -711,7 +586,6 @@ export function ReplicationShowcase({
                 mediaControlClassName,
                 "absolute bottom-2 left-2 z-10 flex size-11 items-center justify-center",
                 "gap-1.5 sm:h-8 sm:w-auto sm:px-3",
-                // Clear the thumbnail rail where it overlays the stage.
                 count > 1 ? "sm:bottom-14" : undefined,
               )}
             >
@@ -724,15 +598,11 @@ export function ReplicationShowcase({
             {videoControls}
           </div>
 
-          {/* The thumbnail rail: below the media on phones, a bottom scrim
-            overlay from `sm` up. */}
           {count > 1 ? (
             <div className="relative z-[3] flex items-end gap-2 px-2 pb-2 pt-1 sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-0 sm:bg-gradient-to-t sm:from-black/75 sm:via-black/35 sm:to-transparent sm:pt-8">
               <div
                 className={cn(
                   "pointer-events-auto flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1.5 overflow-x-auto px-0.5 py-0.5",
-                  // Keep scrolled thumbs from sliding under the overlaid video
-                  // controls where the band and the stage corner coincide.
                   videoControls ? "sm:pr-20" : undefined,
                 )}
               >
@@ -846,8 +716,6 @@ export function ReplicationShowcase({
             </div>
           ) : null}
         </div>
-        {/* A controlled page carries one page-level footnote instead of one
-            per stage. */}
         {controller ? null : (
           <p className="theme-text-muted px-1 text-xs leading-5">
             {rightsBefore}
@@ -875,7 +743,6 @@ export function ReplicationShowcase({
           onOpenChange={(nextOpen) => {
             if (!nextOpen) {
               closeViewer();
-              // The viewer may have flipped the session sound choice.
               setInlineMuted(readStoredViewerMuted());
               dismissViewerDeepLinkCover();
             }

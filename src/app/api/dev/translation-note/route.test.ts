@@ -20,7 +20,6 @@ vi.mock("@server/next/publishPublicCache", () => cache);
 vi.mock("@server/data/publicData.reads", () => ({
   getPublicDataReadAdapter: () => ({
     getPublicSubstanceBySlug: async (slug: string) => (source.record?.slug === slug ? source.record : null),
-    // The Inbox also scans the translation inventory for QA findings.
     getPublicSubstanceSlugs: async () => (source.record ? [source.record.slug] : []),
     getPublicEffects: async () => [],
     getPublicTripReportRecords: async () => [],
@@ -41,7 +40,6 @@ let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
   for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  // Adapt the transport only. The routes, access checks, stores, and SQL are production code.
   transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
   transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
 }, 180_000);
@@ -83,14 +81,12 @@ describe("translator's notes route", () => {
     expect((await post({ action: "approve", expectedRevision: 3 })).status).toBe(200);
     expect(await readerNotes()).toEqual({ "history-culture": revised });
 
-    // Restoring the first draft makes a new draft; the approved note stays until it is approved again.
     const restored = await post({ action: "restore", expectedRevision: 4, restoreRevision: 1 });
     expect(restored.status).toBe(200);
     expect(await note()).toMatchObject({ status: "draft", draft: NOTE, approved: revised, revision: 5 });
     expect(await readerNotes()).toEqual({ "history-culture": revised });
     expect((await (await read(LOCALE, "history-culture")).json()).history.map((h: { action: string }) => h.action)).toEqual(["restore", "approve", "save", "approve", "save"]);
 
-    // A stale revision writes nothing.
     expect((await post({ action: "approve", expectedRevision: 4 })).status).toBe(409);
     expect((await note()).revision).toBe(5);
   });

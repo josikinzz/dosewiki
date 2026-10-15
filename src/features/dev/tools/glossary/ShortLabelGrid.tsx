@@ -11,16 +11,11 @@ import { UI_STATUS_LABEL, UI_STATUS_TONE, type UiEditDrafts } from "./UiTranslat
 
 const endpoint = "/api/dev/translation-workbench/approve-many";
 const PAGE_SIZE = 100;
-/** Larger selections ask first so a stray "select all" cannot approve thousands of rows. */
 const CONFIRM_ABOVE = 200;
 const unplaced = "No recorded location";
 
 const savedTarget = (row: UiTranslationRow) => row.draft?.target ?? row.approved?.target ?? row.compiledTarget ?? "";
 
-/**
- * Dense review for labels of three words or fewer that still need a person.
- * Only rows the reviewer ticks are approved, each as its own recorded approval.
- */
 export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string; rows: readonly UiTranslationRow[]; edits: UiEditDrafts; update: (rows: UiTranslationRow[]) => void }) {
   const [, rerender] = useState(0);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -54,7 +49,6 @@ export function ShortLabelGrid({ locale, rows, edits, update }: { locale: string
     const results: UiBatchApprovalResult[] = [];
     let stopped: string | null = null;
     try {
-      // One request per chunk; each label is still its own transaction on the server.
       for (let start = 0; start < items.length; start += UI_BATCH_MAX_ITEMS) {
         try { results.push(...(await translationRequest<UiBatchApprovalResponse>(endpoint, { locale, items: items.slice(start, start + UI_BATCH_MAX_ITEMS) })).results); }
         catch (cause) { stopped = cause instanceof Error ? cause.message : "The batch approval request failed."; break; }

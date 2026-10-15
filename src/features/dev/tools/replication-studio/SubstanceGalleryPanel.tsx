@@ -125,17 +125,14 @@ export function SubstanceGalleryPanel({
     edit,
     focus,
   } = controller;
-  // The Excluded shelf starts closed on every substance.
   const [excludedOpenFor, setExcludedOpenFor] = useState<string | null>(null);
   const excludedOpen = excludedOpenFor !== null && excludedOpenFor === substanceSlug;
-  /** A slug as a work the conflict view can draw: the board's own rows first, then the corpus. */
   const workOf = useMemo(() => {
     const works = new Map<string, ConflictWork>();
     for (const row of corpusRows) works.set(row.slug, row);
     for (const match of matches) works.set(match.replication.slug, match.replication);
     return (slug: string) => works.get(slug) ?? null;
   }, [corpusRows, matches]);
-  // A showcase save changes a live article gallery, so the shell only discards.
   useUnsavedWork({
     kind: "discard-only",
     because: "This change would go live. Publish it from the tool; leaving here never publishes.",
@@ -146,11 +143,6 @@ export function SubstanceGalleryPanel({
     discard: save.discard,
   });
 
-  /**
-   * Excluding the last row in a band leaves no neighbour to receive focus, so
-   * the controller bumps a token and the shelf toggle — the nearest thing the
-   * action produced — takes it instead of the document body.
-   */
   const shelfToggleRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     if (focus.shelfToken === 0) return;

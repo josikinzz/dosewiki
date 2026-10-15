@@ -1,8 +1,3 @@
-/**
- * EffectEntryEditor - Edit a single effect entry (name + description).
- * Used within SubcategoryEditor to manage individual effects.
- */
-
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,19 +7,12 @@ import { EditorField } from "@/features/dev/components";
 import { useGrowToContent } from "./useGrowToContent";
 
 export interface EffectEntryEditorProps {
-  /** The effect name */
   name: string;
-  /** The effect description */
   description: string;
-  /** Called when name changes */
   onNameChange: (name: string) => void;
-  /** Called when description changes */
   onDescriptionChange: (description: string) => void;
-  /** Called when delete button is clicked */
   onRemove: () => void;
-  /** Prefix for input IDs */
   idPrefix: string;
-  /** Index for accessibility */
   index: number;
 }
 
@@ -41,7 +29,6 @@ export function EffectEntryEditor({
 
   return (
     <div className="group relative flex gap-2 rounded-lg border border-[var(--theme-border-subtle)] [background:var(--theme-frosted-control-on-panel-bg)] p-3 transition hover:border-[var(--theme-frosted-panel-hover-border)]">
-      {/* Effect name and description */}
       <div className="min-w-0 flex-1 space-y-3">
         <EditorField htmlFor={`${idPrefix}-effect-${index}-name`} label="Effect name">
           <Input
@@ -65,7 +52,6 @@ export function EffectEntryEditor({
         </EditorField>
       </div>
 
-      {/* Delete button */}
       <Button
         type="button"
         variant="ghostDestructive"

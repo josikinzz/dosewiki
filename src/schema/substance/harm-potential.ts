@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-/** Severity levels for addiction, dependence, and risk assessments */
 export const riskLevelSchema = z.enum([
   "extremely_low",
   "low",
@@ -9,7 +8,6 @@ export const riskLevelSchema = z.enum([
   "extremely_high",
 ]);
 
-/** Carcinogenicity classification levels */
 export const carcinogenicityLevelSchema = z.enum([
   "confirmed",
   "probable",
@@ -18,7 +16,6 @@ export const carcinogenicityLevelSchema = z.enum([
   "unknown",
 ]);
 
-/** Evidence level for carcinogenicity studies */
 export const evidenceLevelSchema = z.enum([
   "none",
   "negative",
@@ -26,7 +23,6 @@ export const evidenceLevelSchema = z.enum([
   "positive",
 ]);
 
-/** Antibiotic function classification levels */
 export const antibioticFunctionLevelSchema = z.enum([
   "confirmed",
   "probable",
@@ -35,7 +31,6 @@ export const antibioticFunctionLevelSchema = z.enum([
   "unknown",
 ]);
 
-/** Risk field with severity level and description */
 const riskFieldSchema = z
   .object({
     level: riskLevelSchema.nullable(),
@@ -43,7 +38,6 @@ const riskFieldSchema = z
   })
   .passthrough()
 
-/** Addiction subsection with psychological and physical components */
 const addictionSchema = z
   .object({
     psychological: riskFieldSchema.optional(),
@@ -51,7 +45,6 @@ const addictionSchema = z
   })
   .passthrough()
 
-/** Structured LD50 entry */
 const ld50EntrySchema = z.object({
   species: z.string(),
   route: z.string(),
@@ -59,13 +52,11 @@ const ld50EntrySchema = z.object({
   unit: z.string(),
 })
 
-/** Lethal dosage container with LD50 data and freeform notes */
 const lethalDosageSchema = z.object({
   ld50: z.array(ld50EntrySchema).optional(),
   notes: z.string().optional(),
 })
 
-/** Structured organ toxicity entry */
 const organToxicityEntrySchema = z.object({
   system: z.string(),
   findings: z.string(),
@@ -73,10 +64,8 @@ const organToxicityEntrySchema = z.object({
   notes: z.string(),
 })
 
-/** Human epidemiological evidence for carcinogenicity */
 const humanEpidemiologicalEvidenceSchema = evidenceLevelSchema.nullable()
 
-/** Animal model evidence for carcinogenicity */
 const animalModelEvidenceSchema = z
   .object({
     level: evidenceLevelSchema.nullable(),
@@ -84,7 +73,6 @@ const animalModelEvidenceSchema = z
   })
   .nullable()
 
-/** In vitro evidence for carcinogenicity */
 const inVitroEvidenceSchema = z
   .object({
     type: z.string(),
@@ -92,7 +80,6 @@ const inVitroEvidenceSchema = z
   })
   .nullable()
 
-/** Mechanistic evidence for carcinogenicity */
 const mechanisticEvidenceSchema = z
   .object({
     level: evidenceLevelSchema.nullable(),
@@ -100,7 +87,6 @@ const mechanisticEvidenceSchema = z
   })
   .nullable()
 
-/** Detailed carcinogenicity evidence breakdown */
 const carcinogenicityEvidenceSchema = z
   .object({
     human_epidemiological: humanEpidemiologicalEvidenceSchema,
@@ -110,7 +96,6 @@ const carcinogenicityEvidenceSchema = z
   })
   .nullable()
 
-/** Carcinogenicity subsection with level, evidence, and description */
 const carcinogenicitySchema = z
   .object({
     level: carcinogenicityLevelSchema.nullable(),
@@ -119,7 +104,6 @@ const carcinogenicitySchema = z
   })
   .passthrough()
 
-/** Antibiotic function subsection */
 const antibioticFunctionSchema = z
   .object({
     level: antibioticFunctionLevelSchema.nullable(),
@@ -127,7 +111,6 @@ const antibioticFunctionSchema = z
   })
   .passthrough()
 
-/** Toxicity subsection with structured data - accepts both new objects and legacy strings */
 const toxicitySchema = z
   .object({
     lethal_dosage: lethalDosageSchema.optional(),
@@ -139,7 +122,6 @@ const toxicitySchema = z
   })
   .passthrough()
 
-/** Harm potential section - passthrough for legacy 'risks' object */
 export const harmPotentialSchema = z
   .object({
     addiction: addictionSchema.optional(),

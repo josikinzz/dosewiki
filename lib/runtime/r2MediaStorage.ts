@@ -86,7 +86,6 @@ function uploadRequest(object: R2MediaObject) {
   return { uploadUrl, uploadHeaders, method: "PUT" as const };
 }
 
-/** Authorizes only these bytes at an immutable key. The server alone can issue the finish receipt. */
 export function startR2MediaUpload(object: R2MediaObject, actorEmail: string) {
   assertDataWritesNotFrozen("replication-studio.upload-start");
   const config = storageConfig();
@@ -181,7 +180,6 @@ export function r2MediaPublicUrl(r2Key: string): string {
   return `${process.env.REPLICATION_MEDIA_BASE_URL!.replace(/\/+$/, "")}/${r2Key}`;
 }
 
-/** Operator preflight verifies bytes outside the retryable database transaction. */
 export async function verifyProfileAvatarForImport(
   r2Key: string,
   profileKey: string,
@@ -206,7 +204,6 @@ export async function verifyProfileAvatarForImport(
   }, config);
 }
 
-/** Pure authenticated evidence check; never reads storage from a SQL handler. */
 export function assertProfileAvatarImportReceipt(
   token: string,
   profileKey: string,
@@ -225,7 +222,6 @@ export function assertProfileAvatarImportReceipt(
   }
 }
 
-/** Withdrawal markers are authoritative, including when origin bytes still exist. */
 export async function assertR2MediaNotWithdrawn(r2Key: string): Promise<void> {
   const config = storageConfig();
   objectUrl(config, r2Key);
@@ -240,7 +236,6 @@ export async function assertR2MediaNotWithdrawn(r2Key: string): Promise<void> {
   throw new Error("Media withdrawal status could not be verified.");
 }
 
-/** Stream the stored bytes: metadata is not proof that a client uploaded the claimed digest. */
 async function verifyR2MediaObject(object: R2MediaObject, source?: FileHandle): Promise<void> {
   const config = storageConfig();
   const url = objectUrl(config, object.r2Key);
@@ -275,7 +270,6 @@ async function verifyR2MediaObject(object: R2MediaObject, source?: FileHandle): 
   await assertR2MediaNotWithdrawn(object.r2Key);
 }
 
-/** Prepare private variants only after byte verification and before publication evidence. */
 async function prepareR2MediaForPublication(object: R2MediaObject): Promise<void> {
   if (!/\.(?:jpg|jpeg|png|webp|avif)$/.test(object.r2Key)) {
     await verifyR2MediaObject(object);
@@ -325,7 +319,6 @@ async function prepareR2MediaForPublication(object: R2MediaObject): Promise<void
   }
 }
 
-/** Small trusted server uploads (avatars) share the same immutable objects and verification. */
 export async function uploadR2Media(bytes: Uint8Array, mimeType: string, extension: string): Promise<R2MediaObject> {
   const buffer = bytes.buffer;
   if (!(buffer instanceof ArrayBuffer)) throw new Error("Media uploads require ArrayBuffer-backed bytes.");

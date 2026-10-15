@@ -9,8 +9,6 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const script = "scripts/postgres/rebuild-derived-tables.ts";
 const OPERATION = "postgres-rebuild-derived";
 
-// A loopback listener stands in for Postgres: every backfill mutation needs a
-// connection, so a run that opens none performed no mutation.
 let server;
 let connections = 0;
 let target;

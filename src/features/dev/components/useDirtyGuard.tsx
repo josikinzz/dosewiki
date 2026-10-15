@@ -17,11 +17,6 @@ export interface DirtyGuardCopy {
   onDiscard?: () => void;
   canDiscard?: boolean;
   container?: HTMLElement | null;
-  /**
-   * Whether this guard also holds the browser tab open on unload. A /dev tool
-   * that reports to the shell's unsaved-work registry passes false: the shell
-   * owns unload, and this guard keeps only the tool's own switches.
-   */
   warnOnUnload?: boolean;
 }
 
@@ -29,16 +24,6 @@ const DEFAULT_TITLE = "Discard unsaved changes?";
 const DEFAULT_DESCRIPTION =
   "This draft has changes that are not saved. Continue only if you want to discard them.";
 
-/**
- * Stops a draft from being dropped silently. `guard(proceed)` runs `proceed`
- * at once when the editor is clean; when dirty it opens a "Keep editing" /
- * "Discard changes" dialog and only runs `proceed` after the discard button.
- * While dirty, closing or reloading the browser tab also prompts, unless
- * `warnOnUnload` is false because the shell's registry owns unload.
- *
- * Wrap every rail row click, group tab, filter, kind toggle and Close that
- * would replace the current draft. Render `dialog` once in the tab.
- */
 export function useDirtyGuard(
   isDirty: boolean,
   copy?: DirtyGuardCopy,
@@ -46,8 +31,6 @@ export function useDirtyGuard(
   const [pending, setPending] = useState<(() => void) | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Read through a ref so `guard` stays referentially stable for callers that
-  // memoise row handlers.
   const dirtyRef = useRef(isDirty);
   dirtyRef.current = isDirty;
 

@@ -9,12 +9,8 @@ import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { getGalleryBrowseIndex, hydrateGalleryPage } from "./galleryBrowseIndex";
 import { getLocalizedEffectNames } from "@server/translation/localizedRecords";
 
-/** The same focused membership and curated ordering as the Artist Page. */
 export async function getArtistViewerGroups(key: string, locale: string) {
   const language = parseUiLocale(locale);
-  // Artist keys and membership are canonical. Resolve the one requested group
-  // first; translating the complete gallery cannot change that identity and
-  // only delays a direct viewer request.
   const index = await getGalleryBrowseIndex("en");
   const focus = resolveGalleryFocus({ kind: "artist", key }, index.rows, {
     effects: index.effects, contributorDirectory: index.directory,

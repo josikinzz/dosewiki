@@ -14,11 +14,6 @@ const asRecord = (row: Row) => row as unknown as ArticleRecord;
 
 let library: Row[];
 
-/**
- * A stand-in for the shell: the staged working set as a real editor document
- * session over the library, one tag field for the first article, and the
- * recovery notice the shell renders above every tool.
- */
 function Shell({ source }: { source: Row[] }) {
   const articles = useMemo(() => source.map(asRecord), [source]);
   const document = useEditorDocument<ArticleRecord[]>(articles);
@@ -118,7 +113,6 @@ describe("staged working set recovery", () => {
     expect(within(held).getByText(/lsd: tags/)).toBeInTheDocument();
     expect(workingSet()[0].tags).toEqual(["psychedelic", "theirs"]);
 
-    // Applying merges: the newer tag stays, and the copy's tag joins it.
     await user.click(within(held).getByRole("button", { name: "Apply my edits to lsd" }));
     expect(workingSet()[0].tags).toEqual(["psychedelic", "theirs", "mine"]);
   });

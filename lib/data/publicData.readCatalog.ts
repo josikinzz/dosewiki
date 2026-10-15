@@ -4,8 +4,6 @@ const ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_PAGE_SIZE = 32;
 const PUBLIC_SUBSTANCE_COVERAGE_PAGE_SIZE = 64;
 const PUBLIC_SUBSTANCE_DOCUMENT_PAGE_SIZE = 4;
-// Slug pages carry one string per article, so the item cap can sit far above
-// the preview page size; the query bounds itself by article bytes read.
 const PUBLIC_SUBSTANCE_SLUG_PAGE_SIZE = 160;
 const PUBLIC_REPLICATION_GALLERY_PAGE_SIZE = 64;
 const PUBLIC_MATCHABLE_REPLICATION_PAGE_SIZE = 256;
@@ -16,11 +14,6 @@ const publicSubstancePageArgs = (cursor?: string) => ({
   limit: PUBLIC_SUBSTANCE_PAGE_SIZE,
 });
 
-/**
- * Canonical mapping from public read operations to their Postgres query names
- * and argument builders. Keeping this catalog separate makes the transport
- * adapter responsible only for orchestration, projection, and degradation.
- */
 export const publicDataReadCatalog = {
   publicSubstanceLibraryInput: {
     functionName: "substanceIndex:getPublicLibraryInputPage",

@@ -6,15 +6,12 @@ import { ConfirmDialog } from "@/features/dev/components";
 import { kindLabel, languageLabel, type GlossaryReviewCollision } from "./glossaryModel";
 
 type GlossaryCollisionDialogProps = {
-  /** The refused write waiting on a decision; `null` keeps the dialog closed. */
   review: { locale: string; error: GlossaryReviewCollision } | null;
-  /** Where focus returns once the dialog closes: the control that started the write. */
   returnFocus: RefObject<HTMLElement | null>;
   onCancel: () => void;
   onAllow: () => void;
 };
 
-/** Asks before a write lets two English terms share one rendering; nothing is written until "Allow" resends it. */
 export function GlossaryCollisionDialog({ review, returnFocus, onCancel, onAllow }: GlossaryCollisionDialogProps) {
   return (
     <ConfirmDialog

@@ -8,11 +8,6 @@ import { publicHref } from "@/utils/publicHref";
 import { slugify } from "@/utils/slug";
 import { entitySocialCardImage } from "@/data/mappings/entitySocialCardUrl";
 
-/**
- * Resolve report substance names to public article hrefs using the substance
- * lookup already loaded for the back-target. Only substances whose slug matches
- * a known article are linked, so the chip never becomes a 404 false-affordance.
- */
 function buildSubstanceLinks(
   substances: TripReportSubstance[],
   substanceBySlug: Record<string, { name: string }>,
@@ -74,11 +69,6 @@ export default async function ReportPage({ params }: ReportPageProps) {
     result.substanceBySlug,
   );
 
-  // `?from=` (the substance page the reader arrived from) is deliberately not
-  // read here: it only retargets the back link, and awaiting `searchParams`
-  // would force this whole prerendered article to render per request. The
-  // client-side ReportBackLink inside TripReportDetailPage resolves it against
-  // `substanceBySlug` instead.
   return (
     <TripReportDetailPage
       {...result.pageProps}

@@ -14,11 +14,6 @@ import type { StudioFeedback } from "./useReplicationCorpus";
 
 const FEATURED_API = "/api/dev/replications/featured";
 
-/**
- * The Featured workspace: the Effect Index homepage carousel's order. It
- * loads the first time the workspace opens, and its unsaved order reports
- * to the shell. A save goes live, so the shell only discards it.
- */
 export function useFeaturedController({
   active,
   rows,
@@ -103,7 +98,6 @@ export function useFeaturedController({
   }, []);
   const reset = useCallback(() => setOrder(savedOrder), [savedOrder, setOrder]);
 
-  /** The chosen works first, then everything the Library's filters leave, once each. */
   const items = useMemo<OrderablePanelItem[]>(() => {
     const bySlug = new Map(rows.map((row) => [row.slug, row]));
     const chosen = order

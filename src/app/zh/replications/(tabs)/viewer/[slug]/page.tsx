@@ -1,10 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications/viewer/[slug]`: the
- * middleware's rewrite target for a `zh.dose.wiki/replications?viewer=<slug>`
- * document request. Same gallery page over the localized corpus with the
- * linked work's social card; `noindex` with a canonical link to the English
- * gallery, like every mirror route.
- */
 import { notFound } from "next/navigation";
 
 import { parseReplicationViewerSlug } from "@/features/replications/galleryUrlState";

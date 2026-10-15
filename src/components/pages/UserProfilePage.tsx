@@ -24,35 +24,23 @@ import {
   UserTripReportsSection,
 } from "./UserProfileExpandableSections";
 
-
-/** Signed staff commentary ("Editor's note") rendered under the bio. */
 export interface UserProfileEditorNote {
-  /** The note's markdown, already rendered. */
   content: ReactNode;
-  /** Signature line beside the avatar, e.g. "Josie Kins · founder". */
   attribution: string;
-  /** The signer's (Josie's) avatar; null falls back to no image. */
   avatarUrl: string | null;
-  /** The signer's public profile, when one exists. */
   avatarHref: string | null;
 }
 interface UserProfilePageProps {
   profile: NormalizedUserProfile;
   history: PublicProfileHistoryEntry[];
   tripReports?: ReportCardModel[];
-  /** Replications credited to this contributor, already ordered. */
   replications?: readonly GalleryReplication[];
-  /** Effect articles crediting this contributor, already ordered. */
   effectArticles?: readonly ContributorEffectCredit[];
-  /** Substance articles this contributor expert-reviewed, already ordered. */
   reviewedArticles?: readonly ContributorReviewedArticle[];
   reportHrefPrefix?: string;
   bioContent?: ReactNode;
-  /** Staff "Editor's note" under the bio. Absent renders nothing. */
   editorNote?: UserProfileEditorNote | null;
-  /** Reviewed identity-sheet outcome; absent/false renders no claim. */
   verifiedReplicator?: boolean;
-  /** Server-rendered enrichment can stream after the profile identity header. */
   children?: ReactNode;
   sectionsOnly?: boolean;
   hideBio?: boolean;
@@ -88,9 +76,6 @@ export function UserProfilePage({
     hasTripReports ||
     history.length > 0;
   const profileHandle = `@${profile.key.toLowerCase()}`;
-  // Legacy Effect Index contributor title. It shares the muted handle line
-  // rather than getting its own badge, so an absent role leaves the header
-  // byte-for-byte as it was before roles existed.
   const role = t(profile.role?.trim() ?? "");
 
   const content = (
@@ -114,8 +99,6 @@ export function UserProfilePage({
               {role ? (
                 <>
                   <span data-testid="contributor-role">{role}</span>
-                  {/* Real spaces rather than padding, so the copied and
-                      screen-read text separates the two the same way. */}
                   <span aria-hidden="true" className="opacity-60">{" · "}</span>
                 </>
               ) : null}
@@ -130,10 +113,6 @@ export function UserProfilePage({
               data-testid="archival-notice"
               className="max-w-full flex-wrap justify-center gap-x-1.5 rounded-2xl px-4 py-2 text-left"
             >
-              {/* A sentence, not a chip label. The pill's chip typography
-                  (uppercase, wide tracking, tiny size) is declared after the
-                  utility layer, so it is undone per-span — children only
-                  inherit it, and their own declarations always win. */}
               <span className="text-[0.8125rem] font-semibold normal-case tracking-normal">
                 {t("Archival profile")}
               </span>
@@ -178,11 +157,6 @@ export function UserProfilePage({
         <div className="mt-12 space-y-10 sm:mt-14 sm:space-y-12">
           {hasBio ? <UserProfileBio>{bioContent}</UserProfileBio> : null}
 
-          {/* Signed staff commentary. The speech bubble reuses the profile
-              quote chrome (the "a person said this" surface), with a tail
-              notching the bottom border toward the signature chip — the same
-              construction as the subjective-effect personal-commentary
-              bubble, minus the collapse (a staff note is short by design). */}
           {editorNote ? (
             <section className="space-y-5" data-testid="editor-note">
               <PublicSectionHeading icon="lucide:message-circle" title={t("Editor's note")} />
@@ -190,9 +164,6 @@ export function UserProfilePage({
               <div className="max-w-[72ch] px-1 sm:px-4">
                 <div className="theme-profile-markdown-quote relative rounded-2xl px-5 py-4 italic sm:px-6">
                   {editorNote.content}
-                  {/* Tail: a rotated square sharing the bubble fill and border.
-                      Its opaque top half covers the bubble's bottom border so
-                      bubble and tail read as one shape. */}
                   <span
                     aria-hidden
                     className="theme-profile-markdown-quote-tail absolute -bottom-[7px] right-24 h-3.5 w-3.5 rotate-45 rounded-br-[2px] border-b border-r"
@@ -213,9 +184,6 @@ export function UserProfilePage({
             </section>
           ) : null}
 
-          {/* An artist's works come before their writing: for a replication
-              artist the pictures are the profile, and the carousel is the only
-              place they are gathered as one body of work. */}
           {hasReplications ? (
             <ContributorWorksCarousel
               works={replications}
@@ -223,12 +191,6 @@ export function UserProfilePage({
             />
           ) : null}
 
-          {/* Article credits sit between the pictures and the writing. They are
-              this person's contribution *to the archive* — for the five large
-              contributors it is the bulk of what they did here — whereas trip
-              reports are their own accounts and the changelog below is the raw
-              edit record. Placing the tag list here also breaks up two runs of
-              tall cards with a dense, quickly-scanned block. */}
           {hasEffectArticles ? (
             <UserProfileEffectCreditsSection
               credits={effectArticles}
@@ -236,10 +198,6 @@ export function UserProfilePage({
             />
           ) : null}
 
-          {/* Reviewed articles follow the credits for the same reason the
-              credits follow the works: they are curation of the archive rather
-              than the contributor's own accounts, and the second tag run keeps
-              the dense, scannable middle of the page together. */}
           {hasReviewedArticles ? (
             <UserProfileReviewedArticlesSection
               reviewedArticles={reviewedArticles}

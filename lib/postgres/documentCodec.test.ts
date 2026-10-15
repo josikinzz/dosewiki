@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { documentHash, documentToRow, rowToDocument } from "./documentCodec";
 
-/**
- * Simulates what `losslessSelectList` hands back from `pg`: scalars as JS
- * values, jsonb columns as their text form, SQL NULL as null.
- */
 function readBack(row: Record<string, unknown>, jsonbColumns: string[]): Record<string, unknown> {
   const stored: Record<string, unknown> = { ...row };
   for (const column of jsonbColumns) {
@@ -16,7 +12,6 @@ function readBack(row: Record<string, unknown>, jsonbColumns: string[]): Record<
 
 describe("Postgres document codec", () => {
   it("keeps an absent optional field distinct from an explicit null on an optional nullable column", () => {
-    // citationEvidence.articleId is `optional(union(number, null))`, mapped to jsonb.
     const explicitNull = { _id: "a", _creationTime: 1, slug: "s", section: "x", claimKey: "k", referenceIds: [], status: "unverified", severity: "low", createdAt: "c", updatedAt: "u", articleId: null };
     const absent = { _id: "b", _creationTime: 1, slug: "s", section: "x", claimKey: "k", referenceIds: [], status: "unverified", severity: "low", createdAt: "c", updatedAt: "u" };
 

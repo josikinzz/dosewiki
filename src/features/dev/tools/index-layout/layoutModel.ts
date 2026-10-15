@@ -1,8 +1,3 @@
-/**
- * Words and shapes for the Index layout tool: a manual read defensively, the
- * name of a list, what a working set changed in a layout (said the way an
- * editor would say it), and the counts the dataset line reads out.
- */
 import { slugify } from "@/utils/slug";
 import type { BoardCategory } from "./boardModel";
 import type { LayoutSlot } from "./layoutOps";
@@ -16,7 +11,6 @@ export const DATASET_LABELS: Record<ManualDatasetKey, string> = {
   mechanism: "Mechanism of action",
 };
 
-/** Short names for the dataset choice, where three full names do not fit a phone. */
 export const DATASET_SHORT_LABELS: Record<ManualDatasetKey, string> = {
   psychoactive: "Psychoactive",
   chemical: "Chemical",
@@ -27,18 +21,11 @@ export function countNoun(count: number, noun: string, plural = `${noun}s`): str
   return `${count} ${count === 1 ? noun : plural}`;
 }
 
-/** "A, B and C". */
 export function joinWords(words: readonly string[]): string {
   if (words.length <= 1) return words[0] ?? "";
   return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
 }
 
-/**
- * A stored layout may leave out a category's `drugs` or `sections` (the
- * public loader reads a missing list as empty). Every board rule assumes
- * both lists, so the tool reads through this. It returns the same object
- * when nothing is missing, so an untouched draft stays untouched.
- */
 export function normalizeManual(manual: ManualIndexConfig): ManualIndexConfig {
   const categories = Array.isArray(manual.categories) ? manual.categories : [];
   let changed = categories !== manual.categories;
@@ -58,7 +45,6 @@ export function normalizeManual(manual: ManualIndexConfig): ManualIndexConfig {
   return changed ? { ...manual, categories: next } : manual;
 }
 
-/** The name of one list as an editor reads it: "Stimulant" or "Stimulant, Common". */
 export function slotName(board: readonly BoardCategory[], slot: LayoutSlot): string {
   const category = board.find((entry) => entry.key === slot.categoryKey);
   if (!category) return slot.categoryKey;
@@ -97,13 +83,6 @@ function slotsOf(manual: ManualIndexConfig): { slots: SlotRef[]; bySlug: Map<str
 
 export type LayoutChange = { key: string; text: string; kind: "category" | "section" | "substance" | "order" };
 
-/**
- * What a draft changed against the layout it started from, one line per
- * thing a reader would notice: categories added, removed, renamed or given a
- * new icon; sections added, removed, renamed or reordered; each substance
- * added, moved or taken out; lists whose order changed. Substances in a
- * removed category are covered by that category's line.
- */
 export function describeLayoutChanges(
   original: ManualIndexConfig,
   draft: ManualIndexConfig,
@@ -206,7 +185,6 @@ export function describeLayoutChanges(
   return changes;
 }
 
-/** A commit the server refused because a layout moved on after the draft was opened. */
 export function isLayoutConflictMessage(message: string | null | undefined): boolean {
   if (!message) return false;
   return /code=EDIT_CONFLICT|changed since you opened/i.test(message);

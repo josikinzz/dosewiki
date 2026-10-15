@@ -1,28 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Layout and taxonomy registry export: `bun scripts/translation/export-registry.ts`.
- *
- * The five translated corpora carry article prose, effect prose, reports and
- * sitewide copy, but none of them carry the frame those strings sit in. A reader
- * holding the packs alone gets a dose table with no "Threshold" row label, a
- * legality badge with no status wording, and a chemical class page with no class
- * description. This export is that frame: every section heading, field label,
- * closed-enum label and taxonomy label the site renders, in one flat
- * key-addressed document the translation runner walks like any other dataset.
- *
- * `label` and `description` are the only reader-facing strings; everything a
- * renderer keys on (icon names, enum machine keys, parent keys, alias targets,
- * slugs, ordinals, section membership) lives in `machine` or `fields`, which the
- * registry corpus excludes from translation wholesale.
- *
- * Field labels come from the composed `FIELD_REGISTRY`, not from the override
- * modules: `composeFieldMeta` falls back to `humanizeFieldPath(path)`, so the
- * hand-authored overrides are a minority of the labels actually rendered.
- *
- * Editor-only strings (field placeholders, generator prompt descriptions) are
- * out of scope: they never reach a public article, and the packs are a reading
- * artifact.
- */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -84,7 +60,6 @@ function push(item: RegistryItem): void {
   items.push(item);
 }
 
-/** 1. Article sections, in the order the page renders them. */
 const sectionCatalogById = new Map(ARTICLE_SECTION_CATALOG.map((entry) => [entry.id, entry]));
 SUBSTANCE_SECTION_IDS.forEach((id, index) => {
   const entry = sectionCatalogById.get(id);
@@ -108,7 +83,6 @@ SUBSTANCE_SECTION_IDS.forEach((id, index) => {
   });
 });
 
-/** 2. Editor/schema sections, each with its ordered field paths. */
 getCatalogSchemaSections().forEach((section, index) => {
   push({
     key: `schema-section:${section.key}`,
@@ -126,7 +100,6 @@ getCatalogSchemaSections().forEach((section, index) => {
   });
 });
 
-/** 3. The composed field registry, labels as resolved. */
 Object.entries(FIELD_REGISTRY).forEach(([fieldPath, meta], index) => {
   push({
     key: `field:${fieldPath}`,
@@ -144,10 +117,6 @@ Object.entries(FIELD_REGISTRY).forEach(([fieldPath, meta], index) => {
   });
 });
 
-/**
- * 4. Closed enums. `value` is what the article stores and what the renderer
- * keys on; `label` is the wording the badge or table row shows.
- */
 interface EnumGroup {
   id: string;
   values: Array<{ value: string; label: string; note?: string }>;
@@ -191,9 +160,6 @@ const ENUM_GROUPS: EnumGroup[] = [
     })),
   },
   {
-    // `antibiotic_function.level` shares the carcinogenicity key set and
-    // `ToxicitySubsection` renders it through the carcinogenicity config, so the
-    // labels are read from there rather than duplicated.
     id: "antibiotic-function-level",
     values: antibioticFunctionLevelSchema.options.map((value) => ({
       value,
@@ -202,9 +168,6 @@ const ENUM_GROUPS: EnumGroup[] = [
     })),
   },
   {
-    // Routes have no reader-facing label registry: the stored `route` string is
-    // free-form authored prose, so inventing a label here would put wording on
-    // the page that production never shows.
     id: "route",
     values: CANONICAL_ROUTES.map((value) => ({
       value,
@@ -230,11 +193,6 @@ for (const group of ENUM_GROUPS) {
   });
 }
 
-/**
- * 5. Psychoactive categories and their in-page groupings. A grouping heading
- * ("Common", "Tryptamine") is reader-facing wording of the same kind as its
- * parent category, distinguished by `machine.parentKey`.
- */
 psychoactiveIndexManual.categories.forEach((category, index) => {
   push({
     key: `category:psychoactive:${category.key}`,
@@ -263,7 +221,6 @@ psychoactiveIndexManual.categories.forEach((category, index) => {
   });
 });
 
-/** 6. Chemical classes. */
 chemicalIndexManual.classes.forEach((chemicalClass, index) => {
   push({
     key: `class:chemical:${chemicalClass.key}`,
@@ -282,11 +239,6 @@ chemicalIndexManual.classes.forEach((chemicalClass, index) => {
   });
 });
 
-/**
- * 8. The effect-name alias table. Pure routing data: the key is
- * `slugify(displayName)` of an English effect name and the value is where the
- * chip points, so there is nothing here to translate and no `label` is emitted.
- */
 const { global: globalAliases, locationScoped, unlinked } = effectNameAliasTables;
 
 for (const [aliasSlug, target] of Object.entries(globalAliases)) {

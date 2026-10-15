@@ -1,13 +1,3 @@
-/**
- * POST /api/invite/redeem  { code, username, password, email?, name? }
- *
- * Public: the visitor has no session, the invite code is the whole
- * credential. Guessing a code is a credential-guessing attempt, so the route
- * shares the sign-in brake (`authCredentialAttempt`). The code and password
- * are hashed here; Postgres matches on the code hash and stores the password
- * hash, so neither plaintext is stored anywhere. On success the page signs
- * in with the same username and password through the credentials provider.
- */
 import { NextResponse } from "next/server";
 import { redeemInviteCode } from "@server/auth/memberships";
 import { hashInviteCode, isWellFormedInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";
@@ -25,10 +15,6 @@ const MAX_EMAIL_LENGTH = 254;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/**
- * Route-owned copy and status for each deliberate Postgres refusal. The route
- * never forwards Postgres prose to an anonymous visitor.
- */
 const REFUSALS: Record<string, { status: number; message: string }> = {
   INVITE_UNKNOWN: { status: 404, message: "That invite code is not recognised. Check it for typos." },
   INVITE_REVOKED: { status: 410, message: "That invite code has been revoked. Ask the person who invited you for a new one." },

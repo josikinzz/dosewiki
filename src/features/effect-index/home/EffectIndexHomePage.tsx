@@ -25,21 +25,6 @@ import {
 import type { EffectIndexHomeData } from "./homeModel";
 import { t } from "@/i18n/server";
 
-/**
- * The Effect Index homepage: the intro block, then two columns of content panels, in the
- * order the original site's `pages/index.vue` declared them.
- *
- * Two pieces of the original are deliberately out of scope. `FrontpageArticle` rendered at
- * most one article flagged `frontpage`, and no record in the legacy dump carries that flag;
- * the data-warning strip above the columns was a Nuxt prefetch artefact with no analogue in
- * this codebase's read layer.
- *
- * The original also carried a search box inside this intro block. This build's site header
- * already puts the global search on every page including the homepage — the original's
- * header had none, which is why its homepage had to supply one — so a second field 60px
- * below the first would be duplication rather than parity.
- */
-
 const SPONSOR_NAME = "Emergence Benefactors";
 const SPONSOR_URL = "https://ebenefactors.org/";
 
@@ -47,12 +32,6 @@ const SUMMARY_PATHS = Object.fromEntries(
   PSYCHOACTIVE_SUMMARY_DEFINITIONS.map((definition) => [definition.key, definition.path]),
 ) as Record<PsychoactiveSummaryRouteKey, string>;
 
-/**
- * The substance-summary list, exactly as the original grouped it: the three psychedelic
- * summaries share one row behind a plain-text "Psychedelics:" label, and the dissociative
- * and deliriant summaries take a row each. Paths come from each summary's own definition —
- * the old site's were `/summaries/psychedelics/*` and this codebase's are singular.
- */
 const SUMMARY_ROWS: readonly {
   id: string;
   prefix?: string;
@@ -83,11 +62,6 @@ function ArticlesSectionStub() {
 }
 
 interface EffectIndexHomePageProps extends EffectIndexHomeData {
-  /**
-   * Editable homepage prose, resolved on the server. Omitted — as in the tests
-   * and in an un-seeded deployment — every string falls back to the wording the
-   * page shipped with.
-   */
   copy?: EffectIndexHomeCopy;
 }
 
@@ -108,16 +82,10 @@ export function EffectIndexHomePage({
       tabIndex={-1}
       className="mx-auto w-full max-w-4xl px-4 pb-20 pt-10 focus:outline-none md:px-8"
     >
-      {/* The original front page carried no visible page title — it opened straight into the
-          intro paragraph, and its panel titles were the h1s. Six h1s is not a heading
-          outline, so the panels are h2s and the document's one h1 names the publication for
-          assistive technology and for search without putting a title back on the design. */}
       <h1 className="sr-only">Effect Index</h1>
 
       <HomeIntro effectCount={effectCount} copy={copy?.intro} />
 
-      {/* The original collapsed its two columns at 800px; this keeps that breakpoint
-          rather than rounding it to the nearest Tailwind stop. */}
       <div className="mt-8 grid grid-cols-1 items-start gap-4 min-[800px]:grid-cols-2">
         <div className="flex flex-col gap-4">
           <HomePanel

@@ -35,7 +35,6 @@ async function main() {
   const target = new URL(command.targetUrl);
   if ([...target.searchParams.keys()].some((key) => key !== "sslmode")) throw new Error("Only sslmode target URL parameters are permitted");
   const actorEmail = values["actor-email"]?.trim().toLowerCase();
-  // A read-only plan still needs the host guard; a write runs the whole ordered ceremony.
   if (!values.write) guardTarget(command.targetUrl, values["allow-remote"]);
   if (values.write) {
     authorizeProductionWrite(command);
@@ -106,7 +105,6 @@ async function main() {
       const after = (await client.query('SELECT * FROM "localizedPublicationIndexes" WHERE "locale" = $1 ORDER BY "publication_id"', [LOCALE])).rows;
       await journal.writeFile(`${JSON.stringify({ state: "written-uncommitted", after })}\n`);
       await journal.sync();
-      // Re-check at the commit point: a freeze set mid-run still refuses.
       authorizeProductionWrite(command);
       await client.query("COMMIT");
       await journal.writeFile(`${JSON.stringify({ state: "committed", count: actual.length })}\n`);

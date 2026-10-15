@@ -14,7 +14,6 @@ export type LinkManagerProps = {
   onLinkChange: (index: number, field: "label" | "url", value: string) => void;
   onRemoveLink: (index: number) => void;
   onAddLink: () => void;
-  /** Moves one link; the public page lists links in this order. */
   onMoveLink?: (from: number, to: number) => void;
   headingLevel?: "h3" | "h4" | "h5";
   headingClassName?: string;
@@ -22,11 +21,6 @@ export type LinkManagerProps = {
 
 const ICON_BUTTON = cn("h-8 w-8", TOUCH_ICON);
 
-/**
- * Up to six links, in the order the public page lists them. Each row names
- * what it still needs (an address, a name, https), and Save waits for it, so a
- * half-filled link is never dropped without a word.
- */
 export function LinkManager({
   links,
   onLinkChange,
@@ -40,7 +34,6 @@ export function LinkManager({
   const listRef = useRef<HTMLOListElement>(null);
   const addRef = useRef<HTMLButtonElement>(null);
   const [announcement, setAnnouncement] = useState("");
-  /** Which row and control take focus once the list re-renders. */
   const [pendingFocus, setPendingFocus] = useState<{ index: number; control: string } | null>(null);
   const full = links.length >= MAX_LINKS;
 
@@ -82,7 +75,6 @@ export function LinkManager({
             const problem = linkProblem(link);
             const problemId = `${id}-problem-${index}`;
             return (
-              // Rows have no stable id; the index is the identity the form keeps.
               <li key={index} className="space-y-1.5">
                 <fieldset className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)_auto]">
                   <legend className="sr-only">{`Link ${index + 1}`}</legend>

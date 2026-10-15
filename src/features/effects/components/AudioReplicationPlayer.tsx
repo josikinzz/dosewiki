@@ -12,7 +12,6 @@ import {
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
-/** Every mounted player, so starting one clip can stop whichever was running. */
 const mountedPlayers = new Set<HTMLAudioElement>();
 
 function pauseOtherPlayers(active: HTMLAudioElement) {
@@ -28,17 +27,11 @@ function readDuration(audio: HTMLAudioElement) {
 }
 
 interface AudioReplicationPlayerProps {
-  /** Direct URL of the clip. */
   src: string;
-  /** Clip title, folded into the control labels so each player is distinguishable. */
   label: string;
   className?: string;
 }
 
-/**
- * Themed transport for one audio replication: a real <audio> element driving
- * custom play/pause, scrub, and elapsed/total controls.
- */
 export function AudioReplicationPlayer({ src, label, className }: AudioReplicationPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
@@ -79,8 +72,6 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
     }
 
     if (audio.paused) {
-      // Attach the resource inside the gesture, keeping inactive players
-      // entirely source-free and preserving browser playback permission.
       if (!audio.hasAttribute("src")) {
         audio.src = src;
         setLoadState("loading");
@@ -93,7 +84,6 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
       pauseOtherPlayers(audio);
       void audio.play().catch((error: unknown) => {
         if (audioRef.current !== audio || audio.getAttribute("src") !== src) return;
-        // Pausing during an in-flight play is not a failed resource.
         if (error instanceof DOMException && error.name === "AbortError") return;
         setLoadState("error");
         setIsPlaying(false);
@@ -118,7 +108,6 @@ export function AudioReplicationPlayer({ src, label, className }: AudioReplicati
 
   const hasDuration = duration !== null;
   const progress = getPlaybackProgressRatio(currentTime, duration);
-  // Track the thumb's centre rather than its left edge so neither end overhangs.
   const progressOffset = `calc(0.375rem + (100% - 0.75rem) * ${progress.toFixed(5)})`;
   const isFailed = loadState === "error";
 

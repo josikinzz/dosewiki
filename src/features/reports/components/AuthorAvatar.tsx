@@ -5,13 +5,9 @@ import { AppImage } from "@/components/common/AppImage";
 import { Icon } from "@/components/common/Icon";
 
 interface AuthorAvatarProps {
-  /** The author's name to match against known profiles */
   authorName: string;
-  /** Optional custom avatar URL (overrides profile matching) */
   avatarUrl?: string;
-  /** Size of the avatar in pixels */
   size?: 32 | 40 | 64;
-  /** Additional CSS classes */
   className?: string;
 }
 
@@ -21,14 +17,6 @@ const sizeClasses = {
   64: "h-16 w-16",
 } as const;
 
-/**
- * Avatar component for trip report authors.
- * 
- * Matching priority:
- * 1. If avatarUrl prop is provided, use it
- * 2. If authorName matches a profile with avatar, use profile avatar
- * 3. Otherwise, render default placeholder with UserRound icon
- */
 export const AuthorAvatar = memo(function AuthorAvatar({
   authorName,
   avatarUrl,
@@ -38,7 +26,6 @@ export const AuthorAvatar = memo(function AuthorAvatar({
   const resolvedAvatarUrl = avatarUrl;
   const sizeClass = sizeClasses[size];
 
-  // Render actual avatar image
   if (resolvedAvatarUrl) {
     return (
       <AppImage
@@ -49,7 +36,6 @@ export const AuthorAvatar = memo(function AuthorAvatar({
         className={`${sizeClass} rounded-full object-cover ring-1 ring-[var(--theme-ring-soft)] ${className}`}
         style={{ 
           imageRendering: "auto",
-          // Force high-quality scaling for crisp avatars
           WebkitBackfaceVisibility: "hidden",
           backfaceVisibility: "hidden",
         }}
@@ -57,7 +43,6 @@ export const AuthorAvatar = memo(function AuthorAvatar({
     );
   }
 
-  // Render default placeholder
   return (
     <div
       className={`theme-author-avatar-placeholder theme-public-card-subtle ${sizeClass} flex items-center justify-center rounded-full border ${className}`}

@@ -2,18 +2,6 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import type { AppRole, RoleFloor } from "@/lib/auth/roles";
 import { roleSessionFor } from "./routeSession";
 
-/**
- * Shared boundary mocks for routes built on `protectedRouteOperation` (and hand-rolled
- * routes that call the same three modules).
- *
- * `vi.mock` is hoisted only within the file that contains it, so this helper registers
- * the mocks with `vi.doMock`. Consequence for every caller: import the route AFTER
- * `installProtectedRouteMocks()` runs, with `await import("./route")` inside the test
- * (or inside `beforeEach`). A static `import { POST } from "./route"` at the top of the
- * test file will bypass these mocks.
- *
- * `server-only` is aliased to a stub in vitest.config.ts and needs no mock.
- */
 export const routeMocks = {
   requireRoleSession: vi.fn(),
   enforceRateLimit: vi.fn(),
@@ -38,15 +26,10 @@ export function installProtectedRouteMocks(): void {
 
 type SessionUser = { email: string; name?: string | null };
 
-/** Sign the fake session in as `role`; `null` is signed out. */
 export function signInAs(role: AppRole | null, user?: SessionUser): void {
   routeMocks.requireRoleSession.mockImplementation(roleSessionFor(role, user));
 }
 
-/**
- * Grant the dataWrite capability around a client. Pass `intentToken` when the route
- * asks `getAdminIntentToken(...)`; omit it to exercise the adminKey fallback.
- */
 export function grantWriteCapability(
   client: RouteClient = { query: routeMocks.query, mutation: routeMocks.mutation },
   options: { adminKey?: string; intentToken?: string } = {},
@@ -62,10 +45,6 @@ export function grantWriteCapability(
   return client;
 }
 
-/**
- * Reset every mock to the happy path: limiter allows, `role` signed in, capability
- * granted around `routeMocks.query`/`routeMocks.mutation`. Call in `beforeEach`.
- */
 export function resetRouteMocks(role: AppRole = "editor", user?: SessionUser): void {
   vi.resetModules();
   for (const mock of Object.values(routeMocks)) mock.mockReset();
@@ -76,17 +55,9 @@ export function resetRouteMocks(role: AppRole = "editor", user?: SessionUser): v
 
 type RouteCall = { name: string; call: () => Promise<Response> };
 
-/**
- * The floor contract every protected route owns individually: the exact `RoleFloor`
- * it asks for and that a refused role never reaches
- * Postgres. Refusal mechanics (401/403 bodies, ordering) are owned by
- * src/lib/http/protectedRouteOperation.test.ts and are not re-asserted here.
- */
 export function describeRoleFloor(options: {
   floor: RoleFloor;
-  /** A role below the floor. */
   refused: AppRole;
-  /** A role at or above the floor, used for the accept probe. */
   admitted?: AppRole;
   calls: RouteCall[];
 }) {

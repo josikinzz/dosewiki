@@ -12,33 +12,10 @@ import {
   type EffectIndexHomeIntroCopy,
 } from "./homeIntroCopy";
 
-/**
- * The Effect Index homepage's intro block, ported from the old site's
- * `components/home/Description.vue`.
- *
- * Copy is verbatim from the original with one deliberate cut: the lead sentence read
- * "Effect Index, which is currently under construction, is a resource dedicated to…" and the
- * construction clause is dropped at the site owner's request. Everything else is word for
- * word, including the effect count being read live rather than hardcoded.
- *
- * The three paragraphs are now editable copy (`effect-index-home-intro-*`), stored as prose
- * carrying inline `[label](/href)` links and `{{effectCount}}`. They are rendered through
- * `renderInlineCopy` with this block's own link class rather than through a Markdown
- * renderer, so an edit cannot change the paragraph markup or the link treatment. With no
- * stored row the shipped strings render, unchanged.
- *
- * The two collapsed paragraphs stay in the document and are toggled with the `hidden`
- * attribute rather than being conditionally mounted: they carry the page's only description
- * of the documentation method, and a crawler that never clicks "read more" should still see
- * it.
- */
-
 const BUTTON_CLASS = "uppercase tracking-[0.1em]";
 
 interface HomeIntroProps {
-  /** Live count of effect articles, quoted mid-sentence. */
   effectCount: number;
-  /** Editable prose; falls back to the strings this section shipped with. */
   copy?: EffectIndexHomeIntroCopy;
 }
 

@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * One trip report submission under review, docked beside the list: a header
- * that names it once (title, byline and substances, age, status, pager), the
- * facts the author gave, what they wrote, the decision log, publishing (once
- * accepted), the private note, and a decision dock that sticks to the bottom
- * of the screen while the pane is on it. `FeedbackReviewPane` is the pattern.
- *
- * Capability is the intake queue's: claim and release through Reviewing,
- * accept, reject with a reason the author may read, spam, reopen, undo, the
- * publish preview, the byline claim adjudication, and publish.
- */
-
 import {
   useEffect,
   useId,
@@ -64,10 +52,6 @@ export type PromotionAttribution = {
   confirmAuthorNameClaim: boolean;
 };
 
-/**
- * What the triage keys can ask of the open review. The tab owns the keys; the
- * review owns the note, the confirms and the guards, so it fills this in.
- */
 export type SubmissionTriageActions = {
   accept: () => void;
   reject: () => void;
@@ -97,42 +81,29 @@ const HOLD_ACTION: Record<"claim" | "release" | "reopen", { label: string; targe
 export type SubmissionReviewPaneProps = {
   submission: TripReportSubmissionRow;
   hold: SubmissionHold;
-  /** The write in flight, if any; its control names it. */
   pending: PortalPendingAction | null;
   busy: boolean;
   frozen: boolean;
-  /** Contributor profiles a published report can be attributed to. */
   contributors: readonly PortalContributorOption[];
   notice: PortalNotice | null;
   onDismissNotice: () => void;
-  /** Undo for the last decision, when it can be taken back. */
   undo: { label: string; onUndo: () => void } | null;
-  /** The member the contact email matches, offered after a publish. */
   assign: { email: string; onAssign: () => void } | null;
-  /** The oldest submission still waiting, offered after a decision. */
   nextWaiting: { title: string; onOpen: () => void } | null;
-  /** The published report this submission became, when it is in the corpus. */
   publishedReport: { slug: string | null; onOpen: () => void } | null;
   headingRef: RefObject<HTMLHeadingElement | null>;
-  /** "N of M" and previous/next; null when the list no longer shows it. */
   position: { index: number; total: number } | null;
   onMove: (direction: -1 | 1) => void;
   onBackToList: () => void;
   onClose: () => void;
-  /** Said when the list's view or search does not show this submission. */
   hiddenByList: ReactNode;
   promotionPayload: DataTripReportImportPayload | null;
-  /** Filled with this review's triage actions while it is open. */
   triageRef?: MutableRefObject<SubmissionTriageActions | null>;
   onPromotion: (
     publish: boolean,
     attribution: PromotionAttribution,
     options?: { quiet?: boolean },
   ) => Promise<DataTripReportImportPayload | null>;
-  /**
-   * `notes` is omitted when the field is blank, so the stored note stays.
-   * `publicReason` is what the author reads in My reports; only Reject asks for one.
-   */
   onStatusChange: (
     status: TripReportSubmissionStatus,
     notes?: string,
@@ -172,7 +143,6 @@ export function PortalSubmissionReview(props: SubmissionReviewPaneProps) {
   const [note, setNote] = useState("");
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const publishRef = useRef<HTMLElement>(null);
-  // The reject dialog's public reason; read when the reject is confirmed.
   const publicReasonRef = useRef("");
   const { confirm, dialog } = useConfirm();
 
@@ -206,7 +176,6 @@ export function PortalSubmissionReview(props: SubmissionReviewPaneProps) {
 
   async function decide(target: TripReportSubmissionStatus, publicReason?: string, action?: PortalPendingAction) {
     const done = await onStatusChange(target, note.trim() || undefined, publicReason, action ?? target);
-    // The note went into the log with this decision, so it never rides along with the next one.
     if (done) setNote("");
   }
 
@@ -244,7 +213,6 @@ export function PortalSubmissionReview(props: SubmissionReviewPaneProps) {
 
   async function confirmPublish() {
     if (busy || consentMissing) return;
-    // Build the preview first, so the confirm shows exactly what goes public.
     const payload = await onPromotion(false, attribution, { quiet: true });
     if (!payload) return;
     confirm({
@@ -257,7 +225,6 @@ export function PortalSubmissionReview(props: SubmissionReviewPaneProps) {
     });
   }
 
-  // The keys reach the same paths as the buttons, with the same guards.
   useEffect(() => {
     if (!triageRef) return;
     triageRef.current = {
@@ -319,8 +286,6 @@ export function PortalSubmissionReview(props: SubmissionReviewPaneProps) {
     </Button>
   );
 
-  // What decides whether it may go public, and how to reach the author. The
-  // trip's own details sit with the words, where they are read.
   const facts: FeedbackFact[] = [
     {
       label: "Consent to publish",
@@ -703,7 +668,6 @@ function DecisionButton({
       onClick={onClick}
     >
       {label}
-      {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
       <span aria-hidden className="[@media(pointer:coarse)]:hidden">
         <kbd className="theme-dev-kbd !text-current opacity-70">{keyCap}</kbd>
       </span>
@@ -711,7 +675,6 @@ function DecisionButton({
   );
 }
 
-/** Who has this submission, or who decided it, with the one action that changes that. */
 function HoldLine({
   hold,
   status,
@@ -820,7 +783,6 @@ const PHASE_TONE: Record<"onset" | "peak" | "offset", string> = {
   offset: "theme-report-phase-offset-text",
 };
 
-/** The author's report in reading order, in a quiet well: substances, introduction, the phases, conclusion. */
 function SubmittedReport({ report }: { report: TripReportSubmissionRow["report"] }) {
   const phases = (["onset", "peak", "offset"] as const).filter((phase) => report[phase].length > 0);
   const empty = !report.introduction && phases.length === 0 && !report.conclusion;
@@ -891,11 +853,6 @@ function Narrative({ label, value }: { label: string; value: string }) {
   );
 }
 
-/**
- * The publish preview as the public report will carry it: address, byline
- * and attribution, substances, and how much of each section is there. The
- * pane and the publish confirm draw the same rows.
- */
 function PromotionSummary({
   contributors,
   payload,
@@ -944,10 +901,6 @@ function PromotionSummary({
   );
 }
 
-/**
- * The reject dialog's reason for the author. It holds its own text so the
- * dialog, which is raised once, still re-renders as the admin types.
- */
 function PublicReasonField({ id, onChange }: { id: string; onChange: (value: string) => void }) {
   const [value, setValue] = useState("");
   return (

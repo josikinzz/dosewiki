@@ -9,7 +9,6 @@ const PopoverTrigger = PopoverPrimitive.Trigger
 
 const PopoverArrow = PopoverPrimitive.Arrow
 
-/** Positions the content against an element other than the trigger. */
 const PopoverAnchor = PopoverPrimitive.Anchor
 
 const PopoverContent = React.forwardRef<

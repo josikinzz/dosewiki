@@ -1,27 +1,4 @@
 #!/usr/bin/env node
-/**
- * Replace one Contributor Profile's bio from a file, and nothing else.
- *
- * The bio is human-authored Markdown, so this script never derives it: the
- * reviewed text is written to a file and handed over with `--bio-file`. The
- * write goes through `contributorProfiles.saveProfileAsEditor`, whose patch
- * leaves every omitted field exactly as stored, unlike `bulkImport`, which
- * clears whatever the caller does not carry forward.
- *
- * Nothing is written unless the bio the plan was built from is still the live
- * bio at write time; a profile edited in between fails closed.
- *
- * Dry run (default) prints the current and proposed bio:
- *   node scripts/contributors/set-profile-bio.mjs --key=SYMMETRICVISION \
- *     --bio-file=runs/profile-bios/symmetricvision.md
- *
- * Apply:
- *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
- *   node scripts/contributors/set-profile-bio.mjs --key=SYMMETRICVISION \
- *     --bio-file=runs/profile-bios/symmetricvision.md --write \
- *     --confirm-write=set-contributor-profile-bio \
- *     --expected-deployment=<host>/<database>
- */
 import fs from "node:fs";
 import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -35,15 +12,10 @@ import {
 
 const OPERATION = "set-contributor-profile-bio";
 
-/** Files end with a newline; stored bios do not. Nothing else is normalized. */
 export function readBioFile(filePath) {
   return fs.readFileSync(filePath, "utf8").replace(/\r\n/g, "\n").replace(/\n+$/, "");
 }
 
-/**
- * What the write would do: `unchanged` when the file already matches the live
- * bio, otherwise the before/after pair the write must still find in place.
- */
 export function planBioChange(profile, bio) {
   if (!profile) {
     return { action: "missing" };

@@ -5,17 +5,14 @@ import {
 
 export const PUBLICATION_SIGNAL_VERSION = 2;
 
-/** A signal older than this is refused: a replayed capture is not a publication. */
 export const PUBLICATION_SIGNAL_MAX_SKEW_MS = 300_000;
 
-/** One request carries one editorial operation, never a site-wide sweep. */
 export const PUBLICATION_SIGNAL_MAX_TARGETS = 64;
 
 export const PUBLICATION_SIGNAL_MAX_BODY_BYTES = 16_384;
 
 export const PUBLICATION_SIGNATURE_HEADER = "x-dosewiki-publication-signature";
 
-/** The same vocabulary the derived-cache invalidation already speaks. */
 export type PublicationSource =
   | "save-article"
   | "proposal-apply"
@@ -37,23 +34,12 @@ const PUBLICATION_SOURCES: readonly PublicationSource[] = [
   "test-write",
 ];
 
-/**
- * A public surface a write can affect, named by content identity rather than
- * by cache mechanics. `slug` carries the article, effect, contributor or class
- * key the identity needs; the kinds that address a single fixed surface carry
- * none.
- */
 export type ArticlePublicationDependency = "detail" | "content" | "membership";
 
 export type PublicationTarget =
   | {
       kind: "article";
       slug: string;
-      /**
-       * Omitted by old or detail-less writers on purpose: receivers then take
-       * the conservative membership path rather than guessing that an edit
-       * was prose-only.
-       */
       dependency?: ArticlePublicationDependency;
     }
   | {
@@ -88,17 +74,13 @@ export type PublicationTarget =
 export type PublicationSignal = {
   version: typeof PUBLICATION_SIGNAL_VERSION;
   source: PublicationSource;
-  /** Editor clock at dispatch, in epoch milliseconds. Bounds replay, not order. */
   issuedAt: number;
-  /** Opaque per-dispatch identifier, echoed in the receipt for correlation. */
   dispatchId: string;
   targets: PublicationTarget[];
 };
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,127}$/;
-/** Replication slugs keep the underscores of their source-era ids (`?viewer=` accepts the same grammar). */
 const REPLICATION_SLUG_RE = /^[a-z0-9][a-z0-9_-]{0,127}$/;
-/** Class depiction keys are stored as `class:<key>` molecule slugs. */
 const MOLECULE_SLUG_RE = /^(?:class:)?[a-z0-9][a-z0-9-]{0,127}$/;
 const CONTRIBUTOR_KEY_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 
@@ -187,12 +169,6 @@ export type PublicationSignalParse =
   | { status: "accepted"; signal: PublicationSignal }
   | { status: "refused"; reason: string };
 
-/**
- * Strict parse of a received body. Anything unrecognized is refused rather
- * than coerced: an unknown target kind on a deployment running older code must
- * not silently expire nothing while reporting success, and must never fall
- * back to expiring the global tag.
- */
 export function parsePublicationSignal(
   value: unknown,
   now: number = Date.now(),

@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Run OpenRouter rewrite jobs exported from the dosage/duration note queue.
- *
- * Reads NDJSON jobs, calls OpenRouter via the shared SDK helper, and writes:
- * - results NDJSON with one record per completed job
- * - a progress JSON file for resume support
- * - a summary JSON file for review
- *
- * Usage:
- *   export OPENROUTER_API_KEY="sk-or-..."
- *   node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs
- *   node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs --concurrency=3 --resume
- *   node scripts/batch/run-dosage-duration-rewrite-openrouter.mjs --article=2c-b
- */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, appendFileSync } from "fs";
 import { dirname, join } from "path";
@@ -177,7 +163,6 @@ function extractJsonObject(text) {
   try {
     return JSON.parse(trimmed);
   } catch {
-    // The response may be wrapped in a code fence, so try that representation next.
   }
 
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -185,7 +170,6 @@ function extractJsonObject(text) {
     try {
       return JSON.parse(fencedMatch[1].trim());
     } catch {
-      // A fenced block may contain surrounding prose; the brace-bounded fallback handles it.
     }
   }
 

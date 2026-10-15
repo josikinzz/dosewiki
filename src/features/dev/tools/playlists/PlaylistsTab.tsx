@@ -1,26 +1,5 @@
 "use client";
 
-/**
- * Playlists: `/dev/playlists`. A member's own replication playlists: the
- * ordered sets of works the replication studio applies to substance galleries.
- * A contributor sees and edits the playlists they own; an editor sees every
- * playlist, edits their own and reads the rest; an admin edits all of them and
- * may hand one to a member. Ownership is enforced in Postgres; this tab only
- * hides what the route already refuses.
- *
- * Nothing here publishes. A playlist reaches the public site only when an
- * admin applies it to a gallery in the studio, so the tool says that beside
- * Save (`saveLine: "in-tool"`) instead of the shell's "goes live" sentence.
- *
- * Layout is the editor workspace: the list on the left (sticky on desktop),
- * the open playlist in a docked pane on the right with its save dock at the
- * bottom, so the result of a save shows beside Save. On a phone the pane
- * stacks under the list, opening scrolls it in, and the pane carries Back to
- * list. Works are chosen visually, the confirm reads the change back in
- * words, and an entry the lookup cannot find is flagged before Save and named
- * after it, so a save never drops anything silently.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -72,15 +51,12 @@ import {
 import { useWorkCards } from "./useWorkCards";
 
 export type PlaylistsTabProps = {
-  /** Admin: sees every playlist's owner and may reassign it. */
   isAdmin: boolean;
-  /** `/dev/playlists/<key>`: the playlist the tool opens on. */
   initialKey?: string;
 };
 
 type OpenPlaylist = { mode: PaneMode; saved: OwnedPlaylist | null; draft: PlaylistDraft };
 
-/** Lists longer than this get a filter field. */
 const FILTER_FROM = 8;
 
 const PANE_SHORTCUTS = [
@@ -97,9 +73,7 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState<OpenPlaylist | null>(null);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
-  /** Where the tap happened: the result of opening, removing, or a write with no pane open. */
   const [listNotice, setListNotice] = useState<NoticeMessage | null>(null);
-  /** The result of the last write on the open playlist, in its save dock. */
   const [paneNotice, setPaneNotice] = useState<NoticeMessage | null>(null);
   const [writing, setWriting] = useState<null | "save" | "other">(null);
   const [filter, setFilter] = useState("");
@@ -165,21 +139,15 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     }
   }, [show]);
 
-  // The key currently in the address, so the address change an open makes is not read as a new deep link.
   const urlKeyRef = useRef<string | null>(initialKey ?? null);
-  /** A deep link waits for its keyed read before the address may change, or the address would wipe it. */
   const deepLinkPending = useRef(Boolean(initialKey));
 
-  /** The address follows the open playlist so a reload or a shared link lands on it; a new draft has no key to name. */
   const syncAddress = useCallback((key: string | null) => {
     if (key === urlKeyRef.current) return;
     urlKeyRef.current = key;
-    // Hand Next its own history state back, or the router treats the change as a navigation and scrolls to the top.
     window.history.replaceState(window.history.state, "", viewToPath({ type: "dev", tab: "playlists", slug: key ?? undefined }));
   }, []);
 
-  // A deep link starts its keyed read independently of the compact list. It
-  // is never cancelled by the address changing under it: a later request wins.
   useEffect(() => {
     if (!initialKey) return;
     if (initialKey === urlKeyRef.current && !deepLinkPending.current) return;
@@ -205,7 +173,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
           title: `Could not open the playlist "${initialKey}".`,
           message: /no playlist/i.test(message) ? "No playlist you can see has that key. It may have been removed, or the address may be mistyped." : message,
         });
-        // A failed deep link drops its key from the address.
         syncAddress(null);
       })
       .finally(() => {
@@ -220,9 +187,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   }, [openKey, syncAddress]);
 
   const isDirty = open !== null && open.mode !== "view" && isDraftDirty(open.draft, open.saved);
-  // The guard keeps in-tool switches (another playlist, New, Close); the shell
-  // owns rail clicks, Leave and unload. Saving reads the change back in a
-  // confirm first, so the shell only discards.
   const { guard, dialog: dirtyDialog } = useDirtyGuard(isDirty, {
     description: "This playlist has changes that are not saved. Discarding drops them; the stored playlist is unchanged.",
     warnOnUnload: false,
@@ -238,9 +202,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     discard: () => setOpen((current) => (current?.saved ? { ...current, draft: draftOf(current.saved) } : null)),
   });
 
-  // Name the playlist for keyboard and screen reader users once its pane is in
-  // the page; on phones the pane scrolls itself in. An effect, not a frame
-  // later, so a click that lands in a field right after keeps its focus.
   const paneIdentity = open ? `${open.mode}:${open.saved?.key ?? "new"}` : null;
   useScrollToDetail(paneRef, paneIdentity);
   useEffect(() => {
@@ -249,7 +210,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     paneTitleRef.current?.focus({ preventScroll: true });
   }, [paneIdentity]);
 
-  /** A failed write in the tool's words: the freeze reads as the freeze. */
   const failure = (error: unknown, fallback: string, frozenCopy: string): NoticeMessage => {
     const message = error instanceof Error ? error.message : fallback;
     if (isWriteFreezeRefusal(message) || freeze.frozen) return { tone: "danger", message: frozenCopy };
@@ -329,7 +289,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     confirm({
       title: `${creating ? "Create" : "Save"} "${draft.title.trim()}"?`,
       confirmLabel: creating ? "Create playlist" : "Save playlist",
-      // A string description (the dialog wraps it in a <p>); the list goes in the body.
       description: `${parts.length > 0 ? `You changed ${joinWords(parts)}. ` : ""}This saves the playlist only. It publishes nothing, and galleries that already copied it stay as they are.`,
       body: (
         <div className="theme-text-secondary space-y-3 text-sm">
@@ -347,8 +306,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
     });
   };
 
-  // Cmd+S or Ctrl+S asks to save the open playlist; it never saves past the
-  // confirm. `/` focuses the work search in the pane, or the list filter.
   const paneEditable = open !== null && open.mode !== "view";
   useDevShortcuts(paneEditable ? PANE_SHORTCUTS : LIST_SHORTCUTS, rows !== null);
   const confirmSaveRef = useRef(confirmSave);
@@ -382,7 +339,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
 
   const startNew = (seed?: Partial<PlaylistDraft>) => {
     if (open?.mode === "new" && !seed) {
-      // One new draft at a time: New takes you back to it.
       paneTitleRef.current?.focus();
       paneRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
       return;
@@ -426,7 +382,6 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
         const result = await assignPlaylistOwner(target.key, ownerEmail);
         const patch = { owner_email: result.owner_email, updated_at: result.updated_at, updated_by: result.updated_by, editable: true };
         setRows((current) => current?.map((row) => (row.key === target.key ? { ...row, ...patch } : row)) ?? current);
-        // The owner is not part of the draft; only the stored playlist moves (and the revision the draft saves against).
         setOpen((current) => current?.saved?.key === target.key
           ? { ...current, saved: { ...current.saved, ...patch }, draft: { ...current.draft, expectedUpdatedAt: result.updated_at } }
           : current);
@@ -666,7 +621,6 @@ function joinWords(parts: readonly string[]): string {
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
-/** What the pane says on desktop before a playlist is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({ opening }: { opening: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6" aria-busy={opening || undefined}>
@@ -768,12 +722,6 @@ function RowState({ editing, dirty }: { editing: boolean; dirty: boolean }) {
   );
 }
 
-/**
- * Admin only: the members a playlist can be handed to, for the owner pickers,
- * and each member's name for the sentences that mention them. Banned accounts
- * are left out. A failed read says so (with a retry) rather than letting the
- * picker claim no member matches.
- */
 function useMemberOptions(isAdmin: boolean): {
   options: SearchablePickerOption[];
   error: string | null;

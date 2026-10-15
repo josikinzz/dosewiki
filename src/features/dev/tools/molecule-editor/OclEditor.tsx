@@ -1,29 +1,5 @@
 "use client";
 
-/**
- * Thin React wrapper around OpenChemLib's `CanvasEditor`, the neutral 2D structure
- * editor where the developer drags atoms and sets per-bond wedge/hash stereo bonds.
- *
- * OpenChemLib (~1 MB) is dynamically imported on mount so it stays out of every public
- * bundle. The editor is created once; changing `source` (re)loads a MOL block, and every
- * user edit is emitted upward as a fresh MOL block via `onChange`.
- *
- * Only real user molecule edits are emitted: OpenChemLib fires its change listener for
- * programmatic `setMolecule` calls too (`isUserEvent === false`) and for selection /
- * highlight changes, but re-emitting those would re-serialise the MOL block and falsely
- * mark the editor "dirty". Filtering to user `molecule` events keeps `edited === source`
- * until the developer actually changes the structure.
- *
- * The drawing surface carries a labeled dose.wiki tool strip above it. OpenChemLib's own
- * toolbar (thirty unlabeled glyphs on a canvas inside a shadow root) is tucked away behind
- * "All tools"; the strip drives it through synthesised pointer events at the right button
- * (see `oclToolbar.ts`) and mirrors OpenChemLib's own shortcut keys, so the highlighted
- * tool is what the strip or a definitive key last chose.
- *
- * If OpenChemLib fails to load or the canvas cannot be constructed, the editor renders a
- * canvas-level error state and reports it via `onError`, instead of leaving a blank canvas
- * behind an unhandled promise rejection.
- */
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
@@ -57,67 +33,32 @@ type OclModule = typeof import("openchemlib");
 type CanvasEditorInstance = InstanceType<OclModule["CanvasEditor"]>;
 
 interface OclEditorProps {
-  /** MOL block to load. Reloaded into the canvas whenever this string changes. */
   source: string | null;
-  /**
-   * Bumped by the parent every time it installs a baseline, including when the
-   * new MOL block is an equal string. The canvas is uncontrolled once loaded, so
-   * value equality alone would leave a stale drawing on screen after the parent
-   * has already reset the edit it publishes.
-   */
   sourceEpoch?: number;
-  /**
-   * Draw-time atom labels (class-mode R groups: "R2"/"Rα"/"RN"), keyed by atom
-   * index of `source`. Applied on every baseline load; never part of the MOL
-   * block itself (emissions strip OCL's custom-label S-groups).
-   */
   atomLabels?: Readonly<Record<number, string>>;
-  /**
-   * Emitted on every user edit as the current depiction's MOL block (coords +
-   * wedges), plus the custom labels OCL currently displays, keyed by 0-based
-   * atom index of THIS emission. OCL tracks label-atom identity through edits,
-   * so the map is the canvas's display truth: labels follow surviving atoms and
-   * vanish with deleted ones. Empty for label-free molecules (all substances).
-   */
   onChange: (molblock: string, displayedAtomLabels: Record<number, string>) => void;
-  /** Called once if OpenChemLib fails to load or the canvas editor cannot be created. */
   onError?: (message: string) => void;
-  /** Enables continuous pointer rotation below OpenChemLib's legacy dead zone. */
   fineRotation?: boolean;
-  /** A one-shot request from the parent controls to reflect the editable depiction. */
   mirrorDirection?: MoleculeMirrorDirection | null;
-  /** Clears the parent request after it is applied or safely ignored. */
   onMirrorComplete?: () => void;
-  /** A one-shot request from the parent controls to rotate the depiction into alignment. */
   snapRequest?: MoleculeSnapKind | null;
-  /** Reports the alignment outcome and clears the parent request. */
   onSnapComplete?: (outcome: MoleculeSnapOutcome) => void;
-  /** Reports how many bonds are lasso-selected, gating the bond-vertical control. */
   onSelectedBondCountChange?: (count: number) => void;
-  /** Shows the click-to-pick overlay: the next clicked bond is rotated to vertical. */
   bondPickActive?: boolean;
-  /** Reports the pick outcome (applied / canceled / failed) so the parent exits pick mode. */
   onBondPickComplete?: (outcome: MoleculeSnapOutcome) => void;
-  /** Bond indices to draw bold; applied whenever a baseline loads into the canvas. */
   boldBonds?: readonly number[];
-  /** Shows the click-to-pick overlay in bold mode: each clicked bond flips bold. */
   boldToggleActive?: boolean;
-  /** Emitted whenever the canvas's bold-bond set changes (toggle or structural edit). */
   onBoldBondsChange?: (bonds: number[]) => void;
-  /** Asks the parent to leave bold mode (Escape pressed over the overlay). */
   onBoldToggleExit?: () => void;
   className?: string;
-  /** Overlays drawn over the drawing surface itself (below the pick overlay), not the tool strip. */
   children?: ReactNode;
 }
 
-/** The two canvases OpenChemLib mounts inside its shadow root. */
 interface OclCanvases {
   toolbar: HTMLCanvasElement;
   editor: HTMLCanvasElement;
 }
 
-/** The hovered pick candidate, in overlay-local CSS pixels for highlight drawing. */
 interface PickHover {
   bond: number;
   x1: number;
@@ -175,37 +116,24 @@ export function OclEditor({
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickHover, setPickHover] = useState<PickHover | null>(null);
-  // OpenChemLib's canvases, found once the editor exists; null under a mocked editor.
   const [canvases, setCanvases] = useState<OclCanvases | null>(null);
-  // OpenChemLib starts on its standard bond tool. Null means the highlight can
-  // no longer be trusted (a tool outside the strip, or a letter shortcut).
   const [activeTool, setActiveTool] = useState<OclToolId | null>("bond");
   const [nativeToolbarOpen, setNativeToolbarOpen] = useState(false);
 
-  // Recomputed rather than tracked incrementally: selection can change from lasso
-  // edits, structural edits that remove selected atoms, and programmatic loads.
   const reportSelectedBonds = useCallback((editor: CanvasEditorInstance) => {
     const report = onSelectedBondCountChangeRef.current;
     if (!report) return;
     try {
       report(countSelectedBonds(editor.getMolecule()));
     } catch {
-      /* molecule can be transiently invalid mid-edit; ignore */
     }
   }, []);
 
-  // Every emission funnels through here: OCL's `toMolfile` writes any applied
-  // custom labels as DAT S-groups, which must never reach the parent's molblock
-  // — they would break the string-equality dirty check against the unlabeled
-  // baseline and leak into saved molblocks. The labels are instead parsed off
-  // the raw emission and handed along the same callback, so the parent can
-  // mirror exactly what the canvas displays. Identity for label-free molecules.
   const emitMolfile = useCallback((molecule: { toMolfile(): string }) => {
     const raw = molecule.toMolfile();
     onChangeRef.current(stripOclCustomLabelSgroups(raw), parseOclCustomLabelSgroups(raw));
   }, []);
 
-  // Create the editor once.
   useEffect(() => {
     let destroyed = false;
     let editor: CanvasEditorInstance | null = null;
@@ -223,30 +151,19 @@ export function OclEditor({
         editor.setOnChangeListener((event) => {
           const ed = editorRef.current;
           if (!ed) return;
-          // Selection events feed the selected-bond counter (for the bond-vertical
-          // control) but never mark the editor dirty.
           if (event.type === "selection") {
             reportSelectedBonds(ed);
             return;
           }
-          // Ignore programmatic loads (isUserEvent === false) and highlight events so
-          // `edited` only diverges from `source` on a real structural edit.
           if (!event.isUserEvent || event.type !== "molecule") return;
           try {
             const molecule = ed.getMolecule();
             emitMolfile(molecule);
-            // Structural edits can add, delete, or renumber bonds; the molecule's
-            // own flags are the truth, so re-read the bold set alongside.
             onBoldBondsChangeRef.current?.(readBoldBonds(molecule));
           } catch {
-            /* molecule can be transiently invalid mid-edit; ignore */
           }
-          // A structural edit can delete lasso-selected atoms without a selection event.
           reportSelectedBonds(ed);
         });
-        // Both canvases live in an open shadow root on the element OpenChemLib
-        // appends: the toolbar canvas (never focusable) and, inside a container,
-        // the focusable drawing canvas.
         const shadow = hostRef.current
           .querySelector("[data-openchemlib-canvas-editor]")
           ?.shadowRoot;
@@ -266,17 +183,12 @@ export function OclEditor({
       try {
         editor?.destroy();
       } catch {
-        /* already destroyed */
       }
       editorRef.current = null;
       setCanvases(null);
     };
   }, [reportSelectedBonds, emitMolfile]);
 
-  // OpenChemLib's own toolbar stays mounted but out of the way until "All
-  // tools" opens it: hidden in place (not display:none) so it keeps a layout box
-  // for the synthesised clicks below, and absolutely positioned so the drawing
-  // canvas takes the whole width meanwhile.
   useEffect(() => {
     if (!canvases) return;
     const { style } = canvases.toolbar;
@@ -293,7 +205,6 @@ export function OclEditor({
     }
   }, [canvases, nativeToolbarOpen]);
 
-  // Read native toolbar clicks back so the strip's highlight follows them.
   useEffect(() => {
     if (!canvases) return;
     const { toolbar } = canvases;
@@ -311,21 +222,12 @@ export function OclEditor({
     return () => toolbar.removeEventListener("pointerup", onPointerUp);
   }, [canvases]);
 
-  // Mirror OpenChemLib's own shortcut keys (typed with the drawing canvas
-  // focused) into the strip; keydown composes out of the shadow root to the host.
   const handleHostKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     const tool = oclToolForShortcutKey(event.key);
     if (tool !== undefined) setActiveTool(tool);
   }, []);
 
-  /**
-   * Press and release OpenChemLib's toolbar at a button's centre, exactly the
-   * pointer sequence its own listeners expect: `pointerdown` on the canvas, then
-   * `pointerup` observed on the document, which a synthetic event only reaches
-   * from inside the shadow root when it is `composed`. Clicking the active tool
-   * is a no-op in OpenChemLib, which is also what the strip wants.
-   */
   const pressToolbarButton = useCallback(
     (button: number) => {
       if (!canvases) return;
@@ -355,15 +257,11 @@ export function OclEditor({
       if (!definition) return;
       pressToolbarButton(definition.button);
       setActiveTool(tool);
-      // Hand focus back to the drawing so atom typing and Escape keep working;
-      // the atom tool opens OpenChemLib's label dialog instead, which owns focus.
       if (tool !== "atom") canvases?.editor.focus({ preventScroll: true });
     },
     [canvases, pressToolbarButton],
   );
 
-  // Synchronize the session-only interaction preference without touching the
-  // molecule or emitting a structural change.
   useEffect(() => {
     if (!ready) return;
     const editor = editorRef.current;
@@ -378,7 +276,6 @@ export function OclEditor({
     }
   }, [fineRotation, ready]);
 
-  // (Re)load the source MOL block whenever the parent installs a baseline.
   useEffect(() => {
     if (!ready) return;
     const ed = editorRef.current;
@@ -387,13 +284,7 @@ export function OclEditor({
     if (source) {
       try {
         const molecule = OCL.Molecule.fromMolfile(source);
-        // Bold flags aren't part of the MOL block; reapply the persisted list
-        // before the load so the canvas draws them from the first paint.
         applyBoldBonds(molecule, boldBondsRef.current);
-        // Class-mode R-group labels are draw-time only: apply them per baseline
-        // load so the canvas shows the same text as the brand preview. Keyed by
-        // source atom index; guarded so a stale map never touches a shorter
-        // molecule.
         const labels = atomLabelsRef.current;
         if (labels) {
           const atomCount = molecule.getAllAtoms();
@@ -412,15 +303,11 @@ export function OclEditor({
       try {
         ed.clearAll();
       } catch {
-        /* noop */
       }
     }
-    // A programmatic load discards any lasso selection.
     reportSelectedBonds(ed);
   }, [source, sourceEpoch, ready, reportSelectedBonds]);
 
-  // Mirror through OpenChemLib, then emit a new MOL block so the parent preview,
-  // dirty state, chemistry guard, and protected save path all use the new coordinates.
   useEffect(() => {
     if (!mirrorDirection || !ready) return;
     const editor = editorRef.current;
@@ -438,9 +325,6 @@ export function OclEditor({
     }
   }, [mirrorDirection, ready, emitMolfile]);
 
-  // Alignment rotation through OpenChemLib, mirroring the flow above: mutate the
-  // molecule's coordinates, reload the canvas, and emit a new MOL block so the parent
-  // preview, dirty state, chemistry guard, and protected save path all pick it up.
   useEffect(() => {
     if (!snapRequest || !ready) return;
     const editor = editorRef.current;
@@ -453,7 +337,6 @@ export function OclEditor({
       if (outcome.status === "applied") {
         editor.setMolecule(molecule);
         emitMolfile(molecule);
-        // Reloading the molecule discards the lasso selection that picked the bond.
         reportSelectedBonds(editor);
       }
     } finally {
@@ -461,34 +344,21 @@ export function OclEditor({
     }
   }, [snapRequest, ready, reportSelectedBonds, emitMolfile]);
 
-  // --- click-to-pick bond mode ----------------------------------------------
-  //
-  // The molecule OpenChemLib edits keeps its atom coordinates in the drawing
-  // canvas's device-pixel space (the fork's pointer glue forwards
-  // `offset * devicePixelRatio` straight into `Molecule.findBond`), so hit-testing
-  // a pointer position needs no view transform — only the canvas's client rect and
-  // the same device-pixel scale factor.
-
-  /** Locate OCL's drawing canvas (not the toolbar) inside its open shadow root. */
   const resolvePickGeometry = useCallback(() => {
     const host = hostRef.current;
     if (!host) return null;
     const root = host.querySelector("[data-openchemlib-canvas-editor]");
     const canvas = root?.shadowRoot?.querySelector('canvas[tabindex="0"]') ?? null;
-    // Mocked or unstyled editors (tests) have no canvas box; the host then shares
-    // the overlay's origin, which keeps the mapping consistent.
     const rect = (canvas ?? host).getBoundingClientRect();
     return { rect, scale: window.devicePixelRatio || 1 };
   }, []);
 
-  /** The bond under a pointer event, or -1, plus the geometry used to find it. */
   const findBondAtPointer = useCallback(
     (event: { clientX: number; clientY: number }) => {
       const editor = editorRef.current;
       const geometry = resolvePickGeometry();
       if (!editor || !geometry) return null;
       try {
-        // The full editor molecule satisfies BondPickMolecule structurally.
         const molecule = editor.getMolecule();
         const bond = molecule.findBond(
           (event.clientX - geometry.rect.left) * geometry.scale,
@@ -496,7 +366,7 @@ export function OclEditor({
         );
         return { molecule, bond, geometry };
       } catch {
-        return null; /* molecule can be transiently invalid mid-edit */
+        return null;
       }
     },
     [resolvePickGeometry],
@@ -528,22 +398,17 @@ export function OclEditor({
 
   const handlePickClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
-      // Recompute from the click position rather than trusting hover state, which
-      // can be stale (touch input never hovers).
       const hit = findBondAtPointer(event);
-      if (!hit || hit.bond < 0) return; // a miss keeps pick mode armed
+      if (!hit || hit.bond < 0) return;
       const editor = editorRef.current;
       if (!editor) return;
 
-      // Bold mode: flip the clicked bond and stay armed so several bonds can be
-      // bolded in a row. The MOL block is untouched — only the depiction changes.
       if (boldToggleActive) {
         try {
           hit.molecule.setBondBold(hit.bond, !hit.molecule.isBondBold(hit.bond));
           editor.setMolecule(hit.molecule);
           onBoldBondsChangeRef.current?.(readBoldBonds(hit.molecule));
         } catch {
-          /* molecule can be transiently invalid mid-edit; ignore */
         }
         return;
       }
@@ -564,7 +429,6 @@ export function OclEditor({
     [findBondAtPointer, reportSelectedBonds, boldToggleActive, emitMolfile],
   );
 
-  // Escape cancels pick mode from anywhere, including while the canvas has focus.
   useEffect(() => {
     if (!bondPickActive && !boldToggleActive) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -577,7 +441,6 @@ export function OclEditor({
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [bondPickActive, boldToggleActive]);
 
-  // Leaving pick mode for any reason drops the highlight.
   useEffect(() => {
     if (!bondPickActive && !boldToggleActive) setPickHover(null);
   }, [bondPickActive, boldToggleActive]);
@@ -704,7 +567,6 @@ export function OclEditor({
 
 const GROUP_LABEL_CLASS = "type-meta-label theme-text-faint";
 
-/** Lucide-style glyphs for the strip; wedge, hash and bond have no library icon. */
 function ToolGlyph({ tool }: { tool: OclToolId }) {
   if (tool === "select") return <Icon icon="lucide:lasso-select" size={15} />;
   if (tool === "atom") return <Icon icon="lucide:atom" size={15} />;

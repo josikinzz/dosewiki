@@ -104,7 +104,6 @@ describe("decodePiruReport", () => {
     const report = decodePiruReport(
       encode({
         v: 1,
-        // A right-to-left override would display "MDMA 120 mg" as "gm 021 AMDM".
         title: "\u202EMDMA 120 mg\u202C",
         introduction:
           "a\u2066b\u2069c\u200Bd\uFEFFe\u200Ff\u0085g\u00ADh\u2028i",
@@ -119,7 +118,6 @@ describe("decodePiruReport", () => {
     expect(report?.substances).toEqual([
       { name: "LSD", dose: "100 µg", roa: "oral" },
     ]);
-    // Zero-width joiner and non-joiner are kept for emoji sequences and scripts that need them.
     expect(report?.conclusion).toBe(
       "family 👨\u200D👩\u200D👧 and می\u200Cخوام",
     );

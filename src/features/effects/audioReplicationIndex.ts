@@ -15,17 +15,6 @@ interface AudioReplicationSource {
   audio_replications?: AudioReplicationMetadata[];
 }
 
-/**
- * Project a stored audio replication onto the shape the audio card renders.
- *
- * `AudioReplicationMetadata` and `ReplicationRecord` already share
- * `ReplicationRightsMetadata`, so this is a narrowing rather than a
- * translation: the rights fields carry across unchanged and the resolved media
- * URL becomes the clip's `resource`. Spelled out field by field rather than
- * spread, for the same reason as `projectPublicGalleryReplicationPreview` —
- * storage IDs, taxonomy and provenance have no reader on this surface, and
- * these entries serialize into the RSC payload of every page that lists them.
- */
 export function audioReplicationFromRow(
   row: ReplicationWithUrl,
 ): AudioReplicationMetadata {
@@ -45,24 +34,6 @@ export function audioReplicationFromRow(
   };
 }
 
-/**
- * Flattens every effect's audio replications into one list for the audio index.
- * Clips without a playable resource are dropped rather than rendered as an
- * empty player.
- *
- * Two sources feed this, because audio arrived in the archive twice. The
- * originals are inline `subjectiveEffects.audio_replications` clips served from
- * `public/audio/`; the second wave are `type: "audio"` rows in the
- * `replications` table, which carry their own rights metadata and a permalink.
- * A stored row wins over an inline clip with the same effect and title: it is
- * the same recording with more provenance attached, so listing both would show
- * one clip twice.
- *
- * A stored row with no owning effect is not listed here. This index is
- * organised by effect and every entry's context link points at one — the same
- * reason the homepage carousel skips an unattached row — and such a row still
- * reaches readers through its permalink and `/api/v1/replications`.
- */
 export function collectAudioReplications(
   effects: readonly AudioReplicationSource[],
   storedRows: readonly ReplicationWithUrl[] = [],
@@ -74,7 +45,6 @@ export function collectAudioReplications(
   const storedClipKeys = new Set<string>();
 
   for (const row of storedRows) {
-    // Rows carry `effect_slug: "unknown"` when nothing real is attached.
     const effectSlug = row.effect_slug;
     if (!row.url?.trim() || !effectSlug || effectSlug === "unknown") {
       continue;

@@ -79,33 +79,16 @@ const FALLBACK: Rgba = { r: 0, g: 0, b: 0, a: 1 };
 
 export function ThemeLab() {
   const [mounted, setMounted] = useState(false);
-  // The raw-value field is a kit Textarea, so its caption pairs by id.
   const rawFieldId = useId();
-  // Open state lives in a shared store so appearance controls anywhere in the
-  // app can drive this portalled panel.
   const open = useThemeLabOpen();
-  // The root runtime restores the theme before this chunk finishes loading.
-  // The editor is a subscriber and writer, not the owner: it never reads or
-  // writes storage and never injects CSS.
   const themeState = useThemeLabTheme();
   const { look, storageOk } = themeState;
-  // Edits belong to the look they were made against, so everything the editor shows and
-  // writes is scoped to whichever appearance combination is on the bench right now.
   const overrides = useMemo(() => activeEdits(themeState), [themeState]);
-  // A plain string, so the sampling effect below re-runs when the look itself changes
-  // rather than whenever the store hands out a fresh object for the same one.
   const baselineKey = lookKey(look);
-  // The scheme and style being edited are the reader's own, borrowed from the one appearance
-  // owner: the Day/Night toggle at the top of this panel is the site's own control, so
-  // switching there is the same switch the header cog makes and the editor stays in step
-  // with the page it is editing without writing the document itself. The baselines below are
-  // sampled per style, so the panel has to know which one is being worn.
   const { colorScheme: theme, visualStyle } = useTheme();
   const [defaults, setDefaults] = useState<ThemeDefaults | null>(null);
   const [view, setView] = useState<ViewMode>("essentials");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
-  // The merged selection is anchored to a stable representative token id, not a
-  // color string — so a drag can't desync the selection through alpha rounding.
   const [selectedRepId, setSelectedRepId] = useState<string | null>(null);
   const [epoch, setEpoch] = useState(0);
   const [query, setQuery] = useState("");
@@ -118,7 +101,6 @@ export function ThemeLab() {
   const [copied, setCopied] = useState(false);
   const [jsonOpen, setJsonOpen] = useState(false);
 
-  // Eyedropper / click-to-edit.
   const [picking, setPicking] = useState(false);
   const [hoverRect, setHoverRect] = useState<DOMRect | null>(null);
   const [hoverLabel, setHoverLabel] = useState("");
@@ -133,21 +115,11 @@ export function ThemeLab() {
     setMounted(true);
   }, []);
 
-  // Revert baselines are this look's own values in the style being worn, re-sampled (and
-  // cached) when the visitor switches either. `visualStyle` is a dependency because Pro
-  // re-seats hundreds of `--theme-*` tokens: a Fun sample is the wrong baseline for a Pro
-  // page, and the delete-on-equal rule in the token-write path would then drop real edits and
-  // keep phantom ones. Nothing is staged under the sample — the style, scheme and
-  // chroma stylesheets already resolve the look on the live document — so the base layer
-  // handed in is empty. A layout effect so the new baselines are in place before the
-  // switched-to look paints.
   useLayoutEffect(() => {
     if (!mounted) return;
     setDefaults(getThemeBaselines(baselineKey, visualStyle, emptyOverrides()));
   }, [mounted, baselineKey, visualStyle]);
 
-  // What actually renders: this look's own edits over whatever the site's own stylesheets
-  // resolve for it.
   const effective = useMemo(() => effectiveOverrides(themeState), [themeState]);
 
   const closePanel = useCallback(() => {
@@ -155,9 +127,6 @@ export function ThemeLab() {
     getThemeLabOpener()?.focus();
   }, []);
 
-  /** Escape is handled on the panel, not on `window`: while the lab is open the
-   *  rest of the site keeps its own Escape behavior (menus, dialogs, search),
-   *  and only an Escape pressed inside the panel closes it. */
   const onPanelKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key !== "Escape") return;
@@ -167,22 +136,13 @@ export function ThemeLab() {
     [closePanel],
   );
 
-  // Opening moves focus into the panel, so a keyboard visitor lands on the tool
-  // they just opened (and Escape reaches the handler above).
   useEffect(() => {
     if (!open || !mounted) return;
     const panel = panelRef.current;
     if (!panel || panel.contains(document.activeElement)) return;
-    // preventScroll: the panel is mid-slide and fixed-position; letting the
-    // browser scroll to it would yank the page the visitor is recoloring.
     panel.focus({ preventScroll: true });
   }, [open, mounted]);
 
-  // Signal "the lab is open" to the page. On desktop the CSS turns that into a
-  // reserved right gutter the panel fills, so content reflows beside it like a
-  // real side menu; on mobile the panel is a bottom sheet that overlays instead,
-  // and the class only moves the homepage's fixed control cluster out from under
-  // it. The class name is historical — it means open, not "sidebar".
   useEffect(() => {
     if (!mounted) return;
     document.documentElement.classList.toggle("pl-sidebar-open", open);
@@ -196,15 +156,12 @@ export function ThemeLab() {
     [effective, theme, defaults],
   );
 
-  /** Tokens grouped by the sRGB color they currently resolve to. Editing one
-   *  group writes every member at once, so identical colors stay in sync. */
   const colorGroups = useMemo<ColorGroup[]>(() => {
     if (!defaults) return [];
     const map = new Map<string, ColorGroup>();
     ALL_TOKEN_IDS.forEach((id, index) => {
       const token = getToken(id);
       if (!token || token.kind !== "color") return;
-      // Primitive seeds live only in their own group, never the merged catalog.
       if (id.startsWith("--c-") || id.startsWith("--h-")) return;
       const value = effective[theme][id] ?? defaults[theme][id] ?? "";
       const parsed = parseColorToRgba(value);
@@ -233,9 +190,6 @@ export function ThemeLab() {
       setActiveEdits((prev) => {
         const nextThemeMap = { ...prev[theme] };
         for (const id of ids) {
-          // The revert baseline is what renders with no user edit *on this
-          // theme*: the value this look's own stylesheets resolve, read back off
-          // the live document.
           const baseline = defaults?.[theme]?.[id];
           if (baseline !== undefined && value.trim() === baseline.trim()) delete nextThemeMap[id];
           else nextThemeMap[id] = value;
@@ -246,9 +200,6 @@ export function ThemeLab() {
     [theme, defaults],
   );
 
-  /** Per-id values in one write — the flatness axes need different values per
-   *  token, which `setTokenValues`' single shared value cannot express. Same
-   *  delete-on-equal rule against the same baselines. */
   const setTokenValueMap = useCallback(
     (map: Record<string, string>) => {
       setActiveEdits((prev) => {
@@ -275,8 +226,6 @@ export function ThemeLab() {
     [theme],
   );
 
-  /** Blur is one switch for the whole look, not a per-theme tweak: write the
-   *  sentinel into both maps so toggling dark/light never resurrects blur. */
   const setBlur = useCallback((off: boolean) => {
     setActiveEdits((prev) => {
       const next = { dark: { ...prev.dark }, light: { ...prev.light } };
@@ -288,10 +237,6 @@ export function ThemeLab() {
     });
   }, []);
 
-  /** Mobile only: the sheet scrolls as one column, so tapping a swatch part-way
-   *  down the catalog can leave the editor off-screen above. The helper skips
-   *  the scroll when the editor is already visible, moves to the nearest edge,
-   *  and honours reduced motion. Desktop pins the editor, so it is a no-op. */
   const revealEditor = useCallback(() => {
     revealEditorElement(editorRef.current);
   }, []);
@@ -314,20 +259,13 @@ export function ThemeLab() {
     [revealEditor],
   );
 
-  /** Changing view never selects anything: the editor stays collapsed until the
-   *  visitor picks a swatch, which is what gives the catalog its rows back. */
   const switchView = useCallback((next: ViewMode) => {
     setView(next);
     setEpoch((value) => value + 1);
   }, []);
 
-  // Scoped to the look being worn: "3 changed" always means three tweaks to *this*
-  // combination, and resetting only ever touches this one.
   const changedCount = useMemo(() => activeEditCount(themeState), [themeState]);
 
-  // Stamped with the look it was read in, so a paste can say which appearance combination
-  // the values came from. The stamp is provenance, not navigation: the look is chosen with
-  // the site's own appearance controls at the top of the panel.
   const exportJson = useMemo(() => serializeThemeExport(look, effective), [look, effective]);
   const jsonValue = jsonDirty ? jsonDraft : exportJson;
 
@@ -349,17 +287,12 @@ export function ThemeLab() {
       setJsonError(error);
       return;
     }
-    // An import lands on the look being worn, stored as the diff against the values that
-    // look already resolves in the style on screen — so export → import of an untouched
-    // look leaves zero edits behind, in Pro as well as in Fun.
     setActiveEdits(editsFromImport(payload, { baselines: defaults, currentEdits: overrides }));
     setEpoch((value) => value + 1);
     setJsonDirty(false);
     setJsonError(null);
   }, [jsonValue, defaults, overrides]);
 
-  // Resets clear this look's edits back to the values the site's own stylesheets resolve
-  // for it. The look itself is chosen with the appearance controls above, not here.
   const resetTheme = useCallback(() => {
     setActiveEdits((prev) => ({ ...prev, [theme]: {} }));
     setEpoch((value) => value + 1);
@@ -381,9 +314,6 @@ export function ThemeLab() {
     });
   }, []);
 
-  // Bind the editor to a token picked from the page: jump to the view that
-  // shows it (Essentials if curated, otherwise All colors with its group open),
-  // select it, and leave pick mode.
   const applyPick = useCallback(
     (candidate: PickCandidate) => {
       if (getEssential(candidate.id)) {
@@ -397,7 +327,6 @@ export function ThemeLab() {
       setEpoch((value) => value + 1);
       setPickMenu(null);
       setPicking(false);
-      // On mobile the sheet is returning from its pick peek; land on the wheel.
       revealEditor();
     },
     [revealEditor],
@@ -409,9 +338,6 @@ export function ThemeLab() {
     setPicking((on) => !on);
   }, []);
 
-  // Pick-mode listeners: outline the hovered element, intercept the next click
-  // anywhere on the page, and resolve it to its editable token(s). Clicks inside
-  // the lab or its overlays pass through so the panel and menu stay usable.
   useEffect(() => {
     if (!picking || !mounted) return;
     ruleIndexRef.current = buildThemeRuleIndex(theme);
@@ -463,7 +389,7 @@ export function ThemeLab() {
     };
 
     const onClick = (event: MouseEvent) => {
-      if (isOwn(event.target)) return; // let the lab / menu handle their own clicks
+      if (isOwn(event.target)) return;
       const targets = targetsAtPoint(event);
       const target = targets[0] ?? null;
       if (!target || isOwn(target)) return;
@@ -527,9 +453,6 @@ export function ThemeLab() {
     [overrides, theme],
   );
 
-  // Resolve what the editor is bound to (a single token, or a merged group).
-  // Essentials and the sections catalog both edit one token at a time via
-  // `selectedToken`; only the labels and the catalog list differ.
   const singleToken =
     (view === "sections" || view === "essentials") && selectedToken
       ? getToken(selectedToken)
@@ -545,27 +468,17 @@ export function ThemeLab() {
     ? currentValue(singleToken.id)
     : (mergedGroup?.value ?? "");
   const editOverridden = editIds.some((id) => overrides[theme][id] !== undefined);
-  // True when every token bound to the editor is scoped to the *other* theme,
-  // so dragging the wheel won't change anything in the theme being edited.
   const editInert = editIds.length > 0 && editIds.every((id) => isInertInTheme(id, theme));
   const editInertScope = editInert ? tokenThemeScope(editIds[0]) : "both";
-  // A translucent fill tints rather than floods — the page behind shows through,
-  // which is why a "bright" edit can look like almost nothing. Surface that.
   const editAlpha = editKind === "color" ? (parseColorToRgba(editValue)?.a ?? 1) : 1;
   const editTranslucent = editKind === "color" && editAlpha < 0.6;
-  // Length tokens carry their slider bounds beside the registry entry rather
-  // than on the token, so the registry stays a list of *what* is editable.
   const editLengthSpec = editKind === "length" ? getLengthSpec(editIds[0]) : undefined;
-  // Hue seeds carry their authored angle the same way, so the control can open
-  // on this theme's own value when the browser reports nothing computed.
   const editAngleSpec = editKind === "angle" ? getAngleSpec(editIds[0]) : undefined;
 
   const applyColor = useCallback(
     (rgba: Rgba) => {
       const value = editKind === "channels" ? formatChannels(rgba) : formatColor(rgba);
       setTokenValues(editIds, value);
-      // No selection bookkeeping needed: the merged group is rediscovered each
-      // render from the stable representative id, so it follows the edit.
     },
     [editIds, editKind, setTokenValues],
   );
@@ -579,20 +492,12 @@ export function ThemeLab() {
     setEpoch((value) => value + 1);
   }, [editIds, theme]);
 
-  // Root layout owns the panel; wait for the browser before creating its body
-  // portal. Closed panels remain mounted off-screen so close animations and
-  // navigation preserve their state.
   if (!mounted) return null;
 
   const panel = (
-    // A dialog owning its own Escape is the pattern the rule warns about for
-    // ordinary containers; here the alternative — a window listener — is the
-    // site-wide Escape hijack this replaces.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
       ref={panelRef}
-      // Focusable container so opening can move focus into the panel without
-      // stealing it from a specific control, and so Escape lands here.
       tabIndex={-1}
       onKeyDown={onPanelKeyDown}
       className={[styles.panel, picking ? styles.panelPicking : "", open ? "" : styles.panelClosed]
@@ -610,8 +515,6 @@ export function ThemeLab() {
           <Icon icon="lucide:palette" size={22} className={styles.titleMark} />
           <div>
             <h2 className={styles.title}>Theme Lab</h2>
-            {/* Never promise persistence we cannot deliver: when the browser
-                blocks storage, say so instead of claiming it is saved. */}
             <p className={styles.subtitle}>
               {storageOk
                 ? "Live recolor · saved to this browser"
@@ -648,10 +551,6 @@ export function ThemeLab() {
         </p>
       )}
 
-      {/* The site's own four appearance axes, rendered from the same component the header
-          cog renders — so the drawer and the cog can never offer a reader different looks.
-          Choosing one here is navigation: each combination keeps its own edits, and the
-          Day/Night toggle decides which half of them the editor below writes. */}
       <AppearanceAxes
         className={styles.appearanceAxes}
         showVisualStyle
@@ -675,9 +574,6 @@ export function ThemeLab() {
         )}
       </div>
 
-      {/* Collapsed until there is something to edit: a single line of hint text
-          until a swatch is picked. That reclaimed height is what puts catalog
-          rows back on screen. */}
       <div
         className={`${styles.editor} ${editIds.length === 0 ? styles.editorCollapsed : ""}`}
         ref={editorRef}
@@ -762,9 +658,6 @@ export function ThemeLab() {
                 key={`${theme}:${epoch}`}
                 initial={editValue}
                 label={essentialItem?.label ?? singleToken?.label ?? "Font"}
-                // "Theme default" is the absence of a choice, not a value: it
-                // clears the edit so a preset that ships its own face keeps it,
-                // which is the same thing the reset button below does.
                 onChange={(value) =>
                   value ? setTokenValues(editIds, value) : resetEditTarget()
                 }
@@ -819,8 +712,6 @@ export function ThemeLab() {
             placeholder="Filter colors…"
             className="rounded-full pl-7"
             onChange={(event) => setQuery(event.target.value)}
-            // Escape with text in the field clears the filter; only a second
-            // Escape reaches the panel handler and closes the lab.
             onKeyDown={(event) => {
               if (event.key !== "Escape" || query.length === 0) return;
               event.stopPropagation();
@@ -842,9 +733,6 @@ export function ThemeLab() {
                 isOverridden={isOverridden}
                 onSelect={selectToken}
               />
-              {/* The look's shape and depth, under its colors: one axis per row, each
-                  computed from this look's own sampled baselines rather than a fixed
-                  palette, so "Soft" fades whatever is on screen. */}
               <FlatnessControls
                 baselineValue={(id) => defaults?.[theme]?.[id] ?? ""}
                 overrideValue={(id) => overrides[theme]?.[id]}
@@ -918,8 +806,6 @@ export function ThemeLab() {
 
   return (
     <>
-      {/* Always portaled (when mounted) so the panel can slide out on close in
-          sync with the page reflow; the closed state hides it off-screen. */}
       {createPortal(panel, document.body)}
       {(picking || pickMenu || pickToast) && createPortal(pickLayer, document.body)}
     </>

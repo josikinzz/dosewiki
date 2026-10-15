@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * Trip reports: `/dev/trip-report-submissions` (alias `/dev/trip-reports`).
- *
- * One list of the published corpus and the intake queue, laid out as the
- * triage workspace: the list and its filters on the left (sticky from `lg`),
- * the open record docked on the right. A submission opens the review pane
- * with its decision dock; a published report opens the editing pane with its
- * save dock. On a phone the list is the view until a row is picked, the pane
- * then scrolls in with Back to list and a pager, and the dock owns the bottom
- * of the screen.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -54,7 +42,6 @@ import {
 } from "./tripReportPortalModel";
 import { canBulkDecide, useTripReportPortalController } from "./useTripReportPortalController";
 
-/** Keys the tool answers to beyond the shared triage keys. */
 const TRIP_REPORT_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "/", label: "Search reports" },
   { keys: "Esc", label: "Leave a field, or close the open report" },
@@ -134,7 +121,6 @@ export function TripReportPortalTab({
   const paneRef = useRef<HTMLElement>(null);
   const paneHeadingRef = useRef<HTMLHeadingElement>(null);
   const [refreshing, setRefreshing] = useState(false);
-  /** The open report's attribution choice; reset whenever another report opens or the latest loads. */
   const [attribution, setAttribution] = useState<ReportAttribution>(NO_ATTRIBUTION_CHANGE);
   const attributionKey = `${selectedId ?? ""}:${reloadToken}`;
   const [attributionFor, setAttributionFor] = useState(attributionKey);
@@ -143,9 +129,6 @@ export function TripReportPortalTab({
     setAttribution(NO_ATTRIBUTION_CHANGE);
   }
 
-  // Picking a row below `lg` brings the pane into view and names the record for
-  // keyboard and screen reader users. An effect, so a click into a field right
-  // after cannot lose its focus to the heading.
   useScrollToDetail(paneRef, selectedId);
   const focusOnOpen = useRef(false);
   const paneReady = Boolean(selectedSubmission || (selected?.origin === "published" && selected.fields && draft));
@@ -155,11 +138,6 @@ export function TripReportPortalTab({
     paneHeadingRef.current?.focus({ preventScroll: true });
   }, [paneReady, selectedId]);
 
-  /**
-   * Open a row. From the listbox, focus stays in the list so the arrow keys
-   * keep walking it (the Feedback queue's rule); from anywhere else (the
-   * pager, j/k, "Next waiting", a link across) the pane's heading takes it.
-   */
   const pick = (row: PortalRow, { fromList = false }: { fromList?: boolean } = {}) => {
     if (row.id === selectedId) {
       if (!fromList) paneHeadingRef.current?.focus({ preventScroll: true });
@@ -173,7 +151,6 @@ export function TripReportPortalTab({
     selectAdjacent(direction);
   };
 
-  // Ticks only count while their row is in the list on screen.
   const checkedRows = visible.filter((row) => checkedIds.has(row.id));
 
   function bulkDecide(status: "rejected" | "spam") {
@@ -208,7 +185,6 @@ export function TripReportPortalTab({
   });
   useDevShortcuts(TRIP_REPORT_SHORTCUTS);
 
-  // The open report: what changed, and Save behind a confirm that names it.
   const openReport = selected?.origin === "published" && selected.fields && draft ? selected : null;
   const savedFields = openReport?.fields ?? null;
   const attributionChanged = openReport ? attributionMoved(openReport.profileKey, attribution.profileKey) : false;
@@ -277,7 +253,6 @@ export function TripReportPortalTab({
     listRef.current?.querySelector<HTMLElement>('[role="listbox"]')?.focus({ preventScroll: true });
   };
 
-  // Load failures: one card for both reads when both failed, else one per read where its rows would be.
   const corpusFailed = load.corpus.status === "error" ? load.corpus.message : null;
   const queueFailed = load.submissions.status === "error" ? load.submissions.message : null;
   const loadError =
@@ -295,7 +270,6 @@ export function TripReportPortalTab({
     (bucket === "needs" && queueFailed !== null) || (bucket === "published" && corpusFailed !== null) || (corpusFailed !== null && queueFailed !== null);
   const empty = describePortalEmpty(rows, { bucket, query, facets, sort });
 
-  // The oldest submission still waiting on a decision, other than the open one.
   const nextWaitingRow = useMemo(
     () =>
       [...rows]
@@ -379,7 +353,6 @@ export function TripReportPortalTab({
     ? `${stats.reports} reports from ${stats.authors} ${stats.authors === 1 ? "author" : "authors"}, covering ${stats.substances} ${stats.substances === 1 ? "substance" : "substances"}. New submissions wait here for a decision; published reports open to edit.`
     : "New submissions wait here for a decision; published reports open to edit.";
 
-  // Below `lg` the pane waits for a pick; the idle pane is a desktop hint.
   const paneOpen = selected !== null;
 
   return (
@@ -461,7 +434,6 @@ export function TripReportPortalTab({
             />
           ) : openReport && draft && savedFields ? (
             <PortalReportPane
-              // Keyed so a draft never carries over to another report.
               key={openReport.id}
               row={openReport}
               saved={savedFields}
@@ -562,7 +534,6 @@ export function TripReportPortalTab({
   );
 }
 
-/** A picked row whose record is still on its way, or failed to arrive. */
 function OpeningPane({
   title,
   failed,
@@ -594,7 +565,6 @@ function OpeningPane({
   );
 }
 
-/** What the pane says on desktop before a row is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({
   waiting,
   undo,
@@ -620,7 +590,6 @@ function IdlePane({
             Press <kbd className="theme-dev-kbd">j</kbd> to start at the top.
           </span>
         </p>
-        {/* The shared line: it says how decisions and saves land, and turns into the freeze sentence while writes are paused. */}
         <SaveLine model="instant" />
       </EditorPanel>
     </div>

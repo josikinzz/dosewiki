@@ -4,12 +4,6 @@ import {
 } from "../../lib/data-ops-run-context.mjs";
 import { requireBatchProposalTargetUrl } from "../lib/batch-targets.mjs";
 
-/**
- * Guarded interface for a future explicit apply command or protected route.
- * This module intentionally owns no CLI and no Postgres client. A caller must
- * supply the single reviewed-section mutation invocation after all production
- * write ceremony checks pass.
- */
 export function createReviewedSectionPublisher({ context, actorEmail, env = process.env, mutate }) {
   if (typeof mutate !== "function") {
     throw new Error("A reviewed-section mutation caller is required.");

@@ -4,10 +4,6 @@ import type { QueryCtx } from "../../lib/postgres/runtime/server"
 
 export const REVIEWED_ARTICLES_CURSOR_PREFIX = "reviewed-v1:";
 
-/** Merge each claimed email's bounded ordered index range. The cursor names
- * the last article, not an offset into a profile's aliases, so aliases share
- * one global source order and an article can never appear twice in a page.
- */
 export async function reviewedArticlesPage(ctx: QueryCtx, emails: ReadonlySet<string>, args: { cursor?: string; numItems: number }) {
   let after: { time: number; id: string } | null = null;
   if (args.cursor) {

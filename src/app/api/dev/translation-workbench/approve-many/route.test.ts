@@ -20,7 +20,6 @@ let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
   for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  // Adapt the transport only. The route, access checks, store, and SQL are production code.
   transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
   transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
 }, 60_000);
@@ -38,7 +37,6 @@ const post = (body: Record<string, unknown>) => POST(new Request("https://dev.do
 
 describe("batch approval of short UI labels", () => {
   it("approves the current rows and reports a stale revision as a conflict", async () => {
-    // Someone else saved a draft after the reviewer loaded the grid.
     await writeUiTranslation({ locale: "zh-Hans", id: "gallery.replications", action: "save", target: "复现", expectedRevision: 0, actor: "other@example.test", reason: "Earlier draft" });
     const response = await post({ locale: "zh-Hans", items: [
       { id: "appearance.light", expectedRevision: 0, target: "浅色" },

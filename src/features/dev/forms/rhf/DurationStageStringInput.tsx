@@ -1,8 +1,3 @@
-/**
- * String input component that internally works with DurationStage schema type.
- * Displays "15-30 minutes" format but stores { min, max, unit }.
- */
-
 import { useCallback, useId, useState, type ChangeEvent, type FocusEvent } from "react";
 import { Controller, useFormContext, type FieldPath, type ControllerRenderProps } from "react-hook-form";
 
@@ -26,9 +21,6 @@ export type DurationStageStringInputProps = {
   className?: string;
 };
 
-/**
- * Inner component that safely uses hooks outside of Controller's render prop.
- */
 function DurationStageInnerInput({
   id,
   field,

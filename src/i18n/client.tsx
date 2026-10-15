@@ -12,7 +12,6 @@ const UiMessagesContext = createContext<Readonly<Record<string, string>>>({});
 
 export function UiMessagesProvider({ messages, locale, children }: {
   messages: Readonly<Record<string, string>>;
-  /** Page-scoped language for glossaries that have no site mirror. */
   locale?: string;
   children: ReactNode;
 }) {
@@ -22,7 +21,6 @@ export function UiMessagesProvider({ messages, locale, children }: {
   </UiMessageLocaleContext.Provider>;
 }
 
-/** Rendered by a localized page around its subtree. */
 export function UiLocaleProvider({ locale, children }: { locale: UiLocale; children: ReactNode }) {
   return <UiLocaleContext.Provider value={locale}>{children}</UiLocaleContext.Provider>;
 }
@@ -38,7 +36,6 @@ export function useUiLocale(): UiLocale {
   return segments ? localeForPathname(`/${segments.join("/")}`) : "en";
 }
 
-/** `t("English literal")` for client components. */
 export function useT(): (text: string, values?: MessageValues) => string {
   const siteLocale = useUiLocale();
   const locale = useContext(UiMessageLocaleContext) ?? siteLocale;

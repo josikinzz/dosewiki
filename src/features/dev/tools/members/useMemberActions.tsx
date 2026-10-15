@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The three things an admin does to an account (change permissions, ban,
- * issue a password reset), with their confirms and outcome notices. Saves are
- * immediate and there is no undo, so Ban and a permission change go through
- * the shared confirm dialog first; the account then shows what is happening
- * until the roster reloads. The reset link is shown once; only its hash is
- * stored, so closing the notice is the end of it.
- */
-
 import { useCallback, useState, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -28,15 +19,12 @@ import {
 
 type ResetLink = { email: string; label: string; href: string; copied: boolean; confirmingDismiss: boolean };
 
-/** A result, and the account it is about, so it lands in that account's pane. */
 type MemberNotice = NoticeMessage & { email: string | null };
 
-/** A refused write under the freeze reads as the freeze, not as the route's own words. */
 const FROZEN_MEMBER_WRITE = "Writes are paused, so that was not saved.";
 
 export type MemberPendingKind = "role" | "ban" | "unban" | "reset";
 
-/** The one action in flight; its account shows the label until the roster reloads. */
 export type MemberPendingAction = { email: string; kind: MemberPendingKind };
 
 export const MEMBER_PENDING_LABEL: Record<MemberPendingKind, string> = {
@@ -50,12 +38,10 @@ export function useMemberActions(reload: () => Promise<void>) {
   const [pending, setPending] = useState<MemberPendingAction | null>(null);
   const [notice, setMemberNotice] = useState<MemberNotice | null>(null);
   const { frozen } = useWriteFreeze();
-  /** Callers that set a notice without naming an account see it on every account. */
   const setNotice = useCallback((next: NoticeMessage | null) => setMemberNotice(next ? { ...next, email: null } : null), []);
   const [resetLink, setResetLink] = useState<ResetLink | null>(null);
   const { confirm, dialog } = useConfirm();
 
-  /** Runs one action, reloads the roster, and reports the outcome. */
   const run = useCallback(
     async (email: string, kind: MemberPendingKind, action: () => Promise<void>, success: string, refresh = true) => {
       setPending({ email, kind });
@@ -120,7 +106,6 @@ export function useMemberActions(reload: () => Promise<void>) {
         const path = await issueMemberReset(row.email);
         setResetLink({ email: row.email, label: row.username ?? row.email, href: new URL(path, window.location.origin).toString(), copied: false, confirmingDismiss: false });
       },
-      // The link card below says it all; a second success line would repeat it.
       "",
       false,
     );
@@ -135,7 +120,6 @@ export function useMemberActions(reload: () => Promise<void>) {
     }
   };
 
-  /** The results about `email` (and any not tied to an account): where the write was made. */
   const noticesFor = (email: string | null | undefined): ReactNode => {
     const showNotice = notice && (notice.email === null || email === undefined || notice.email === email);
     const showReset = resetLink && (email === undefined || resetLink.email === email);

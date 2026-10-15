@@ -83,15 +83,12 @@ describe("changeProposals.submit", () => {
   it("keys an article by the slug of the row its id names and refuses a proposal that moves it", async () => {
     const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
 
-    // The payload slug is the id-row's current slug: pinned there, whatever the title says.
     await submitHandler(ctx, submitArgs({ payload: { articles: [{ ...proposedLsd, title: "Lysergide" }] } }) as never);
     const { _id: _rowId, _creationTime: _createdAt, ...storedContent } = projectEditorArticle(storedLsd as never) as Record<string, unknown>;
     expect(rowsOf("changeProposals").get("changeProposals:1")!.targets).toEqual([
       { kind: "article", key: "lsd", baseHash: contentHash(storedContent) },
     ]);
 
-    // A renamed slug on an existing id would pin the new slug (absent, hash of
-    // null) while the apply patched the id-row: refused before anything is stored.
     await expect(
       submitHandler(ctx, submitArgs({ payload: { articles: [{ ...proposedLsd, slug: "lysergide" }] } }) as never),
     ).rejects.toMatchObject({ data: { code: "PROPOSAL_SLUG_MOVE" } });

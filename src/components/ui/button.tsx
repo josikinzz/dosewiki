@@ -71,9 +71,6 @@ const buttonVariants = cva(
           "rounded-chip bg-[color:var(--theme-warning-bg)] p-2 text-[color:var(--theme-warning-text)] hover:bg-[color:var(--theme-warning-bg-strong)]",
       },
       size: {
-        // One height ladder across Button, fields, Toggle and Tabs: 24 badge,
-        // 28 chip/xs, 32 sm/pill/quiet, 40 default/icon, 44 lg (and the
-        // coarse-pointer floor), 48 field lg.
         default: "h-10 px-4 [@media(pointer:coarse)]:min-h-11",
         sm: "h-8 px-3 text-sm [@media(pointer:coarse)]:h-auto [@media(pointer:coarse)]:min-h-11",
         lg: "h-11 px-6",

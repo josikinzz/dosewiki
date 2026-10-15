@@ -51,7 +51,6 @@ async function fetchCachedReagentData(slug: string): Promise<NormalizedReagentDa
   return request;
 }
 
-/** Read imported reagent-test data by canonical DoseWiki slug. */
 export function useReagentData(slug: string) {
   const [data, setData] = useState<NormalizedReagentData | null>(() =>
     slug ? reagentCache.get(slug) ?? null : null,

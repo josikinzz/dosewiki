@@ -5,7 +5,6 @@ import { updateGalleryOrder } from "../server/replications";
 import { admin, createCtx, SERVER_KEY } from "./changeProposalReviewFixture";
 
 function handlerOf(fn: unknown) {
-  // Postgres exposes the registered handler on this runtime-only testing seam.
   const registered = fn as { _handler: (ctx: MutationCtx, args: Record<string, unknown>) => Promise<Record<string, unknown>> };
   return registered._handler;
 }

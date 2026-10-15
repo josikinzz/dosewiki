@@ -7,25 +7,8 @@ import { mirrorPsychoactiveLayout } from "./lib/categoryLayoutMirror";
 import { indexLayoutValidator } from "./lib/validators";
 import { copyIndexRevision, prepareCopyIndexPublication, copyIndexContentEqual, journalCopyIndex } from "./lib/copyIndexPublication";
 
-/**
- * Index layouts - stores category/classification index definitions.
- *
- * Three types:
- * - "psychoactive": Home page category layout (Psychedelic, Dissociative, etc.)
- * - "chemical": Chemical class index (Phenethylamine, Tryptamine, etc.)
- * - "mechanism": Mechanism of action index (5-HT2A agonist, etc.)
- *
- * Each layout has the same structure as the JSON files in data/substances/.
- */
-
 export type IndexLayoutType = "psychoactive" | "chemical" | "mechanism";
 
-// Full index layout; the validator lives in lib/validators so the change
-// proposal submit path checks a proposed layout exactly like a saved one.
-
-/**
- * Get an index layout by type.
- */
 export const getByType = query({
   args: { type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")) },
   handler: async (ctx, args) => {
@@ -36,9 +19,6 @@ export const getByType = query({
   },
 });
 
-/**
- * Get all index layouts.
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -78,13 +58,6 @@ type IndexLayoutSaveArgs = {
   operationId?: string;
 };
 
-/**
- * The layout write behind `save`, also the write a change proposal's
- * indexLayout target applies through: one upsert by type plus the
- * `categoryLayout` mirror the public /substances page reads. Admin floor:
- * an editor's layout edits arrive as proposals and are applied with the
- * approving admin as the actor.
- */
 export async function saveIndexLayoutHandler(ctx: MutationCtx, args: IndexLayoutSaveArgs) {
   const actor = await requireRole(ctx, {
     apiKey: args.apiKey,
@@ -109,11 +82,6 @@ export async function saveIndexLayoutHandler(ctx: MutationCtx, args: IndexLayout
   return { updated: !!existing, id, revision, replayed: false, unchanged: false };
 }
 
-/**
- * Save/update an index layout. Editor floor: this is the staged save route's
- * layout write. Psychoactive layouts are mirrored into `categoryLayout`,
- * which the public /substances page reads.
- */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -126,9 +94,6 @@ export const save = mutation({
   handler: saveIndexLayoutHandler,
 });
 
-/**
- * Bulk import all index layouts. Script-only (seed); admin floor.
- */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -168,9 +133,6 @@ export const bulkImport = mutation({
   },
 });
 
-/**
- * Delete an index layout by type. Admin floor.
- */
 export const deleteByType = mutation({
   args: {
     apiKey: v.optional(v.string()),

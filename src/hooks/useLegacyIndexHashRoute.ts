@@ -8,11 +8,6 @@ export type LegacyIndexHashResolution<T extends string> =
   | { redirect: string }
   | null;
 
-/**
- * Preserve old hash-tab URLs without ever exposing their default server view.
- * Canonical path routes arrive already resolved; this hook only migrates an
- * incoming legacy fragment and then removes it from the visible URL.
- */
 export function useLegacyIndexHashRoute<T extends string>({
   value,
   setValue,

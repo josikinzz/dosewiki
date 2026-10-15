@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * Contributors: `/dev/contributors`. The one people editor for public
- * contributor profiles.
- *
- * An editor sees the whole directory as an editor workspace: the list on the
- * left (sticky on desktop), the open profile in a docked pane on the right with
- * its save dock at the bottom. A contributor without editor role sees only
- * their own profile, in the same pane. On a phone the list is the whole view
- * until a row is picked; the pane then scrolls in and carries Back to list.
- *
- * The directory comes from the dev shell; profile loading and every write sit
- * in `useContributorsController`, which People reuses beside each account.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
@@ -43,20 +29,13 @@ import { useContributorUnsavedWork } from "./useContributorUnsavedWork";
 import { useContributorsController, type ContributorScope, type ContributorsController } from "./useContributorsController";
 
 export type ContributorsTabProps = {
-  /** The shared contributor directory, fetched by the dev shell. */
   profiles: readonly NormalizedUserProfile[];
   isDirectoryLoading: boolean;
-  /** Editor role. Without it the tab is the signed-in user's own record and nothing else. */
   canEdit: boolean;
-  /** Admin role: the trust fields (role, membership, flags, staff note) are editable only with it. */
   canApprove: boolean;
-  /** The signed-in user's own contributor key. */
   sessionProfileKey: string;
-  /** The signed-in address, so a record this viewer may not change opens read only. */
   viewerEmail?: string | null;
-  /** The route's `?scope=` value, validated by the registry; anything else opens on all. */
   initialScope?: string;
-  /** `/dev/contributors/<key>`: the profile the tab opens on. */
   initialKey?: string;
 };
 
@@ -73,13 +52,11 @@ const DIRTY_GUARD_COPY = {
 
 const LIST_SHORTCUTS = [{ keys: "/", label: "Search contributors" }] as const;
 
-/** `12 profiles`, or `1 of 12 profiles` while a search or the scope narrows the list. */
 function railCount(visible: number, total: number): string {
   const noun = `profile${total === 1 ? "" : "s"}`;
   return visible === total ? `${total} ${noun}` : `${visible} of ${total} ${noun}`;
 }
 
-/** Below `lg` the list is the whole view until a row is picked. */
 function startsNarrow(): boolean {
   return typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? !window.matchMedia("(min-width: 1024px)").matches
@@ -127,20 +104,14 @@ export function ContributorsTab({
   const paneRef = useRef<HTMLElement | null>(null);
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
-  /** The row the editor tapped, so opening moves focus to the pane heading and phones scroll to it. */
   const [tapped, setTapped] = useState<string | null>(null);
-  // Keyed on the tapped row, not `resolvedKey`, so the first-row fallback on
-  // load and on scope change does not move the page.
   useScrollToDetail(paneRef, tapped);
 
-  // Picking another row, closing, or flipping the scope replaces the loaded
-  // record, and with it every unsaved field and order. All go through the guard.
   const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(hasUnsavedChanges, {
     ...DIRTY_GUARD_COPY,
     warnOnUnload: false,
   });
 
-  // The shell owns rail clicks, Leave and unload through these entries.
   useContributorUnsavedWork(controller, "contributors", "Contributors");
 
   const guardedSelect = useCallback(
@@ -175,15 +146,12 @@ export function ContributorsTab({
       requestAnimationFrame(focusList);
     });
 
-  // Opening a row by hand names it for keyboard and screen reader users. An
-  // effect, not a frame later, so a click that lands in a field keeps its focus.
   const loadedKey = controller.detail?.profile.key ?? null;
   useEffect(() => {
     if (!tapped || loadedKey !== tapped) return;
     titleRef.current?.focus({ preventScroll: true });
   }, [loadedKey, tapped]);
 
-  // `/` focuses the search; never while typing or with a dialog open.
   const searchable = canEdit && scope === "all";
   useDevShortcuts(LIST_SHORTCUTS, searchable);
   useEffect(() => {
@@ -346,7 +314,6 @@ export function ContributorsTab({
   );
 }
 
-/** Two lines at one pitch: the picture or initials, the name (and "you"), then the key and aliases. */
 function ContributorRow({
   profile,
   active,
@@ -385,7 +352,6 @@ function ContributorRow({
   );
 }
 
-/** What the pane says on desktop before a profile is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({ loading }: { loading: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6" aria-busy={loading || undefined}>
@@ -401,11 +367,6 @@ function IdlePane({ loading }: { loading: boolean }) {
   );
 }
 
-/**
- * The open profile: one header (picture, name, key, last save, the public
- * page, a corner Close and Back to list below `lg`), then its load state or
- * the editor with its save dock.
- */
 function ProfilePane({
   controller,
   fallbackName,
@@ -493,7 +454,6 @@ function ProfilePane({
   );
 }
 
-/** Field-shaped bars standing in for a profile that is still loading. */
 function PaneSkeleton() {
   return (
     <div aria-busy="true" className="space-y-6">

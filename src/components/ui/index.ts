@@ -1,4 +1,3 @@
-// UI primitives (Radix/shadcn based)
 export * from "./alert";
 export * from "./badge";
 export * from "./button";

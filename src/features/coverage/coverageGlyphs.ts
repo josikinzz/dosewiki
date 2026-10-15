@@ -1,22 +1,4 @@
-/**
- * Iconify glyphs inlined as an SVG sprite.
- *
- * The coverage table draws up to 4,600 cells. Rendering each one through the
- * shared `Icon` component would mount thousands of client components that each
- * resolve their artwork over the network, so the handful of icons the table
- * needs are embedded once as `<symbol>` definitions and referenced per cell with
- * `<use>`. The rest of the page — the page header, the section column headers —
- * still uses the normal `Icon` component and its runtime resolution.
- *
- * Path data is copied verbatim from the Iconify API. To refresh or swap an icon:
- *
- *     curl -s 'https://api.iconify.design/ph.json?icons=quotes-fill'
- *
- * and paste the returned `body`, keeping `viewBox` aligned with the source set's
- * dimensions (`ph` is 256×256, `qlementine-icons` is 16×16).
- */
 export interface CoverageGlyph {
-  /** The Iconify name this artwork came from. */
   iconifyName: string;
   viewBox: string;
   body: string;
@@ -47,16 +29,8 @@ export const COVERAGE_GLYPHS = {
 
 export type CoverageGlyphKey = keyof typeof COVERAGE_GLYPHS;
 
-/**
- * Edge length of a status glyph, in pixels.
- *
- * Applied as SVG `width`/`height` attributes rather than utility classes: an
- * SVG with no intrinsic size falls back to 300×150, so a class that fails to
- * reach the stylesheet would not shrink the mark, it would detonate the row.
- */
 export const GLYPH_SIZE = 15;
 
-/** DOM id for a sprite symbol, referenced as `<use href="#...">`. */
 export function coverageGlyphId(key: CoverageGlyphKey): string {
   return `coverage-glyph-${key}`;
 }

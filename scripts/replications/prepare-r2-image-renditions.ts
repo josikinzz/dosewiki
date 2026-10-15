@@ -1,5 +1,4 @@
 #!/usr/bin/env bun
-/** Prepare private responsive images, then explicitly upload a pinned local plan. */
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -132,13 +131,10 @@ if (!argv.includes("--write")) {
       } catch (error) {
         const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
         if (attempt >= 2 || typeof code !== "string" || !["ECONNRESET", "ETIMEDOUT", "ConnectionClosed"].includes(code)) throw error;
-        // PUT is create-only. An ambiguous completed write returns 412 on retry,
-        // then must pass the same remote digest verification as a fresh object.
         await delay(500 * (attempt + 1));
       }
     }
   };
-  // Validate the entire source and destination set before the first remote write.
   const seen = new Set<string>();
   for (const source of plan.sources) {
     if (!validKey(source.key) || source.variants.length !== WIDTHS.length) throw new Error("Invalid source plan");

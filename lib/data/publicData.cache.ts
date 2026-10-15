@@ -9,8 +9,6 @@ import {
 
 export const PUBLIC_DATA_CACHE_REVALIDATE_SECONDS = 900;
 
-// Next stores the result as a JSON string inside its fetch-cache envelope.
-// Measure the escaped body, leaving headroom below 2 MB for its fixed metadata.
 const MAX_PUBLIC_CACHE_BYTES = 1_800_000;
 
 let postgresTargetUrl: string | undefined;
@@ -19,7 +17,6 @@ let postgresTargetIdentity = "";
 function getPostgresCacheTarget(): string {
   const { url } = resolveRuntimePostgresTarget();
   if (url !== postgresTargetUrl) {
-    // Next includes cache keys in revalidation errors. Never put credentials there.
     postgresTargetIdentity = `postgres:${createHash("sha256").update(url).digest("hex")}`;
     postgresTargetUrl = url;
   }
@@ -30,13 +27,6 @@ type PublicCachedValue<Result> =
   | { cacheable: true; value: Result }
   | { cacheable: false };
 
-/**
- * One persistent leaf, namespaced by the same read target as serverClient.
- * Resolve the target at invocation, not module load, so a target change cannot
- * reuse an old deployment's data. Compositions must remain React cache only.
- * Oversized values persist only a bounded bypass sentinel. A successful
- * background refresh must replace the old value, not throw and keep stale data.
- */
 export function publicDataCache<Args extends unknown[], Result>(
   callback: (...args: Args) => Promise<Result>,
   keyParts: string[],
@@ -49,7 +39,6 @@ export function publicDataCache<Args extends unknown[], Result>(
   const callbackKey = callback.toString();
   const { awaitRefresh, ...cacheOptions } = options;
   return async (...args) => {
-    // Backend identity is part of the namespace: a Postgres-served process never reuses Postgres-tagged entries.
     const target = getPostgresCacheTarget();
     const tags = typeof options.tags === "function" ? options.tags(...args) : options.tags;
     let currentRead: Promise<Result> | undefined;
@@ -63,14 +52,9 @@ export function publicDataCache<Args extends unknown[], Result>(
       return entry;
     }, [...keyParts, target, callbackKey], { ...cacheOptions, tags })(...args);
     if (awaitRefresh && cached.cacheable && currentRead) {
-      // A stale page returns immediately from Next while its refresh runs.
-      // Wait before advancing the cursor, preserving Next's stale-on-error
-      // behavior and leaving refresh error reporting to Next itself.
       await currentRead.catch(() => undefined);
     }
     if (cached.cacheable) return cached.value;
-    // Share this invocation's read with background refresh too. A sentinel hit
-    // always resolves current content, never the former oversized cache value.
     return currentRead ??= callback(...args);
   };
 }
@@ -108,10 +92,6 @@ const getPublicSearchRevision = publicDataCache(
   },
 );
 
-/**
- * Cross-instance identity for process-resident derived caches. Publication tag
- * expiry makes the next request obtain one new shared token from Next's cache.
- */
 export async function getPublicDerivedCacheIdentity(
   identity: PublicDerivedCacheIdentity,
 ): Promise<string> {

@@ -67,14 +67,12 @@ export async function loadPharmacologyProposalInputs({
 }
 
 function parsePharmacologyProposalValue(rawResponse) {
-  // Proposal parsing must not emit the legacy mutable tmp/debug artifacts.
   return parseGeneratedYaml(rawResponse, null);
 }
 
 export const pharmacologyProposalAdapter = Object.freeze({
   section: "pharmacology",
   publicationProfile: "pharmacology",
-  // The publication CAS owns these fields, but proposal generation may change only pharmacology.
   publicationFields: ["pharmacology", "dosage", "duration"],
   adapterVersion: PHARMACOLOGY_ADAPTER_VERSION,
   config: CONFIG,

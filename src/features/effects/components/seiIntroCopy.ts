@@ -1,17 +1,6 @@
-/**
- * Editable prose for the Subjective Effect Index intro.
- *
- * Kept apart from `SEIIntroSection` because the /effects route — a server
- * component — reads these fallbacks to build the props, and the section module
- * itself pulls in `useState`. Importing the component from the server would
- * drag a client-only module across the boundary.
- */
 export interface SEIIntroCopy {
-  /** Lead paragraph. Carries `{{effectCount}}` and one `**accented**` phrase. */
   lead: string;
-  /** Second paragraph of the More Info tab's thesis. */
   method: string;
-  /** Third paragraph of the More Info tab's thesis. */
   organisation: string;
 }
 

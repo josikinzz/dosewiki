@@ -10,7 +10,6 @@ import { normalizeCopyBlockPayload, type CopyBlockDocument } from "../copyBlocks
 import { proposalPublicDocument } from "../../lib/proposals/proposalPublic";
 import { validateArticleChange, type ArticleDocument } from "./articleLifecycleValidation";
 
-/** Mirror the actual write: changed article units for updates, ingestion for new rows. */
 export function proposalWriteDocument(entry: ProposalSnapshotEntry, before: unknown): unknown {
   const proposed = entry.document as Record<string, unknown>;
   const original = (before ?? {}) as Record<string, unknown>;
@@ -37,11 +36,6 @@ export function proposalWriteDocument(entry: ProposalSnapshotEntry, before: unkn
   return proposed;
 }
 
-/**
- * The structured patch of every article a payload updates, against the same
- * baseline and the same write projection the text diff uses. A new article
- * has no field-by-field reading, so it is left to the text diff.
- */
 export function buildArticlePatches(payload: ProposalPayload, baseline: readonly ProposalSnapshotEntry[]): ArticlePatch[] {
   return payloadDocuments(payload).flatMap((entry) => {
     if (entry.kind !== "article") return [];

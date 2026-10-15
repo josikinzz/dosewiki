@@ -3,11 +3,6 @@ import { formatMessage, msg } from "@/i18n/messages";
 
 import { cleanString, cleanStringArray } from "./contentBuilderShared";
 
-/**
- * Molecule image alt text. The builder prints the English form in
- * `molecule.alt`; a renderer with a locale passes these to `t` with the
- * `lookupTitle` instead.
- */
 export const MOLECULE_ALT_MESSAGE = msg("{{title}} molecule structure");
 export const MOLECULE_ALT_FALLBACK_MESSAGE = msg("Molecule structure");
 

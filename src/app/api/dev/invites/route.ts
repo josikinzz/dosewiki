@@ -1,14 +1,3 @@
-/**
- * Invite code admin routes (the /dev Members tab).
- *
- *   GET  /api/dev/invites  → { ok, invites, continuationCursor }
- *   POST /api/dev/invites  → { ok, code, invite }   mints one code
- *
- * The plaintext code exists only in the POST response: the route generates
- * it, stores its sha256 and hands it back once. Both directions are admin
- * only and delegated through the server key plus the session's email, like
- * every other /dev write.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { generateInviteCode, hashInviteCode, normalizeInviteCode } from "@server/auth/inviteCodes";

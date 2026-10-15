@@ -1,39 +1,9 @@
-/**
- * Editor read endpoint for the `/dev` and `/review` editor library.
- *
- * Every projection here returns editor-only state — `editorial_review` notes
- * and review flags — so all of them require an editor actor on the Postgres side.
- * The browser holds no admin intent token, so the reads happen here: the route
- * checks the editor session, then queries with the server's own token.
- *
- * Three shapes, one endpoint:
- *
- *   GET /api/dev/editor-library                     → { ok, scope: "list", articles }
- *   GET /api/dev/editor-library?scope=tag-registry  → { ok, scope: "tag-registry", entries }
- *   GET /api/dev/editor-library?slug=lsd            → { ok, scope: "article", article }
- *
- * Any other `scope` (including the retired `full`) is a 400 rather than a
- * silent fall-through to the list drain.
- *
- * The default `list` scope is the slim library projection: the whole corpus
- * without the prose and references that only the one article on screen ever
- * renders. `article` hydrates a single row on selection. `tag-registry` is
- * the tag editor's projection: identity plus the tag fields `buildTagRegistry`
- * reads, so the tag editor lists and plans mutations without draining a
- * single article body. Nothing here ships every whole article: that drain
- * was retired when the review workbench moved to per-slug hydration.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 
 export const runtime = "nodejs";
 
-/**
- * Rows in every drained projection are small (no prose, no references), so a
- * hundred per Postgres page stays far inside the per-execution read limit and
- * the whole list lands in a handful of round trips.
- */
 const PAGE_LIMIT = 100;
 const MAX_PAGES = 200;
 
@@ -50,11 +20,6 @@ type EditorPage = {
   isDone: boolean;
 };
 
-/**
- * Drain a paginated projection at the shared page limit. `done` is false when
- * the page cap ran out first; a caller must not present that partial list as
- * the whole corpus.
- */
 async function drainPages(
   fetchPage: (cursor: string | null) => Promise<EditorPage>,
 ): Promise<{ rows: unknown[]; done: boolean }> {
@@ -134,8 +99,6 @@ export const GET = protectedRouteOperation({
     );
 
     if (!done) {
-      // A partial list presented as the whole corpus would silently hide
-      // articles from the editor; fail loudly and name the cap instead.
       return NextResponse.json(
         {
           ok: false,

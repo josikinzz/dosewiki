@@ -10,28 +10,6 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-/**
- * The publication gate on the replication reads.
- *
- * These two helpers plus `getReplicationsByContributor` are the whole public
- * replication call graph, so a row they withhold is withheld from every surface
- * at once. Each case below is named for the surfaces it protects rather than for
- * the helper it calls, because that mapping is the actual claim:
- *
- *   getPublicReplications        → gallery explorer (spotlight, rails, tiles,
- *                                  "N works · N artists · N effects"), Effect
- *                                  Index homepage panel, the public route plan
- *                                  and therefore `generateStaticParams` and the
- *                                  sitemap, `/api/v1/replications[/slug]`, and
- *                                  the About page's contributor credit counts.
- *   getPublicReplicationsByEffect → the effect article's Replications section,
- *                                  `/api/v1/effects/[slug]/replications`, and
- *                                  the permalink's prev/next effect walk.
- *
- * The permalink itself reads a single row and gates it in `loadReplicationRoute`
- * — covered in `lib/next/routeLoaders.test.tsx`.
- */
-
 vi.mock("server-only", () => ({}));
 vi.mock("react", () => ({
   cache: <T extends (...args: never[]) => unknown>(fn: T) => fn,
@@ -60,8 +38,6 @@ function row(overrides: Partial<GalleryReplication> = {}): GalleryReplication {
   };
 }
 
-// Module reloads isolate the adapter singleton and request caches between cases;
-// static imports would retain the previous case's configured adapter.
 async function loadWithRows(rows: GalleryReplication[], details = rows) {
   vi.resetModules();
 

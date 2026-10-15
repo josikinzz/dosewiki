@@ -20,11 +20,6 @@ type ThumbSubject = {
   title: string;
   type: StudioMediaType;
   thumbnail_url: string | null;
-  /**
-   * The asset itself. Stills are their own thumbnail, so an image row with no
-   * generated derivative still draws a frame instead of a glyph; video and
-   * audio urls are never used as an <img> source.
-   */
   url?: string | null;
   duration?: number | null;
 };
@@ -35,7 +30,6 @@ const TYPE_ICON: Record<StudioMediaType, string> = {
   audio: "lucide:audio-lines",
 };
 
-/** Playlist previews share a four-decoder budget, independent of public galleries. */
 const PLAYLIST_PREVIEW_SLOTS = createPlaybackSlotPool(4);
 type PreviewState =
   | { status: "idle" | "loading" | "error"; url: null }
@@ -45,7 +39,6 @@ function Placeholder({ type, compact }: { type: StudioMediaType; compact: boolea
   return (
     <div className="theme-text-faint flex h-full w-full flex-col items-center justify-center theme-replication-media-well gap-1">
       <Icon icon={TYPE_ICON[type]} size={compact ? 16 : 20} />
-      {/* A small well has no room for the word; the glyph says the type. */}
       {compact ? <span className="sr-only">{type}</span> : <span className="text-[11px] uppercase tracking-[0.24em]">{type}</span>}
     </div>
   );
@@ -61,9 +54,7 @@ export function ReplicationThumb({
   row: ThumbSubject;
   className?: string;
   showGlyph?: boolean;
-  /** A small square (a list row): the missing-media placeholder drops its type word. */
   compact?: boolean;
-  /** Play the compressed preview rendition on hover or while at least half visible. */
   enableVideoPreview?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
@@ -72,10 +63,6 @@ export function ReplicationThumb({
   const [preview, setPreview] = useState<PreviewState>({ status: "idle", url: null });
   const frameRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  // Identity-stable on purpose: previews unmount whenever the slot or hover
-  // is lost, and a leaked element counts against the browser's media-player
-  // budget until GC. An inline callback would re-run per render and tear
-  // down a still-mounted preview.
   const attachPreview = useCallback((node: HTMLVideoElement | null) => {
     if (node) {
       videoRef.current = node;
@@ -152,9 +139,6 @@ export function ReplicationThumb({
           ))}
         </div>
       ) : source && !failed ? (
-        // A raw <img> rather than AppImage: the studio needs the error event to
-        // swap in a placeholder, and these Postgres storage URLs have no known
-        // intrinsic size to hand next/image.
         // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- `error` is a load event, not an interaction; it is the only way to catch a dead storage URL.
         <img
           src={source}

@@ -106,7 +106,6 @@ function loadExistingParsedData(outputPath: string): Record<string, ParsedSubsta
       return existing.substances || null;
     }
   } catch {
-    // Ignore errors, just return null.
   }
   return null;
 }

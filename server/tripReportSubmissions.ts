@@ -39,15 +39,8 @@ export const create = mutation({
   },
   returns: submissionRowValidator,
   handler: async (ctx, args) => {
-    // Public intake relays an unauthenticated submitter: the server acts as
-    // itself, so no actor is delegated.
     await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
 
-    // The intake route relays an unauthenticated submitter, so the payload
-    // cannot be trusted with contributor attribution or reader-facing links
-    // even though the route itself authenticates as the server. Strip the
-    // claims at the boundary that owns the stored row rather than relying on
-    // the caller to have done it.
     const submission = withoutSubmitterAttribution(args.submission);
     validateCreatedSubmission(submission);
 
@@ -93,11 +86,6 @@ export const list = query({
   },
 });
 
-/**
- * Every submission in the given statuses, newest first. Unlike `list` this is
- * not capped: the portal's Needs review bucket has to hold every row the rail
- * badge counts, and `countByStatus` is the same walk without the payload.
- */
 export const listByStatuses = query({
   args: {
     apiKey: v.string(),
@@ -118,17 +106,8 @@ export const listByStatuses = query({
   },
 });
 
-/**
- * The portal's Needs review bucket: every row waiting on an admin, including
- * accepted rows not yet published. Mirrors `NEEDS_REVIEW_SUBMISSION_STATUSES`
- * in the portal model, which the rail badge count reads.
- */
 const NEEDS_REVIEW_STATUSES = ["submitted", "reviewing", "accepted"] as const;
 
-/**
- * Compact portal index: every needs-review row plus the non-needs rows found
- * in the same newest-250 history window used by `list({ limit: 250 })`.
- */
 export const listPortalSummaries = query({
   args: {
     apiKey: v.string(),
@@ -160,10 +139,6 @@ export const listPortalSummaries = query({
   },
 });
 
-/**
- * Count submissions in the given statuses through `by_status_created`.
- * The caller receives only the total, without the cap applied by `list`.
- */
 export const countByStatus = query({
   args: {
     apiKey: v.string(),
@@ -216,17 +191,8 @@ export const get = query({
   },
 });
 
-/**
- * The signed-in member's own submissions for My reports, newest first. A
- * submission links to a member only through its contact email, so the match
- * is the resolved actor's membership email (from the Auth.js session, never a
- * caller-supplied address) against the stored contact email. Spam is internal
- * triage and is not listed. Each row is the member projection: status word,
- * dates, public reason and published address only.
- */
 export async function listMineHandler(ctx: QueryCtx, args: { apiKey: string; actorEmail?: string }) {
   if (!args.actorEmail?.trim()) {
-    // A server-key call that names nobody acts as the system, which submitted nothing.
     throw new Error("A signed-in member is required to list their submissions.");
   }
   const actor = await requireRole(
@@ -267,7 +233,6 @@ export const transition = mutation({
     id: v.string(),
     status: statusValidator,
     notes: v.optional(v.string()),
-    // Shown to the author in My reports; the note above stays private.
     publicReason: v.optional(v.string()),
   },
   returns: submissionRowValidator,
@@ -284,10 +249,8 @@ export const transition = mutation({
     }
 
     const timestamp = new Date().toISOString();
-    // A blank note records only the outcome; the stored note stays.
     const notes = decisionNoteOrUndefined(args.notes);
     const publicReason = decisionNoteOrUndefined(args.publicReason);
-    // The resolved actor, never a caller-supplied name.
     const reviewer = auditStampFor(actor, undefined);
     const patch = {
       status: args.status,
@@ -316,8 +279,6 @@ export const previewPromotion = query({
     actorEmail: v.optional(v.string()),
     id: v.string(),
     profileKey: v.optional(v.string()),
-    // Preview runs the same attribution guard as promote, so an editor meets a
-    // name collision before publishing rather than at the publish click.
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionPreviewValidator,
@@ -359,7 +320,6 @@ export async function promoteHandler(
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "editorArticleWrite" },
     "admin",
   );
-  // The resolved actor, never a caller-supplied name.
   const reviewer = auditStampFor(actor, undefined);
 
   const doc = await requireSubmission(ctx, args.id);
@@ -370,9 +330,6 @@ export async function promoteHandler(
     requestedProfileKey: args.profileKey,
     confirmAuthorNameClaim: args.confirmAuthorNameClaim === true,
   });
-  // Promotion never grants ownership. The contact email is unverified and a
-  // membership email can be too, so a match is only a suggestion: an admin
-  // grants ownership explicitly through `tripReports.assignOwner`.
   const suggested = doc.contact_email ? await findMembershipByEmail(ctx, doc.contact_email) : null;
   const reportId = await ctx.db.insert("tripReports", payload);
   const timestamp = new Date().toISOString();
@@ -411,11 +368,7 @@ export const promote = mutation({
     actorEmail: v.optional(v.string()),
     id: v.string(),
     notes: v.optional(v.string()),
-    // Contributor attribution is an editor decision made here, never something
-    // the submission carries in from the public form.
     profileKey: v.optional(v.string()),
-    // Acknowledges that the submitted byline matches a real contributor and
-    // that the editor is publishing it without granting that identity.
     confirmAuthorNameClaim: v.optional(v.boolean()),
   },
   returns: promotionResultValidator,
@@ -488,19 +441,10 @@ async function buildPromotionPayload(
 
   return {
     ...row.report,
-    // Publishes only the attribution the promoting editor asked for. Any key,
-    // avatar, or outbound link left on the stored row by the pre-hardening
-    // intake path is discarded.
     subject: withEditorAssignedProfileKey(row.report.subject, assignedProfileKey),
     slug,
     featured: false,
-    // Reports submitted through the public form are dedicated to the public
-    // domain (CC0) by the submitter (see the submission consent copy).
     license: "public-domain",
-    // Stamped on every promoted report, including the ones an editor declined
-    // to attribute: the read path uses the marker's presence to know this
-    // byline was written by an anonymous submitter and must not resolve to a
-    // contributor on its own.
     attribution_review: {
       reviewed_by: options.reviewer,
       reviewed_at: new Date().toISOString(),
@@ -510,7 +454,6 @@ async function buildPromotionPayload(
 }
 
 function withoutSubmitterAttribution(row: SubmissionRow): SubmissionRow {
-  // A new submission has made no decisions; the log starts with the first transition.
   const { decision_log: _decisionLog, ...submitted } = row;
   return {
     ...submitted,

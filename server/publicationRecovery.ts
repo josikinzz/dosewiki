@@ -11,14 +11,8 @@ import {
 } from "../lib/next/publicationOutbox";
 import { isPublicationTarget } from "../lib/next/publicationWire";
 
-/** Identities one in-page editor names after a publish; a status read never scans. */
 export const PUBLICATION_STATUS_MAX_TARGETS = 8;
 
-/**
- * Read-only delivery state for the identities an in-page editor just
- * published, so its receipt can say when the public site has the change.
- * Reads indexed rows by key and returns no content, only states.
- */
 export const status = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), targets: v.array(v.any()) },
   handler: async (ctx, args) => {
@@ -35,11 +29,6 @@ export const status = query({
   },
 });
 
-/**
- * The runtime store adapter of the publication outbox
- * (`lib/next/publicationOutbox.ts`). The policy (lease, attempt cap, backoff,
- * dead letter) lives there; this module only reads and patches rows.
- */
 export const claimDue = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -58,7 +47,6 @@ export const claimDue = internalMutation({
   },
 });
 
-/** Acknowledge one claimed generation; a late receipt for an older generation is ignored. */
 export const recordDelivery = internalMutation({
   args: {
     id: v.id("publicCachePublications"), generation: v.number(),

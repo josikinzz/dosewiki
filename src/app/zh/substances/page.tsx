@@ -1,10 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/substances`, reached only through the
- * middleware rewrite from `zh.dose.wiki/substances`. Same index component and
- * loaders; the mirror carries `noindex` with a canonical link back to the
- * English index, and its UI strings render through the catalog with English
- * fallbacks.
- */
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";

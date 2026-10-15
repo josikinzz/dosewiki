@@ -5,19 +5,6 @@ import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { approvedGlossaryLocales, parseGlossaryLocaleGrant } from "../src/lib/auth/roles";
 
-/**
- * Invite codes: the only way an account is created.
- *
- * `mint`, `list` and `revoke` are admin surfaces reached through the /dev
- * Members tab with the session actor. `redeem` is the public accept step:
- * the Next route hashes the code the visitor typed, hashes their password and
- * calls in with the server key alone, so `requireRole` resolves it to admin
- * the way it does for scripts. Nothing here ever returns a code hash.
- *
- * Refusals are `PostgresError({ code, message })` so the routes can map them to
- * plain 4xx responses without parsing prose.
- */
-
 const inviteRoleValidator = v.union(v.literal("editor"), v.literal("translator"), v.literal("editor_translator"), v.literal("contributor"));
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -48,12 +35,6 @@ const refuse = (code: string, message: string) => new PostgresError({ code, mess
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const normalizeUsername = (username: string) => username.trim().toLowerCase();
 
-/**
- * The domain of the fallback address a redemption without an email receives.
- * Nobody receives mail there, so a supplied address in it (or a subdomain) is
- * never the visitor's own: accepting one would let a visitor take another
- * username's fallback address.
- */
 const SYNTHETIC_MEMBER_EMAIL_DOMAIN = "members.dose.wiki";
 
 function isSyntheticMemberEmail(normalizedEmail: string): boolean {
@@ -80,7 +61,6 @@ const inviteCodeSummaryValidator = v.object({
   ),
 });
 
-/** The admin-facing projection: everything but the hash, plus the derived status. */
 function summarize(row: Doc<"inviteCodes">, now: number) {
   return {
     id: row._id,

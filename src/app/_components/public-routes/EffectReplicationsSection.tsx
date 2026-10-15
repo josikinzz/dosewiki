@@ -13,15 +13,6 @@ import { publicHref } from "@/utils/publicHref";
 import { getPublicReplicationsByEffect } from "@server/data/publicData";
 import { getEffectShowcaseWorks } from "./showcaseCollections";
 
-/**
- * Effect articles use the same compact showcase and expanded viewer as
- * substance articles. The owning effect controls the playlist identity; the
- * work permalink remains available through modified clicks and new tabs.
- *
- * The works are built server-side and only the compact strip is serialized;
- * the expanded viewer's long tail is fetched on demand through
- * `collectionSource`, walking the same `getEffectShowcaseWorks` path.
- */
 export async function EffectReplicationsSection({
   effectSlug,
 }: {
@@ -34,8 +25,6 @@ export async function EffectReplicationsSection({
   ]);
   const works = collection?.works ?? [];
   const effectName = collection?.effectName;
-  // The showcase and immersive viewer are frame surfaces. Audio reaches the
-  // effect article through the shared player instead of being drawn as a frame.
   const audio = replications.filter((row) => row.type === "audio");
 
   return (
@@ -57,8 +46,6 @@ export async function EffectReplicationsSection({
               })}
               collectionSource={{ kind: "effect", slug: effectSlug }}
             />
-            {/* The collection page remains underneath the deep-linked overlay,
-                so closing returns to a complete, shareable effect playlist. */}
             <p className="mt-4 text-sm">
               <Link
                 href={buildReplicationViewerUrl(

@@ -7,12 +7,6 @@ interface TableOfContentsProps {
   subarticles?: Array<{ id: string; title: string }>;
 }
 
-/**
- * Table of contents for effect articles with subarticles.
- * 
- * Handles same-page anchor navigation by scrolling to the target element
- * and updating the URL hash. Does not trigger route navigation.
- */
 export function TableOfContents({ 
   subarticles = [],
 }: TableOfContentsProps) {
@@ -22,8 +16,7 @@ export function TableOfContents({
 
   const handleClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    // Scroll to anchor
+
     const element = document.getElementById(id);
     if (element) {
       scrollIntoViewRespectingMotion(element);

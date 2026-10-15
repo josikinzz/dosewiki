@@ -30,13 +30,8 @@ import {
 } from "./CitationReviewPanels";
 import { KeyCap } from "./CitationArticlePane";
 
-/** A request to open one row (the `o` key, "Open the next unread row"); `nonce` changes per press. */
 export type CitationOpenRequest = { claimKey: string; nonce: number };
 
-/**
- * One article section: its rows as an open list of disclosure rows, then,
- * from two ready rows, the section's own approval with the reason it waits.
- */
 export function CitationEvidenceSection({
   group,
   commands,
@@ -50,30 +45,21 @@ export function CitationEvidenceSection({
   pendingStatus = null,
   onApproveSection,
 }: {
-  /** The `r` key's request to open one row's reject form. */
   rejectRequest?: CitationRejectRequest | null;
-  /** A request to open one row and bring it into view. */
   openRequest?: CitationOpenRequest | null;
   group: { section: string; label: string; rows: CitationEvidenceRowModel[] };
   commands: CitationReviewCommands;
   handlers: CitationEvidenceDecisionHandlers;
-  /** Rows the reviewer has opened, so their quote has been read in full. */
   openedClaimKeys: ReadonlySet<string>;
-  /** Undo for a decision made on this whole section. */
   sectionUndo?: CitationUndoOffer | null;
-  /** Undo for a single-row decision; rendered inside that row. */
   rowUndo?: CitationUndoOffer | null;
-  /** The row the `a` and `r` keys act on, which shows their caps. */
   activeClaimKey?: string | null;
-  /** The verdict being written to the pending rows, so their buttons can say so. */
   pendingStatus?: "approved" | "rejected" | null;
   onApproveSection: (section: string, claimKeys: string[]) => void;
 }) {
   const sectionCommand = commands.sections[group.section]?.approve ?? { claimKeys: [], disabled: true };
   const readyCount = sectionCommand.claimKeys.length;
   const openedCount = sectionCommand.claimKeys.filter((claimKey) => openedClaimKeys.has(claimKey)).length;
-  // Same rule as the article-wide approval: every quote it would publish has
-  // been opened first.
   const locked = readyCount > 0 && openedCount < readyCount;
   const headingId = useId();
   const reasonId = useId();
@@ -161,7 +147,6 @@ function CitationSupportQuote({ children }: { children: ReactNode }) {
   );
 }
 
-/** A short label over a block inside an open row, in sentence case. */
 function RowLabel({ children }: { children: ReactNode }) {
   return <p className="theme-text-muted text-xs font-medium">{children}</p>;
 }
@@ -173,7 +158,6 @@ function CitationRejectForm({
   onConfirm,
 }: {
   pending: boolean;
-  /** Opened from the keyboard: the reason control takes focus. */
   focusOnOpen?: boolean;
   onCancel: () => void;
   onConfirm: (statusReason: string | undefined) => void;
@@ -185,7 +169,6 @@ function CitationRejectForm({
   const reasonRef = useRef<HTMLSelectElement | null>(null);
   useEffect(() => {
     if (focusOnOpen) reasonRef.current?.focus();
-    // Only on open; later renders leave focus where the reviewer put it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const detailRequired = reason === "other";
@@ -248,7 +231,6 @@ function CitationRejectForm({
   );
 }
 
-/** Why a row's Approve is off, or what approving it means, in one line. */
 function approveNote(row: CitationEvidenceRowModel, canApprove: boolean): string {
   if (row.status === "approved") return "Accepted. This quote is part of the article's public evidence.";
   if (!canApprove) {
@@ -278,9 +260,7 @@ function CitationEvidenceRow({
   opened: boolean;
   active: boolean;
   pendingStatus: "approved" | "rejected" | null;
-  /** Changes each time the `r` key asks this row for its reject form. */
   rejectRequest?: number;
-  /** Changes each time something asks this row to open. */
   openRequest?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -306,8 +286,6 @@ function CitationEvidenceRow({
       setScrollOnOpen(true);
     }
   }
-  // A row opened from elsewhere (the dock, the `o` key) counts as opened and
-  // comes into view with focus on its toggle, so `a` and `r` act on it.
   useEffect(() => {
     if (!scrollOnOpen) return;
     setScrollOnOpen(false);
@@ -330,8 +308,6 @@ function CitationEvidenceRow({
     legacyRationale.length > 0 &&
     !supports.some((support) => support.rationale.trim() === legacyRationale);
   const claimLabel = row.claimText?.trim() || row.fieldPath || row.claimKey;
-  // The collapsed row previews the quote it rests on, so a scan of the list
-  // already shows what each approval would publish.
   const previewQuote = supports.find((support) => support.supportingQuote.trim())?.supportingQuote.trim() || legacySnippet;
   const blocking = row.severity === "blocking" && row.status !== "approved";
   const bodyId = useId();

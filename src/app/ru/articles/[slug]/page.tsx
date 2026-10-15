@@ -1,9 +1,3 @@
-/**
- * The Russian mirror of `/articles/[slug]`, reached only through
- * the middleware rewrite from `ru.dose.wiki/articles/<slug>`. Same loader with
- * the localized library article spliced in; the mirror carries `noindex` and
- * a canonical link back to the English article.
- */
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticleRoute } from "@server/next/routeLoaders.publications";

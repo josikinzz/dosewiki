@@ -1,16 +1,3 @@
-/**
- * Editor change proposals.
- *
- *   GET  /api/dev/proposals?status=  the review queue, newest first, without payload or diff
- *   POST /api/dev/proposals          the commit panel's staged save, held for an admin instead of written
- *
- * The POST body is the same `SaveArticlePayload` the save route takes, plus
- * the tab-local documents editors cannot write directly (`copyBlocks[]`,
- * parsed as `/api/dev/copy-block` parses one block, `about`, parsed as
- * `/api/dev/about` does, and one `writing` entry, parsed as
- * `/api/dev/writing-article` does), plus a summary and each document's loaded baseline;
- * nothing here touches production, only `changeProposals`.
- */
 import { NextResponse } from "next/server";
 import type { Infer } from "@server/postgres/runtime/values";
 import { api } from "@server/postgres/runtime/api";
@@ -44,7 +31,6 @@ type ProposalBody = {
   };
   summary?: unknown;
   baselines?: unknown;
-  /** The returned proposal this submission revises; Postgres supersedes it in the same mutation. */
   revisionOf?: unknown;
 };
 
@@ -94,8 +80,6 @@ export const POST = protectedRouteOperation<ProposalBody>({
 
     const rawPayload = body.payload && typeof body.payload === "object" ? body.payload : {};
     const rawArticles = Array.isArray(rawPayload.articles) ? rawPayload.articles : [];
-    // The sanitizer strips draft-only fields but returns `unknown`; the
-    // mutation's own validator is what checks the shape at the boundary.
     const articles = rawArticles.map(sanitizeArticleForDataMutation) as Infer<
       typeof substanceArticleLightValidator
     >[];
@@ -133,7 +117,6 @@ export const POST = protectedRouteOperation<ProposalBody>({
       ...(changelog ? { changelog } : {}),
     };
 
-    // Targets are derived in the mutation from the payload it stores.
     const { proposalId } = await dataWrite.client.mutation(api.changeProposals.submit, {
       apiKey: dataWrite.getAdminIntentToken?.("editorArticleWrite") ?? dataWrite.adminKey,
       actorEmail,

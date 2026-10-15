@@ -4,15 +4,6 @@ import { v } from "../lib/postgres/runtime/values";
 import { requireRole } from "./lib/auth";
 import { writeCategoryLayout } from "./lib/categoryLayoutMirror";
 
-/**
- * Category layout queries and mutations.
- *
- * The category layout is stored as a single document containing the full
- * psychoactive index structure. This allows the home page to load quickly
- * with just the layout data (~14KB) instead of all 679 articles (~5MB).
- */
-
-// Category structure for the layout
 const categoryLayoutValidator = v.object({
   version: v.number(),
   categories: v.array(v.object({
@@ -29,10 +20,6 @@ const categoryLayoutValidator = v.object({
   })),
 });
 
-/**
- * Get the category layout.
- * Returns null if no layout has been seeded yet.
- */
 export const get = query({
   args: {},
   handler: async (ctx) => {
@@ -40,10 +27,6 @@ export const get = query({
   },
 });
 
-/**
- * Save/update the category layout directly. Script-only (seed); editor
- * saves reach this table through the `indexLayouts.save` mirror.
- */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -58,10 +41,6 @@ export const save = mutation({
   },
 });
 
-/**
- * Delete the category layout.
- * Used for testing/reset purposes.
- */
 export const clear = mutation({
   args: {
     apiKey: v.optional(v.string()),

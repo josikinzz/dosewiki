@@ -9,7 +9,6 @@ import { displayValue } from "@/features/article/editing/ArticleChangeDiff";
 import { mergePlaceWords } from "@/features/article/editing/ArticleMergeReview";
 import type { StagedArticlesRecovery } from "./useStagedArticlesRecovery";
 
-/** Top-level article keys in words, for the held rows ("index_categories" reads "index categories"). */
 function fieldWords(keys: readonly string[]): string {
   if (keys.length === 0) return "no fields";
   return keys.map((key) => key.replace(/_/g, " ")).join(", ");
@@ -19,21 +18,14 @@ function articleCount(count: number): string {
   return `${count} ${count === 1 ? "article" : "articles"}`;
 }
 
-/**
- * The shell's view of the staged working set's recovery copy: the offer to
- * restore uncommitted article edits after a reload, and the edits held aside
- * because their article changed since. Restoring never commits.
- */
 export function StagedArticlesRecoveryNotice({
   recovery,
   showSaveTime,
 }: {
   recovery: StagedArticlesRecovery;
-  /** The tool that commits the set is open, so the last copy time belongs on screen. */
   showSaveTime: boolean;
 }) {
   const { offer, held } = recovery;
-  // Discarding deletes this browser's only copy of the edits, so it asks.
   const { confirm, dialog } = useConfirm();
   const confirmDiscard = (count: number, discard: () => void) => confirm({
     title: `Discard ${articleCount(count)} of recovered edits?`,

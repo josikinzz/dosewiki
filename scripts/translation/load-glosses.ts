@@ -1,23 +1,3 @@
-/**
- * Seed the glossary glosses (`translationGlossaryTerms`, lib/translation/
- * glossaryGloss.ts) from the JSON files under `data/i18n/glossary/glosses/`. Each file
- * is a flat `{ "<term>": "<gloss>" }` map, split by topic so a writer owns
- * one file; every file is merged before loading.
- *
- * Every term is checked against the known-term set (`knownGlossaryTerms`:
- * the locale-independent universe the drafter and the import route use,
- * plus every term any locale's glossary already holds), case-insensitively;
- * that set supplies the kind and the stored spelling. A term outside it is
- * refused, and the run stops before writing anything, so a typo in a seed
- * file never becomes a gloss nothing injects. By default only terms without
- * a gloss are written, so a rerun fills gaps and leaves edits made in the
- * Glossary tab alone; `--force` overwrites every seeded term.
- *
- * Usage (the app's connection variables, pointed at an explicit target):
- *   npm run translate:glosses -- --dry-run                                   # validate and count, write nothing
- *   npm run translate:glosses -- --target postgres://localhost:5432/dosewiki
- *   npm run translate:glosses -- --force --target ... --allow-remote          # remote: also POSTGRES_IMPORT_CONFIRM=<host>
- */
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -45,13 +25,10 @@ const target = values.target ?? process.env.TARGET_POSTGRES_URL;
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
 if (!dryRun) guardTarget(target, values["allow-remote"]);
 
-// The store reads the app's connection variables lazily; a script points them
-// at the explicit target only, so the app fallbacks never select a writer here.
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 delete process.env.POSTGRES_DIRECT_URL;
 
-/** Every seed file merged; a term in two files is a writer conflict, reported by file. */
 async function readSeeds(): Promise<Map<string, { gloss: string; file: string }>> {
   const files = (await readdir(GLOSSES_DIR)).filter((name) => name.endsWith(".json")).sort();
   if (files.length === 0) throw new Error(`No seed files under ${GLOSSES_DIR}`);

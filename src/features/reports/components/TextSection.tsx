@@ -7,10 +7,6 @@ interface TextSectionProps {
   icon?: IconName;
 }
 
-/**
- * Prose section (introduction or conclusion) of a trip report, typeset as
- * open article text rather than boxed in a card.
- */
 export const TextSection = memo(function TextSection({
   title,
   content,

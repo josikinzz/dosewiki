@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * The curation board: the curated list that *is* the article, and beneath it a
- * pool of matched works that are not on the article at all.
- *
- * The article publishes curated rows only, so the board draws exactly two
- * things. Above the un-curate zone sits the published list — numbered from 1,
- * cut by the fold if it overruns the article's slot cap, padded with ghost
- * frames while it is short of it. Below sits the candidate pool: deliberately
- * unnumbered and undraggable, because an unpublished work has no position, a
- * number would be a lie, and an intra-pool drag would change nothing an editor
- * could ever see. Promotion is the Curate button; demotion is the row's own
- * button or a drag onto the un-curate zone.
- */
-
 import { Fragment, useId } from "react";
 import {
   DndContext,
@@ -48,27 +34,10 @@ import {
 import { GalleryMatchIdentity } from "./GalleryMatchIdentity";
 import type { GalleryBoard, GalleryBoardRow } from "./substanceGalleryPortalModel";
 
-
-/**
- * Drop target that takes a curated row off the article: `applyBoardDrag`
- * un-curates on any `over` id that is not a curated slug, so the zone needs no
- * special case — and neither does a candidate row, which is not a drop target
- * at all.
- */
 const UNCURATE_ZONE_ID = "substance-gallery-uncurate-zone"
 
-
-/** dnd-kit transform timing, matched to the public showcase's slide/fade. */
-
-/** The curated band's wash. A tint, never a side stripe — those are banned. */
 const CURATED_WASH = "theme-replication-curated-wash";
 
-
-
-/**
- * A stored-priority row: reorderable within its placement tier. Removing the
- * priority leaves automatic placements on the article in their default tier.
- */
 function CuratedRow({
   row,
   priorityIndex,
@@ -178,7 +147,6 @@ function CuratedRow({
     </li>
   );
 }
-/** An unfilled article slot, carrying the position it would occupy. */
 function GhostSlot({ position }: { position: number }) {
   return (
     <li className="list-none">
@@ -200,7 +168,6 @@ export type GalleryBoardListProps = {
   onExclude: (slug: string) => void;
   onExcludeEverywhere: (slug: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  /** The row that just changed priority band; the board moves focus to it, then clears. */
   focusSlug: string | null;
   onFocusHandled: () => void;
 };
@@ -220,10 +187,6 @@ export function GalleryBoardList({
   const headingBase = useId();
   const curatedHeadingId = `${headingBase}-curated`;
   const candidateHeadingId = `${headingBase}-candidates`;
-  // Curation is desktop-only: the hover triage verbs, modifier-key exclusions,
-  // and six-button rows have no touch grammar. Under a coarse pointer the board
-  // renders read-only behind the notice; Library, Playlists, and Featured keep
-  // working on a phone.
   const readOnly = useMediaQuery("(pointer: coarse)");
 
   const sensors = useSensors(

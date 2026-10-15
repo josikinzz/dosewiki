@@ -1,6 +1,5 @@
 import type { KitTier, StoryDef } from "./types";
 
-// Primitives — src/components/ui
 import { alertStory } from "../stories/alert.story";
 import { badgeStory } from "../stories/badge.story";
 import { buttonStory } from "../stories/button.story";
@@ -20,7 +19,6 @@ import { textareaStory } from "../stories/textarea.story";
 import { toggleStory } from "../stories/toggle.story";
 import { toggleGroupStory } from "../stories/toggle-group.story";
 
-// Common — src/components/common
 import { appImageStory } from "../stories/app-image.story";
 import { articleCitationListStory } from "../stories/article-citation-list.story";
 import { articleExpandableStory } from "../stories/article-expandable.story";
@@ -57,7 +55,6 @@ import { stateCardStory } from "../stories/state-card.story";
 import { statusBadgeStory } from "../stories/status-badge.story";
 import { stickyTocLayoutStory } from "../stories/sticky-toc-layout.story";
 
-// Layout & chrome — src/components/layout, plus the app-level appearance chrome
 import { appearanceCogStory } from "../stories/appearance-cog.story";
 import { footerStory } from "../stories/footer.story";
 import { headerStory } from "../stories/header.story";
@@ -67,18 +64,10 @@ import { publicFeedbackPrimitivesStory } from "../stories/public-feedback-primit
 import { publicPagePrimitivesStory } from "../stories/public-page-primitives.story";
 import { publicSegmentedTabsStory } from "../stories/public-segmented-tabs.story";
 
-// Editor kit: src/features/dev/components
 import { editorKitStories } from "../stories/editor-kit.story";
 import { editorShellStories } from "../stories/editor-shell.story";
 
-/**
- * Every shared-kit story is registered here. Add a story file under
- * ../stories and import it into this array. The completeness test
- * (./completeness.test.ts) asserts the union of every story's `exports`
- * covers the shared barrels (ui / common / layout) and the editor kit index.
- */
 export const stories: StoryDef[] = [
-  // Primitives — src/components/ui
   alertStory,
   badgeStory,
   buttonStory,
@@ -98,7 +87,6 @@ export const stories: StoryDef[] = [
   toggleStory,
   toggleGroupStory,
 
-  // Common — src/components/common
   appImageStory,
   articleCitationListStory,
   articleExpandableStory,
@@ -135,7 +123,6 @@ export const stories: StoryDef[] = [
   statusBadgeStory,
   stickyTocLayoutStory,
 
-  // Layout & chrome — src/components/layout, plus the app-level appearance chrome
   appearanceCogStory,
   footerStory,
   headerStory,
@@ -145,7 +132,6 @@ export const stories: StoryDef[] = [
   publicPagePrimitivesStory,
   publicSegmentedTabsStory,
 
-  // Editor kit: src/features/dev/components
   ...editorKitStories,
   ...editorShellStories,
 ];

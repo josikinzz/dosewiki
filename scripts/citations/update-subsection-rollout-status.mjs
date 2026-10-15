@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * Transition rows in the subsection citation rollout tracker.
- *
- * Local tracker bookkeeping only; never touches the slug-level queue or
- * Postgres. Every transition records updatedAt (and runId when given) so the
- * tracker stays an auditable slug+section ledger.
- *
- * Usage:
- *   node scripts/citations/update-subsection-rollout-status.mjs \
- *     --slug=3-me-pcpy --section=pharmacology --status=researching --run-id=3-me-pcpy
- *   node scripts/citations/update-subsection-rollout-status.mjs \
- *     --all-slugs --section=tolerance --status=excluded --reason="outside rollout scope"
- */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";

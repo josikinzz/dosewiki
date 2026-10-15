@@ -15,12 +15,7 @@ export function ContextualEditorPanel({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   returnFocusRef?: RefObject<HTMLElement | null>;
-  /**
-   * Actions pinned under the scrolling body, so a long form never hides its
-   * buttons below the fold. Optional: without it the body scrolls alone.
-   */
   footer?: ReactNode;
-  /** Keys the panel handles itself (a save shortcut) before they stop here. */
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }) {
   const container = useContext(ContextualEditorContainerContext);

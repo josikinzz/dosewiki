@@ -34,34 +34,13 @@ export interface FieldPathValidationOptions {
   allowUnknownOverridePaths?: boolean;
 }
 
-/**
- * A schema-declared key: a plain JavaScript identifier, written verbatim.
- */
 const PLAIN_KEY_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-/**
- * A key as it appears inside a path.
- *
- * Schema keys are identifiers, but several editable leaves sit under record
- * keys the *data* chooses: `legality.countries["United States"].notes`,
- * `subjective_effects.progressive_stages["1. Taking Off"].note`. Those keys
- * carry spaces, punctuation, and even dots, none of which survive a naive
- * `split(".")`. So a non-identifier key travels percent-encoded — the same
- * escape `encodeURIComponent` uses, extended to cover `.`, `*`, and the other
- * characters it leaves bare — which keeps every segment inside a charset that
- * cannot be confused with the path syntax around it.
- */
 const ENCODED_KEY_PATTERN = /^[A-Za-z0-9_%-]+$/;
 const ARRAY_SEGMENT_PATTERN = /^([A-Za-z0-9_%-]+)\[(\d*)\]$/;
 
-/**
- * Characters `encodeURIComponent` leaves unescaped that a field path still
- * cannot carry literally (`.` splits segments, `*` marks a wildcard template,
- * and the rest are reserved so an encoded key stays inside the pattern above).
- */
 const EXTRA_ESCAPED_CHARACTERS = /[.*!'()~]/g;
 
-/** Encodes one record key for use as a field-path segment. */
 export function encodeFieldPathKey(key: string): string {
   if (PLAIN_KEY_PATTERN.test(key)) return key;
   return encodeURIComponent(key).replace(
@@ -71,7 +50,6 @@ export function encodeFieldPathKey(key: string): string {
   );
 }
 
-/** Decodes one field-path segment back to the record key it addresses. */
 export function decodeFieldPathKey(segment: string): string | undefined {
   if (!segment.includes("%")) return segment;
   try {
@@ -81,12 +59,6 @@ export function decodeFieldPathKey(segment: string): string | undefined {
   }
 }
 
-/**
- * Builds a concrete field path from already-decoded parts.
- *
- * `buildFieldPath("legality", "countries", "United States", "notes")` →
- * `legality.countries.United%20States.notes`. Numbers become array indices.
- */
 export function buildFieldPath(...parts: Array<string | number>): string {
   return parts
     .map((part) =>
@@ -282,14 +254,6 @@ export function validateFieldPath(
   return diagnostics;
 }
 
-/**
- * Keys a data-chosen path segment may never resolve to.
- *
- * Record keys now come from article data, and both walkers below index a plain
- * object with them, so `__proto__` in a path is a prototype-pollution primitive
- * rather than a missing field. Rejected in the walkers themselves, not only at
- * the allow-list, so no future caller inherits the hole.
- */
 const FORBIDDEN_PATH_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 function hasForbiddenKey(segments: readonly FieldPathSegment[]): boolean {

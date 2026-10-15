@@ -1,16 +1,3 @@
-/**
- * Builds a sanitized document snapshot fixture directly from the composed
- * server schema, so import rehearsal needs no private production data.
- *
- *   bun scripts/postgres/synthesizeDocumentSnapshot.ts --out <dir> [--rows 200] [--seed 1]
- *
- * Output: `<table>/documents.jsonl` per table, using the persisted value encoding.
- * The generator is deterministic for a seed, honours every validator kind,
- * emits `$float` wrappers for NaN, infinities, and -0 both at the top level
- * and nested, and keeps `v.id()` references pointing at generated IDs so the
- * reference reconciliation has something real to check.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { encodeDocumentValue, encodeFloat } from "../../lib/postgres/documentCodec";
@@ -28,7 +15,6 @@ const rowsPerTable = Number(argValue("rows") ?? 200);
 let seed = Number(argValue("seed") ?? 1) >>> 0;
 
 function random(): number {
-  // mulberry32
   seed = (seed + 0x6d2b79f5) >>> 0;
   let t = seed;
   t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -116,7 +102,6 @@ for (const table of tables) {
   const uniqueKeys: readonly (readonly string[])[] = (tableUniqueKeys as Record<string, readonly (readonly string[])[]>)[table.tableName] ?? [];
   const lines = idsByTable[table.tableName].map((id, index) => {
     const document = { _id: id, _creationTime: baseCreationTime + index * 1000 + random(), ...objectValue(fields, 0) };
-    // Identity keys are unique in production and enforced by SQL; a random pick would collide.
     for (const key of uniqueKeys) for (const field of key) {
       const validator = fields[field]?.fieldType;
       if (!validator || !(field in document)) continue;

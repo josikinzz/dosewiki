@@ -1,16 +1,3 @@
-/**
- * Where an article feedback item's correction stands.
- *
- *   GET  /api/article-feedback/<id>/corrections
- *        -> { corrections: ResolvedCorrection[], candidates: { proposals, revisions } }
- *   POST /api/article-feedback/<id>/corrections  { change: { kind, id }, note? }
- *        -> { feedback }  link an existing proposal or published revision
- *
- * Admin floor for both, like the feedback decisions: the candidates include
- * other members' proposals. The answer names proposals and revisions by id,
- * status, summary and date only; no proposer, actor or reader contact detail.
- * A link is advisory and never gates a proposal's approval or publication.
- */
 import { NextResponse } from "next/server";
 
 import {

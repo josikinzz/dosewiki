@@ -22,20 +22,13 @@ export type ReplicationFacetRailProps = {
   effectNames: ReadonlyMap<string, string>;
   query: string;
   onQueryChange: (query: string) => void;
-  /** The Library's grouping; only read for the live counts' filter state. */
   group: StudioGroupBy;
   facets: StudioFacets;
   onToggleFacet: (kind: StudioFacetKind, key: string) => void;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
-  /**
-   * `column`: fills a height-bounded column and scrolls inside it (the
-   * Library frame). `sticky`: rides beside a long workspace as the page
-   * scrolls. `sheet`: the body of the narrow-width filter popover.
-   */
   layout: "column" | "sticky" | "sheet";
 };
 
-/** Lists longer than this get their own filter box. */
 const FILTERABLE_AFTER = 12;
 
 function FacetSection({
@@ -63,7 +56,6 @@ function FacetSection({
   const shown = useMemo(() => {
     const term = needle.trim().toLowerCase();
     if (!term) return entries;
-    // A ticked value never hides behind the filter box: it is still in force.
     return entries.filter(
       (entry) => active.includes(entry.key) || entry.label.toLowerCase().includes(term),
     );
@@ -134,12 +126,6 @@ function FacetSection({
   );
 }
 
-/**
- * The corpus filter every workspace shares: one search box and the four
- * facets. Counts are live (what each value would show under the other
- * filters) while the value list stays the whole corpus's, so a ticked value
- * never vanishes from under the pointer.
- */
 export function ReplicationFacetRail({
   rows,
   effectNames,

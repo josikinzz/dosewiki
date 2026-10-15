@@ -10,10 +10,6 @@ const archiveEntryValidator = v.object({
   importedAt: v.number(),
 });
 
-/**
- * Admin/editor-only lossless Effect Index archive reader. No DoseWiki UI
- * should use this table; it is retained for a future EI deployment.
- */
 export const getByKind = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -34,18 +30,8 @@ export const getByKind = query({
   },
 });
 
-/** Archive `kind` discriminator for an imported Effect Index blog post. */
 const POST_KIND = "post";
 
-/**
- * Public: every archived Effect Index blog post, as stored.
- *
- * Rows are returned verbatim — decoding the JSON-string payload is the caller's job via
- * `src/data/projections/effectIndexArchiveProjections`, so the projection stays a pure function
- * that both this deployment and the Next read adapter share. Mirrors the shape of the
- * public `effectIndexArticles` queries: no `apiKey`, no auth, a thin index lookup. The
- * editor-only `getByKind` above stays editor-only and is not used for public reads.
- */
 export const listPosts = query({
   args: {},
   handler: async (ctx) => {
@@ -56,10 +42,6 @@ export const listPosts = query({
   },
 });
 
-/**
- * Public: one archived Effect Index blog post by slug. The archive `key` for a post is
- * its slug, so this is an exact hit on the compound `by_kind_key` index, not a scan.
- */
 export const getPostBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -70,7 +52,6 @@ export const getPostBySlug = query({
   },
 });
 
-/** Upsert raw Effect Index source records by stable kind/key identity. Script-only; admin floor. */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),

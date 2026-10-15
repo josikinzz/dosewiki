@@ -62,12 +62,6 @@ function collectArticleReferenceUses(article: SubstanceArticle) {
   return uses;
 }
 
-/**
- * Server-compatible projection boundary. Public routes compute the article-wide
- * citation model once and send only the projected lists and backlink seed to
- * the interactive view. Client editor previews still recompute when their
- * article value changes.
- */
 export const CitationsSection = memo(function CitationsSection({
   article,
 }: CitationsSectionProps) {

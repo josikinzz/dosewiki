@@ -1,54 +1,4 @@
 #!/usr/bin/env node
-/**
- * Correct a stored artist name on the replication rows that carry it.
- *
- * Seeding a profile called "Ben Ridgway" while every gallery tile underneath it
- * still says "Ben Ridgeway" is half a fix. The name lives on
- * `replications.artist`, and it leaks from there into `credit_line`
- * ("Continuum Infinitum by Ben Ridgeway"), into `rightsholder`, and into the
- * slug, which was built from title plus artist.
- *
- * The corrections themselves are not here. They are the `strong` entries of a
- * reviewed identity corrections JSON, where each one carries its evidence. That
- * file describes real people and is kept outside the repository; the run passes
- * it in with `--corrections=<path>`, and this script only turns it into a plan.
- *
- * ## What it will and will not do
- *
- * A correction moves the name only where it is the credited identity: the
- * `artist` column, a `rightsholder` that is exactly the name, and the
- * `by <name>` token of the credit line. Reddit-archive credit lines also carry
- * the submitter snapshot ("...; submitter snapshot: StingrayZ.") and may quote
- * the handle inside the title; both are provenance facts about the source post,
- * not credits, so they stay as written.
- *
- * Rows that already carry the corrected credit are reported as settled and
- * never written. Every strong correction on file is planned unless one or more
- * `--stored=<name>` flags narrow the run to the named entries.
- *
- * Writes go through `replications.applyProvenanceCorrection`, the existing
- * compare-and-swap: the complete current credit snapshot is sent alongside the
- * update, so a row that has moved since the plan was built fails closed rather
- * than being overwritten from stale data.
- *
- * It does **not** rename slugs. A slug is a public URL and renaming one needs an
- * alias entry in `data/effects/replicationSlugAliases.json` to keep shared
- * links alive — and one of the affected slugs is already the *target* of an
- * existing alias, which would be left pointing at a 404. So the slug half is
- * reported in full, with the exact redirect entries it would need, and left for
- * a human to run through `scripts/replications/normalize-slugs.mjs`.
- *
- * Dry run (default):
- *   node scripts/replications/plan-artist-name-corrections.mjs --corrections=<path>
- *   node scripts/replications/plan-artist-name-corrections.mjs --corrections=<path> --stored=StingrayZ
- *
- * Apply:
- *   node scripts/replications/plan-artist-name-corrections.mjs --write \
- *     --corrections=<path> \
- *     --stored=StingrayZ \
- *     --confirm-write=correct-replication-artist-names \
- *     --expected-deployment=<fingerprint>
- */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,17 +22,6 @@ function normalizeName(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-/**
- * The `strong` name corrections that say they also apply to the rows.
- *
- * A correction may be right about a display name and still not be something to
- * push onto the stored data — `correctsReplicationArtistField` is how the review
- * says which is which, so this script never widens its own scope.
- *
- * `only` narrows the run to the named stored entries. A name that matches no
- * correction on file is an error rather than an empty plan: a misspelled flag
- * must not look like a corpus that needs nothing.
- */
 export function loadArtistNameCorrections(filePath, { only = [] } = {}) {
   if (!filePath) {
     throw new Error("Pass --corrections=<path> pointing at the reviewed identity corrections JSON.");
@@ -111,13 +50,6 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/**
- * Replace the stored name where it is the credited identity: the whole field
- * (a `rightsholder`), or the `by <name>` token of a credit line, which ends the
- * line ("Switch by Sam perkins") or its first sentence ("... by StingrayZ.
- * Archived from r/replications post 6e00jy; submitter snapshot: StingrayZ.").
- * The submitter snapshot and any mention inside the title are left alone.
- */
 export function retextCreditField(value, storedName, correctName) {
   if (typeof value !== "string" || value.length === 0) {
     return value;
@@ -128,10 +60,6 @@ export function retextCreditField(value, storedName, correctName) {
   return value.replace(pattern, correctName);
 }
 
-/**
- * One row's correction: the snapshot the mutation must match, the updates, and
- * the slug the row would have if it were built from the corrected name today.
- */
 export function planRowCorrection(row, correction, { existingSlugs = new Set() } = {}) {
   const current = {
     title: row.title,
@@ -148,11 +76,7 @@ export function planRowCorrection(row, correction, { existingSlugs = new Set() }
   const updates = {
     title: current.title,
     artist: correction.correct,
-    // Required by the validator, and it embeds the name, so it moves too.
     credit_line: creditLine ?? "",
-    // Optional in the validator: omitted keys are simply not patched. Passing
-    // the current value through keeps the payload complete and self-documenting
-    // without changing anything, and a null must be omitted rather than sent.
     ...(current.artist_url === null ? {} : { artist_url: current.artist_url }),
     ...(current.source_url === null ? {} : { source_url: current.source_url }),
     ...(rightsholder === null ? {} : { rightsholder }),
@@ -176,9 +100,6 @@ export function planRowCorrection(row, correction, { existingSlugs = new Set() }
       const after = field === "artist" ? updates.artist : (updates[field] ?? null);
       return before !== after;
     }),
-    // A slug that is the candidate plus a `-N` counter is already the
-    // collision-resolved form normalize-slugs' resolveTarget produces for a
-    // duplicate title — it is settled, not a pending rename that collides.
     slugConsequence:
       candidateSlug === row.slug || new RegExp(`^${candidateSlug}-\\d+$`).test(row.slug)
         ? { changes: false, slug: row.slug }
@@ -191,12 +112,6 @@ export function planRowCorrection(row, correction, { existingSlugs = new Set() }
   };
 }
 
-/**
- * Every row credited under a stored name, split into the rows the correction
- * changes and the rows that already carry it. A casing-only correction folds
- * with its own target ("symmetric vision" and "Symmetric Vision" normalize the
- * same), so a settled row is an expected match, not a write.
- */
 export function planArtistNameCorrections(replications, corrections) {
   const byName = new Map(corrections.map((entry) => [normalizeName(entry.stored), entry]));
   const existingSlugs = new Set(replications.map((row) => row.slug));
@@ -234,14 +149,6 @@ export function planArtistNameCorrections(replications, corrections) {
   };
 }
 
-/**
- * What the slug renames would break if they were run without care.
- *
- * `renameSlug` already moves an effect's `gallery_order` with the slug, so that
- * half is safe. The half that is not: an alias whose *target* is one of these
- * slugs keeps pointing at the old value, so an already-shared legacy URL would
- * start 404ing the moment the rename lands.
- */
 export function planSlugConsequences(rows, aliases) {
   const renames = rows.filter((row) => row.slugConsequence.changes).map((row) => row.slugConsequence);
   const renameByFrom = new Map(renames.map((rename) => [rename.from, rename]));
@@ -379,9 +286,6 @@ async function main() {
   const { collisions } = printPlan(plan, slugPlan);
 
   if (collisions > 0) {
-    // The credit write never touches slugs, so a collision only concerns the
-    // later normalize-slugs run. Reddit-archive slugs carry the post id rather
-    // than the artist and are never renamed onto the artist-derived form.
     console.warn(
       `\n  ${collisions} would-be slug rename(s) collide with an existing slug; resolve before running normalize-slugs.`,
     );

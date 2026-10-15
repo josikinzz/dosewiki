@@ -1,12 +1,3 @@
-/**
- * Effect category definitions extracted from EffectIndex.
- *
- * These provide descriptions for effect category pages at /effects/category/{slug}.
- * The prose lives in `content/taxonomy/effect-categories.json`, in visual,
- * sensory, cognitive, physical order; this module types it and keeps the
- * slug-to-tag filtering rules, which are code, not copy.
- */
-
 import effectCategoriesSource from "@content/taxonomy/effect-categories.json";
 import type { IconName } from "../components/common/Icon";
 
@@ -17,26 +8,13 @@ export interface EffectCategoryDefinition {
   icon: IconName;
 }
 
-/**
- * All effect category definitions from EffectIndex.
- */
 export const EFFECT_CATEGORY_DEFINITIONS: EffectCategoryDefinition[] =
   effectCategoriesSource as EffectCategoryDefinition[];
 
-/**
- * Get an effect category definition by slug.
- */
 export function getEffectCategoryDefinition(slug: string): EffectCategoryDefinition | undefined {
   return EFFECT_CATEGORY_DEFINITIONS.find(def => def.slug === slug);
 }
 
-/**
- * Slug-to-tag-group mapping for filtering effects.
- *
- * Each inner group is matched with AND semantics; groups are matched with OR
- * semantics. This keeps broad category pages such as smell-and-taste useful
- * while preserving specific pages such as visual-amplifications.
- */
 export const CATEGORY_SLUG_TO_TAG_GROUPS: Record<string, string[][]> = {
   "visual-effects": [["visual"]],
   "visual-amplifications": [["visual", "amplification"]],

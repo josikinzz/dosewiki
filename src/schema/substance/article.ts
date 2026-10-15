@@ -15,7 +15,6 @@ import { citationSchema, referenceSchema } from "./shared";
 import { subjectiveEffectsSchema } from "./subjective-effects";
 import { SUBSTANCE_PRIORITY_VALUES } from "./substanceVisibilityPolicy";
 
-/** Root substance article schema */
 export const substanceArticleSchema = z.object({
   id: z.number().nullable(),
   title: z.string(),

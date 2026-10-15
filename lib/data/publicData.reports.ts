@@ -31,18 +31,6 @@ function reportBelongsToContributor(report: Pick<TripReportRecord, "subject" | "
   return profileMatchesName(profile, report.subject.name);
 }
 
-
-/*
- * Persisted reads are the leaf Postgres calls below, each a top-level
- * `unstable_cache`. The exported reads compose one leaf with
- * `getPublicContributorIdentities` (itself a top-level `unstable_cache` in
- * `publicData.contributors`) under React `cache()` for request dedupe only.
- * They used to be `unstable_cache` wrappers around that composition, and Next
- * bypasses any `unstable_cache` reached from inside another one, so the
- * contributor profile read was refetched from Postgres on every miss of every
- * report read instead of being shared across them.
- */
-
 const getPublicTripReportPreviewRecords = cache(publicDataCache(async (): Promise<TripReportRecord[]> => {
   return await getPublicDataReadAdapter().getPublicTripReportPreviews();
 }, ["data-public-trip-report-preview-records-v1"], {
@@ -100,11 +88,6 @@ export const getFeaturedReports = cache(async (limit = 8) => {
   return (await getPublicReports()).slice(0, limit);
 });
 
-/**
- * Every published trip report as a full detail record, contributor-projected
- * like the permalink read, for the public open-data download. Only rows from
- * the published `tripReports` table are read; submissions never appear here.
- */
 export const getPublicReportDetails = cache(async (): Promise<TripReportDetailRecord[]> => {
   const [reports, profiles] = await Promise.all([
     getPublicTripReportDetailRecords(),

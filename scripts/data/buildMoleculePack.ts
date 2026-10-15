@@ -1,20 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * Build the public molecule download pack from the current data backend's
- * canonical depiction set (`moleculeOverrides`):
- *   public/dosewiki-molecules.json - manifest: slug, title, filename, smiles, represents, source
- *   public/dosewiki-molecules.zip  - molecules-light/ and molecules-dark/ (the site's
- *                                    neutral light-mode and dark-mode colourways, incl.
- *                                    classes/) + molecules-standard/ (textbook element
- *                                    colours, re-rendered at pack time) + the manifest
- *
- * Read-only: queries through `createDataClient`, using the backend and target
- * selected by DATA_BACKEND and that shared client's explicit target policy.
- * `--check` builds the manifest and exits 1 when it drifts from the committed
- * public/dosewiki-molecules.json, without writing anything.
- */
-
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -36,7 +21,6 @@ const MANIFEST_PATH = join(ROOT, "public", MANIFEST_NAME);
 const ZIP_PATH = join(ROOT, "public/dosewiki-molecules.zip");
 const GENERATED_SMILES_PATH = join(ROOT, "data/chemistry/generatedSmiles.json");
 const CONCURRENCY = 8;
-/** Fixed mtime for staged files so the zip is byte-deterministic per content. */
 const ZIP_EPOCH = new Date("2001-01-01T00:00:00Z");
 
 
@@ -58,8 +42,6 @@ interface ManifestMolecule {
   source: string;
 }
 
-
-/** Run `worker` over `items` with at most `limit` in flight, preserving order. */
 async function mapWithConcurrency<T, R>(
   items: readonly T[],
   limit: number,
@@ -108,8 +90,6 @@ async function main() {
     });
     const generatedEntries = JSON.parse(readFileSync(GENERATED_SMILES_PATH, "utf8")).entries ?? {};
     const titleBySlug = new Map<string, string>();
-    // Substances still being written or deliberately unlisted (`priority` `low`
-    // or `hide_for_now`) must not ship their molecules in the public pack.
     const excludedSubstanceSlugs = new Set<string>();
     const lookup = await drainDataPageQuery({
       client,
@@ -130,7 +110,6 @@ async function main() {
     for (const row of rows) {
       if (!row) continue;
       if (row.slug.startsWith("class:")) {
-        // Class skeletons are generic Markush structures, not substance-specific.
         classRows.push(row);
       } else if (!excludedSubstanceSlugs.has(row.slug)) {
         substanceRows.push(row);

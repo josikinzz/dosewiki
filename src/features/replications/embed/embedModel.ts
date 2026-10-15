@@ -18,7 +18,6 @@ export type EmbedCollection = {
   viewer: ReplicationViewerCollection;
 };
 
-/** Only opening artwork and collection identity cross the document boundary. */
 export type EmbedOpeningCollection = {
   works: ShowcaseWork[];
   totalCount: number;
@@ -27,11 +26,6 @@ export type EmbedOpeningCollection = {
   selection: EmbedSelection;
 };
 
-/** Preserve each publisher collection's order and associations in the viewer.
- * The compact showcase deduplicates cross-group appearances and, for an
- * aggregated selection, takes one work from each group in turn: a category
- * playlist opens with a spread of its effects rather than the whole of the
- * first one. Each group's own order is preserved within its round. */
 export function buildEmbedCollection(
   selection: EmbedSelection,
   groups: { slug: string; label: string; works: ShowcaseWork[] }[],

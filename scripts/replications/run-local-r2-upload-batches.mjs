@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/** Copy frozen local derivatives to the existing R2 bucket in resumable batches. */
-
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";

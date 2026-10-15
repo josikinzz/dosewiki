@@ -5,13 +5,6 @@ interface SeparatedTextboxProps {
   rightHeader?: string;
 }
 
-/**
- * Style variation comparison blocks.
- * Used to show contrasting effect variations (e.g., "Intricate vs Simple")
- *
- * Typeset openly on the canvas rather than carded: a centered violet pair
- * heading over a gradient hairline, with the comparison prose below.
- */
 export function SeparatedTextbox({
   leftHeader,
   rightHeader,

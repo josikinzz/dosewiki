@@ -43,7 +43,6 @@ const REAGENT_ORDER = [
   "scott",
 ];
 
-/** The reagent names as the testing table heads them, in display order, for the glossary drafter. */
 export const REAGENT_LABELS: readonly string[] = REAGENT_ORDER.map(capitalizeReagent);
 
 export interface ReagentLookupInput {

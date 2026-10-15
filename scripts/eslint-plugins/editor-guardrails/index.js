@@ -1,16 +1,3 @@
-/**
- * ESLint Plugin: Editor Guardrails
- *
- * Keeps dev tools and in-page editors on the shared unsaved-work guard and
- * confirmation dialog instead of per-tool copies:
- * - no raw `beforeunload` listener or `onbeforeunload` handler
- * - no native `window.confirm`
- * - no hand-rolled confirmation built from the Dialog or AlertDialog primitives
- *
- * The rule has no path logic of its own; eslint.config.mjs scopes it to the
- * editor folders and exempts the shared implementations.
- */
-
 const DIALOG_SOURCES = new Set(['@/components/ui/dialog', '@radix-ui/react-dialog']);
 const ALERT_DIALOG_SOURCES = new Set(['@/components/ui/alert-dialog', '@radix-ui/react-alert-dialog']);
 const TITLE_EXPORTS = new Set(['DialogTitle', 'Title']);
@@ -31,7 +18,6 @@ function staticString(node) {
   return null;
 }
 
-/** The last piece of literal text a JSX element renders, or null when it ends in an expression. */
 function trailingText(element) {
   for (let index = element.children.length - 1; index >= 0; index -= 1) {
     const child = element.children[index];

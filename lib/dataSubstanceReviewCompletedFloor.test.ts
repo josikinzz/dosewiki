@@ -5,16 +5,11 @@ type Role = "admin" | "editor" | "contributor" | "viewer";
 
 const patch = vi.fn(async (_id: string, _value: unknown) => undefined);
 
-/**
- * Mirrors the ctx shape in `dataSubstanceIndexEditorReadAuth.test.ts`, plus
- * the one article row the review handler reads and patches once authorized.
- */
 function createCtx(memberships: Record<string, Role>, article: Record<string, unknown> | null) {
   return {
     auth: { getUserIdentity: vi.fn(async () => null) },
     db: {
       patch,
-      // A sign-off first journals the stored article when nothing has yet.
       insert: vi.fn(async (table: string) => `${table}:1`),
       query: vi.fn((table: string) => ({
         withIndex: (
@@ -30,7 +25,6 @@ function createCtx(memberships: Record<string, Role>, article: Record<string, un
           };
           selector(filter);
           if (table === "inboxClaims") {
-            // No claims: a completed review clears the article's claim, if any.
             return { collect: vi.fn(async () => []) };
           }
           if (table === "substanceIndex") {

@@ -9,7 +9,6 @@ import { useT } from "@/i18n/client";
 import type { ProjectedCitation } from "@/lib/citationProjection";
 import { isPlainLeftClick, prefersReducedMotion, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
-/** Citations shown before the list collapses behind a "+N" control. */
 export const REFERENCE_LIST_VISIBLE_LIMIT = 10;
 
 export type CitationBacklink = {
@@ -75,8 +74,6 @@ function ReferenceLabel({ label }: { label: string }) {
       {text}{" "}
       <span
         className={cn(
-          // Safari's hyphenation suppresses overflow-wrap breaks inside long
-          // unhyphenatable runs, so URLs must opt out and break-all instead.
           "break-all hyphens-none",
           "font-medium text-[color:var(--theme-accent-strong)] underline decoration-[color:color-mix(in_srgb,var(--theme-accent)_36%,transparent)] underline-offset-[0.18em]",
           "transition-colors group-hover:text-[color:var(--theme-accent)] group-hover:decoration-[color:color-mix(in_srgb,var(--theme-accent)_62%,transparent)]",
@@ -191,15 +188,6 @@ export function ReferenceListItem({
   );
 }
 
-/**
- * Wikipedia-style numbered reference list shared by substance and effect
- * articles: plum number chip, full citation text, accent-colored trailing
- * URL, and optional per-use backlinks.
- *
- * Long lists collapse after `visibleLimit` entries behind a "+N" chip. An
- * inline marker (or a shared link) that targets a collapsed entry expands the
- * list and scrolls to that entry, so hash navigation keeps working.
- */
 export function ReferenceCitationList({
   citations,
   referenceBacklinks,
@@ -242,7 +230,6 @@ export function ReferenceCitationList({
       }
     };
 
-    // Same-hash clicks do not fire hashchange, so watch marker clicks too.
     const handleClick = (event: Event) => {
       const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a[href^='#']");
       if (!link) return;
@@ -262,8 +249,6 @@ export function ReferenceCitationList({
   }, [hiddenAnchorIds, isCollapsible]);
 
   useEffect(() => {
-    // The browser's own hash jump ran while the entry was still unmounted;
-    // finish the trip once the expanded rows exist.
     if (!isExpanded) return;
     const anchorId = window.location.hash.slice(1);
     if (!anchorId || !hiddenAnchorIds.has(anchorId)) return;

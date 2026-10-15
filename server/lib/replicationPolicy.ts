@@ -88,7 +88,6 @@ export function editorialSnapshotsAgree(
     && current.credit_line === expected.credit_line
     && current.effect_tags.length === expected.effect_tags.length
     && current.effect_tags.every((tag, index) => tag === expected.effect_tags[index])
-    // Provenance is guarded only by callers that loaded it.
     && (expected.rights_status === undefined || current.rights_status === expected.rights_status)
     && (expected.source_url === undefined || current.source_url === expected.source_url)
   );

@@ -42,10 +42,8 @@ import { useAboutEditorController } from "./useAboutEditorController";
 
 const AUTO_RESIZE_MIN_HEIGHT = 240;
 const SUBTITLE_MIN_HEIGHT = 80;
-/** The length a search result shows of a page description before cutting it short. */
 const SEARCH_DESCRIPTION_GUIDE = 160;
 
-/** The live counts the About text may carry, and what each counts. */
 const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "compoundCount", label: "published substances" },
   { key: "effectCount", label: "tracked subjective effects" },
@@ -58,7 +56,6 @@ const PLACEHOLDER_TOKENS: Array<{ key: string; label: string }> = [
   { key: "mechanismOfActionClassCount", label: "mechanism-of-action classes (older name)" },
 ];
 
-/** What an admin's Publish does here: no draft step, the public page changes at once. */
 export const ABOUT_PUBLISH_SAVE_COPY: SaveLineCopy = {
   label: "Publish goes live at once.",
   detail: "There is no draft step here: publishing writes the About page, its search description and the language pages that show the credits.",
@@ -79,24 +76,13 @@ function wideScreen(): boolean {
 interface AboutEditorTabProps {
   availableProfiles: NormalizedUserProfile[];
   profilesLoading?: boolean;
-  /** Admin: Publish writes About; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
-  /** Whether the About draft holds unsaved edits; the Writing list guards leaving it. */
   onDirtyChange?: (dirty: boolean) => void;
   onCanDiscardChange?: (canDiscard: boolean) => void;
-  /** The pane heading, focused when the About page is picked from the list. */
   titleRef?: RefObject<HTMLHeadingElement | null>;
-  /** Below `lg`: scroll back to the Writing list. */
   onBackToList?: () => void;
 }
 
-/**
- * The About page in the Writing workspace: one pane with the page text and
- * its subtitle beside a live preview, the founders, the translation credits
- * (admin), the About wording that lives in Copy, what changed, and a sticky
- * save dock holding the result of the last publication beside Publish (or
- * Submit for review).
- */
 export const AboutEditorTab = memo(function AboutEditorTab({
   availableProfiles,
   profilesLoading,
@@ -194,7 +180,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
     replaceSubtitle(event.currentTarget.value);
   };
 
-  // A live count goes in where the caret is (or at the end), and the caret lands after it.
   const insertToken = (key: string) => {
     const element = textareaRef.current;
     const token = `{{${key}}}`;
@@ -235,7 +220,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
       ),
       wide: true,
       confirmLabel: publicationUncertain ? "Retry publication" : primaryLabel,
-      // The dialog closes at once; the result lands in the dock, and edits typed meanwhile stay pending.
       onConfirm: () => {
         void save();
       },
@@ -564,7 +548,6 @@ export const AboutEditorTab = memo(function AboutEditorTab({
   );
 });
 
-/** The live counts the text can carry, folded shut: the token to type, what it counts, and today's value. */
 function LiveCounts({ values, onInsert, disabled }: { values: Record<string, string>; onInsert: (key: string) => void; disabled: boolean }) {
   const [open, setOpen] = useState(false);
   const id = useId();
@@ -615,7 +598,6 @@ function CopyResult({ notice, target, onDismiss }: { notice: { target: string; o
   );
 }
 
-/** What changed, part by part: diffs for the text, names for the founders, a line for the credits. */
 function ChangesBody({
   markdownDiff,
   subtitleDiff,
@@ -650,7 +632,6 @@ function ChangesBody({
   );
 }
 
-/** The result of the last publication, in the dock: success, conflict with its way forward, the freeze, or the route's words. */
 function AboutDockNotice({
   notice,
   failure,

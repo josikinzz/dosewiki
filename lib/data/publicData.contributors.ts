@@ -39,7 +39,6 @@ export const getPublicContributorProfiles = cache(
   },),
 );
 
-/** Identity-only profiles preserve shared alias and attribution rules without bios. */
 export const getPublicContributorIdentities = cache(publicDataCache(
   async (): Promise<NormalizedUserProfile[]> =>
     collapseContributorProfiles(await getPublicDataReadAdapter().getPublicContributorIdentities()),
@@ -50,7 +49,6 @@ export const getPublicContributorIdentities = cache(publicDataCache(
   },
 ));
 
-/** Compact identities whose canonical keys or aliases claim one of the requested keys. */
 export const getPublicContributorIdentitiesByLookupKeys = cache(publicDataCache(
   async (lookupKeys: string[]): Promise<NormalizedUserProfile[]> => {
     const normalizedKeys = [...new Set(lookupKeys.map(normalizeProfileKey).filter(Boolean))];
@@ -78,7 +76,6 @@ export const getPublicContributorDirectory = cache(
       displayName: profile.displayName,
       aliases: profile.aliases,
       avatarUrl: profile.avatarUrl,
-      // Threaded so the gallery can star and lift approved artists' rails.
       ...(profile.approved_replicator === true ? { approvedReplicator: true } : {}),
     }));
   },
@@ -120,7 +117,6 @@ export const getOwnedContributorProfile = cache(
   },
 );
 
-/** Minimal authenticated ownership lookup for route shells that need only a key. */
 export const getOwnedContributorProfileKey = cache(
   async (email: string): Promise<string | null> => {
     const apiKey = getServerDataAdminIntentToken("profileMediaWrite");

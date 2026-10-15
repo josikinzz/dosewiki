@@ -1,46 +1,25 @@
-/**
- * What the Cmd+K palette offers and how a query picks from it. Pure: the
- * palette component supplies the role and the loaded records.
- *
- * A query's first word may name a tool ("banners", "writing", or any of the
- * tool's route aliases and keywords); the rest then searches only that tool's
- * records, so "banners mdma" lands on MDMA in Banners. A query that names no
- * tool searches every record the role may open.
- *
- * Saved views are records of kind `view`: a queue opened on a repeated
- * workflow (oldest unresolved feedback, my pending proposals). They list on
- * an empty query, so the palette doubles as the launcher for them.
- */
-
 import { roleMeetsFloor, type AppRole } from "@/lib/auth/roles";
 import { DEV_TAB_REGISTRY, type DevModeTab } from "./devTabRegistry";
 
 export type PaletteTool = {
   tab: DevModeTab;
   label: string;
-  /** Set for a tool that opens outside the shell (Review). */
   href?: string;
   terms: readonly string[];
 };
 
 export type PaletteRecord = {
-  /** Unique across every source. */
   key: string;
   tab: DevModeTab;
   title: string;
-  /** A second line: the slug, the kind of record, an email. */
   detail?: string;
-  /** Where the record opens, as an App Path. */
   href: string;
-  /** Lowercased words the query matches against. */
   terms: string;
-  /** `view`: a saved queue view rather than one record. */
   kind?: "view";
 };
 
 export type PaletteMatch = { tools: PaletteTool[]; views: PaletteRecord[]; records: PaletteRecord[] };
 
-/** Lowercase, accents folded, so "MDMA" and "Méthylone" match plain typing. */
 export function normalizePaletteText(value: string): string {
   return value.normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
@@ -49,16 +28,10 @@ function words(value: string): string[] {
   return normalizePaletteText(value).split(/[^a-z0-9]+/).filter(Boolean);
 }
 
-/** The text a record matches on: its title, detail and any extra words. */
 export function recordTerms(...parts: readonly (string | null | undefined)[]): string {
   return normalizePaletteText(parts.filter(Boolean).join(" "));
 }
 
-/**
- * Every tool the role may open, in rail order: the shell tools, Review and
- * the Change log. A tool above the role is left out entirely, not shown
- * locked; the rail is where locked tools explain themselves.
- */
 export function paletteToolsFor(role: AppRole | null | undefined): PaletteTool[] {
   return DEV_TAB_REGISTRY.filter((tab) => roleMeetsFloor(role, tab.role)).map((tab) => {
     const label = tab.labelFor?.(role ?? null) ?? tab.label;
@@ -111,12 +84,6 @@ function ranked(records: readonly PaletteRecord[], tokens: readonly string[]): P
     .map(({ record }) => record);
 }
 
-/**
- * The tools, saved views and records a query shows, best first. An empty
- * query lists every tool and every saved view, and no records. Records are
- * capped at `recordLimit` so a one-letter query never renders the whole
- * corpus.
- */
 export function matchPalette(
   query: string,
   tools: readonly PaletteTool[],
@@ -124,7 +91,6 @@ export function matchPalette(
   recordLimit = 20,
 ): PaletteMatch {
   const tokens = words(query);
-  // Records only for tools the role may open: `tools` is already role-filtered.
   const openable = new Set(tools.map((tool) => tool.tab));
   const views = entries.filter((entry) => entry.kind === "view" && openable.has(entry.tab));
   const records = entries.filter((entry) => entry.kind !== "view");

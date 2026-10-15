@@ -2,16 +2,10 @@
 
 import { ConfirmDialog, type ConfirmRequest } from "@/features/dev/components";
 
-/** Every in-tool discard asks the same way: keep editing, or throw the draft away. */
 function discardRequest(title: string, description: string, onConfirm: () => void): ConfirmRequest {
   return { title, description, cancelLabel: "Keep editing", confirmLabel: "Discard changes", destructive: true, onConfirm };
 }
 
-/**
- * The studio's own switch guards: moving between its workspaces or subjects
- * inside the tool. Rail clicks, Leave and unload go through the shell's
- * unsaved-work registry instead.
- */
 export function ReplicationStudioLeaveDialogs({
   pendingPlaylistLeave,
   pendingShowcaseLeave,
@@ -33,8 +27,6 @@ export function ReplicationStudioLeaveDialogs({
   onCancelDraftDiscard: () => void;
   onConfirmDraftDiscard: () => void;
 }) {
-  // Confirm runs its action and then closes, so each cancel is a no-op once
-  // the confirm has already cleared its pending state.
   return (
     <>
       <ConfirmDialog

@@ -1,8 +1,3 @@
-/**
- * Editors recommend an article as reviewed; only an admin approval completes
- * it, at the revision the recommendation covered. Drives the real handlers
- * against the in-memory Postgres fixture.
- */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";

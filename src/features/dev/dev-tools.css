@@ -1,16 +1,5 @@
-/* Dev tool chrome: editor-only classes consumed under src/features/dev.
-   Loaded by the dev page shell, so the public bundle never carries them.
-   Rules sit in the utilities layer exactly as they did in
-   src/styles/utilities-theme.css, so call-site Tailwind utilities keep the
-   same precedence. */
-/* Phone-width guard for every tool in the /dev shell. A grid track with no
-   explicit size (`grid gap-6` below its `lg:grid-cols-*`) grows to its
-   widest unbreakable child: one truncated row, a long URL, or an audit
-   string like `reviewed-profile-import:...@dosewiki.internal`. The root
-   clips horizontal overflow, so everything in that column silently runs off
-   the right edge of the phone. Letting grid items shrink and long words
-   break keeps each tool inside the viewport. It sits below the utilities
-   layer so any explicit `min-w-*` or `break-*` at a call site still wins. */
+
+
 @layer components {
   .theme-dev-shell {
     overflow-wrap: break-word;
@@ -26,7 +15,6 @@
     box-shadow: var(--theme-elevation-none);
   }
 
-  /* Floating surfaces (sheets, menus) that sit above the page. */
   .theme-overlay-shadow {
     box-shadow: var(--theme-elevation-overlay);
   }
@@ -40,12 +28,10 @@
     color: var(--theme-warning-text);
   }
 
-  /* Soft accent rule for inline support quotes (citation evidence rows). */
   .theme-quote-accent-border {
     border-color: var(--theme-accent-soft);
   }
 
-  /* Repeat-entry card wrapper in the dev form editors. */
   .theme-entry-card {
     border-color: var(--theme-border-subtle);
     background-color: var(--theme-surface-soft);
@@ -57,11 +43,6 @@
     box-shadow: 0 14px 36px -14px var(--theme-shadow-strong);
   }
 
-  /*
-     * Dev workbench rail. One slim chrome row on the dark chrome-rail tone, the
-     * same surface the header and footer use, so the tools read as an app frame
-     * rather than a stack of page-level pills.
-     */
   .theme-dev-rail {
     background: var(--theme-frosted-control-on-panel-bg);
     border-color: var(--theme-frosted-control-on-panel-border);
@@ -105,7 +86,6 @@
     color: var(--theme-text-secondary);
   }
 
-  /* A tool's glyph in menus, the sheet and the palette: quiet until the row is current. */
   .theme-dev-tool-glyph {
     color: var(--theme-text-faint);
   }
@@ -116,35 +96,25 @@
     color: var(--theme-accent-strong);
   }
 
-  /* The active tool's name beside its group menu label ("Site | Writing"). */
   .theme-dev-rail-menu-current {
     color: var(--theme-selected-control-text);
   }
 
-  /* Unsaved work: the accent, so it reads as "yours, pending", never as an alarm. */
   .theme-dev-unsaved-dot {
     background: var(--theme-accent-strong);
   }
 
-  /* Work waiting on this member. Same seeds as the portal count it grew from. */
   .theme-dev-count-badge {
     background: var(--theme-accent);
     color: var(--theme-surface-deep);
   }
 
-  /* A count whose latest refresh failed: the last known number, drawn hollow. */
   .theme-dev-count-badge[data-stale] {
     background: transparent;
     color: var(--theme-text-muted);
     box-shadow: inset 0 0 0 1px var(--theme-border-strong);
   }
 
-  /*
-   * Open, separated link rows (Home): a list of places to go, each row one
-   * link. A hairline between rows, a quiet lift on hover, the trailing chevron
-   * wakes with the row. Not a card per row (style guide, Index lists).
-   */
-  /* The hairline stays inside the row padding, so a list that bleeds its hover fill past the section edge keeps its rules on the text column. */
   .theme-dev-link-list > * {
     position: relative;
   }
@@ -158,11 +128,6 @@
     pointer-events: none;
   }
 
-  /* A windowed EditorList holds focus on the listbox and marks the current
-       row with aria-activedescendant. Ringing the box as well as drawing the
-       open row's border doubled the line where the two meet, so while a row
-       is selected the focus cue is that row's own border, and the box keeps
-       the shared ring only when nothing is selected. */
   .theme-dev-listbox:focus-visible:has([role="option"][aria-selected="true"] .theme-dev-list-row) {
     outline-color: transparent;
   }
@@ -195,7 +160,6 @@
     }
   }
 
-  /* The one row a section leads with (Home's Inbox): a raised control on the panel. */
   .theme-dev-link-lead {
     background: var(--theme-frosted-control-on-panel-bg);
     box-shadow:
@@ -204,20 +168,17 @@
     color: var(--theme-text-primary);
   }
 
-  /* A count of zero steps back so the rows with work stand out. */
   .theme-dev-link-count[data-zero] {
     color: var(--theme-text-faint);
     font-weight: 400;
   }
 
-  /* The member's initials on the account trigger and menu header. */
   .theme-dev-avatar {
     background: var(--theme-frosted-control-on-panel-hover-bg);
     color: var(--theme-text-primary);
     box-shadow: inset 0 0 0 1px var(--theme-frosted-control-on-panel-border);
   }
 
-  /* A profile nobody signs in to (People): the same disc, drawn open. */
   .theme-dev-avatar[data-kind="profile"] {
     background: transparent;
     color: var(--theme-text-muted);
@@ -225,7 +186,6 @@
     border: 1px dashed var(--theme-border-strong);
   }
 
-  /* The search trigger on the rail and at the top of the phone sheet reads as a field. */
   .theme-dev-sheet-search,
   .theme-dev-rail-search {
     border-color: var(--theme-field-border);
@@ -247,7 +207,6 @@
     outline-offset: 2px;
   }
 
-  /* Keycaps in the palette footer, the account menu and the ? sheet. */
   .theme-dev-kbd {
     display: inline-flex;
     min-width: 1.25rem;
@@ -263,7 +222,6 @@
     box-shadow: inset 0 0 0 1px var(--theme-border-subtle), inset 0 -1px 0 var(--theme-border-subtle);
   }
 
-  /* The write status strip under the rail: one sentence on where a save lands. */
   .theme-dev-write-status {
     color: var(--theme-text-muted);
   }
@@ -276,18 +234,12 @@
     color: var(--theme-accent-strong);
   }
 
-  /* Writes paused: the one frame state that must stop an editor before they type. */
   .theme-dev-write-status[data-tone="frozen"] {
     border-color: var(--theme-warning-border);
     background: var(--theme-warning-bg);
     color: var(--theme-warning-text);
   }
 
-  /*
-     * Replication studio. The dev-only media triage surface: quiet muted panels
-     * for rows and cards, a field tone for inputs, and deep media wells behind
-     * thumbnails so artwork and waveforms sit on their own ground.
-     */
   .theme-replication-field {
     background: var(--theme-field-surface);
   }
@@ -342,7 +294,6 @@
     accent-color: var(--theme-accent-strong);
   }
 
-  /* A value no row would show under the other filters: still tickable, quieter. */
   .theme-replication-facet-option[data-empty] {
     color: var(--theme-text-faint);
   }
@@ -362,24 +313,17 @@
     outline-offset: -2px;
   }
 
-  /*
-   * Under xl the inspector is a sheet over the grid's right edge. It is
-   * non-modal (the grid stays live beside it), so depth rather than a scrim
-   * separates it: an offset, soft shadow thrown back over the grid.
-   */
   .theme-replication-sheet {
     background: var(--theme-panel-base);
     border-color: var(--theme-frosted-panel-border);
     box-shadow: -12px 0 32px -12px var(--theme-shadow-strong);
   }
 
-  /* The current group's label, pinned over the grid's scrolled rows. */
   .theme-replication-pinned-header {
     background: var(--theme-body-bg);
     border-color: var(--editor-panel-border);
   }
 
-  /* Status flags laid over a card's media: legible on any frame. */
   .theme-replication-card-flag {
     background: var(--theme-shadow-strong);
     color: var(--theme-text-on-media);
@@ -452,19 +396,10 @@
     color: var(--theme-text-on-media);
   }
 
-  /*
-     * Trip reports. The hairline that separates the pane header, the dock and
-     * the list's group headings.
-     */
   .theme-portal-rule {
     border-color: var(--theme-border-subtle);
   }
 
-  /*
-     * The two prose sections that bookend the timeline. They hang the same dots
-     * on the same spine as the coloured phases, but read as neutral because they
-     * are not a phase of the experience.
-     */
   .theme-portal-prose-phase-dot {
     background-color: var(--theme-text-ghost);
   }
@@ -481,21 +416,15 @@
     }
   }
 
-  /* Tight variant for very small inline controls (equivalent to
-       `outline-offset-1`). */
   .theme-focus-ring-tight:focus-visible {
     outline: 1px solid var(--theme-text-secondary);
     outline-offset: 1px;
   }
 
-  /* Review route status and command surfaces. Components consume these semantic
-       classes so theme implementation details stay inside the token layer. */
   .theme-review-status-completed {
     background-color: var(--theme-review-status-completed-dot);
   }
 
-  /* The flat color is the fallback the gradient paints over, so a run is still
-       unmistakably green if the gradient token ever fails to resolve. */
   .theme-review-progress-fill {
     background-color: rgb(var(--c-emerald));
     background-image: var(--theme-review-progress-fill-gradient);
@@ -519,16 +448,12 @@
     color: var(--theme-success-text);
   }
 
-  /* The review dock: the decision dock recipe pinned to the bottom of the
-       screen under the article, on the bar's own material so the two frame
-       the reading area as one workbench. */
   .theme-review-dock {
     border-color: var(--theme-border-subtle);
     background: var(--theme-frosted-control-on-panel-bg);
     box-shadow: 0 -8px 24px -18px color-mix(in srgb, var(--theme-body-bg) 80%, transparent);
   }
 
-  /* Notes and flags open inside the dock, one step raised from it. */
   .theme-review-drawer {
     border-color: var(--theme-border-subtle);
     background: var(--editor-panel-bg);
@@ -544,9 +469,6 @@
     color: var(--theme-text-secondary);
   }
 
-  /* The bar's own background is a fully opaque gradient in both themes, so it
-       carries no backdrop blur: a filter with nothing to see through costs a
-       compositing layer and per-scroll-frame GPU work for no visual result. */
   .theme-review-command-bar {
     border-color: var(--theme-border-subtle);
     background: var(--theme-frosted-control-on-panel-bg);
@@ -568,7 +490,6 @@
     background-color: var(--theme-success-bg);
   }
 
-  /* Sealed bucket chip — the picker's N/N counter once N/N is reality. */
   .theme-review-seal {
     border-color: var(--theme-success-border);
     background-color: var(--theme-success-bg);
@@ -599,16 +520,12 @@
     animation: theme-review-check-pop 320ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* The check path is ~8.5 units long; 10 covers it with margin, so the draw
-       starts fully hidden and lands fully shown. */
   .theme-review-check-draw {
     stroke-dasharray: 10;
     stroke-dashoffset: 10;
     animation: theme-review-check-draw 260ms ease-out 120ms forwards;
   }
 
-  /* The tick's sip: a soft glow at the fill's leading edge, timed to the
-       500ms width transition it decorates. */
   .theme-review-progress-bloom {
     background: radial-gradient(
       closest-side,
@@ -619,9 +536,6 @@
     animation: theme-review-progress-bloom 650ms ease-out;
   }
 
-  /* The celebration sweep: a highlight crossing the filled run once. It lives
-       inside the fill (which clips it), so it only ever crosses real progress.
-       `forwards` parks it off the right edge when the run ends. */
   .theme-review-progress-sweep {
     background-image: linear-gradient(
       105deg,
@@ -633,7 +547,6 @@
     animation: theme-review-progress-sweep 700ms ease-in-out forwards;
   }
 
-  /* A finished category takes a victory lap: the same sweep, twice. */
   .theme-review-progress-sweep--lap {
     animation: theme-review-progress-sweep 650ms ease-in-out 2 forwards;
   }
@@ -647,7 +560,6 @@
       animation: none;
     }
 
-    /* The check must still be *visible* — only its drawing-in is motion. */
     .theme-review-check-draw {
       stroke-dashoffset: 0;
     }
@@ -658,9 +570,6 @@
     }
   }
 
-  /* Disclosure triggers in the editor forms — the section cards and the
-       citation-diagnostics summary — share one hover/focus material so a new
-       collapsible never has to re-derive the recipe from raw theme variables. */
   .theme-editor-disclosure-trigger {
     transition: background-color 200ms ease;
   }

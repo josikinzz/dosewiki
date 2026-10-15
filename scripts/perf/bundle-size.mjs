@@ -1,16 +1,4 @@
 #!/usr/bin/env node
-/**
- * scripts/perf/bundle-size.mjs: deterministic build-side bundle metric.
- *
- * Next.js 16's build table no longer prints "First Load JS", so we recompute the
- * shared client JS baseline (the chunks every App Router route downloads on first
- * load) directly from `.next/build-manifest.json`, reporting both raw and gzipped
- * bytes. We also list the heaviest individual chunks to guide what to trim.
- *
- * Reproducible: same source + same build = same numbers. Run after `npm run build`.
- *
- * Usage: node scripts/perf/bundle-size.mjs
- */
 
 import { readFileSync, statSync, existsSync, readdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
@@ -26,7 +14,6 @@ if (!existsSync(manifestPath)) {
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
 function sizeOf(relFromStatic) {
-  // manifest entries are like "static/chunks/foo.js" relative to .next
   const p = join(NEXT, relFromStatic);
   if (!existsSync(p)) return { raw: 0, gz: 0, missing: true };
   const buf = readFileSync(p);
@@ -48,7 +35,6 @@ for (const f of sharedFiles) {
   perFile.push({ file: f, raw: s.raw, gz: s.gz });
 }
 
-// Heaviest chunks overall (gzipped) — optimization targets.
 const chunkDir = join(NEXT, "static", "chunks");
 const chunks = [];
 function walk(dir) {

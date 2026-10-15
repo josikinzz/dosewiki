@@ -6,7 +6,6 @@ const COMMON_TAG = "common";
 const normalizeTag = (value: string): string => value.trim().toLowerCase();
 
 type LayoutDataHelpers = {
-  /** The psychoactive index sorts Common-tagged substances first, then by name; other datasets by name only. */
   sortSlugsForDataset: (dataset: ManualDatasetKey, slugs: readonly string[]) => string[];
 };
 

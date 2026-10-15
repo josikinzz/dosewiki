@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/substances/group/[groupSlug]`, reached
- * only through the middleware rewrite from `zh.dose.wiki/substances/group/<slug>`.
- * It opens the shared Substance Index on the requested class view and keeps the
- * English view as its canonical URL.
- */
 import { notFound } from "next/navigation";
 
 import { UiLocaleProvider } from "@/i18n/client"

@@ -264,7 +264,6 @@ for (const docsPath of docsPaths) {
   const contents = readFileSync(absoluteDocsPath, "utf-8");
   for (const match of contents.matchAll(dataArtifactPattern)) {
     const documentedPath = match[0].replaceAll("\\", "/");
-    // A directory README documents the data; it is not itself a data artifact.
     if (documentedPath.endsWith("/README.md")) continue;
     paths.add(documentedPath);
   }
@@ -306,13 +305,10 @@ export function collectArtifactLineageVerification({
   const generatedExportRetention = evaluateGeneratedExportRetention(trackedGeneratedExports);
 
   for (const entry of sourceManifest.artifacts ?? []) {
-    // Published assets may intentionally live outside the repository. Their
-    // delivery URLs are lineage identifiers, not local filesystem patterns.
     if (/^https?:\/\//i.test(entry.path)) {
       continue;
     }
     const matches = listArtifactLineagePathMatches(entry.path, { rootDir });
-    // Gitignored outputs are local-only by policy, so a clean checkout lacks them.
     if (matches.length === 0 && !isGitIgnored(entry.path, rootDir)) {
       warnings.push(`${entry.id} output path has no current match: ${entry.path}`);
     }

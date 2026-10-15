@@ -593,7 +593,6 @@ export async function insertMediaAssetHandler(
   return { inserted: true, id, slug: row.slug, role: row.role };
 }
 
-/** Validation errors return with nothing written; the first SQL failure rejects the batch. */
 export async function bulkImportHandler(ctx: MutationCtx, args: BulkImportArgs) {
   const errors = duplicateSlugErrors(args.replications.map((replication) => replication.slug), (slug) => `Failed to import ${slug}`);
   const results = { created: 0, updated: 0, errors };

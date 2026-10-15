@@ -1,20 +1,5 @@
-/**
- * Ordering and grouping for the molecule editor's substance picker.
- *
- * The picker used to be one flat alphabetical list carrying a single pill that
- * meant "a `moleculeOverrides` row exists" — which reviewers read as "this
- * article is live on the site". Publication is a property of the article, not of
- * the depiction, so the two are split here: a substance's article visibility
- * comes from the shared policy, and the list leads with the publicly listed
- * articles before grouping each tier by psychoactive category.
- *
- * `indexCategories` / `psychoactiveClasses` only reach the client once the
- * extended `projectEditorLookup` is deployed; until then every row simply falls
- * back to the uncategorized group and the priority-only visibility answer.
- */
 import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolicy";
 
-/** A row as `substanceIndex.getLookupPage` serves it. */
 export interface SubstanceLookupRow {
   slug: string;
   name: string;
@@ -26,11 +11,8 @@ export interface SubstanceLookupRow {
 export interface MoleculePickerItem {
   slug: string;
   title: string;
-  /** A `moleculeOverrides` row (or class template) exists for this key. */
   hasOverride: boolean;
-  /** Article visibility per `substanceVisibility`; unknown for classes and templates. */
   publiclyListed?: boolean;
-  /** Primary psychoactive class, used as the grouping key. */
   category?: string;
 }
 
@@ -42,7 +24,6 @@ export interface MoleculePickerGroup<Item> {
 
 const UNCATEGORIZED_PICKER_GROUP = "Uncategorized"
 
-/** Articles carry several classes; the first non-empty one drives the grouping. */
 function resolvePickerCategory(
   psychoactiveClasses: readonly string[] | null | undefined,
 ): string | undefined {
@@ -52,7 +33,6 @@ function resolvePickerCategory(
   return primary ? primary : undefined;
 }
 
-/** Publicly listed articles first, then category (uncategorized last), then title. */
 export function compareMoleculePickerItems(
   left: MoleculePickerItem,
   right: MoleculePickerItem,
@@ -92,12 +72,6 @@ export function buildSubstancePickerItems(
     .sort(compareMoleculePickerItems);
 }
 
-/**
- * Fold an already-sorted list into consecutive runs so the combobox can render
- * one `CommandGroup` per (visibility tier, category). Items that carry neither
- * facet — generic class structures and class templates — stay in a single
- * heading-less group, exactly as they rendered before.
- */
 export function groupMoleculePickerItems<Item extends MoleculePickerItem>(
   items: readonly Item[],
 ): MoleculePickerGroup<Item>[] {

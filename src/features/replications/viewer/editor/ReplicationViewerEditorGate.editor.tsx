@@ -10,7 +10,6 @@ import { roleMeetsFloor } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
 import type { ReplicationViewerCollection } from "../viewerModel";
 
-// Deliberate chunk boundary: the public viewer must never eagerly receive editor code.
 const LazyEditorPanel = lazy(async () => {
   const panelModule = await import("./ReplicationViewerEditorPanel");
   return { default: panelModule.ReplicationViewerEditorPanel };
@@ -47,7 +46,6 @@ function EditorPanelSkeleton() {
   );
 }
 
-/** Hydration-safe eligibility gate. Editor data and code stay absent until opened. */
 export default function ReplicationViewerEditorGate(
   props: ReplicationViewerEditorGateProps,
 ) {

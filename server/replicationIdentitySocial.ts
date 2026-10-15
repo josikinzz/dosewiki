@@ -161,10 +161,6 @@ function authoritativeBeforeMatches(entry: IdentitySocialBatchEntry, before: unk
 
 async function verifyAuthoritativeBefore(ctx: Ctx, entry: IdentitySocialBatchEntry) {
   const before = await canonicalBeforeForEntry(ctx, entry);
-  // Poster-preserving and blocked decisions are journals only: they deliberately
-  // make no domain-row change. Requiring an exact historical source-shape CAS
-  // would suppress the reviewed no-write when legacy URL fields normalize, while
-  // adding no safety. The read above still proves that the target exists.
   if (isSkippedDecision(entry)) return;
   if (!authoritativeBeforeMatches(entry, before)) throw new Error("Authoritative expected-before CAS failed.");
   if (entry.kind === "attribution") for (const id of [entry.value.poster_profile_id, entry.value.creator_profile_id]) if (id && !(await ctx.db.get(id))) throw new Error("Contributor profile does not exist.");
@@ -476,8 +472,6 @@ async function aggregateProfileBindingVerification(entries: ProfileBindingEntry[
     profile_id: profileId,
     status,
     basis: contributions.every((item) => item.basis === contributions[0].basis) ? contributions[0].basis : "editorial-review",
-    // The reviewed sheets can overlap after identities are unified. Max preserves
-    // the strongest observed corpus size without falsely claiming their sum is unique.
     work_count_reviewed: Math.max(...contributions.map((item) => item.work_count_reviewed)),
     rationale: contributions.map((item) => `[${item.artist_id}] ${item.rationale}`).join("\n\n"),
     evidence: contributions.flatMap((item) => item.evidence),
@@ -600,12 +594,6 @@ function sameProfileBindingVerificationMaterial(current: StoredVerificationValue
   );
 }
 
-/**
- * Records a canonical batch receipt for profile bindings that were already
- * applied under smaller legacy batches. This never rewrites public state. The
- * canonical receipt is created only when each canonical item ID points to an
- * unrolled-back source journal and all current state still exactly matches it.
- */
 export async function reconcileAppliedProfileBindingBatchHandler(ctx: MutationCtx, args: { apiKey: string; actor_email: string; operation_id: string; dry_run: boolean; entries: ProfileBindingEntry[] }) {
   const actor = await requireRegisteredDelegatedEditorWrite(ctx, { apiKey: args.apiKey, actorEmail: args.actor_email, adminIntent: "replicationMaintenance" });
   const operationId = required(args.operation_id, "Profile-binding reconciliation operation ID");
@@ -679,9 +667,6 @@ export async function reconcileAppliedProfileBindingBatchHandler(ctx: MutationCt
       ? equal(verification, await aggregateProfileBindingVerification(sharedGroups.get(entry.shared_profile_group_digest)!, bindingRow.profile_id, verification.reviewed_at))
       : verification ? sameProfileBindingVerificationMaterial(verification, entry.verification) : false;
     if (!verification || !sourceVerification || !equal(verification, sourceVerification) || !canonicalVerificationMatches) throw new Error(`Profile-binding reconciliation verification does not exactly match the canonical review: ${entry.artist_id}.`);
-    // Preserve the source batch's single-leader journal shape. Recording the
-    // aggregate on every grouped constituent would create multiple rollback
-    // leaders for one profile and make the canonical receipt unrollable.
     proven.push({ entry, source, binding, ...(source.verification_after ? { verification } : {}) });
   }
 

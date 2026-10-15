@@ -15,11 +15,6 @@ type ResponsiveColumnOptions = {
 
 export type ResponsiveColumnCount = {
   count: number;
-  /**
-   * Set until the grid's content box has been measured. The server and first
-   * hydration render agree; the layout effect replaces the provisional grouping
-   * before the first client paint.
-   */
   gate: IndexPanelColumnGate | null;
   ref: (element: HTMLDivElement | null) => void;
 };
@@ -46,7 +41,6 @@ export function useResponsiveColumnCount(options?: ResponsiveColumnOptions): Res
     measure();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(element);
-    // The viewport may change the gap without changing the container's width.
     window.addEventListener("resize", measure);
     return () => {
       observer?.disconnect();

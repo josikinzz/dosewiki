@@ -29,17 +29,12 @@ import {
 const RUN_BUDGET_MS = 200_000;
 const MIN_JOB_BUDGET_MS = 60_000;
 const MODEL_LEASE = "glm-5.3-flash";
-/** One lease per lane, so a bulk campaign never starves editorial refreshes. */
 const laneLease = (mode: TranslationJobMode) => `${MODEL_LEASE}:${mode}`;
 
 export type TranslationWorkerRun = Omit<TranslationWorkerRunRecord, "id" | "startedAt"> & {
   outcomes: (RefreshOutcome | { slug: string; locale: string; error: string })[];
 };
 
-/**
- * Readable text for anything thrown. Provider failures are `Error`s, but a
- * rejected value can still be a plain object; it never logs as `[object Object]`.
- */
 function errorMessage(error: unknown): string {
   if (error instanceof Error) return error.message || error.name;
   if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
@@ -51,10 +46,6 @@ function errorMessage(error: unknown): string {
   }
 }
 
-/**
- * Process one queue lane under that lane's own lease. Model requests share one
- * semaphore per run, held to the lane's quota of the shared request ceiling.
- */
 export async function runTranslationJobs(
   apiKey: string,
   config: { mode: TranslationJobMode; jobsPerRun: number; requestConcurrency: number },
@@ -109,9 +100,6 @@ async function processTranslationJobs(
     run.usage.requests += 1;
   };
 
-  // Public delivery belongs to the publication outbox: completion enqueues the
-  // targets in its own transaction and publication-delivery dispatches them.
-  // Only this deployment's own caches are expired here, best effort.
   const expireLocally = (job: TranslationJobRow, targets: PublicationTarget[]) => {
     try {
       applyPublicCacheLocally({ targets, source: "manual" });
@@ -122,8 +110,6 @@ async function processTranslationJobs(
     }
   };
 
-  // A bulk run writes through one writer and requests a segment shared by
-  // several pages once.
   const wave = config.mode === "bulk" ? createTranslationWave() : undefined;
   const processJob = async (job: TranslationJobRow) => {
     let stored = 0;
@@ -135,7 +121,6 @@ async function processTranslationJobs(
         if (await completeTranslationJob(job)) run.completed += 1;
         return;
       }
-      // Loaded per page, so a glossary approval reaches the next page claimed.
       const outcome = await refreshRecordTranslations(
         { ...record, slug },
         await loadTranslationContext(job.locale),
@@ -164,10 +149,8 @@ async function processTranslationJobs(
       run.outcomes.push(outcome);
     } catch (error) {
       const message = errorMessage(error);
-      // A budget abort after stored progress keeps its attempt; see failTranslationJob.
       const progressed = signal.aborted && stored > 0;
       const exhausted = !progressed && job.attempts >= MAX_TRANSLATION_JOB_ATTEMPTS;
-      // A transport failure carries its own defect code and provider status.
       const tagged = error && typeof error === "object" ? error as { code?: unknown; status?: unknown } : {};
       console.error("[translation-worker] job:failed", {
         locale: job.locale, slug: job.slug, mode: job.mode, attempts: job.attempts, exhausted, message,
@@ -182,8 +165,6 @@ async function processTranslationJobs(
     }
   };
 
-  // Each page worker refills independently, so one slow page cannot hold
-  // every other page behind a batch barrier. Leave time to drain at the end.
   const workers = await Promise.allSettled(Array.from({ length: config.jobsPerRun }, async () => {
     while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
       const [job] = await claimTranslationJobs(1, config.mode);

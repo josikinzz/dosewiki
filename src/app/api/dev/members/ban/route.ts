@@ -1,9 +1,3 @@
-/**
- * POST /api/dev/members/ban  { email }
- *
- * Admin only. A banned member is refused at sign-in and at every Postgres
- * floor; Postgres refuses admin targets and the actor's own row.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

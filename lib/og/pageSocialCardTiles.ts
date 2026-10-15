@@ -18,7 +18,6 @@ function renderTile(
   size: number,
   labelSize: number,
 ): string {
-  // Match an app icon: a square art surface with its caption outside.
   const iconSize = Math.round(
     size * (spec.labelLines.length > 1 ? 0.52 : 0.58),
   );

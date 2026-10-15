@@ -1,9 +1,3 @@
-/**
- * Admin-only load/save endpoint for molecule class orientation templates.
- *
- * Templates are isolated from `moleculeOverrides`; this route deliberately
- * performs no public-page revalidation and has no apply behavior.
- */
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -35,7 +29,6 @@ type ParsedSaveTemplate = {
   boldBonds?: number[];
 };
 
-/** A molecule can't have more bonds than the MOL block byte limit allows lines. */
 const MAX_BOLD_BONDS = 1024;
 
 const getByClassKey = makeFunctionReference<

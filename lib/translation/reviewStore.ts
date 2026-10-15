@@ -13,7 +13,6 @@ export class TranslationReviewError extends Error {
 export class TranslationReviewConflictError extends TranslationReviewError {
   constructor() { super("This translation changed since you opened it. Reload and review the latest revision.", 409, "TRANSLATION_REVIEW_CONFLICT"); }
 }
-/** A correction leaves out approved glossary renderings its English mentions, and the reviewer did not mark them "Fine here". */
 export class GlossaryConflictError extends TranslationReviewError {
   constructor(readonly conflicts: GlossaryRendering[]) { super(conflicts.map(glossaryConflictMessage).join(" "), 409, "GLOSSARY_CONFLICT"); }
 }
@@ -36,7 +35,6 @@ export type ReviewMutationOptions = {
   beforeTransition?: (tx: ReviewTransaction, current: ReviewEntry) => Promise<void>;
   onApprove?: (tx: ReviewTransaction, snapshot: ReviewSnapshot) => Promise<void>;
 };
-/** Characters a saved target may hold. A style guide is one JSON document of rules and examples. */
 const TARGET_LIMIT: Record<ReviewScope, number> = { ui: 2000, glossary: 2000, note: 2000, narrative: 30000, "qa-exception": 30000, "model-suggestion": 30000, "style-guide": 250000 };
 function validateInput(input: ReviewMutation): void {
   if (!Number.isSafeInteger(input.expectedRevision) || input.expectedRevision < 0) throw new TranslationReviewError("An expected revision is required.");
@@ -46,12 +44,10 @@ function validateInput(input: ReviewMutation): void {
   if (input.action === "save" && (typeof input.target !== "string" || !input.target.trim() || input.target.length > TARGET_LIMIT[input.scope])) throw new TranslationReviewError("Enter a translation within the scope character limit.");
   if (input.action === "restore" && (input.restoreRevision === undefined || !Number.isSafeInteger(input.restoreRevision) || input.restoreRevision < 0)) throw new TranslationReviewError("Choose a valid revision to restore.");
 }
-/** Call inside one transaction to read the row a compound transition will change; null before its first write. */
 export async function lockReviewEntry(tx: ReviewTransaction, locale: string, scope: ReviewScope, sourceId: string): Promise<ReviewEntry | null> {
   const locked = await tx.query('SELECT * FROM "translationReviewEntries" WHERE "locale" = $1 AND "scope" = $2 AND "source_id" = $3 FOR UPDATE', [locale, scope, sourceId]);
   return locked.rows[0] ? entry(locked.rows[0] as StoredEntry) : null;
 }
-/** Call inside one transaction. The placeholder row serializes first-writer races. */
 export async function mutateReviewEntryInTransaction(tx: ReviewTransaction, input: ReviewMutation, options: ReviewMutationOptions = {}): Promise<ReviewEntry> {
   assertDataWritesNotFrozen("mutateReviewEntry");
   validateInput(input);
@@ -71,7 +67,6 @@ export async function mutateReviewEntryInTransaction(tx: ReviewTransaction, inpu
     const old = history.rows[0]?.restore_state as ReviewState | undefined;
     const snapshot = old?.draft ?? old?.approved;
     if (!snapshot) throw new TranslationReviewError("That revision has no translation to restore.", 404);
-    // Preserve historical meaning so an old-source restore requires saving a new draft before approval.
     after.draft = snapshot;
   }
   if (input.action === "approve") {

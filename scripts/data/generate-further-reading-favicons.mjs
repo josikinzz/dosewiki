@@ -172,7 +172,6 @@ function extractLookupUrl(value) {
     try {
       return new URL(candidate).toString();
     } catch {
-      // Try the next candidate.
     }
   }
 
@@ -277,7 +276,6 @@ function parseIconLinks(html, baseUrl) {
         sizes: getAttribute(tag, "sizes"),
       });
     } catch {
-      // Ignore invalid icon URLs.
     }
   }
 
@@ -460,7 +458,6 @@ async function downloadFaviconForHost(entry, { force }) {
         sourceUrl: candidate.url,
       };
     } catch {
-      // Try the next candidate.
     }
   }
 

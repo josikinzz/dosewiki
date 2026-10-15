@@ -1,24 +1,3 @@
-/**
- * The Theme Lab token registry.
- *
- * This is purely *which* tokens to expose and how to label/group them — the
- * actual default values are read live from the stylesheet at runtime so the
- * tool can never drift from `src/styles/site-colors.css`, or, for the `--ei-*`
- * accent seeds, from `src/styles/pro-theme.css`.
- *
- * kind:
- *   "color"    — a single solid color → editable on the HSV wheel
- *   "channels" — a bare `R G B` primitive seed (composes with alpha via
- *                rgb(var(--c-x) / a)) → also editable on the HSV wheel
- *   "raw"      — a gradient / shadow / multi-stop value → editable as raw text
- *   "length"   — a CSS length (the corner-radius scale) → editable on a slider
- *   "font"     — a font stack → picked from an enumerated list of faces
- *   "angle"    — an OKLCH hue seed → editable on a 0–360 wrap-around track
- *
- * Groups flagged `major: true` start expanded; the rest start collapsed,
- * matching "major colors by default, less essential stuff collapsed."
- */
-
 import { BLUR_GROUP, ELEVATION_GROUP } from "./paletteTokensElevation";
 import { FONT_ESSENTIALS, FONT_GROUP } from "./paletteTokensFonts";
 import { HUE_ESSENTIALS, HUE_GROUP } from "./paletteTokensHues";
@@ -28,19 +7,15 @@ import { RADIUS_ESSENTIALS, RADIUS_GROUP } from "./paletteTokensRadius";
 type TokenKind = "color" | "channels" | "raw" | "length" | "font" | "angle"
 
 export interface PaletteToken {
-  /** CSS custom property name, including the leading `--`. */
   id: string;
-  /** Human label shown in the row. */
   label: string;
   kind: TokenKind;
-  /** Optional one-line hint shown when the token is selected. */
   hint?: string;
 }
 
 export interface PaletteGroup {
   id: string;
   title: string;
-  /** Expanded by default when true. */
   major?: boolean;
   blurb?: string;
   tokens: PaletteToken[];
@@ -66,8 +41,6 @@ const channels = (id: string, label: string, hint?: string): PaletteToken => ({
 });
 
 export const PALETTE_GROUPS: PaletteGroup[] = [
-  // First on purpose: the hue seeds are the single highest-leverage control in
-  // the registry — most of what follows is derived from them.
   HUE_GROUP,
   {
     id: "primitives",
@@ -470,13 +443,9 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       color("--theme-profile-markdown-quote-border", "Profile quote: border"),
     ],
   },
-  // Last on purpose: the only group that paints nothing in Fun. It is the Pro
-  // half of an accent, so it belongs to the same authoring pass as the swatch
-  // above it rather than to the reader-facing catalog.
   PRO_ACCENT_GROUP,
 ];
 
-/** Flat list of every token id the lab manages, in registry order. */
 export const ALL_TOKEN_IDS: string[] = PALETTE_GROUPS.flatMap((group) =>
   group.tokens.map((token) => token.id),
 );
@@ -489,24 +458,9 @@ export function getToken(id: string): PaletteToken | undefined {
   return TOKEN_BY_ID.get(id);
 }
 
-/**
- * The curated "Essentials" view — a small, plainly-named set of high-impact
- * knobs for a non-technical color person. Each item points at a token that
- * already exists in PALETTE_GROUPS (so `getToken` resolves its `kind`), but
- * carries its own friendly label/hint tuned for someone who thinks in roles
- * ("the page background"), not CSS variables.
- *
- * Wherever a *seed* drives a whole family (e.g. `--c-brand` recolors every
- * brand-pink border, glow, the scrollbar, and the logo at once) we expose the
- * seed, so one edit cascades. Mood surfaces that aren't seed-driven (page bg,
- * text) point at their semantic token directly.
- */
 export interface EssentialItem {
-  /** Token id, already defined in PALETTE_GROUPS. */
   id: string;
-  /** Friendly, non-technical name. */
   label: string;
-  /** Plain-English description of what this knob recolors. */
   hint: string;
 }
 
@@ -773,7 +727,6 @@ const ESSENTIAL_BY_ID = new Map<string, EssentialItem>(
   ESSENTIALS.flatMap((group) => group.items.map((item) => [item.id, item] as const)),
 );
 
-/** Flat list of every token id surfaced in the Essentials view, in order. */
 export const ESSENTIAL_IDS: string[] = ESSENTIALS.flatMap((group) =>
   group.items.map((item) => item.id),
 );
@@ -782,15 +735,6 @@ export function getEssential(id: string): EssentialItem | undefined {
   return ESSENTIAL_BY_ID.get(id);
 }
 
-/**
- * Tokens that are only ever consumed behind `html[data-theme="light"]` (or that
- * dark mode paints another way), so editing them while the dark theme is active
- * does nothing visible. Derived from a static stylesheet audit (2026-06-15) of
- * every `var(--theme-*)` reference under `src/`. Dark mode is the flat/frosted
- * base regime; light mode re-skins the page gradient, halos, header chrome, and
- * menu fills. RE-AUDIT this list if the theme CSS changes (no dark-only tokens
- * exist today). The lab tags/dims these when the off-theme is being edited.
- */
 const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
   "--theme-chrome-surface",
   "--theme-chrome-surface-strong",
@@ -802,12 +746,6 @@ const LIGHT_ONLY_TOKENS: ReadonlySet<string> = new Set([
   "--theme-page-edge-vignette",
 ]);
 
-/**
- * Eyedropper redirects: when a click resolves to a derived/gradient token,
- * send the editor to the friendly base color that drives it instead. The
- * frosted-panel fill is a `raw` gradient built from `--theme-panel-base`, so a
- * click on any panel should land on "Panel color", not a textarea of CSS.
- */
 export const PICK_REDIRECTS: Record<string, string> = {
   "--theme-frosted-panel-bg": "--theme-panel-base",
   "--theme-frosted-panel-hover-bg": "--theme-panel-base",
@@ -818,9 +756,6 @@ export const PICK_REDIRECTS: Record<string, string> = {
   "--theme-article-neutral-panel-bg": "--theme-article-neutral-panel-base",
 };
 
-/** Some visible paints are authored as composed raw tokens, but a human wants
- *  the individual editable color stops. When a pick lands on one of these,
- *  offer every useful child token in the z-layer choice menu. */
 export const PICK_EXPANSIONS: Record<string, string[]> = {
   "--theme-logo-fill": [
     "--site-logo-stop-1",
@@ -867,14 +802,11 @@ export const PICK_EXPANSIONS: Record<string, string[]> = {
   ],
 };
 
-/** Which theme a token actually affects: "both" (default), or a single theme. */
 export function tokenThemeScope(id: string): "both" | "light" | "dark" {
   if (LIGHT_ONLY_TOKENS.has(id)) return "light";
   return "both";
 }
 
-/** True when editing `theme` won't visibly change this token (it's scoped to
- *  the other theme). `theme` is the active theme name ("dark" | "light"). */
 export function isInertInTheme(id: string, theme: string): boolean {
   const scope = tokenThemeScope(id);
   return scope !== "both" && scope !== theme;

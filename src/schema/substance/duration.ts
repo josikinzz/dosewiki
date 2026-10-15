@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { durationStageSchema, referenceIdArraySchema } from "./shared";
 
-/** All duration stages */
 export const durationStagesSchema = z.object({
   onset: durationStageSchema,
   come_up: durationStageSchema,
@@ -12,7 +11,6 @@ export const durationStagesSchema = z.object({
   total_duration: durationStageSchema,
 });
 
-/** Single duration route */
 export const durationRouteSchema = z.object({
   route: z.string(),
   half_life: z.string().default(""),
@@ -21,7 +19,6 @@ export const durationRouteSchema = z.object({
   reference_ids: referenceIdArraySchema.optional(),
 });
 
-/** Duration section */
 export const durationSchema = z.object({
   routes: z.array(durationRouteSchema),
 });

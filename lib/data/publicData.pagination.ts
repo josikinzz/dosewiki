@@ -95,12 +95,6 @@ type DataPaginationPage<Item> = {
   continueCursor: string | null;
 };
 
-/**
- * Drain a standard Postgres `paginationOpts` query (page/isDone/continueCursor),
- * unlike the bespoke corpus pages above (items/cursor/isDone). Shares their
- * fail-closed guards against malformed pages, stalled cursors, and runaway
- * reads.
- */
 export async function drainDataPaginationPages<Item>(
   query: QueryTransport,
   source: {

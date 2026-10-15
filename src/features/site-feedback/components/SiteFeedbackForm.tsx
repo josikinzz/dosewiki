@@ -30,13 +30,6 @@ import {
 
 import { TurnstileWidget } from "./TurnstileWidget";
 
-/**
- * Optional Cloudflare Turnstile gate. Inlined at build time; when the key is
- * absent the widget never renders and no token is sent — the API route skips
- * verification in lockstep (it only verifies when TURNSTILE_SECRET_KEY is set).
- */
-// `import.meta.env` is a Vite concept and does not exist here.
- 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 type SubmissionState =
@@ -65,11 +58,6 @@ function createInitialDraft(): FeedbackDraft {
   };
 }
 
-/**
- * The general (site-wide) feedback form at /about/feedback. A sibling of the
- * per-article suggest-an-edit form: posts to the private site-feedback
- * moderation queue, and nothing submitted here is rendered publicly.
- */
 export function SiteFeedbackForm() {
   const [draft, setDraft] = useState(createInitialDraft);
   const [state, setState] = useState<SubmissionState>({ kind: "idle" });
@@ -101,8 +89,6 @@ export function SiteFeedbackForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           category: draft.category,
-          // Urgency only applies to bug-like categories; the API rejects it
-          // elsewhere, so it is dropped rather than silently defaulted.
           ...(showUrgency ? { urgency: draft.urgency } : {}),
           details: draft.details,
           page: draft.page,
@@ -111,8 +97,6 @@ export function SiteFeedbackForm() {
           ...(turnstileEnabled && turnstileToken ? { turnstileToken } : {}),
         }),
       });
-      // Turnstile tokens are single-use: request a fresh challenge after every
-      // round trip, whether the submission was accepted or rejected.
       if (turnstileEnabled) {
         setTurnstileResetSignal((signal) => signal + 1);
       }

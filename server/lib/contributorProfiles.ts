@@ -27,7 +27,6 @@ export {
   type EditorProfilePatchInput,
 } from "./contributorProfilePatches";
 
-// Contributor title. `null` clears it; `undefined` leaves whatever is stored.
 export const contributorRoleValidator = v.optional(v.union(v.string(), v.null()));
 
 export const linkValidator = v.object({
@@ -46,16 +45,6 @@ export const profileInputValidator = v.object({
   avatarR2Key: v.optional(v.string()),
 });
 
-/**
- * Editor-side profile patch. Every field is optional and an omitted field is
- * left exactly as stored — this is the deliberate opposite of `bulkImport`,
- * which patches every field it names and therefore clears anything the caller
- * did not carry forward. `null` is the only way to clear a clearable field.
- *
- * Ordering is not here on purpose: `setContributorOrdering` owns it, because
- * ordering writes have to be pruned against the replication and trip report
- * tables and this patch performs no table lookups.
- */
 export const editorProfilePatchValidator = v.object({
   displayName: v.optional(v.string()),
   bio: v.optional(v.string()),
@@ -102,7 +91,6 @@ export type ProfileLink = {
   url: string;
 };
 
-/** Signed staff commentary shown as the public "Editor's note" section. */
 export type StaffNote = {
   markdown: string;
   attribution?: string;
@@ -143,21 +131,11 @@ export type PublicProfile = {
   links: ProfileLink[];
   hasCustomBio: boolean;
   role?: string;
-  // Partial curation, read-side only for now: the listed slugs are the ones the
-  // contributor pinned to the front, in order. Consumers place them first and
-  // fall back to their existing default sort for everything unlisted.
   replicationOrder: string[];
   reportOrder: string[];
-  // Present (and `true`) only when the contributor opted out of the public
-  // /replications gallery. Absent means included.
   exclude_from_gallery?: boolean;
-  // Present (and `true`) only for a staff-maintained archival profile. Absent
-  // means a normal profile.
   archival?: boolean;
-  // Present (and `true`) only for an artist dose.wiki endorses as an approved
-  // replicator. Absent means an ordinary artist.
   approved_replicator?: boolean;
-  // Signed staff commentary. Absent means the section renders nothing.
   staffNote?: StaffNote;
 };
 
@@ -215,21 +193,6 @@ export function normalizeEmail(value: string): string {
 
 const LEGACY_CREDENTIAL_EMAIL_DOMAIN = "@local.dose.wiki";
 
-/**
- * Every email whose editorial-review stamps belong to one contributor profile.
- *
- * `setEditorialReview` stamps the reviewing actor's email, and legacy
- * credential logins derive that email from the login key
- * (`<key>@local.dose.wiki`). A profile therefore claims its `membershipEmail`
- * plus the legacy credential email of its key, of every alias, and of every
- * retired handle in its legacy group (the `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`
- * environment variable), so stamps made under a retired login handle follow
- * the profile that absorbed it even though the handle was scrubbed from the
- * stored aliases, which unauthenticated profile reads ship verbatim.
- * Alias-derived emails are confined to the internal legacy domain, so an
- * alias can never claim an external address. Callers must keep the returned
- * set server-side.
- */
 export function contributorReviewerEmails(
   profile: Pick<StoredProfile, "key" | "aliases" | "membershipEmail">,
 ): Set<string> {
@@ -245,8 +208,6 @@ export function contributorReviewerEmails(
     ...(profile.aliases ?? []),
   ])) {
     const normalized = handle.toLowerCase();
-    // A legacy credential key is a bare handle; anything with whitespace (a
-    // display-name alias like "josie kins") never was a login key.
     if (!/\s/.test(normalized)) {
       emails.add(`${normalized}${LEGACY_CREDENTIAL_EMAIL_DOMAIN}`);
     }
@@ -300,12 +261,6 @@ export function canClaimContributorProfile(args: {
   );
 }
 
-/**
- * Ownership rule for a contributor profile write. An admin edits any record.
- * Everyone else, editors included, edits only the record whose membership
- * email is theirs, or the still-unclaimed record their sign-in derives to.
- * Editors read every record (`getEditorProfile`); this is the write half.
- */
 export function canEditContributorProfile({
   actorEmail,
   actorRole,
@@ -343,9 +298,6 @@ export function buildStoredProfile(
   const displayName = sanitizeDisplayName(input.displayName) || toDisplayName(key);
   const bio = sanitizeBio(input.bio);
   const links = sanitizeLinks(input.links);
-  // The self-serve profile editor does not submit a role, so an omitted role
-  // must keep whatever is stored rather than silently clearing a title the
-  // migration assigned. An explicit null is the only way to clear it.
   const role =
     input.role === undefined ? existing?.role : sanitizeRole(input.role) || undefined;
 

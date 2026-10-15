@@ -6,13 +6,10 @@ import {
   tripReportSubstanceValidator,
 } from "../tripReportContract";
 
-// Only validate the essential top-level fields for indexing
-// All nested content uses v.any() for flexibility
 export const substanceArticle = v.object({
-  // Core fields needed for indexing and identification
   id: v.union(v.number(), v.null()),
   title: v.string(),
-  slug: v.optional(v.string()),  // URL-friendly identifier, computed from title
+  slug: v.optional(v.string()),
   priority: v.optional(v.union(
     v.literal("high"),
     v.literal("normal"),
@@ -22,7 +19,6 @@ export const substanceArticle = v.object({
   )),
   index_categories: v.array(v.string()),
 
-  // All other content - validated by Zod on frontend
   identification: v.any(),
   classification: v.any(),
   summary: v.any(),
@@ -44,12 +40,11 @@ export const substanceArticle = v.object({
   citations: v.any(),
 });
 
-// Changelog entry for tracking article changes
 export const changelogEntry = v.object({
-  entryId: v.string(),        // unique ID for the entry (matches existing "id" field pattern)
-  createdAt: v.string(),      // ISO timestamp
-  message: v.string(),        // commit/save message
-  markdown: v.string(),       // unified diff text
+  entryId: v.string(),
+  createdAt: v.string(),
+  message: v.string(),
+  markdown: v.string(),
   submittedBy: v.union(v.string(), v.null()),
   articles: v.array(v.object({
     id: v.number(),
@@ -58,12 +53,11 @@ export const changelogEntry = v.object({
   })),
 });
 
-// Article source files - stores scraped content per substance
 export const articleSource = v.object({
-  slug: v.string(),           // e.g., "ketamine"
-  substanceName: v.string(),  // e.g., "Ketamine"
+  slug: v.string(),
+  substanceName: v.string(),
   sources: v.array(v.object({
-    id: v.string(),           // e.g., "psychonautwiki"
+    id: v.string(),
     fileName: v.string(),
     displayName: v.string(),
     size: v.number(),
@@ -72,17 +66,15 @@ export const articleSource = v.object({
   contents: v.record(v.string(), v.string()),
 });
 
-// Prompts - both main generator prompt and section prompts
 export const prompt = v.object({
-  key: v.string(),            // "generator" or "section_harm_potential", etc.
-  content: v.string(),        // Markdown content
-  updatedAt: v.string(),      // ISO timestamp
+  key: v.string(),
+  content: v.string(),
+  updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
 });
 
-// Quote documents - extracted quotes per substance per section
 export const quote = v.object({
-  slug: v.string(),           // Substance slug
+  slug: v.string(),
   section: v.union(
     v.literal("summary"),
     v.literal("harm_potential"),
@@ -93,7 +85,7 @@ export const quote = v.object({
     v.literal("legality"),
     v.literal("subjective_effects"),
   ),
-  content: v.string(),        // Full markdown content
+  content: v.string(),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
 });
@@ -164,7 +156,6 @@ export const citationEvidence = v.object({
   updatedBy: v.optional(v.string()),
 });
 
-// Trip report - imported from EffectIndex
 export const tripReport = storedTripReportValidator;
 
 const tripReportSubmissionStatus = v.union(
@@ -176,9 +167,6 @@ const tripReportSubmissionStatus = v.union(
   v.literal("exported"),
 );
 
-// One append-only entry per status transition; see
-// src/features/intake/decisionLog.ts. `from` is absent only on the entry
-// migrated from a review note stored before the log existed.
 export const tripReportSubmissionDecisionLog = v.array(
   v.object({
     at: v.string(),
@@ -236,7 +224,6 @@ const articleFeedbackStatus = v.union(
   v.literal("spam"),
 );
 
-// Article and site feedback share the status machine, so they share the log shape.
 export const feedbackDecisionLog = v.array(
   v.object({
     at: v.string(),
@@ -246,7 +233,6 @@ export const feedbackDecisionLog = v.array(
     note: v.optional(v.string()),
     public_reason: v.optional(v.string()),
     migrated: v.optional(v.boolean()),
-    // Advisory correction tracking (src/features/intake/feedbackCorrection.ts).
     outcome: v.optional(v.union(v.literal("duplicate"), v.literal("explanation_provided"), v.literal("no_change_needed"))),
     linked_change: v.optional(v.object({
       kind: v.union(v.literal("proposal"), v.literal("revision")),
@@ -308,8 +294,6 @@ const siteFeedbackUrgency = v.union(
   v.literal("low"),
 );
 
-// Site-wide general feedback intake (/about/feedback). Shares the
-// articleFeedback status machine; status values reuse articleFeedbackStatus.
 export const siteFeedback = v.object({
   id: v.string(),
   status: articleFeedbackStatus,
@@ -330,35 +314,25 @@ export const siteFeedback = v.object({
   updated_at: v.string(),
 });
 
-// EffectIndex articles - intensity scales, substance analyses, methodology docs
 export const effectIndexArticle = v.object({
-  slug: v.string(),           // URL-safe identifier (e.g., "dissociative-intensity-scale")
-  title: v.string(),          // Display title
-  tags: v.array(v.string()),  // Categorization (e.g., ["intensity scale", "dissociative"])
-  // Optional so pre-existing rows validate; the article importer backfills it,
-  // and the public reader drops rows without it.
+  slug: v.string(),
+  title: v.string(),
+  tags: v.array(v.string()),
   publication_status: v.optional(v.string()),
   featured: v.optional(v.boolean()),
-  shortDescription: v.optional(v.string()),  // Brief summary
-  publicationDate: v.optional(v.string()),   // ISO date
-  
-  // Content (raw VCode markup + parsed AST)
+  shortDescription: v.optional(v.string()),
+  publicationDate: v.optional(v.string()),
+
   body_raw: v.string(),
   body_ast: v.optional(v.any()),
-  
-  // Authors
+
   authors: v.optional(v.array(v.string())),
-  
-  // Citations
+
   citations: v.optional(v.array(v.object({
     url: v.string(),
     text: v.string(),
   }))),
 
-  // --- Generic Writing/Blog system (additive; every field optional so the
-  // legacy Effect Index imports keep validating exactly as they are).
-  // Absent `kind` means "article", absent `status` means "published", and
-  // absent `bodyFormat` means the legacy VCode markup in `body_raw`.
   kind: v.optional(v.union(v.literal("article"), v.literal("blog"))),
   status: v.optional(v.union(v.literal("draft"), v.literal("published"))),
   bodyFormat: v.optional(v.union(v.literal("vcode"), v.literal("markdown"))),

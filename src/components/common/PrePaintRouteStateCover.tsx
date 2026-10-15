@@ -7,11 +7,6 @@ type PrePaintRouteStateCoverProps = {
 const FLAG_ATTRIBUTE = "data-prepaint-route-state";
 const COVER_ATTRIBUTE = "data-prepaint-route-cover";
 
-/**
- * Hide a statically rendered default projection before first paint when only
- * the browser can see the incoming URL state. Canonical path routes do not
- * need this; it exists for legacy fragments and static query-filter fallbacks.
- */
 export function PrePaintRouteStateCover({
   id,
   legacyHashes = [],

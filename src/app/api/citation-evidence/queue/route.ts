@@ -29,7 +29,6 @@ function parseStatus(value: string | null): CitationReviewQueueFilter {
   return value;
 }
 
-/** Postgres stamps every failed request with an id the reviewer can report. */
 function dataRequestId(error: unknown): string | null {
   const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
   return /\[Request ID: ([0-9a-f]+)\]/i.exec(message)?.[1] ?? null;
@@ -40,8 +39,6 @@ export const GET = citationEvidenceRouteOperation({
   unexpectedErrorLabel: UNEXPECTED_ERROR_LABEL,
   unexpectedErrorMessage: "Unable to load the citation review queue right now.",
   mapError: (error) => {
-    // A deliberate refusal keeps its own text; only a crashed or refused
-    // query is classified here so the reviewer learns which side failed.
     if (classifyDataRejection(error)) {
       return null;
     }

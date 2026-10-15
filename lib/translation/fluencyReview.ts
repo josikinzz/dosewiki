@@ -1,24 +1,3 @@
-/**
- * The model fluency review of one substance article, started by an admin. A
- * model reads the article's English beside the wording readers see now and
- * proposes local edits; each proposal that passes the blocking validator and
- * the glossary conflict check is stored as an Inbox suggestion. Nothing
- * applies by itself: Accept saves a `narrative` draft with reason Fluency,
- * never an approval.
- *
- * Suggestions live in the review tables under scope `model-suggestion`, one
- * entry per sentence and edit, as a draft until a person accepts it (the
- * accept approves the suggestion entry, which marks it resolved). Each carries
- * the model, run id, prompt version, and token use of its request. A
- * suggestion expires, and leaves the Inbox, when its sentence's English or the
- * wording readers see changes. Each run also saves a `run:<slug>` entry whose
- * history records every run's model, prompt version, token use, and drops.
- *
- * One run per article at a time, across processes, through the translation
- * worker lease table; requests share the pool's `review` quota and go through
- * the pipeline's provider client (`sendBatch`), so they count against the
- * same ceiling and retry rules as translation.
- */
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import { DEFAULT_MODEL, sendBatch, TranslationTransportError } from "../../scripts/translation/engine.mjs";
@@ -63,27 +42,21 @@ import { REVIEW_REASON_NOTE_MAX, type ReviewReason } from "./reviewReason";
 import { acquireTranslationWorkerLease, readTranslationCoverageRows, releaseTranslationWorkerLease } from "./segmentStore";
 
 export const FLUENCY_MODEL = DEFAULT_MODEL;
-/** Longer than the route's 300 s budget, so a crashed run frees the article soon after. */
 const RUN_LEASE_MS = 330_000;
 const RUN_KEY_PREFIX = "run:";
-/** Process-wide: every fluency request in this process shares the review quota. */
 const reviewPool = createTranslationRequestPool(TRANSLATION_REQUEST_QUOTA.review);
 
-/** The reason a Fluency draft carries in review history. */
 export function fluencyDraftReason(note: string, runId: string): ReviewReason {
   return { kind: "fluency", note: `${note} (model suggestion, run ${runId})`.slice(0, REVIEW_REASON_NOTE_MAX) };
 }
 
 type Usage = { prompt: number; completion: number };
-/** What a stored suggestion's context records. */
 type SuggestionContext = {
   kind: "article";
   slug: string;
-  /** Narrative identity of the sentence. */
   id: string;
   field: string;
   sourceHash: string;
-  /** The wording readers saw when the model read it; a change expires the suggestion. */
   before: string;
   current: string;
   suggested: string;
@@ -97,7 +70,6 @@ type SuggestionContext = {
 
 type ArticleSentence = { segment: Segment; id: string; live: string | null; humanApproved: boolean; narrative: ReviewEntry | undefined };
 
-/** Each sentence of one article with the wording readers see now: a current human approval, else the stored machine target. */
 async function readArticleSentences(reads: PublicDataReadAdapter, locale: string, slug: string) {
   const record = await readTranslationRecord(reads, "article", slug);
   if (!record) throw new TranslationReviewError("No public substance article exists at this slug.", 404);
@@ -135,7 +107,6 @@ function parseContext(entry: ReviewEntry): SuggestionContext | null {
   }
 }
 
-/** Whether a suggestion still applies: same English, same own source, and readers still see the wording it was made for. */
 function stillCurrent(context: SuggestionContext, source: string, sentence: ArticleSentence | undefined): sentence is ArticleSentence {
   return Boolean(sentence && sentence.segment.source === source && narrativeOwnSourceHash(sentence.segment) === context.sourceHash && sentence.live === context.before);
 }
@@ -147,19 +118,12 @@ export type FluencyRunSummary = {
   model: string;
   promptVersion: string;
   usage: Usage & { requests: number };
-  /** Sentences sent to the model; human-approved and untranslated sentences are not. */
   reviewed: number;
-  /** Sentences over the request cap, not reviewed this run. */
   skipped: number;
   stored: number;
   dropped: FluencyDrops;
 };
 
-/**
- * Runs one fluency review of one article and stores what passes. Refuses (409)
- * while another run for the same article holds its lease; the write freeze
- * fails closed before any model request.
- */
 export async function runFluencyReview(input: {
   reads: PublicDataReadAdapter;
   locale: string;
@@ -167,7 +131,6 @@ export async function runFluencyReview(input: {
   apiKey: string;
   actor: string;
   signal?: AbortSignal;
-  /** Style guide text for the prompt; omitted, the locale's approved style guide is loaded. */
   styleGuide?: string;
 }): Promise<FluencyRunSummary> {
   assertDataWritesNotFrozen("runFluencyReview");
@@ -179,7 +142,6 @@ export async function runFluencyReview(input: {
   try {
     const article = await readArticleSentences(input.reads, locale.code, input.slug);
     const glossary = await approvedGlossary(locale.code);
-    // Only the approved guide reaches the model, with examples chosen against this article's English.
     const styleGuide = input.styleGuide ?? styleGuidePromptLines(locale, await loadApprovedStyleGuide(locale.code), article.sentences.map((sentence) => sentence.segment.source).join("\n")).join("\n");
     const systemPrompt = fluencySystemPrompt(locale, styleGuide);
     const promptVersion = fluencyPromptVersion(FLUENCY_MODEL, systemPrompt, glossary);
@@ -230,11 +192,6 @@ export async function runFluencyReview(input: {
   }
 }
 
-/**
- * Stores suggestions and the run record in one transaction. A suggestion a
- * person already accepted, for the same English and wording, is not listed
- * again. Returns how many suggestions were stored.
- */
 async function storeSuggestions(
   locale: string,
   suggestions: ReadonlyArray<{ key: string; source: string; target: string; context: SuggestionContext }>,
@@ -263,7 +220,6 @@ async function storeSuggestions(
   });
 }
 
-/** Open model suggestions that still apply, as Inbox items. Expired ones are not listed. */
 export async function modelSuggestionItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
   const open = new Map<string, Array<{ entry: ReviewEntry; context: SuggestionContext }>>();
   for (const entry of await readReviewEntries(locale, "model-suggestion")) {
@@ -278,7 +234,6 @@ export async function modelSuggestionItems(reads: PublicDataReadAdapter, locale:
     try {
       article = await readArticleSentences(reads, locale, slug);
     } catch (error) {
-      // A withdrawn article has nothing a reviewer can act on.
       if (error instanceof TranslationReviewError && error.status === 404) continue;
       throw error;
     }
@@ -305,13 +260,6 @@ export async function modelSuggestionItems(reads: PublicDataReadAdapter, locale:
   return items;
 }
 
-/**
- * Accept: saves the suggested sentence as a `narrative` draft with reason
- * Fluency and marks the suggestion resolved, in one transaction. Never
- * approves a translation. Refuses (409) a changed revision, an expired
- * suggestion, a suggestion that no longer passes the checks, and a sentence
- * that already has a correction draft in progress.
- */
 export async function acceptModelSuggestion(
   reads: PublicDataReadAdapter,
   input: { locale: string; id: string; expectedRevision: number; actor: string },

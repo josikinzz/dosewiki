@@ -3,28 +3,6 @@ import Link from "next/link";
 
 import { proseLinkClassName } from "@/components/common/ProseLink";
 
-/**
- * Renderer for short editable copy that carries at most inline links.
- *
- * Editable copy blocks are stored as text, but several of the strings they
- * replaced were JSX carrying a `<Link>` in the middle of a sentence. Running
- * those through a full Markdown renderer would rewrite the surrounding markup
- * (block `<p>`, plain `<a>`), so this understands exactly two inline forms and
- * nothing else:
- *
- * - `[label](/href)` → the site's prose link, internal via `next/link` and
- *   external (any `http(s)://` or `mailto:` target) via a plain anchor.
- * - `**phrase**` → `<strong>`.
- *
- * The result is a fragment, so the caller keeps ownership of the block element
- * and its classes — which is what makes these migrations markup-preserving.
- *
- * The two rendered elements are restyleable for the same reason. A surface that
- * shipped its own link or emphasis treatment — the Effect Index homepage draws
- * links in `homePanelLinkClassName`, not the prose-link dotted underline — must
- * not change appearance just because its prose became editable.
- */
-
 const TOKEN_PATTERN = /\[([^\]]+)\]\(([^)\s]+)\)|\*\*(.+?)\*\*/g;
 
 function isExternal(href: string): boolean {
@@ -32,9 +10,7 @@ function isExternal(href: string): boolean {
 }
 
 export type InlineCopyOptions = {
-  /** Overrides the prose-link styling on `[label](/href)`. */
   linkClassName?: string;
-  /** Class applied to the `<strong>` rendered for `**phrase**`. */
   strongClassName?: string;
 };
 

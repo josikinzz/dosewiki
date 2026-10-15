@@ -23,14 +23,12 @@ import type {
 const BULK_EDIT_LIMIT = 250;
 const SHA256_R2_KEY = /^media\/sha256\/[a-f0-9]{2}\/([a-f0-9]{64})\.[a-z0-9]+$/;
 
-/** The content hash a studio upload's immutable R2 key already carries. */
 function sourceHashOf(row: { source_sha256?: string; r2_key?: string }): string | null {
   return row.source_sha256 ?? row.r2_key?.match(SHA256_R2_KEY)?.[1] ?? null;
 }
 
 type RightsStatus = NonNullable<ReplicationEditorialSnapshot["rights_status"]>;
 
-/** A trimmed HTTP(S) source, `undefined` to clear, or a thrown field error. */
 function normalizedSource(value: string | null, context: string): string | undefined {
   const trimmed = value?.trim() ?? "";
   if (!trimmed) return undefined;
@@ -177,7 +175,6 @@ export async function updateEditorialFieldsHandler(
   const effectTags = normalizeEffectTags(args.updates.effect_tags);
   const creditLine = args.updates.credit_line?.trim() ?? "";
 
-  // Provenance is written only when the caller sent it.
   const provenance: { rights_status?: RightsStatus; source_url?: string } = {};
   if (args.updates.rights_status !== undefined) {
     provenance.rights_status = args.updates.rights_status ?? undefined;
@@ -201,11 +198,6 @@ export async function updateEditorialFieldsHandler(
   return { success: true, slug: row.slug };
 }
 
-/**
- * A bulk target the handler left unwritten: it moved since the studio loaded
- * it (`stale`, `missing`), its provenance is not complete enough to publish
- * (`incomplete`), or the patch would leave its rights incoherent (`invalid`).
- */
 export type BulkEditConflict = {
   id: string;
   slug: string | null;
@@ -270,8 +262,6 @@ export async function bulkUpdateEditorialFieldsHandler(
   if (!editorial && args.showcase_excluded === undefined) {
     throw new Error("A bulk edit needs at least one field to change.");
   }
-  // Editorial fields are what the single edit guards, so the bulk path guards
-  // them the same way: every row carries the snapshot it was loaded with.
   if (editorial && targets.some((target) => !target.expected)) {
     throw new Error(
       "A bulk editorial change must send each row's expected values; reload the studio and try again.",
@@ -356,7 +346,6 @@ export async function bulkUpdateEditorialFieldsHandler(
     });
     updatedSlugs.push(row.slug);
     if (publish) publishedSlugs.push(row.slug);
-    // Galleries that show this work (its owner, its tags, a new owner) are stale.
     for (const slug of [row.effect_slug, args.effect_slug, ...(nextTags ?? [])]) {
       if (slug) touchedEffects.add(slug);
     }

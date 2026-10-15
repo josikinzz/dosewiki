@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Prerender census: how many pages a finished build prerendered, per route
- * family, plus how long the build wrapper ran. Read-only; touches nothing
- * but the build directory it is pointed at.
- *
- * Usage:
- *   node scripts/build/prerender-census.mjs             # the directory this environment builds into
- *   node scripts/build/prerender-census.mjs .next-editor
- *   bun run build:census -- .next-release-public
- *
- * Exit codes:
- *   0  census printed
- *   1  no prerender manifest in the directory (the build did not finish there)
- */
 
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";

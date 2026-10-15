@@ -1,38 +1,3 @@
-/**
- * Rehearsal: citation evidence and guarded publication on Postgres.
- *
- *   bun scripts/postgres/rehearse-citation-publication.ts [--target <url>] [--allow-remote] [--keep]
- *
- * Every call goes through `PostgresClient` with the same `api.*`
- * references the app uses, so the registered native handlers run unchanged.
- * The script creates one scratch article, two scratch memberships (admin and
- * editor), and its own evidence rows under a `t07-<random>` prefix, then
- * deletes them unless `--keep`. Nothing outside the prefix is written. The
- * report lands in runs/postgres-import/<timestamp>-citation-publication/report.json.
- *
- * Criteria:
- *   a. round-trip: evidence written through `api.citationEvidence.upsertMany`
- *      and `setManyStatus` reads back identically through `getBySlug` and SQL;
- *      `approvedWriteMode: preserve` leaves approved rows byte-identical.
- *   b. invalidation: an admin publish of the cited `summary` section through
- *      `api.articleLifecycle.write` decertifies only the evidence owned by
- *      that section (`server/lib/articleRevisionJournal.ts`), retaining the
- *      old support for audit and leaving other sections' rows untouched.
- *   c. guarded publication: `api.substanceIndex.publishReviewedSection`
- *      refuses a tampered owned hash, a stale base, a changed manifest digest,
- *      and a wrong deployment fingerprint with no partial writes; a valid
- *      proposal publishes content, receipt, and outbox together and leaves
- *      evidence untouched.
- *   d. reviewed gate: every mutation that touches `editorial_review` is
- *      exercised with an agent credential (scoped intent token plus a delegated
- *      editor actor, and the bare-token script path where agents use it) and
- *      cannot set `status: "completed"`.
- *
- * Deployment binding: `requireGeneratedPublicationDeploymentFingerprint`
- * reads GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT from the process env. The
- * rehearsal binds the configured fingerprint to its actual host/database.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
@@ -56,8 +21,6 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-// Tokens are read from the editor process environment. Distinct random
-// values per intent make "scoped" and "legacy" credentials distinguishable.
 let FINGERPRINT: string;
 const TOKENS = {
   editorArticleWrite: `t07-scoped-editor-${randomBytes(12).toString("hex")}`,
@@ -80,7 +43,6 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
   console.log(`${pass ? "ok  " : "FAIL"} ${scenario}: ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-/** Key-sorted JSON; `undefined` members drop out, so absent and undefined compare equal. */
 function canon(value: unknown): string {
   return JSON.stringify(value, (_key, inner) => (
     inner && typeof inner === "object" && !Array.isArray(inner)
@@ -90,7 +52,6 @@ function canon(value: unknown): string {
 }
 
 type Refusal = { code: string | null; message: string } | null;
-/** Null when the call succeeded; otherwise the PostgresError code (or error name) and message. */
 async function refusal(run: () => Promise<unknown>): Promise<Refusal> {
   try {
     await run();
@@ -156,7 +117,6 @@ async function main() {
   const evidenceRows = async () => selectDocuments(pool, "citationEvidence", { where: '"slug" = $1', params: [slug], orderBy: '"claimKey" ASC' });
   const evidenceByClaim = async () => new Map((await evidenceRows()).map((row) => [row.claimKey as string, row]));
   const reviewStatus = async () => ((await article()).editorial_review as { status?: string } | undefined)?.status ?? null;
-  /** Everything a guarded publish may touch, for the "no partial writes" comparisons. */
   const guardSnapshot = async () => {
     const live = await article();
     const operations = await selectDocuments(pool, "generatedPublicationOperations", { where: '"slug" = $1', params: [slug] });
@@ -172,7 +132,6 @@ async function main() {
   const readEvidence = () => data.query(api.citationEvidence.getBySlug, { apiKey: TOKENS.citationEvidenceReview, actorEmail: editorEmail, slug });
 
   try {
-    // Scratch memberships and article. The numeric id must not collide with a fixture article.
     const now = new Date().toISOString();
     for (const [email, role] of [[adminEmail, "admin"], [editorEmail, "editor"]] as const) {
       await insertDocument(pool, "memberships", { email, role, createdAt: now, updatedAt: now });
@@ -194,12 +153,9 @@ async function main() {
       references,
       editorial_review: { status: "needed", notes: "rehearsal scratch" },
     } as Record<string, unknown>;
-    // The write validator (`substanceArticleLightValidator`) does not name `section_gaps`; stored articles that
-    // round-trip through the editor never carry it.
     delete seed.section_gaps;
     articleDocumentId = await insertDocument(pool, "substanceIndex", seed);
 
-    // ---------------------------------------------------------------- a. round-trip
     const strictFor = (row: { claimKey: string; fieldPath: string; claimText: string; referenceIds: string[] }) => ({
       decision: "approved" as const, reviewedBy: adminEmail, reviewedAt: "2026-09-09T01:00:00.000Z",
       claimKey: row.claimKey, fieldPath: row.fieldPath, claimText: row.claimText, referenceIds: row.referenceIds,
@@ -237,7 +193,6 @@ async function main() {
       { ...rowB, strictReviewEvidence: strictFor(rowB) },
       rowC,
     ];
-    /** What `validateEvidenceRow` stores: referenceIds and the single-support mirrors derive from `supports`. */
     const expectedStored = (row: typeof evidence[number]) => {
       const supports = "supports" in row && row.supports ? row.supports : [];
       const single = supports.length === 1 ? supports[0] : null;
@@ -267,7 +222,6 @@ async function main() {
       && (sqlRows.get(rowB.claimKey)!.supports as typeof rowB.supports)[0].verifiedQuote.startOffset === null
       && (a1.supports as typeof rowA.supports)[0].quality === null
       && !("strictReviewEvidence" in sqlRows.get(rowC.claimKey)!));
-    // preserve: approved rows are not rewritten even when the payload differs.
     const tampered = evidence.map((row) => (row.status === "approved" ? { ...row, confidence: 0.1 } : { ...row, claimText: `${row.claimText} (rewritten)` }));
     const write2 = await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence: tampered, approvedWriteMode: "preserve",
@@ -277,8 +231,6 @@ async function main() {
     expect("round-trip", "preserved approved rows are byte-identical to the prior evidence",
       [rowA, rowB].every((row) => documentHash(sqlRows.get(row.claimKey)!) === documentHash(sqlRows2.get(row.claimKey)!)));
     expect("round-trip", "the non-approved row took the new claim text", sqlRows2.get(rowC.claimKey)?.claimText === `${rowC.claimText} (rewritten)`);
-    // refresh with the original payload: content restored, only the stamp moves.
-    // tsconfig.scripts.json targets a lib without Promise.withResolvers.
     await new Promise<void>((resolve) => setTimeout(resolve, 2));
     const write3 = await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence, approvedWriteMode: "refresh",
@@ -297,7 +249,6 @@ async function main() {
     const c4 = (await evidenceByClaim()).get(rowC.claimKey)!;
     expect("round-trip", "setManyStatus round-trips status and reviewer note", status1.updated === 1 && c4.status === "needs_review" && c4.statusReason === "Rehearsal reviewer note" && canon(c4.referenceIds) === "[]", c4);
 
-    // ---------------------------------------------------------------- b. invalidation
     const before = await evidenceByClaim();
     const state = await data.query(api.articleLifecycle.get, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug });
     const edited = { ...structuredClone(state.article), summary: `Summary claim about overdose risk, revised wording. [cite:${REF1}]` };
@@ -325,12 +276,10 @@ async function main() {
     expect("invalidation", "revision journal and public changelog were written in the same publish", revisions.length === 1 && changelog.length === 1 && revisions[0].changeId === `${prefix}-publish-1`, { revisions: revisions.length, changelog: changelog.length });
     const history = await selectDocuments(pool, "articleHistory", { where: '"slug" = $1', params: [slug] });
     expect("invalidation", "changelog insert synced the derived articleHistory row (indexedMutation)", history.length === 1 && history[0].changelog_id === changelog[0]?._id, { history: history.length });
-    // Re-approve the summary row so the guarded publication scenario has strict evidence to protect.
     await data.mutation(api.citationEvidence.upsertMany, {
       apiKey: TOKENS.citationEvidenceWrite, actorEmail: adminEmail, slug, articleId, evidence, approvedWriteMode: "refresh",
     });
 
-    // ---------------------------------------------------------------- c. guarded publication
     const publishAs = (proposal: ReviewedPublicationProposal) => data.mutation(api.substanceIndex.publishReviewedSection, {
       apiKey: TOKENS.generatedPublicationWrite, actorEmail: editorEmail, proposal,
     });
@@ -369,7 +318,6 @@ async function main() {
     const replay = await publishAs(valid);
     expect("guarded", "replay returns already_applied without writing", replay.status === "already_applied" && canon(await guardSnapshot()) === canon(s1), replay);
 
-    // ---------------------------------------------------------------- d. reviewed gate
     const gateBase = await guardSnapshot();
     const unchanged = async (label: string) => {
       expect("reviewed-gate", `${label}: editorial_review still "needed"`, (await reviewStatus()) === "needed");
@@ -448,7 +396,6 @@ async function main() {
     await unchanged("agent-reachable mutations");
     expect("reviewed-gate", "no receipt or outbox generation was minted by the refused attempts", canon((await guardSnapshot()).operations) === canon(gateBase.operations));
 
-    // Positive control: the admin tick is the one path that sets Reviewed and stamps the reviewer.
     const completed = await data.mutation(api.substanceIndex.setEditorialReview, { apiKey: TOKENS.editorArticleWrite, actorEmail: adminEmail, slug, status: "completed" });
     const reviewedRows = await selectDocuments(pool, "reviewedArticles", { where: '"article_id" = $1', params: [articleDocumentId] });
     expect("reviewed-gate", "admin actor sets completed with reviewer stamp and the derived reviewedArticles row appears",

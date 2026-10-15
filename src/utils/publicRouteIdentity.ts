@@ -19,9 +19,6 @@ export type PublicRouteIdentity =
   | { family: "psychoactiveSummary"; params: { summaryPath: string[] } }
   | { family: "articles"; params?: Record<string, never> }
   | { family: "article"; params: { slug: string } }
-  // Flavor-gated: only the Effect Index build routes these. They are named here so the
-  // path is built and encoded in one place, but they are deliberately absent from
-  // STATIC_PUBLIC_PATHS — the sitemap reaches them through its flavor branch instead.
   | { family: "blog"; params?: Record<string, never> }
   | { family: "blogPost"; params: { slug: string } }
   | { family: "donate"; params?: Record<string, never> }
@@ -86,14 +83,8 @@ export function getPublicRoutePath(route: PublicRouteIdentity): string {
       return "/replications/audio";
     case "replicationInfo":
       return "/replications/more-info";
-    // Focused artist gallery. The reserved segment cannot be claimed by a
-    // single-work permalink; former effect/substance playlist routes redirect
-    // at their route modules and are not part of the canonical path contract.
     case "replicationArtist":
       return `/replications/artist/${encodePublicRouteSegment(route.params.key)}`;
-    // Sits under the same segment as the static `tutorials` / `audio` pages. Next
-    // resolves static segments before dynamic ones, and the route plan refuses to
-    // emit a replication whose slug would shadow them — see RESERVED_REPLICATION_SLUGS.
     case "replication":
       return `/replications/${encodePublicRouteSegment(route.params.slug)}`;
     case "substance":

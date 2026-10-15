@@ -6,11 +6,9 @@ import { isBlocking } from "./validate.mjs";
 
 const stable = (value) => Array.isArray(value) ? value.map(stable)
   : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, stable(item)])) : value;
-/** Include all prompt inputs, approval snapshots and implementation identity. */
 export function catalogCheckpointKey(input) {
   return createHash("sha256").update(JSON.stringify(stable(input))).digest("hex");
 }
-/** Markdown is deliberately false: it requires the validator's link-target gate. */
 export function catalogUsesVCode(source) {
   return [...source.matchAll(/\[\/?([a-z][\w-]*)[^\]]*\]/gi)]
     .some((match) => VCODE_TAG_NAMES.has(match[1].toLowerCase()));
@@ -25,14 +23,12 @@ export async function readCatalogCheckpoint(filename) {
     throw error;
   }
 }
-/** Atomic scratch checkpoint; never writes a published catalog. */
 export async function writeCatalogCheckpoint(filename, entries) {
   await mkdir(path.dirname(filename), { recursive: true });
   const temporary = `${filename}.${process.pid}.tmp`;
   await writeFile(temporary, JSON.stringify({ schema: 1, entries }), { mode: 0o600 });
   await rename(temporary, filename);
 }
-/** Cached output is only a candidate and always passes today's structural gate. */
 export function acceptedCheckpointTarget(entries, key, validate) {
   const target = entries[key];
   return typeof target === "string" && target.trim() && !isBlocking(validate(target).defects) ? target : null;

@@ -41,13 +41,6 @@ function LegendRow({ display }: { display: CoverageStatusDisplay }) {
   );
 }
 
-/**
- * The two status vocabularies, side by side.
- *
- * Both are shown at once rather than following the active view, because the
- * point of the citation column is the contrast between its three "uncited"
- * states, and that only reads when they can be compared.
- */
 export function CoverageLegend() {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

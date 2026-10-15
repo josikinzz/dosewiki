@@ -20,14 +20,11 @@ import {
 
 const TOOL = "staged-articles" as const;
 const RECORD = "working-set";
-/** The working set is diffed on a pause, not per keystroke: it can be the whole corpus. */
 const CHECKPOINT_DELAY_MS = 800;
 
-/** A copied edit held for review because its article or publication baseline needs reconciliation. */
 export type HeldStagedChange = {
   change: StagedArticleChange;
   current: ArticleRecord | null;
-  /** The copy merged into the newer article, or null when that cannot be measured. */
   merge: ThreeWayMerge<Record<string, unknown>> | null;
   choices: Record<string, MergeSide>;
 };
@@ -41,27 +38,14 @@ export type StagedArticlesRecovery = {
   restore: () => Promise<void>;
   discardOffer: () => void;
   applyHeld: (slug: string) => void;
-  /** Picks a side for one field both the copy and the newer article changed. */
   chooseHeld: (slug: string, path: string, side: MergeSide) => void;
   dismissHeld: () => void;
-  /** Drops the copy: the working set was discarded on purpose. */
   forget: () => void;
 };
 
 const bySlug = (slug: string) => (article: ArticleRecord | undefined) =>
   !!article && resolveEditorArticleSlug(article) === slug;
 
-/**
- * Draft recovery for the staged article working set (Tags edits and a Change
- * Review proposal loaded into the shell). The set lives in memory above the
- * tool switch, so a reload or a crashed tab lost it; this keeps a browser copy
- * of its edits under the draft recovery contract and offers it back.
- *
- * A restore never commits. It lays each copied edit over the library's
- * current article only when that article is still the one the edit started
- * from; any other is held aside, both versions kept, until the editor applies
- * or dismisses it. The commit that follows keeps its own review and checks.
- */
 export function useStagedArticlesRecovery({
   articles,
   getOriginalArticles,
@@ -106,7 +90,6 @@ export function useStagedArticlesRecovery({
         return;
       }
     }
-    // An open offer or held edits keep the copy as it is.
     if (offer || held || restoring) return;
     if (!hasChanges) {
       flushRef.current = null;
@@ -161,7 +144,6 @@ export function useStagedArticlesRecovery({
         const current = landedBySlug.get(change.slug) ?? originals.find(bySlug(change.slug));
         const workingRow = working.find(bySlug(change.slug));
         const originalRow = originals.find(bySlug(change.slug));
-        // A row already edited in this session is the editor's newer work.
         const editedHere = workingRow !== undefined && originalRow !== undefined && !isSameDocument(workingRow, originalRow);
         const matches = change.baseline === NEW_ARTICLE_BASELINE
           ? current === undefined
@@ -198,11 +180,6 @@ export function useStagedArticlesRecovery({
     setError(null);
   }, [store]);
 
-  /**
-   * Puts a held edit into the working set. A copy that knows its baseline is
-   * merged, and waits until every field both sides changed has a choice; an
-   * older copy is laid over the newer article as it always was.
-   */
   const applyHeld = useCallback((slug: string) => {
     const entry = held?.find((item) => item.change.slug === slug);
     if (!entry?.current) return;

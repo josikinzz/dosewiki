@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The parts of a published report's form that the Trip reports pane and the
- * public correction panel share: the trip's details and the substances. Both
- * use sentence-case `EditorField` labels and group their controls in a
- * `fieldset`, so a screen reader hears "Substance 2, Dose" rather than a bare
- * box.
- */
-
 import { useRef } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -27,7 +19,6 @@ const DETAIL_FIELDS: { key: Exclude<keyof Subject, "name" | "trip_date" | "setti
   { key: "height", label: "Height" },
 ];
 
-/** Trip date, setting, the four body facts and medications, as the public page lists them. */
 export function TripDetailsFields({
   subject,
   onChange,
@@ -84,11 +75,6 @@ export function TripDetailsFields({
   );
 }
 
-/**
- * One fieldset per substance (name, dose, route) with its own Remove, and one
- * Add button under the last. Focus moves to the new name on add, and to the
- * next substance (or Add) on remove, so a keyboard never lands on nothing.
- */
 export function SubstancesField({
   substances,
   onChange,

@@ -62,16 +62,12 @@ describe("private article session boundaries", () => {
   });
 });
 
-// What `articleRevisionResult` actually returns: the published article and its
-// new hash. The client adopts both, which is why publishing needs no refresh.
 const published = (summary: string) => Response.json({
   ok: true, revisionId: "rev-1", changeId: "change-1", draftVersion: 2,
   article: { ...article, summary }, baseHash: "published-revision",
 });
 
 describe("reconciling a draft with a newer published article", () => {
-  // Someone else published while this editor's private draft (a new summary)
-  // was open: the refresh answers with a newer public article and hash.
   const newer = (changes: Partial<SubstanceArticle>) => ({
     article: { ...article, ...changes }, baseHash: "public-revision-2", history: [], draftVersion: 1,
     draft: { article: { ...article, summary: ownerSummary }, baseHash: "public-revision", version: 1 },
@@ -106,7 +102,6 @@ describe("reconciling a draft with a newer published article", () => {
     await user.click(within(await screen.findByRole("dialog", { name: /Publish this change/ })).getByRole("button", { name: "Publish" }));
 
     await waitFor(() => expect(posts(request)).toHaveLength(1));
-    // Both changes travel, checked against the revision the merge was made on.
     expect(posts(request)[0]).toMatchObject({
       action: "publish", baseHash: "public-revision-2",
       article: { summary: ownerSummary, title: "Fixture, renamed" },
@@ -155,7 +150,6 @@ describe("reconciling a draft with a newer published article", () => {
     expect((await screen.findAllByText(/The article changed after you loaded it/)).length).toBeGreaterThan(0);
     expect(posts(request)[0]).toMatchObject({ action: "publish", baseHash: "public-revision-2" });
     expect(screen.queryByTestId("article-publication-notice")).toBeNull();
-    // The merged draft stays in front of the editor for the next reconcile.
     expect(screen.getByRole("article", { name: "Article preview", hidden: true }).textContent).toBe(ownerSummary);
   });
 });

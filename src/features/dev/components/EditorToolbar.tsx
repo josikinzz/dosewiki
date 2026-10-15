@@ -62,10 +62,6 @@ export function EditorActionGroup({
   );
 }
 
-/**
- * Status-pill tones. `caution` is the canonical amber tone; `warning` is kept
- * as a backward-compatible alias so existing call sites do not break.
- */
 export type EditorStatusPillTone =
   | "neutral"
   | "info"
@@ -91,20 +87,10 @@ export interface EditorStatusPillProps
   loading?: boolean;
   live?: boolean;
   icon?: IconName;
-  /**
-   * Render as a `span` rather than the Badge's `div`, for a pill inside
-   * phrasing content (a row button, a sentence) where a block is invalid.
-   */
   inline?: boolean;
   children: ReactNode;
 }
 
-/**
- * Map the semantic pill tone onto a .theme-status-badge[data-badge-tone] value.
- * Both themes share the ring + glow + inset structure via the
- * --theme-semantic-*-badge-* token families, so there are no baked hexes and
- * no forbidden cyan here. info => blue per the design canon.
- */
 const statusPillBadgeTone: Record<EditorStatusPillTone, StatusBadgeTone> = {
   neutral: "gray",
   info: "blue",
@@ -140,13 +126,6 @@ export function EditorStatusPill({
       variant="outline"
       data-badge-tone={statusPillBadgeTone[tone]}
       className={cn(
-        // A 24px pill on one line; on a phone a long status (a save line)
-        // wraps inside a taller capsule instead of spilling out of it.
-        // A status pill carries a sentence ("Saved", "Each save goes live
-        // right away."), so it sets sentence type. The Badge recipe's
-        // `type-chip-label` sits later in the same cascade layer than
-        // Tailwind's case and tracking utilities, so plain `normal-case`
-        // loses to it; the important modifier is what makes these stick.
         "theme-status-badge h-auto min-h-6 max-w-full gap-1.5 border-transparent py-0.5 text-xs! font-medium! normal-case! leading-snug! tracking-normal!",
         className,
       )}

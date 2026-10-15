@@ -14,11 +14,6 @@ export interface EditorNavOption {
   controls?: string;
 }
 
-/**
- * Below `sm` a switcher is one row that scrolls sideways inside its own box,
- * never a wrapped blob and never wider than the screen. The edge that hides
- * more options fades out, and the selected option is kept in view.
- */
 const STRIP_CLASS =
   "flex w-fit max-w-full flex-nowrap items-center overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-x-visible data-[fade=end]:[mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] data-[fade=start]:[mask-image:linear-gradient(to_left,black_calc(100%-2rem),transparent)] data-[fade=both]:[mask-image:linear-gradient(to_right,transparent,black_2rem,black_calc(100%-2rem),transparent)]";
 
@@ -47,8 +42,6 @@ function useScrollStrip(selectedValue: string) {
     };
   }, []);
 
-  // Scroll the strip itself, not the page: scrollIntoView would also move the
-  // document vertically.
   useLayoutEffect(() => {
     const strip = ref.current;
     const selected = strip?.querySelector<HTMLElement>("[data-selected]");
@@ -72,11 +65,6 @@ export interface EditorNavTabsProps {
   className?: string;
 }
 
-/**
- * The WAI-ARIA tabs pattern: one tab in the Tab order (the selected one), and
- * Arrow keys, Home and End move between tabs and select as they go, the same
- * way a click would.
- */
 export function EditorNavTabs({
   label,
   options,
@@ -118,8 +106,6 @@ export function EditorNavTabs({
     >
       {options.map((option) => {
         const selected = option.value === value;
-        // Roving focus: the selected tab, or the first enabled tab when the
-        // value names none, is the one stop in the Tab order.
         const tabStop = selected || (!selectedEnabled && option === enabled[0]);
 
         return (
@@ -195,8 +181,6 @@ export function EditorSegmentedControl({
             data-selected={selected || undefined}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
-            // A finger still gets 44px through the halo, but the capsule stays
-            // one slim row instead of 44px pills inside a 52px frame.
             className={cn(
               "shrink-0 [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:min-h-0",
               TOUCH_HALO_Y,

@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * Slim, embeddable molecule depiction editor — the substance-mode core of
- * `MoleculeEditorTab` pre-bound to a single slug, with no picker, no mode tabs, no
- * class/template machinery, and no section chrome (the host supplies the panel).
- *
- * Same data flow as the full tab:
- *   • the editable record is read through the editor-gated `/api/dev/molecule-override`
- *     GET, so it round-trips against the same deployment that receives the save
- *   • the reference SMILES comes from `substanceIndex.getBySlug` (`identification.smiles`)
- *   • with no published row (or after Revert to auto) the starting structure is a local
- *     `smilesToMolblock` auto layout — Revert is canvas-only until Save
- *   • `source` is the MOL block fed INTO the canvas, `edited` the live MOL block coming
- *     OUT of it (drives preview, stereo guard, dirty state, and the save payload)
- *   • Save POSTs `{ slug, molblock, svg, smiles }` and then re-reads the published row
- *
- * The host must provide a DataProvider and an authenticated editor session.
- */
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
@@ -32,7 +15,6 @@ import type { InchiComparison } from "./stereoGuard";
 import { useMoleculeQuickEditorLifecycle } from "./useMoleculeQuickEditorLifecycle";
 
 export type MoleculeQuickEditorProps = {
-  /** Substance slug whose depiction is being edited. */
   slug: string;
   className?: string;
 };
@@ -73,7 +55,6 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* ---- header row: provenance + renderer status ------------------------ */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="theme-text-faint text-xs">
           <span className="theme-text-muted font-mono">{slug}</span>
@@ -101,7 +82,6 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         </span>
       </div>
 
-      {/* fatal renderer / editor failures go first so the tall canvas never hides them */}
       {oclError || rdkitError ? (
         <Notice
           tone="danger" title="Renderer unavailable" message="The molecule renderer failed to load, so previews and saving are disabled. Reload the page to retry." icon="lucide:circle-alert"
@@ -118,15 +98,12 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         />
       ) : null}
 
-      {/* ---- canvas + control rail ------------------------------------------ */}
       <div className="space-y-4 lg:flex lg:items-start lg:gap-5 lg:space-y-0">
         <div className="relative h-[24rem] min-h-[20rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body lg:min-w-0 lg:flex-1">
           {noStructure ? (
             <NoStructure />
           ) : (
             <>
-              {/* inset so OpenChemLib's white canvas reads as matted artwork inside
-                  the dark frame rather than an edge-to-edge white slab */}
               <ErrorBoundary
                 name="molecule-editor-canvas"
                 resetKeys={[source]}
@@ -166,7 +143,6 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           <GuardRow guard={guard} hasReference={!!smiles} active={!noStructure} />
 
           <div className="ml-auto flex flex-col items-stretch gap-2 sm:items-end lg:ml-0 lg:items-stretch">
-            {/* fixed-height slot so the status pill appearing doesn't shift the buttons */}
             <div className="flex min-h-6 items-center sm:justify-end lg:justify-start">
               {!noStructure && (saving || dirty) ? (
                 <EditorActionStatus status={saving ? "saving" : "dirty"} />
@@ -233,7 +209,6 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
   );
 }
 
-// ---------------------------------------------------------------------------
 function GuardRow({
   guard,
   hasReference,
@@ -293,7 +268,6 @@ function PreviewBox({
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
-            // OpenChemLib output rendered from our own MOL block (editor preview).
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (

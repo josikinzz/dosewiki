@@ -1,14 +1,3 @@
-/**
- * Editor read endpoint for per-substance source richness (`/dev` → Review).
- *
- * The review queue's default order puts the most source-rich articles first,
- * and richness lives in `articleSources` — whose documents carry full scraped
- * texts. This route walks the existing paginated metadata listing server-side
- * (small pages, so no single Postgres execution reads too much) and returns only
- * the numbers the sort needs.
- *
- *   GET /api/dev/article-source-stats  →  { stats: [{ slug, sourceCount, totalTokens }] }
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

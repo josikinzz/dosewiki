@@ -20,8 +20,6 @@ import { GalleryMatchIdentity } from "./GalleryMatchIdentity";
 import { ReplicationThumb } from "./ReplicationThumb";
 import type { GalleryBoardRow } from "./substanceGalleryPortalModel";
 
-/** Candidate rows drawn at once. Bounded on purpose: a big substance matches
- * hundreds of works, and mounting them all is what made the pool unreadable. */
 const LIST_PAGE_SIZE = 12;
 const TRIAGE_PAGE_SIZE = 24;
 
@@ -29,11 +27,9 @@ type CandidateView = "list" | "triage";
 
 const CANDIDATE_VIEW_KEY = "dosewiki.replicationStudio.candidateView";
 
-/** Marks a candidate tile/row so the band's keyboard verbs can find its slug. */
 const CANDIDATE_ATTR = "data-candidate-slug";
 const CANDIDATE_SELECTOR = `[${CANDIDATE_ATTR}]`;
 export const MOTION = "transition-[background-color,opacity,box-shadow] duration-[240ms] ease-[cubic-bezier(0.25,1,0.5,1)] motion-reduce:transition-none";
-/** Effective article position, whether automatic or explicitly prioritized. */
 export function PositionNumber({ position, onStage }: { position: number; onStage: boolean }) {
   return (
     <span
@@ -49,7 +45,6 @@ export function PositionNumber({ position, onStage }: { position: number; onStag
   );
 }
 
-/** Exclusion is available from both bands, so it lives in one place. */
 export function ExcludeButton({ title, slug, onExclude }: { title: string; slug: string; onExclude: (slug: string) => void }) {
   return (
     <Button
@@ -64,14 +59,6 @@ export function ExcludeButton({ title, slug, onExclude }: { title: string; slug:
   );
 }
 
-/**
- * Moves focus to a row's primary action after it changes band, then reports back.
- * Focus must never scroll on its own: an uncurated row lands far down the
- * candidate pool, and letting the browser chase it throws the viewport away from
- * the button the editor just clicked. We pull the row into view only when it is
- * genuinely offscreen, and then by the shortest distance — an unmeasurable box
- * is not evidence of anything, so it stays put.
- */
 export function useBandFocus(focused: boolean, onFocusHandled: () => void) {
   const ref = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
@@ -88,7 +75,6 @@ export function useBandFocus(focused: boolean, onFocusHandled: () => void) {
   }, [focused, onFocusHandled]);
   return ref;
 }
-/** Retires a work from every substance's candidate pool at once. */
 function ExcludeEverywhereButton({
   title,
   slug,
@@ -112,7 +98,6 @@ function ExcludeEverywhereButton({
   );
 }
 
-/** An automatically placed row that can be prioritized or excluded. */
 function CandidateRow({
   row,
   focused,
@@ -167,11 +152,6 @@ function CandidateRow({
   );
 }
 
-/**
- * The triage face of the same row. The junk-or-keeper call is made by looking
- * at the picture, so the picture is the row: a big thumb, the title under it,
- * and verbs that stay out of the way until the tile is hovered or focused.
- */
 function TriageTile({
   row,
   focused,
@@ -232,11 +212,6 @@ function TriageTile({
   );
 }
 
-/**
- * The cut line, drawn inside the curated list once it is longer than the
- * article's cap. It carries no transition by design: the fold is a fact about
- * the article, not a flourish.
- */
 export function Fold({ cap }: { cap: number }) {
   return (
     <li className="list-none py-2">
@@ -273,10 +248,6 @@ export function BandHeading({
   );
 }
 
-/**
- * Automatically placed rows. Paged and available in visual triage mode because
- * large class-wide collections can still need selective priority or exclusion.
- */
 export function CandidateBand({
   headingId,
   rows,
@@ -320,7 +291,6 @@ export function CandidateBand({
   const start = current * pageSize;
   const visible = rows.slice(start, start + pageSize);
 
-  /** Keyboard verbs: `c` prioritizes, `x` excludes, arrows move focus. */
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
       if (readOnly) return;
@@ -362,9 +332,6 @@ export function CandidateBand({
   );
 
   return (
-    // The band is a container, not a control: this catches keydown bubbling from the tiles
-    // inside it. Every verb it accelerates (`c`, `x`, arrows) is also a labelled button on
-    // each tile.
     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <section aria-labelledby={headingId} className="space-y-2" onKeyDown={onKeyDown}>
       <BandHeading

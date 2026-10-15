@@ -54,17 +54,6 @@ function formatDuration(seconds?: number) {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
 }
 
-/**
- * Stable provenance page for one work. Playback and collection exploration
- * belong exclusively to the canonical overlay on the linked source page; the
- * header button is the one accessible route there, and the preview doubles as
- * a sighted-user shortcut to the same place.
- *
- * Every provenance fact renders exactly once, in its strongest place: the
- * byline is the credit, the licence row is the rights posture, and the
- * copyable attribution well only exists when an explicit licence gives a
- * reuser something to satisfy.
- */
 export function ReplicationDetailPage({
   replication,
   effectName,
@@ -83,8 +72,6 @@ export function ReplicationDetailPage({
   const isVideo = replication.type === "video";
   const isAudio = replication.type === "audio";
   const isGif = replication.format?.toLowerCase() === "gif";
-  // A clip has no frame to preview, so it never reaches the image layer: it
-  // gets the player itself, which is more use here than a poster would be.
   const previewSource = isAudio
     ? undefined
     : isGif
@@ -172,10 +159,6 @@ export function ReplicationDetailPage({
             />
           </Surface>
         ) : previewSource ? (
-          // A sighted-user shortcut to the same viewer the header button
-          // opens: hidden from the accessibility tree so the button stays the
-          // single named route, and the play badge replaces the old "playback
-          // opens in the shared viewer" caption.
           <Link
             href={viewerHref}
             aria-hidden
@@ -213,7 +196,6 @@ export function ReplicationDetailPage({
           />
         )}
 
-        {/* The file's vital signs read as the preview's caption. */}
         <figcaption className="theme-text-faint mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           <PublicPill
             icon={
@@ -248,8 +230,6 @@ export function ReplicationDetailPage({
         </figcaption>
       </figure>
 
-      {/* What the work depicts: the effect is its subject, the categories are
-          wayfinding into the taxonomy. */}
       {effectName && effectSlug ? (
         <section className="mt-6" aria-labelledby="replication-subject">
           <PublicOverline as="h2" id="replication-subject">
@@ -287,7 +267,6 @@ export function ReplicationDetailPage({
         </section>
       ) : null}
 
-      {/* Provenance and the terms the work may be reused under. */}
       <ContentCard className="mt-6">
         <h2 className="theme-accent-heading font-display text-lg font-semibold tracking-tight">
           {t("Credit & licence")}
@@ -324,9 +303,6 @@ export function ReplicationDetailPage({
             </DefinitionRow>
           ) : null}
 
-          {/* A separate creator row is an exceptional evidence-backed claim.
-              Unresolved reviews collapse to poster-as-creator upstream and
-              therefore cannot imply that this post is a repost. */}
           {identityAttribution?.proven_different_creator ? (
             <DefinitionRow
               semantic
@@ -344,8 +320,6 @@ export function ReplicationDetailPage({
             </DefinitionRow>
           ) : null}
 
-          {/* The rights holder is a legal claim rather than a byline, so it
-              keeps its own row when the record carries one. */}
           {replication.rightsholder ? (
             <DefinitionRow
               semantic
@@ -393,8 +367,6 @@ export function ReplicationDetailPage({
               termClassName={termClassName}
               bodyClassName="text-sm leading-6"
             >
-              {/* The host names the provenance; the raw URL stays in the
-                  href rather than wrapping across the row as noise. */}
               <a
                 href={sourceUrl}
                 target="_blank"
@@ -407,9 +379,6 @@ export function ReplicationDetailPage({
           ) : null}
         </DefinitionList>
 
-        {/* Pre-composed so a reuser satisfies a real licence by copying one
-            line. Absent when nothing is licensed — the licence row above is
-            the rights posture's one home. */}
         {attribution ? (
           <NestedContentCard className="mt-4">
             <p className="theme-text-faint text-xs uppercase tracking-[0.18em]">

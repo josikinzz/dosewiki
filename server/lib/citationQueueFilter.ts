@@ -1,4 +1,3 @@
-// Mirrors `CitationReviewQueueFilter` in the citation-review tool models.
 export type QueueSummaryStatus = "open" | "approved" | "rejected" | "all";
 
 export type CitationQueueSummary = {
@@ -21,8 +20,6 @@ export type CitationQueueSummary = {
   updatedAt: string | null;
 };
 
-
-/** Applies the queue filter and ordering to compact native SQL summaries. */
 export function finalizeQueueSummaries(
   summaries: Iterable<CitationQueueSummary>,
   status: QueueSummaryStatus,
@@ -36,10 +33,6 @@ export function finalizeQueueSummaries(
     .sort(compareQueueSummaries);
 }
 
-// `open` keeps an article queued while at least one row is not approved, so
-// fully approved articles drain out. `approved` returns exactly those drained
-// articles, `rejected` narrows to articles with at least one rejected row, and
-// `all` lifts the filter.
 export function matchesQueueSummaryStatus(
   status: QueueSummaryStatus,
   summary: CitationQueueSummary,

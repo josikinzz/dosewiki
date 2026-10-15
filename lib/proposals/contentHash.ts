@@ -1,21 +1,5 @@
 import { sha256Text } from "../generatedPublication/canonical.mjs";
 
-/**
- * Content identity for change-proposal targets. A proposal records the hash of
- * each production row it was drafted against; apply recomputes the hash and
- * refuses when the row has moved on. Both sides must therefore hash the same
- * canonical text, which is why this lives in `lib/` and is imported by Postgres
- * functions and the Next server alike: no `node:crypto`, only the pure sha256
- * the generated-publication pipeline already ships.
- */
-
-/**
- * JSON with object keys sorted at every depth and `undefined` object values
- * dropped (array holes become `null`, as `JSON.stringify` does). Two documents
- * that differ only in key order or in the presence of undefined fields
- * stringify identically. Non-finite numbers are rejected rather than silently
- * serialized as `null`.
- */
 export function stableStringify(value: unknown): string {
   if (value === null || value === undefined) {
     return "null";
@@ -50,7 +34,6 @@ export function stableStringify(value: unknown): string {
   }
 }
 
-/** sha256 hex of `stableStringify(value)`. */
 export function contentHash(value: unknown): string {
   return sha256Text(stableStringify(value));
 }

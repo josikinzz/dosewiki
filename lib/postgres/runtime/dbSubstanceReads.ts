@@ -1,8 +1,3 @@
-/**
- * Targeted `substanceIndex` projections. This is the base of the reader
- * chain in `db.ts` and owns the transaction executor the other layers share.
- */
-
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
 import { fromRow, type Doc, type SqlExecutor } from "./dbRows";
 
@@ -100,15 +95,12 @@ export class SubstanceProjectionReader {
 
   async getPublicSubstanceEffectMembershipPage(cursor: string | undefined, limit: number) {
     const decoded = cursor ? (decodeDocumentValue(JSON.parse(cursor)) as { _creationTime?: number; _id?: string }) : null;
-    // Generic paginate emits "{}" for an empty initial page; retain its cursor contract.
     const after = decoded?._creationTime != null && decoded._id != null ? decoded : null;
     const params: unknown[] = [];
     const where = after
       ? (params.push(after._creationTime, after._id), 'WHERE ("_creationTime", "_id" COLLATE "C") > ($1, $2::text COLLATE "C")')
       : "";
     params.push(limit + 1);
-    // Keep nested effect groups intact, but never fetch article prose or provenance.
-    // JSONB must be selected as text so the document codec preserves nulls and wrappers.
     const result = await this.client.query(
       `SELECT ${losslessSelectList("substanceIndex", [
         "_id", "_creationTime", "id", "title", "slug", "priority",

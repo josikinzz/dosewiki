@@ -21,7 +21,6 @@ export async function generateMetadata() {
 }
 
 export default async function DiscordRoute() {
-  // Flavor gate first: on the dose.wiki build this route does not exist.
   requireEffectIndexFlavor();
   const copy = await getCopyByKeys(["seo-discord-description", "discord-intro-effect-index", "discord-rules-effect-index"]);
 

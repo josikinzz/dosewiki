@@ -1,14 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/retranslate  { locale, terms: string[] }
- *
- * Admin only. The scoped stale replay after a glossary edit, through the job
- * outbox instead of a workstation: stored segments whose English mentions a
- * term are marked stale and every public record mentioning a term is enqueued.
- * Other old digests remain stale until actually refreshed. Submission records
- * a request timestamp only; the coverage audit checks stored outcomes.
- *
- * Reads the whole corpus to find those records, like `live-mirror.ts stale`.
- */
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 
@@ -33,12 +22,9 @@ export type RetranslateResponse = {
   locale: string;
   terms: string[];
   promptVersion: string;
-  /** Stored segments mentioning a term, now marked stale. */
   segments: number;
-  /** Always zero: unrelated old digests are not proven current. */
   restamped: number;
   runId: string;
-  /** Records enqueued, by kind. */
   jobs: Partial<Record<TranslationRecordKind, number>>;
 };
 

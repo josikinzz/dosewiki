@@ -9,18 +9,12 @@ import { t } from "@/i18n/server";
 
 interface ChangesPageProps {
   changes: ArticleRecentChange[];
-  /** The article the list is filtered to, when `?article=` named one that exists. */
   article: { slug: string; title: string } | null;
 }
 
 const linkClassName =
   "theme-accent-heading theme-focus-ring rounded font-semibold underline decoration-[color-mix(in_srgb,currentColor_35%,transparent)] decoration-1 underline-offset-2 hover:decoration-current";
 
-/**
- * Every human edit across the site, or one article's, newest first. Only
- * signed-in editor saves write changelog rows, so this is the record of what
- * people changed by hand; automated pipelines never appear here.
- */
 export function ChangesPage({ changes, article }: ChangesPageProps) {
   return (
     <PublicContentShell focusTarget width="standard">

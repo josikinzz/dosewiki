@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The Substances list column: which articles (Listed, Your work, All), their
- * review state, a search with its `/` key, the order, and the windowed
- * listbox of articles. Each row names the article, its review state and the
- * member's own work on it (a saved draft, a proposal waiting or returned);
- * the open row says "Editing" and carries the unsaved dot. Sticky from `lg`,
- * sized to the viewport so the article beside it stays in view.
- */
 import { type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -33,7 +25,6 @@ export type SubstanceListColumnProps = {
   total: number;
   viewCounts: Record<SubstanceView, number>;
   reviewCounts: Record<ReviewFilter, number>;
-  /** False while the member's drafts and proposals are loading or failed: Your work has no count yet. */
   workKnown: boolean;
   workError: string | null;
   onRetryWork: () => void;
@@ -47,13 +38,10 @@ export type SubstanceListColumnProps = {
   onQueryChange: (query: string) => void;
   searchRef: RefObject<HTMLInputElement | null>;
   selected: string | null;
-  /** The open article's name, when it is known, for the hidden-by-filter line. */
   selectedName: string | null;
-  /** Whether the open article's row is in `rows`. */
   selectedShown: boolean;
   dirty: boolean;
   onSelect: (slug: string) => void;
-  /** A deep link named no article. */
   missingSlug: string | null;
   onDismissMissing: () => void;
 };

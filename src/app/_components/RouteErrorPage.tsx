@@ -11,23 +11,16 @@ import { StatusPageShell } from "./StatusPageShell";
 
 export type RouteErrorRecovery = {
   href: string;
-  /** English source text; public labels carry a `msg()` marker so the catalog sees them. */
   label: string;
 };
 
 type RouteErrorPageProps = {
   error: Error & { digest?: string };
   reset: () => void;
-  /** Stable segment name carried into the error report. */
   boundary: string;
-  /** Where the reader goes if Retry does not help; defaults to the substance index. */
   recovery?: RouteErrorRecovery;
 };
 
-/**
- * The body every App Router `error.tsx` renders: the reader's language through
- * `useT()`, one report per error, a Retry, and one way back.
- */
 export function RouteErrorPage({ error, reset, boundary, recovery }: RouteErrorPageProps) {
   const t = useT();
   const target = recovery ?? {

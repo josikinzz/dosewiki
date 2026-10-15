@@ -1,12 +1,3 @@
-/**
- * One change proposal in full, for the review pane.
- *
- *   GET /api/dev/proposals/<id> -> { proposal } with `liveHashes[{kind,key,hash}]`
- *
- * `liveHashes` is the production hash of every target as it stands now; the
- * queue flags a target whose live hash no longer matches the pinned `baseHash`
- * before an admin tries to apply it.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

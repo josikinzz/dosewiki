@@ -1,25 +1,3 @@
-/**
- * Admin write endpoint for one copy block (the /dev Copy Studio).
- *
- *   POST   /api/dev/copy-block   { key, kind, label, group, flavor?, body?, items? }
- *   DELETE /api/dev/copy-block   { key }   → revert the key to its local default
- *
- * Both verbs are admin only: an editor's Copy Studio save goes through
- * `POST /api/dev/proposals` as a `copyBlocks` proposal instead, and reaches
- * `copyBlocks.upsert` only when an admin approves it. The browser holds no
- * admin intent token, so the write is delegated here: the route checks the
- * admin session, then calls Postgres with the server's own token plus the
- * actor's email for the audit trail.
- *
- * Both verbs finish by publishing the `copy` content identity through the
- * shared publication seam, which expires `PUBLIC_DATA_CACHE_TAGS.copy` here
- * and delivers the same identity to the public deployments. That is what makes
- * an edit show up on the public pages immediately instead of at the end of the
- * 15-minute public-data window.
- * Deleting is not destructive: the server read helper falls back to the
- * checked-in default in `content/copy-blocks/copyBlocks.json`, so a removed row
- * renders the original hardcoded prose.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { publishPublicCache } from "@server/next/publishPublicCache";

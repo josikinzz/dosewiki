@@ -1,19 +1,3 @@
-/**
- * The records each tool offers the Cmd+K palette, keyed by the tool that
- * opens them. A tool without an entry offers only itself.
- *
- * Every read is one small list the tool already serves, fetched only when the
- * palette opens and kept for a few minutes, so a second Cmd+K costs nothing.
- * The substance lookup backs both Substances and Banners and is read once.
- * A failed read is dropped from the cache so the next open retries.
- *
- * Saved views (`kind: "view"`) count their rows fresh on every open, from the
- * same server read the view's queue lists them with: the feedback queue's own
- * `total` for its filter, and the proposal list the Change Review tab
- * filters. A count that cannot be read leaves the view without one; the view
- * still opens.
- */
-
 import { approvedGlossaryLocales, type AppRole } from "@/lib/auth/roles";
 import { devHref } from "@/utils/devHref";
 import { feedbackTaskHref, type FeedbackSource } from "../tools/feedback/feedbackTaskLink";
@@ -28,7 +12,6 @@ import type { DevModeTab } from "./devTabRegistry";
 
 export type RecordSourceContext = {
   role: AppRole | null;
-  /** The session's glossary grant; the Glossary lists only these languages. */
   glossaryLocales?: readonly string[];
 };
 
@@ -40,7 +23,6 @@ export type DevRecordSource = {
 const CACHE_MS = 5 * 60_000;
 const cache = new Map<string, { at: number; promise: Promise<unknown> }>();
 
-/** One shared, briefly cached read per `key`; a failure is never cached. */
 function cached<T>(key: string, read: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.promise as Promise<T>;
@@ -52,7 +34,6 @@ function cached<T>(key: string, read: () => Promise<T>): Promise<T> {
   return promise;
 }
 
-/** Tests start each case cold. */
 export function clearDevRecordSourceCache() {
   cache.clear();
 }
@@ -66,7 +47,6 @@ async function readJson<T>(url: string): Promise<T> {
 type LookupRow = { slug: string; name: string };
 type LookupPage = { page: LookupRow[]; continueCursor: string | null; isDone: boolean };
 
-/** The editor substance lookup (slug and title), drained a page at a time. */
 function substanceLookup(): Promise<LookupRow[]> {
   return cached("substances", async () => {
     const rows: LookupRow[] = [];
@@ -98,10 +78,8 @@ function substanceRecords(tab: DevModeTab, detail: string): Promise<PaletteRecor
 
 type BannerPreset = { key: string; headline: string; severityLabel: string };
 
-/** The Writing tool's pinned entry, which the list read does not return. */
 const ABOUT_SLUG = "about";
 
-/** A count read for a saved view; null when it could not be read. */
 async function viewCount(read: () => Promise<number>): Promise<number | null> {
   try {
     return await read();
@@ -113,10 +91,6 @@ async function viewCount(read: () => Promise<number>): Promise<number | null> {
 const countLine = (count: number | null, noun: string, rest: string) =>
   count === null ? rest : `${count} ${noun} · ${rest}`;
 
-/**
- * Oldest unresolved: New and Reviewing together, oldest first. The count is
- * the queue route's `total` for exactly the filter the view opens.
- */
 async function oldestUnresolvedView(source: FeedbackSource): Promise<PaletteRecord> {
   const count = await viewCount(async () => {
     const payload = await readJson<{ total?: unknown }>(`/api/${source}-feedback/queue?status=unresolved&order=oldest&limit=1`);
@@ -142,7 +116,6 @@ const SOURCES: readonly DevRecordSource[] = [
   },
   {
     tab: "queue",
-    // The same list read the tab filters, through the same rule, so the count is the rows.
     load: async () => {
       const count = await viewCount(async () => {
         const payload = await readJson<{ proposals?: ProposalSummary[] }>("/api/dev/proposals");
@@ -162,8 +135,6 @@ const SOURCES: readonly DevRecordSource[] = [
   },
   {
     tab: "review",
-    // The review queue is built in the browser from the whole corpus, so no
-    // server read counts it cheaply; the view opens without a count.
     load: async () => [{
       key: "view:review:another-pass",
       tab: "review",
@@ -223,7 +194,6 @@ const SOURCES: readonly DevRecordSource[] = [
   },
   {
     tab: "copy-studio",
-    // No read: every block has a checked-in default, loaded only when the palette opens.
     load: async () => {
       const { COPY_BLOCK_DEFAULTS } = await import("@/data/content/copyBlocks");
       return COPY_BLOCK_DEFAULTS.map((block): PaletteRecord => ({
@@ -253,7 +223,6 @@ const SOURCES: readonly DevRecordSource[] = [
   },
   {
     tab: "glossary",
-    // No read: the session already names the languages this member may open.
     load: async ({ role, glossaryLocales }) =>
       approvedGlossaryLocales({ role, glossaryLocales: glossaryLocales ? [...glossaryLocales] : undefined }).map((code) => ({
         key: `glossary:${code}`,
@@ -266,7 +235,6 @@ const SOURCES: readonly DevRecordSource[] = [
   },
 ];
 
-/** The record sources for the tools in `tabs`, the tools a role may open. */
 export function devRecordSourcesFor(tabs: ReadonlySet<DevModeTab>): readonly DevRecordSource[] {
   return SOURCES.filter((source) => tabs.has(source.tab));
 }

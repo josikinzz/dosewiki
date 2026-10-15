@@ -36,12 +36,6 @@ export interface FeedbackFormProps {
   onCancel: () => void;
 }
 
-/**
- * The expanded feedback form. Split from `FeedbackSection` and loaded on
- * demand: the section renders collapsed on every public article, so the
- * select, input and alert primitives behind this form only reach the browser
- * once a reader actually opens it.
- */
 export function FeedbackForm({
   draft,
   state,

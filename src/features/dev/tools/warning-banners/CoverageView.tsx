@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * Coverage: the audit surface.
- *
- * Pick a substance and see exactly what a reader sees: the real `SafetyBanner`
- * components rather than a summary of them, above the article's own class
- * strings in monospace so the evidence an editor decides on is on screen beside
- * the decision. `resolveEnabledBanners` takes the slug and nothing else, so this
- * view cannot show a banner an editor did not explicitly enable, which is why
- * auditing happens here rather than by reading a classification back.
- *
- * Laid out like the other workspaces: the substances on the left (searchable,
- * sticky and sized to the screen on desktop, a capped list on a phone), the
- * picked substance on the right, and the rollout of every preset under it.
- * Picking a substance on a phone scrolls its detail in, and the detail carries
- * Back to list.
- */
-
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -53,19 +36,12 @@ import type { EnablementChange } from "./enablement";
 export type CoverageViewProps = {
   presets: WarningBannerPreset[];
   targets: WarningBannerTarget[];
-  /** False until the substance list has answered (or failed). */
   targetsLoaded?: boolean;
-  /**
-   * The saved global glyph size. Coverage answers "what does a reader see", so a
-   * preview at any other size would be answering a different question.
-   */
   iconSize: number;
   activeSlug: string;
-  /** The substance a `/dev/banners/<slug>` link opened, if any. */
   linkedSlug?: string;
   onActiveSlugChange: (slug: string) => void;
   saveState: EditorActionStatusState | "idle";
-  /** The result of the last write made from here, shown with the substance it changed. */
   notice?: NoticeMessage | null;
   onDismissNotice?: () => void;
   onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
@@ -91,20 +67,14 @@ export function CoverageView({
   const detailRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   useScrollToDetail(detailRef, activeSlug || null);
-  // A `/dev/banners/<slug>` link asked for one substance: on a phone, where the
-  // list stacks above it, bring that substance into view once on arrival.
   const arrivedFromLink = useRef(false);
   useEffect(() => {
-    // Wait for the list above it, so the jump lands where the detail ends up.
     if (arrivedFromLink.current || !targetsLoaded || !linkedSlug || linkedSlug !== activeSlug) return;
     arrivedFromLink.current = true;
     if (typeof window.matchMedia !== "function" || !window.matchMedia("(max-width: 1023px)").matches) return;
     detailRef.current?.scrollIntoView?.({ block: "start" });
   }, [linkedSlug, activeSlug, targetsLoaded]);
 
-  // The same helper the Presets search uses, so typing `opioid` here lists
-  // exactly the substances that enabling `opioid` would have offered; two
-  // search semantics in one tool is one too many.
   const filtered = useMemo<WarningBannerTarget[]>(
     () =>
       filter.trim().length >= 2
@@ -156,7 +126,6 @@ export function CoverageView({
             className="peer pr-9"
             onChange={(event) => setFilter(event.target.value)}
           />
-          {/* The key cap, on fine pointers only and only while the field is empty. */}
           {filter === "" ? (
             <span aria-hidden className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 peer-focus:hidden [@media(pointer:coarse)]:hidden">
               <kbd className="theme-dev-kbd">/</kbd>
@@ -176,8 +145,6 @@ export function CoverageView({
           <div className="-mx-2.5 max-h-[22rem] overflow-y-auto overscroll-contain px-2.5 lg:max-h-[min(calc(100dvh_-_17rem),640px)]">
             <ul aria-labelledby="banner-substances-heading" className={LINK_LIST_CLASS}>
               {filtered.map((entry) => {
-                // Listed presets only. A sitewide preset reaches every row, so
-                // counting it would put the same pill on all of them and say nothing.
                 const count = presets.filter(
                   (preset) => !preset.allSubstances && presetAppliesToSlug(preset, entry.slug),
                 ).length;
@@ -258,9 +225,6 @@ export function CoverageView({
                       : `${countNoun(rendered.length, "banner")} ${rendered.length === 1 ? "renders" : "render"} here, in this order.`}
                   </span>
                 </p>
-                {/* The class strings, verbatim and monospace. They decide nothing
-                    (enablement is by slug) but they are what an editor reads
-                    before deciding, so they belong beside the decision. */}
                 {target ? (
                   <p className="text-xs">
                     <span className="type-meta-label theme-text-faint mr-2">Classes</span>

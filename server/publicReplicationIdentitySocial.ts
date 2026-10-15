@@ -44,10 +44,6 @@ type AttributionForPublicProjection = {
   source_digest: string;
 };
 
-/**
- * Fail closed when projecting creator changes. A malformed, unresolved, or
- * incomplete row is presented as poster-as-creator and never as a repost hint.
- */
 export function hasPublicDifferentCreatorProof(value: AttributionForPublicProjection) {
   if (
     value.creator_determination !== "proven-different-creator" ||
@@ -68,7 +64,6 @@ export function hasPublicDifferentCreatorProof(value: AttributionForPublicProjec
   );
 }
 
-/** One indexed public attribution read for a replication permalink. */
 export const getAttributionByReplicationId = query({
   args: { replication_id: v.id("replications") },
   returns: v.union(publicAttributionValidator, v.null()),
@@ -106,10 +101,6 @@ export const getAttributionByReplicationId = query({
   },
 });
 
-/**
- * One indexed public profile read. Aliases come from contributorProfiles so
- * canonical search and redirects keep their existing single source of truth.
- */
 export const getProfileIdentityByKey = query({
   args: { key: v.string() },
   returns: v.union(publicProfileIdentityValidator, v.null()),

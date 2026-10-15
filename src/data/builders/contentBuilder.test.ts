@@ -15,15 +15,13 @@ describe('buildSubstanceRecord', () => {
       const route = result?.content.routes['sublingual'];
 
       expect(route).toBeDefined();
-      expect(route?.dosage).toHaveLength(5); // threshold through heavy
+      expect(route?.dosage).toHaveLength(5);
 
-      // Check threshold (min only)
       expect(route?.dosage[0]).toEqual({
         label: 'Threshold',
         value: '~15 μg',
       });
 
-      // Check moderate (range)
       expect(route?.dosage[2]).toEqual({
         label: 'Moderate',
         value: '75-150 μg',
@@ -34,7 +32,7 @@ describe('buildSubstanceRecord', () => {
       const result = buildSubstanceRecord(fullArticleWithDosage);
       const route = result?.content.routes['sublingual'];
 
-      expect(route?.duration).toHaveLength(6); // all stages
+      expect(route?.duration).toHaveLength(6);
       expect(route?.duration[0]).toEqual({
         label: 'Onset',
         value: '15-30 minutes',
@@ -47,7 +45,7 @@ describe('buildSubstanceRecord', () => {
       const result = buildSubstanceRecord(fullArticleWithDosage);
       const interactions = result?.content.interactions;
 
-      expect(interactions).toHaveLength(2); // danger + caution (unsafe is empty)
+      expect(interactions).toHaveLength(2);
 
       const danger = interactions?.find(g => g.severity === 'danger');
       expect(danger?.items).toHaveLength(2);

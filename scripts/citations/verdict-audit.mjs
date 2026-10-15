@@ -1,24 +1,4 @@
 #!/usr/bin/env node
-// Step 2 of the citation-pi campaign: enumerate every claim–citation pair on
-// every public substance article (read-only production audit).
-//
-// Usage:
-//   npm run citations:verdict-audit
-//   npm run citations:verdict-audit -- --out=tmp/citation-verdict-audit-2026-08-31.json
-//   npm run citations:verdict-audit -- --campaign=<campaign-id>
-//
-// --campaign scopes existing-verdict lookup to that campaign id
-// (provenance.campaign on citationEvidence rows): verdicts recorded under any
-// other campaign stay historical records and never deactivate a pair, so a
-// fresh campaign re-judges everything. Without the flag, every verdict record
-// counts (legacy resume behavior).
-//
-// Environment:
-//   DATA_BACKEND=postgres is required; --source-url / SOURCE_POSTGRES_URL selects
-//   the read source, with the canonical Postgres target as fallback.
-//   DATA_ADMIN_TOKEN_CITATION_EVIDENCE_REVIEW (or legacy DATA_ADMIN_KEY)
-//   optionally enables existing-verdict lookup; without it existingVerdict is
-//   null and every pair is actionable.
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";

@@ -9,20 +9,13 @@ export type UiCatalogPublication = {
   approvedUiSource: "store" | "offline-unverified";
   sourceInventoryDigest: string;
   exactLabels: Record<string, { source: string; target: string; targetDigest: string }>;
-  /** Entries waiting for a glossary refresh. Records compiled before terms were
-   * recorded list bare catalog keys; `readPendingRefresh` accepts both shapes. */
   pendingRefresh?: Array<string | UiCatalogPendingRefreshView>;
-  /** Whether the compile that wrote this record refreshed the waiting entries.
-   * Absent on older records, where an offline compile means it did not. */
   pendingRefreshStatus?: "refreshed" | "not-refreshed";
   qaGlossaryMisses?: UiCatalogGlossaryMiss[];
 };
 
-/** A waiting entry as reviewers see it; older records may not name the term. */
 export type UiCatalogPendingRefreshView = { catalogKey: string; term: string | null; expectedTarget: string | null };
 
-/** The waiting list from a publication record, keyed by catalog key. A bare key
- * borrows its term from the record's QA misses when one names that key. */
 export function readPendingRefresh(publication: UiCatalogPublication | undefined): { refreshed: boolean; entries: Map<string, UiCatalogPendingRefreshView> } {
   const entries = new Map<string, UiCatalogPendingRefreshView>();
   if (!publication) return { refreshed: false, entries };
@@ -38,13 +31,6 @@ export function readPendingRefresh(publication: UiCatalogPublication | undefined
   return { refreshed, entries };
 }
 
-/**
- * The waiting list the next publication record carries. An online compile sends
- * every waiting entry to the model, so its list is empty. An offline compile
- * cannot see the current glossary or call the model: it keeps the previous list
- * (minus keys that left the catalog or already carry the expected rendering),
- * adds what its baseline terminology finds, and marks the list not refreshed.
- */
 export function nextPendingRefresh(input: {
   offline: boolean;
   previous: UiCatalogPublication | undefined;
@@ -66,7 +52,6 @@ export function getApprovedUiTranslationsDigest(values: Readonly<Record<string, 
   return createHash("sha256").update(JSON.stringify(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)))).digest("hex");
 }
 
-/** Compilation is evidence of a local artifact only, never proof of deployment. */
 export function getUiCatalogCoverage(
   locale: string,
   catalog: Readonly<Record<string, string>>,

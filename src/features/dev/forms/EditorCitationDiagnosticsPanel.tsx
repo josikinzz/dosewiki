@@ -22,9 +22,7 @@ function WarningList({
 }: {
   title: string;
   ids: string[];
-  /** Compact one-line label shown while a collapsible list is collapsed. */
   summary?: string;
-  /** Collapse the badge list behind a show/hide toggle (collapsed by default). */
   collapsible?: boolean;
   headingLevel: 3 | 4 | 5;
 }) {
@@ -66,11 +64,6 @@ function WarningList({
   );
 }
 
-/**
- * The diagnostics walk every prose field in the article, so a memo keyed on the
- * article object alone never hits when the caller re-derives that object each
- * render (RHF form values). Key on a content signature instead.
- */
 function useCitationDiagnostics(article: SubstanceArticle) {
   const signature = useMemo(() => {
     try {
@@ -118,7 +111,6 @@ export function EditorCitationDiagnosticsPanel({
         </EditorStatusPill>
       </div>
 
-      {/* Warnings are rare; stack them full-width instead of leaving empty grid cells */}
       <div className="space-y-3">
         <WarningList headingLevel={warningHeadingLevel} title="Unknown inline reference IDs" ids={diagnostics.unknownInlineReferenceIds} />
         <WarningList headingLevel={warningHeadingLevel} title="Unknown route reference IDs" ids={diagnostics.unknownStructuredReferenceIds} />

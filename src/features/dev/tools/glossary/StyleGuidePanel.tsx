@@ -1,14 +1,4 @@
 "use client";
-/**
- * The style guide view: a locale's rules and example corrections the
- * translation prompt reads. Translators edit one draft of the whole guide and
- * save and approve it like any other wording (the shared ApprovalActions and
- * ReasonPicker); only the approved guide reaches
- * prompts, and approving it changes the prompt version (stored translations
- * read as stale, nothing is enqueued). Examples arrive from the article
- * reader through "Promote to style guide" on a Fluency correction, or are
- * written here.
- */
 import { useCallback, useEffect, useId, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -23,7 +13,6 @@ import { EMPTY_STYLE_GUIDE, STYLE_GUIDE_LIMITS, type StyleGuideDocument, type St
 
 const ENDPOINT = "/api/dev/translation-style-guide";
 
-/** A new example before the server gives it an id and a time. */
 type NewExample = Omit<StyleGuideExample, "id" | "addedAt"> & Partial<Pick<StyleGuideExample, "id" | "addedAt">>;
 type Working = { rulesText: string; examples: NewExample[] };
 
@@ -83,7 +72,6 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
     return result.packet;
   }
 
-  /** Save and approve saves the guide, then approves exactly the revision that save produced. */
   async function mutate(action: "save" | "approve" | "restore" | "save-approve", restoreRevision?: number) {
     if (!packet) return;
     setBusy(true);
@@ -108,10 +96,6 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   const unsaved = packet ? !sameDocument(proposed, packet.draft ?? packet.approved) : false;
   const approvable = Boolean(packet?.draft) && !unsaved;
 
-  // The shell asks before a rail click, Leave, a reload or a language switch
-  // drops the draft guide. Saving leaves it as a draft (translations follow
-  // only the approved guide), so the dialog may save once a reason is chosen;
-  // a failed save throws so the dialog keeps the work and says why.
   useUnsavedWork({
     id: "glossary:style-guide",
     tab: "glossary",
@@ -237,11 +221,6 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
   );
 }
 
-/**
- * "Promote to style guide" on a saved Fluency correction in the article
- * reader: appends it to the locale's style guide draft as an example. The
- * draft still needs approval in the Style guide view.
- */
 export function PromoteToStyleGuide({ locale, slug, segment, revision, disabled }: { locale: string; slug: string; segment: string; revision: number; disabled?: boolean }) {
   const [state, setState] = useState<{ busy: boolean; message: string | null }>({ busy: false, message: null });
   async function promote() {

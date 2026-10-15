@@ -19,30 +19,21 @@ import type { BoardDestination } from "./boardModel";
 import { slotId, slotsEqual, type LayoutSlot } from "./layoutOps";
 
 export type LayoutMoveRequest = {
-  /** Where the substance is now; the tray slot for a substance outside the index. */
   from: LayoutSlot;
   slug: string;
   name: string;
-  /** "Psychedelic, Common", or null for a substance outside the index. */
   fromLabel: string | null;
 };
 
 export interface LayoutMoveDialogProps {
   request: LayoutMoveRequest | null;
   destinations: readonly BoardDestination[];
-  /** Lists that already hold the substance, so they read "Already here" instead of offering a duplicate. */
   holds: (slot: LayoutSlot, slug: string) => boolean;
   onClose: () => void;
   onMove: (request: LayoutMoveRequest, to: LayoutSlot) => void;
-  /** Lets the caller send focus to the moved row instead of the menu that opened this. */
   onCloseAutoFocus?: (event: Event) => void;
 }
 
-/**
- * Every list a substance can go to, grouped by category, with a filter. It
- * stands in for the drag on a phone and for a menu submenu that would open
- * off the side of a narrow screen, and it is the tray's "Place" too.
- */
 export function LayoutMoveDialog({ request, destinations, holds, onClose, onMove, onCloseAutoFocus }: LayoutMoveDialogProps) {
   const [query, setQuery] = useState("");
   const [seenRequest, setSeenRequest] = useState(request);

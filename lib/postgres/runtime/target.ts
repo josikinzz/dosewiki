@@ -3,7 +3,6 @@ export type RuntimeEnv = Record<string, string | undefined>;
 export type PostgresTarget = {
   url: string;
   sourceEnvVar: "POSTGRES_POOLED_URL" | "POSTGRES_DIRECT_URL";
-  /** Safe for diagnostics: no userinfo or connection parameters. */
   displayUrl: string;
   identity: string;
 };
@@ -22,7 +21,6 @@ export function parsePostgresTarget(value: string): { displayUrl: string; identi
     if (!["postgres:", "postgresql:"].includes(url.protocol) || !url.hostname || !database || database.includes("/") || /\p{Cc}/u.test(database) || url.hash || url.port === "0") {
       throw new Error();
     }
-    // libpq options must not silently redirect the URL to another destination.
     for (const parameter of ["host", "hostaddr", "port", "dbname", "database", "service"]) {
       if (url.searchParams.has(parameter)) throw new Error();
     }
@@ -41,7 +39,6 @@ export function resolveRuntimePostgresTarget(env: RuntimeEnv = process.env): Pos
   const url = env[sourceEnvVar]?.trim();
   if (!url) throw new Error("Postgres requires POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL.");
   const target = parsePostgresTarget(url);
-  // Pooled and direct ports may differ, but must address the same database.
   for (const key of ["POSTGRES_POOLED_URL", "POSTGRES_DIRECT_URL", "TARGET_POSTGRES_URL"] as const) {
     if (env[key] !== undefined && parsePostgresTarget(env[key]!.trim()).identity !== target.identity) {
       throw new Error(`Postgres target mismatch: ${sourceEnvVar} and ${key} must identify the same host and database.`);

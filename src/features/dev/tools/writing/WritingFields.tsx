@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The fields of one written page, shared by the Writing workspace pane and
- * the public page's contextual panel: the words (title, cover for a blog post,
- * teaser, body), then how it is published (state, address, date), then who it
- * is by and how it is filed (byline, tags). Every field is disabled while the
- * controller holds the form still (loading, saving, a recovery choice, an
- * unconfirmed publication).
- */
-
 import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { ExpandButton } from "@/components/common/ExpandButton";
@@ -23,10 +14,8 @@ import { cn } from "@/lib/utils";
 import type { WritingWorkbenchController } from "./useWritingWorkbenchController";
 import { writingAddress, writingTagOptions, type WritingDraft } from "./writingEditorModel";
 
-/** A stored date the date input can show; anything else shows empty beside its field error. */
 const DATE_INPUT_VALUE = /^\d{4}-\d{2}-\d{2}/;
 
-/** The teaser length a listing card shows without cutting it short. */
 const TEASER_GUIDE = 160;
 
 export type WritingFieldsProps = {
@@ -34,9 +23,7 @@ export type WritingFieldsProps = {
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading: boolean;
   canApprove: boolean;
-  /** The contextual panel: prose first, publication details folded, no group headings. */
   contextual?: boolean;
-  /** Draw the Draft / Published choice among the publishing fields (the workspace pane does; the contextual panel keeps it by its save). */
   showStatus?: boolean;
 };
 
@@ -53,7 +40,6 @@ export function WritingFields({
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsId = useId();
   const emphasiseCover = kind === "blog";
-  // A proposal never renames, so an editor keeps a saved entry's slug.
   const slugLocked = !canApprove && controller.loadedRow !== null;
   const cover = draft.coverImageUrl.trim();
   const tagOptions = useMemo(() => writingTagOptions(controller.entries ?? []), [controller.entries]);
@@ -99,9 +85,6 @@ export function WritingFields({
                 failedCover === cover ? (
                   <p className="theme-warning-text text-xs sm:w-40">This image could not be loaded. Check the address.</p>
                 ) : (
-                  // A raw <img>: the address is whatever was typed, with no
-                  // known size for next/image, and the error event is how a
-                  // dead link is reported.
                   // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, @next/next/no-img-element -- `error` is a load event, not an interaction; a typed address has no known size.
                   <img
                     src={cover}
@@ -164,7 +147,6 @@ export function WritingFields({
     <>
       {showStatus ? (
         <div className="space-y-2">
-          {/* An editor proposes the state too; an admin's approval applies it. */}
           <EditorSegmentedControl
             label="Publication state"
             value={draft.status}
@@ -290,7 +272,6 @@ export function WritingFields({
   );
 }
 
-/** A labelled group of fields: a `fieldset` whose legend reads as a quiet meta label. */
 function FieldGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="min-w-0 space-y-5">

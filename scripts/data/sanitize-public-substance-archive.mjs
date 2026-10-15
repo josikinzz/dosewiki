@@ -9,7 +9,6 @@ import ts from "typescript";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const ARCHIVE_PATH = resolve(ROOT, "public/SubstanceIndex.json");
 
-// Delete syntax ranges rather than serializing: all surviving bytes stay intact.
 export function sanitizePublicSubstanceArchive(source) {
   const before = JSON.parse(source);
   assert(Array.isArray(before), "Public substance archive must be an array.");

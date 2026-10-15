@@ -58,10 +58,6 @@ function args(
   return input;
 }
 
-/**
- * The identity defaults to admin: every write here lands on the public corpus
- * with no review step, so admin is the floor and the role the happy paths run as.
- */
 function mutationContext(options: {
   identityRole?: "admin" | "editor" | "viewer";
 } = {}) {

@@ -20,7 +20,6 @@ export type StudioFeedback = { tone: NoticeTone; message: string };
 
 let cachedCorpus: CorpusPayload | null = null;
 
-/** The editorial fields as loaded: the compare-and-swap guard every save sends. */
 function expectedOf(row: StudioRow) {
   return {
     title: row.title,
@@ -42,7 +41,6 @@ type BulkConflict = {
 };
 type BulkResult = { updated: number; published?: string[]; conflicts?: BulkConflict[] };
 
-/** One notice for a bulk result: what was written, what moved, what was refused. */
 function bulkOutcome(edit: BulkEdit, total: number, payload: BulkResult): StudioFeedback {
   const conflicts = payload.conflicts ?? [];
   const publishing = edit.publish === true;
@@ -72,10 +70,6 @@ function bulkOutcome(edit: BulkEdit, total: number, payload: BulkResult): Studio
   return { tone: "warning", message: parts.join(" ") };
 }
 
-/**
- * The corpus every workspace reads, and the editorial writes against it.
- * Each write reloads the corpus, so every workspace sees the stored values.
- */
 export function useReplicationCorpus() {
   const [load, setLoad] = useState<CorpusLoadState>(
     cachedCorpus ? { status: "ready" } : { status: "loading" },
@@ -158,11 +152,6 @@ export function useReplicationCorpus() {
     [reload],
   );
 
-  /**
-   * Applies one bulk edit. Each row carries the values it was loaded with; the
-   * server writes the rows that still match and names the rest. Resolves true
-   * when the request went through, so the inspector can spend its draft.
-   */
   const applyBulk = useCallback(
     async (targets: readonly StudioRow[], edit: BulkEdit): Promise<boolean> => {
       setBusy(true);
@@ -198,7 +187,6 @@ export function useReplicationCorpus() {
     [reload],
   );
 
-  /** Publishes unpublished works whose rights status and source are set. */
   const publishRows = useCallback(
     (targets: readonly StudioRow[]) => applyBulk(targets, { publish: true }),
     [applyBulk],

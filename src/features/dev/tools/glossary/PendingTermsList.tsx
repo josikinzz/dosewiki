@@ -6,11 +6,6 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 
 import { count } from "./glossaryModel";
 
-/**
- * Approved terms the main translation has not picked up yet. The first
- * `limit` terms read inline; the rest sit behind an expand button so a long
- * backlog does not push the table off screen.
- */
 export function PendingTermsList({ terms, limit = 8 }: { terms: readonly string[]; limit?: number }) {
   const [expanded, setExpanded] = useState(false);
   const restId = useId();

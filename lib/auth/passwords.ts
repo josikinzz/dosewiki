@@ -1,22 +1,12 @@
 import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 
-/**
- * Password hashing for member accounts.
- *
- * Stored format: `scrypt$N$r$p$<saltB64>$<hashB64>`. The parameters travel
- * with the hash so they can be raised later without invalidating existing
- * rows; `verifyPassword` reads them back from the stored value.
- */
-
 const SCRYPT_N = 16384;
 const SCRYPT_R = 8;
 const SCRYPT_P = 1;
 const SALT_BYTES = 16;
 const KEY_BYTES = 64;
 
-// The acceptance rule lives in `passwordPolicy.ts` (no `node:crypto`) so
-// browser forms can share it; re-exported here for the server callers.
 export { MIN_PASSWORD_LENGTH, validateNewPassword } from "./passwordPolicy";
 
 const scryptAsync = promisify(scrypt) as (
@@ -43,11 +33,6 @@ export async function hashPassword(plain: string): Promise<string> {
   ].join("$");
 }
 
-/**
- * Well-formed and never matched. Sign-in verifies against this when the
- * username is unknown so the response costs one real derivation either way
- * and timing does not reveal whether an account exists.
- */
 export const UNMATCHABLE_PASSWORD_HASH = [
   "scrypt",
   String(SCRYPT_N),
@@ -65,11 +50,6 @@ function parsePositiveInt(value: string): number | null {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
 }
 
-/**
- * Constant-time comparison against a stored `scrypt$...` value. A malformed
- * stored value is treated as "does not match" rather than thrown, so a
- * corrupted row can never be signed into.
- */
 export async function verifyPassword(plain: string, stored: string): Promise<boolean> {
   if (typeof plain !== "string" || typeof stored !== "string") {
     return false;
@@ -87,9 +67,6 @@ export async function verifyPassword(plain: string, stored: string): Promise<boo
     return false;
   }
 
-  // Copied out of Buffer's shared slab: Bun's scrypt reads a pool-backed salt
-  // unreliably when derivations overlap, which made concurrent verifications
-  // of a valid password fail. Node is unaffected; the copy is 16 bytes.
   const salt = Uint8Array.from(Buffer.from(parts[4], "base64"));
   const expected = Buffer.from(parts[5], "base64");
   if (salt.length === 0 || expected.length !== KEY_BYTES) {

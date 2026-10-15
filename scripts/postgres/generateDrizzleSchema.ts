@@ -1,27 +1,3 @@
-/**
- * Generates the Drizzle Postgres schema and native model from the document schema.
- *
- * Source of truth: `server/schema.ts`, composed with owned definitions.
- * SQL columns, indexes, and document types are generated from the same validators.
- * Run `npm run generate:postgres-schema` after a document schema change.
- * `npm run generate:postgres-schema -- --check` writes nothing and fails when
- * either output is stale.
- *
- * Mapping (migration decision D1):
- * - Table and column identifiers are kept verbatim so import needs no renames.
- * - `_id` text primary key; `_creation_time` double precision (float64 ms).
- * - Top-level scalars become typed columns; string-literal unions become text.
- * - Objects, arrays, records, `any`, and mixed unions become jsonb.
- * - A field that is both optional and nullable becomes jsonb so an absent
- *   field (SQL NULL) stays distinct from an explicit null (JSON null).
- * - `v.id("x")` becomes text. Reference edges are exported as data instead of
- *   foreign keys; the snapshot import reconciliation verifies them before
- *   constraints are added.
- * - Every document index becomes a btree index with `_creation_time` appended,
- *   matching the runtime's trailing sort key. Dotted index fields index
- *   the jsonb path expression.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,16 +6,6 @@ import { exportSchemaTables, objectFieldsOf, type ValidatorJson } from "./schema
 
 export type ColumnKind = "text" | "double" | "boolean" | "bigint" | "bytea" | "jsonb";
 
-/**
- * Indexes the handlers actually rely on being unique: consumed with
- * `.unique()`, or upserted by key so at most one row per key can exist.
- * Derived per query statement, not by proximity: an index merely read with
- * `.first()` or `order().take()` is NOT unique. Declaring one of those breaks
- * writes (a `warningBannerRevisions.key` unique index made every second banner
- * edit fail, since that table journals one row per change and reads the
- * newest). Every key below is verified duplicate-free on the 2026-09-09
- * production snapshot, ignoring NULLs.
- */
 const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
   articleBatchReceipts: ["by_owner_operation"],
   articleDraftReceipts: ["by_owner_change"],
@@ -71,8 +37,6 @@ const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
   replicationSourceAttribution: ["by_replication_id"],
   replicationTaxonomyEvidence: ["by_replication_digest"],
   replications: ["by_source_catalog_id", "by_taxonomy_record_key"],
-  // `server/lib/publicReadIndexes.ts` reduces this table to one row per
-  // article and deletes any extras, so uniqueness is its own invariant.
   reviewedArticles: ["by_article"],
   substanceIndex: ["by_slug"],
   tripReports: ["by_slug"],
@@ -83,9 +47,7 @@ const UNIQUE_IDENTITIES: Partial<Record<string, readonly string[]>> = {
 type ColumnPlan = {
   name: string;
   kind: ColumnKind;
-  /** Field may be absent from the stored document. */
   optional: boolean;
-  /** Column accepts SQL NULL (absent field or explicit null on a scalar). */
   nullable: boolean;
   references?: string;
 };
@@ -145,12 +107,6 @@ function indexName(table: string, descriptor: string): string {
   return `${full.slice(0, PG_IDENTIFIER_LIMIT - 9)}_${digest}`;
 }
 
-/**
- * Document strings retain code-unit ordering. Postgres' default locale collation
- * sorts punctuation differently ("25b-nboh" before "2-aminoindane"), so every
- * text index sorts `COLLATE "C"` and the runtime compares the same way.
- * Equality and uniqueness are unaffected: both collations are deterministic.
- */
 function indexExpression(columns: Map<string, ColumnPlan>, field: string): string {
   if (field === "_creationTime") return "t._creationTime";
   const [head, ...rest] = field.split(".");

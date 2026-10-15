@@ -18,12 +18,6 @@ export function RouteLoading({ model, label }: { model?: RouteLoadingViewModel; 
     label: label ?? getRouteLoadingLabel("page"),
   };
 
-  // A route fallback shorter than the viewport gives the document nothing to
-  // scroll, so the browser clamps `scrollY` to 0 and *discards* every wheel
-  // delta the reader spends while the real page streams in. Reserving two
-  // viewports of runway keeps their scroll real; the article that replaces
-  // this is far taller anyway. Section fallbacks sit inside a page that
-  // already has height, so they reserve nothing.
   const heightClass = resolvedModel.scope === "route" ? "min-h-[200vh]" : "min-h-[50vh]";
 
   return (

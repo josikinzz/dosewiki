@@ -7,25 +7,10 @@ import {
 import type { ArticleFieldChange } from "../../../../lib/proposals/articlePatch";
 import { ARTICLE_SECTION_LABELS } from "./articleSections";
 
-/**
- * The change note the publish confirmation opens with.
- *
- * The write layer requires a note of 1 to 500 characters for publish, submit,
- * and restore. Writing one by hand for "added a citation" is the step editors
- * report as ceremony, so the editor arrives with the note already filled and
- * edits it only when the change deserves more than the diff already says.
- *
- * Wording comes from the changelog's own describer, so the note a reviewer
- * confirms reads the way the resulting Recent changes row will read.
- */
-
-/** The write layer's cap. A longer note is refused, so never offer one. */
 export const CHANGE_NOTE_MAX_LENGTH = 500;
 
-/** How many field clauses a note spells out before it counts the rest. */
 const MAX_CLAUSES = 2;
 
-/** The editor section label a field path belongs to. */
 export function sectionLabel(path: string): string {
   const head = path.split(/[.[ ]/, 1)[0];
   if (Object.prototype.hasOwnProperty.call(ARTICLE_SECTION_LABELS, head)) {
@@ -36,35 +21,24 @@ export function sectionLabel(path: string): string {
   return head;
 }
 
-/** "Oral › Dose ranges › Heavy": the place inside the section, or null for the section itself. */
 export function fieldPlaceWords(path: string): string | null {
   const words = articleFieldPathWords(path);
-  // A path whose head has no public section keeps that head as its first field
-  // segment. The editor's own section label already names it, so dropping it
-  // is what keeps a single-segment path from reading "Summary › Summary".
   const segments = words.section ? words.field : words.field?.slice(1);
   return segments && segments.length > 0 ? fieldWords(segments) : null;
 }
 
-/** "Dosage and duration › Oral › Notes", or the section alone. */
 export function placeWords(path: string): string {
   const label = sectionLabel(path);
   const field = fieldPlaceWords(path);
   return field ? `${label} › ${field}` : label;
 }
 
-/** A stored reference's title, when the value really carries a usable one. */
 function referenceTitle(value: unknown): string | null {
   if (typeof value !== "object" || value === null || !("title" in value)) return null;
   const title = value.title;
   return typeof title === "string" && title.trim() ? title.trim() : null;
 }
 
-/**
- * One change as a lower-case clause. Prose changes borrow the changelog's verb
- * phrase, so "added a citation" here and "Added a citation" in Recent changes
- * are the same sentence.
- */
 function clauseFor(change: ArticleFieldChange): string {
   if (change.path.endsWith(" order")) return `reordered ${sectionLabel(change.path)}`;
 
@@ -86,7 +60,6 @@ function clauseFor(change: ArticleFieldChange): string {
   return `updated ${place}`;
 }
 
-/** Cuts at a word boundary so a truncated note never ends mid-word. */
 function fitToLimit(note: string): string {
   if (note.length <= CHANGE_NOTE_MAX_LENGTH) return note;
   const room = CHANGE_NOTE_MAX_LENGTH - 1;
@@ -95,11 +68,6 @@ function fitToLimit(note: string): string {
   return `${(boundary > 0 ? cut.slice(0, boundary) : cut).trimEnd()}…`;
 }
 
-/**
- * Describe a set of field changes in one sentence, within the write layer's
- * length cap. Empty when nothing changed, which is also when publishing is
- * refused, so the caller has nothing to offer and nothing to send.
- */
 export function synthesizeChangeNote(changes: ArticleFieldChange[]): string {
   if (changes.length === 0) return "";
 

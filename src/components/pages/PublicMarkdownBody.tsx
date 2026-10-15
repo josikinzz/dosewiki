@@ -8,7 +8,6 @@ import { Icon } from "@/components/common/Icon";
 
 import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings";
 
-/** Plain text of a rendered heading, so a heading wrapping a link still slugs. */
 function flattenHeadingChildren(children: ReactNode): string {
   if (children == null || typeof children === "boolean") {
     return "";
@@ -29,14 +28,6 @@ function flattenHeadingChildren(children: ReactNode): string {
   return "";
 }
 
-/**
- * The shared component map for reader-facing Markdown prose (About mission copy, the
- * archived Effect Index blog). Every element is styled with theme tokens rather than raw
- * colours, so the same map renders correctly under both site flavors' skins.
- *
- * Extracted from `AboutMissionMarkdown` unchanged; that page still composes it and
- * overrides only its first paragraph.
- */
 export const publicMarkdownComponents = {
   p: ({ node: _node, ...props }: { node?: unknown }) => (
     <p className="theme-text-secondary mt-4 text-[1.0625rem] leading-7 first:mt-0" {...props} />
@@ -44,9 +35,6 @@ export const publicMarkdownComponents = {
   strong: ({ node: _node, ...props }: { node?: unknown }) => <strong className="theme-accent-emphasis font-semibold" {...props} />,
   a: ({ node: _node, ...props }: { node?: unknown; children?: ReactNode; href?: string }) => {
     const { children, href, ...rest } = props;
-    // Only true external links open a new tab. Hash links must stay in-page so
-    // the About tabs' hashchange listener can switch panels, and internal
-    // routes/mailto should navigate normally.
     const isExternal = typeof href === "string" && /^https?:\/\//i.test(href);
     if (isExternal) {
       return (
@@ -89,18 +77,6 @@ export const publicMarkdownComponents = {
   ),
 };
 
-/**
- * The same map with anchor ids on h1–h3, assigned in document order by the
- * shared VCode assigner. That sharing is the point: a Markdown article's
- * contents rail is built by `extractMarkdownHeadings`, which runs the same
- * assigner over the same headings in the same order, so the two agree on every
- * anchor — including the `-2` suffix a repeated title takes.
- *
- * A fresh assigner per render keeps the numbering stable; the map is therefore
- * built per call rather than hoisted to module scope. A page that renders one
- * body as several pieces passes its own assigner instead, so the numbering
- * runs across the pieces rather than restarting in each.
- */
 function createHeadingIdComponents(
   assignHeadingId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
 ) {
@@ -120,15 +96,6 @@ function createHeadingIdComponents(
   };
 }
 
-/**
- * Render a Markdown string with the shared public prose styling.
- *
- * `headingIds` mirrors `VCodeRenderer`'s prop of the same name: off by default,
- * because most callers (About copy, the archived blog) render prose with no
- * contents rail pointing into it, and an unnecessary DOM id can collide with a
- * surrounding section's. `assignHeadingId` mirrors that renderer's prop too,
- * and implies `headingIds`.
- */
 export function PublicMarkdownBody({
   content,
   className = "max-w-none",

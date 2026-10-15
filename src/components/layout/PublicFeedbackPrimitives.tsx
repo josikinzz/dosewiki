@@ -212,9 +212,6 @@ export function StatusActions({
 export interface StatusFactProps {
   label: string;
   value: ReactNode;
-  /** Visual treatment. "boxed" (default) renders the bordered tile; "plain"
-   *  drops the card chrome (no border/rounded-card/padding box) for flat side
-   *  rails that list facts or recovery links without forced nested boxes. */
   tone?: "boxed" | "plain";
 }
 
@@ -250,9 +247,6 @@ export interface MediaPlaceholderProps {
   title?: ReactNode;
 }
 
-// The defaults stay catalog keys: this module is shared with server routes,
-// so a render site that wants them translated passes `title` through its own
-// `t` (the substance article's showcase always passes the work title).
 export function MediaPlaceholder({
   className,
   description,
@@ -296,7 +290,6 @@ export function MediaPlaceholder({
 export interface MediaTileProps {
   ariaLabel?: string;
   className?: string;
-  /** Pre-formatted credit line, e.g. "by Alice" or "Creator unknown" — rendered verbatim. */
   creator?: ReactNode;
   height?: number | null;
   mediaType?: "image" | "video" | "audio";
@@ -356,8 +349,6 @@ export function MediaTile({
           </div>
         </>
       ) : (
-        // The placeholder already renders the icon, title, and credit line;
-        // repeating them in the overlay would double every label on the tile.
         <MediaPlaceholder
           icon={mediaType === "video" ? "lucide:play" : "lucide:image"}
           title={title}
@@ -448,9 +439,6 @@ export function ArticleContributorAttribution({
   text,
   url,
 }: ArticleContributorAttributionProps) {
-  // Localizes its own copy, so this export is reached through
-  // ArticleContributorAttribution.client; the module itself carries no
-  // directive because server routes render the skeleton surface above.
   const t = useT();
   const attributionText = splitAttributionText(text, author);
   const creditText = formatAttributionCreditText(attributionText);
@@ -458,8 +446,6 @@ export function ArticleContributorAttribution({
     typeof authorHref === "string" && /^https?:\/\//.test(authorHref);
   const authorLinkClassName = "theme-focus-ring relative z-20 rounded-full";
   const authorLink = !authorHref ? (
-    // No z-index: an unlinked name must not sit above the pill's own overlay
-    // link, or it would punch a dead hole in an otherwise clickable card.
     <span>{author}</span>
   ) : isExternalAuthorHref ? (
     <a
@@ -475,8 +461,6 @@ export function ArticleContributorAttribution({
       {author}
     </SmartLink>
   );
-  // The avatar belongs to the name, not the sentence: render it between "by"
-  // and the author inside one nowrap unit so the credit never breaks mid-name.
   const authorLabel = (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap align-bottom">
       <span className="theme-text-faint font-medium">{t("by")}</span>

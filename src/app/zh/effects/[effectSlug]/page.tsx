@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/effects/[effectSlug]`, reached only
- * through the middleware rewrite from `zh.dose.wiki/effects/<slug>`. Same
- * loader with the localized effect record spliced in; the mirror carries
- * `noindex` and a canonical link back to the English effect article.
- */
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadEffectMetadataRoute, loadEffectRoute } from "@server/next/routeLoaders.substances";

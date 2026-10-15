@@ -3,12 +3,6 @@ import { Footer } from "@/components/layout/Footer";
 import type { RouteChromeModel } from "@/types/navigation";
 import type { StoryDef } from "../registry/types";
 
-/**
- * Build a minimal RouteChromeModel for the footer examples. Only the
- * footer-facing slice of the model is read by <Footer />, so the rest is
- * filled with inert defaults to satisfy the type without pulling in the real
- * route-chrome builder (a runtime util we must not import here).
- */
 function mockFooterModel(overrides: {
   footerNavItems?: RouteChromeModel["footerNavItems"];
   footerExternalNavItems?: RouteChromeModel["footerExternalNavItems"];

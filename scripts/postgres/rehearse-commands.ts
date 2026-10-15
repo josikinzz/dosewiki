@@ -1,32 +1,3 @@
-/**
- * The operator command families run unchanged against
- * Postgres through scripts/lib/data-client.ts, and their guards hold.
- *
- *   bun scripts/postgres/rehearse-commands.ts --target postgres://localhost:5432/dosewiki [--allow-remote] [--keep]
- *
- * Every family is driven as a real subprocess (`bun scripts/<family>/<apply>`)
- * with DATA_BACKEND=postgres and TARGET_POSTGRES_URL pointing at the target,
- * against scratch rows this script creates (prefix `t17-` / `t18-`) and
- * deletes in `finally`. Per family it asserts, where the command has the
- * guard: dry run leaves the row untouched; a wrong `--expected-deployment` is
- * refused before any write; a missing approval flag is refused; stale live
- * content (the row edited after the artifact was reviewed) is refused; a
- * replay of the applied artifact is refused or settles without writing; and
- * the receipt / ledger / audit the command writes carries enough to reconcile.
- *
- * Families:
- *   citations   scripts/citations/verdict-apply.mjs
- *   legality    scripts/legality/apply-draft.mjs
- *   media-dates scripts/replications/apply-date-research.mjs  (intake/taxonomy ledger)
- *   media-rights scripts/replications/apply-artist-license.mjs (attribution)
- *   identity    scripts/contributors/apply-profile-patches.mjs (contributor identity)
- *   merge       the contributorProfileMerges approved-pair gate, exercised directly
- *               (the pinned one-off executor script has been retired).
- *
- * Report: runs/postgres-import/<timestamp>-commands/report.json. Scratch
- * artifacts (drafts, plans, ledgers) live under the same directory.
- */
-
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -83,7 +54,6 @@ class Rehearsal {
     this.runDirectory = runDirectory;
     const env: NodeJS.ProcessEnv = { ...process.env, DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: target, DOSEWIKI_REVALIDATE_URL: UNREACHABLE };
     for (const key of Object.keys(env)) {
-      // Only the explicit rehearsal target may be reachable from a Postgres rehearsal.
       if (key === "POSTGRES_POOLED_URL" || key === "POSTGRES_DIRECT_URL") delete env[key];
     }
     this.env = env;
@@ -129,7 +99,6 @@ class Rehearsal {
     return file;
   }
 
-  /** Delete every scratch row plus the derived rows the commands wrote for them. */
   async cleanup(): Promise<void> {
     const derived: Array<[keyof typeof tableColumns, string, string[]]> = [];
     for (const [table, columns] of Object.entries(tableColumns) as Array<[keyof typeof tableColumns, Record<string, unknown>]>) {
@@ -144,7 +113,6 @@ class Rehearsal {
       const rows = await selectDocuments(this.pool, table, { where: `"${column}" = ANY($1)`, params: [values] });
       for (const row of rows) await deleteDocument(this.pool, table, row._id as string);
     }
-    // Outbox rows are keyed `<table>:<slug or key>`.
     const keys = [...this.scratchSlugs, ...this.scratchKeys];
     if (keys.length) {
       const outbox = await selectDocuments(this.pool, "publicCachePublications", { where: `"key" ~ $1`, params: [`(${keys.map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`] });
@@ -154,22 +122,11 @@ class Rehearsal {
   }
 }
 
-/**
- * `substanceArticleLightValidator` does not name `section_gaps`, so an article
- * carrying it cannot be written back through `saveSubstance` or
- * `citationEvidence.applyDraft` on either backend. Articles that round-trip
- * through the editor never carry it; the shared fixture does, so the seed
- * drops it (the same trim the article lifecycle and citation rehearsals make).
- */
 function scratchArticle(overrides: Record<string, unknown>): Record<string, unknown> {
   const article = { ...structuredClone(minimalArticle), ...overrides } as Record<string, unknown>;
   delete article.section_gaps;
   return article;
 }
-
-// ---------------------------------------------------------------------------
-// citations: scripts/citations/verdict-apply.mjs
-// ---------------------------------------------------------------------------
 
 async function citations(r: Rehearsal): Promise<void> {
   const family = "citations";
@@ -258,10 +215,6 @@ async function citations(r: Rehearsal): Promise<void> {
   r.refused(family, "replaying the applied draft is refused (content hash no longer matches)", r.run(script, [...base, ...ceremony, `--expected-deployment=${r.fingerprint}`]), /content.?hash|drift/i);
 }
 
-// ---------------------------------------------------------------------------
-// legality: scripts/legality/apply-draft.mjs
-// ---------------------------------------------------------------------------
-
 async function legality(r: Rehearsal): Promise<void> {
   const family = "legality";
   const script = "scripts/legality/apply-draft.mjs";
@@ -293,7 +246,6 @@ async function legality(r: Rehearsal): Promise<void> {
     gaps: [],
     refuted: [],
   };
-  // apply-draft resolves the draft under <repo>/runs/legality/<slug>/ by design.
   const runDir = path.join(ROOT, "runs", "legality", slug);
   fs.mkdirSync(runDir, { recursive: true });
   fs.writeFileSync(path.join(runDir, "legality-draft.json"), `${JSON.stringify(draft, null, 2)}\n`);
@@ -324,9 +276,6 @@ async function legality(r: Rehearsal): Promise<void> {
     expect(family, "backup snapshot and audit log were written", Boolean(backupPath && fs.existsSync(backupPath) && auditPath && fs.existsSync(auditPath)), { backupPath, auditPath });
     const auditEntry = auditPath && fs.existsSync(auditPath) ? JSON.parse(fs.readFileSync(auditPath, "utf8")) : null;
     expect(family, "the audit entry names the slug, completes, and points at the backup and the applied receipt", auditEntry?.slug === slug && auditEntry?.status === "completed" && auditEntry?.backupPath === backupPath && typeof auditEntry?.appliedPath === "string" && fs.existsSync(auditEntry.appliedPath), auditEntry && { slug: auditEntry.slug, status: auditEntry.status });
-    // `substanceIndex.saveSubstance` patches the article row and nothing else
-    // (server/lib/substanceIngestion.ts), so this family's reconciliation trail
-    // is the local backup, audit entry, and applied.json, not a server journal.
     const revisions = await selectDocuments(r.pool, "articleRevisions", { where: '"slug" = $1', params: [slug] });
     expect(family, "saveSubstance wrote no server-side revision row (local artifacts are the trail)", revisions.length === 0, revisions.length);
 
@@ -335,10 +284,6 @@ async function legality(r: Rehearsal): Promise<void> {
     fs.rmSync(runDir, { recursive: true, force: true });
   }
 }
-
-// ---------------------------------------------------------------------------
-// media: scripts/replications/apply-date-research.mjs and apply-artist-license.mjs
-// ---------------------------------------------------------------------------
 
 async function scratchReplication(r: Rehearsal, overrides: Record<string, unknown>): Promise<{ id: string; document: Record<string, unknown> }> {
   const [fixture] = await selectDocuments(r.pool, "replications", { where: '"role" IS NULL OR "role" = \'replication\'', limit: 1 });
@@ -353,9 +298,6 @@ async function scratchReplication(r: Rehearsal, overrides: Record<string, unknow
     duplicate_operation_id: undefined,
     duplicate_suppressed_at: undefined,
     date_info: undefined,
-    // `replications` carries three unique identities (slug, source_catalog_id,
-    // taxonomy_record_key). The clone keeps the fixture's shape but must mint
-    // its own, or migration 0003's unique indexes refuse the insert.
     source_catalog_id: `t18-catalog-${mintDocumentId().slice(0, 12)}`,
     taxonomy_record_key: `t18-taxonomy-${mintDocumentId().slice(0, 12)}`,
     ...overrides,
@@ -456,10 +398,6 @@ async function mediaRights(r: Rehearsal): Promise<void> {
   expect(family, "stale-content guard: not implemented by this command (last writer wins by design)", true);
 }
 
-// ---------------------------------------------------------------------------
-// identity: scripts/contributors/apply-profile-patches.mjs
-// ---------------------------------------------------------------------------
-
 async function identity(r: Rehearsal): Promise<void> {
   const family = "identity";
   const script = "scripts/contributors/apply-profile-patches.mjs";
@@ -484,22 +422,14 @@ async function identity(r: Rehearsal): Promise<void> {
 
   r.succeeded(family, "write applied through contributorProfiles.saveProfileAsEditor", r.run(script, [...base, "--write", "--confirm-write=apply-contributor-profile-patches", `--expected-deployment=${r.fingerprint}`]), /Updated 1 profile/);
   const after = await r.get("contributorProfiles", id);
-  // An explicit alias list replaces the stored one, and the key plus the new
-  // display name are always folded back in, lowercased (server/lib/contributorProfilePatches.ts).
   const aliases = Array.isArray(after?.aliases) ? (after.aliases as string[]) : [];
   expect(family, "profile reads back with the planned patch and the folded-in identity aliases", after?.displayName === "After Rehearsal" && after?.approved_replicator === true && aliases.length === 3 && ["rehearsal alias", key.toLowerCase(), "after rehearsal"].every((alias) => aliases.includes(alias)), { displayName: after?.displayName, approved_replicator: after?.approved_replicator, aliases });
   const revisions = await selectDocuments(r.pool, "contentRevisions", { where: '"table" = $1 AND "key" = $2', params: ["contributorProfiles", key] });
   expect(family, "content revision journal recorded the prior profile", revisions.length >= 1, revisions.length);
-  // Receipt reuse: the plan's `expected` values describe the pre-write row, so
-  // replaying it is blocked rather than silently re-applied.
   const applied = await r.hash("contributorProfiles", id);
   r.refused(family, "replaying the applied plan is refused (its expected values no longer match the live profile)", r.run(script, [...base, "--write", "--confirm-write=apply-contributor-profile-patches", `--expected-deployment=${r.fingerprint}`]), /1 planned: 0 to write, 0 settled, 1 blocked[\s\S]*Re-review the plan/);
   expect(family, "the blocked replay left the applied profile untouched", (await r.hash("contributorProfiles", id)) === applied);
 }
-
-// ---------------------------------------------------------------------------
-// merge: the approved-pair gate
-// ---------------------------------------------------------------------------
 
 async function merge(r: Rehearsal, client: ReturnType<typeof createDataClient>["client"]): Promise<void> {
   const family = "merge";

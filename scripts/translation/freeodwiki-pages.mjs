@@ -1,10 +1,3 @@
-/**
- * One FreeODwiki page per dose.wiki record. Each builder takes a translated
- * item plus the run context and returns the file to write; the tables and
- * sections it lays out follow their existing drug pages, so a reader moving
- * between an upstream page and one of these sees the same shape.
- */
-
 import { SITE } from "./freeodwiki-shape.mjs";
 import {
   assemble,
@@ -20,8 +13,6 @@ import {
   routeLabel,
   sourceStatement,
 } from "./freeodwiki-markdown.mjs";
-
-// ----------------------------------------------------------------- page bodies
 
 function substanceTables(item, ctx) {
   const { ui, DOSE_TIERS, DURATION_STAGES } = ctx.labels;
@@ -74,8 +65,6 @@ function substanceEffects(item, ctx) {
           const name = prose(effect?.name, ctx.counters);
           if (!name) return null;
           const description = prose(effect?.description, ctx.counters);
-          // The index stores an effect's display name, not its slug, so the
-          // only sound target is an effect page whose title is exactly this.
           const href = ctx.effectPagesByTitle?.get(name) ?? null;
           if (href) ctx.counters.effectNamesLinked += 1;
           const label = href ? `[${name}](${href})` : name;
@@ -117,7 +106,6 @@ function substanceEffects(item, ctx) {
   return blocks;
 }
 
-/** `{ start, end }` from the history schema, or a plain string; anything else renders no range. */
 function formatDateRange(range) {
   if (!range) return "";
   if (typeof range === "string") return range.trim();
@@ -206,11 +194,6 @@ export function substancePage(item, ctx) {
   const title = String(item.title ?? item.slug);
   const blocks = [];
 
-  // The drug-class safety banners the site shows above the hero. Same rule as
-  // everywhere else: enabled on this named slug, never inferred from a class.
-  // A blockquote, for the reason `sourceStatement` gives: the target's enabled
-  // Markdown extension set cannot be asserted, and a blockquote survives all
-  // of them.
   for (const banner of ctx.bannersFor?.(String(item.slug ?? "")) ?? []) {
     blocks.push([
       `> **${escapeProse(banner.severityLabel)} — ${escapeProse(banner.headline)}**`,
@@ -258,8 +241,6 @@ export function substancePage(item, ctx) {
     }],
     [ui.harmPotential, () => substanceHarm(item, ctx)],
     [ui.interactions, () => {
-      // Combination lists in the site's own severity order; each entry is a
-      // free-text line that may carry its own explanation in parentheses.
       const interactions = item.interactions ?? {};
       const out = [];
       for (const [key, label] of INTERACTION_TIERS) {
@@ -321,8 +302,6 @@ export function effectPage(item, ctx) {
   const title = String(item.name ?? item.slug);
   const blocks = [];
   const description = renderMarkupField(item.description_raw, ctx);
-  // The card summary restates the opening of the description on most effects.
-  // It still earns its place in the front matter, but not twice in the body.
   blocks.push(...(description.length > 0 ? description : renderPlainProse(item.summary, ctx)));
 
   for (const [field, heading] of [
@@ -416,12 +395,6 @@ export function articlePage(item, ctx) {
   });
 }
 
-/**
- * A psychoactive summary: its own intro and section definitions, then each
- * section's effects as links into the effect pages, whose long summaries the
- * live page inlines. The effect pages carry that prose here, so the summary
- * stays a guide rather than a second copy of the index.
- */
 export function summaryPage(item, ctx) {
   const { ui, LICENCE, TREE } = ctx.labels;
   const title = String(item.title ?? item.slug);
@@ -490,7 +463,6 @@ export function summaryPage(item, ctx) {
   });
 }
 
-/** An effect category: its definition and the effects it contains, linked. */
 export function effectCategoryPage(item, ctx) {
   const { ui, LICENCE, TREE } = ctx.labels;
   const title = String(item.name ?? item.slug);
@@ -580,7 +552,6 @@ export function reportPage(item, ctx) {
   });
 }
 
-/** Numbered references, in the marker order the page produced. */
 function citationList(ctx) {
   if (ctx.citationOrder.size === 0) return [];
   const byNumber = [...ctx.citationOrder].sort((a, b) => a[1] - b[1]);

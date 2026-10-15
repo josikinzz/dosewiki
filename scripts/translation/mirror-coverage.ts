@@ -1,4 +1,3 @@
-/** Read-only semantic storage and hydrated DOM coverage. Neither proves translation fidelity. */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -169,7 +168,6 @@ async function renderLens() {
             }
             const untranslated = snapshot.candidates.filter((entry) => !entry.canonical && /[A-Za-z]{3}/.test(entry.text) && (locale.coveragePolicy.script !== "simplified-han" || !/\p{Script=Han}/u.test(entry.text)) && (locale.coveragePolicy.script !== "cyrillic" || !/\p{Script=Cyrillic}/u.test(entry.text)));
             const status = response?.status() ?? 0;
-            // Script ratio is diagnostic only. No page is approved without exact surface evidence.
             const verdict = status !== 200 ? "error" : !snapshot.languages.includes(locale.htmlLanguage) || checks.some((check) => !check.passed) || snapshot.overflow ? "failed" : checks.length === 0 || untranslated.length > 0 ? "review-required" : "verified-surfaces";
             pages.push({ path: route, url: page.url(), status, verdict, ...snapshot, untranslated, checks });
           } catch (error) { pages.push({ path: route, verdict: "error", error: String(error) }); }

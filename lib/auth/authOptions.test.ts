@@ -10,8 +10,6 @@ vi.mock("./memberships", () => memberships);
 
 const passwords = vi.hoisted(() => ({ verifyPassword: vi.fn() }));
 
-// The real module, with `verifyPassword` observable: the unknown-username
-// case is a timing contract (one derivation happens), not a return value.
 vi.mock("./passwords", async (importOriginal) => {
   const original = await importOriginal<typeof PasswordsModule>();
   passwords.verifyPassword.mockImplementation(original.verifyPassword);
@@ -52,9 +50,6 @@ describe("authorizeCredentials", () => {
   });
 
   it("never matches the dummy hash", async () => {
-    // The unknown-username path must be indistinguishable in cost and can
-    // never accidentally succeed: the dummy is well formed (so scrypt runs)
-    // but its digest is all zero bytes.
     const [, N, r, p, salt, digest] = UNMATCHABLE_PASSWORD_HASH.split("$");
     expect([N, r, p]).toEqual(["16384", "8", "1"]);
     expect(Buffer.from(salt, "base64")).toHaveLength(16);

@@ -6,26 +6,14 @@ import { Icon, type IconName } from "./Icon";
 type HeadingLevel = "h1" | "h2" | "h3";
 
 export interface SearchEmptyStateProps {
-  /** Iconify name for the centered glyph (lucide:* or custom:*). */
   icon: IconName;
-  /** Headline copy. */
   title: React.ReactNode;
-  /** Supporting copy under the title. */
   description?: React.ReactNode;
-  /** Heading element for the title. Defaults to "h1". */
   headingLevel?: HeadingLevel;
-  /** Pixel size for the centered icon. Defaults to 20. */
   iconSize?: number;
-  /** Extra classes merged onto the centered flex stack. */
   className?: string;
 }
 
-/**
- * Centered icon + title + description stack used inside the search result
- * panels (empty / loading / no-results states). Render it inside the page's
- * `theme-public-card` panel; this component owns only the inner stack so each
- * call site keeps its own panel chrome and spacing via `className`.
- */
 export function SearchEmptyState({
   icon,
   title,

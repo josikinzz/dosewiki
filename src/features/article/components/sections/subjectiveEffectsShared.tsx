@@ -26,23 +26,8 @@ import { useT, type MessageValues } from "@/i18n/client";
 
 export { SENSORY_CATEGORIES };
 
-/**
- * Where a category's subcategory notes live, as already-decoded path parts —
- * `["subjective_effects", "physical"]`, or
- * `["subjective_effects", "sensory", "visual", "subcategories"]`.
- *
- * Parts rather than a string because the subcategory key appended to it comes
- * from article data ("Hallucinatory States"), and only `buildFieldPath` encodes
- * such a key into something a path parser can split back apart.
- */
 export type EffectNotePathBase = readonly string[];
 
-/**
- * Resolves an effect chip's destination, or null when the name has no page to
- * link to. Callers must render a null result as a plain chip: the alias table
- * exists because ~27% of chip names slugified to a route that 404s, and silently
- * emitting those links is what made the rot invisible.
- */
 function getEffectHref(name: string, location?: EffectLocation): string | null {
   const alias = resolveEffectNameAlias(slugify(name), location);
 
@@ -102,7 +87,6 @@ function EffectBadge({
         />
         <div className="flex flex-wrap items-center gap-2 pr-8">
           {href === null ? (
-            // No page to open: same typography, none of the link affordances.
             <span className="text-xs font-semibold text-dose-text-secondary">
               {t(effect.name)}
             </span>
@@ -140,8 +124,6 @@ function EffectBadge({
   }
 
   if (!hasDescription) {
-    // `PublicNameChip` renders a span by default; `as={SmartLink}` opts into
-    // link mode, so an unresolved name simply omits it and keeps the same chip.
     if (href === null) {
       return <PublicNameChip>{t(effect.name)}</PublicNameChip>;
     }
@@ -216,15 +198,6 @@ function EffectsGroup({
   );
 }
 
-/**
- * `EditableValue` for a note whose path is optional.
- *
- * These components are shared with call sites that never thread a path down —
- * and an editor aimed at `""` would report a rejected write rather than edit
- * anything — so the wrapper appears only once a real path exists. Without one
- * the children pass through untouched, which is exactly what the public article
- * rendered before any of this was wired.
- */
 function MaybeEditable({
   children,
   label,
@@ -233,7 +206,6 @@ function MaybeEditable({
   value,
 }: {
   children: ReactNode;
-  /** A message key; `EditableValue` translates it with `labelValues`. */
   label: string;
   labelValues?: MessageValues;
   path?: string;
@@ -265,7 +237,6 @@ export function CollapsibleStage({
   note: string;
   isExpanded: boolean;
   onToggle: () => void;
-  /** Concrete path to this stage's note; absent on the public article. */
   notePath?: string;
 }) {
   const t = useT();
@@ -340,8 +311,6 @@ export function CollapsibleStage({
           </div>
         </div>
       )}
-      {/* A stage with effects but no note renders no paragraph to click, so the
-          prompt is the only way to write the first one. */}
       {!hasNote && notePath ? (
         <EditableSlot
           className="pb-3 pl-[2.625rem] pr-3"
@@ -373,7 +342,6 @@ function SubcategorySection({
   onSelectEffect?: (name: string) => void;
   isGeneral: boolean;
   location?: EffectLocation;
-  /** See `EffectNotePathBase`; absent on the public article. */
   notePathBase?: EffectNotePathBase;
 }) {
   const t = useT();
@@ -436,13 +404,6 @@ function SubcategorySection({
   );
 }
 
-/**
- * Renders a whole effect category (physical, cognitive, or a sense's
- * subcategories). A subcategory earns its header only when it groups two or
- * more effects, or carries a note that needs an anchor; `General` and lone
- * single-effect subcategories merge into one flat leading chip row, so a
- * header never restates the single chip beneath it.
- */
 export function CategoryEffects({
   category,
   expandedEffect,
@@ -455,18 +416,7 @@ export function CategoryEffects({
   expandedEffect: string | null;
   onToggleEffect: (name: string) => void;
   onSelectEffect?: (name: string) => void;
-  /**
-   * Which part of the article this category renders. Threaded down because a few
-   * names ("Euphoria", "Hallucinations") resolve to different effects depending
-   * on position, so the chip cannot resolve its own href from the name alone.
-   */
   location?: EffectLocation;
-  /**
-   * See `EffectNotePathBase`; absent on the public article.
-   *
-   * Separate from `location`, which is an effect-alias lookup key and not a
-   * field path — `sensory.visual` addresses no note that exists.
-   */
   notePathBase?: EffectNotePathBase;
 }) {
   const t = useT();

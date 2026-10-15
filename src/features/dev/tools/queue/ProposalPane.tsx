@@ -47,7 +47,6 @@ const PENDING_LABEL: Record<QueuePendingAction, string> = {
 const LOAD_DESCRIPTION =
   "Load into editor opens these changes in Substances against the latest content, so a revision can be submitted. The revision replaces this proposal.";
 
-/** A key cap on fine pointers only; the key itself rides in `aria-keyshortcuts`. */
 function KeyCap({ children }: { children: string }) {
   return (
     <span aria-hidden className="[@media(pointer:coarse)]:hidden">
@@ -62,15 +61,12 @@ export type ProposalPaneProps = {
   canLoad: boolean;
   headingId: string;
   headingRef?: RefObject<HTMLHeadingElement | null>;
-  /** "N of M" and previous/next through the rows the list shows; null when the list does not show it. */
   position: { index: number; total: number } | null;
   onMove: (direction: 1 | -1) => void;
   onBackToList: () => void;
   onCopyLink: () => void;
   copied: boolean;
-  /** Said when the list's view or search does not show this proposal. */
   hiddenByList?: ReactNode;
-  /** The revision that replaced a superseded proposal, when the list has it. */
   newerRevision: { id: string; summary: string } | null;
   onOpenProposal: (id: string) => void;
   commentText: string;
@@ -85,12 +81,9 @@ export type ProposalPaneProps = {
   pending: QueuePendingAction | null;
   busy: boolean;
   frozen: boolean;
-  /** The result of the last decision on this proposal. */
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
-  /** The next proposal waiting on review, offered beside a decision's result. */
   nextWaiting: { summary: string; onOpen: () => void } | null;
-  /** Who holds it in the Inbox's claim table; null when claims do not apply. */
   hold: ProposalHold | null;
   onClaim: () => void;
   onRelease: () => void;
@@ -100,14 +93,6 @@ export type ProposalPaneProps = {
   onLoadIntoEditor: () => void;
 };
 
-/**
- * One proposal under review, docked beside the list: a header that names it
- * once (summary, proposer, age, status, Copy link, pager), where it stands,
- * what came back, what it changes, the diff, the discussion and the rejection
- * note, then a decision dock that sticks to the bottom of the screen while the
- * pane is on it. `FeedbackReviewPane` and the Inbox's `ReviewPane` are the
- * pattern.
- */
 export function ProposalPane(props: ProposalPaneProps) {
   const {
     proposal,
@@ -288,12 +273,6 @@ export function ProposalPane(props: ProposalPaneProps) {
   );
 }
 
-/**
- * The dock: the result of the last decision (with the next waiting proposal),
- * a pending line, the freeze line, the hold line, then the decisions, primary
- * first, each with the one reason it is off. A proposal with nothing to decide
- * and nothing to say has no dock.
- */
 function DecisionDock(props: ProposalPaneProps & { decides: boolean }) {
   const {
     proposal,
@@ -319,7 +298,6 @@ function DecisionDock(props: ProposalPaneProps & { decides: boolean }) {
   const blocker = actions.approve ? approveBlocker(proposal) : null;
   const drift = actions.approve && !blocker ? describeDrift(targetDrift(proposal)) : null;
   const noteMissing = actions.reject && rejectNote.trim().length === 0;
-  // An admin who decides revises from the body; the proposer's one way forward sits here.
   const dockLoad = canLoad && !decides;
   const hasDecision = decides || revert || dockLoad;
   const pendingWords = pending && pending !== "comment" ? PENDING_LABEL[pending] : null;
@@ -406,7 +384,6 @@ function DecisionDock(props: ProposalPaneProps & { decides: boolean }) {
             <Button
               type="button"
               size="sm"
-              // The proposer's way forward is their one accent.
               variant="accent"
               disabled={busy}
               aria-busy={pending === "load" || undefined}
@@ -456,7 +433,6 @@ function DecisionDock(props: ProposalPaneProps & { decides: boolean }) {
   );
 }
 
-/** Who holds a waiting proposal in the Inbox's claim table, with the one action that changes that. */
 function HoldLine({ hold, busy, pending, onClaim, onRelease }: ProposalPaneProps & { hold: ProposalHold }) {
   let icon = "lucide:user-round";
   let iconClass = "theme-text-faint";

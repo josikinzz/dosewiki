@@ -13,16 +13,7 @@ import { ABOUT_PREVIEW_LINE_LIMIT, type AboutPreviewSnapshot } from "./aboutArch
 
 type AboutDownloadKey = "substances" | "effects" | "reports" | "molecules";
 
-/**
- * `true` lists a live JSON download without constructing it for a caption.
- * Its measurements arrive only on download intent, from the saved response.
- * Committed files can supply their deployment-matched measurements directly.
- * Omitted keys are not listed.
- */
 export type AboutDownloads = Partial<Record<AboutDownloadKey, PublicDownloadStats | true>>;
-
-// Each download carries the icon its section uses in the site menu, so the list
-// reads as "the same things you navigate to, as files".
 
 const DOWNLOADS: ReadonlyArray<{
   key: AboutDownloadKey;
@@ -56,7 +47,6 @@ const DOWNLOADS: ReadonlyArray<{
   },
 ];
 
-/** A few representative structures shown under the molecule pack download. */
 const MOLECULE_PREVIEW_SLUGS = ["lsd", "2c-b", "psilocin", "mdma", "ketamine", "caffeine"] as const;
 
 function triggerDownload(href: string, filename: string) {
@@ -98,9 +88,6 @@ function DownloadPill({
     setFailed(false);
     setMeasuredStats(null);
     try {
-      // No mount-time request: an ordinary page read never regenerates an export.
-      // Read the caption and file from one response so an ISR revision change
-      // cannot make the caption describe a different document from the download.
       const response = await fetch(href);
       if (!response.ok) throw new Error(`Download failed: ${response.status}`);
       const metadata = getOpenDataDownloadStats(response.headers);
@@ -153,12 +140,9 @@ export function JsonSyntaxHighlight({
 }: {
   json: string;
   truncated: boolean;
-  /** Shown beneath a cut record. */
   truncatedNote?: string;
 }) {
   const highlightedLines = useMemo(() => {
-    // The server already enforces the line limit for truncated snapshots;
-    // complete snapshots must render every line.
     const escaped = json
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -243,9 +227,7 @@ export function AboutArchivePreview({
   showMoleculePreview,
 }: {
   previewSnapshots: AboutPreviewSnapshot[];
-  /** The files to list, in the fixed order of the site menu; omitted keys are not shown. */
   downloads: AboutDownloads;
-  /** Show the molecule strip under the pills. Defaults to on when the pack is listed. */
   showMoleculePreview?: boolean;
 }) {
   const t = useT();
@@ -255,7 +237,6 @@ export function AboutArchivePreview({
   });
   const moleculeStripVisible = showMoleculePreview ?? downloads.molecules !== undefined;
 
-  // Open on a whole record when one exists; large articles remain reachable via Shuffle.
   const [previewIndex, setPreviewIndex] = useState(() => {
     if (previewSnapshots.length === 0) return -1;
     const complete = previewSnapshots.findIndex((snapshot) => !snapshot.truncated);

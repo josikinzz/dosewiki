@@ -67,13 +67,6 @@ import {
 
 import type { StoryDef } from "../registry/types";
 
-/*
- * The editor kit: every export of src/features/dev/components. Each story is
- * tier "editor"; the completeness test fails when an export of that index has
- * no entry here. This page only exists in the editor build, so importing the
- * dev components is inside the editor boundary.
- */
-
 const IMPORT_LINE = (names: string) => `import { ${names} } from "@/features/dev/components";`;
 
 function NoticeDismissDemo() {
@@ -694,8 +687,6 @@ const backLinkStory: StoryDef = {
 };
 
 function WriteFreezeDemo() {
-  // The observer only watches this tab's own API writes; mounting it here is
-  // harmless on the kit page and shows the hook in use.
   useWriteFreezeObserver();
   const { frozen } = useWriteFreeze();
   return (

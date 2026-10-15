@@ -1,15 +1,3 @@
-/**
- * The signed-in member's own trip report submissions, for the Submissions
- * list in My reports (`/dev/my-reports`).
- *
- *   GET /api/dev/trip-reports/mine/submissions → { submissions }
- *
- * Contributor floor. The member is the session's actor, never a query
- * parameter; Postgres matches it against each submission's contact email.
- * Each row is re-projected here as well, so only the status word, dates, the
- * public reason and the published address can leave: never the private review
- * note, the reviewer, the decision log or other intake metadata.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

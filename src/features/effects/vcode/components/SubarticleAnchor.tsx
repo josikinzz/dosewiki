@@ -5,11 +5,6 @@ interface SubarticleAnchorProps {
   title?: string;
 }
 
-/**
- * Anchor target for table of contents navigation.
- * 
- * Creates an anchor point with a heading for the subarticle section.
- */
 export function SubarticleAnchor({ 
   id, 
   title, 

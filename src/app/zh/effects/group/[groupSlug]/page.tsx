@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/effects/group/[groupSlug]`, reached only
- * through the middleware rewrite from `zh.dose.wiki/effects/group/<slug>`.
- * Same index component opened on the tab the slug names; the mirror carries
- * `noindex` with a canonical link back to the English view.
- */
 import { notFound } from "next/navigation";
 
 import { UiLocaleProvider } from "@/i18n/client"

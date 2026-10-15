@@ -1,18 +1,3 @@
-/**
- * `POST /api/subscribe`: the Next replacement for the `POST /subscribe` Postgres
- * HTTP action in `server/http.ts`. Same body contract, same
- * allowed-origin policy, same two rate limits, same HMAC IP hashing, and the
- * same generic `{ ok: true }` for subscribed, duplicate, and spam so the
- * endpoint never enumerates addresses or reveals the honeypot.
- *
- * The intake mutation runs only on Postgres. A credential-free deployment
- * (Effect Index) forwards to `MAILING_LIST_FORWARD_URL`, the route owning the
- * list, after spending a local per-reader budget. It forwards the reader's
- * platform-observed IP in an HMAC-signed header; the receiver limits that IP
- * only when the signature verifies, and the relay's own platform-observed IP
- * otherwise, never an unsigned end-user IP header. `next.config.ts` rewrites
- * `/subscribe` here.
- */
 import { isIP } from "node:net";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { isDataWriteFreezeActive } from "@server/runtime/dataWriteFreeze";
@@ -33,7 +18,6 @@ import {
   type MailingList,
 } from "./subscribePolicy";
 
-/** The internal intake mutation the Postgres HTTP action ran, referenced by name as `server/publicationDelivery.ts` does. */
 const subscribeMutation = makeFunctionReference<"mutation", {
   email: string; list: MailingList; honeypotTriggered: boolean; ipHash?: string; userAgent?: string;
 }, "subscribed" | "duplicate" | "spam" | "invalid">("mailingList:subscribe");
@@ -67,9 +51,6 @@ export async function POST(request: Request) {
   const parsed = parseSubscribeBody(body);
   if (!parsed) return respond(origin, false, 400);
 
-  // Vercel overwrites this header at ingress. Outside that platform, unsigned
-  // forwarding headers are not proof of identity: use one conservative bucket.
-  // https://vercel.com/docs/headers/request-headers#x-vercel-forwarded-for
   const platformIp = process.env.VERCEL === "1" ? request.headers.get("x-vercel-forwarded-for")?.trim() : undefined;
   const clientIp = platformIp && isIP(platformIp) ? platformIp : "unknown";
   const userAgent = request.headers.get("user-agent") ?? undefined;
@@ -81,12 +62,8 @@ export async function POST(request: Request) {
     return respond(origin, false, 503);
   }
 
-  // A credential-free deployment (Effect Index, by invariant) cannot run the
-  // mutation in-process; it relays to the deployment that owns the list.
   const forwardUrl = process.env.MAILING_LIST_FORWARD_URL?.trim();
   if (forwardUrl && /^https:\/\/\S+$/.test(forwardUrl)) {
-    // The receiver sees only the relay's address unless the signed header
-    // below verifies, so the relay limits each reader itself first.
     if (await enforceRateLimit(request, "publicSubscribeRelay", { clientIp })) {
       return respond(origin, false, 429);
     }
@@ -95,8 +72,6 @@ export async function POST(request: Request) {
     return forwardSignup(forwardUrl, origin, parsed, userAgent, relayHeaders);
   }
 
-  // A relayed reader's address counts only when the relay's signature over it
-  // verifies; otherwise the caller's own platform-observed address is limited.
   const relayedIp = readRelayedClientIp(request.headers, getRelaySecret());
   const limitedIp = relayedIp && isIP(relayedIp) ? relayedIp : clientIp;
 
@@ -121,7 +96,6 @@ export async function POST(request: Request) {
 
     return respond(origin, outcome !== "invalid", outcome === "invalid" ? 400 : 200);
   } catch {
-    // Fail closed without exposing database, credential, or subscription state.
     return respond(origin, false, 503);
   }
 }

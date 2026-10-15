@@ -9,7 +9,6 @@ type UseLayoutConfirmsArgs = {
   categories: readonly ManualCategoryDefinition[];
   substanceOptions: readonly SubstanceOption[];
   removeCategory: (categoryKey: string) => void;
-  /** `keepDrugs` moves the section's substances to the category list instead of dropping them. */
   removeSection: (categoryKey: string, sectionKey: string, keepDrugs: boolean) => void;
   revertDataset: () => void;
 };
@@ -20,11 +19,6 @@ function countNoun(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-/**
- * Losing a whole category or section to a misclick is worth a question even
- * with undo behind it, because the trail is per-session: a reload takes it,
- * and a removed section's substances are not obviously recoverable by eye.
- */
 export function useLayoutConfirms({
   confirm,
   datasetLabel,

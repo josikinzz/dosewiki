@@ -1,12 +1,5 @@
 #!/usr/bin/env node
 
-// Scans a legality subsection audit (`legality:audit-subsections` output) for
-// process language in reader-facing fields and writes one row per offending
-// subsection. Pure function of the audit file: no Postgres access.
-//
-//   npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.json \
-//     --out=tmp/legality-voice-audit-<date>.json [--slug=<slug>]
-
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";

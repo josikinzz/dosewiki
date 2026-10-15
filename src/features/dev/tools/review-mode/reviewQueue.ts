@@ -8,29 +8,14 @@ import { substanceVisibility } from "@/schema/substance/substanceVisibilityPolic
 import { resolveEditorArticleSlug } from "../../context/devModeUtils";
 import type { ReviewStatus } from "../substance-editor/types";
 
-/**
- * One flip-through candidate in the review queue.
- */
 export interface ReviewQueueEntry {
   slug: string;
   name: string;
-  /**
-   * The status the reviewer sees. `stale` is a sign-off whose revision is no
-   * longer the published one; it counts as not reviewed.
-   */
   status: ReviewState;
-  /** The published revision the current sign-off covered, when there is one. */
   reviewedRevision?: string;
-  /** Who signed off the covered revision. */
   reviewedBy?: string;
-  /** When that sign-off was made. */
   reviewedAt?: string;
-  /** The editor whose recommendation that sign-off approved, if any. */
   recommendedBy?: string;
-  /**
-   * Fallback richness when no source stats are available for the slug: how
-   * many bibliography entries the article itself carries.
-   */
   referenceCount: number;
   flagSummary?: ReviewFlagSummary | null;
   flags?: Array<{ label: string; severity: ReviewFlagSeverity }>;
@@ -60,32 +45,14 @@ export function deriveReviewFlagSummary(
   return { count: flags.length, highestSeverity };
 }
 
-/**
- * A locally recorded review tick, keyed by slug.
- *
- * The tick persists straight to Postgres through its own endpoint, so the dev
- * shell's in-memory article set is deliberately left untouched — mutating it
- * would register a phantom pending change with the commit panel. `baseStatus`
- * records what the article said when the tick happened: if the article's own
- * status later changes (an editor changed the review dropdown in the form and
- * applied it), the article wins and the stale tick stops shadowing it.
- */
 export interface ReviewStatusOverride {
   status: ReviewStatus;
   baseStatus: ReviewStatus;
-  /**
-   * The `editorial_review` record Postgres returned for the tick. The queue only
-   * needs `status`, but the rendered article, the citation panel, and the
-   * editor form all read the whole object, and the working set will not carry
-   * it until the slug re-hydrates or the library list refreshes, so the write
-   * is kept here and overlaid.
-   */
   review?: SubstanceArticle["editorial_review"];
 }
 
 export type ReviewStatusOverrides = Record<string, ReviewStatusOverride>;
 
-/** How the flip-through orders its queue. */
 export type ReviewQueueOrder = "sources" | "home" | "alpha" | "alpha-desc";
 
 export const REVIEW_QUEUE_ORDER_OPTIONS: Array<{
@@ -110,17 +77,8 @@ function resolveEntryStatus(
   return articleStatus === override.baseStatus ? override.status : articleStatus;
 }
 
-/**
- * A row carrying the library projection's precomputed bibliography size.
- * Slim editor-library rows have it; hydrated rows (and test fixtures) do not.
- */
 interface ReferenceCounted { reference_count?: number; }
 
-/**
- * How many bibliography entries back the article. The projected count wins
- * when the row carries it, so slim library rows and hydrated rows read
- * identically; otherwise sum the three arrays the whole article holds.
- */
 function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): number {
   if (typeof article.reference_count === "number") return article.reference_count;
   return (
@@ -130,14 +88,6 @@ function resolveReferenceCount(article: SubstanceArticle & ReferenceCounted): nu
   );
 }
 
-/**
- * The article's review record as Postgres now holds it: the ticked one while the
- * override is still live, otherwise the article's own.
- *
- * Same shadowing rule as `resolveEntryStatus` — once the working set reports a
- * status other than the one the tick was made against, it has caught up (or an
- * editor moved it elsewhere) and the local record steps aside.
- */
 export function resolveOverriddenEditorialReview(
   article: SubstanceArticle,
   override: ReviewStatusOverride | undefined,
@@ -147,11 +97,6 @@ export function resolveOverriddenEditorialReview(
   return override.review;
 }
 
-/**
- * Who a sign-off credits, in words: "Recommended by X, approved by Y" when an
- * admin approved an editor's recommendation, "Reviewed by Y" otherwise. Null
- * when the sign-off names no reviewer.
- */
 export function signOffCredit(entry: Pick<ReviewQueueEntry, "reviewedBy" | "recommendedBy">): string | null {
   if (!entry.reviewedBy) return null;
   return entry.recommendedBy
@@ -159,23 +104,8 @@ export function signOffCredit(entry: Pick<ReviewQueueEntry, "reviewedBy" | "reco
     : `Reviewed by ${entry.reviewedBy}`;
 }
 
-/**
- * Each article's current published revision, keyed by slug, as
- * `/api/dev/review-revisions` reports it. It is derived from the stored
- * content, so every article is present; a slug missing from it (created after
- * the read) is unknown and never reads as stale.
- */
 export type PublishedRevisions = Readonly<Record<string, string>>;
 
-/**
- * The review corpus: every article a reader can reach, listed or direct-URL
- * only, whether or not the index layout places it. Only hidden articles stay
- * out. Ordering is applied separately by `sortReviewQueue`.
- *
- * With `publishedRevisions` in hand, a sign-off whose revision is no longer
- * the published one reads `stale`. Before they arrive (null) nothing is
- * stale, so a slow read never paints every sign-off as changed.
- */
 export function buildReviewQueue(
   articles: readonly SubstanceArticle[],
   overrides: ReviewStatusOverrides = {},
@@ -218,21 +148,10 @@ export function buildReviewQueue(
 }
 
 export interface ReviewQueueRanks {
-  /** Total source-document tokens per slug, from `articleSources`. */
   sourceTokens?: Record<string, number>;
-  /** Slugs in home-page order, flattened from the category layout. */
   homeOrder?: readonly string[];
 }
 
-/**
- * Order the queue without mutating it.
- *
- * `sources` ranks by scraped source material (token total), falling back to
- * the article's own bibliography size when a slug has no source stats — so
- * the default order stays meaningful even before the stats request lands.
- * `home` follows the public index layout; anything the layout does not place
- * trails alphabetically.
- */
 export function sortReviewQueue(
   entries: readonly ReviewQueueEntry[],
   order: ReviewQueueOrder,
@@ -270,11 +189,6 @@ export function sortReviewQueue(
   });
 }
 
-/**
- * Slugs in the order the home page presents them: categories as laid out
- * (psychedelics first, on down), each category's sections in order, then its
- * unsectioned substances, deduplicated on first appearance.
- */
 export function flattenHomeOrder(layout: {
   categories: Array<{
     sections: Array<{ drugs: string[] }>;
@@ -299,7 +213,6 @@ export function flattenHomeOrder(layout: {
   return orderedSlugs;
 }
 
-/** The slice of the Postgres category layout the grouped picker needs. */
 export interface ReviewGroupLayout {
   categories: Array<{
     key: string;
@@ -310,44 +223,26 @@ export interface ReviewGroupLayout {
   }>;
 }
 
-/** One chemical-class subsection inside a psychoactive category. */
 interface ReviewQueueSection { key: string;
 label: string;
 entries: ReviewQueueEntry[]; }
 
-/** One psychoactive category — the top level of the grouped picker. */
 export interface ReviewQueueGroup {
   key: string;
   label: string;
   iconKey?: string;
   sections: ReviewQueueSection[];
-  /** Entries the layout places in the category but in no subsection. */
   entries: ReviewQueueEntry[];
-  /** Every entry under the group, sections included. */
   count: number;
 }
 
-/** Slugs the layout never places, so they still have somewhere to live. */
 export const UNPLACED_GROUP_KEY = "__unplaced";
 
 interface EntryPlacement {
   categoryIndex: number;
-  /** -1 for a drug listed directly on the category, outside any section. */
   sectionIndex: number;
 }
 
-/**
- * The queue as the home page arranges it: psychoactive categories in layout
- * order, each holding its chemical-class subsections.
- *
- * Entries keep the order they arrive in, so the grouping composes with whatever
- * `sortReviewQueue` did rather than overriding it. A slug the layout lists twice
- * belongs to its first placement only — the same first-appearance rule
- * `flattenHomeOrder` uses, so the grouped and flat views agree on the corpus.
- * Empty categories and subsections are dropped; anything the layout does not
- * place at all (direct-URL-only articles among them) trails in one final
- * Unplaced group, so nothing a reader can open escapes review.
- */
 export function buildReviewGroups(
   entries: readonly ReviewQueueEntry[],
   layout: ReviewGroupLayout,
@@ -416,17 +311,6 @@ export function buildReviewGroups(
   return groups;
 }
 
-/**
- * The entries the flip-through actually walks.
- *
- * With `unreviewedOnly`, completed articles drop out — except the one on
- * screen, so ticking an article never yanks it out from under the reviewer.
- * It leaves the queue on the next navigation instead. A stale sign-off is
- * not reviewed, so it stays.
- *
- * With `changedSinceReview`, only stale articles remain, under the same
- * on-screen exemption, so re-signing one never yanks it away either.
- */
 export function filterReviewQueue(
   entries: readonly ReviewQueueEntry[],
   options: {
@@ -447,7 +331,6 @@ export function filterReviewQueue(
   });
 }
 
-/** Distinct exact Flag Labels currently represented in the queue corpus. */
 export function deriveReviewFlagLabels(entries: readonly ReviewQueueEntry[]): string[] {
   return [...new Set(entries.flatMap((entry) => (entry.flags ?? []).map((flag) => flag.label)))].sort((a, b) => a.localeCompare(b));
 }
@@ -464,7 +347,6 @@ export function buildReviewFlagGroups(entries: readonly ReviewQueueEntry[], by: 
 
 export const CHANGED_SINCE_REVIEW_GROUP_KEY = "__changed-since-review";
 
-/** The picker's one group while the queue is filtered to stale sign-offs. */
 export function buildChangedSinceReviewGroups(entries: readonly ReviewQueueEntry[]): ReviewQueueGroup[] {
   if (entries.length === 0) return [];
   return [{
@@ -476,7 +358,6 @@ export function buildChangedSinceReviewGroups(entries: readonly ReviewQueueEntry
   }];
 }
 
-/** Index of a slug in the queue, or 0 when it is absent (queue start). */
 export function queueIndexOf(
   entries: readonly ReviewQueueEntry[],
   slug: string | null,

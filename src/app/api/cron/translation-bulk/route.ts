@@ -1,9 +1,3 @@
-/**
- * Durable operator-started corpus translation. The bulk lane holds its own
- * lease, separate from the one-record editorial refresh lane, and its model
- * batches share the bulk quota (90) of the 100-request ceiling, so both lanes
- * can run at once without exceeding it.
- */
 import { NextResponse } from "next/server";
 
 import { cronRoute } from "@server/http/cronAuthorization";

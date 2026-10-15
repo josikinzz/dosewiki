@@ -4,9 +4,6 @@ import { getLegacyRedirectTarget } from "@server/next/statusRedirectPolicy";
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // Pure redirect shell: the target derives from the slug alone, so there is
-  // nothing worth prerendering per effect. A hit renders on demand and stays
-  // in the static cache.
   return [];
 }
 

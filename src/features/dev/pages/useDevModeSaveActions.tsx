@@ -44,11 +44,8 @@ type UseDevModeSaveActionsArgs = {
   getOriginalChemicalIndexManual: () => unknown;
   getOriginalMechanismIndexManual: () => unknown;
   markChangesSaved: (receipts?: Array<{ slug: string; baseHash: string }>) => void;
-  /** An Auth.js session is present; saves refuse to start without one. */
   isSignedIn: boolean;
-  /** Admin or editor: gates the save button and server-health polling. */
   canDraft: boolean;
-  /** Admin: saves write production; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
   sessionProfileKey: string;
   datasetChangelog: DatasetChangelogResult;
@@ -57,19 +54,11 @@ type UseDevModeSaveActionsArgs = {
   mechanismManualChangelog: { markdown: string; hasChanges: boolean };
   hasPendingChanges: boolean;
   onAppendChangeLogEntry: (entry: ChangeLogEntry) => void;
-  /** The returned proposal the working set was seeded from; a proposal save sends it as `revisionOf`. */
   activeProposal: DevActiveProposal | null;
-  /** Forget the proposal link once its revision was submitted. */
   onClearActiveProposal: () => void;
-  /** Put the seeded rows back and forget the proposal link (the banner's Discard). */
   onDiscardActiveProposal: () => void;
 };
 
-/**
- * The commit panel's parts, for a tool that lays out its own working-changes
- * surface (Tags) instead of rendering `commitPanel`. The same state, button
- * rules and confirm sheet; `dialog` must be rendered wherever these are used.
- */
 export type DevCommitControls = {
   destination: "production" | "proposal";
   notice: ChangeNotice | null;
@@ -77,37 +66,22 @@ export type DevCommitControls = {
   rebase: DevCommitRebase | null;
   isSaving: boolean;
   hasPendingChanges: boolean;
-  /** Why the commit button is off while there are changes, or null. */
   blockedReason: string | null;
   canCommit: boolean;
-  /**
-   * Opens the scope confirm for an admin; an editor's proposal goes straight
-   * out. `lead` is drawn at the top of the confirm (Tags lists its tag changes).
-   */
   requestCommit: (lead?: ReactNode) => void;
-  /** Every dataset the working set changes, with counts and diffs. */
   scope: CommitScopeDataset[];
-  /** The server check beside the button, when it has something to say (admins). */
   health: ReactNode;
   dialog: ReactNode;
 };
 
 type UseDevModeSaveActionsResult = {
-  /** The one commit panel; Index layout renders it at the top. */
   commitPanel: ReactNode;
-  /** The same commit, in parts, for Tags' own working-changes panel. */
   commitControls: DevCommitControls;
   clearSaveNotices: () => void;
 };
 
-/** Successes clear on their own; errors stay until the editor dismisses them. */
 const SUCCESS_NOTICE_CLEAR_MS = 5000;
 
-/**
- * The commit control. The server-health pill only appears when it has
- * something to say (checking, blocked, unreachable): a healthy server is
- * the button being enabled, not a second label beside it.
- */
 function CommitButton({
   canDraft,
   canApprove,
@@ -183,12 +157,8 @@ export function useDevModeSaveActions({
   onClearActiveProposal,
   onDiscardActiveProposal,
 }: UseDevModeSaveActionsArgs): UseDevModeSaveActionsResult {
-  // Production health is relevant only once there is something to commit.
-  // The check still starts before the production action can become enabled.
   const { health: dataServerHealth, refresh: refreshDataServerHealth } =
     useEditorServerConfigHealth(canApprove && hasPendingChanges);
-  // The session cookie is the credential; this only names who the save is
-  // attributed to and refuses to start a save nobody is signed in for.
   const verifySaveSession = useCallback(async (): Promise<DevSaveCredentials> => {
     if (!isSignedIn) {
       throw new Error("Sign in before continuing.");
@@ -199,21 +169,18 @@ export function useDevModeSaveActions({
   const saveArticleMutation = useSaveArticleMutation();
   const submitProposalMutation = useSubmitProposalMutation();
 
-  // Create orchestrator once
   const orchestratorRef = useRef<DevModeSaveOrchestrator | null>(null);
   if (!orchestratorRef.current) {
     orchestratorRef.current = new DevModeSaveOrchestrator(createInitialSaveOrchestratorState());
   }
   const orchestrator = orchestratorRef.current;
 
-  // Subscribe to orchestrator state
   const orchestratorState = useSyncExternalStore(
     useCallback((onStoreChange) => orchestrator.subscribe(onStoreChange), [orchestrator]),
     useCallback(() => orchestrator.getState(), [orchestrator]),
     useCallback(() => orchestrator.getState(), [orchestrator]),
   );
 
-  // Build changelog sources for orchestrator
   const changelogSources: ChangelogSources = useMemo(() => ({
     datasetChangelog,
     psychoactiveManualChangelog,
@@ -226,7 +193,6 @@ export function useDevModeSaveActions({
     mechanismManualChangelog,
   ]);
 
-  // Update orchestrator when changelog sources change
   useEffect(() => {
     orchestrator.dispatch({
       type: "changelogSourcesUpdated",
@@ -234,7 +200,6 @@ export function useDevModeSaveActions({
     });
   }, [changelogSources, orchestrator]);
 
-  // Build draft for save commands
   const draft = useMemo(
     () =>
       buildDevSaveDraft({
@@ -286,7 +251,6 @@ export function useDevModeSaveActions({
   );
 
   const clearTimerRef = useRef<number | null>(null);
-  // The note typed in the commit sheet, read once when the save runs.
   const pendingNoteRef = useRef("");
 
   const scheduleNoticeAutoClear = useCallback(
@@ -306,7 +270,6 @@ export function useDevModeSaveActions({
     [orchestrator],
   );
 
-  // Effect handler for async operations
   const latestDraft = useRef(draft);
   latestDraft.current = draft;
 
@@ -368,8 +331,6 @@ export function useDevModeSaveActions({
           if (result.markChangesSaved) {
             markChangesSaved(result.articleReceipts);
           }
-          // Whichever way the draft landed (superseding revision, or an
-          // admin's direct write), the rebase it carried is finished.
           if (activeProposal) {
             onClearActiveProposal();
           }
@@ -408,7 +369,6 @@ export function useDevModeSaveActions({
   }, [orchestrator]);
 
   const handleCommit = useCallback(async (note = "") => {
-    // A new attempt replaces whatever the last one left on screen.
     clearSaveNotices();
     pendingNoteRef.current = note;
     const effect = orchestrator.dispatch({ type: "saveRequested" });
@@ -417,9 +377,6 @@ export function useDevModeSaveActions({
     }
   }, [clearSaveNotices, handleEffect, orchestrator]);
 
-  // A production commit opens the scope sheet first: every dataset the working
-  // set changes, with counts and diffs, then one confirm. Nothing is written
-  // until that confirm. A proposal goes to review, so it submits directly.
   const { confirm, dialog: commitSheet } = useConfirm();
   const requestCommit = useCallback((lead?: ReactNode) => {
     if (!canApprove) {
@@ -436,7 +393,6 @@ export function useDevModeSaveActions({
           ? "It goes live on dose.wiki as soon as you commit."
           : `These ${scope.length} datasets go live on dose.wiki together as soon as you commit.`,
       body: <CommitScopeSheet scope={scope} lead={lead} onNoteChange={(value) => { note = value; }} />,
-      // One unit on the button: the articles when only articles changed.
       confirmLabel: scope.length === 1 && scope[0].id === "articles"
         ? `Commit changes to ${scope[0].countLabel}`
         : `Commit ${total} ${total === 1 ? "change" : "changes"}`,
@@ -445,7 +401,6 @@ export function useDevModeSaveActions({
     });
   }, [canApprove, confirm, draft, handleCommit]);
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (clearTimerRef.current !== null && typeof window !== "undefined") {
@@ -454,7 +409,6 @@ export function useDevModeSaveActions({
     };
   }, []);
 
-  // Derive state from orchestrator
   const isSaving = selectIsSaving(orchestratorState);
   const notice: ChangeNotice | null = orchestratorState.notice;
 

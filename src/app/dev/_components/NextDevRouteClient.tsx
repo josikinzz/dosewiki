@@ -18,30 +18,16 @@ type NextDevRouteClientProps = {
   initialSlug?: string;
   initialFilter?: string;
   initialProfileKey?: string;
-  /**
-   * The canonical contributor key for the signed-in editor, resolved through a
-   * privileged Postgres read that must stay on the server. It arrives as an
-   * unawaited promise so the HTML ships without waiting on it; until it lands
-   * the shell runs on the key derived from the session email, which is what
-   * that read falls back to anyway.
-   */
   ownedProfileKey?: Promise<string | null>;
-  /**
-   * The deployment's `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`, so reviewer stamps
-   * under a retired login show the live profile's name. Empty for roles that
-   * see no reviewer stamps.
-   */
   legacyHandleGroups?: string;
 };
 
 type DevRouteState = {
   tab: DevModeTab;
   slug?: string;
-  /** The tab's URL filter value (`?kind=blog`), validated by the registry. */
   filter?: string;
 };
 
-/** An address with its percent escapes undone, so the router's and a link's spelling compare equal. */
 function comparableAddress(path: string): string {
   try {
     return decodeURIComponent(path);
@@ -50,12 +36,6 @@ function comparableAddress(path: string): string {
   }
 }
 
-/**
- * One-way switch: true the first time a corpus-backed tool is opened, and true
- * forever after within the session. Unsaved article edits live above the tab
- * switch, so unmounting the library on the way to a non-library tool would
- * discard them.
- */
 function useLibraryLatch(needsLibraryNow: boolean): boolean {
   const [latched, setLatched] = useState(false);
 
@@ -68,13 +48,6 @@ function useLibraryLatch(needsLibraryNow: boolean): boolean {
   return needsLibraryNow || latched;
 }
 
-/**
- * The route the shell renders, from the client router's pathname and search
- * string. Both are read live so back/forward and the tabs' own
- * `history.replaceState` filter writes land here without a server round trip;
- * the server-resolved `fallback` only covers the first render before the
- * router reports.
- */
 export function resolveDevRouteState(
   pathname: string | null,
   search: string | null,
@@ -111,15 +84,9 @@ function NextDevDataLoader({ routeState, initialProfileKey, onTabChange, onOpenP
   navigate: (path: string) => void;
   getCurrentPath: () => string;
 }) {
-  // Blocking corpus tools and the registry's deferred consumers (Tags,
-  // Citations) start the drain; the deferred ones render without waiting.
-  // Change Review waits until "Load into editor" is actually used.
   const needsLibrary = useLibraryLatch(tabNeedsLibrary(routeState.tab));
   const { library, isLoading: isLoadingLibrary, requestLibrary, error: libraryError } = useLazyLibrary(needsLibrary);
 
-  // Nothing gates the shell. The tab rail paints on the first client render;
-  // the corpus drain lands behind it, and the tools that need it show their
-  // own loading state instead of holding the chrome back.
   return (
     <SubstanceIndexProvider libraryData={library ?? getEmptyEditorLibrary()}>
       <DevModeProvider navigate={navigate} getCurrentPath={getCurrentPath} requestLibrary={requestLibrary}>
@@ -148,12 +115,7 @@ export function NextDevRouteClient({
   ownedProfileKey,
   legacyHandleGroups,
 }: NextDevRouteClientProps) {
-  // Set during render, before any tool below formats a reviewer name.
   setEditorLegacyContributorHandleGroups(legacyHandleGroups);
-  // Every read the shell makes goes through the `/api/editor/*` routes on the
-  // TanStack Query client mounted by the layout-level AppProviders, alongside
-  // the auth session; nothing is remounted here and no data-backend client
-  // exists in the browser.
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams().toString();
@@ -178,10 +140,6 @@ export function NextDevRouteClient({
     router.push(path);
   }, [router]);
 
-  // A Cmd+K record opens by address, then the open tool remounts once the
-  // router lands there, so it reads the record from its initial props the
-  // way a deep link does. Most tools only read those on mount. The chrome has
-  // already asked the unsaved-work registry before this runs.
   const address = comparableAddress(search ? `${pathname}?${search}` : pathname ?? "/dev");
   const [recordMount, setRecordMount] = useState<{ key: number; pending: string | null }>({ key: 0, pending: null });
   if (recordMount.pending !== null && recordMount.pending === address) {

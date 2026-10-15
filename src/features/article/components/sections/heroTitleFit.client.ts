@@ -23,10 +23,6 @@ interface HeroTitleFitOptions {
   title: string;
 }
 
-/**
- * Measures the hero title against the floated desktop molecule: whether the
- * molecule must drop below the title, how far, and the fitted mobile title size.
- */
 export function useHeroTitleFit({
   heroRef,
   titleRef,
@@ -58,9 +54,6 @@ export function useHeroTitleFit({
       const contentRight = heroRect.right - borderRightWidth - paddingRight;
       const moleculeLeft = contentRight - 256;
 
-      // Measure the title once at its natural single-line size. Restoring both
-      // overrides before state updates keeps ResizeObserver from feeding the
-      // fitted result back into another synchronous fitting loop.
       const previousWhiteSpace = titleElement.style.whiteSpace;
       const previousFontSize = titleElement.style.fontSize;
       titleElement.style.whiteSpace = "nowrap";
@@ -116,14 +109,8 @@ export function useHeroTitleFit({
       }
     };
 
-    // The layout effect retains the pre-paint initial fit while every later
-    // signal is coalesced to at most one measurement per animation frame.
     measurePlacement();
 
-    // Only the hero's own width is an input. The title's box is this effect's
-    // output: measuring rewrites its font size, so observing the title would
-    // report that write back and fit forever. Width-only comparison also
-    // drops the height changes a finished fit causes.
     let lastWidth = heroElement.getBoundingClientRect().width;
     const resizeObserver =
       typeof ResizeObserver === "undefined"

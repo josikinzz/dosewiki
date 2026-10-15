@@ -1,42 +1,3 @@
-/**
- * Read + write for one contributor profile (the /dev Contributors tab).
- *
- *   GET  /api/dev/contributor-profile?key=JOSIE  → { profile, works, reports }
- *   POST /api/dev/contributor-profile            → patch one profile
- *
- * The browser holds no admin intent token, so both directions are delegated
- * here exactly as the Copy Studio route delegates its write: the route checks
- * the session, then talks to Postgres with the server's own token plus the
- * actor's email for the audit trail.
- *
- * Three roles share the route. An admin may read and patch any record and any
- * field. An editor may read any record but patch only their own: the record
- * whose membership email is theirs, or the still-unclaimed record their
- * sign-in derives to. The route refuses the obvious case (a record another
- * sign-in holds) with 403 before writing, and Postgres's `saveProfileAsEditor`
- * applies the same rule with the actor's real membership role, so a
- * misconfigured route still cannot escalate. `saveProfileAsEditor` also
- * refuses the trust fields (role, membership email, approved replicator,
- * gallery exclusion, archival, staff note) for anyone below admin, whatever
- * the payload carries. A signed-in contributor may read and save only their
- * own record and only its self-serve fields; that write goes through
- * `saveProfile`, whose ownership rule Postgres enforces the same way, and the
- * read withholds the staff-only fields. A missing own record comes back blank
- * so the first save creates it.
- *
- * The GET exists because the public profile projection deliberately drops
- * `membershipEmail` and `avatarStorageId`, and because the two item lists the
- * ordering panels curate live in two other tables. Answering all three in one
- * round trip keeps selecting a contributor to a single request, and lets the
- * route slim the trip report rows: `tripReports.getByContributor` returns whole
- * reports, prose included, where the panel needs a slug, a title and a date.
- *
- * The editor POST is patch-only all the way down: an omitted field keeps
- * whatever is stored and `null` clears a clearable one, which is
- * `saveProfileAsEditor`'s contract. Sending an avatar file publishes a verified
- * immutable `avatarR2Key`, replacing the current identity without deleting the
- * prior image retained in profile history.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import {
@@ -84,12 +45,6 @@ function adminIntentToken(dataWrite: ServerDataWriteCapability): string {
   return dataWrite.getAdminIntentToken?.("profileMediaWrite") ?? dataWrite.adminKey;
 }
 
-/**
- * The key a signed-in user may treat as their own: the record whose membership
- * email is theirs, or else the key their email derives to. The derived key is
- * a claim, not a title: the GET still refuses it when someone else's sign-in
- * already holds that record, and `saveProfile` refuses the write.
- */
 async function resolveOwnProfileKey(
   dataWrite: ServerDataWriteCapability,
   actorEmail: string,
@@ -101,7 +56,6 @@ async function resolveOwnProfileKey(
   return owned?.key ?? deriveProfileKeyFromEmail(actorEmail);
 }
 
-/** The record a first save creates: the self key, a name to start from, nothing else. */
 function blankOwnProfile(key: string) {
   return {
     key,
@@ -150,16 +104,11 @@ export const GET = protectedRouteOperation({
     }
 
     const isEditor = roleMeetsFloor(auth.role, "editor");
-    // Resolved before any record is read, so a non-editor never fetches a
-    // record that is not theirs.
     const ownKey = isEditor ? null : await resolveOwnProfileKey(dataWrite, actorEmail);
     if (ownKey !== null && normalizeProfileKey(requestedKey) !== ownKey) {
       return NextResponse.json(OWN_RECORD_ONLY, { status: 403 });
     }
 
-    // Editors read as themselves for Postgres's editor check. A non-editor's own
-    // record is read with the server token alone: ownership was settled above
-    // and the editor projection would refuse their membership role.
     const profile = await dataWrite.client.query(api.contributorProfiles.getEditorProfile, {
       apiKey,
       ...(isEditor ? { actorEmail } : {}),
@@ -171,7 +120,6 @@ export const GET = protectedRouteOperation({
       profile?.membershipEmail &&
       profile.membershipEmail.trim().toLowerCase() !== actorEmail.trim().toLowerCase()
     ) {
-      // The derived key lands on a record another sign-in already claimed.
       return NextResponse.json(OWN_RECORD_ONLY, { status: 403 });
     }
 
@@ -197,9 +145,6 @@ export const GET = protectedRouteOperation({
       }, { headers: { "Cache-Control": "private, no-store" } });
     }
 
-    // The same name set the public gallery matches on: display name plus every
-    // stored alias. Matching narrower here would show the editor a different
-    // list from the one their saved ordering actually reorders.
     const artistNames = [profile.displayName, ...profile.aliases].filter(Boolean);
 
     const [works, reports] = await Promise.all([
@@ -212,7 +157,6 @@ export const GET = protectedRouteOperation({
 
     return NextResponse.json({
       ok: true,
-      // Staff commentary and the membership link are editor-only facts.
       profile: isEditor ? profile : { ...profile, membershipEmail: null, staffNote: null },
       works: (works as ReplicationRow[]).map((row) => ({
         slug: row.slug,
@@ -256,7 +200,6 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     if (rejection?.code === "ADMIN_ONLY_PROFILE_FIELD") {
       return NextResponse.json({ error: rejection.message, code: rejection.code }, { status: 403 });
     }
-    // Postgres wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
     if (message.includes("You can only edit your own contributor profile")) {
       return NextResponse.json(OWN_RECORD_WRITE_ONLY, { status: 403 });
@@ -286,11 +229,6 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
       }
     }
 
-    // An editor patches a stored record they own. A non-editor, or an editor
-    // whose own record does not exist yet, writes the self-serve field set
-    // through `saveProfile`, which enforces ownership with the actor's real
-    // role and creates the record on first save. Admin-only fields in a
-    // self-serve body are never written.
     const stored = isEditor
       ? await dataWrite.client.query(api.contributorProfiles.getEditorProfile, {
           apiKey,
@@ -339,8 +277,6 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
             displayName: body.patch.displayName ?? "",
             bio: body.patch.bio ?? "",
             links: body.patch.links ?? [],
-            // An uploaded file wins; otherwise `null` clears the remote URL,
-            // a string replaces it, and an omitted field keeps the stored one.
             avatarUrl: avatarR2Key ? undefined : body.patch.avatarUrl,
             avatarR2Key,
           },
@@ -362,8 +298,6 @@ export const POST = protectedRouteOperation<ProfilePatchBody, ParsedProfilePatch
     await revalidateContributorSurfaces({
       contributorKeys: result.revalidate?.contributorKeys ?? [body.key],
       scope: "profile",
-      // The /replications gallery corpus filters on this flag, so flipping it
-      // must land there on the next request, not at the end of the cache window.
       galleryVisibilityChanged: body.patch.exclude_from_gallery !== undefined,
     });
 

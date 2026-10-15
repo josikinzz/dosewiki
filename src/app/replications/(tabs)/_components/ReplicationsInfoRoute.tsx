@@ -45,13 +45,6 @@ export async function getReplicationsInfoMetadata(locale: LiveLocale | null = nu
   });
 }
 
-/**
- * The More Info tab, shared by the English route and every locale mirror: the
- * section's standing prose, moved off the Gallery so the media leads. Both
- * blocks are editable copy; on a mirror each block's current English text is
- * the catalog key, exactly as the About page localizes its copy, so an edit
- * renders in English until the catalog catches up.
- */
 export async function ReplicationsInfoRoute() {
   const copy = await getCopyByKeys(REPLICATIONS_INFO_COPY_KEYS);
 

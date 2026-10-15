@@ -32,7 +32,6 @@ const sourceRevision = publicDataCache(async () => randomUUID(), ["public-galler
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.replications, PUBLIC_DATA_CACHE_TAGS.effects, PUBLIC_DATA_CACHE_TAGS.contributors],
 });
 
-/** No viewer renditions, dimensions or duration survive in the matching index. */
 function membershipRow(row: PublicGalleryReplicationPreview): PublicGalleryReplicationPreview {
   return {
     _id: row._id, slug: row.slug, title: row.title, artist: row.artist, artist_url: row.artist_url,
@@ -58,8 +57,6 @@ let canonicalCache: { revision: string; value: Promise<CanonicalIndex> } | undef
 let localizedCache: { revision: string; value: Promise<CanonicalIndex> } | undefined;
 
 async function translationRevision(locale: string, hashes: string[]): Promise<string> {
-  // Read one identity, not every translated record. Including the actual targets
-  // detects replacement/deletion even when two publications share a timestamp.
   const rows = await getPostgresClient().sql<{ revision: string | null }>(
     'SELECT md5(jsonb_agg(jsonb_build_array("hash", "target") ORDER BY "hash")::text) AS revision FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [locale, hashes],
@@ -81,8 +78,6 @@ export async function getGalleryBrowseIndex(locale: UiLocale): Promise<GalleryBr
   const cacheIdentity = `${revision}:${localizedRevision}`;
   if (localizedCache?.revision !== cacheIdentity) {
     const value = (async () => {
-      // This is the compact translated matching index, built once per revision.
-      // Full records are localized only after bounded membership selection.
       const labels = await getLocalizedLeaves([...canonical.rows.map((row) => row.title), ...canonical.effects.map((effect) => effect.name)], locale);
       return { ...canonical,
         rows: canonical.rows.map((row) => ({ ...row, title: labels.get(row.title) ?? row.title })),
@@ -96,7 +91,6 @@ export async function getGalleryBrowseIndex(locale: UiLocale): Promise<GalleryBr
   return { ...await localizedCache.value, canonical, revision: localizedRevision, cacheIdentity };
 }
 
-/** Selected identities alone hydrate; never fall back to a complete corpus. */
 export async function hydrateGalleryPage(rows: readonly PublicGalleryReplicationPreview[], locale: UiLocale) {
   const resolved = await getPublicGalleryReplicationsBySlugs(rows.map((row) => row.slug));
   const bySlug = new Map(resolved.map((row) => [row.slug, row]));

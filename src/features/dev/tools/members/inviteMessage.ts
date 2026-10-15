@@ -1,9 +1,3 @@
-/**
- * The ready-to-paste message an admin sends with a freshly minted invite: the
- * role in plain words, the link, the expiry and the first step, so the
- * invitee needs nothing else from the admin to get started.
- */
-
 import { ROLE_DESCRIPTIONS } from "@/lib/auth/roleDescriptions";
 import { getRoleDisplayName, roleMeetsFloor } from "@/lib/auth/roles";
 import { formatLocaleNames } from "./membersModel";
@@ -15,7 +9,6 @@ type InviteMessageInput = {
   url: string;
 };
 
-/** A readable date that does not depend on the admin's locale. */
 function formatInviteExpiry(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",

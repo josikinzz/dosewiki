@@ -12,9 +12,6 @@ export const appearanceCogStory: StoryDef = {
   source: "src/app/_components/AppearanceCog.tsx",
   importLine:
     'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
-  // The symbol lives in src/app/_components, not in a shared ui/common/layout barrel, so the
-  // completeness gate neither requires nor accepts it here. The entry exists for the four-way
-  // appearance sweep and for the catalog itself.
   exports: [],
   examples: [
     {

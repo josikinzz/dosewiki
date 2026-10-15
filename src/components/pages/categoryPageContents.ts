@@ -33,9 +33,6 @@ function hasTag(effect: CategoryEffect, tag: string): boolean {
   return (effect.tags ?? []).some((candidate) => candidate.toLowerCase() === tag.toLowerCase());
 }
 
-/**
- * Filter effects by tags (all must match) with optional exclusions.
- */
 export function filterEffectsByTags(
   effects: CategoryEffect[],
   requiredTags: string[],
@@ -49,12 +46,6 @@ export function filterEffectsByTags(
   });
 }
 
-/**
- * Resolve the drug-class sections that actually render for a category: every
- * declared section paired with its matching effects, minus the ones that match
- * nothing. Both the rendered body and the table of contents read this list, so
- * the two cannot drift.
- */
 export function resolveDrugClassSections(
   content: DrugClassContent | undefined,
   effects: CategoryEffect[],
@@ -72,9 +63,7 @@ export function resolveDrugClassSections(
 }
 
 interface CategoryTocInput {
-  /** Sections as resolved by `resolveDrugClassSections`, in render order. */
   sections: CategorySectionWithEffects[];
-  /** Whether the page opens with the drug-class overview section. */
   hasOverview: boolean;
   substanceCount: number;
   substanceIcon: IconName;

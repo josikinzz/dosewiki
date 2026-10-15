@@ -10,8 +10,6 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const script = "scripts/postgres/import-document-snapshot.ts";
 
-// A loopback listener stands in for Postgres: any connection the importer
-// opens is counted and closed, so "opens no connection" is observable.
 let server;
 let connections = 0;
 let target;
@@ -26,7 +24,6 @@ before(async () => {
   await new Promise((done) => server.listen(0, "127.0.0.1", done));
   target = `postgres://127.0.0.1:${server.address().port}/dosewiki`;
   deployment = "127.0.0.1/dosewiki";
-  // An empty export: every table is absent, so a plan run is clean.
   exportDirectory = mkdtempSync(join(os.tmpdir(), "import-snapshot-test-"));
 });
 

@@ -26,14 +26,6 @@ export type EditorProfilePatchInput = {
   staffNote?: StaffNote | null;
 };
 
-/**
- * Build the `ctx.db.patch` payload for an editor profile edit.
- *
- * A key is present in the returned object only when the caller asked for that
- * field to change, because a native patch reads a present-but-`undefined` value as
- * "delete this field". That is exactly how a clear is expressed here, and it is
- * why an omitted field must not appear at all.
- */
 export function buildEditorProfilePatch(
   input: EditorProfilePatchInput,
   existing: StoredProfile,
@@ -45,8 +37,6 @@ export function buildEditorProfilePatch(
     updatedBy: normalizeContributorEmail(actorEmail),
   };
 
-  // A blank display name would leave the profile with no renderable name, so it
-  // falls back to what is stored rather than being accepted as a clear.
   const nextDisplayName =
     input.displayName === undefined
       ? existing.displayName
@@ -71,10 +61,6 @@ export function buildEditorProfilePatch(
     patch.links = sanitizeContributorLinks(input.links);
   }
 
-  // Whatever the profile answers to has to keep resolving. An explicit alias
-  // list replaces the stored one so an editor can drop a wrong alias, but the
-  // key and the current display name are always folded back in; a rename alone
-  // still has to add the new name without disturbing the existing aliases.
   if (input.aliases !== undefined) {
     patch.aliases = normalizeProfileAliases([
       ...input.aliases,
@@ -124,23 +110,18 @@ export function buildEditorProfilePatch(
     patch.membershipEmail = email || undefined;
   }
 
-  // Stored as `true` or not at all: absent is the "included" default, so a
-  // toggle back to included deletes the field (present-but-`undefined`).
   if (input.exclude_from_gallery !== undefined) {
     patch.exclude_from_gallery = input.exclude_from_gallery === true ? true : undefined;
   }
 
-  // Same true-or-delete contract as the gallery flag.
   if (input.archival !== undefined) {
     patch.archival = input.archival === true ? true : undefined;
   }
 
-  // Same true-or-delete contract again.
   if (input.approved_replicator !== undefined) {
     patch.approved_replicator = input.approved_replicator === true ? true : undefined;
   }
 
-  // `null` (or a note emptied down to nothing) clears the field.
   if (input.staffNote !== undefined) {
     const markdown =
       input.staffNote === null ? "" : sanitizeContributorBio(input.staffNote.markdown);

@@ -1,24 +1,3 @@
-/**
- * Draft a locale's glossary by machine, for a human to review.
- *
- * A term's rendering is never guessed inside a sentence. Each term is
- * translated once, alone, with the same model and the same gates the corpus
- * runs use, and written to `translationGlossary` as a draft. Alone is the
- * point: a term standing on its own has no sentence around it to bend it, so
- * the rendering that comes back is the rendering the term has, and once a
- * reviewer approves it the corpus is held to it.
- *
- * Terms come from the vocabularies the site already publishes: every public
- * effect name, every effect category and subcategory, every psychoactive and
- * chemical class and its aliases, the frequency scale, the closed enum labels
- * a badge or table row shows, the harm-reduction register, the replication
- * surface, the site and index names, article section headings, routes of
- * administration and reagent names. A term that already has a row, at any
- * status, is never redrafted: the reviewer's work outlives every rerun.
- *
- * Shared by `scripts/translation/build-glossary.mjs` and the Glossary tab's
- * "Draft missing terms" action, so the two cannot drift.
- */
 import "server-only";
 
 import { callOpenRouterChat } from "../../scripts/lib/openrouter-sdk.mjs";
@@ -60,7 +39,6 @@ async function askModel({ locale, apiKey, appTitle, userMessage, maxTokens }: Mo
   });
 }
 
-/** One batch of terms to renderings; a batch that never parses is retried, since losing forty terms at once leaves a half-drafted list. */
 async function translateTermBatch(entries: readonly GlossaryTerm[], locale: TranslationLocale, apiKey: string): Promise<Array<{ entry: GlossaryTerm; target: string | null }>> {
   const payload = Object.fromEntries(entries.map((entry, index) => [`t${index}`, entry.term]));
   const userMessage = [
@@ -91,7 +69,6 @@ async function translateTermBatch(entries: readonly GlossaryTerm[], locale: Tran
   return entries.map((entry) => ({ entry, target: null }));
 }
 
-/** `target -> terms` for every rendering more than one term landed on. */
 function collisionsIn(renderings: ReadonlyMap<string, string>): Array<[string, string[]]> {
   const byTarget = new Map<string, string[]>();
   for (const [term, target] of renderings) {
@@ -102,12 +79,6 @@ function collisionsIn(renderings: ReadonlyMap<string, string>): Array<[string, s
   return [...byTarget.entries()].filter(([, sources]) => sources.length > 1);
 }
 
-/**
- * A second pass over the terms that landed on one rendering. The model sees
- * every colliding term at once, so it can move the one that should move rather
- * than inventing a synonym for both. A term that already has a row is shown
- * but never changed: the new term is the one that has to give way.
- */
 async function resolveCollisions(
   collisions: ReadonlyArray<[string, string[]]>,
   movableTerms: ReadonlySet<string>,
@@ -149,17 +120,11 @@ async function resolveCollisions(
 
 export type GlossaryDraftReport = {
   locale: string;
-  /** Every term the site publishes for this locale's universe. */
   universe: number;
-  /** Terms that already had a row and were left alone. */
   existing: number;
-  /** Draft rows written this run. */
   drafted: number;
-  /** Terms the model rendered but the validator flagged; written as drafts for the reviewer with the defects listed here. */
   flagged: Array<{ term: string; target: string; defects: string[] }>;
-  /** Terms with no usable rendering at all; not written. */
   failed: string[];
-  /** Renderings still shared by more than one term after the collision pass. */
   collisions: Array<{ target: string; sources: string[] }>;
 };
 
@@ -167,16 +132,13 @@ export type DraftGlossaryInput = {
   locale: string;
   reads: PublicDataReadAdapter;
   apiKey: string;
-  /** Batch progress, for the CLI. */
   onProgress?: (done: number, total: number) => void;
-  /** With `dryRun`, the universe is collected and counted and the model is never called. */
   dryRun?: boolean;
 };
 
 const BATCH = 40;
 const CONCURRENCY = 16;
 
-/** Draft every term the locale lacks and write the drafts; approved and existing draft rows are untouched. */
 export async function draftGlossary({ locale: code, reads, apiKey, onProgress, dryRun = false }: DraftGlossaryInput): Promise<GlossaryDraftReport> {
   const locale = resolveLocale(code);
   const universe = await collectGlossaryTerms(reads);
@@ -210,11 +172,6 @@ export async function draftGlossary({ locale: code, reads, apiKey, onProgress, d
     }
   }));
 
-  // Two English terms sharing one rendering is the collision the audit exists
-  // to catch. Reporting it and stopping would hand a reviewer a puzzle the
-  // model can answer, so a clash goes back to the model with both terms in
-  // front of it. What survives a second pass is a genuine homonym, and that is
-  // the reviewer's call.
   const renderings = () => new Map<string, string>([
     ...existingRows.map((row) => [row.term, row.target] as const),
     ...[...results].map(([term, record]) => [term, record.target] as const),

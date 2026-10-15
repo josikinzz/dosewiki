@@ -8,11 +8,6 @@ interface ExtLinkProps {
 function normalizeExternalHref(to: string): string { const trimmed = to.trim();
 return /^\/https?:\/\//i.test(trimmed) ? trimmed.slice(1) : trimmed; }
 
-/**
- * External link to other websites.
- * 
- * Opens in a new tab with security attributes.
- */
 export function ExtLink({ 
   to, 
   children,

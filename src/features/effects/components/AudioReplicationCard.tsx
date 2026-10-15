@@ -35,14 +35,9 @@ function getAudioRightsLabel(audio: AudioReplicationMetadata, translate: Transla
 
 interface AudioReplicationCardProps {
   audio: AudioReplicationMetadata;
-  /** Rendered under the title on surfaces that mix clips from several effects. */
   contextLabel?: React.ReactNode;
 }
 
-/**
- * One audio replication: title, credit, player, rights, and creator links.
- * Shared by the effect article's audio section and the audio index.
- */
 export function AudioReplicationCard({ audio, contextLabel }: AudioReplicationCardProps) {
   const t = useT();
   return (

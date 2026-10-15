@@ -5,11 +5,6 @@ import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
 import { StateCard } from "@/components/common/StateCard";
 
-/**
- * UI strings whose compiled wording disagrees with an approved glossary term.
- * The catalog keeps the old wording until an online build regenerates it, so
- * this list explains why a page still shows it and which term will change it.
- */
 export function PendingRefreshList({ rows, refreshed, review }: { rows: readonly UiTranslationRow[]; refreshed: boolean; review: (row: UiTranslationRow) => void }) {
   const waiting = rows.filter((row) => row.pendingRefresh);
   return <div className="space-y-3">

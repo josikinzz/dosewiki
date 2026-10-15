@@ -22,10 +22,6 @@ function validatePageResult(result, pageNumber) {
   return result;
 }
 
-/**
- * Drain one standard Postgres pagination query in stable page/row order.
- * Fails closed on malformed pages, cursor stalls, or unexpectedly large reads.
- */
 export async function drainDataPageQuery({
   client,
   query,

@@ -1,24 +1,3 @@
-/**
- * On-demand cache refresh for public article pages, callable by the citation
- * campaign's server-side scripts.
- *
- * Article Data Cache leaves can lower the route's declared one-hour interval
- * to 15 minutes. This route immediately expires the affected article,
- * showcase, history and shared listing projections after a script write.
- *
- * Auth is deliberately not a session: the caller is a headless data-ops script
- * that already holds the `citationEvidenceWrite` admin-intent token it uses
- * for the Postgres mutation itself. The same token authenticates here, validated
- * by the shared `validateAdminIntentToken` (timing-safe, scoped env var first,
- * then the legacy `DATA_ADMIN_KEY` this deployment already carries for its
- * server write capability). Like every `/api/dev` surface, the route is only
- * reachable on the editor hosts; public hosts never serve it.
- *
- *   POST /api/dev/revalidate-article
- *   Authorization: Bearer <citationEvidenceWrite token>
- *   { "slug": "2c-b" } or { "slugs": ["2c-b", "dxm"] }
- *   → { ok: true, revalidated: ["/2c-b", "/dxm"], publication: [...] }
- */
 import { NextResponse } from "next/server";
 import { validateAdminIntentToken } from "../../../../../server/lib/adminIntentTokens";
 import { revalidateSavedPaths } from "../../save-article/revalidateSavedPaths";
@@ -30,7 +9,6 @@ export const runtime = "nodejs";
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const SLUG_MAX_LENGTH = 128;
-/** A campaign applies one slug at a time; a small batch covers reruns. */
 const MAX_SLUGS_PER_REQUEST = 20;
 const MAX_BODY_BYTES = 8_192;
 
@@ -51,7 +29,6 @@ function bearerToken(request: Request): string | null {
   return request.headers.get("x-admin-token")?.trim() || null;
 }
 
-/** Validates and dedupes before any cache call; throws `JsonBodyError` 400. */
 function parseSlugs(body: RevalidateArticleBody): string[] {
   const raw: unknown[] = [];
   if (body.slug !== undefined) {

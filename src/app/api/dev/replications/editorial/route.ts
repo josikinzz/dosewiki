@@ -1,23 +1,3 @@
-/**
- * Editorial write endpoint for the Replication Studio (`/dev` → Replications).
- *
- * One verb, two shapes, because the studio has two ways to edit:
- *
- *   POST /api/dev/replications/editorial  { mode: "single", id, expected, updates }
- *   POST /api/dev/replications/editorial  { mode: "bulk", items: { id, expected }[], patch }
- *     patch: effectSlug, artist, role, addEffectTags, rightsStatus, sourceUrl,
- *            creditLine, and `publish: true` (unpublished uploads whose
- *            rights status is known and whose source is set go live)
- *   POST /api/dev/replications/editorial  { mode: "bulk", ids, showcaseExcluded }
- *
- * Every editorial edit carries the snapshot the studio loaded so Postgres can
- * refuse a stale save rather than re-assert fields somebody else has since
- * changed. A bulk edit checks each item on its own: fresh items are written,
- * stale ones come back as `conflicts` (a 409 when nothing was written). The
- * id-only bulk shape is the corpus-wide showcase toggle, which is not an
- * editorial field. All shapes rewrite the public corpus directly, so the route
- * is admin-only and Postgres enforces the same floor.
- */
 import { NextResponse } from "next/server";
 import type { PublicationTarget } from "@server/next/publicationWire";
 import { publishPublicCache } from "@server/next/publishPublicCache";
@@ -109,7 +89,6 @@ function parseSnapshot(value: unknown, field: string): EditorialSnapshot {
     credit_line: raw.credit_line as string | null,
     effect_tags: parseTags(raw.effect_tags, `${field}.effect_tags`),
   };
-  // Provenance is optional: a caller that sends it is guarded on it.
   if (raw.rights_status !== undefined) {
     if (raw.rights_status !== null && !RIGHTS_STATUSES.has(raw.rights_status as RightsStatus)) {
       throw new JsonBodyError(400, `${field}.rights_status is not a known rights status.`);
@@ -164,8 +143,6 @@ function parseEditorialBody(body: unknown): ParsedEditorial {
       }
       parsed.ids = raw.ids as string[];
     }
-    // Editorial fields ride in `patch` next to `items`; the showcase toggle
-    // stays a top-level flag beside `ids`.
     const fields = (
       parsed.items && raw.patch && typeof raw.patch === "object" ? raw.patch : raw
     ) as Record<string, unknown>;
@@ -283,10 +260,6 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
         updates: body.updates,
       });
 
-      // Moving a replication between effects leaves both galleries stale, so
-      // the old and the new owner are published together; the single edit is
-      // the studio's title path, so the record's own permalink and locale
-      // mirror publish with them.
       const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
       for (const slug of new Set([body.expected.effect_slug, body.updates.effect_slug])) {
         if (slug) targets.push({ kind: "effect", slug });
@@ -331,8 +304,6 @@ export const POST = protectedRouteOperation<unknown, ParsedEditorial>({
       );
     }
 
-    // Every gallery showing an updated work is stale; a newly published work
-    // also brings its own permalink and locale mirror live.
     const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
     for (const slug of new Set([...(body.effectSlug ? [body.effectSlug] : []), ...(result.effects ?? [])])) {
       targets.push({ kind: "effect", slug });

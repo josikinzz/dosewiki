@@ -18,19 +18,6 @@ const queryClientOptions = {
   },
 };
 
-/**
- * Leaves the editor hint behind from the authenticated editor data tree.
- *
- * `/dev` and `/review` own this combined data-provider tree. The editor-host
- * reading launcher has a separate, lazy session-only tree; it never needs the
- * hint. Appearance controls outside these providers still read the hint rather
- * than fetching a session on public hosts.
- *
- * Renders nothing. See `src/lib/auth/editorHint.ts` for why a separate flag rather than the session
- * token (every next-auth cookie is `httpOnly`), why middleware does not set it (JWT crypto and a
- * cookie-varying response on every public request), why `localStorage` rather than a cookie, and
- * why forging it buys nothing.
- */
 function EditorHint() {
   const session = useSession();
 
@@ -44,7 +31,6 @@ function EditorHint() {
       return;
     }
 
-    // Signing out, or signing in below contributor, retracts the hint.
     clearEditorHint();
   }, [session.status, session.data]);
 
@@ -58,10 +44,6 @@ export function AppProviders({
 }: {
   children: ReactNode;
   session?: Session | null;
-  /**
-   * Set only for the local screenshot viewer (lib/auth/devScreenshotViewer.ts),
-   * whose session has no Auth.js cookie behind it. Unset keeps Auth.js defaults.
-   */
   sessionBasePath?: string;
 }) {
   const [queryClient] = useState(() => new QueryClient(queryClientOptions));

@@ -10,7 +10,6 @@ import { AppImage } from "@/components/common/AppImage";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { ConsoleGreeting, CountUp, MoleculeCarousel, Signature } from "./ChinaDelight";
 import { Icon } from "@/components/common/Icon";
-// Route-owned styles; see the sheet header. Same utilities layer as the shared sheet.
 import "./china.css";
 import { PublicContentShell } from "@/components/layout/PublicPagePrimitives";
 import { Button } from "@/components/ui/button";
@@ -19,18 +18,10 @@ import { formatFileSize } from "@/utils/fileSize";
 
 export const revalidate = 3600;
 
-/**
- * The bulk downloads are dose.wiki's own material. A flavor without the Open
- * Data section does not ship them and must not advertise another
- * publication's files under its own licence.
- */
 const SHOWS_DOWNLOADS = SITE_FLAVOR_CONFIG.about.showOpenData;
 
-/** Structures drawn beside the molecule pack, purely as decoration. */
-/** How many drawings the carousel cycles through; a fresh draw every revalidation. */
 const CAROUSEL_SIZE = 14;
 
-/** The historical PsychonautWiki archive the author maintains; every mention points here. */
 const PSYCHONAUTWIKI_ARCHIVE = "https://psychonautwiki.rip";
 
 function drawMolecules(slugs: readonly string[], size: number): string[] {
@@ -42,13 +33,6 @@ function drawMolecules(slugs: readonly string[], size: number): string[] {
   return pool.slice(0, size);
 }
 
-/**
- * Unlisted by design. The page is reachable at its address but carries
- * `noIndex`, is absent from `STATIC_PUBLIC_PATHS` so it never enters the
- * sitemap, and nothing links to it. It is also absent from
- * `noIndexRoutePolicies`, because that list writes a robots.txt `Disallow:`
- * line, which would publish the address it is meant to keep quiet.
- */
 export async function generateMetadata() {
   if (!SHOWS_DOWNLOADS) {
     notFound();
@@ -77,7 +61,6 @@ export default async function DownloadsPage() {
 
   return (
     <PublicContentShell focusTarget width="wide" className="space-y-16">
-      {/* The banner is the title: a dose.wiki molecule arm and a FreeODwiki pill arm, US and Chinese flags, gripping. */}
       <AppImage
         src="/images/downloads/dosewiki-freeodwiki-banner.webp"
         alt="dose.wiki 与 FreeODwiki · dose.wiki and FreeODwiki"
@@ -159,7 +142,6 @@ export default async function DownloadsPage() {
         </section>
       )}
 
-      {/* Josie's statement to FreeODwiki: Chinese left, English right, the author between them. */}
       <section aria-label="Josie Kins 致 FreeODwiki · A statement from Josie Kins" className="border-dose-divider space-y-8 border-t pt-12">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-12">
           <PublicMarkdownBody
@@ -191,7 +173,6 @@ export default async function DownloadsPage() {
           </div>
           <div>
             <PublicMarkdownBody content={copy.text("china-statement-en")} className="max-w-none" />
-            {/* Reaching this marks the statement as read; the signature answers. */}
             <div id="china-statement-end" aria-hidden="true" className="h-px" />
           </div>
         </div>

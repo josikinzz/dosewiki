@@ -52,41 +52,29 @@ export type TripReportSubmissionPromotionResult = {
   submission: TripReportSubmissionRow;
   reportId: string;
   payload: DataTripReportImportPayload;
-  /** A membership matching the contact email. A suggestion only: promotion grants no ownership. */
   suggestedOwner: { email: string; username?: string } | null;
 };
 
-/** A status change; Postgres stamps the reviewer from the resolved actor. */
 export type TripReportSubmissionStatusChange = {
   status: TripReportSubmissionStatus;
   notes?: string;
-  /** Shown to the author in My reports; `notes` stays private. */
   publicReason?: string;
 };
 
-/** The signed-in member a route acts as; Postgres resolves their real role from it. */
 export type TripReportSubmissionActor = {
   actorEmail: string;
 };
 
-// Contributor attribution for a published report is chosen by the promoting
-// editor, so it travels with the promotion call rather than the submission.
 export type TripReportSubmissionPromotionOptions = {
   profileKey?: string;
-  // Acknowledges a byline that matches an existing contributor. Postgres refuses
-  // the promotion without either this or a matching profile key.
   confirmAuthorNameClaim?: boolean;
 };
 
 export interface TripReportSubmissionStore {
   create(input: TripReportSubmissionInput): Promise<TripReportSubmissionCreateResult>;
-  /** Newest rows first, capped at 250: the browse path. */
   list(filters?: TripReportSubmissionListFilters): Promise<TripReportSubmissionRow[]>;
-  /** Every row in the given statuses, newest first, uncapped: what `count` counts. */
   listByStatuses(filters: TripReportSubmissionStatusFilters): Promise<TripReportSubmissionRow[]>;
-  /** Compact, non-overlapping portal rows with uncapped needs review and the existing history window. */
   listPortalSummaries(): Promise<TripReportSubmissionPortalIndex>;
-  /** Total rows in the given statuses, computed on the server: no list travels. */
   count(filters: TripReportSubmissionStatusFilters): Promise<number>;
   get(id: string): Promise<TripReportSubmissionRow | null>;
   transition(

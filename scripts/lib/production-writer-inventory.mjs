@@ -148,9 +148,6 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/repoint-renditions.mjs",
     "scripts/translation/import-glossary-drafts.ts",
   ]),
-  // Local rehearsals that write scratch rows with raw SQL. They are held to
-  // targetGuard (loopback only unless --allow-remote plus
-  // POSTGRES_IMPORT_CONFIRM), not to the production write ceremony.
   localRehearsal: Object.freeze([
     "scripts/postgres/rehearse-article-lifecycle.ts",
     "scripts/postgres/rehearse-auth.ts",

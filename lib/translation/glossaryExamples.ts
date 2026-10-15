@@ -6,14 +6,12 @@ import type { GlossaryExample } from "../../src/features/language-glossary/langu
 import { getPostgresClient } from "../postgres/runtime/backend";
 import { getGlossaryExampleCandidates, type GlossaryExampleCandidate } from "./glossaryUsage";
 
-/** Characters of English kept on each side of the term. */
 const ENGLISH_RADIUS = 60;
 const ELLIPSIS = "…";
 
 const readable = (text: string) => stripMarkup(text).replace(/\s+/g, " ").trim();
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/** `text` cut to `radius` characters around [start, end), at a space when one is near. */
 export function trimAround(text: string, start: number, end: number, radius: number): string {
   let from = Math.max(0, start - radius);
   let to = Math.min(text.length, end + radius);
@@ -28,12 +26,6 @@ export function trimAround(text: string, start: number, end: number, radius: num
   return `${from > 0 ? ELLIPSIS : ""}${text.slice(from, to).trim()}${to < text.length ? ELLIPSIS : ""}`;
 }
 
-/**
- * The first candidate with a stored translation, as one in-context example.
- * The English is trimmed around the term as the shared matcher finds it; the
- * translation around the shown rendering, or around the same relative place
- * when the stored sentence does not contain it.
- */
 export function buildGlossaryExample(
   entry: { term: string; target: string | null },
   candidates: readonly GlossaryExampleCandidate[],
@@ -62,11 +54,6 @@ export function buildGlossaryExample(
   return null;
 }
 
-/**
- * One example per term that has one: the first current usage from the usage
- * map whose segment has a stored translation in `locale`. Reads only public
- * content and stored segment text.
- */
 export async function readGlossaryExamples(
   locale: string,
   entries: readonly { term: string; target: string | null }[],

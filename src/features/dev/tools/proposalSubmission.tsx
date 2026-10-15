@@ -1,9 +1,3 @@
-/**
- * Submitting a tab-local document (a copy block, the About page) as a change
- * proposal instead of saving it. Editors land here; admins keep the tool's
- * direct save. The proposal carries the same body the direct save route
- * validates, a one-line summary, and the loaded baseline for server comparison.
- */
 import { Button } from "@/components/ui/button";
 import type { NoticeMessage } from "@/features/dev/components";
 import type { ProposalPayload } from "@/hooks/useApiMutations";
@@ -29,7 +23,6 @@ export async function submitToolProposal(input: {
   return { proposalId: result.proposalId };
 }
 
-/** The success notice after a submission: what was proposed, and the way to Change Review. */
 export function proposalSubmittedNotice(subject: string, proposalId: string): NoticeMessage {
   return {
     tone: "success",

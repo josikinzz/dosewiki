@@ -42,7 +42,6 @@ const CITATIONS: ProjectedCitation[] = [
   },
 ];
 
-// Two past the default limit, so the list collapses behind a "+2" chip.
 const LONG_CITATIONS: ProjectedCitation[] = Array.from(
   { length: REFERENCE_LIST_VISIBLE_LIMIT + 2 },
   (_, index) => ({

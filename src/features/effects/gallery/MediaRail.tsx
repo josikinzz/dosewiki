@@ -14,25 +14,11 @@ import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { GalleryMediaTile } from "./GalleryMediaTile";
 import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryTypes";
 
-/** How much of the visible rail one arrow press advances. */
 const ARROW_SCROLL_RATIO = 0.8;
 
-/**
- * Phone browse view. Two columns and hairline gutters, the same geometry the
- * search masonry uses, so a group reads as a continuous grid of work instead
- * of a rail that loads fourteen tiles and reveals one. Two rather than three:
- * a third column left every tile ~125px wide on a 390px phone while still
- * paying a full-resolution decode for each one.
- */
 const GROUP_MASONRY_CLASS = "columns-2 gap-1.5 sm:columns-3 [column-fill:_balance]";
 const GROUP_MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid";
 
-/**
- * Where a masonry group's label parks while its own tiles scroll past: below
- * the app header and the control bar that sticks under it. Every offset in the
- * stack derives from the same three tokens (src/styles/base.css), so a header
- * height change moves the whole stack at once.
- */
 const STICKY_LABEL_TOP =
   "top-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+var(--replications-control-bar-height))]";
 
@@ -44,40 +30,16 @@ const EXTERNAL_ICON_CLASS =
 
 interface MediaRailProps {
   group: GalleryGroup;
-  /** False while `group.count` covers only loaded continuation pages. */
   countIsComplete?: boolean;
-  /**
-   * Stable source page for this group — an Artist Page or effect article — so
-   * "View all" remains crawlable and cmd-clickable instead of dead client state.
-   */
   viewAllHref: string;
-  /** Forwarded to each tile as `showByline`; artist rails already name the artist in the heading. */
   tileBylines?: boolean;
-  /** Forwarded to each tile: tighten captions below `md`. */
   mobileCompact?: boolean;
-  /**
-   * `rail` is the horizontal scroller. `masonry` is the phone browse view: the
-   * group's works in a continuous three-column grid under a sticky label,
-   * which is the only layout on this page that puts more than one or two works
-   * on a phone screen at a time.
-   */
   layout?: "rail" | "masonry";
-  /** Opens the canonical in-page viewer for an ordinary click. */
   onTileOpen?: (
     event: React.MouseEvent,
     replication: PublicGalleryReplicationPreview,
   ) => void;
-  /** Canonical source-collection viewer URL for each rail work. */
   viewerHrefFor: (replication: PublicGalleryReplicationPreview) => string;
-  /**
-   * The heading's identity portrait, shown left of the name.
-   *
-   * Absent means the heading names no person — an effect group, or the
-   * unattributed bucket, which must not be handed a face. `null` means a
-   * credited artist with no claimed profile image: their monogram holds the
-   * slot, so every artist name in a browse column starts on the same edge
-   * instead of stepping in and out as claimed profiles come and go.
-   */
   avatarUrl?: string | null;
 }
 
@@ -99,13 +61,6 @@ export function MediaRail({
     ? t("View all {{count}}", { count: group.count })
     : t("View all");
 
-  /**
-   * Desktop arrow affordances. Wheel-less mice cannot comfortably drag a
-   * horizontal scroller, so hover-capable pointers get prev/next buttons that
-   * page the rail; they hide entirely at either end (and both, when the rail
-   * does not overflow). Touch keeps native swiping and never sees them —
-   * the buttons are display:none outside `@media (hover: hover)`.
-   */
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState({ left: false, right: false });
 
@@ -136,66 +91,26 @@ export function MediaRail({
     });
   };
 
-  // `disabled:opacity-0` (not a bare `opacity-0`) so it outranks the base
-  // Button's `disabled:opacity-50`; disabled already kills pointer events.
   const arrowClass =
     cn("theme-media-rail-arrow absolute top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 rounded-full transition-[opacity,transform] duration-[160ms] active:scale-95 disabled:opacity-0 motion-reduce:transition-none motion-reduce:active:scale-100 [@media(hover:hover)]:inline-flex", TOUCH_ICON);
 
-  /**
-   * A person's face is the fastest way to recognize their section in a column
-   * of sixteen, so an artist heading leads with their portrait. An artist with
-   * no claimed profile image still gets the frame with their monogram in it:
-   * the alternative — a portrait only where a profile happens to exist — makes
-   * the names step in and out along the left edge as you scroll.
-   */
   const portrait =
     avatarUrl === undefined ? null : (
-      // Decorative: the name it leads sits inside the same link, so an
-      // announced portrait would just be a second copy of that name.
       <span aria-hidden="true" className="flex">
         <ContributorAvatar imageUrl={avatarUrl} name={group.label} size="xs" />
       </span>
     );
 
-  // The star follows the name inside its own link, so it never becomes a
-  // second focus stop and reads as part of the name: "Loka, approved
-  // replicator". Sized to the heading's text so it sits on the same optical
-  // line as the letters, and pulled in because the link's portrait gap is
-  // wider than a mark wants from its word. Only a linked heading can wear
-  // it: the unattributed bucket, the one heading without an `href`, claims
-  // no identity for anyone to approve.
   const star = group.approvedReplicator ? (
     <ApprovedReplicatorStar className="-ml-1 text-[0.85em]" />
   ) : null;
 
-  /**
-   * What the group's name does.
-   *
-   * An artist's name belongs to their Artist Page: every credited artist's one
-   * public surface, where their whole body of work, their bio and their own
-   * links live (decorated by a claimed Contributor Profile), and where every
-   * other credit line on the site already points. Their personal site is still
-   * worth reaching — it just is not what their *name* means — so when both
-   * exist it becomes a separate arrow beside the name rather than disappearing.
-   *
-   * Dropping the external link entirely was the tempting simplification, since
-   * a claimed profile renders `links[]` on the page. It is wrong on this data:
-   * of the fifty artists carrying an `artist_url`, nineteen have a URL that is
-   * not on their profile at all, so removing it here would quietly make those
-   * unreachable.
-   *
-   * Only the unattributed bucket has no `href` at all — its heading claims no
-   * identity — so it keeps the external link or plain text, and it is the one
-   * artist heading with no portrait beside it. Effect groups only ever have an
-   * `href`, so the fallback branches are inert for them.
-   */
   const heading = group.href ? (
     <span className="flex min-w-0 items-center gap-1.5">
       <SmartLink
         href={group.href}
         className={cn(
           HEADING_LINK_CLASS,
-          // The unnamed `group` is what the portrait's own hover lift reads.
           "group flex min-w-0 items-center gap-2.5",
         )}
       >
@@ -246,13 +161,7 @@ export function MediaRail({
       <div
         className={cn(
           "flex flex-wrap justify-between gap-x-4 gap-y-1 px-1",
-          // A bare name sits on the baseline with "View all"; a portrait is
-          // taller than the text it leads, so the row centers on it instead.
           portrait ? "items-center" : "items-baseline",
-          // In the masonry view the label rides along above its own tiles:
-          // fourteen works of one artist scroll past in three columns, and a
-          // label that scrolls away with the first row leaves the rest of the
-          // grid unattributed.
           masonry &&
             cn(
               "sticky z-10 -mx-1 rounded-lg px-2 py-0.5 backdrop-blur-md theme-frosted-control-bar",
@@ -260,9 +169,6 @@ export function MediaRail({
             ),
         )}
       >
-        {/* A real heading, not a styled span: the browse view is otherwise one
-            h1 followed by sixteen unheaded regions, so nobody can navigate
-            artist to artist by heading. */}
         <h2 className="flex min-w-0 flex-col gap-0.5">{heading}</h2>
         {hasMore ? (
           <SmartLink
@@ -300,8 +206,6 @@ export function MediaRail({
           ref={scrollerRef}
           onScroll={updateScrollability}
           className={cn(
-            // px/scroll-px keep resting tiles off the clipping edge, aligned
-            // with the header's own px-1 inset.
             "flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1",
             "[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]",
           )}

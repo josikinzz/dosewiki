@@ -12,24 +12,13 @@ import type { OwnedPlaylist } from "./playlistsModel";
 export type PlaylistOwnershipProps = {
   playlist: OwnedPlaylist;
   busy: boolean;
-  /** The members an admin may hand the playlist to. */
   memberOptions: readonly SearchablePickerOption[];
-  /** The member list could not load: say so, with a retry, instead of "No member matches". */
   rosterError: string | null;
   onRetryRoster: () => void;
-  /** A member's name for the sentence under the picker ("river"), falling back to the address. */
   ownerName: (email: string) => string;
-  /** `null` leaves the playlist unowned. The tab confirms before writing. */
   onAssign: (ownerEmail: string | null) => void;
 };
 
-/**
- * Admin only: who may edit an open playlist. Ownership is not part of the
- * draft; the button here writes at once through the owner route behind its
- * own confirm, so the block says so beside its label (one pane, two save
- * models, said out loud). Mount it keyed on the stored owner so a completed
- * change resets the field.
- */
 export function PlaylistOwnership({
   playlist,
   busy,
@@ -42,7 +31,6 @@ export function PlaylistOwnership({
   const headingId = useId();
   const [email, setEmail] = useState(playlist.owner_email ?? "");
   const next = email.trim().toLowerCase();
-  // The stored owner stays choosable even if the roster read has not come back.
   const options = playlist.owner_email && !memberOptions.some((option) => option.value === playlist.owner_email)
     ? [{ value: playlist.owner_email, label: playlist.owner_email }, ...memberOptions]
     : memberOptions;

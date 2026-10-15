@@ -6,7 +6,6 @@ import {
   type ReplicationViewerPosition,
 } from "./viewerModel";
 
-/** Non-swipe selections may fade; both swipe axes animate in the track. */
 export type EntryMotion = "fade";
 
 export interface ViewerHistoryAdapter {

@@ -4,17 +4,10 @@ import { projectEditorArticle } from "../src/data/projections/substanceReadProje
 import { minimalArticle } from "../src/test/fixtures/articles";
 import { contentHash } from "./proposals/contentHash";
 
-// Shared in-memory Postgres fixture for the change proposal review tests.
 export const SERVER_KEY = "test-admin-key";
 
 export type Row = Record<string, unknown> & { _id: string };
 
-/**
- * In-memory tables covering everything the review handlers and the write
- * handlers they delegate to touch: `withIndex(...).eq(field, value)` lookups,
- * the index-free `query("categoryLayout").first()` the layout mirror uses,
- * `get`, `insert`, `patch`, `replace`, and `delete`.
- */
 export function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
   for (const [table, rows] of Object.entries(seed)) {
@@ -131,7 +124,6 @@ export const proposedLayout = {
   ],
 };
 
-/** What `readProposalTarget` returns for the stored article: the editor projection without system fields. */
 export function liveArticleDocument(row: Row) {
   const { _id: _rowId, _creationTime: _createdAt, ...content } = projectEditorArticle(row as never) as Record<
     string,

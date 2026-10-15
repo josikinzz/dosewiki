@@ -40,12 +40,6 @@ export type SubstanceLookupProjection = {
   priority: PublicSubstancePriority;
 };
 
-/**
- * Lookup plus the article facets editor pickers need to order and label their
- * lists: the raw visibility inputs (`substanceVisibility`) and the psychoactive
- * classes used as a category. Kept off the public lookup, which only needs the
- * slug/name map.
- */
 export type SubstanceEditorLookupProjection = Omit<SubstanceLookupProjection, "priority"> & {
   priority: StoredSubstancePriority;
   indexCategories: string[];
@@ -142,7 +136,6 @@ export type SubstanceEffectMembershipInput = Pick<SubstanceLibraryInputProjectio
   "id" | "title" | "slug" | "priority" | "index_categories" | "identification" | "classification" | "subjective_effects"
 >;
 
-/** Membership and category presentation need no dosage, chemistry or article prose. */
 export function projectEffectMembershipInput(article: SubstanceArticleRecord): SubstanceEffectMembershipInput {
   return omitUndefinedDeep({
     id: article.id,
@@ -165,11 +158,6 @@ export type SubstancePublicArticleProjection = Omit<SubstanceArticleRecord, "edi
   publicRevision: string;
   priority: PublicSubstancePriority;
   references: SubstancePublicReferenceProjection[];
-  /**
-   * Public-safe derivation of the editor-only `editorial_review` field: `true`
-   * only when an editor has marked the article's review as completed. The full
-   * `editorial_review` object (including private notes) is never exposed.
-   */
   expert_reviewed: boolean;
 };
 export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
@@ -219,13 +207,6 @@ export function projectPublicPreview(article: SubstanceArticleRecord): Substance
   };
 }
 
-/**
- * Search-summary projection. Localized search hashes the exact leaf the full
- * article projection serves (`projectPublicArticle` passes `summary` through
- * untouched), so this keeps the raw stored bytes instead of the preview
- * excerpt; otherwise a long summary hashes differently and localized
- * secondary lines silently fall back to English.
- */
 export type SubstanceSearchSummaryProjection = {
   title: string;
   slug: string;
@@ -461,13 +442,6 @@ const isCompletedEditorialReview = (value: unknown): boolean =>
   value !== null &&
   (value as { status?: unknown }).status === "completed"
 
-/**
- * Public-safe reviewed-articles aggregate entry. The reviewer email set is
- * matched here and then discarded: the projection carries only the article's
- * identity and the completion timestamp, so `editorial_review` (reviewer
- * email, private notes, flags) stays as internal as everywhere else in this
- * module. Returns null for articles the given reviewer set did not review.
- */
 export function projectReviewedArticleForEmails(
   article: SubstanceArticleRecord,
   reviewerEmails: ReadonlySet<string>,
@@ -493,14 +467,6 @@ export function projectReviewedArticleForEmails(
   };
 }
 
-/**
- * Public-safe review credit: which contributor profile completed the expert
- * review of which article. The stored reviewer email is looked up in the
- * profile-claimed email index and then discarded — only the slug and the
- * claiming profile key leave this function, keeping `editorial_review` as
- * internal as it is everywhere else in this module. Returns null for articles
- * without a completed review or whose reviewer no profile claims.
- */
 export function projectReviewedArticleCredit(
   article: SubstanceArticleRecord,
   emailToProfileKey: ReadonlyMap<string, string>,
@@ -534,7 +500,6 @@ export function projectPublicArticle(article: SubstanceArticleRecord): Substance
     references: (article.references ?? []).map(projectPublicReference),
     expert_reviewed: isCompletedEditorialReview(editorialReview),
   };
-  // Postgres identity and editorial-only fields do not name rendered content.
   const { _id: _id, _creationTime: _creationTime, publicRevision: _revision, ...content } =
     projection as typeof projection & { _id?: unknown; _creationTime?: unknown; publicRevision?: unknown };
   return { ...projection, publicRevision: contentHash(content) };

@@ -37,7 +37,6 @@ export function glossaryReleaseRevision(
     )
     .digest("hex");
 }
-/** Fail closed: a configured host or zero drafts is never release evidence. */
 export function languageReadiness(
   locale: string,
   required: readonly string[],

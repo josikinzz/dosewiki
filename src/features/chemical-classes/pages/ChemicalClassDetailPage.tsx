@@ -24,12 +24,6 @@ function Count({ value }: { value: number }) {
   return value > 0 ? <span className="theme-text-faint ml-2 font-normal">· {value}</span> : null;
 }
 
-/**
- * One row in the class lineage stack. `depth` 0 is the root scaffold; each step
- * down indents by one connector. `tone` selects how the row reads: the active
- * class is accented and bold; its ancestors and subclasses are quiet links;
- * bioisosteres are the faintest, since they are a lateral aside.
- */
 function LineageRow({
   item,
   depth,
@@ -76,12 +70,6 @@ function LineageRow({
   );
 }
 
-/**
- * The lineage stack. Ancestors descend root-first; at the active class's own
- * indent its curated bioisosteres sit collapsed just above it, then the active
- * class (accented), then its subclasses expanded beneath. Lateral browsing to
- * unrelated siblings happens by walking back up the ancestor chain.
- */
 function LineageStack({ detail }: { detail: ChemicalClassDetail }) {
   const ancestors = detail.lineage.slice(0, -1);
   const currentDepth = Math.max(detail.lineage.length - 1, 0);

@@ -3,11 +3,6 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 
-// Native-<details> disclosure card: a summary "pill" inside a rounded card
-// frame, no client JS. The card keeps a tight p-2 frame so the summary reads
-// as a pill; the body then re-indents (px-3 pb-3) so expanded content lands
-// 20px from every card edge — flush with the summary label and equal to
-// ContentCard padding="md" — instead of hugging the frame.
 const DETAILS_BASE_CLASS =
   "group/disclosure rounded-card border p-2 transition-colors";
 
@@ -28,7 +23,6 @@ const BODY_CLASS = "px-3 pb-3 pt-3";
 export type DisclosureCardProps = {
   summary: ReactNode;
   children: ReactNode;
-  /** Initial open state of the native <details>; the browser owns it afterward. */
   defaultOpen?: boolean;
   id?: string;
   variant?: keyof typeof DETAILS_VARIANT_CLASS;

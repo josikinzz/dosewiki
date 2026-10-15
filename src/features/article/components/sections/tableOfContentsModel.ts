@@ -13,11 +13,6 @@ export interface ArticleTocPresence {
 
 export type ArticleTocTranslate = (text: string) => string;
 
-/**
- * Projects the article into the small, serializable model consumed by the TOC
- * disclosure/strip islands. Public routes run this on the server; editor
- * previews use the same projection in their existing client boundary.
- */
 export function buildArticleTableOfContentsItems(
   article: SubstanceArticle,
   t: ArticleTocTranslate,

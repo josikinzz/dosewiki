@@ -20,7 +20,6 @@ import {
   type CitationReviewChecklistItem,
 } from "./citationReviewModels";
 
-/** A key cap on fine pointers only; the key itself rides in `aria-keyshortcuts`. */
 export function KeyCap({ children }: { children: string }) {
   return (
     <span aria-hidden className="[@media(pointer:coarse)]:hidden">
@@ -29,7 +28,6 @@ export function KeyCap({ children }: { children: string }) {
   );
 }
 
-/** A relative day in a `<time>` whose title is the full date. */
 export function RelativeTime({ iso }: { iso: string | null | undefined }) {
   const day = iso ? describeDay(iso) : null;
   if (!iso || !day) return <>at an unknown time</>;
@@ -57,7 +55,6 @@ const CHECK_ICON: Record<CitationReviewChecklistItem["tone"], { icon: IconName; 
   attention: { icon: "lucide:triangle-alert", className: "theme-danger-text-strong" },
 };
 
-/** The pre-flight checks as one quiet list: a glyph for where each stands, then its words. */
 function WhereItStands({ checklist }: { checklist: CitationReviewChecklistItem[] }) {
   const headingId = useId();
   return (
@@ -83,10 +80,6 @@ function WhereItStands({ checklist }: { checklist: CitationReviewChecklistItem[]
   );
 }
 
-/**
- * The article's own reference markers (the shared diagnostics panel), folded
- * shut: most reviews never need it, and it renders every prose field.
- */
 function MarkerCheck({
   state,
   summary,
@@ -140,21 +133,16 @@ export type CitationArticlePaneProps = {
   title: string;
   headingId: string;
   headingRef: RefObject<HTMLHeadingElement | null>;
-  /** "N of M" through the rows the list shows; null when the list does not show it. */
   position: { index: number; total: number } | null;
   onMove: (direction: 1 | -1) => void;
   onBackToList: () => void;
-  /** Said when the list's filter or search does not show this article. */
   hiddenByList: ReactNode;
   lastChange: string | null;
   tally: CitationTally | null;
-  /** Whether the rows behind the tally are loading or failed, when there is no tally. */
   rowsState?: "loading" | "failed";
   checklist: CitationReviewChecklistItem[];
   markers: { state: "loading" | "failed" | "ready"; summary: string; onRetry: () => void; panel: ReactNode };
-  /** The evidence sections, or the loading and failure states in their place. */
   children: ReactNode;
-  // Dock
   busy: boolean;
   pending: CitationPendingAction | null;
   frozen: boolean;
@@ -168,19 +156,10 @@ export type CitationArticlePaneProps = {
   openedReadyCount: number;
   onApproveAll: () => void;
   onOpenNextUnread: (() => void) | null;
-  /** Undo for the article-wide approval, or for a decision on another article. */
   undoSlot: ReactNode;
   nextWaiting: { title: string; onOpen: () => void } | null;
 };
 
-/**
- * One article under review, docked beside the list: a header that names it
- * once (title, where it stands in a line, when it last changed, Open in
- * Review, pager), the pre-flight checks, the evidence by section, and a
- * decision dock that sticks to the bottom of the screen while the pane is on
- * it: the last result, the hold line, and the article-wide approval with the
- * one reason it waits.
- */
 export function CitationArticlePane(props: CitationArticlePaneProps) {
   const {
     slug,
@@ -392,7 +371,6 @@ function CitationDock({
   );
 }
 
-/** Who holds the article in the Inbox's claim table, with the one action that changes that. Advisory. */
 function HoldLine({
   hold,
   busy,
@@ -456,7 +434,6 @@ function HoldLine({
   );
 }
 
-/** The pane while its rows load. */
 export function CitationPaneSkeleton() {
   return (
     <EditorPanel>

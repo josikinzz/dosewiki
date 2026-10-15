@@ -1,5 +1,4 @@
 #!/usr/bin/env bun
-/** Forward the same explicit target and confirmation flags to every producer. */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 

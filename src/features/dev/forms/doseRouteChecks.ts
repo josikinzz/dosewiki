@@ -1,12 +1,3 @@
-/**
- * Checks an editor reads while typing one route's dose ranges and duration
- * stages, before anything is applied. They mirror or go past the article
- * validation (`server/lib/articleLifecycleValidation.ts`) in words a person
- * can act on: which tier broke the one-unit rule, which tier is out of order,
- * which stage is longer than the whole experience. None of them change what
- * the validation refuses; a warning here is advice, the validation decides.
- */
-
 export type RangeValue = { min?: number | null; max?: number | null; unit?: string } | null | undefined;
 
 export const DOSE_TIERS = [
@@ -34,24 +25,17 @@ function populated(range: RangeValue): range is { min?: number | null; max?: num
   return !!range && (typeof range.min === "number" || typeof range.max === "number");
 }
 
-/** The unit the validation compares: trimmed, lower case, one micro sign. */
 export function unitKey(unit: string | undefined): string {
   return (unit ?? "").trim().replace(/μ/g, "µ").toLowerCase();
 }
 
-/** Units that name the same amount but compare as different spellings. */
 const SAME_UNIT_SPELLINGS: Array<readonly string[]> = [["µg", "ug", "mcg"]];
 
-/** "A, B and C". */
 export function listWords(words: readonly string[]): string {
   if (words.length <= 1) return words.join("");
   return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
 }
 
-/**
- * The unit each populated tier uses, grouped: `[{ unit: "mg", tiers: ["Light",
- * "Moderate"] }]`, in tier order. Empty when no tier holds a value.
- */
 export function doseUnits(ranges: Partial<Record<DoseTier, RangeValue>> | null | undefined) {
   const groups: Array<{ unit: string; key: string; tiers: string[] }> = [];
   for (const [tier, label] of DOSE_TIERS) {
@@ -67,7 +51,6 @@ export function doseUnits(ranges: Partial<Record<DoseTier, RangeValue>> | null |
 
 const lower = (range: { min?: number | null; max?: number | null }) => (typeof range.min === "number" ? range.min : range.max ?? 0);
 
-/** What the editor should know about one route's dose tiers before applying. */
 export function doseRangeChecks(ranges: Partial<Record<DoseTier, RangeValue>> | null | undefined): RouteCheck[] {
   const checks: RouteCheck[] = [];
   const units = doseUnits(ranges);
@@ -87,7 +70,6 @@ export function doseRangeChecks(ranges: Partial<Record<DoseTier, RangeValue>> | 
       if (lower(range) < lower(previous.range)) {
         checks.push({ tone: "warning", message: `${label} starts below ${previous.label}. Tiers read from the smallest dose to the largest.` });
       } else if (previous.tier !== "threshold" && typeof previous.range.max === "number" && typeof range.min === "number" && previous.range.max > range.min) {
-        // Touching tiers (10-50, 50-150) are the house style; a tier that reaches past the next one's start is not.
         const unit = (range.unit ?? "").trim();
         checks.push({ tone: "warning", message: `${previous.label} reaches ${previous.range.max} ${unit}, past where ${label} starts (${range.min} ${unit}). Check the two tiers.` });
       }
@@ -97,11 +79,6 @@ export function doseRangeChecks(ranges: Partial<Record<DoseTier, RangeValue>> | 
   return checks;
 }
 
-/**
- * Tiers whose new value is more than twice or less than half of what readers
- * see now, in the same unit. A tenfold slip ("1-2 mg" for "10-20 mg") is the
- * error this exists for.
- */
 export function doseJumpChecks(
   ranges: Partial<Record<DoseTier, RangeValue>> | null | undefined,
   live: Partial<Record<DoseTier, RangeValue>> | null | undefined,
@@ -129,7 +106,6 @@ const MINUTES_PER: Record<string, number> = {
   week: 10080, weeks: 10080,
 };
 
-/** A stage's longest reading in minutes, or null when the unit is not a time. */
 function longestMinutes(range: RangeValue): number | null {
   if (!populated(range)) return null;
   const factor = MINUTES_PER[unitKey(range.unit)];
@@ -138,7 +114,6 @@ function longestMinutes(range: RangeValue): number | null {
   return typeof top === "number" ? top * factor : null;
 }
 
-/** What the editor should know about one route's duration stages before applying. */
 export function durationStageChecks(stages: Partial<Record<DurationStageKey, RangeValue>> | null | undefined): RouteCheck[] {
   const checks: RouteCheck[] = [];
   for (const [stage, label] of DURATION_STAGES) {
@@ -165,12 +140,6 @@ type ArticleLike = { dosage?: { routes?: readonly RouteLike[] | null } | null; d
 
 const routeKeyOf = (route: RouteLike) => (route.route ?? "").trim().toLowerCase();
 
-/**
- * Every dose and duration warning across an article's routes, each led by its
- * route ("Oral: Moderate reaches 160 ug, ..."), for the review sheet and the
- * publish confirm. Only routes whose values differ from the live article are
- * read, so an untouched legacy route never nags a publish it is not part of.
- */
 export function articleDoseWarnings(article: ArticleLike, live: ArticleLike | null): string[] {
   const warnings: string[] = [];
   const liveDosage = live?.dosage?.routes ?? [];

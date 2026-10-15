@@ -1,11 +1,3 @@
-/**
- * Admin-only preview/apply endpoint for saved class orientation templates.
- *
- * GET reads current MOL blocks/source markers for up to 50 rolled members.
- * POST applies up to 50 confirmed depictions. The 16 MiB aggregate body cap is
- * deliberately tighter than 50 times the single-molecule ceiling because SVG
- * payloads are large and the useful class batches are much smaller in practice.
- */
 import { Buffer } from "node:buffer";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { NextResponse } from "next/server";
@@ -213,13 +205,8 @@ export const POST = protectedRouteOperation<ApplyTemplateBody, ParsedApplyTempla
     const appliedSlugs = results
       .filter((result) => result.status === "applied")
       .map((result) => result.slug);
-    // Each applied member is a published depiction of its own, so its
-    // persisted leaf and its owner page expire with the shared override index.
     const targets: PublicationTarget[] = appliedSlugs.map((slug) => ({ kind: "molecule", slug }));
     if (appliedSlugs.length > 0) {
-      // A substance can appear on the selected class, descendant/ancestor
-      // rollups, and an unrelated class through multi-class membership, so the
-      // class index layout goes rather than the one class page.
       targets.push({ kind: "chemical-class-lists" });
     }
     const publication = targets.length > 0

@@ -49,10 +49,6 @@ function normalizeReferences(raw: unknown): SubstanceArticle["references"] {
   });
 }
 
-/**
- * Normalizes the parsed YAML into a proper SubstanceArticle with defaults.
- * This provides defensive parsing to handle missing or malformed fields.
- */
 export function normalizeArticleInput(raw: Record<string, unknown>): SubstanceArticle {
   const priority = isSubstancePriority(raw.priority) ? raw.priority : "normal";
 

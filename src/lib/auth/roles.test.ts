@@ -37,7 +37,6 @@ describe("role policy", () => {
   });
 
   it.each([
-    // role, meets contributor, meets translator, meets editor, meets admin
     [null, false, false, false, false],
     ["viewer", false, false, false, false],
     ["contributor", true, false, false, false],
@@ -108,7 +107,6 @@ describe("role policy", () => {
         expect(decision).toEqual({ type: "unauthorized", role, from: "/dev" });
       } else {
         expect(decision).toEqual({ type: "allow", access: role });
-        // The shell, not the route, decides whether the tab is open to that role.
         expect(getRoleFloorLockReason(role, tabRole) === null).toBe(roleMeetsFloor(role, tabRole));
       }
     }

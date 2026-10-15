@@ -17,7 +17,6 @@ interface HomeExperienceProps {
   quickLinks: readonly HomeQuickLink[];
   languages?: readonly LanguageDestination[];
   isConstructionMode?: boolean;
-  /** Editable hero copy resolved on the server, with the shipped flavor copy as fallback. */
   copy?: {
     tagline?: string;
   };
@@ -98,7 +97,6 @@ export function HomeExperience({
           )}
         </section>
 
-        {/* Editor build only until the translations are ready for the Public Hosts. */}
         {process.env.NEXT_PUBLIC_EDITOR_BUILD === "true" ? (
           <HomeLanguageMenu languages={languages} />
         ) : null}

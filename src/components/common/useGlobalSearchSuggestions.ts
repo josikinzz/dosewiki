@@ -5,14 +5,6 @@ import { useSearchManifestIndex } from "../../hooks/useSearchManifest";
 
 const MAX_SUGGESTIONS = 8;
 
-/**
- * How long to wait before asking the server to refine local results.
- *
- * The manifest starts on search intent, so this delay collapses a burst of
- * typing while the shared locale-specific index is still downloading. It also
- * avoids burning through the endpoint's rate limit (30/min/IP) during that
- * brief window.
- */
 const SERVER_REFINE_DELAY_MS = 400;
 
 const SEARCH_SUGGESTIONS_MAX_ENTRIES = 100;
@@ -26,12 +18,6 @@ const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>()
 const buildCacheKey = (trimmed: string, limit: number, locale: string) =>
   `${locale}::${trimmed.toLowerCase()}::${limit}`;
 
-/**
- * Results already fetched for the longest prefix of `trimmed`, if any. Typing one
- * more character can only narrow the result set, so the previous round's results
- * are a good enough stand-in to render immediately instead of flashing an empty
- * or loading state while the request for the longer query is in flight.
- */
 const findPrefixSuggestions = (
   trimmed: string,
   limit: number,
@@ -57,14 +43,6 @@ type UseGlobalSearchSuggestionsArgs = {
   loadManifestOnActivate?: boolean;
 };
 
-/**
- * Search results for `query`, answered locally first and refined by the server.
- *
- * The manifest covers names and aliases, which is what nearly every query is,
- * and matches with no network in the loop. The server request that follows adds
- * what the manifest deliberately omits — matches on classes, mechanisms and
- * article prose — and replaces the local results once it lands.
- */
 export function useGlobalSearchSuggestions({
   isActiveSearch,
   query,
@@ -90,8 +68,6 @@ export function useGlobalSearchSuggestions({
   const seededResults =
     initialResults.length > 0 && cacheKey === initialCacheKey ? initialResults : undefined;
 
-  // Synchronous: when the manifest is loaded there is no state round trip
-  // between a keystroke and its results.
   const localResults = useMemo(() => {
     if (!manifestIndex || !isSearching) {
       return null;
@@ -159,8 +135,6 @@ export function useGlobalSearchSuggestions({
           setServerResults({ key: cacheKey, results: nextResults });
         }
       } catch {
-        // Local results, if any, stay on screen; a failed refinement should not
-        // blank out matches the browser already found.
         if (!disposed) {
           setServerResults(null);
         }
@@ -179,10 +153,6 @@ export function useGlobalSearchSuggestions({
       disposed = true;
       clearTimeout(timer);
     };
-    // `localResults` is deliberately not a dependency: it is derived from the
-    // query and limit already listed, and re-running when the manifest
-    // finishes loading would fire a second request for a query the first one
-    // already covers.
   }, [cacheKey, isSearching, locale, resolvedLimit, trimmed]);
 
   const clearSuggestions = useCallback(() => {
@@ -208,8 +178,6 @@ export function useGlobalSearchSuggestions({
     trimmed,
   ]);
 
-  // Include the render before the request effect starts, without treating a
-  // cached answer as pending or borrowing another query's request status.
   const isUpdatingSuggestions =
     isSearching &&
     !isCleared &&

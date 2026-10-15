@@ -1,22 +1,3 @@
-/**
- * One substance article read, edited, published, and observed through
- * Postgres.
- *
- * The publication rules are the shared `publishReviewedSectionTransaction`
- * (section CAS, replay receipts, patch boundary). This module supplies its
- * `GeneratedPublicationDb` port over one SQL transaction and reproduces the
- * one derived write a section publish triggers: the
- * `publicCachePublications` outbox enqueue (`lib/postgres/publicationOutboxStore.ts`).
- * `reviewedArticles` is deliberately not synced here because section patches
- * never touch the fields that gate it (`server/lib/indexedMutation.ts`).
- *
- * Concurrency: the article row is read `FOR UPDATE`, so two publishers of the
- * same article serialize on the row; the loser re-reads the committed content
- * and reports `conflict` instead of overwriting. Identity: the unique index on
- * `generatedPublicationOperations.proposalId` (migration 0001) makes a raced
- * replay fail at commit rather than mint a second receipt.
- */
-
 import type { Pool, PoolClient } from "pg";
 import {
   publishReviewedSectionTransaction,
@@ -32,12 +13,10 @@ import type { DataDocument } from "./documentCodec";
 import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "./documentStore";
 import { enqueuePublications } from "./publicationOutboxStore";
 
-/** The outbox identity of one article (`lib/next/publicationOutbox.ts`). */
 export function articlePublicationKey(slug: string): string {
   return publicationOutboxKey({ kind: "article", slug });
 }
 
-/** Read the stored article documents for one slug (0, 1, or more rows). */
 async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = false): Promise<DataDocument[]> {
   return selectDocuments(client, "substanceIndex", {
     where: '"slug" = $1',
@@ -48,7 +27,6 @@ async function readArticlesBySlug(client: SqlClient, slug: string, forUpdate = f
   });
 }
 
-/** The public projection a substance page renders, or null when the slug is not exactly one article. */
 export async function readPublicArticleBySlug(client: SqlClient, slug: string): Promise<SubstancePublicArticleProjection | null> {
   const articles = await readArticlesBySlug(client, slug);
   return articles.length === 1 ? projectPublicArticle(articles[0] as SubstanceArticleRecord) : null;
@@ -60,7 +38,6 @@ export type ArticlePublicationState = {
   operations: DataDocument[];
 };
 
-/** What an observer sees after a publish: the live revision, the outbox receipt, and the operation ledger. */
 export async function readArticlePublicationState(client: SqlClient, slug: string): Promise<ArticlePublicationState> {
   const article = await readPublicArticleBySlug(client, slug);
   const [outbox] = await selectDocuments(client, "publicCachePublications", { where: '"key" = $1', params: [articlePublicationKey(slug)], limit: 1 });
@@ -106,11 +83,6 @@ function publicationDb(client: PoolClient): GeneratedPublicationDb {
   };
 }
 
-/**
- * The article-publish caller of the publication outbox: when the public
- * revision changed, enqueue one pending row per affected slug. The slug that
- * still has an article carries its revision; a vacated slug carries null.
- */
 async function upsertArticleOutbox(client: SqlClient, before: DataDocument | null, after: DataDocument | null, now: number): Promise<boolean> {
   const revisionOf = (row: DataDocument | null) => (row ? projectPublicArticle(row as SubstanceArticleRecord).publicRevision : null);
   const afterRevision = revisionOf(after);
@@ -138,17 +110,11 @@ export type PublishReviewedSectionInput = {
   actorEmail: string;
   now?: Date;
   expectedTargetDeploymentFingerprint: string;
-  /**
-   * Runs inside the transaction after every write and before COMMIT. Exists
-   * for rehearsals that inject a failure or hold the row lock; production
-   * callers leave it unset.
-   */
   beforeCommit?: (client: PoolClient) => Promise<void>;
 };
 
 export type PublishReviewedSectionResult = ReviewedSectionPublishResult & { outboxWritten: boolean };
 
-/** Publish one reviewed section through Postgres: content, receipt, and outbox commit together or not at all. */
 export async function publishReviewedSectionInPostgres(input: PublishReviewedSectionInput): Promise<PublishReviewedSectionResult> {
   const now = input.now ?? new Date();
   return withTransaction(input.pool, async (client) => {

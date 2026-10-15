@@ -30,11 +30,6 @@ interface EffectCitationsSectionProps {
   linkableEffectSlugs?: readonly string[];
 }
 
-/**
- * References section for effect articles. Shares the substance article's
- * construction: grouped subsections under one "References" heading with the
- * Wikipedia-style numbered citation list.
- */
 export function EffectCitationsSection({
   id = "sources",
   citations = [],

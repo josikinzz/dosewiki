@@ -1,13 +1,3 @@
-/**
- * POST /api/dev/translation-inbox/suggestion  { locale, id, expectedRevision }
- *
- * Translator and up, for an assigned locale only. Accept on a model fluency
- * suggestion: saves the suggested sentence as a narrative draft with reason
- * Fluency and marks the suggestion resolved, in one transaction. It never
- * approves; the draft waits in Pages like any correction. A changed revision,
- * an expired suggestion, or an open correction draft is refused (409) and
- * writes nothing; the write freeze fails closed (503).
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

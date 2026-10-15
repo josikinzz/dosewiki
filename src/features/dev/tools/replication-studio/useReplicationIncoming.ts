@@ -25,11 +25,9 @@ type IncomingControllerOptions = {
   loadCorpus: () => Promise<void>;
   setFeedback: (feedback: Feedback | null) => void;
   readError: (response: Response, fallback: string) => Promise<string>;
-  /** Called with the new row's slug once it is in the library and the corpus reloaded. */
   onUploaded?: (slug: string) => void;
 };
 
-/** Reads an image's pixel size from its preview; resolves null when it cannot. */
 function readImageSize(url: string): Promise<{ width: number; height: number } | null> {
   if (typeof Image === "undefined") return Promise.resolve(null);
   return new Promise((resolve) => {
@@ -50,7 +48,6 @@ export function useReplicationIncoming({
   onUploaded,
 }: IncomingControllerOptions) {
   const [incoming, setIncoming] = useState<IncomingFile[]>([]);
-  // Slugs this session uploaded: the tray keeps them in view until they publish.
   const [uploadedSlugs, setUploadedSlugs] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,8 +92,6 @@ export function useReplicationIncoming({
       };
     });
     setIncoming((current) => [...current, ...added]);
-    // The checks run before anything uploads: the hash finds a file the
-    // library already holds, the pixel size finds a thumbnail-sized image.
     for (const item of added) {
       void fileSha256(item.file).then(
         (sha256) => patchIncoming(item.id, { sha256 }),
@@ -133,7 +128,6 @@ export function useReplicationIncoming({
     });
   }, []);
 
-  /** Library works with the same bytes as each tray item, by slug. */
   const duplicates = useMemo(() => {
     const bySha = new Map<string, string[]>();
     for (const row of rows) {
@@ -153,7 +147,6 @@ export function useReplicationIncoming({
     return result;
   }, [incoming, rows]);
 
-  /** Uploads from this session that still wait unpublished, in upload order. */
   const waiting = useMemo(
     () =>
       uploadedSlugs
@@ -162,11 +155,6 @@ export function useReplicationIncoming({
     [rows, uploadedSlugs],
   );
 
-  /**
-   * Uploads one item as an unpublished row and resolves to its slug, or null
-   * when it failed. `takenSlugs` carries slugs uploaded earlier in the same
-   * batch, which the loaded corpus does not list yet.
-   */
   const addToLibrary = useCallback(
     async (item: IncomingFile, takenSlugs: readonly string[] = []): Promise<string | null> => {
       patchIncoming(item.id, { status: "uploading", error: undefined });
@@ -194,8 +182,6 @@ export function useReplicationIncoming({
           headers: uploadHeaders,
           body: item.file,
         });
-        // A previous identical upload may already own this immutable key.
-        // The finish route verifies its bytes even when PUT returns 412.
         if (!uploadResponse.ok && uploadResponse.status !== 412) {
           patchIncoming(item.id, { status: "error", error: "R2 storage rejected the file." });
           return null;
@@ -250,7 +236,6 @@ export function useReplicationIncoming({
     [discardIncoming, loadCorpus, onUploaded, patchIncoming, readError, rows, setFeedback],
   );
 
-  /** Uploads every ready item in tray order, one at a time. */
   const addAllToLibrary = useCallback(async () => {
     const uploaded: string[] = [];
     for (const item of incoming.filter(incomingReady)) {
@@ -265,7 +250,6 @@ export function useReplicationIncoming({
     }
   }, [addToLibrary, incoming, setFeedback]);
 
-  /** Stops tracking this session's uploads; they stay in the library, flagged. */
   const dismissWaiting = useCallback(() => setUploadedSlugs([]), []);
 
   useEffect(() => {
@@ -302,8 +286,6 @@ export function useReplicationIncoming({
     };
   }, [addFiles]);
 
-  // The tray uploads unpublished, so nothing in it is live either way; the
-  // shell can only discard it, since each file still needs its own Upload.
   useUnsavedWork({
     kind: "discard-only",
     because: "Upload the files from Incoming before leaving.",

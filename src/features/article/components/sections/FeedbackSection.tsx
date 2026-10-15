@@ -23,8 +23,6 @@ import {
   type SubmissionState,
 } from "./feedbackDraft";
 
-// The form is never in the server-rendered page (the section starts
-// collapsed), so its chunk loads only when a reader opens it.
 const FeedbackForm = dynamic(
   () => import("./FeedbackForm").then((module) => module.FeedbackForm),
   { ssr: false },
@@ -35,11 +33,6 @@ interface FeedbackSectionProps {
   substanceSlug: string;
 }
 
-/**
- * Compact per-article feedback intake at the end of the substance article.
- * Collapsed by default; expands into a short form that posts to the private
- * Postgres moderation queue. Nothing submitted here is rendered publicly.
- */
 export function FeedbackSection({
   substanceTitle,
   substanceSlug,
@@ -115,8 +108,6 @@ export function FeedbackSection({
     }
   };
 
-  // One sentence per key: the styled substance name and the inline link are
-  // spliced back in at their placeholder so a translation can move them.
   const [introBefore, introAfter] = t(
     "Spotted a mistake, an outdated claim, or something missing from the {{substance}} article? Send the editors a private note. Feedback lands in a moderation queue and is never shown on the site.",
   ).split("{{substance}}");
@@ -155,8 +146,6 @@ export function FeedbackSection({
         type="button"
         variant="glass"
         size="pill"
-        // Wraps instead of overflowing on the narrowest phones (or Safari page
-        // zoom), where the one-line label is wider than the column.
         className={open ? "hidden" : "max-w-full whitespace-normal text-center"}
         aria-expanded={open}
         aria-controls={`${fieldPrefix}-form`}

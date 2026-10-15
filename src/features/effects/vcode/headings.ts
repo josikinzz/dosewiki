@@ -4,14 +4,6 @@ import type { VCodeContent, VCodeNode } from "./types";
 
 const HEADING_TAG_LEVELS: Record<string, number> = { h1: 1, h2: 2, h3: 3, h4: 4 };
 
-/**
- * Titled blocks are headings too: they open a labelled part of the article even
- * though they render as card chrome rather than as an `<h*>`. Both rank below
- * every real heading, because a body that has headings uses these blocks inside
- * them — but where they are all an article has, they are its outline, as in the
- * intensity scales' stack of level cards. A `panel` groups content inside a
- * `headered-textbox`, so it ranks below that in turn.
- */
 const HEADERED_TEXTBOX_LEVEL = 5;
 const PANEL_LEVEL = 6;
 const MARKDOWN_HEADING_PATTERN = /^(#{1,6})\s+(.*)$/;
@@ -23,16 +15,6 @@ export interface VCodeHeading {
   text: string;
 }
 
-/**
- * Assigns anchor ids in document order, because an article may repeat a
- * heading title. The renderer and the table of contents both walk the same
- * normalized content, so both land on the same suffix for a repeated title —
- * they must never derive an id independently of this order.
- *
- * `reservedIds` marks ids that already exist on the page outside the body —
- * section wrappers like `#overview` — so a body heading whose title slugs to
- * one of them takes a suffix instead of duplicating the DOM id.
- */
 export function createVCodeHeadingIdAssigner(
   reservedIds?: Iterable<string>,
 ): (text: string) => string | undefined {
@@ -58,12 +40,10 @@ export function createVCodeHeadingIdAssigner(
   };
 }
 
-/** A headered-textbox is titled by its label and header together, as it renders. */
 export function formatHeaderedTextboxTitle(label?: string, header?: string): string {
   return [label, header].filter(Boolean).join(" · ");
 }
 
-/** Plain text of a heading's children, so a heading wrapping links still slugs. */
 export function flattenVCodeHeadingText(children: (string | VCodeNode)[] | undefined): string {
   if (!children) {
     return "";
@@ -82,11 +62,6 @@ export function flattenVCodeHeadingText(children: (string | VCodeNode)[] | undef
     .join("");
 }
 
-/**
- * Markdown heading lines inside a `markdown` node, following the same block
- * splitting the renderer applies: blank lines separate blocks, and a block of
- * nothing but bullets becomes a list rather than prose.
- */
 function collectMarkdownHeadings(text: string, visit: (level: number, text: string) => void) {
   const normalizedText = text.trim();
 
@@ -114,12 +89,6 @@ function collectMarkdownHeadings(text: string, visit: (level: number, text: stri
   }
 }
 
-/**
- * Inline Markdown emphasis stripped from a heading line, so the text the TOC
- * slugs matches the text the renderer puts in the DOM. `## The **Big** Idea`
- * renders as "The Big Idea", and an id derived from the raw line would carry
- * the asterisks into the anchor and break the link.
- */
 export function flattenMarkdownHeadingText(line: string): string {
   return line
     .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
@@ -131,20 +100,6 @@ export function flattenMarkdownHeadingText(line: string): string {
 
 const MARKDOWN_FENCE_PATTERN = /^(?:```|~~~)/;
 
-/**
- * Every ATX heading in a plain-Markdown body, in document order, with the same
- * ids `PublicMarkdownBody` emits when it is asked for heading ids.
- *
- * This is the Markdown twin of {@link extractVCodeHeadings}, and deliberately
- * shares its id assigner: a markdown article and a VCode article of the same
- * title produce the same anchor, and a repeated title takes the same `-2`
- * suffix on both paths. Fenced code is skipped, because `# comment` inside a
- * code block renders as code, not as a heading.
- *
- * `assignId` lets a caller that renders the body in pieces, each piece with
- * its own renderer, thread one assigner through every piece so the ids here
- * still match the ids those renderers emit.
- */
 export function extractMarkdownHeadings(
   markdown: string | undefined,
   assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
@@ -185,12 +140,6 @@ export function extractMarkdownHeadings(
   return headings;
 }
 
-/**
- * Every heading a VCode body renders, in document order, with the anchor id
- * `VCodeRenderer` emits for it. Raw string bodies are parsed first, so an
- * article that only carries `body_raw` still yields its headings. `assignId`
- * is shared across pieces the same way as in {@link extractMarkdownHeadings}.
- */
 export function extractVCodeHeadings(
   content: VCodeContent | undefined,
   assignId: (text: string) => string | undefined = createVCodeHeadingIdAssigner(),
@@ -228,8 +177,6 @@ export function extractVCodeHeadings(
       return;
     }
 
-    // Titled blocks render their title before their body, and the assigner is
-    // order-dependent, so visit the title first here too.
     if (node.name === "headered-textbox") {
       push(
         HEADERED_TEXTBOX_LEVEL,

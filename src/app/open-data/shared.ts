@@ -7,15 +7,6 @@ import {
   type OpenDataDataset,
 } from "@server/open-data/datasets";
 
-/**
- * Serve one open-data dataset as a gzipped JSON attachment.
- *
- * The body is gzipped in the route rather than left to the platform: Vercel
- * fails the build when a prerendered ISR body exceeds ~19 MB, and the raw
- * SubstanceIndex corpus crossed that line (19.23 MB on 2026-08-14). Serving
- * `Content-Encoding: gzip` keeps the cached body a few MB with ~6x headroom
- * while every HTTP client decompresses transparently.
- */
 export async function openDataResponse(dataset: OpenDataDataset): Promise<NextResponse> {
   const { count, json } = await buildOpenDataDocument(dataset);
   const body = gzipSync(json);

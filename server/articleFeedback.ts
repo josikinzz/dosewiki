@@ -115,10 +115,7 @@ export const create = mutation({
   },
   returns: feedbackRowValidator,
   handler: async (ctx, args) => {
-    // Public intake relays an unauthenticated submitter: the server acts as
-    // itself, so no actor is delegated.
     await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
-    // New feedback has had no decisions; the log starts with the first transition.
     const { decision_log: _decisionLog, ...feedback } = args.feedback;
     validateCreatedFeedback(feedback);
 
@@ -164,16 +161,10 @@ export const list = query({
   },
 });
 
-/**
- * One page of the review queue with status and search applied on the server,
- * in a stable keyset order, and the per-status counts of every row the search
- * matches. Unlike `list`, no row falls outside the queue's reach.
- */
 export const queuePage = query({
   args: {
     apiKey: v.string(),
     actorEmail: v.optional(v.string()),
-    // `unresolved` is New and Reviewing together, the work still waiting.
     status: v.optional(v.union(statusValidator, v.literal("unresolved"))),
     search: v.optional(v.string()),
     order: v.optional(feedbackQueueOrderValidator),
@@ -201,10 +192,6 @@ export const queuePage = query({
   },
 });
 
-/**
- * One item by its public id, for a task link that names it. Null when no row
- * has that id, so the queue can say the item is gone rather than guess.
- */
 export const get = query({
   args: {
     apiKey: v.string(),
@@ -224,10 +211,6 @@ export const get = query({
   },
 });
 
-/**
- * Count feedback rows in the given statuses with an uncapped native aggregate.
- * The caller receives only the total, without the cap applied by `list`.
- */
 export const countByStatus = query({
   args: {
     apiKey: v.string(),
@@ -282,7 +265,6 @@ export const transition = mutation({
     }
 
     const timestamp = new Date().toISOString();
-    // The resolved actor, never a caller-supplied name.
     const reviewer = auditStampFor(actor, undefined);
     const note = args.note?.trim() ? args.note : undefined;
     const patch = {
@@ -306,18 +288,11 @@ export const transition = mutation({
   },
 });
 
-/** Proposals and revisions of one article the correction reads consider. */
 const CORRECTION_SCAN_LIMIT = 200;
-/** How many recent proposals and revisions "Link existing change" offers. */
 const CORRECTION_CANDIDATE_LIMIT = 20;
 
 type CorrectionFacts = Parameters<typeof resolveCorrections>[1];
 
-/**
- * The article's proposals and revisions, newest first, reduced to the facts
- * the correction resolver reads. No proposer, actor, payload or document
- * leaves this function.
- */
 async function readCorrectionFacts(ctx: ReadCtx, slug: string): Promise<CorrectionFacts> {
   const [targets, revisions] = await Promise.all([
     ctx.db.query("articleProposalTargets").withIndex("by_slug_created", (q) => q.eq("slug", slug)).order("desc").take(CORRECTION_SCAN_LIMIT),
@@ -351,7 +326,6 @@ async function readCorrectionFacts(ctx: ReadCtx, slug: string): Promise<Correcti
   };
 }
 
-/** Whether a linked change is about this article: a proposal targeting it, or one of its revisions. */
 async function changeTargetsArticle(ctx: ReadCtx, change: LinkedChange, slug: string): Promise<boolean> {
   if (change.kind === "proposal") {
     const id = ctx.db.normalizeId("changeProposals", change.id);
@@ -363,11 +337,6 @@ async function changeTargetsArticle(ctx: ReadCtx, change: LinkedChange, slug: st
   return !!row && row.slug === slug;
 }
 
-/**
- * Append a link entry to an article feedback item's decision log. The status
- * does not move. Linking the same change twice records nothing new. Returns
- * the row as it now stands.
- */
 export async function recordFeedbackCorrectionLink(
   ctx: MutationCtx,
   input: { feedbackId: string; slug: string; actor: string; change: LinkedChange; note?: string },
@@ -385,7 +354,6 @@ export async function recordFeedbackCorrectionLink(
   }
   const timestamp = new Date().toISOString();
   const note = input.note?.trim() ? input.note.trim() : undefined;
-  // Linking is not a decision: status, reviewer and review note stay as they were.
   const patch = {
     updated_at: timestamp,
     decision_log: appendDecision(doc, {
@@ -401,11 +369,6 @@ export async function recordFeedbackCorrectionLink(
   return toFeedbackQueueItem({ ...doc, ...patch });
 }
 
-/**
- * The changes linked to one feedback item and where each stands now, plus the
- * article's recent proposals and revisions to link. Admin floor, like the
- * decisions: candidate proposals include other members' work.
- */
 export async function correctionsHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string; id: string },
@@ -460,7 +423,6 @@ export async function linkChangeHandler(
   });
 }
 
-/** Link an existing proposal or published revision of the same article. Admin floor. */
 export const linkChange = mutation({
   args: {
     apiKey: v.string(),
@@ -511,7 +473,6 @@ function toFeedbackQueueItem(row: FeedbackRow): FeedbackQueueItem {
     review_notes: row.review_notes,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
-    // A row decided before the log existed reads its review note back as the first entry.
     decision_log: decisionLogOf(row),
     created_at: row.created_at,
   };

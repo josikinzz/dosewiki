@@ -60,13 +60,6 @@ export const publishFromEditor = mutation({
   },
 });
 
-/**
- * Subjective effect functions.
- * 
- * These functions provide CRUD operations for subjective effect articles
- * imported from EffectIndex.
- */
-
 const replicationRightsStatus = v.union(
   v.literal("creator-retained"),
   v.literal("explicit-license"),
@@ -86,9 +79,6 @@ const audioReplicationRightsFields = {
   removal_contact: v.optional(v.string()),
 };
 
-/**
- * Get all subjective effects.
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -96,9 +86,6 @@ export const getAll = query({
   },
 });
 
-/**
- * Get a single subjective effect by slug.
- */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -192,9 +179,6 @@ export const getPublicByCategory = query({
   },
 });
 
-/**
- * Get featured subjective effects.
- */
 export const getFeatured = query({
   args: {},
   handler: async (ctx) => {
@@ -205,41 +189,28 @@ export const getFeatured = query({
   },
 });
 
-/**
- * Get subjective effects by tags.
- * Filters effects that have ALL the specified tags.
- */
 export const getByTags = query({
   args: { tags: v.array(v.string()) },
   handler: async (ctx, args) => {
     const allEffects = await ctx.db.query("subjectiveEffects").collect();
-    
-    // Filter effects that have all specified tags
+
     return allEffects.filter((effect) =>
       args.tags.every((tag) => effect.tags.includes(tag))
     );
   },
 });
 
-/**
- * Get subjective effects by any of the specified tags.
- * Filters effects that have ANY of the specified tags.
- */
 export const getByAnyTag = query({
   args: { tags: v.array(v.string()) },
   handler: async (ctx, args) => {
     const allEffects = await ctx.db.query("subjectiveEffects").collect();
-    
-    // Filter effects that have any of the specified tags
+
     return allEffects.filter((effect) =>
       args.tags.some((tag) => effect.tags.includes(tag))
     );
   },
 });
 
-/**
- * Get subjective effects by category (predefined tag combinations).
- */
 export const getByCategory = query({
   args: { category: v.string() },
   handler: async (ctx, args) => {
@@ -257,9 +228,6 @@ export const getByCategory = query({
   },
 });
 
-/**
- * Get all unique tags from subjective effects.
- */
 export const getAllTags = query({
   args: {},
   handler: async (ctx) => {
@@ -276,10 +244,6 @@ export const getAllTags = query({
   },
 });
 
-/**
- * Internal mutation: Bulk import subjective effects (for migration).
- * Not exposed to clients.
- */
 export const bulkImport = internalMutation({
   args: {
     effects: v.array(v.object({
@@ -334,9 +298,7 @@ export const bulkImport = internalMutation({
       errors: [] as string[],
     };
 
-    // Let a failure abort the transaction: content and history must commit together.
     for (const effect of args.effects) {
-        // Check if effect with this slug already exists
         const existing = await ctx.db
           .query("subjectiveEffects")
           .withIndex("by_slug", (q) => q.eq("slug", effect.slug))
@@ -357,10 +319,6 @@ export const bulkImport = internalMutation({
   },
 });
 
-/**
- * Internal mutation: Delete all subjective effects (for re-migration).
- * Not exposed to clients.
- */
 export const deleteAll = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -387,10 +345,6 @@ const legacyMediaField = v.union(
   v.literal("personal_commentary_ast"),
 );
 
-/**
- * Apply an exact-value-guarded repair to legacy EffectIndex article media.
- * This deliberately cannot alter article identity, taxonomy, or citations.
- */
 export const repairLegacyMedia = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -435,11 +389,6 @@ export const repairLegacyMedia = mutation({
   },
 });
 
-/**
- * Update a single subjective effect.
- *
- * @param apiKey - Required API key for authentication
- */
 export const update = mutation({
   args: {
     apiKey: v.optional(v.string()),

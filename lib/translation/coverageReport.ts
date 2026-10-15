@@ -16,7 +16,6 @@ export type RenderedCoverageEvidence = {
         failures?: string[];
     }>;
 };
-/** Imported browser observations are dated samples, never a claim about the whole site. */
 export function parseRenderedCoverageEvidence(value: unknown): RenderedCoverageEvidence {
     const v = value as RenderedCoverageEvidence | null;
     if (!v || typeof v.locale !== "string" || typeof v.expectedDigest !== "string" || !v.expectedDigest ||
@@ -50,7 +49,6 @@ export function combineTranslationCoverage(source: TranslationCoverageResponse, 
         source,
         rendered: { checkedAt: evidence?.checkedAt ?? null, routes, sampled: evidence?.pages.length ?? 0, expected: expectedRoutes.length,
             scope: "Imported, point-in-time route samples only. Other routes and interactive states remain unverified." },
-        // A combined coverage report cannot certify linguistic quality or human review.
         releaseReady: false as const,
         releaseMessage: "Coverage is evidence for a release decision, not human approval or a corpus-wide quality certificate.",
     };

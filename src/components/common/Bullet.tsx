@@ -3,9 +3,7 @@ import { cn } from "@/lib/utils";
 type BulletColor =
   | "accent"
   | "danger"
-  /** @deprecated Use accent. */
   | "fuchsia"
-  /** @deprecated Use danger. */
   | "rose";
 
 interface BulletProps {

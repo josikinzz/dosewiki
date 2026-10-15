@@ -1,11 +1,3 @@
-/**
- * Shared matching core for every search surface.
- *
- * The server index (`search.ts`) and the browser-side manifest index
- * (`searchManifest.ts`) both rank through this module, so a query typed into
- * the header cannot be scored one way locally and another way on the server.
- */
-
 import { isCasSearchQuery, normalizeCasNumber } from "./casSearch";
 
 export type SearchEntryType = "substance" | "category" | "effect" | "report" | "profile";
@@ -18,20 +10,6 @@ const SEARCH_TYPE_ORDER: Record<SearchEntryType, number> = {
   category: 4,
 };
 
-/**
- * Match quality tiers, best first. Ordering rules that matter for real queries:
- *
- * - A hit on an entry's own name always beats a hit on one of its alternative
- *   names, so typing `eth` surfaces ETH-LAD and Ethylone before Alcohol
- *   (alias `ethanol`) or 4-AcO-DET (alias `Ethacetin`).
- * - Word-boundary hits beat mid-word hits, so `lad` surfaces ETH-LAD and AL-LAD
- *   before substances that merely contain the letters.
- * - Exact and prefix comparisons also run on compact forms with punctuation
- *   stripped, so `allad` is an exact hit on AL-LAD (compact `allad`) instead
- *   of only a substring hit on Palladone.
- * - Keyword hits (classes, mechanisms, prose) are always last; they exist to
- *   make the long tail reachable, not to compete with name matches.
- */
 const SCORE = {
   labelExact: 0,
   aliasExact: 1,
@@ -48,24 +26,10 @@ const SCORE = {
   keywordSubstring: 12,
 } as const
 
-/**
- * Blob delimiter. Keywords may contain spaces, so the separator has to be a
- * character no keyword and no user query can hold. That makes
- * `blob.includes(KEYWORD_SEPARATOR + q)` exactly "some keyword starts with q",
- * and stops `blob.includes(q)` from ever matching across two adjacent keywords.
- */
 export const KEYWORD_SEPARATOR = "\u0000";
 
 const COMBINING_MARKS = /[\u0300-\u036f]/g;
 
-/**
- * Canonical text form for every comparison in this module.
- *
- * NFKD accepts compatibility forms such as full-width Latin letters/digits.
- * Dropping common combining accents keeps `peyoté` and `peyote` equivalent.
- * Other letters and script marks outside that accent range remain; this does
- * not transliterate names or convert Simplified and Traditional Chinese.
- */
 export const foldSearchText = (value: string | undefined | null): string => {
   if (!value) {
     return "";
@@ -73,30 +37,18 @@ export const foldSearchText = (value: string | undefined | null): string => {
   return value.normalize("NFKD").replace(COMBINING_MARKS, "").toLowerCase();
 };
 
-/** Folded, punctuation-flattened identity key used to link reports to substances. */
 export const normalizeSearchKey = (value: string | undefined): string =>
   foldSearchText(value).replace(/[^\p{L}\p{N}\p{M}]+/gu, " ").trim();
 
-/**
- * Compact identity form retains Unicode letters, numbers and script marks.
- * Punctuation is removed so `allad` and `AL-LAD` compare equal, while a Han
- * prefix cannot collapse into an unrelated Latin or numeric identity.
- */
 const compactSearchText = (value: string | undefined | null): string =>
   foldSearchText(value).replace(/[^\p{L}\p{N}\p{M}]+/gu, "")
 
-/** The compact fields an index or manifest loader precomputes per entry. */
 export interface CompactMatchFields {
   labelCompact: string;
   aliasCompact?: readonly string[];
   identityCompactBlob: string;
 }
 
-/**
- * Derive the compact fields for one entry. Shared by the server index builder
- * and the client manifest loader so the compact forms never live in a
- * serialized payload — they are recomputed wherever entries materialize.
- */
 export const buildCompactMatchFields = (
   label: string,
   aliases: readonly string[] | undefined,
@@ -112,7 +64,6 @@ export const buildCompactMatchFields = (
 
 const WORD_CHARACTER_AT_END = /[\p{L}\p{N}\p{M}]$/u;
 
-/** True when `query` starts any word inside `text` (not just the whole string). */
 const hasWordPrefix = (text: string, query: string): boolean => {
   let from = text.indexOf(query);
   while (from >= 0) {
@@ -124,10 +75,6 @@ const hasWordPrefix = (text: string, query: string): boolean => {
   return false;
 }
 
-/**
- * Shortest entry in `values` satisfying `predicate`, or `null` when none do.
- * Shortest wins so the tiebreaker sees the tightest available match.
- */
 const shortestMatchLength = (
   values: readonly string[] | undefined,
   predicate: (value: string) => boolean,
@@ -144,12 +91,6 @@ const shortestMatchLength = (
   return best;
 };
 
-/**
- * The minimum an entry must expose to be ranked.
- *
- * Folded fields and blobs are precomputed once when an index is built; the
- * per-query path only reads them.
- */
 export interface MatchableEntry {
   type: SearchEntryType;
   label: string;
@@ -163,25 +104,12 @@ export interface MatchableEntry {
   aliasCompact?: readonly string[];
   reportSubstanceKeys?: readonly string[];
   reportSubstanceAliasFolded?: readonly string[];
-  /** `labelFolded`, aliases and report substance aliases joined by {@link KEYWORD_SEPARATOR}. */
   identityBlob: string;
-  /** `labelCompact` and `aliasCompact` joined by {@link KEYWORD_SEPARATOR}. */
   identityCompactBlob: string;
-  /**
-   * Every keyword joined by {@link KEYWORD_SEPARATOR}, with a leading separator.
-   * Empty for manifest entries, which carry no keywords — the keyword tiers then
-   * simply never fire.
-   */
   keywordBlob: string;
 }
 
 interface ScoredMatch { score: number;
-/**
- * Length of the text that produced the hit. Used as a tiebreaker so the query
- * covering more of a short name outranks the same hit buried in a long one —
- * `eth` scores ETH-LAD above Ethylphenidate, and alias `ethanol` above a
- * 70-character IUPAC name. Keyword tiers fall back to the label length.
- */
 matchLength: number; }
 
 const computeScore = (
@@ -193,13 +121,8 @@ const computeScore = (
     return null;
   }
 
-  // The compact tiers only run for a query that still carries letters or
-  // digits once punctuation is gone; an all-punctuation query would otherwise
-  // compact to "" and prefix-match everything.
   const compact = compactQuery.length > 0;
 
-  // Native substring scans reject the ~95% of entries that cannot match at
-  // all, before any per-alias or per-keyword work happens.
   if (
     !entry.identityBlob.includes(query) &&
     !(compact && entry.identityCompactBlob.includes(compactQuery)) &&
@@ -288,9 +211,6 @@ const computeScore = (
     return { score: SCORE.reportSubstanceAliasSubstring, matchLength: reportAliasSubstring };
   }
 
-  // A keyword starting with the query is equivalent to the blob containing the
-  // query immediately after a separator — one scan instead of one call per
-  // keyword, which matters because prose-derived entries carry 1000+ keywords.
   if (entry.keywordBlob.includes(KEYWORD_SEPARATOR + query)) {
     return { score: SCORE.keywordPrefix, matchLength: labelLength };
   }
@@ -332,8 +252,6 @@ const compareMatches = <TEntry extends MatchableEntry>(
   if (aPrioritizedReport !== bPrioritizedReport) {
     return aPrioritizedReport ? -1 : 1;
   }
-  // Categories and effects carry a substance count, which is a better
-  // popularity signal than name length, so it stays ahead of it.
   if (a.entry.count && b.entry.count && a.entry.count !== b.entry.count) {
     return b.entry.count - a.entry.count;
   }
@@ -343,20 +261,12 @@ const compareMatches = <TEntry extends MatchableEntry>(
   return a.entry.label.localeCompare(b.entry.label);
 };
 
-/** Canonical query normalization. Every caller must go through this. */
 const normalizeSearchQuery = (query: string): string => foldSearchText(query).trim()
 
 export interface RunSearchOptions {
   limit?: number;
 }
 
-/**
- * Rank `entries` against `query`, best first.
- *
- * Scoring keeps only a reference to the matched entry, so the caller pays for
- * result projection once per returned row rather than once per matched row —
- * a broad query can match hundreds of entries to return twenty.
- */
 export function runSearch<TEntry extends MatchableEntry>(
   entries: readonly TEntry[],
   query: string,
@@ -391,8 +301,6 @@ export function runSearch<TEntry extends MatchableEntry>(
 
   const noPriority: ReadonlySet<string> = new Set();
 
-  // The best match decides which reports stay, so it is found with a linear
-  // scan rather than by sorting the whole result set twice.
   let topMatch = matches[0];
   for (let index = 1; index < matches.length; index += 1) {
     if (compareMatches(matches[index], topMatch, noPriority) < 0) {

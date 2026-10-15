@@ -1,16 +1,3 @@
-/**
- * Claims for Inbox items that have no Reviewing status of their own (citation
- * articles, change proposals, review recommendations).
- *
- *   GET  /api/dev/inbox/claims                                   → { ok, claims }
- *   POST /api/dev/inbox/claims { action, source, id }            → { ok, claim } | { ok, released }
- *
- * `action` is `claim`, `takeover` or `release`. A claim another admin holds
- * comes back as 409 `INBOX_CLAIM_HELD` naming the holder; `takeover` records
- * the caller as the new claimer after the Inbox has asked them to confirm. Trip reports and feedback claim by
- * moving to Reviewing through their own status routes, never through here.
- * Admin floor here and again in Postgres (AGENTS rule 8).
- */
 import { NextResponse } from "next/server";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

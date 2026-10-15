@@ -3,11 +3,6 @@ import { NestedContentCard } from "@/components/ui/surface";
 import { getRoleDisplayName } from "@/lib/auth/roles";
 import type { RoleDescription } from "@/lib/auth/roleDescriptions";
 
-/**
- * One card per role: what it is, what it can do, what it cannot. Reads from
- * `ROLE_DESCRIPTIONS` so the Members tab, the invite form, and the invite
- * page never disagree about a role.
- */
 export function RoleGuide({ roles }: { roles: readonly RoleDescription[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2" role="list" aria-label="Roles">

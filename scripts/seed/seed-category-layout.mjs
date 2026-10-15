@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed the category layout to Postgres.
- *
- * This script reads the existing psychoactiveIndexManual.json and uploads it
- * to the Postgres categoryLayout table. Run this once to initialize the data.
- *
- * Usage:
- *   node scripts/seed-category-layout.mjs
- *   node scripts/seed-category-layout.mjs --dry-run
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
@@ -31,13 +21,11 @@ async function main() {
   printProductionWriteCommand(command);
   console.log("🌱 Seeding category layout to Postgres...\n");
 
-  // Read the existing psychoactiveIndexManual.json
   const indexPath = join(__dirname, "../../data/substances/psychoactiveIndexManual.json");
   const indexData = JSON.parse(readFileSync(indexPath, "utf-8"));
 
   console.log(`📄 Read ${indexData.categories.length} categories from psychoactiveIndexManual.json`);
 
-  // Log category summary
   for (const category of indexData.categories) {
     const sectionCount = category.sections?.length || 0;
     const topLevelDrugCount = category.drugs?.length || 0;
@@ -50,7 +38,6 @@ async function main() {
     );
   }
 
-  // Prepare the layout data
   const layoutData = {
     version: indexData.version || 1,
     categories: indexData.categories.map((cat) => ({
@@ -74,7 +61,6 @@ async function main() {
     return;
   }
 
-  // Connect to Postgres and save
   try {
     assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-category-layout");

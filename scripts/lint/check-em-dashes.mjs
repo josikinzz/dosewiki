@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-// Enforces the AGENTS.md em dash rule. See em-dash-policy.mjs for what counts.
-//
-//   node scripts/lint/check-em-dashes.mjs                    fail on violations or a file over its baseline
-//   node scripts/lint/check-em-dashes.mjs --shrink-baseline  lower baseline counts to match the tree
 
 import { writeFileSync } from "node:fs";
 import path from "node:path";

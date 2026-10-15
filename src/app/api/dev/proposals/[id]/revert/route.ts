@@ -1,9 +1,3 @@
-/**
- * Revert one applied change proposal: production is written back to the
- * snapshot the apply captured, provided every target still hashes to what the
- * apply left behind. Admin only. A `REVERT_CONFLICT` refusal means something
- * else changed those rows since; edit them directly instead.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import type { Id } from "@server/postgres/runtime/dataModel";

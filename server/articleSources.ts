@@ -3,13 +3,6 @@ import { query } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 
-/**
- * Article source functions.
- * 
- * These functions provide read-only access to scraped source content per substance.
- * Data is populated via a one-time migration and not editable via UI.
- */
-
 function actorArgs(args: { apiKey?: string; actorEmail?: string }) {
   return { apiKey: args.apiKey, actorEmail: args.actorEmail };
 }
@@ -35,9 +28,6 @@ function validateArticleSourcePayload(source: {
   }
 }
 
-/**
- * Get article sources for a specific substance by slug.
- */
 export const getBySlug = query({
   args: { slug: v.string(), apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
@@ -49,10 +39,6 @@ export const getBySlug = query({
   },
 });
 
-/**
- * Get all available substance slugs with pagination.
- * Returns lightweight metadata for building substance list in DevMode.
- */
 export const getSubstanceList = query({
   args: {
     cursor: v.optional(v.string()),
@@ -81,10 +67,6 @@ export const getSubstanceList = query({
   },
 });
 
-
-/**
- * Get all article sources (for migration/sync).
- */
 export const getAll = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
@@ -93,9 +75,6 @@ export const getAll = query({
   },
 });
 
-/**
- * Bulk import article sources (one-time migration).
- */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -125,7 +104,6 @@ export const bulkImport = mutation({
     for (const source of args.sources) {
       try {
         validateArticleSourcePayload(source);
-        // Check if source with this slug already exists
         const existing = await ctx.db
           .query("articleSources")
           .withIndex("by_slug", (q) => q.eq("slug", source.slug))
@@ -147,9 +125,6 @@ export const bulkImport = mutation({
   },
 });
 
-/**
- * Import a single article source.
- */
 export const importOne = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -171,7 +146,6 @@ export const importOne = mutation({
     const { apiKey: _apiKey, actorEmail: _actorEmail, ...sourceData } = args;
     validateArticleSourcePayload(sourceData);
 
-    // Check if source with this slug already exists
     const existing = await ctx.db
       .query("articleSources")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))

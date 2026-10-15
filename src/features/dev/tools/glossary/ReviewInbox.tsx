@@ -1,29 +1,5 @@
 "use client";
 
-/**
- * Review Inbox: one list of everything in a locale that needs a person, across
- * the glossary, UI label, and article scopes. Self-contained (it takes only a
- * locale), so the workbench layout can move it without rewiring.
- *
- * Laid out as a triage workspace: the list on the left (a roving list whose
- * focused item is the one under review), the item in a pane on the right with
- * its facts and a decision dock at the bottom. Below `lg` the pane follows the
- * list; picking an item scrolls to it and the pane carries Back to list.
- *
- * Accept calls the existing confirm, save-and-approve, or feedback resolve
- * mutation with the revision shown; Edit opens that item's existing editor;
- * Fine here records a durable exception for a QA finding; Skip hides the item
- * for this browser session. Keys: J and K move, A accepts, E edits, F marks
- * fine, S skips, U undoes. When Accept leaves out an approved glossary
- * rendering, the dock shows the term with its own "Fine here" choice, which
- * resends the save with that term as a glossary exception.
- *
- * A stray key must never put machine text in use, so A alone only schedules
- * the accept: the item leaves the list and the notice offers Undo for 10
- * seconds before anything is written. The Accept button writes at once. The
- * single-letter keys can be turned off for this browser (WCAG 2.1.4).
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -48,7 +24,6 @@ import {
 } from "./reviewInboxModel";
 import { BackToList, KeyCap, PaneDock, RowSkeletons } from "./workbenchParts";
 
-/** How long a keyboard accept waits, with Undo on screen, before it writes. */
 export const UNDO_WINDOW_MS = 10_000;
 
 const REASON_TONE: Partial<Record<InboxReason, "info" | "warning" | "danger">> = {
@@ -66,7 +41,6 @@ const SCOPE_ICON: Record<InboxScope, IconName> = {
   model: "lucide:sparkles",
 };
 const acceptLabel = (item: InboxItem) => (item.accept?.kind === "feedback-resolve" ? "Resolve" : item.accept?.kind === "suggestion-accept" ? "Accept as draft" : "Accept");
-/** What Accept does to this item, in one sentence under the dock's buttons. */
 const acceptMeans = (item: InboxItem) => {
   switch (item.accept?.kind) {
     case "glossary-confirm": return "Accept records that you checked this wording as readers see it. Nothing on the site changes.";
@@ -81,22 +55,17 @@ const acceptedMessage = (item: InboxItem) =>
   item.accept?.kind === "feedback-resolve" ? `Resolved the suggestion on "${item.english}".`
     : item.accept?.kind === "suggestion-accept" ? "Saved as a Fluency draft. Review and approve it in Articles; published wording is unchanged."
       : `Accepted "${item.english}".`;
-/** Where an item lives, in words: a glossary kind reads as its label, anything else as the server wrote it. */
 const whereOf = (item: InboxItem) => (item.scope === "glossary" ? kindLabel(item.where) : item.where);
 
 type ReviewInboxProps = {
   locale: string;
-  /** Opens an item's editor; defaults to navigating to its deep link. */
   onOpen?: (href: string) => void;
-  /** Every item waiting across pages, for the view's tab; null until the first read lands. */
   onTotalChange?: (total: number | null) => void;
-  /** The Inbox is the view on screen, so its keys belong in the `?` sheet. */
   active?: boolean;
 };
 
 const openHref = (href: string) => window.location.assign(href);
 
-/** The Inbox's single keys, for the shell's `?` sheet; listed only while they are on. */
 const REVIEW_INBOX_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "j / k", label: "Next and previous waiting item" },
   { keys: "a", label: "Accept, with 10 seconds to undo" },
@@ -118,25 +87,19 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
   const [reason, setReason] = useState<InboxReason | null>(null);
   const [skipped, setSkipped] = useState<Set<string>>(() => (typeof window === "undefined" ? new Set() : readSkipped(locale)));
   const [focusIndex, setFocusIndex] = useState(0);
-  /** The item a tap picked, which scrolls the pane in on a phone; the automatic first item never does. */
   const [picked, setPicked] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
-  /** The approved renderings the last Accept left out, for the item it named. */
   const [glossaryConflict, setGlossaryConflict] = useState<{ key: string; conflicts: GlossaryRendering[] } | null>(null);
   const [shortcutsOn, setShortcutsOn] = useState(() => (typeof window === "undefined" ? true : readShortcutsEnabled()));
   useDevShortcuts(REVIEW_INBOX_SHORTCUTS, shortcutsOn && active);
-  /** The keyboard accept waiting out its undo window; nothing is written for it yet. */
   const [undoable, setUndoable] = useState<InboxItem | null>(null);
   const undoableRef = useRef<{ item: InboxItem; timer: number } | null>(null);
-  /** Items a keyboard accept took out of the list: waiting to be written, or being written. A failed write puts them back. */
   const [held, setHeld] = useState<ReadonlySet<string>>(() => new Set());
-  /** Writes run one after another, so a scheduled accept never races an earlier one. */
   const writes = useRef<Promise<void>>(Promise.resolve());
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
   const listRef = useRef<HTMLElement>(null);
   const paneRef = useRef<HTMLElement>(null);
-  /** Set when a key or action moved focus, so the next render moves the DOM focus too. */
   const focusPending = useRef(false);
 
   const load = useCallback(async (at: number, only: InboxReason | null) => {
@@ -180,12 +143,6 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
     return next;
   });
 
-  /**
-   * Runs one write for an item; on success the item leaves the list. A button
-   * or key write keeps focus at the item's place, which is now the next item;
-   * a scheduled accept (`scheduled`) leaves focus wherever the reviewer is now,
-   * and on failure puts its item back with the reason.
-   */
   const act = (target: InboxItem, write: () => Promise<void>, done: string, scheduled = false) => {
     if (accepting && !scheduled) return;
     const key = inboxItemKey(target);
@@ -225,7 +182,6 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
     void act(target, () => acceptInboxItem(locale, how, glossaryExceptions), acceptedMessage(target), scheduled);
   };
 
-  /** Writes the accept waiting out its undo window now: when the window ends, when another accept is scheduled, or when the Inbox closes. */
   const commitUndoable = () => {
     const waiting = undoableRef.current;
     if (!waiting) return;
@@ -238,10 +194,8 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
   useEffect(() => {
     commitRef.current = commitUndoable;
   });
-  // Leaving the Inbox keeps a scheduled accept: the reviewer asked for it and did not undo.
   useEffect(() => () => commitRef.current(), []);
 
-  /** A: the item leaves the list at once, and the write waits 10 seconds with Undo on screen. */
   const scheduleAccept = (target: InboxItem) => {
     if (!target.accept) return;
     commitUndoable();
@@ -261,7 +215,6 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
     setUndoable(null);
     const key = inboxItemKey(waiting.item);
     release(key);
-    // Focus returns to the item the undo brought back.
     const index = (data?.items ?? []).filter((other) => !skipped.has(inboxItemKey(other)) && (inboxItemKey(other) === key || !held.has(inboxItemKey(other)))).findIndex((other) => inboxItemKey(other) === key);
     if (index >= 0) {
       focusPending.current = true;
@@ -324,7 +277,6 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
   const conflicts = item && glossaryConflict?.key === inboxItemKey(item) ? glossaryConflict.conflicts : null;
   const busyHere = accepting !== null;
 
-  // Always mounted, before the first message, so every notice and the undo offer are announced; it sits in the dock.
   const liveRegion = (
     <div role="status" aria-live="polite" aria-label="Waiting messages" className="space-y-2 empty:hidden">
       {undoable ? (
@@ -507,7 +459,6 @@ export function ReviewInbox({ locale, onOpen = openHref, onTotalChange, active =
   );
 }
 
-/** The item under review: where it lives, why it is listed, the English and the wording readers see, and what the check found. */
 function InboxItemDetail({ item, locale, position, onMove, onBack }: {
   item: InboxItem;
   locale: string;

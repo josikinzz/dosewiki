@@ -167,10 +167,6 @@ function buildIssues({
     );
   }
 
-
-  // A half-configured pair is the silent case: writes commit, the editor
-  // refreshes itself, and the public deployments keep serving the old revision
-  // with nothing in the response that looks like a failure.
   const publicationTargets = getPublicationTargets(env);
   const publicationSecret = getPublicationSecret(env);
   if (publicationTargets.length > 0 && !publicationSecret) {

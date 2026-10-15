@@ -1,25 +1,3 @@
-/**
- * Read + create/update for reusable replication playlists
- * (`/dev` → Replications → Playlists, and the contributor-facing Playlists tab).
- *
- *   GET  /api/dev/replications/playlists                    → { playlists }
- *   POST /api/dev/replications/playlists  { key, title, … } → create or replace
- *
- * Contributor floor. A contributor lists and edits only the playlists they own;
- * an editor lists every playlist, each flagged `editable` (false unless they
- * own it, so the tab can offer read-only rows); an admin lists and edits all of
- * them. Postgres holds the ownership rule and answers `NOT_OWNER`, which the
- * shared rejection mapping turns into a 403.
- *
- * The browser holds no admin intent token, so the write is delegated here the
- * way the featured selection delegates its own: the route checks the session,
- * then calls Postgres with the server's token plus the actor's email, which is
- * both the audit trail and the identity the ownership check runs against.
- *
- * A playlist publishes nothing. Applying one edits a substance gallery's draft,
- * and `substanceGalleries` stays the single publish gate, so there is no public
- * cache to revalidate here.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -31,7 +9,6 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 32 * 1024;
 
-/** Matches the ceiling enforced in `server/replicationPlaylists.ts`. */
 const MAX_PLAYLIST_SLUGS = 250;
 
 const PLAYLIST_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -49,7 +26,6 @@ export type ParsedPlaylist = {
   title: string;
   slugs: string[];
   expectedUpdatedAt: string | null | undefined;
-  /** Admin only: who the playlist belongs to. Postgres refuses it from anyone else. */
   ownerEmail: string | undefined;
 };
 

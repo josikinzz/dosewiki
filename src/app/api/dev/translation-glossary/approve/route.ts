@@ -1,10 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/approve  { locale, terms: string[], reason?, collisionConfirmation? }
- *
- * Translator and up. Marks the rows approved as they stand, stamped with the
- * reviewer. `reason` is `{ kind, note }` and joins each term's review history. Approving changes the prompt digest, so the caller follows up
- * with /retranslate for the terms whose rendering changed.
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

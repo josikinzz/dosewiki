@@ -1,12 +1,4 @@
 "use client";
-/**
- * Where the Articles view starts: the substance articles with the most for a
- * person to check in this language, most first. Counts come from the
- * translator-readable coverage audit (missing, outdated and rejected
- * paragraphs, glossary disagreements, doubled punctuation, English left in),
- * read once when the view opens; it is never polled. Rows are link rows: the
- * first leads, the list folds after five.
- */
 import { useEffect, useState } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
@@ -17,15 +9,12 @@ import { count } from "./glossaryModel";
 import { RowSkeletons } from "./workbenchParts";
 
 const SHOWN = 12;
-/** How many rows show before "Show all" (the log's long-list cap). */
 const CAP = 5;
 
-/** How much a page holds for a person to check, across every finding the audit counts. */
 export function openWork(page: TranslationCoveragePage): number {
   return page.missing + page.stale + page.rejected + page.glossaryMisses + page.repeatedPunctuation + page.leftoverLatin;
 }
 
-/** Substance articles with open work, most first; ties keep the audit's order. */
 export function rankArticles(pages: readonly TranslationCoveragePage[]): TranslationCoveragePage[] {
   return pages.filter((page) => page.kind === "article" && openWork(page) > 0).sort((a, b) => openWork(b) - openWork(a));
 }

@@ -25,13 +25,11 @@ import type { NoticeSource, TagNoticeState, TagUndo } from "./types";
 
 export type TagChangeView = "rename" | "move" | "remove";
 
-/** What is running right now, so the pending button can name it. */
 export type TagApplying = NoticeSource | "undo" | null;
 
 type TagPaneProps = {
   usage: TagUsage;
   registry: TagRegistry;
-  /** The working changes moved this tag. */
   changed: boolean;
   view: TagChangeView;
   onViewChange: (view: TagChangeView) => void;
@@ -52,25 +50,16 @@ type TagPaneProps = {
   notice: TagNoticeState | null;
   undo: TagUndo | null;
   onUndo: () => void;
-  /** Articles in the working changes, or null while nothing waits. */
   pendingArticles: number | null;
   onReviewChanges: () => void;
   titleRef: RefObject<HTMLHeadingElement | null>;
   onBackToList: () => void;
-  /** The search hides this tag from the list, though it is still the one open. */
   hiddenBySearch?: boolean;
   onClearSearch?: () => void;
 };
 
 const VIEW_LABELS: Record<TagChangeView, string> = { rename: "Rename or merge", move: "Move", remove: "Remove" };
 
-/**
- * The open tag: its name and field, the articles that carry it, tags that
- * read as the same one written differently, and the three ways to change it
- * as kept-mounted views (a half-typed label survives a switch). Every result
- * lands in the dock at the bottom of the pane, with Undo, next to how much
- * waits in the working changes.
- */
 export function TagPane(props: TagPaneProps) {
   const { usage, view, onViewChange, titleRef } = props;
   const idBase = useId();
@@ -120,7 +109,6 @@ export function TagPane(props: TagPaneProps) {
         ) : null}
       </header>
 
-      {/* Controls scrolled to by focus keep clear of the sticky dock and the public header. */}
       <div className="space-y-7 px-4 py-5 sm:px-5 [&_:is(input,button,select)]:scroll-mb-40 [&_:is(input,button,select)]:scroll-mt-28">
         <PaneSection title="Articles" note="Opens the public article in a new tab.">
           <CappedList
@@ -181,7 +169,6 @@ function PaneSection({ title, note, children }: { title: string; note?: ReactNod
   );
 }
 
-/** One article: its title, id, and the public page in a new tab (plain text when it has no address). */
 function ArticleRow({ articleRef }: { articleRef: TagArticleRef }) {
   const label = articleRef.title?.trim()?.length ? articleRef.title : `Article ${articleRef.index + 1}`;
   const identifier = typeof articleRef.id === "number" ? `#${articleRef.id}` : `Index ${articleRef.index + 1}`;
@@ -211,7 +198,6 @@ function ArticleRow({ articleRef }: { articleRef: TagArticleRef }) {
   );
 }
 
-/** Tags in this field that read as this one written differently, each one tap from a merge. */
 function SimilarTags({ usage, registry, onViewChange, onRenameValueChange, renameInputRef, isApplying }: TagPaneProps) {
   const similar = similarTags(registry, usage);
   if (similar.length === 0) return null;
@@ -238,7 +224,6 @@ function SimilarTags({ usage, registry, onViewChange, onRenameValueChange, renam
               onClick={() => {
                 onViewChange("rename");
                 onRenameValueChange(other.tag);
-                // The rename view is shown in this same commit; focus lands once it is visible.
                 window.requestAnimationFrame(() => renameInputRef.current?.focus());
               }}
             >
@@ -396,7 +381,6 @@ function RemoveBlock({ usage, onRequestRemove, isApplying, applying }: TagPanePr
   );
 }
 
-/** The pane's footer: the last result with its Undo, then what waits in the working changes. */
 export function TagDock({ notice, undo, onUndo, isApplying, applying, pendingArticles, onReviewChanges }: Pick<TagPaneProps, "notice" | "undo" | "onUndo" | "isApplying" | "applying" | "pendingArticles" | "onReviewChanges">) {
   const shown = notice && notice.source !== "diff" ? notice : null;
   return (

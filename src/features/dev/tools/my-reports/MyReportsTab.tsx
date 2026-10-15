@@ -1,23 +1,5 @@
 "use client";
 
-/**
- * My reports: `/dev/my-reports`. The published trip reports the signed-in
- * member owns, each openable in a content editor, and the status of the trip
- * reports they submitted with this account's email.
- *
- * Contributor floor. The editor is deliberately narrower than the portal's:
- * title, tags, and the report body (introduction, the three timelines, the
- * conclusion). Byline, attribution, trip subject, substances and the slug are
- * editor decisions and stay on the portal; Postgres refuses them from an owner
- * regardless of what this form sends. Nothing here deletes.
- *
- * Layout follows the Inbox's workspace: the list of reports on the left (sticky
- * on desktop), the open report in a docked pane on the right with its save
- * dock at the bottom, so the result of a save shows beside Save. On a phone
- * the pane stacks under the list, opening a report scrolls it in, and the pane
- * carries Back to list.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -73,20 +55,15 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   const [open, setOpen] = useState<OpenReport | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  /** The result of opening a report: shown at the list, where the tap happened. */
   const [listNotice, setListNotice] = useState<NoticeMessage | null>(null);
-  /** The result of the last save: shown in the pane's dock, beside Save. */
   const [saveNotice, setSaveNotice] = useState<NoticeMessage | null>(null);
   const listRef = useRef<HTMLElement>(null);
   const paneRef = useRef<HTMLElement>(null);
   const paneTitleRef = useRef<HTMLHeadingElement>(null);
   const saveKeyLabel = useModifierKeyLabel("S");
-  /** Set when a row opens a report, so the pane's heading takes focus once it has rendered. */
   const focusPaneOnOpen = useRef(false);
 
   const dirty = open !== null && JSON.stringify(open.draft) !== JSON.stringify(open.record.fields);
-  // The in-tool guard keeps row clicks and Close; the shell owns rail clicks,
-  // Leave and unload. Saving republishes the page, so the shell only discards.
   const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
   useUnsavedWork({
     kind: "discard-only",
@@ -99,9 +76,6 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
   useScrollToDetail(paneRef, open?.record.id ?? null);
-  // Name the report for keyboard and screen reader users once its pane is in the page;
-  // on phones the pane scrolls itself in. An effect, not a frame later, so a click
-  // that lands in a field right after cannot lose its focus to the heading.
   const openId = open?.record.id ?? null;
   useEffect(() => {
     if (openId === null || !focusPaneOnOpen.current) return;
@@ -147,7 +121,6 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to open that report.";
       setListNotice({ tone: "danger", message: `Could not open ${row.title}. ${message}` });
-      // A report that is gone should leave the list, so read it again.
       if (/no longer exists|not found/i.test(message)) void load();
     } finally {
       setOpeningId(null);
@@ -225,7 +198,6 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
     });
   };
 
-  // Cmd+S or Ctrl+S asks to publish the open report; it never saves without the confirm.
   const confirmSaveRef = useRef(confirmSave);
   confirmSaveRef.current = confirmSave;
   const canSave = open !== null && dirty && !saving;
@@ -254,7 +226,6 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   };
 
   const hasRows = rows !== null && rows.length > 0;
-  // A member who owns nothing yet leads with their submissions, the part that moves.
   const submissionsFirst = rows !== null && rows.length === 0 && !loadError;
   const ownedSlugs = new Set((rows ?? []).map((row) => row.slug));
   const editOwned = (slug: string) => {
@@ -366,7 +337,6 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   );
 }
 
-/** What the pane says on desktop before a report is open. Hidden on phones, where the list is the whole view. */
 function IdlePane() {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6">

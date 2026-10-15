@@ -1,11 +1,3 @@
-/**
- * Discussion on a change proposal.
- *
- *   POST /api/dev/proposals/<id>/comment  { text } -> { comment: { authorName, at, text } }
- *
- * Editors may comment on their own proposals; admins may comment globally.
- * Postgres enforces ownership and attributes the comment to the session email.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

@@ -1,8 +1,6 @@
 import ts from "typescript";
 
 const HTTP_WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-// Statements that change rows, schema, or privileges. Detection is best
-// effort: SQL assembled at runtime from non-literal parts is not seen.
 const SQL_WRITE_STATEMENT =
   /^\s*(?:INSERT|UPDATE|DELETE|TRUNCATE|MERGE|UPSERT|DROP|ALTER|CREATE|GRANT|REVOKE)\b/i;
 
@@ -57,7 +55,6 @@ function collectInitializers(sourceFile) {
   return initializers;
 }
 
-/** The literal text a string expression starts with, following local names. */
 function leadingLiteralText(node, initializers, seen = new Set()) {
   if (!node) return null;
   if (ts.isStringLiteralLike(node) || ts.isNoSubstitutionTemplateLiteral(node)) {

@@ -1,9 +1,3 @@
-/**
- * Catalog keys the UI catalog reads from checked-in sources: `t()`/`msg()`
- * literals in `src/` and `lib/`, the substance and chemical class indexes,
- * category and summary prose, substance classification values, and changelog
- * field labels. Live and Postgres-backed sources stay in `ui-catalog.ts`.
- */
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -16,7 +10,6 @@ import { PSYCHOACTIVE_SUMMARY_DEFINITIONS } from "../../src/features/psychoactiv
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** `t("..")`, `t('..')`, `` t(`..`) `` without interpolation, and the `msg()` marker. Handles `\"` escapes. */
 const CALL = /\b(?:t|msg)\(\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|`((?:[^`\\$]|\\.)*)`)/g;
 
 function unescape(literal: string): string {
@@ -40,10 +33,6 @@ export async function collectKeys(): Promise<Map<string, Set<string>>> {
   return keys;
 }
 
-/**
- * Substance-index labels, class definitions, and warnings that reach the page
- * as layout data rendered through `t()`.
- */
 export async function loadIndexLabelKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const file = path.join(repoRoot, "data/substances/psychoactiveIndexManual.json");
@@ -67,7 +56,6 @@ export async function loadIndexLabelKeys(): Promise<Set<string>> {
   return out;
 }
 
-/** Chemical-class labels, aliases, and descriptive prose rendered through `t()`. */
 export async function loadChemicalClassKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const file = path.join(repoRoot, "data/substances/chemicalIndexManual.json");
@@ -87,7 +75,6 @@ export async function loadChemicalClassKeys(): Promise<Set<string>> {
   return out;
 }
 
-/** Category-page prose and section labels rendered through `t()`. */
 export function loadDrugClassContentKeys(): Set<string> {
   const out = new Set<string>();
   for (const content of DRUG_CLASS_CONTENT) {
@@ -107,11 +94,6 @@ export function loadDrugClassContentKeys(): Set<string> {
   return out;
 }
 
-/**
- * Summary-page prose rendered through `t()`. The definitions used to carry
- * `msg()` markers in source; now they are JSON, so the same fields are walked
- * here. Mirror `PsychoactiveSummaryPage`'s `t()` calls when adding a field.
- */
 export function loadPsychoactiveSummaryKeys(): Set<string> {
   const out = new Set<string>();
   const add = (text: string) => {
@@ -131,7 +113,6 @@ export function loadPsychoactiveSummaryKeys(): Set<string> {
   return out;
 }
 
-/** Canonical English values rendered by substance classification badges. */
 export async function loadSubstanceClassificationKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const file = path.join(repoRoot, "public/SubstanceIndex.json");
@@ -153,12 +134,6 @@ export async function loadSubstanceClassificationKeys(): Promise<Set<string>> {
   return out;
 }
 
-/**
- * Field labels the changelog derives from an inline edit's raw path
- * ("dosage.routes[0].dose_ranges.heavy" renders "Routes 1 › Dose ranges ›
- * Heavy"). Each path segment is one label translated on its own, so every
- * segment of every registered field path is a catalog key.
- */
 export async function loadFieldLabelKeys(): Promise<Set<string>> {
   const { FIELD_PATHS } = await import("../../src/data/schema/fieldRegistry.generated");
   const out = new Set<string>();

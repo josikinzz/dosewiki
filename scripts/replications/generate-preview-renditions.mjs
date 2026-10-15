@@ -1,50 +1,4 @@
 #!/usr/bin/env node
-/**
- * Generate low-res muted preview renditions for the gallery's in-view autoplay
- * and attach them to production rows as `preview_r2_key`.
- *
- * The /replications gallery autoplays a short, cheap preview while a tile is in
- * view (the redgifs pattern) instead of pulling the full rendition on hover.
- * The preview is a derived asset: nothing about the delivered media changes.
- * Native R2 delivery resolves `preview_r2_key` into `preview_url`
- * as a purely additive field; a row without one keeps hover-to-play.
- *
- * ENCODE SPEC (Contract 5 — the tile is written against exactly this)
- * -------------------------------------------------------------------
- *   first 10 seconds max · long edge capped at 480px, never upscaled ·
- *   H.264 High, yuv420p · CRF 30, preset veryfast · fps capped at 30 ·
- *   no audio (-an) · -movflags +faststart
- *
- * WHY THE WRITE IS SHAPED THE WAY IT IS
- * -------------------------------------
- * 1. The write is compare-and-swapped on the full media identity, with both
- *    the original `r2_key` and historical `storage_id` checked against the
- *    reviewed plan; if the rendition was repointed after the plan was made, the
- *    preview would describe bytes the row no longer serves.
- * 2. It never touches `storage_id`, `url`, `thumbnail_storage_id` or
- *    `thumbnail_url` — and verification proves it didn't: after every row the
- *    public resolver is re-queried and the run hard-stops unless the resolved
- *    `preview_url` is non-null on production AND `url`/`thumbnail_url` are
- *    byte-identical to what they were before the write. A null resolved `url`
- *    deletes the row's page (routeLoaders returns not-found), so "unchanged"
- *    is a safety property, not pedantry.
- * 3. A per-row ledger is flushed to disk after each row, so an interrupted run
- *    documents exactly what it wrote and a rerun skips finished rows anyway
- *    (they now have a `preview_r2_key`).
- *
- * Dry run (default — reads production, prints the plan, writes nothing):
- *   node scripts/replications/generate-preview-renditions.mjs
- *
- * Apply, one small batch at a time:
- *   node scripts/replications/generate-preview-renditions.mjs \
- *     --batch-size=5 \
- *     --write --confirm-write=generate-preview-renditions \
- *     --expected-deployment=<host>/<database> \
- *     --target=postgresql://<host>/<database>
- *
- * Regenerate rows that already have a preview:  add --force
- * Cap a careful first run:                      add --limit=5
- */
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -73,11 +27,6 @@ import {
 
 const OPERATION = "generate-preview-renditions";
 
-/**
- * The encode contract the gallery tile was written against. One frozen object
- * so the ffmpeg argv builder, the size projection, and the tests cannot drift
- * apart about what a preview is.
- */
 export const PREVIEW_SPEC = Object.freeze({
   maxSeconds: 10,
   maxLongEdge: 480,
@@ -86,15 +35,6 @@ export const PREVIEW_SPEC = Object.freeze({
   maxFps: 30,
 });
 
-/**
- * What has to happen to each row the public resolver returned.
- *
- * Only video replications are considered at all — images have nothing to
- * autoplay and figures are not gallery tiles — so neither clutters the skip
- * list. Every considered-but-skipped video row is reported with a reason,
- * because a video tile without a preview silently degrades to hover-to-play
- * and someone should be able to see which rows those are.
- */
 export function planPreviewGeneration(rows, { force = false } = {}) {
   const actions = [];
   const skipped = [];
@@ -109,8 +49,6 @@ export function planPreviewGeneration(rows, { force = false } = {}) {
       continue;
     }
     if (!row.url) {
-      // The row's page is already gone (a null resolved url is a deleted page),
-      // but that is the repoint script's emergency, not this one's.
       skipped.push({ slug: row.slug, reason: "resolved url is null — nothing to derive a preview from" });
       continue;
     }
@@ -126,8 +64,6 @@ export function planPreviewGeneration(rows, { force = false } = {}) {
       rowId: row._id,
       slug: row.slug,
       sourceUrl: row.url,
-      // Compare-and-swap expectation: the reviewed plan describes this exact
-      // rendition, so the row must still hold it at write time.
       expectedStorageId: row.storage_id,
       expectedR2Key: row.r2_key ?? null,
       durationSeconds: Number.isFinite(row.duration) ? row.duration : null,
@@ -140,7 +76,6 @@ export function planPreviewGeneration(rows, { force = false } = {}) {
   return { actions, skipped, videoRowCount: videoRows.length };
 }
 
-/** Build the exact argv handed to ffmpeg. Pure, so the encode contract is testable. */
 export function buildPreviewFfmpegArgs({
   inputPath,
   outputPath,
@@ -150,19 +85,14 @@ export function buildPreviewFfmpegArgs({
 }) {
   const filters = [];
   if (scale) filters.push(`scale=${scale.width}:${scale.height}:flags=lanczos`);
-  // Only cap what actually exceeds the cap; re-timing 24/25/30fps sources
-  // through an fps filter would be pure quality loss for nothing.
   if (Number.isFinite(fps) && fps > spec.maxFps) filters.push(`fps=${spec.maxFps}`);
 
   return [
     "-hide_banner",
     "-loglevel", "error",
-    // Without -nostdin a backgrounded batch run can have ffmpeg swallow the
-    // parent's stdin and hang.
     "-nostdin",
     "-y",
     "-i", inputPath,
-    // Output option, after -i: decode and emit at most the first N seconds.
     "-t", String(spec.maxSeconds),
     "-map", "0:v:0",
     ...(filters.length > 0 ? ["-vf", filters.join(",")] : []),
@@ -170,21 +100,14 @@ export function buildPreviewFfmpegArgs({
     "-preset", spec.preset,
     "-crf", String(spec.crf),
     "-profile:v", "high",
-    // Non-negotiable: browsers cannot decode 4:4:4 or 10-bit H.264.
     "-pix_fmt", "yuv420p",
-    // A preview is muted by definition; shipping an audio track would be bytes
-    // the tile can never play.
     "-an",
-    // Encodes land on a `.part` path, so the muxer must be named explicitly.
     "-f", "mp4",
-    // The whole point: the moov atom leads, so in-view playback starts on the
-    // first bytes received.
     "-movflags", "+faststart",
     outputPath,
   ];
 }
 
-/** Project one preview's encoded size before anything is downloaded. A band, not a promise. */
 export function estimatePreviewBytes(
   { width, height, fps, durationSeconds },
   spec = PREVIEW_SPEC,
@@ -205,15 +128,6 @@ export function estimatePreviewBytes(
   });
 }
 
-/**
- * Decide whether a preview write actually took effect — and touched nothing
- * else — from the public resolver's own output.
- *
- * Every clause is a way this migration could fail while looking successful:
- * a preview that resolved to null autoplays nothing; a preview on a foreign
- * host dies with that host; and any drift in `url`/`thumbnail_url` means the
- * write reached fields it must never reach (a null `url` deletes the page).
- */
 export function verifyPreviewGeneration({ before, after }) {
   if (!after) {
     return { ok: false, reasons: ["row no longer exists in the public resolver output"] };
@@ -239,13 +153,6 @@ export function verifyPreviewGeneration({ before, after }) {
   return { ok: reasons.length === 0, reasons };
 }
 
-/**
- * Does an encoded file on disk count as a valid preview to upload?
- *
- * Checked before the upload, because the upload is the first irreversible
- * step: a truncated or over-long file that reaches storage becomes a row's
- * autoplay experience until someone notices.
- */
 export function isAcceptablePreview(probe, spec = PREVIEW_SPEC) {
   if (!probe?.video?.width || !probe?.video?.height) {
     return { ok: false, reason: "no decodable video stream" };
@@ -259,22 +166,12 @@ export function isAcceptablePreview(probe, spec = PREVIEW_SPEC) {
       reason: `long edge ${Math.max(probe.video.width, probe.video.height)}px exceeds the ${spec.maxLongEdge}px cap`,
     };
   }
-  // Half a second of slack: ffmpeg cuts on the last decodable frame boundary.
   if (Number.isFinite(probe.durationSeconds) && probe.durationSeconds > spec.maxSeconds + 0.5) {
     return { ok: false, reason: `duration ${probe.durationSeconds.toFixed(1)}s exceeds the ${spec.maxSeconds}s cap` };
   }
   return { ok: true, reason: "faststart, muted, within the size and duration caps" };
 }
 
-// ---------------------------------------------------------------------------
-// Runtime
-// ---------------------------------------------------------------------------
-
-/**
- * Probe a URL without downloading it. Only used in a dry run for the odd row
- * missing a stored duration — every rendition is faststart, so ffprobe reads
- * the leading moov and stops.
- */
 function probeRemote(url, runner = spawnSync) {
   const result = runner(
     "ffprobe",
@@ -289,7 +186,6 @@ function probeRemote(url, runner = spawnSync) {
   }
 }
 
-/** Stream a rendition to scratch without holding it in memory. */
 async function downloadToFile(url, filePath) {
   const response = await fetch(url);
   if (!response.ok || !response.body) {
@@ -317,12 +213,6 @@ async function fetchPublicRows(client) {
   return client.query(api.replications.getPublicReplications, {});
 }
 
-/**
- * One resolved row by id. Per-row CAS checks and post-write verification use
- * this instead of re-running the whole-corpus resolver: `getPublicReplications`
- * costs hundreds of metered storage system operations per call, and re-running
- * it twice per row was enough to time out unrelated queries deployment-wide.
- */
 async function fetchResolvedRow(client, apiKey, rowId) {
   return client.query(api.replications.getResolvedById, { apiKey, id: rowId });
 }
@@ -352,7 +242,6 @@ async function main() {
   const actions = limit ? plan.actions.slice(0, limit) : plan.actions;
   const batches = chunk(actions, batchSize);
 
-  // Fill in durations the rows don't carry, from the remote moov alone.
   let probedRemotely = 0;
   for (const action of actions) {
     if (action.durationSeconds !== null && action.width !== null && action.height !== null) continue;
@@ -413,7 +302,6 @@ async function main() {
     console.log(`\n--- Batch ${batchIndex + 1}/${batches.length} ---`);
 
     for (const action of batch) {
-      // Compare and swap: the row must still be what the reviewed plan described.
       const live = await fetchResolvedRow(writeClient, apiKey, action.rowId);
       if (!live) throw new Error(`${action.slug}: row no longer exists. Stopping.`);
       if ((live.storage_id ?? null) !== (action.expectedStorageId ?? null) ||

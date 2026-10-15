@@ -1,10 +1,3 @@
-/**
- * POST /api/dev/replications/playlists/<key>/owner  { ownerEmail: string | null }
- *
- * Admin only. Hands a playlist to a member so they can edit it at the
- * contributor floor, or (`null`) takes it back to the unowned, admin-only
- * state. Postgres refuses an address with no membership (`MEMBER_NOT_FOUND`).
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -14,7 +7,6 @@ export const runtime = "nodejs";
 
 const PLAYLIST_KEY = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** The `<key>` segment before `/owner`, or a 404 refusal for a shape no playlist has. */
 function playlistKeyOf(request: Request): string {
   const segments = new URL(request.url).pathname.split("/").filter(Boolean);
   const key = decodeURIComponent(segments[segments.length - 2] ?? "").trim().toLowerCase();

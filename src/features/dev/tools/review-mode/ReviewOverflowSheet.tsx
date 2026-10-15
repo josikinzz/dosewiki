@@ -32,7 +32,6 @@ interface ReviewOverflowSheetProps {
   total: number;
   progressFlourish: ProgressFlourish | null;
   hasCurrent: boolean;
-  /** The Webpage / Editor tabs; `onAfterChange` closes the sheet. */
   renderViewTabs: (onAfterChange: () => void) => ReactNode;
   moleculePanelOpen: boolean;
   citationPanelOpen: boolean;
@@ -46,7 +45,6 @@ interface ReviewOverflowSheetProps {
   settingsPanel: ReactNode;
   settingsChanged: boolean;
   onLeave: (event: MouseEvent<HTMLAnchorElement>) => void;
-  /** Editors recommend instead of signing off; the help says so. */
   recommend?: boolean;
 }
 
@@ -59,12 +57,6 @@ function SheetSection({ title, children }: { title: string; children: ReactNode 
   );
 }
 
-/**
- * Everything the bar drops below `lg`: progress, the view, the three tools,
- * Open in, queue settings, trophies, help, and the way back to the editor.
- * The decisions are not here; they live in the review dock. A popover rather
- * than a new Sheet primitive: the kit has no sheet.
- */
 export function ReviewOverflowSheet({
   reviewedCount,
   total,
@@ -106,7 +98,6 @@ export function ReviewOverflowSheet({
           ) : null}
         </Button>
       </PopoverTrigger>
-      {/* Near-full-bleed below `sm`: on a phone this is the whole tool surface. */}
       <PopoverContent
         align="end"
         collisionPadding={8}
@@ -177,7 +168,6 @@ export function ReviewOverflowSheet({
         <SheetSection title="Queue settings">{settingsPanel}</SheetSection>
 
         <section className="border-t border-dose-divider pt-4">
-          {/* Folded: the trophies are delight, not a control. */}
           <ReviewTrophyShelf groups={queueGroups} collapsible />
         </section>
 

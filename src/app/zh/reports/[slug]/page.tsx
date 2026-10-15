@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/reports/[slug]`, reached only through the
- * middleware rewrite from `zh.dose.wiki/reports/<slug>`. Same loader with the
- * localized report narrative spliced in; the mirror carries `noindex` and a
- * canonical link back to the English report.
- */
 import { notFound } from "next/navigation";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadReportRoute } from "@server/next/routeLoaders.reports";
@@ -19,14 +13,12 @@ import { slugify } from "@/utils/slug";
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-/** Every published report, as the English `/reports/[slug]` prerenders. */
 export async function generateStaticParams() {
   return await getStaticReportParams();
 }
 
 const LOCALE = LIVE_LOCALES["zh.dose.wiki"];
 
-/** Resolve report substance names to public article hrefs, as the English page does. */
 function buildSubstanceLinks(
   substances: TripReportSubstance[],
   substanceBySlug: Record<string, { name: string }>,

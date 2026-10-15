@@ -1,13 +1,3 @@
-/**
- * Hand a published trip report to a member.
- *
- *   POST /api/dev/trip-reports/<slug>/owner  { email } -> { ok, slug, ownerEmail }
- *
- * Admin only: ownership lets a contributor rewrite a published page from
- * My reports, so it is granted by the role that publishes. The email must
- * belong to an existing membership; Postgres refuses `MEMBER_NOT_FOUND` and
- * `REPORT_NOT_FOUND` otherwise.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -27,7 +17,6 @@ function parseOwnerBody(raw: OwnerBody): ParsedOwnerBody {
   return { email };
 }
 
-/** The `<slug>` segment of `/api/dev/trip-reports/<slug>/owner`. */
 function slugOf(request: Request): string {
   const segments = new URL(request.url).pathname.split("/").filter(Boolean);
   const slug = decodeURIComponent(segments[segments.indexOf("trip-reports") + 1] ?? "").trim();

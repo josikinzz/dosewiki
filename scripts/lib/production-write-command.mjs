@@ -29,12 +29,6 @@ function validateOperation(operation) {
   return operation;
 }
 
-
-/**
- * Postgres production writes require `--target` or TARGET_POSTGRES_URL.
- * Pooled/direct application variables never authorize production writes.
- * The confirmation fingerprint is `<host>/<database>`.
- */
 export function createProductionWriteCommand({
   operation,
   argv = process.argv.slice(2),
@@ -95,13 +89,6 @@ export function assertProductionWriteAllowed(command) {
   });
 }
 
-/**
- * Every production write gate, in one order, before any pool exists: the
- * freeze, then the explicit target with its operation-named confirmation and
- * deployment fingerprint, then the remote-host guard. Returns the confirmed
- * target URL; scripts that open their own pool build it from this value and
- * never resolve a target a second time.
- */
 export function authorizeProductionWrite(command, { env = process.env } = {}) {
   assertDataWritesNotFrozen(command.operation, env);
   assertProductionWriteAllowed(command);

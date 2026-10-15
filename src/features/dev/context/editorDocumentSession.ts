@@ -20,21 +20,6 @@ export type EditorDocumentSession<T> = {
   refreshConflict: EditorDocumentRefreshConflict<T> | null;
   sourceVersion: number;
   applyDraftTransform: (transform: (previous: T) => T) => void;
-  /**
-   * Rewrite draft and baseline together, in one commit.
-   *
-   * This is for content the session was *always* going to hold and simply had
-   * not been handed yet — the editor library arrives as a slim list and fills
-   * whole articles in on demand. Such a fill is not an edit and not an upstream
-   * refresh: writing it through `applyDraftTransform` would make the working set
-   * look dirty, and pushing it up through `source` would raise a refresh
-   * conflict against unrelated unsaved edits. Applying it to both halves leaves
-   * `isDirty` exactly where it was.
-   *
-   * `state.source` is deliberately left alone: it is the comparison baseline for
-   * the upstream prop, and the prop still holds the un-hydrated document.
-   * Returning `null` (or the same pair back) commits nothing.
-   */
   applyHydration: (
     transform: (previous: { draft: T; original: T }) => { draft: T; original: T } | null,
   ) => void;
@@ -54,17 +39,6 @@ function definedKeyCount(value: Record<string, unknown>, keys: string[]): number
   return count;
 }
 
-/**
- * Structural comparison used everywhere the session used to compare two
- * `JSON.stringify` snapshots. The reference short-circuit is what makes this
- * affordable on the whole-corpus documents: once a draft shares its untouched
- * entries with the baseline, comparing them costs one pointer check each
- * instead of serializing megabytes of article text.
- *
- * Keys whose value is `undefined` are ignored, matching the old JSON snapshot
- * semantics (`{...previous, note: undefined}` stringified the same as an object
- * without the key at all, so it must keep counting as unchanged).
- */
 export function isSameDocument(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) {
     return true;
@@ -111,17 +85,6 @@ export function isSameDocument(a: unknown, b: unknown): boolean {
   return true;
 }
 
-/**
- * Editing session over an upstream document.
- *
- * The session never copies the document it is handed. `draft`, `original`, and
- * the upstream source share structure until a transform replaces a branch of
- * it, so an edit costs only the objects that edit actually rebuilt. Everything
- * the session hands back — `draft`, `original`, `getOriginal()`, the conflict
- * halves — is therefore shared, immutable state: callers must replace nodes
- * rather than mutate them, and must copy anything they intend to hand to a
- * mutating consumer.
- */
 export function useEditorDocument<T>(source: T): EditorDocumentSession<T> {
   const [state, setState] = useState<EditorDocumentState<T>>(() => ({
     draft: source,

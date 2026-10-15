@@ -38,9 +38,6 @@ export function PsychoactiveSummaryPage({
     artistCreditLinks,
     definition.image?.artist,
   );
-  // Definition keys are "<class>" or "<class>-<facet>" ("deliriant",
-  // "psychedelic-visual"), and the per-class image variants an article embed
-  // carries are keyed on the class alone.
   const [mediaVariantKey] = definition.key.split("-");
 
   return (

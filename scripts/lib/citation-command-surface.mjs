@@ -1,5 +1,3 @@
-// Package scripts may also expose bounded repair or migration tools. Stability is
-// an explicit allowlist; the `citations:` prefix alone does not make a command stable.
 export const stableCitationWorkflowCommandNames = Object.freeze([
   'citations:formal',
   'citations:apply-workbench',

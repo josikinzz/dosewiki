@@ -1,11 +1,5 @@
 #!/usr/bin/env node
 
-// One-off migration: legacy prepopulation minted `United States - <State>` keys
-// under `legality.countries` (see scripts/prepopulate/prepopulate-legality.mjs
-// normalizeCountry). This moves each such row into `legality.usStates.<State>`
-// verbatim - or drops it when the state already exists there - and deletes the
-// misfiled country key. Guarded exactly like apply-draft.mjs.
-
 import { createHash } from "node:crypto";
 import { createDataClient } from "../lib/data-client.ts";
 
@@ -38,8 +32,6 @@ function requireSlug(argv) {
 }
 
 function parseExpectations(argv) {
-  // --expect="United States - Florida=<sha256>" (repeatable); every misfiled
-  // key found live must be covered, and every expectation must be found live.
   const expectations = new Map();
   for (const arg of argv) {
     if (!arg.startsWith("--expect=")) continue;

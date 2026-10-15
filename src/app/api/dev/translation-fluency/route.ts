@@ -1,16 +1,3 @@
-/**
- * POST /api/dev/translation-fluency  { locale, slug }
- *
- * Admin only, for one substance article per request. A model reads the whole
- * article, English beside the wording readers see now, and proposes local
- * fluency edits. Each edit that passes the blocking validator and the glossary
- * conflict check becomes a Review Inbox suggestion; the rest are dropped and
- * counted. Nothing applies by itself. The response is the run summary: run id,
- * model, prompt version, token use, and counts.
- *
- * A second request for the same article while one runs is refused (409). The
- * write freeze fails closed (503) before any model request.
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

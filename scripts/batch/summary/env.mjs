@@ -17,6 +17,5 @@ export function loadEnvLocal(projectRoot, env = process.env) {
       }
     }
   } catch {
-    // .env.local is optional
   }
 }

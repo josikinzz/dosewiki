@@ -20,15 +20,8 @@ export function isPublicHost(host: string | null | undefined): boolean {
   return PUBLIC_HOSTS[normalizeHost(host)] === true;
 }
 
-/**
- * The host that owns authenticated editorial surfaces.
- *
- * Keeping sessions on one host avoids cross-origin redirects that silently discard
- * authentication cookies.
- */
 const EDITOR_DEPLOYMENT_ORIGIN = "https://dev.dose.wiki"
 
-/** Non-public hosts that must remain closed to crawlers. */
 export const EDITOR_HOSTS: Record<string, true> = {
   "dev.dose.wiki": true,
   "dosewiki-admin.vercel.app": true,
@@ -47,10 +40,6 @@ const EDITOR_HANDOFF_PREFIXES: readonly string[] = [
   "/reset-password",
 ];
 
-/**
- * Credentialed endpoints stay off the public origin. Redirecting them to the editor would
- * drop their cookies, so public-host requests are rejected before route handling instead.
- */
 const PUBLIC_RESTRICTED_API_PREFIXES: readonly string[] = [
   "/api/auth",
   "/api/dev",
@@ -66,7 +55,6 @@ export function isPublicRestrictedPath(pathname: string): boolean {
   return matchesPrefix(pathname, PUBLIC_RESTRICTED_API_PREFIXES);
 }
 
-/** Resolve a public-origin editor link on the host that owns its authenticated session. */
 export function getEditorHandoffUrl(
   appPath: string,
   search: string,

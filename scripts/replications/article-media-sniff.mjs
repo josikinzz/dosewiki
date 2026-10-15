@@ -4,14 +4,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { sniffImageContentType } from "./repoint-renditions.mjs";
 
-/**
- * What a local file's first bytes say it is, which outranks its extension.
- *
- * Storage serves back whatever `Content-Type` the upload declared, so this is the
- * difference between an asset that renders and one the browser downloads. The
- * image signatures are `repoint-renditions.mjs`'s, unchanged; the two container
- * formats below are what the recovered animations arrive as and it has none.
- */
 export function sniffMediaContentType(head) {
   const image = sniffImageContentType(head);
   if (image) {
@@ -29,22 +21,12 @@ export function sniffMediaContentType(head) {
   return null;
 }
 
-/**
- * Width, height and duration straight out of the container, when ffprobe is here.
- *
- * The recovered files include a 14-frame GIF and an H.264 clip, and `sharp` can
- * read one of those. ffprobe reads both, so it is tried first and its absence
- * costs nothing: the decisions file records the same numbers, pinned to these
- * exact bytes by the sha-256 beside them.
- */
 function probeLocalMedia(filePath) {
   try {
     const probe = JSON.parse(
       execFileSync(
         "ffprobe",
         ["-v", "error", "-show_entries", "stream=width,height", "-show_entries", "format=duration", "-of", "json", filePath],
-        // An undecodable file is answered by the decisions file's own numbers,
-        // so ffprobe's complaint about it is noise rather than news.
         { maxBuffer: 1 << 26, stdio: ["ignore", "pipe", "ignore"] },
       ).toString(),
     );
@@ -59,16 +41,6 @@ function probeLocalMedia(filePath) {
   }
 }
 
-/**
- * What a recovered file is, taken from the file rather than from anything about it.
- *
- * Three claims in the decisions file are checked rather than trusted, because
- * each one is a way the wrong bytes could reach production wearing the right
- * name: the digest (these are the reviewed bytes), the content type (the
- * container agrees with what will be declared on upload), and the dimensions
- * (the file is the one that was measured). Any disagreement throws — a recovered
- * asset that has drifted is not a smaller problem than a missing one.
- */
 export function readUploadFacts(upload, uploadsDir) {
   if (!uploadsDir) {
     throw new Error(
@@ -113,9 +85,6 @@ export function readUploadFacts(upload, uploadsDir) {
     reachable: true,
     status: 200,
     contentType,
-    // Storage reports a stored object's digest as base64 sha-256, so computing it
-    // the same way here is what lets a recovered file be compared against the
-    // bytes production already holds.
     digest,
     size: bytes.byteLength,
     width: probed.width ?? upload.width,

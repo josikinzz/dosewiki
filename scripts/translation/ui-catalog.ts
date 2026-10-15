@@ -1,31 +1,3 @@
-/**
- * Build `content/i18n/messages/<locale>.json` from the English literals in the app.
- *
- * Scans `src/` for `t("...")`, `t('...')`, `t(\`...\`)` (no `${}`) and
- * `msg("...")` calls and contextual message definitions. Approved human UI
- * renderings take precedence over approved glossary terms, then prior catalog
- * values and local seeds. Missing keys use the article translation engine.
- * Writes the catalog, server-only workbench inventory and compilation metadata.
- *
- * Data sources add keys the scanner cannot see because they reach the page as
- * data rendered through `t()`: the approved glossary in Postgres (the UI-label
- * kinds in `GLOSSARY_KINDS`; pre-translated, so no model call), the Copy Studio
- * blocks (checked-in defaults, plus the live rows with `--live-copy`), the
- * checked-in psychoactive and chemical class indexes, and the exact
- * classification values on substance records. The pre-translated Layout run
- * seeds any key it already answered.
- *
- * Usage (always through Postgres, where the glossary lives):
- *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts            # report only
- *   DATA_BACKEND=postgres bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --write    # call the model, write the catalog
- *   ... --write --seed=notes-and-plans/exports/translation/zh-Hans/layout --live-copy
- *   bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write
- *     # local seeds only; retains all existing entries, no database/model access
- *
- * Set DATA_BACKEND and the Postgres URL exactly as the app would; `--live-copy`
- * reads the Copy Studio rows through the same adapter. Compilation is not
- * publication; offline compilation does not verify current approved overrides.
- */
 import { existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -55,9 +27,6 @@ import { getUiMessageDefinition, UI_MESSAGE_ALIASES, UI_MESSAGE_DEFINITIONS } fr
 import { UI_MESSAGE_SEEDS } from "../../src/i18n/uiMessageSeeds";
 import { guardTarget } from "../postgres/targetGuard";
 
-/** Glossary kinds whose terms can reach UI labels through `t()`. Classification
- * aliases and register terms are included because substance badges retain the
- * English value stored on the article rather than rewriting it to an index label. */
 const GLOSSARY_KINDS = new Set([
   "effect-name",
   "effect-category",
@@ -93,7 +62,6 @@ const { values } = parseArgs({
 });
 
 const localeCode = values.locale as string;
-// Scratch-only destination prevents an accidental checkpoint overwriting a catalog.
 const checkpointPath = values.checkpoint ? path.resolve(repoRoot, values.checkpoint) : undefined;
 if (checkpointPath && !checkpointPath.startsWith(path.join(repoRoot, "tmp") + path.sep))
   throw new Error("--checkpoint must be a path under this checkout's ignored tmp/ directory");
@@ -133,8 +101,6 @@ function projectWarningBannerText(row: unknown): WarningBannerTextProjection | n
   return { severityLabel, headline, points };
 }
 
-
-/** Live warning-banner copy rendered through `t()` on substance articles. */
 async function loadWarningBannerKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   if (!values["live-copy"]) return out;
@@ -157,12 +123,6 @@ async function loadWarningBannerKeys(): Promise<Set<string>> {
   return out;
 }
 
-/**
- * About-page markdown sections. The locale route splits the editable document
- * with `splitAboutMarkdown` and translates each heading-less section body
- * through `t()`, so every body is one catalog key and must be cut by the same
- * splitter here or the lookup misses.
- */
 async function loadAboutSectionKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const addDocument = (markdown: string, subtitle: string) => {
@@ -180,9 +140,6 @@ async function loadAboutSectionKeys(): Promise<Set<string>> {
     await readSeed("content/about/about.md"),
     await readSeed("content/about/subtitle.md"),
   );
-  // The editor-managed About document drifts from the checked-in seed, and
-  // the locale route looks each live section up verbatim, so the live text
-  // is what needs a catalog entry.
   if (values["live-copy"]) {
     const { getPublicDataReadAdapter } = await import("../../lib/data/publicData.reads");
     const about = await getPublicDataReadAdapter().getPublicAboutConfig();
@@ -217,7 +174,6 @@ async function loadSeed(): Promise<Map<string, string>> {
   return seed;
 }
 
-/** Approved glossary terms whose kinds reach the page as data: pre-translated keys. */
 async function loadGlossaryKeys(): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   for (const row of await readGlossaryRows(localeCode, { status: "approved" })) {
@@ -226,7 +182,6 @@ async function loadGlossaryKeys(): Promise<Map<string, string>> {
   return expandUiGlossaryAliases(out);
 }
 
-/** Copy Studio bodies: the checked-in defaults, plus the live rows on request. */
 async function loadCopyKeys(): Promise<Set<string>> {
   const out = new Set<string>();
   const add = (rows: unknown) => {
@@ -279,8 +234,6 @@ async function main() {
   for (const label of await loadFieldLabelKeys()) {
     if (!keys.has(label)) keys.set(label, new Set(["fieldRegistry"]));
   }
-  // Offline checks use only authored baseline terminology, never a stale
-  // export masquerading as the current approved Postgres glossary.
   const baselineGlossary = new Map(Object.entries(UI_MESSAGE_DEFINITIONS).flatMap(([id, definition]) => {
     const target = UI_MESSAGE_SEEDS[localeCode]?.[id];
     return target ? definition.glossaryTerms.map((term) => [term, target] as const) : [];
@@ -316,8 +269,6 @@ async function main() {
       glossaryTerms: definition?.glossaryTerms ?? [key],
     }];
   }).sort(([a], [b]) => String(a).localeCompare(String(b))));
-  // Offline regeneration is limited to local seeds. It neither purports to
-  // read current approvals nor drops entries from an incomplete local inventory.
   if (values.offline) for (const key of Object.keys(existing)) {
     if (!keys.has(key)) keys.set(key, new Set(["existing catalog (offline)"]));
   }
@@ -364,8 +315,6 @@ async function main() {
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is required to translate");
     const context = translationContext!;
     const rejected: string[] = [];
-    // Keep contextual labels separate so dose-intensity terminology cannot
-    // leak into an appearance label that happens to share its English word.
     const proseGlossary = Object.fromEntries(expandUiGlossaryAliases(new Map([...Object.entries(context.glossary), ...glossary])));
     const glossaryFor = (key: string) => {
       const definition = getUiMessageDefinition(key);
@@ -379,7 +328,6 @@ async function main() {
       createHash("sha256").update(await readFile(path.join(repoRoot, "scripts/translation", file))).digest("hex")));
     const checkpointContext = { schema: 1, locale: context.locale, glossary: proseGlossary,
       kinds: context.kinds, glosses: context.glosses, model: live.TRANSLATION_MODEL, approvedOverrides, implementation,
-      // Only an approved style guide changes the key, so checkpoints written before style guides still resume.
       ...(context.styleGuide ? { styleGuide: context.styleGuide.revision } : {}) };
     const checkpointKeyFor = (unit: WorkUnit) => catalogCheckpointKey({ ...checkpointContext, unit });
     const saved = checkpointPath ? await readCatalogCheckpoint(checkpointPath) : {};
@@ -438,7 +386,6 @@ async function main() {
     }
   }
 
-  // Keep the exact English lookup keys; normalize target typography to the site's style.
   const sorted = Object.fromEntries(Object.entries(next)
     .map(([source, target]) => [source, target.replaceAll("\u2014", "\u2013")])
     .sort(([a], [b]) => a.localeCompare(b)));
@@ -452,8 +399,6 @@ async function main() {
     approvedUiDigest: values.offline ? null : getApprovedUiTranslationsDigest(approvedOverrides),
     approvedUiSource: values.offline ? "offline-unverified" : "store",
     sourceInventoryDigest: createHash("sha256").update(JSON.stringify(inventory)).digest("hex"),
-    // Each waiting entry names its term. Offline compiles keep the previous
-    // list and mark it not refreshed; online compiles have sent it to the model.
     ...nextPendingRefresh({ offline: values.offline, previous: publications[localeCode], computed: pendingRefresh, catalog: sorted }),
     qaGlossaryMisses: getUiCatalogGlossaryMisses(sorted, auditGlossary, approvedOverrides),
     exactLabels: Object.fromEntries([...new Set([...Object.keys(UI_MESSAGE_DEFINITIONS), ...Object.keys(approvedOverrides)])].filter((key) => sorted[key]).map((key) => [key, {

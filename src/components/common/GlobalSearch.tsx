@@ -18,12 +18,6 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { useT, useUiLocale } from "@/i18n/client";
 
 const DEBOUNCE_MS = 200;
-/**
- * Delay before re-running a query that is already on the results page. This used
- * to be 3000ms to hide a search backend that took ~1s per request; the index is
- * now built once per cache window and queried in single-digit milliseconds, so
- * the wait only has to cover a burst of keystrokes.
- */
 export const LIVE_RESULTS_SETTLE_MS = 250;
 const LIVE_SEARCH_ORIGIN_STORAGE_KEY = "dosewiki-live-search-origin-view";
 
@@ -139,7 +133,6 @@ export function GlobalSearch({
       try {
         target.setSelectionRange(cursorPosition, cursorPosition);
       } catch {
-        // Some search input implementations do not expose selection ranges.
       }
     });
   }, []);
@@ -249,8 +242,6 @@ export function GlobalSearch({
         return;
       }
 
-      // Link activation owns navigation before the destination commits. Focus
-      // loss alone does not revoke a draft: background taps still settle it.
       pendingLiveNavigationRef.current = false;
       pendingLiveFocusRestoreQueryRef.current = null;
       isEditingLiveSearchRef.current = false;
@@ -258,7 +249,6 @@ export function GlobalSearch({
 
     const handleHistoryNavigation = () => {
       const nextAddress = window.location.pathname + window.location.search;
-      // Fragment history stays on the same page and leaves its draft intact.
       if (nextAddress === routeAddressRef.current) {
         return;
       }
@@ -332,7 +322,6 @@ export function GlobalSearch({
     setIsActiveSearch(false);
   }, []);
 
-  // Android keyboard scroll fix
   useEffect(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || typeof document === 'undefined') {
       return;
@@ -455,7 +444,6 @@ export function GlobalSearch({
     inputRef.current?.focus();
   }, [currentView.type, isHomeVariant, liveResultsMode, liveSearchClearView, onNavigate, onReplaceNavigate]);
 
-  // Static callback to prevent default mousedown behavior
   const preventDefaultMouseDown = useCallback((e: MouseEvent) => {
     e.preventDefault();
   }, []);

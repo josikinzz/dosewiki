@@ -1,9 +1,3 @@
-/**
- * POST /api/dev/members/role  { email, role, glossaryLocales }
- *
- * Admin only. Postgres refuses admin targets, the actor's own row, and (by
- * validator) any attempt to grant admin: admins are seeded from a workstation.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

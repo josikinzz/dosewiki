@@ -2,12 +2,6 @@ import { expandLegacyContributorHandles } from "../../../lib/contributorProfileI
 import activeEntries from "@data/changelog/devChangeLog.json";
 import archivedEntries from "@data/changelog/devChangeLog.archive.json";
 
-/**
- * Change log entry captured from the Dev Tools GitHub workflow.
- * Persisted in data/changelog/devChangeLog.json (recent entries) and data/changelog/devChangeLog.archive.json (older entries).
- * Both files are merged client-side so the Change log tab shows the complete history without hitting GitHub's
- * 1 MB contents API limit for the writable file.
- */
 export type ChangeLogEntry = {
   id: string;
   createdAt: string;
@@ -17,7 +11,7 @@ export type ChangeLogEntry = {
     message: string;
   };
   articles: ChangeLogArticleSummary[];
-  markdown: string; // unified diff text; name retained for backwards compatibility
+  markdown: string;
   submittedBy: string | null;
 };
 
@@ -113,14 +107,6 @@ export const sortChangeLogEntries = <T extends Pick<ChangeLogEntry, "id" | "crea
 const normalizeSubmitterKey = (value: string | null | undefined): string =>
   (value ?? "").trim().toUpperCase();
 
-/**
- * Every submitter stamp that should attribute to the given profile: the key
- * itself, its profile aliases, and any legacy handle-group siblings (the
- * `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` environment variable), so rows stamped
- * under a retired handle resolve to the profile that absorbed it. Public
- * surfaces render the resolved profile, never the raw stamp, so the legacy
- * handle stays internal.
- */
 export const buildSubmitterKeySet = (
   profileKey: string,
   aliases: readonly string[] = [],

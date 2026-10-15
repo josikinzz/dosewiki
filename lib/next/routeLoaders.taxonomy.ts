@@ -48,7 +48,6 @@ export interface TaxonomyRouteDescriptor<TFamily extends TaxonomyRouteFamily, TD
   routeFamily: TFamily;
   getDetail: (params: TaxonomyRouteParams<TFamily>) => Promise<TDetail>;
   getMetadata: (input: { params: TaxonomyRouteParams<TFamily>; detail: TDetail | null }) => RouteMetadataSource;
-  /** Returns the canonical params when the requested params are a known alias. */
   getAlias?: (params: TaxonomyRouteParams<TFamily>) => TaxonomyRouteParams<TFamily> | null;
   isMissing?: (detail: TDetail) => boolean;
   getStaticParams?: () => Promise<TaxonomyRouteParams<TFamily>[]>;
@@ -71,14 +70,6 @@ export type TaxonomyRouteResult<TDetail> =
       canonicalRoute: PublicRouteIdentity;
     };
 
-/**
- * Shared pipeline for taxonomy detail routes. Alias resolution happens here, so
- * adding redirects to a family later is a descriptor field rather than page
- * surgery. The requested params stay on `canonicalRoute` for all result kinds,
- * matching how these routes have always built canonical metadata: alias and
- * missing params keep their own (fallback) metadata while the page body
- * redirects or 404s.
- */
 export async function loadTaxonomyRoute<TFamily extends TaxonomyRouteFamily, TDetail>(
   descriptor: TaxonomyRouteDescriptor<TFamily, TDetail>,
   params: TaxonomyRouteParams<TFamily>,
@@ -225,7 +216,6 @@ export const effectCategoryRouteDescriptor: TaxonomyRouteDescriptor<
   },
   getDetail: ({ categorySlug }) => getEffectCategoryDetail(categorySlug),
   getMetadata: ({ params, detail }) => ({
-    // Bare page name; buildPublicPageMetadata appends the flavored " - <suffix>" tail.
     title: getEffectCategoryDefinition(params.categorySlug)?.name ?? "Effect category",
     description: `Browse ${detail ? detail.length : 0} effects in the ${params.categorySlug} category.`,
   }),

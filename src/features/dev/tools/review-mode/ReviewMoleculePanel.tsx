@@ -7,11 +7,6 @@ import { Button, Surface } from "@/components/ui";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
-/**
- * The depiction editor drags in RDKit's WASM bundle plus OpenChemLib, so it stays
- * behind a client-only dynamic import: the review flip-through pays nothing for it
- * until the reviewer opens the panel for the first time.
- */
 const MoleculeQuickEditor = dynamic(
   () =>
     import("../molecule-editor/MoleculeQuickEditor").then(
@@ -29,22 +24,13 @@ const MoleculeQuickEditor = dynamic(
 );
 
 export interface ReviewMoleculePanelProps {
-  /** Article whose depiction is being edited; also keys the editor's state. */
   slug: string;
-  /** Display name for the panel heading. */
   name: string;
-  /** Collapse the panel. */
   onClose: () => void;
-  /** Must match the toggle button's `aria-controls`. */
   id: string;
   className?: string;
 }
 
-/**
- * Inline molecule-depiction editor for the review workbench, sitting full-width
- * between the sticky command bar and the article. Saves here publish straight to
- * the live article — there is no separate commit step — so the header says so.
- */
 export function ReviewMoleculePanel({
   slug,
   name,

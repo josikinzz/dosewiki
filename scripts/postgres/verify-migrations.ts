@@ -1,21 +1,3 @@
-/**
- * `npm run postgres:migrate` (drizzle-kit migrate over
- * lib/postgres/migrations) is the only schema path. This check fails when the
- * Drizzle schema (`lib/postgres/schema.generated.ts` + `schema.runtime.ts`)
- * has drifted from the latest migration snapshot, which would mean a change
- * reached the schema-as-code without a versioned migration behind it.
- *
- *   bun scripts/postgres/verify-migrations.ts
- *
- * drizzle-kit has no dry-run flag, so the check copies the migrations
- * directory into a gitignored scratch folder, runs `drizzle-kit generate`
- * against the copy through a temporary config, and treats any newly written
- * migration as drift (its SQL is printed). The repository's migrations are
- * never touched. Journal integrity is checked alongside schema agreement.
- * Target selection, planning, and write refusal are exercised by the migration
- * command's behavioral tests, not by searching source strings for SQL.
- */
-
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -50,7 +32,6 @@ function schemaDrift(): void {
   const scratchMigrations = path.join(scratch, "migrations");
   fs.mkdirSync(scratch, { recursive: true });
   fs.cpSync(MIGRATIONS, scratchMigrations, { recursive: true });
-  // drizzle-kit prefixes `out` with "./", so the temporary config must use a repo-relative path.
   const relativeOut = path.relative(ROOT, scratchMigrations).split(path.sep).join("/");
   const relativeBase = path.relative(scratch, path.join(ROOT, "drizzle.config.ts")).split(path.sep).join("/").replace(/\.ts$/, "");
   const configPath = path.join(scratch, "drizzle.config.ts");

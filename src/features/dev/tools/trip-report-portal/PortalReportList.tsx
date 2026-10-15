@@ -13,23 +13,9 @@ type ListEntry =
   | { kind: "group"; key: string; name: string; count: number }
   | { kind: "row"; key: string; row: PortalRow };
 
-/** Every row and group heading shares this pitch; the windowed list sizes itself from one row. */
 const ROW_HEIGHT_CLASS = "h-[3.75rem]";
 const ROW_PITCH = 64;
 
-/**
- * The corpus index, on the shared triage list: one listbox the arrow keys
- * move through (and j/k from the tab), with group headings sitting between
- * rows at a row's pitch, which the keys skip.
- *
- * A row reads in two lines: the title (and its status when the list spans
- * statuses), then the byline, the first substance and its dose, and when the
- * row arrived (a submission) or the trip happened (a report). A submission
- * that became a report says so, so it is never mistaken for the report.
- *
- * Submissions a bulk decision can move carry a checkbox; the tab owns the
- * ticked set and the bulk bar.
- */
 export function PortalReportList({
   checkedIds,
   canCheck,
@@ -48,9 +34,7 @@ export function PortalReportList({
   onSelect: (row: PortalRow) => void;
   onToggleChecked: (id: string) => void;
   selectedId: string | null;
-  /** Whether each row carries its status pill (the list spans statuses). */
   showStatus: boolean;
-  /** The open report with unsaved edits, marked with the unsaved dot. */
   dirtyId?: string | null;
 }) {
   const entries = useMemo<ListEntry[]>(
@@ -68,7 +52,6 @@ export function PortalReportList({
     [entries],
   );
   const selectedKey = entries.find((entry) => entry.kind === "row" && entry.row.id === selectedId)?.key ?? null;
-  // Checked state is kept by id; the list keys rows by their namespaced slug.
   const checkedKeys = useMemo(
     () => new Set(entries.flatMap((entry) => (entry.kind === "row" && checkedIds.has(entry.row.id) ? [entry.key] : []))),
     [checkedIds, entries],

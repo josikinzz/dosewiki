@@ -29,7 +29,6 @@ import {
 import { REVIEW_STATUS_NAMES } from "./reviewStatusNames";
 import { REVIEW_STATE_TONE } from "./reviewDockModel";
 
-/** Status colours shared by the picker rows and the command bar's own dot. */
 export const STATUS_DOT: Record<ReviewState, { className: string; label: string }> = {
   completed: { className: "theme-review-status-completed", label: REVIEW_STATUS_NAMES.completed },
   stale: { className: "theme-review-status-stale", label: REVIEW_STATUS_NAMES.stale },
@@ -56,17 +55,10 @@ function entryMatches(entry: PickerEntry, query: string): boolean {
   );
 }
 
-/** How many of a bucket's entries are already ticked off. */
 function reviewedCount(entries: readonly PickerEntry[]): number {
   return entries.filter((entry) => entry.status === "completed").length;
 }
 
-/**
- * The category tree, narrowed to what the search box matches.
- *
- * A query that hits a category or subsection label keeps that whole bucket —
- * typing "tryptamine" should hand over the tryptamines, not nothing.
- */
 function filterGroups(
   groups: readonly ReviewQueueGroup[],
   query: string,
@@ -91,7 +83,6 @@ function filterGroups(
   });
 }
 
-/** Chevron + label + progress row that opens a category or subsection. */
 function DisclosureRow({
   expanded,
   onToggle,
@@ -134,10 +125,6 @@ function DisclosureRow({
       ) : null}
       <HighlightedText text={label} query={query} className="truncate" markClassName="px-0" />
       {total > 0 && reviewed === total ? (
-        /* The seal: a finished bucket swaps its counter for an emerald check
-           chip, so completed classes read as *done* at a glance — and the
-           remaining plain counters quietly ask to be turned green. Derived
-           from live counts, so an undo un-seals it. */
         <span
           className="theme-review-seal ml-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-xs font-semibold tabular-nums"
           title={`All ${total} reviewed`}
@@ -159,7 +146,6 @@ function DisclosureRow({
   );
 }
 
-/** One selectable article row, indented to its depth in the tree. */
 function EntryItem({
   entry,
   isCurrent,
@@ -191,8 +177,6 @@ function EntryItem({
         )}
       />
       <HighlightedText text={entry.name} query={query} className="truncate font-medium" markClassName="px-0" />
-      {/* The slug is near-duplicate of the name and search still matches on
-          it, so below `sm` its width goes to the name instead. */}
       <span className="theme-text-faint ml-1 hidden shrink-0 text-xs sm:inline">
         {entry.slug}
       </span>
@@ -209,8 +193,6 @@ function EntryItem({
           </span>
         </StatusBadge>
       ) : null}
-      {/* Below `sm` the status pills yield to the row's status dot: same
-          information, and the name needs the width more. */}
       {entry.status !== "needed" ? (
         <EditorStatusPill
           inline
@@ -224,17 +206,6 @@ function EntryItem({
   );
 }
 
-/**
- * The article name doubles as a jump-anywhere picker: the full public queue,
- * searchable, in the current order — the same Popover + Command combobox the
- * molecule editor's substance picker uses, so it reads as one system.
- *
- * Grouped, it mirrors the public index: psychoactive categories that expand
- * into their chemical-class subsections. Filtering happens here rather than in
- * cmdk (`shouldFilter={false}`) because a collapsed category renders no items,
- * and cmdk's own filter would treat that as an empty group and hide the row you
- * need to click to open it.
- */
 export function ReviewSubstancePicker({
   entries,
   groups,
@@ -249,7 +220,6 @@ export function ReviewSubstancePicker({
   grouped: boolean;
   current: PickerEntry | null;
   onSelect: (slug: string) => void;
-  /** Controlled open state (the workbench's `/` opens it); uncontrolled without it. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -260,7 +230,6 @@ export function ReviewSubstancePicker({
     onOpenChange?.(next);
   };
   const [query, setQuery] = useState("");
-  /** Sparse overrides; anything absent falls back to the current article's branch. */
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
   const dot = current ? STATUS_DOT[current.status] : null;
 
@@ -277,8 +246,6 @@ export function ReviewSubstancePicker({
     [grouped, entries, needle],
   );
 
-  // The category and subsection holding the current article open themselves, so
-  // the tree lands where the reviewer already is.
   const currentPath = useMemo(() => {
     const path = new Set<string>();
     if (!current) return path;
@@ -296,8 +263,6 @@ export function ReviewSubstancePicker({
     return path;
   }, [current, groups]);
 
-  // A search shows its hits outright: honouring collapse state during a query
-  // would hide the very matches the reviewer is looking at.
   const isExpanded = (key: string) =>
     needle !== "" || (toggled[key] ?? currentPath.has(key));
   const toggle = (key: string) =>
@@ -333,8 +298,6 @@ export function ReviewSubstancePicker({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        // Every visit starts clean: search cleared, tree back on the current
-        // article's branch.
         if (!next) {
           setQuery("");
           setToggled({});
@@ -354,24 +317,6 @@ export function ReviewSubstancePicker({
           }
           title="Find any article (/)"
           aria-keyshortcuts="/"
-          // An explicit min-width is what lets the name actually truncate: a
-          // flex item defaults to `min-width: auto` and would otherwise
-          // refuse to shrink below its text, pushing the mobile row's other
-          // controls off-screen.
-          //
-          // `sm:w-40 xl:w-48` is fixed, not a cap: the ←/→ buttons sit flush against
-          // this trigger, so a content-sized width made → wander with
-          // every article name — fatal to flipping quickly by mouse. Long
-          // names truncate inside the fixed box. The phone row keeps
-          // shrink-to-fit instead: the arrows, verdict, and overflow must all
-          // stay on-screen, and a wandering → costs a tap less than it costs
-          // a mouse run.
-          //
-          // `min-w-[6.5rem]` is the name's floor: 6ch of display-font name
-          // plus the dot, chevron and padding. Below it the row's icon
-          // controls give nothing back, so the trigger stops shrinking and
-          // the name keeps its first six letters instead of collapsing to
-          // one.
           className="min-w-[6.5rem] max-w-[18rem] gap-2 px-2 py-1 sm:w-40 xl:w-48 [@media(pointer:coarse)]:min-h-11"
         >
           {dot ? (
@@ -381,8 +326,6 @@ export function ReviewSubstancePicker({
               className={cn("h-2 w-2 shrink-0 rounded-full", dot.className)}
             />
           ) : null}
-          {/* `flex-1 text-left` pins the chevron to the trigger's right edge
-              instead of letting a short name float it mid-box. */}
           <span className="theme-text-primary font-display min-w-[6ch] flex-1 truncate text-left text-base font-semibold leading-none">
             {current?.name ?? "–"}
           </span>
@@ -393,9 +336,6 @@ export function ReviewSubstancePicker({
           />
         </Button>
       </PopoverTrigger>
-      {/* Near-full-bleed below `sm`, matching the overflow sheet: the list
-          rows carry name, flags and status, and the desktop cap forced the
-          truncation this popover exists to avoid. */}
       <PopoverContent
         className="w-[calc(100vw-1rem)] p-0 sm:w-[26rem]"
         align="start"

@@ -55,7 +55,6 @@ export const articleFeedbackAdapter: FeedbackSourceAdapter<ArticleFeedbackQueueI
     itemSubtitle: (row) => ARTICLE_FEEDBACK_CATEGORY_LABELS[row.category],
     transitioned: (row, statusLabel) => `Moved feedback for "${row.substance_title}" to ${statusLabel}.`,
   },
-  // The pane draws the title, category, importance and status; these are the facts under them.
   renderDetail: (row) => (
     <FeedbackFacts
       facts={[

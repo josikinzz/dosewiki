@@ -1,9 +1,3 @@
-/**
- * A review sign-off records the published revision it covered, and a later
- * publish makes that sign-off stale. Drives the real handlers against the
- * in-memory Postgres fixture: sign off, write through the article lifecycle,
- * then derive the review state from the published revision.
- */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { writeHandler } from "../server/articleLifecycle";
 import { articleBaseHash, loadArticle, publishedArticleRevision } from "../server/lib/articleRevisionJournal";
@@ -35,7 +29,6 @@ async function publish(ctx: Ctx, summary: string, changeId: string) {
     slug: "lsd",
     baseHash: await articleBaseHash(ctx, before),
     changeId,
-    // The published review record rides along untouched, as editors send it.
     article: { ...before, ...structuredClone(proposedLsd), summary, editorial_review: before.editorial_review } as never,
     summary: `Set the summary to ${summary}`,
   });
@@ -50,7 +43,6 @@ describe("review sign-off revision", () => {
     const { ctx, rowsOf } = createCtx({ memberships: [admin], substanceIndex: [storedLsd] });
     await setEditorialReviewHandler(ctx, { ...asAdmin, slug: "lsd", status: "completed" });
 
-    // The /api/save-article Commit path: saveArticleBatch.save runs this with no journal row.
     const stored = articleDocument(await loadArticle(ctx, "lsd"));
     const saved = await saveSubstancesHandler(ctx, {
       ...asAdmin,

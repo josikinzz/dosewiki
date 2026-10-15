@@ -46,7 +46,6 @@ export function TemplateInitialization({
   memberReady: boolean;
   classStructureReady: boolean;
   busy: boolean;
-  /** The class member read is still in flight. */
   membersLoading?: boolean;
 }) {
   return (

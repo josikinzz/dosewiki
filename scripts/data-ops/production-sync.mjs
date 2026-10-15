@@ -1,10 +1,3 @@
-/**
- * The production data sync: which tables it overwrites, how each is backed up
- * first, and the copy itself. `sync-data-to-production.mjs` is the only
- * entrypoint; it owns the write ceremony (`assertDataOpsWriteAllowed`) and the
- * process exit code.
- */
-
 import { api } from "../../lib/postgres/runtime/api.ts";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { normalizeQuoteSectionId } from "../../lib/quoteSections.mjs";
@@ -22,13 +15,11 @@ const BATCH_SIZE = 20;
 
 const single = (document) => (document ? [document] : []);
 
-/** Every table the sync overwrites, in write order, with its full target read for the backup. */
 const TABLE_BACKUP_READS = Object.freeze({
   substanceIndex: (client) => getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),
   categoryLayout: async (client) => single(await client.query(api.categoryLayout.get, {})),
   siteConfig: async (client) => single(await client.query(api.siteConfig.getAbout, {})),
   indexLayouts: (client) => client.query(api.indexLayouts.getAll, {}),
-  // getAll returns public projections and drops drafts, so the backups read whole documents.
   tripReports: (client) => client.query("tripReports:getAllDocumentsForBackup", {}),
   subjectiveEffects: (client) => client.query(api.subjectiveEffects.getAll, {}),
   effectIndexArticles: (client) => client.query("effectIndexArticles:getAllDocumentsForBackup", {}),
@@ -39,7 +30,6 @@ const TABLE_BACKUP_READS = Object.freeze({
 
 export const PRODUCTION_SYNC_TABLES = Object.freeze(Object.keys(TABLE_BACKUP_READS));
 
-/** Selected tables the sync writes; `null` selects every table. Unknown names write nothing. */
 function writtenTables(selectedTables) {
   return selectedTables === null
     ? [...PRODUCTION_SYNC_TABLES]
@@ -61,7 +51,6 @@ export function productionSyncUsage() {
   ].join("\n");
 }
 
-/** One production backup per selected table, taken before the first write. */
 export function planProductionSync(selectedTables) {
   const tables = writtenTables(selectedTables);
   return { tables, backups: tables.map((table) => ({ table, label: `${table}-production` })) };
@@ -71,7 +60,6 @@ function sanitize(docs) {
   return docs.map(({ _id, _creationTime, ...doc }) => doc);
 }
 
-/** Documents for tables whose bulkImport schema differs from the stored shape. */
 function transformForTable(name, docs) {
   switch (name) {
     case "quotes":
@@ -83,7 +71,6 @@ function transformForTable(name, docs) {
     case "prompts":
       return docs.map(({ key, content }) => ({ key, content }));
     case "replications":
-      // Metadata only; storage IDs are deployment-specific.
       return docs.map((doc) => {
         const rest = { ...doc };
         delete rest.created_at;
@@ -211,11 +198,6 @@ const SINGLE_TABLE_SYNCS = Object.freeze({
   siteConfig: syncSiteConfig,
 });
 
-/**
- * Back up every selected table from the target, then copy each from the
- * source. A failed backup throws before anything is written. The returned
- * exit code is 1 when any row or batch reported an error.
- */
 export async function runProductionSync({
   sourceClient,
   targetClient,

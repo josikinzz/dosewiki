@@ -1,20 +1,12 @@
 import { cn } from "@/lib/utils";
 
 interface ChangelogDiffProps {
-  /** Unified-diff-style text: `+`/`-` change lines, `@@` hunk or path lines. */
   markdown: string;
-  /** Element id, for `aria-controls` from the expander that reveals it. */
   id: string;
-  /** Row key prefix; keeps line keys unique when several diffs mount at once. */
   keyPrefix: string;
   className?: string;
 }
 
-/**
- * The stored change diff, one line per row, coloured by prefix. Shared by the
- * contributor profile history and the article page's recent-changes rows so
- * the same edit reads identically on both surfaces.
- */
 export function ChangelogDiff({ markdown, id, keyPrefix, className }: ChangelogDiffProps) {
   return (
     <div id={id} className={cn("theme-code-surface overflow-x-auto border-t border-dose-border p-4", className)}>

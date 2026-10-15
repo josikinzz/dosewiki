@@ -1,26 +1,3 @@
-/**
- * Hand-authored column arrangement for the Substance Index "All" tab, one
- * entry per column count. Each entry lists the columns left to right; each
- * column lists category keys top to bottom.
- *
- * Editorial rules the table encodes:
- * - Top row priority: Psychedelic, Dissociative, Deliriant, Entactogen,
- *   Cannabinoid, Nootropic, then the sketchier classes.
- * - A-typical Hallucinogen never leads a column while anything else can; it
- *   sits directly under Deliriant.
- * - Below the top row, panels are placed so column heights stay close, using
- *   the rendered card heights measured on the live page (Psychedelic 4532px,
- *   Stimulant 3326, Sedative-hypnotics 3058, Opioid 1943, Entactogen 1862,
- *   Dissociative 1832, Antidepressant 612, Deliriant 583, Nootropic 480,
- *   Cannabinoid 406, A-typical Hallucinogen 338, Miscellaneous 251,
- *   Antipsychotic 148). Re-tune when a class gains or loses many entries.
- * - From five columns up, Psychedelic alone is taller than the ideal column,
- *   so the page is one Psychedelic tall whatever the arrangement.
- *
- * Column counts above the largest key reuse the largest entry; the grid drops
- * empty trailing columns. Categories missing from an entry are appended to
- * the column holding the fewest panels, so a new class still renders.
- */
 export const SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT: Record<number, readonly (readonly string[])[]> = {
   1: [
     [

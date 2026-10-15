@@ -9,7 +9,6 @@ import { parseUiLocale } from "@/i18n/messages";
 import { LanguageGlossaryPage } from "./LanguageGlossaryPage";
 import { projectGlossary } from "./languageGlossary";
 
-/** Shared route loader and renderer for the reference and every translation. */
 export async function GlossaryRoute({ locale = "en" }: { locale?: string }) {
   if (locale === "en") {
     const entries = projectGlossary(await readGlosses(), []);

@@ -23,27 +23,14 @@ interface ReviewChanges {
 export interface ReviewChangesSinceReviewProps {
   slug: string;
   name: string;
-  /** The published revision the stale sign-off covered. */
   reviewedRevision: string;
   reviewedBy?: string;
-  /** When that sign-off was made. */
   reviewedAt?: string;
-  /** The editor whose recommendation the sign-off approved, if any. */
   recommendedBy?: string;
-  /**
-   * Bumped by the workbench's re-sign-off gate: each new value opens the
-   * changes (loading them if needed) and brings the notice into view.
-   */
   openSignal?: number;
-  /** Called once the changes have been opened, by the gate or by hand. */
   onOpened?: () => void;
 }
 
-/**
- * The notice a stale article opens with: it changed after its sign-off, and
- * one press shows only the fields that changed since the signed revision, so
- * re-review reads a diff instead of the whole article.
- */
 export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewedBy, reviewedAt, recommendedBy, openSignal = 0, onOpened }: ReviewChangesSinceReviewProps) {
   const credit = signOffCredit({ reviewedBy, recommendedBy });
   const [open, setOpen] = useState(false);
@@ -78,9 +65,6 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
     if (next && !changes && !loading) void load();
   };
 
-  // The gate opens the changes and scrolls them in, focusing the notice so a
-  // screen reader lands on what to check. Only a new signal does this; the
-  // diff never loads before it is opened.
   const sectionRef = useRef<HTMLElement>(null);
   const handledSignal = useRef(openSignal);
   useEffect(() => {
@@ -92,7 +76,6 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     sectionRef.current?.scrollIntoView?.({ block: "start", behavior: reduce ? "auto" : "smooth" });
     sectionRef.current?.focus({ preventScroll: true });
-    // Only the signal starts this; load and onOpened are stable enough for one run.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSignal]);
 
@@ -144,11 +127,6 @@ export function ReviewChangesSinceReview({ slug, name, reviewedRevision, reviewe
   );
 }
 
-/**
- * What changed since the sign-off: the count, then any dose, duration or
- * interaction change first in a warning lead (readers dose and combine by
- * these), then every changed field with its changed words marked.
- */
 function ChangesSinceSignOff({ signed, current }: ReviewChanges) {
   const all = articleFieldChanges(signed, current);
   const safety = safetyChanges(all);

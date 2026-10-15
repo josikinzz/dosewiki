@@ -1,15 +1,6 @@
-/**
- * Pure browse/organize logic for the Replication Studio.
- *
- * Everything here is a function of the loaded corpus and the studio's filter
- * state, with no React and no Postgres, so the parts that decide what the grid
- * shows and what a new row is called can be tested directly.
- */
-
 export type StudioMediaType = "image" | "video" | "audio";
 export type StudioRole = "replication" | "figure";
 
-/** Every stored rights status, in the order the studio lists them. */
 export const STUDIO_RIGHTS_STATUSES = [
   "unknown",
   "creator-retained",
@@ -27,11 +18,6 @@ export const RIGHTS_STATUS_LABELS: Record<StudioRightsStatus, string> = {
   "public-domain": "Public domain",
 };
 
-/**
- * The statuses the studio can set on its own. The others need license or
- * permission details the studio does not edit, so they are recorded with the
- * rights metadata scripts and only shown here.
- */
 export const STUDIO_SETTABLE_RIGHTS: readonly StudioRightsStatus[] = ["unknown", "creator-retained"];
 
 export type StudioPublicationState = "published" | "unpublished" | "duplicate-suppressed";
@@ -60,21 +46,17 @@ export type StudioRow = {
   credit_line: string | null;
   source_url?: string | null;
   rights_status?: StudioRightsStatus | null;
-  /** Absent reads as published: rows loaded before uploads could wait. */
   publication_state?: StudioPublicationState;
-  /** SHA-256 of the stored file, when known; the duplicate check reads it. */
   source_sha256?: string | null;
   width?: number | null;
   height?: number | null;
   url: string | null;
   thumbnail_url: string | null;
-  /** Low-resolution muted video rendition used for bounded preview playback. */
   preview_url?: string | null;
   format: string;
   duration: number | null;
   file_size: number | null;
   created_at: string;
-  /** Retired from every substance showcase candidate pool. */
   showcase_excluded?: boolean;
 };
 
@@ -103,7 +85,6 @@ export const EMPTY_STUDIO_FACETS: StudioFacets = {
   effect: [],
 };
 
-/** The effect bucket a row with no `effect_slug` falls into, in facets and groups alike. */
 export const NO_EFFECT_KEY = "__none__";
 
 const TITLE_CASE = (value: string) => (value ? value[0].toUpperCase() + value.slice(1) : value);
@@ -119,11 +100,6 @@ function rowMatchesQuery(row: StudioRow, query: string): boolean {
     .includes(needle);
 }
 
-/**
- * A facet with nothing checked means "no opinion", not "match nothing" — the
- * rail starts empty and must not hide the corpus before anything is chosen.
- * Facets of different kinds intersect; values within one kind union.
- */
 export function filterStudioRows(rows: readonly StudioRow[], state: StudioFilterState): StudioRow[] {
   const type = new Set(state.facets.type);
   const role = new Set(state.facets.role);
@@ -140,7 +116,6 @@ export function filterStudioRows(rows: readonly StudioRow[], state: StudioFilter
   });
 }
 
-/** Biggest group first, then alphabetical, so the corpus's shape is visible at a glance. */
 function byCountThenLabel(a: readonly [string, StudioRow[]], b: readonly [string, StudioRow[]]) {
   return b[1].length - a[1].length || a[0].localeCompare(b[0]);
 }
@@ -170,16 +145,6 @@ export function groupStudioRows(rows: readonly StudioRow[], group: StudioGroupBy
     .map(([label, groupRows]) => ({ key: label, label, rows: groupRows }));
 }
 
-/**
- * Facet counts are computed over the whole corpus rather than the filtered set,
- * so a checked facet does not rewrite the numbers beside its own siblings while
- * you are still deciding.
- */
-/**
- * Live counts for one facet: how many rows each value would show given every
- * other active filter. A facet never narrows its own counts, so ticking a
- * second artist still shows what that artist adds.
- */
 export function liveFacetCounts(
   rows: readonly StudioRow[],
   state: StudioFilterState,
@@ -240,18 +205,9 @@ export function activeFacetCount(facets: StudioFacets): number {
   return facets.type.length + facets.role.length + facets.artist.length + facets.effect.length;
 }
 
-/* ------------------------------------------------------------------- slugs */
-
-/** The slug shape every public replication URL and `gallery_order` entry uses. */
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_SLUG_LENGTH = 80;
 
-/**
- * Latin letters that are not an accented base letter plus a combining mark, so
- * NFKD leaves them intact and the `[^a-z0-9]` sweep below would drop them from
- * the middle of a name. The corpus already contains the answers these produce
- * ("…-zdzislaw-beksinski"), so a name goes on reading as itself in the URL.
- */
 const UNDECOMPOSABLE_LATIN: Record<string, string> = {
   "ł": "l", "đ": "d", "ð": "d", "ø": "o", "þ": "th", "ß": "ss", "æ": "ae", "œ": "oe", "ı": "i", "ħ": "h", "ŋ": "n", "ĸ": "k",
 };
@@ -266,16 +222,6 @@ export function kebab(value: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/**
- * Build the slug for a newly uploaded asset the way the corpus already reads:
- * kebab title, then the artist, because "untitled" and "geometry" are titles
- * several artists have used and the slug is the public URL.
- *
- * Collisions are resolved by suffixing `-2`, `-3`, … rather than by failing:
- * the tray creates rows one at a time and a second copy of a title is a normal
- * thing to upload, not an error. Postgres still refuses a duplicate on insert, so
- * a slug that races another session fails there rather than silently shadowing.
- */
 export function buildReplicationSlug(
   title: string,
   artist: string,
@@ -305,9 +251,6 @@ export function isValidReplicationSlug(slug: string): boolean {
   return KEBAB_CASE.test(slug);
 }
 
-/* ------------------------------------------------------------------ upload */
-
-/** What a dropped file will become, decided from its MIME type then its name. */
 export function inferMediaType(file: { type: string; name: string }): StudioMediaType {
   if (file.type.startsWith("video/")) return "video";
   if (file.type.startsWith("audio/") || /\.mp3$/i.test(file.name)) return "audio";
@@ -330,21 +273,16 @@ export function formatDuration(seconds: number | null): string | null {
   return `${minutes}:${String(rest).padStart(2, "0")}`;
 }
 
-/* -------------------------------------------------------------- provenance */
-
-/** Whether a row waits in the library, off every public page. */
 export function isUnpublished(row: Pick<StudioRow, "publication_state">): boolean {
   return row.publication_state === "unpublished";
 }
 
-/** Under this many pixels on the short edge, an image is flagged before upload. */
 export const LOW_RESOLUTION_MIN_EDGE = 800;
 
 export function isLowResolution(width: number, height: number): boolean {
   return Math.min(width, height) < LOW_RESOLUTION_MIN_EDGE;
 }
 
-/** Hex SHA-256 of a file's bytes: the identity the storage key and duplicate check use. */
 export async function fileSha256(file: Blob): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
   return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");

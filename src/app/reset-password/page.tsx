@@ -19,12 +19,6 @@ type ResetPasswordPageProps = {
   }>;
 };
 
-/**
- * The page an admin-issued reset link opens. No session is involved: the
- * token in the URL is the credential, checked by `/api/reset-password` when
- * the form submits. A link without a token still renders, with an
- * explanation instead of the form, so a mangled paste is not a blank page.
- */
 export default async function ResetPasswordPage({ searchParams }: ResetPasswordPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const token = resolvedSearchParams?.token?.trim() ?? "";

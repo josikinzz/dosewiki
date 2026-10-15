@@ -19,7 +19,6 @@ import { languageReadiness, type LanguageRelease } from "./languageReadiness";
 import { getGlossaryUsages } from "./glossaryUsage";
 import { readGlossaryExamples } from "./glossaryExamples";
 
-/** Pages and feedback use identical draft projection and revision identities. */
 export async function readPublicGlossaryRenderings(locale: string) {
   const rows = await getPostgresClient().sql<Record<string, unknown>>(
     `${PUBLIC_GLOSSARY_RENDERING_SELECT} WHERE g."locale" = $1 ORDER BY g."term"`,

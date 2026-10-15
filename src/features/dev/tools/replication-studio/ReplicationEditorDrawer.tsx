@@ -52,7 +52,6 @@ export type BulkEdit = {
   rightsStatus?: StudioRightsStatus;
   sourceUrl?: string;
   creditLine?: string;
-  /** Publish the unpublished targets; the server refuses any still lacking provenance. */
   publish?: true;
 };
 
@@ -61,20 +60,12 @@ export type ReplicationEditorDrawerProps = {
   effects: readonly StudioEffectOption[];
   artists: readonly string[];
   busy: boolean;
-  /**
-   * `column`: the xl third column, filling the Library frame's height.
-   * `sheet`: a panel over the grid's right edge at narrower widths.
-   */
   placement: "column" | "sheet";
   onSaveSingle: (row: StudioRow, draft: SingleEditDraft) => void;
-  /** Resolves true once the edit went through, which spends the bulk draft. */
   onApplyBulk: (rows: readonly StudioRow[], edit: BulkEdit) => Promise<boolean> | void;
-  /** Publishes unpublished works whose rights status and source are set. */
   onPublish?: (rows: readonly StudioRow[]) => Promise<boolean> | void;
   onDeselect: () => void;
-  /** Reports whether the single-row or bulk draft holds unapplied changes. */
   onDirtyChange?: (dirty: boolean) => void;
-  /** Opens Showcases on this replication's drug-article placements. */
   onOpenPlacement?: (row: StudioRow) => void;
 };
 
@@ -96,7 +87,6 @@ export function draftOf(row: StudioRow): SingleEditDraft {
 const RIGHTS_HELP =
   "Explicit license, permission granted and public domain need license or permission details; record those with the rights metadata scripts.";
 
-/** The statuses a curator may pick here, plus the row's own when the studio cannot set it. */
 function rightsOptions(current: StudioRightsStatus | null | undefined, unchanged?: string) {
   const statuses: StudioRightsStatus[] = [...STUDIO_SETTABLE_RIGHTS];
   if (current && !statuses.includes(current)) statuses.push(current);
@@ -112,7 +102,6 @@ function sourceError(value: string | null | undefined): string | undefined {
     : undefined;
 }
 
-/** Plain words for what an unpublished work still needs. */
 function provenanceNeeds(row: Pick<StudioRow, "rights_status" | "source_url">): string | null {
   const gaps = replicationProvenanceGaps(row);
   if (gaps.length === 0) return null;
@@ -173,13 +162,10 @@ export function ReplicationSingleEditor({
   busy: boolean;
   onSave: (row: StudioRow, draft: SingleEditDraft) => void;
   onDraftChange?: (draft: SingleEditDraft, dirty: boolean) => void;
-  /** Offer the rights status; a host whose save path does not write it turns this off. */
   showRights?: boolean;
   saveLabel?: string;
   value?: SingleEditDraft;
-  /** Draw the large media frame above the fields. */
   showPreview?: boolean;
-  /** Draw Save and Revert under the fields; a host with its own footer turns this off. */
   showActions?: boolean;
 }) {
   const [localDraft, setLocalDraft] = useState<SingleEditDraft>(() => draftOf(row));
@@ -189,7 +175,6 @@ export function ReplicationSingleEditor({
     onDraftChange?.(next, !draftsEqual(next, draftOf(row)));
   };
 
-  // A new selection is a new subject, not an edit of the current one.
   useEffect(() => {
     setLocalDraft(draftOf(row));
   }, [row]);
@@ -344,7 +329,6 @@ function bulkEditOf(state: BulkState): BulkEdit {
   };
 }
 
-/** One plain line per field the bulk edit will set, for the confirm. */
 function bulkChangeLines(edit: BulkEdit, effects: readonly StudioEffectOption[]): string[] {
   const name = (slug: string) => effects.find((effect) => effect.slug === slug)?.name ?? slug;
   const lines: string[] = [];
@@ -358,11 +342,6 @@ function bulkChangeLines(edit: BulkEdit, effects: readonly StudioEffectOption[])
   return lines;
 }
 
-/**
- * The bulk draft belongs to one selection. Keyed by the selected ids, it reads
- * as empty the moment the selection changes, so an old draft can never be
- * applied to a new set of works.
- */
 function useBulkDraft(selected: readonly StudioRow[]) {
   const key = selected.length > 1 ? selected.map((row) => row.id).join("\n") : "";
   const [state, setState] = useState<{ key: string; value: BulkState }>({ key, value: EMPTY_BULK });
@@ -487,7 +466,6 @@ function BulkFields({
   );
 }
 
-/** The studio's keys: listed in the empty inspector and, through the shell registry, in the `?` sheet. */
 export const REPLICATION_STUDIO_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "/", label: "search" },
   { keys: "← ↑ → ↓", label: "move through the grid" },
@@ -510,12 +488,6 @@ export function KeyboardHints() {
   );
 }
 
-/**
- * The single-row draft, owned here so the footer can sit outside the
- * scrolling fields. A corpus reload replaces the row object: the draft only
- * follows it when the subject changed, the draft was clean, or the reload is
- * the save landing (the new row equals the draft).
- */
 function useSingleDraft(row: StudioRow | null) {
   const [draft, setDraft] = useState<SingleEditDraft | null>(() => (row ? draftOf(row) : null));
   const previous = useRef<StudioRow | null>(row);
@@ -539,11 +511,6 @@ function useSingleDraft(row: StudioRow | null) {
   return { draft, setDraft, dirty };
 }
 
-/**
- * The inspector: a compact identity header, one scrolling body, and a footer
- * pinned to the bottom edge carrying the one commit for what is on screen.
- * Placement on drug articles is not edited here; it opens in Showcases.
- */
 export function ReplicationEditorDrawer({
   selected,
   effects,
@@ -559,8 +526,6 @@ export function ReplicationEditorDrawer({
 }: ReplicationEditorDrawerProps) {
   const single = selected.length === 1 ? selected[0] : null;
   const { draft, setDraft, dirty } = useSingleDraft(single);
-  // A column has the room to show the work itself, so its media starts open;
-  // the sheet keeps it behind the header thumbnail to leave the form in view.
   const [previewOpen, setPreviewOpen] = useState(placement === "column");
   const [hintsOpen, setHintsOpen] = useState(false);
   const { bulk, setBulk, resetBulk, dirty: bulkDirty } = useBulkDraft(selected);
@@ -572,8 +537,6 @@ export function ReplicationEditorDrawer({
   }, [anyDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
-  // Both drafts report to the shell. Editorial saves to a published work go
-  // live, so the shell only discards; saving stays the inspector's own step.
   useUnsavedWork({
     kind: "discard-only",
     because: "Review and save these replication changes from the tool.",
@@ -595,7 +558,6 @@ export function ReplicationEditorDrawer({
     discard: resetBulk,
   });
 
-  // Publishing reads the saved provenance, never an unsaved draft.
   const unpublished = selected.filter(isUnpublished);
   const publishable = unpublished.filter((row) => replicationProvenanceGaps(row).length === 0);
   const requestPublish = (targets: readonly StudioRow[]) => {
@@ -703,7 +665,6 @@ export function ReplicationEditorDrawer({
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
         {selected.length === 0 ? (
-          // Idle help stays one line tall until asked for.
           <div className="space-y-3">
             <Button
               type="button"

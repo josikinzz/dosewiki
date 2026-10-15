@@ -1,19 +1,3 @@
-/**
- * Plans a class-template depiction application without rendering or persisting it.
- *
- * RDKit mutates the member JSMol when `generate_aligned_coords` succeeds, so each
- * member gets its own short-lived molecule and the aligned MOL block is read only
- * after a successful match. This keeps skipped source molblocks untouched.
- *
- * Matching runs in two passes:
- *   1. strict — the template must match atoms AND bond orders exactly;
- *   2. relaxed — bond orders on both sides are flattened to single so the ring
- *      framework alone decides the match (a codeine Δ7,8 double bond no longer
- *      breaks a plain morphinan template). The member's real bond orders are
- *      then restored into the aligned output, and a canonical-SMILES comparison
- *      guarantees the relaxation changed the drawing only, never the molecule.
- */
-
 export type MoleculeDepictionSource = "seeded" | "editor" | "template" | undefined;
 
 export interface TemplateApplicationMember {
@@ -38,7 +22,6 @@ export type TemplateApplicationOutcome =
       slug: string;
       outcome: "aligned";
       molblock: string;
-      /** true when only the relaxed (bond-order-blind) pass matched. */
       relaxedBonds?: boolean;
     }
   | {
@@ -48,8 +31,6 @@ export type TemplateApplicationOutcome =
     };
 
 const ALIGNMENT_OPTIONS = JSON.stringify({
-  // An unmatched template is reported by RDKit as an empty match string. Keeping
-  // this false is essential: it must not quietly produce an unrelated layout.
   acceptFailure: false,
 });
 
@@ -57,11 +38,6 @@ function errorReason(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/**
- * Rewrite every V2000 bond to order 1, keeping atoms, coordinates, wedge flags,
- * and properties untouched. The flattened copy exists only for topology-level
- * substructure matching; it is never rendered or persisted.
- */
 export function flattenBondOrders(molblock: string): string {
   const lines = molblock.split(/\r?\n/);
   const countsIndex = lines.findIndex((line) => line.includes("V2000"));
@@ -79,16 +55,6 @@ export function flattenBondOrders(molblock: string): string {
   return lines.join("\n");
 }
 
-/**
- * Restore the original bond orders into an aligned, bond-flattened MOL block.
- *
- * The aligned block carries the new coordinates AND freshly derived wedge
- * flags (RDKit re-wedges on write, so stereo stays consistent with the new
- * layout); only its bond orders are the flattened 1s. Each order is looked up
- * from the original block by unordered atom pair, so the two blocks may list
- * bonds in different orders or directions. Returns null when the bond sets
- * don't line up.
- */
 export function restoreBondOrders(
   alignedMolblock: string,
   originalMolblock: string,
@@ -135,7 +101,6 @@ export function restoreBondOrders(
   return aligned.join("\n");
 }
 
-/** Canonical SMILES of a MOL block, or null when it cannot be parsed. */
 function canonicalSmiles(
   rdkit: TemplateApplicationRdkitModule,
   molblock: string,
@@ -151,8 +116,6 @@ function canonicalSmiles(
   }
 }
 
-/** Parse leniently: sanitized first, then with sanitization off (flattened
- * copies of hypervalent groups can fail valence checks). */
 function parseForMatching(
   rdkit: TemplateApplicationRdkitModule,
   molblock: string,
@@ -161,7 +124,6 @@ function parseForMatching(
     const mol = rdkit.get_mol(molblock);
     if (mol) return mol;
   } catch {
-    // fall through to the unsanitized attempt
   }
   try {
     return rdkit.get_mol(molblock, JSON.stringify({ sanitize: false }));
@@ -170,13 +132,6 @@ function parseForMatching(
   }
 }
 
-/**
- * Align eligible member depictions to a template scaffold.
- *
- * An empty `generate_aligned_coords` return is RDKit.js's no-match signal when
- * `acceptFailure` is false. Throws and unparseable MOL blocks are surfaced as
- * errors per member; neither can leak a partially aligned depiction.
- */
 export function buildTemplateApplicationPlan(
   rdkit: TemplateApplicationRdkitModule,
   templateMolblock: string,
@@ -198,7 +153,6 @@ export function buildTemplateApplicationPlan(
     plainTemplateMol = parseForMatching(rdkit, flattenBondOrders(templateMolblock));
   }
 
-  /** Relaxed retry after a strict no-match; returns a final outcome. */
   const relaxedAlignment = (member: TemplateApplicationMember): TemplateApplicationOutcome => {
     if (!plainTemplateMol) return { slug: member.slug, outcome: "no-match" };
     let plainMemberMol: TemplateApplicationMol | null = null;
@@ -218,9 +172,6 @@ export function buildTemplateApplicationPlan(
         };
       }
 
-      // The relaxation may only move the drawing. If re-deriving the molecule
-      // from the merged depiction changes its canonical SMILES (e.g. a wedge
-      // now reads as the other enantiomer), refuse the alignment.
       const before = canonicalSmiles(rdkit, member.molblock);
       const after = canonicalSmiles(rdkit, merged);
       if (!before || !after || before !== after) {
@@ -241,9 +192,6 @@ export function buildTemplateApplicationPlan(
 
   try {
     return members.map((member) => {
-      // Only rows explicitly marked as machine-produced may be re-laid-out.
-      // Hand edits are "editor"; rows predating the source marker have unknown
-      // provenance (e.g. pre-unification editor saves) and are protected too.
       if (member.source !== "seeded" && member.source !== "template") {
         return { slug: member.slug, outcome: "protected-hand-edit" };
       }

@@ -39,7 +39,6 @@ type Packet = Awaited<ReturnType<typeof readNarrativeReview>>;
 
 type Row = Packet["rows"][number];
 
-/** One mark per paragraph; the workbench legend owns the wider definitions. */
 const MARKS: Record<
   NarrativeRowStatus,
   { label: string; tone: EditorStatusPillTone }
@@ -47,19 +46,16 @@ const MARKS: Record<
   unreviewed: { label: "Machine", tone: "neutral" },
   draft: { label: "Draft", tone: "warning" },
   approved: { label: "Human approved", tone: "success" },
-  // A re-check approval still shows, but a neighbouring English sentence changed.
   recheck: { label: "Re-check: nearby English changed", tone: "warning" },
   stale: { label: "Source changed", tone: "danger" },
 };
 
-/** Wording a reader sees now: an applied approval (including re-check), else the machine target, else English. */
 function liveText(row: Row) {
   return row.approved && narrativeOverlayApplies(row.overlay)
     ? row.approved.target
     : (row.machine?.target ?? row.source);
 }
 
-/** Field labels, numbered when one field holds several paragraphs. */
 function paragraphLabels(rows: readonly Row[]) {
   const counts = new Map<string, number>(),
     seen = new Map<string, number>();
@@ -77,7 +73,6 @@ type ArticleMatch = { slug: string; english: string; localized?: string };
 
 const MAX_MATCHES = 12;
 
-/** Finds published substance articles through the public search manifests, English and locale. */
 function ArticlePicker({
   locale,
   disabled,
@@ -191,7 +186,6 @@ function ArticlePicker({
           className="theme-frosted-control absolute inset-x-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-card border border-[var(--theme-border-subtle)] p-1 shadow-[var(--theme-elevation-overlay)]"
         >
           {matches.map((m, index) => (
-            // The combobox owns keyboard selection through aria-activedescendant.
             // eslint-disable-next-line jsx-a11y/click-events-have-key-events
             <li
               key={m.slug}
@@ -223,7 +217,6 @@ export function NarrativeReview({
   canAdmin = false,
 }: {
   locale: string;
-  /** Shows the admin-only "Review fluency" model pass for the open article. */
   canAdmin?: boolean;
 }) {
   const formId = useId();
@@ -233,14 +226,12 @@ export function NarrativeReview({
     [selected, setSelected] = useState("");
   const [target, setTarget] = useState(""),
     [reason, setReason] = useState<CorrectionDraft>(EMPTY_CORRECTION);
-  /** The wording the open paragraph's editor started from; typing away from it is unsaved work. */
   const [openedTarget, setOpenedTarget] = useState("");
   const [busy, setBusy] = useState(false),
     [error, setError] = useState<string | null>(null),
     [notice, setNotice] = useState("");
   const [publication, setPublication] = useState<PublicationReceipt[]>([]);
   const [history, setHistory] = useState<ReviewHistoryEntry[]>([]);
-  /** The open paragraph's review history sits in a drawer, closed until asked for. */
   const [historyOpen, setHistoryOpen] = useState(false);
   const correctionRef = useRef<HTMLTextAreaElement>(null);
   const row = packet?.rows.find((r) => r.id === selected);
@@ -372,7 +363,6 @@ export function NarrativeReview({
     if (!response.ok) throw new Error(result.error ?? "Unable to save review.");
     return result;
   }
-  /** Save and approve saves the paragraph, then approves exactly the revision that save produced. */
   async function mutate(
     action: "save" | "approve" | "restore" | "save-approve",
     restoreRevision?: number,
@@ -417,7 +407,6 @@ export function NarrativeReview({
       setBusy(false);
     }
   }
-  // Machine wording counts as unsaved: keeping it as it stands is saving it as a person's.
   const savedTarget = row?.draft?.target ?? row?.approved?.target ?? "";
   const changed = Boolean(
     row && target.trim() && target.trim() !== savedTarget.trim(),
@@ -431,9 +420,6 @@ export function NarrativeReview({
   );
   const canSave =
     Boolean(target.trim()) && (changed || Boolean(row?.draft && !approvable));
-  // Opening a machine paragraph is not an edit, so the shell hears only about
-  // typing. A correction needs its reason and conflict checks, so the shell
-  // only discards it.
   useUnsavedWork({
     kind: "discard-only",
     because: "Review and save this correction from the Glossary.",
@@ -770,19 +756,16 @@ export function NarrativeReview({
   );
 }
 
-/** A paragraph's review state as the sentence-case pill every view uses. */
 function ParagraphMark({ status }: { status: NarrativeRowStatus }) {
   const mark = MARKS[status] ?? MARKS.unreviewed;
   return <EditorStatusPill tone={mark.tone} inline>{mark.label}</EditorStatusPill>;
 }
 
-/** "effects.summary paragraph 2" as a reader would say it: "Effects summary, paragraph 2". */
 function fieldName(field: string): string {
   const spaced = field.replace(/[._-]+/g, " ").replace(/\s+paragraph\s+(\d+)$/, ", paragraph $1").replace(/\s+(\d+)$/, " $1").trim();
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-/** Where an approval was sent after it saved; a receipt that did not land says so. */
 function Receipts({ publication }: { publication: PublicationReceipt[] }) {
   if (publication.length === 0) return null;
   return (

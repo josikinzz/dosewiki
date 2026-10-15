@@ -95,7 +95,6 @@ describe("NextDevPage shell selection", () => {
 
     expect(element.type).toBe(DataTargetSplitRefusal);
     expect(element.props).toMatchObject({ alignment: SPLIT, surface: "/dev editor shell" });
-    // The shell is never constructed, so no Postgres round-trip is made on a split.
     expect(getOwnedContributorProfileMock).not.toHaveBeenCalled();
   });
 

@@ -12,10 +12,6 @@ const SERVER_KEY = "test-admin-key";
 
 type Row = Record<string, unknown> & { _id: string };
 
-/**
- * In-memory tables with the two query shapes the playlist handlers use:
- * `withIndex(...).eq(field, value)` and a bare `collect()` over a table.
- */
 function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
   for (const [table, rows] of Object.entries(seed)) {
@@ -177,7 +173,6 @@ describe("replicationPlaylists ownership", () => {
     });
     expect(rowsOf("replicationPlaylists").get("p1")).toMatchObject({ updated_by: "ada@example.com" });
 
-    // An admin may attribute a write to someone else (migration scripts).
     await upsertHandler(ctx, {
       ...as("admin@example.com"),
       key: "house-opener",

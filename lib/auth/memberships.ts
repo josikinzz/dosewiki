@@ -87,12 +87,6 @@ export async function getCredentialsByUsername(username: string): Promise<Member
   });
 }
 
-/**
- * These three writes bypass `ServerDataWriteClient` on purpose (the caller
- * has no session, so there is no actor to name), which means the cutover write
- * freeze has to be asserted here too or sign-in, password reset and invite
- * redemption would keep writing during the window.
- */
 export async function touchSignIn(email: string): Promise<void> {
   assertDataWritesNotFrozen("memberships:touchSignIn");
   await getDataClient().mutation(touchSignInMutation, {
@@ -122,12 +116,6 @@ export async function getMembershipByEmail(email: string): Promise<MembershipRec
   };
 }
 
-/**
- * Redeems a password reset link. Like sign-in, the caller has no session, so
- * this goes through the server-key client rather than the route write
- * capability (which insists on an actor). Throws the Postgres rejection for an
- * unknown or expired token.
- */
 export async function consumePasswordReset(tokenHash: string, passwordHash: string): Promise<void> {
   assertDataWritesNotFrozen("memberships:consumePasswordReset");
   await getDataClient().mutation(consumePasswordResetMutation, {
@@ -137,12 +125,6 @@ export async function consumePasswordReset(tokenHash: string, passwordHash: stri
   });
 }
 
-/**
- * Accepts an invite: creates the membership and records the redemption. The
- * visitor has no session yet, so this is a server-key call with no actor.
- * Throws the Postgres rejection (`INVITE_*`, `USERNAME_TAKEN`, `EMAIL_TAKEN`)
- * for the route to map.
- */
 export async function redeemInviteCode(input: RedeemInviteInput): Promise<RedeemedInvite> {
   assertDataWritesNotFrozen("inviteCodes:redeem");
   return await getDataClient().mutation(redeemInviteMutation, {

@@ -5,13 +5,6 @@ import type { AuthorizedActor } from "./auth";
 export type RevisionedTable = "contributorProfiles" | "replicationPlaylists" | "tripReports";
 export type RevisionAction = "update" | "remove" | "merge" | "create";
 
-/**
- * Journal the document as it stands before a write lands on it. Every write
- * path for the three member-owned tables calls this, whoever the actor is, so
- * a contributor trimming their profile or dropping a playlist leaves the old
- * version on the server. `_id` and `_creationTime` ride along in `before` so a
- * restore can tell which row it came from.
- */
 export async function recordRevision<T extends RevisionedTable & TableNames>(
   ctx: MutationCtx,
   input: { table: T; key: string; action: RevisionAction; before: Doc<T> | null; actor: Pick<AuthorizedActor, "email" | "role">; after?: unknown; operationId?: string; revision?: string; publications?: string[]; requestIdentity?: string; clientRequestIdentity?: string },
@@ -33,7 +26,6 @@ export async function recordRevision<T extends RevisionedTable & TableNames>(
   });
 }
 
-/** Read only after the domain has authorized this actor against this record. */
 export async function findRevisionOperation(
   ctx: MutationCtx | QueryCtx,
   table: RevisionedTable,

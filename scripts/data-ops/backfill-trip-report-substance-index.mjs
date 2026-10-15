@@ -1,26 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Backfill the maintained public read indexes. Defaults to tripReports; use
- * --index=gallery, --index=history or --index=reviews for the other relations.
- * Server-owned cursor checkpoints resume interrupted runs without skips.
- *
- * Idempotent: rows already in place are kept and stale ones removed, so the
- * script can be re-run after a partial pass. Native internal functions execute
- * through the explicit Postgres data client; remote connection confirmation,
- * write freeze and operation-specific confirmations remain mandatory.
- *
- * Usage:
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   node scripts/data-ops/backfill-trip-report-substance-index.mjs --dry-run
- *
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   node scripts/data-ops/backfill-trip-report-substance-index.mjs \
- *     --write --confirm-trip-report-substance-index-backfill \
- *     --confirm-write=<operation-name> --expected-deployment=<fingerprint>
- *
- * The dry run prints the operation name and fingerprint the write requires.
- */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 

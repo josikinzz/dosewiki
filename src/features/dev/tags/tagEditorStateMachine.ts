@@ -39,7 +39,6 @@ export type TagEditorState = {
   notice: TagNoticeState | null;
   isApplying: boolean;
   registry: TagRegistry;
-  /** The last rewrite that can still be put back, until the next one lands. */
   undo: TagUndo | null;
   pendingEffect: TagEditorEffect | null;
   effectSequence: number;
@@ -65,12 +64,7 @@ export type TagEditorEvent =
       type: "mutationSucceeded";
       effectId: number;
       result: TagMutationResult;
-      /** The working set the rewrite ran over, so the rewrite can be put back. */
       before: readonly SubstanceArticle[];
-      /**
-       * The list after the rewrite: the server's tags with the draft on top.
-       * Without it the registry is built from the rewritten rows alone.
-       */
       registry?: TagRegistry;
     }
   | { type: "mutationFailed"; effectId: number; message: string }
@@ -80,7 +74,6 @@ export type TagEditorEvent =
       effectId: number;
       articles: SubstanceArticle[];
       restoredCount: number;
-      /** As on `mutationSucceeded`: the projected list, else built from `articles`. */
       registry?: TagRegistry;
     }
   | { type: "undoFailed"; effectId: number; message: string }
@@ -152,10 +145,6 @@ const nextEffect = (
   };
 };
 
-/**
- * A success notice that still offers Undo stays put while the editor looks at
- * other tags; everything else is stale the moment the selection moves.
- */
 const carriedNotice = (state: TagEditorState): TagNoticeState | null =>
   state.undo && state.notice?.type === "success" && state.notice.source === state.undo.source
     ? state.notice
@@ -196,9 +185,6 @@ const repairSelection = (state: TagEditorState): TagEditorState => {
     };
   }
 
-  // Prefer the first tag visible in the filtered list so the detail panel
-  // always corresponds to something the user can see; fall back to the
-  // field's unfiltered first tag when the search yields no matches.
   const next = getFilteredTags(state)[0] ?? state.registry.byField[state.activeField][0];
   if (!next) {
     return clearDrafts({
@@ -256,10 +242,8 @@ const submitMutation = (
   { kind: "tagMutation", mutation },
 );
 
-/** "1 article" / "58 articles": the one way this tool counts a blast radius. */
 export const articleCount = (count: number): string => `${count} article${count === 1 ? "" : "s"}`;
 
-/** The verb the notice and the Undo record share, e.g. "Rename". */
 const mutationActionName = (mutation: TagMutation): string => {
   switch (mutation.type) {
     case "rename":
@@ -271,7 +255,6 @@ const mutationActionName = (mutation: TagMutation): string => {
   }
 }
 
-/** Names exactly what changed, so the notice is a record and not a toast. */
 const describeMutation = (mutation: TagMutation, affectedCount: number): string => {
   const count = articleCount(affectedCount);
   switch (mutation.type) {
@@ -419,7 +402,6 @@ export const tagEditorReducer = (
       });
     }
     case "undoFailed": {
-      // The record stays: a failed restore is retryable.
       return completeMatchingEffect(state, event.effectId, {
         type: "error",
         message: event.message,

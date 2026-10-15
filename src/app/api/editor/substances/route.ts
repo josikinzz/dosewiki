@@ -1,14 +1,3 @@
-/**
- * Substance index reads the editor tools take one document or one page at a time.
- *
- *   GET /api/editor/substances?slug=lsd                              -> substanceIndex.getBySlug
- *   GET /api/editor/substances?page=lookup&numItems=200[&cursor=..]  -> substanceIndex.getLookupPage
- *   GET /api/editor/substances?page=search-input&numItems=200[&cursor=..] -> substanceIndex.getSearchInputPage
- *
- * Pages answer with the Postgres pagination envelope (`page`, `continueCursor`,
- * `isDone`); the client threads `continueCursor` back as `cursor`, so the drain
- * is keyset-stable and never offset-based.
- */
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { editorReadRoute, requireParam } from "../editorReadRoute";

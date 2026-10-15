@@ -1,28 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed the Effect Index featured carousel from the checked-in JSON list.
- *
- * The carousel used to read `data/effects/effectIndexFeaturedReplications.json`
- * directly, so re-curating it was a code change. It is now a `siteConfig`
- * document the Replication Studio edits, and the JSON survives as the fallback
- * for a deployment that has never been curated. This writes the JSON's contents
- * once, so behaviour is unchanged the moment the storage flips over: the
- * homepage shows the same replications in the same order, from the database.
- *
- * Idempotent and non-destructive: if the document already exists it is reported
- * and left alone, because after the first save the stored selection is an
- * editor's decision and the JSON is only history.
- *
- * Dry run by default. Nothing is written without `--write` plus the standard
- * write confirmations.
- *
- * Usage:
- *   node scripts/replications/seed-featured-replications.mjs
- *   TARGET_POSTGRES_URL=postgresql://<host>/<database> \
- *     node scripts/replications/seed-featured-replications.mjs --write \
- *       --confirm-write=seed-featured-replications \
- *       --expected-deployment=enchanted-echidna-791
- */
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";

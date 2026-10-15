@@ -15,7 +15,6 @@ import {
   type RecentChangesProjection,
 } from "./ContributorsSectionView.client";
 
-/** Profile-resolved avatar URLs for the two fixed credit roles. */
 export interface ContributorAvatarMap {
   josie?: string | null;
   lyrea?: string | null;
@@ -45,13 +44,6 @@ const summaryDateWithYearFormat = new Intl.DateTimeFormat("en-GB", {
   timeZone: "UTC",
 });
 
-/**
- * Trim each row's touched-article list to what the article surface names.
- *
- * A Dev-editor bulk save records every substance it touched. The row renders
- * at most `NAMED_SIBLINGS` of them plus "and N more", so shipping the whole
- * list would put the entire substance index in every article document.
- */
 function trimRecentChangeSiblings(
   changes: ArticleRecentChange[],
 ): ArticleRecentChange[] {
@@ -99,7 +91,6 @@ function projectRecentChanges(
   };
 }
 
-/** Server-compatible projection boundary for article credits and change history. */
 export const ContributorsSection = memo(function ContributorsSection({
   article,
   avatars,

@@ -20,7 +20,6 @@ type LocalizedChemicalClassPageProps = {
   }>;
 };
 
-// Keep the build bounded like the English route; published keys enter the ISR cache on first request.
 export function generateStaticParams() {
   return [];
 }

@@ -1,9 +1,5 @@
 "use client";
 
-// The two reader-visible leaves of inline citation rendering. They live apart
-// from `CitedText` so `renderCitedText` stays callable on the server (the
-// harm-potential section renders `ArticleText` there) while the accessible
-// label and the caution marker still translate through the client `useT`.
 import type { ComponentPropsWithoutRef, MouseEvent } from "react";
 import {
   DropdownMenu,
@@ -25,10 +21,6 @@ type CitationSupProps = Omit<
 };
 
 export type CitationLink = {
-  /**
-   * Catalog key for the marker's aria-label (`msg("Citation {{number}}")`);
-   * `{{number}}` resolves to `label` at render time.
-   */
   accessibleLabel: string;
   href: string;
   label: string;
@@ -120,15 +112,6 @@ export function CitationSup({
   );
 }
 
-/**
- * Free-floating inline marker for the `[citation-needed]` sentinel the
- * citation campaign leaves behind when a claim's marker is stripped. Compact
- * superscript-register caution text, no pill, no chrome, with the brackets
- * drawn as CSS pseudo-elements so the sentinel never re-enters the copy
- * stream. It never participates in reference numbering, and renderCitedText
- * suppresses it when the claim already carries a resolved citation or when
- * the previous claim in the same block is already flagged.
- */
 export function CitationNeededMarker({ markerOrdinal }: { markerOrdinal?: number }) {
   const t = useT();
   const fieldMarkers = useFieldMarkers();

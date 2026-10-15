@@ -1,45 +1,4 @@
 #!/usr/bin/env node
-/**
- * Post-deploy warmer: request every substance article URL listed in the
- * public sitemap, on every public host named, so readers do not pay a cold
- * render after a deployment.
- *
- * Which substance articles a build prerenders is decided per locale and
- * artifact by lib/next/prerenderPolicy.ts; every article outside that list
- * renders on its first request and starts cold again after each deploy, since
- * the ISR page cache does not survive one. This script fills and verifies the
- * deployed HTML and App Router navigation caches after the deployment becomes
- * reachable. It walks the sitemap with bounded concurrency and reports each
- * representation independently, per host.
- *
- * Usage:
- *   node scripts/deploy/warm-public-routes.mjs --base-url https://dose.wiki
- *   node scripts/deploy/warm-public-routes.mjs --base-url https://dose.wiki,https://ru.dose.wiki,https://zh.dose.wiki
- *   npm run warm:public-routes -- --base-url https://dose.wiki --base-url https://effectindex.com --all
- *
- * Flags:
- *   --base-url <url>            Host to warm; repeat the flag or separate hosts with
- *                               commas (or set WARM_BASE_URL). Each host gets its own
- *                               summary and its own failure threshold.
- *   --all                       Warm every sitemap URL, not just substance articles.
- *   --concurrency <n>           Requests in flight per host (default 4).
- *   --timeout <ms>              Per-request timeout (default 20000).
- *   --max-failure-percent <n>   Exit non-zero when any host exceeds this failure rate (default 10).
- *   --slowest <n>               How many slow URLs to print per host (default 10).
- *
- * A locale mirror publishes no sitemap of its own: its /sitemap.xml is the
- * English list, so each location is moved onto the host being warmed before
- * the article filter runs. A host whose sitemap lists nothing warmable is
- * reported by name and fails the run only when every host is empty; a host
- * whose sitemap is missing or unreachable is reported by name and fails the
- * run after the other hosts have been warmed.
- *
- * Always point this at public hosts (dose.wiki, its mirrors, effectindex.com),
- * never an editor host: the editor hosts publish an empty sitemap by design.
- *
- * The scheduled route at src/app/api/warm/route.ts only warms a bounded
- * high-priority set. This CLI remains deliberate post-deployment sitemap warming.
- */
 
 import {
   collectSitemapUrls,
@@ -53,7 +12,6 @@ import {
 
 const USAGE = `Usage: node scripts/deploy/warm-public-routes.mjs --base-url <url>[,<url>...] [--base-url <url>] [--all] [--concurrency 4] [--timeout 20000] [--max-failure-percent 10]`;
 
-/** Warm one host end to end. Returns the summary, or null when the sitemap listed nothing warmable. */
 async function warmHost(baseUrl, options) {
   const startedAt = Date.now();
   const { sitemapUrl, urls } = await collectSitemapUrls(baseUrl, {
@@ -115,7 +73,6 @@ async function main() {
     try {
       outcome = await warmHost(baseUrl, options);
     } catch (error) {
-      // A missing or unreachable sitemap on one host must not hide the others.
       console.error(`[warm] ${baseUrl}: ${error && error.message ? error.message : error}`);
       unreachable.push(baseUrl);
       continue;

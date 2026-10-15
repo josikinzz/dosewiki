@@ -40,7 +40,6 @@ export interface SubstanceSecondaryData {
   history: Promise<ArticleRecentChange[]>;
 }
 
-/** Start independent enrichments alongside the loader's safety-critical reads. */
 export function loadSubstanceSecondaryData(
   article: Pick<SubstanceArticle, "title" | "identification">,
   slug: string,
@@ -66,8 +65,6 @@ export function loadSubstanceSecondaryData(
   const history = directory.then((entries) =>
     getPublicArticleHistory(slug, entries),
   );
-  // Observe speculative failures now; the original promises still reject when
-  // their server sections consume them, preserving React's error handling.
   for (const pending of [directory, profiles, reports, history]) {
     void pending.catch(() => undefined);
   }

@@ -1,13 +1,11 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { DataEditorTargetAlignment } from "@server/data/serverWriteHealth";
 
-/** Only redacted target diagnostics cross this server-rendered refusal surface. */
 type DataTargetSplitNoticeProps = {
   alignment: DataEditorTargetAlignment;
   surface: string;
 };
 
-/** Invalid native database configuration always refuses editor access. */
 export function DataTargetSplitRefusal({ alignment, surface }: DataTargetSplitNoticeProps) {
   return (
     <main className="theme-page-shell flex min-h-screen items-start justify-center p-6 sm:items-center sm:p-8">

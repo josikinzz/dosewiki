@@ -23,18 +23,6 @@ const LIST_MESSAGES = {
   failure: "Unable to load feedback.",
 };
 
-/**
- * HTTP client for one feedback source. Article and site feedback expose
- * `GET {basePath}/queue?status=&q=&order=&cursor=&limit=`, which filters,
- * searches, orders and pages on the server, `GET {basePath}/{id}` for one
- * item a task link names, and `POST {basePath}/{id}/status`.
- * A source whose queue route returns its whole list (`listUrl`) is paged in
- * the browser under the same contract.
- *
- * A successful response that does not carry the expected shape is an error,
- * never an empty queue: the queue keeps the rows it already has and offers
- * a retry, so a broken contract cannot read as "no feedback".
- */
 export function createFeedbackRequests<Item extends FeedbackQueueItem>(
   basePath: string,
   options: {
@@ -50,7 +38,6 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
       }
 
       const params = new URLSearchParams({ status: query.status, order: query.sort, limit: String(FEEDBACK_PAGE_SIZE) });
-      // A reader's contact details never enter a request URL.
       if (query.search.trim() && !looksLikeContactDetails(query.search)) {
         params.set("q", query.search.trim());
       }
@@ -77,7 +64,6 @@ export function createFeedbackRequests<Item extends FeedbackQueueItem>(
             network: "Network error while opening the feedback.",
             failure: "Unable to open that feedback.",
           },
-          // Gone, or above this session's role: the queue names both the same way.
           onError: (status) => (status === 404 || status === 403 ? new FeedbackItemMissing() : undefined),
         });
       } catch (error) {
@@ -116,7 +102,6 @@ class FeedbackItemMissing extends Error {}
 
 const MALFORMED_LIST = "The server did not return the feedback list. Try again.";
 
-/** The `feedback` array of a list response, or a retryable error when it is missing or malformed. */
 export function readFeedbackList<Item>(payload: Record<string, unknown>): Item[] {
   if (!Array.isArray(payload.feedback) || !payload.feedback.every(isFeedbackRow)) {
     throw new Error(MALFORMED_LIST);

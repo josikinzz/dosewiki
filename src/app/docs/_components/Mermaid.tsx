@@ -2,44 +2,18 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-/**
- * Renders a Mermaid diagram natively (no iframe). The diagram source is passed
- * as a string and rendered client-side. Mermaid is loaded only when a figure
- * approaches the viewport, then retained for subsequent theme/source updates.
- *
- * Theming: the `base` theme with hand-tuned light/dark `themeVariables`, a
- * light-mode remap of the shared classDef palette (see LIGHT_PALETTE below),
- * and a post-render pass (applySiteStyling) that rounds nodes, adds the site's
- * drop shadow, splits each label into a bold title row and muted description
- * rows, restyles edge labels as chips, and enlarges arrowheads. Mermaid's own
- * class/attribute colouring is inconsistent across node fills, so label
- * colours come from the site text tokens with !important.
- *
- * Promotion note: this is currently docs-local. If a second surface needs
- * diagrams, promote it to the shared kit (src/components/ui) and register a
- * /dev/kit story.
- */
-
 type MermaidModule = typeof import("mermaid")["default"];
 
 let mermaidPromise: Promise<MermaidModule> | null = null;
 
 async function loadMermaid(): Promise<MermaidModule> {
   if (!mermaidPromise) {
-    // Use mermaid's built-in dagre layout (default) — NOT the ELK layout plugin.
-    // ELK runs layout in a Web Worker and serializes mermaid's graph, which
-    // contains circular references; under the app's bundler that throws
-    // "cyclic object value" in the browser and the diagram never renders.
     mermaidPromise = import("mermaid").then((mod) => mod.default);
   }
 
   return mermaidPromise;
 }
 
-// Mermaid is a singleton with mutable global config; running two renders (or an
-// initialize during a render) concurrently corrupts its internal state. React
-// StrictMode double-invokes effects in dev and a page may hold several diagrams,
-// so serialize every initialize+render through one chain.
 let renderLock: Promise<unknown> = Promise.resolve();
 
 function queueRender<T>(task: () => Promise<T>): Promise<T> {
@@ -84,28 +58,17 @@ function themeConfig(isDark: boolean) {
   };
 }
 
-// Every docs diagram hard-codes one shared five-tone dark palette in its
-// classDef lines (Mermaid class styling ignores themeVariables, so the charts
-// carry raw hexes). Those fills are unreadable on the light theme, so in light
-// mode each dark hex is remapped to a hand-tuned same-hue light counterpart
-// before render. The chart strings in the pages stay verbatim; only the text
-// handed to mermaid.render changes. Strokes double as the legend swatch hues
-// (see STAGE_TONE in docs/how) — light strokes keep the hue, darkened for
-// contrast on the light surface.
 const LIGHT_PALETTE: Record<string, string> = {
-  // node fills (dark → light tint)
   "#3a1f33": "#fce7f3",
   "#3a2a18": "#ffedd5",
   "#143026": "#e0f2ea",
   "#391a40": "#f7e6fa",
   "#15263e": "#e1eefa",
-  // node strokes (pastel → darkened same hue)
   "#f9a8d4": "#be185d",
   "#fdba74": "#c2410c",
   "#6ee7b7": "#047857",
   "#e879f9": "#a21caf",
   "#7dd3fc": "#0c6aa6",
-  // classDef label colours (light → the shared light-theme text colour)
   "#f7e3ef": "#2b2140",
   "#f7ead9": "#2b2140",
   "#def3ea": "#2b2140",
@@ -117,9 +80,6 @@ function isDarkTheme(): boolean {
   return document.documentElement.dataset.theme !== "light";
 }
 
-// Geometry shared with the site's card primitives. Mermaid draws square-cornered
-// 1px boxes and grey edge-label blocks by default; this pass restyles the SVG so
-// the diagram reads as the same material as the cards around it.
 const NODE_RADIUS = 10;
 const CHIP_PAD_X = 10;
 const CHIP_PAD_Y = 4;
@@ -132,40 +92,30 @@ function svgStyleSheet(isDark: boolean): string {
     : "drop-shadow(0 6px 12px rgba(58, 30, 80, 0.12))";
   const lineColor = isDark ? "#a79ec4" : "#6f6390";
   return [
-    // Node shells: rounded, soft stroke, one upper-left-lit drop shadow.
     `.node .basic{stroke-width:1.25px !important;stroke-opacity:0.78;filter:${shadow};}`,
-    // Node labels: bold title row, muted description rows.
     ".node .label text{font-family:var(--font-family-body);}",
     ".node .label tspan.text-outer-tspan{fill:var(--theme-text-primary) !important;}",
     ".node .label tspan.title-row{font-weight:600;}",
     ".node .label tspan.desc-row{fill:var(--theme-text-muted) !important;font-size:0.9em;}",
-    // Edges: slightly heavier, muted accent, larger heads (scaled below).
     `.edgePath path.path,.flowchart-link{stroke:${lineColor} !important;stroke-width:1.6px !important;stroke-linecap:round;}`,
-    // Dotted edges (`-.->`) ship as a 3px bead pattern; use a real dash instead.
     ".edgePath path.edge-pattern-dotted,.flowchart-link.edge-pattern-dotted{stroke-dasharray:8 7 !important;stroke-linecap:butt;}",
     `marker path{fill:${lineColor} !important;stroke:${lineColor} !important;}`,
-    // Edge labels: small-caps chips on the theme's soft surface.
     ".edgeLabel rect{opacity:1 !important;fill:var(--theme-surface-soft) !important;stroke:var(--theme-border-subtle) !important;stroke-width:1px;}",
     ".edgeLabel text,.edgeLabel tspan{fill:var(--theme-text-muted) !important;font-family:var(--font-family-body);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;}",
     ".cluster text,.cluster tspan{fill:var(--theme-text-muted) !important;}",
   ].join("");
 }
 
-/** Restyle the rendered SVG so it matches the site's cards, chips, and type. */
 function applySiteStyling(svg: SVGElement, isDark: boolean) {
   const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
   styleEl.textContent = svgStyleSheet(isDark);
   svg.appendChild(styleEl);
 
-  // Rounded node corners. `rx` as an attribute works everywhere; the cylinder
-  // (data store) shape is a path and keeps its own outline.
   svg.querySelectorAll<SVGRectElement>(".node rect.basic").forEach((rect) => {
     rect.setAttribute("rx", String(NODE_RADIUS));
     rect.setAttribute("ry", String(NODE_RADIUS));
   });
 
-  // Title row vs description rows. Mermaid marks every `<br/>` line as an
-  // outer tspan; the first line is the step name, the rest describe it.
   svg.querySelectorAll<SVGTextElement>(".node .label text").forEach((text) => {
     const rows = Array.from(text.querySelectorAll("tspan.text-outer-tspan"));
     rows.forEach((row, index) => {
@@ -174,7 +124,6 @@ function applySiteStyling(svg: SVGElement, isDark: boolean) {
     });
   });
 
-  // Larger arrowheads: scale the marker box, keep its anchor point.
   svg.querySelectorAll<SVGMarkerElement>("marker").forEach((marker) => {
     const width = Number(marker.getAttribute("markerWidth"));
     const height = Number(marker.getAttribute("markerHeight"));
@@ -186,8 +135,6 @@ function applySiteStyling(svg: SVGElement, isDark: boolean) {
     }
   });
 
-  // Edge-label chips: after the chip typography applies, re-fit the background
-  // rect to the text as a pill with padding.
   svg.querySelectorAll<SVGGElement>(".edgeLabel").forEach((label) => {
     const rect = label.querySelector<SVGRectElement>("rect");
     const text = label.querySelector<SVGTextElement>("text");
@@ -228,7 +175,6 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
     if (!figure) {
       return;
     }
-    // Unlike optional autoplay, diagrams must remain available in older browsers.
     if (typeof IntersectionObserver === "undefined") {
       setActivated(true);
       return;
@@ -246,8 +192,6 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
     return () => observer.disconnect();
   }, []);
 
-  // Invalidate pending work synchronously when a new chart commits, before an
-  // old promise can populate the canvas between commit and passive effects.
   useLayoutEffect(() => {
     if (!activated) {
       return;
@@ -311,7 +255,6 @@ export function Mermaid({ chart, title }: { chart: string; title?: string }) {
 
     void render();
 
-    // Re-render when the site theme flips so diagram colours track light/dark.
     const observer = new MutationObserver(() => {
       void render();
     });

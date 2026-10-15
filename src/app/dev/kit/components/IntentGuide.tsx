@@ -5,13 +5,6 @@ import { Surface } from "@/components/ui/surface";
 import { stories } from "../registry";
 import type { IntentFamily, StoryDef, StoryIntent } from "../registry/types";
 
-/**
- * The catalog's "Which one?" layer: the same registry, read by intent instead
- * of by tier. A builder who needs "a chip for a substance name" finds the
- * component, sees it rendered, and can follow the policy that separates it
- * from its look-alikes. Nothing here is a second list; every row comes from a
- * story's `intents`, so the completeness test still governs the inventory.
- */
 const FAMILIES: { id: IntentFamily; label: string; question: string }[] = [
   { id: "chips", label: "Chips", question: "It names something" },
   { id: "badges", label: "Badges", question: "It reports a status or a count" },
@@ -56,8 +49,6 @@ export function IntentGuide() {
               </div>
               <ul className="flex flex-col gap-2">
                 {rows.map(({ story, intent }) => {
-                  // Full-stage examples (sections, headers, rows) carry fixed ids and
-                  // need the stage width; the story card below owns them.
                   const picked = story.examples[intent.example ?? 0];
                   const example = picked?.full ? undefined : picked;
                   return (

@@ -57,21 +57,8 @@ function resetDocumentScroll() {
   document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
-/** First sign the reader has taken the scroll position over themselves. */
 const READER_TAKEOVER_EVENTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
 
-/**
- * One reset at the route change plus two short corrective passes, because the
- * new page keeps laying out after its first paint — fonts, images and
- * client-fetched sections all move the top of the document out from under the
- * initial reset.
- *
- * The corrections stand down the instant the reader scrolls, the same bargain
- * `AnchorScrollRestore` makes. Without that guard a reader who starts reading
- * while the route is still settling gets thrown back to the top mid-sentence,
- * and the old unguarded cascade kept doing it for a full second after the
- * pathname committed.
- */
 function schedulePostNavigationScrollReset() {
   resetDocumentScroll();
 
@@ -114,17 +101,6 @@ function useManualScrollRestoration() {
   }, []);
 }
 
-/**
- * `disabled` still tracks the pathname — it only withholds the scroll reset —
- * so a surface can opt out without the hook losing its place. The review
- * workbench does: it changes the address once per article with the History API
- * and scrolls to the top of the next article itself, so this hook's corrective
- * passes would be firing over a reviewer who has already started reading.
- *
- * This is the only scroll reset a route change gets. Scheduling one at click
- * time as well used to scroll the *outgoing* page while the reader was still
- * looking at it, and left two overlapping correction windows on slow routes.
- */
 export function useResetScrollOnPathnameChange(
   pathname: string,
   options?: { disabled?: boolean },
@@ -144,19 +120,15 @@ export function useResetScrollOnPathnameChange(
   }, [disabled, pathname]);
 }
 
-/** Surfaces that own their own scroll behaviour across address changes. */
 export function isSelfScrollingRoute(pathname: string): boolean {
   return pathname === "/review" || pathname.startsWith("/review/");
 }
 
-/** Whether the route owns its own chrome instead of using the public header. */
 export function isChromelessAddress(pathname: string): boolean {
   if (pathname === "/under-construction") {
     return true;
   }
 
-  // The review workbench is a full-bleed editor surface with its own sticky command bar;
-  // the public site header would just push the article down.
   return (
     pathname === "/mantras" ||
     pathname === "/review" ||
@@ -253,11 +225,6 @@ export function RouteChrome() {
         onReplaceNavigate={replaceView}
         onLiveNavigate={pushLiveSearchView}
         liveSearchClearView={liveSearchOriginViewRef.current}
-        // dose.wiki's "/" is a full-viewport splash whose own tile grid IS the
-        // navigation, so the header collapses to a hamburger there. Effect
-        // Index's "/" is an ordinary content page (two columns of panels), and
-        // the original site showed its full nav on the homepage, so it keeps
-        // the desktop nav and its dropdowns.
         forceMobileNav={isHomePathname(pathname) && !isEffectIndex()}
       />
     </>
@@ -268,10 +235,6 @@ export function RouteFooter() {
   const pathname = usePathname();
   const { model } = useRouteChromeModel();
 
-  // The homepage is suppressed on dose.wiki because it is a full-viewport
-  // splash that a footer would push into a scroll. Effect Index's homepage is
-  // an ordinary content page and the original site footered it, so it keeps
-  // the footer.
   const suppressHomeFooter = isHomePathname(pathname) && !isEffectIndex();
 
   if (

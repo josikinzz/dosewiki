@@ -20,7 +20,6 @@ export function articleDocument(row: Doc<"substanceIndex">): ArticleDocument {
 function same(left: unknown, right: unknown): boolean {
   return left === right || contentHash({ value: left }) === contentHash({ value: right });
 }
-/** Publish only changed article units, never rewrite unrelated sections. */
 export function articleChangePatch(before: ArticleDocument, after: ArticleDocument): Partial<ArticleDocument> {
   const patch: Partial<ArticleDocument> = {};
   for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
@@ -103,10 +102,6 @@ function validateChangedRanges(value: unknown, before: unknown, path: string, du
   });
 }
 
-/** Validate changed domain units, not untouched legacy defects elsewhere.
- * Restoration is checked with the same rules but retains the exact trusted
- * server snapshot rather than storing defaults introduced solely for checking.
- */
 export function validateArticleChange(before: ArticleDocument, input: unknown, publication = true, restoring = false): ArticleDocument {
   if (!isRecord(input)) invalid("article", "An article document is required.");
   const article = { ...before };

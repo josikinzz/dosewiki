@@ -176,7 +176,6 @@ describe("pairRoutesByName", () => {
 
     expect(paired.dosage.map((route) => route.route)).toEqual(["Oral", "Smoked"]);
     expect(paired.duration.map((route) => route.route)).toEqual(["Oral", "Smoked"]);
-    // The timings must follow their own route, not the position they sat in.
     expect(paired.duration[0].half_life).toBe("4 hours");
     expect(paired.duration[1].half_life).toBe("30 minutes");
   });

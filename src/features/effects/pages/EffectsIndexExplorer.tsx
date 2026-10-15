@@ -49,11 +49,8 @@ interface EffectsIndexExplorerProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  /** Editable intro prose, resolved on the server. */
   introCopy?: SEIIntroCopy;
-  /** Editable per-tab intro blobs, keyed by tab id; falls back to TABS config. */
   tabBlobs?: Partial<Record<TabId, string>>;
-  /** Server-resolved URL state; must match the first rendered panel set. */
   initialView?: EffectIndexView;
 }
 
@@ -280,8 +277,6 @@ export function EffectsIndexExplorer({
           />
         </div>
 
-        {/* "All Effects" opens straight into the grid. The full thesis lives
-            on the More Info tab; category tabs keep their one-paragraph blob. */}
         {activeTab === "info" ? (
           <SEIIntroSection effectCount={effects.length} copy={introCopy} />
         ) : activeTab !== "all" ? (
@@ -304,9 +299,6 @@ export function EffectsIndexExplorer({
         }
 
         return (
-          // With no standing intro on this tab, the grid supplies its own
-          // offset from the tab strip — the same one the Substance Index
-          // panels use — instead of hugging the pills.
           <div className="mt-6 sm:mt-10">
             <IndexPanelGrid ref={panelRef} columns={nonEmptyColumns.length} gate={columnGate}>
               {nonEmptyColumns.map((column) => (
@@ -343,10 +335,6 @@ export function EffectsIndexExplorer({
       })()}
 
       {activeTab === "library" && (
-        // Static curation, so no column measurement or hydration gate. Fourteen
-        // links do not need a grid: one column on the intro's own 70ch measure
-        // keeps every heading on the paragraph's left edge and never strands a
-        // two-row panel beside a five-row one.
         <EffectsLibraryPanels />
       )}
 
@@ -392,8 +380,6 @@ export function EffectsIndexExplorer({
         );
       })()}
 
-      {/* The Library is curated config, not a filtered effect list, so an
-          empty corpus must not paint "No effects found" under its panels. */}
       {activeTab !== "library" && filteredEffects.length === 0 && (
         <StateCard
           badge={emptyState?.badge ?? "No effects"}

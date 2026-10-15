@@ -1,26 +1,3 @@
-/**
- * Editor write endpoint for the manual review tick (`/dev` → Review).
- *
- * Flips only the editor-only `editorial_review` state for one article via
- * `substanceIndex.setEditorialReview`, which preserves review notes and stamps
- * who completed the review and which published revision it covered. Editors
- * move a review between `needed` and `in_progress` and manage flags; marking it
- * `completed` is admin-only, since that is what the public `expert_reviewed`
- * derivation reads. The full save flow (diff, commit message, changelog) stays
- * reserved for content edits.
- *
- *   POST /api/dev/editorial-review   { slug, status, revision? }  → set review status
- *   POST /api/dev/editorial-review   { action: "recommend", slug, revision?, note? }
- *                                                                → recommend as reviewed
- *
- * `revision` is the published revision the reviewer read. It is only accepted
- * with `completed`; without it the article's current revision is recorded.
- *
- * `recommend` is how an editor does review work without admin rights: it
- * records a recommendation bound to the current published revision and never
- * changes the status. Admins approve recommendations in Change Review
- * (`/api/dev/review-recommendations`), which is what writes `completed`.
- */
 import { NextResponse } from "next/server";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
 import { revalidatePath } from "next/cache";
@@ -37,10 +14,8 @@ const deleteReviewFlagMutation = makeFunctionReference<"mutation">("substanceInd
 const recommendReviewMutation = makeFunctionReference<"mutation">("substanceIndex:recommendEditorialReview");
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
-/** A revision `resultHash` (hex) or the `initial` marker, never free text. */
 const REVISION_RE = /^[A-Za-z0-9]{1,128}$/;
 const REVIEW_STATUSES = ["needed", "in_progress", "completed"] as const;
-/** Matches `REVIEW_RECOMMENDATION_NOTE_MAX` in the review handlers. */
 const RECOMMENDATION_NOTE_MAX = 1000;
 type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
@@ -163,8 +138,6 @@ export const POST = protectedRouteOperation<SetReviewBody, ParsedSetReview>({
           ...(body.revision !== undefined ? { revision: body.revision } : {}),
         });
 
-    // The tick changes the public-safe `expert_reviewed` derivation, so the
-    // coverage audit and the article's own cached projections must refresh.
     if (body.action === "status") {
       revalidatePath("/about/coverage");
       await revalidateSavedPaths([`/${body.slug}`], "manual");

@@ -44,8 +44,6 @@ export function ArticlesIndexPage({
           icon={emptyState.icon}
           footer={emptyState.footer}
           tone="neutral"
-          // An empty index is a dead end unless it hands the reader somewhere
-          // real to go, and this deployment can legitimately have no articles.
           actions={
             <>
               <Button asChild>
@@ -79,14 +77,6 @@ export function ArticlesIndexPage({
   );
 }
 
-/**
- * One article as an open index row, sharing the hairline-separated row material
- * used by the reports explorer. Every row is one line of the same grammar, title
- * then blurb then meta, so the eye scans the index as a table rather than as a
- * feed; a 5,000-word guide only earns its "25 min read", never a bigger row.
- * Below `sm` the blurb wraps under the title and the meta run takes its own line.
- */
-/** "May 2021" in English, "2021年5月" on the mirror; a raw date with no month passes through. */
 function publishedMonthLabel(publishedMonth: string): string {
   const match = /^(\d{4})-(\d{2})$/.exec(publishedMonth);
   if (!match) return publishedMonth;
@@ -115,10 +105,6 @@ function ArticleIndexRowItem({ article }: { article: ArticleIndexRow }) {
           </span>
         ) : null}
         {meta ? (
-          // Tags are deliberately absent: the group heading already says the
-          // subject, and a pill as long as "subjective effect documentation"
-          // outweighed the title it was filed under, worst of all on a phone
-          // where it wrapped to two lines. The article page still carries them.
           <span className="theme-text-faint numeric-tabular basis-full text-xs sm:ml-auto sm:shrink-0 sm:basis-auto">
             {meta}
           </span>

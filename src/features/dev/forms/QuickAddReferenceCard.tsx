@@ -20,11 +20,6 @@ import {
 } from "./referenceFormShared";
 import { EntryCard } from "./EntryCard";
 
-/**
- * Detection and assembly moved to `@/lib/citations/referenceIntake` so the
- * review palette and its server route can mint the same reference this card
- * does. Re-exported here because this module is still the name importers know.
- */
 export {
   buildQuickAddReference,
   detectQuickAddReference,

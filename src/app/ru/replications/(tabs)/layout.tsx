@@ -1,9 +1,3 @@
-/**
- * The Russian mirror of the replications section shell, reached
- * only through the middleware rewrite from `ru.dose.wiki/replications*`.
- * Same shared chrome as the English layout, rendered inside the mirror's UI
- * locale so the section title and tab bar read in its language.
- */
 import type { ReactNode } from "react";
 
 import ReplicationsSectionLayout from "@/app/replications/(tabs)/layout";

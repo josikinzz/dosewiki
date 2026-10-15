@@ -1,7 +1,3 @@
-/**
- * Reject one change proposal with a note the editor sees. Admin only; the
- * note is required so a rejection always explains itself.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import type { Id } from "@server/postgres/runtime/dataModel";

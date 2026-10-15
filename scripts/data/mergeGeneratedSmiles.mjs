@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * Merge the SMILES gap-fill batch outputs into a single overrides file,
- * data/chemistry/generatedSmiles.json, keyed by slug. Every SMILES is independently
- * re-validated with RDKit (via scripts/chemistry/validate_smiles.py) before inclusion.
- */
 import { readFile, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -33,9 +28,6 @@ for (const f of files) {
   }
 }
 
-// SMILES were RDKit-validated during the gap-fill batches and are re-parsed again when the
-// Postgres depictions are seeded (scripts/chemistry/seed-data-molecules.ts), which reports
-// any that fail.
 const out = {
   __comment:
     'Generated SMILES overrides keyed by substance slug. Produced by the gap-fill batches ' +

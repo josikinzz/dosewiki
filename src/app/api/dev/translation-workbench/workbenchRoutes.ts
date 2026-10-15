@@ -14,12 +14,10 @@ export function parseMessageId(value: unknown): string {
 }
 export function workbenchError(error: unknown): NextResponse | null {
   if (isDataWriteFrozenError(error)) return NextResponse.json({ error: "Translation writes are currently frozen.", code: error.code }, { status: 503 });
-  // A glossary conflict names each term, so the editor can offer "Fine here" per term.
   if (error instanceof GlossaryConflictError) return NextResponse.json({ error: error.message, code: error.code, conflicts: error.conflicts }, { status: error.status });
   if (error instanceof TranslationReviewError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
   return null;
 }
-/** A correction's reason (`{ kind, note }`, or a legacy string) and the glossary terms it keeps out on purpose. */
 export function parseReasonFields(raw: Record<string, unknown>): { reason: ReviewReason; glossaryExceptions: string[] } {
   const reason = parseReviewReason(raw.reason);
   if (!reason) throw new JsonBodyError(400, "Choose a reason, or explain this change in up to 1000 characters.");
@@ -27,7 +25,6 @@ export function parseReasonFields(raw: Record<string, unknown>): { reason: Revie
   if (!glossaryExceptions) throw new JsonBodyError(400, "Glossary exceptions must be a short list of terms.");
   return { reason, glossaryExceptions };
 }
-/** Each item is one label the reviewer ticked, with the revision and wording they saw. */
 export function parseBatchApproval(raw: Record<string, unknown>): { locale: string; items: UiBatchApprovalItem[] } {
   if (!raw || typeof raw !== "object" || !Array.isArray(raw.items) || !raw.items.length || raw.items.length > UI_BATCH_MAX_ITEMS) throw new JsonBodyError(400, `Choose between 1 and ${UI_BATCH_MAX_ITEMS} labels to approve.`);
   const seen = new Set<string>();

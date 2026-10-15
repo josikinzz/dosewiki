@@ -51,7 +51,6 @@ type RegisteredQuery = {
 };
 
 function handlerOf(fn: unknown) {
-  // Postgres exposes the real handler at runtime but omits it from its public type.
   const registered = fn as RegisteredQuery;
   return registered._handler;
 }

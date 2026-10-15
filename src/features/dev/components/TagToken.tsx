@@ -10,7 +10,6 @@ export interface TagTokenProps extends HTMLAttributes<HTMLSpanElement> {
   disabled?: boolean;
   onRemove?: () => void;
   removeLabel?: string;
-  /** "danger" inks the remove control when removing is a production write, not a decorative untag. */
   removeTone?: "default" | "danger";
 }
 
@@ -56,7 +55,6 @@ export function TagToken({
           type="button"
           variant="tagRemove"
           size="auto"
-          // The halo grows the tap area to 44px on touch screens without growing the chip.
           className={cn(
             TOUCH_HALO,
             removeTone === "danger" && "text-dose-danger hover:bg-[rgb(var(--c-rose)/0.16)] hover:text-dose-danger",

@@ -17,11 +17,6 @@ const INDEX_PANEL_STYLE = {
 } as CSSProperties;
 const INDEX_PANEL_SPACING_CLASS_NAME = "mx-auto w-full px-4";
 
-/**
- * Page-level gutters. A panel layout nested inside a column that already has its
- * own padding, such as an article body, passes `padded={false}`, so its panels
- * use the existing gutters rather than adding a second inset.
- */
 function spacingClassName(padded: boolean) {
   return padded ? INDEX_PANEL_SPACING_CLASS_NAME : "w-full";
 }
@@ -35,8 +30,6 @@ export function IndexPanelMasonry({ children, padded = true }: IndexPanelMasonry
   const style = {
     ...INDEX_PANEL_STYLE,
     "--index-panel-items": Math.max(Children.count(children), 1),
-    // Quantize the container, not just column-width: CSS columns otherwise
-    // distribute spare width among their tracks and widen the article panels.
     width: "min(100%, max(var(--index-panel-column-width), calc(round(down, calc(100% + var(--index-panel-gap)), calc(var(--index-panel-column-width) + var(--index-panel-gap))) - var(--index-panel-gap))))",
     maxWidth: "calc(var(--index-panel-items) * (var(--index-panel-column-width) + var(--index-panel-gap)) - var(--index-panel-gap))",
   } as CSSProperties;
@@ -56,10 +49,6 @@ export function IndexPanelMasonry({ children, padded = true }: IndexPanelMasonry
 interface IndexPanelGridProps {
   children: ReactNode;
   columns: number;
-  /**
-   * From `useResponsiveColumnCount`. While pending, hide the provisional
-   * grouping until its container has been measured. Omit for a fixed count.
-   */
   gate?: IndexPanelColumnGate | null;
   padded?: boolean;
   ref?: Ref<HTMLDivElement>;

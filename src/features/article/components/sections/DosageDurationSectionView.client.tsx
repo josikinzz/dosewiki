@@ -24,7 +24,6 @@ export const DosageDurationSectionView = memo(
   }: {
     routes: readonly DosageDurationRouteView[];
     initialRoute: string;
-    /** Article slug for the "Log in Piru" pill; absent renders no pill. */
     piruSlug?: string;
   }) {
     const t = useT();

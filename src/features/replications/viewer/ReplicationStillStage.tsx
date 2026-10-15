@@ -15,13 +15,10 @@ interface ReplicationStillStageProps {
   controlsVisible: boolean;
   priority: boolean;
   onToggleControls: () => void;
-  /** Positioning/rotation box for the image; upright full-bleed by default. */
   mediaClassName?: string;
-  /** Reports the image's intrinsic size once decoded, for rotate-to-fit. */
   onProbeAspect?: (mediaWidth: number, mediaHeight: number) => void;
 }
 
-/** A still owns one tap meaning: reveal or dismiss the viewer transport. */
 export function ReplicationStillStage({
   src,
   alt,
@@ -36,9 +33,6 @@ export function ReplicationStillStage({
   const t = useT();
   const surfaceRef = useRef<HTMLButtonElement>(null);
 
-  // Rows imported before dimensions were catalogued still need a real
-  // orientation: read it off the decoded image itself. The listener targets
-  // the rendered <img> because AppImage owns the element.
   useEffect(() => {
     if (!onProbeAspect) return;
     const image = surfaceRef.current?.querySelector("img");

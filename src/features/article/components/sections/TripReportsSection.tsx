@@ -24,13 +24,9 @@ interface TripReportsSectionProps {
   reports?: TripReport[];
   preparedReports?: PreparedSubstanceTripReports<ReportCardModel>;
   fromSubstanceSlug?: string;
-  /** Called when a report is clicked */
   onSelectReport?: (slug: string) => void;
 }
 
-/**
- * Displays the compact report cards prepared for the current substance.
- */
 export const TripReportsSection = memo(function TripReportsSection({
   reports = [],
   preparedReports,
@@ -48,7 +44,6 @@ export const TripReportsSection = memo(function TripReportsSection({
     [preparedReports, reports],
   );
 
-  // Don't render if no reports found
   if (prepared.allReports.length === 0) {
     return null;
   }
@@ -77,8 +72,6 @@ export const TripReportsSection = memo(function TripReportsSection({
 
           return (
             <div>
-              {/* Single-substance reports — open index rows, matching the
-                  report index aesthetic rather than nested cards. */}
               {singleSubstanceVisible.length > 0 && (
                 <ul>
                   {singleSubstanceVisible.map((report) => (
@@ -92,7 +85,6 @@ export const TripReportsSection = memo(function TripReportsSection({
                 </ul>
               )}
 
-              {/* Combinations section header - show if there are visible combination reports */}
               {combinationVisible.length > 0 && (
                 <div className="theme-accent-icon-scope mt-5 mb-3 flex items-center gap-3">
                   <div className="theme-horizontal-divider flex-1" />
@@ -108,7 +100,6 @@ export const TripReportsSection = memo(function TripReportsSection({
                 </div>
               )}
 
-              {/* Combination reports */}
               {combinationVisible.length > 0 && (
                 <ul>
                   {combinationVisible.map((report) => (
@@ -129,13 +120,6 @@ export const TripReportsSection = memo(function TripReportsSection({
   );
 });
 
-/**
- * One related trip report rendered as an open index row, mirroring the report
- * index (`ReportIndexRow`): hairline-separated, accent title with an inline
- * featured star, and muted "on {date} — {author}" metadata with a hover tint
- * instead of card chrome. The avatar appears only when the author actually has
- * one, so authorless reports collapse to clean text rows like the index.
- */
 const CompactReportRow = memo(function CompactReportRow({
   report,
   fromSubstanceSlug,

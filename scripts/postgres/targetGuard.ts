@@ -1,15 +1,3 @@
-/**
- * Point-of-risk gate for scripts that write to Postgres. The target must be
- * named explicitly with `--target` or TARGET_POSTGRES_URL; the app connection
- * variables (POSTGRES_DIRECT_URL, POSTGRES_POOLED_URL) never select a writer,
- * because Bun loads them from `.env.local` automatically. Any non-loopback
- * target also requires `--allow-remote` AND `POSTGRES_IMPORT_CONFIRM=<hostname>`,
- * so a stray env var cannot point a rehearsal at PlanetScale.
- *
- * This module owns explicit target resolution and the loopback list; the data
- * client and the production write command build on it rather than repeating it.
- */
-
 import { parsePostgresTarget } from "../../lib/postgres/runtime/target.ts";
 
 export const MISSING_TARGET_MESSAGE =
@@ -26,11 +14,6 @@ function flagValue(argv: string[]): string | null | undefined {
   return undefined;
 }
 
-/**
- * `--target <url>` > TARGET_POSTGRES_URL, or null when neither is present. A
- * present but blank value is refused rather than treated as unset, so a
- * mistyped ceremony never falls through to another target.
- */
 export function resolveExplicitTarget(argv: string[], env: Record<string, string | undefined> = process.env): ExplicitTarget | null {
   const cli = flagValue(argv);
   if (cli !== undefined) {

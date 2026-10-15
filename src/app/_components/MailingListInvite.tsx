@@ -12,11 +12,6 @@ const MailingListInviteDialog = dynamic(() =>
   import("./MailingListInviteDialog").then((module) => module.MailingListInviteDialog),
 );
 
-/**
- * Lightweight homepage entry point. The form, dialog primitives, and submission
- * client are requested only after intent while this trigger remains immediately
- * available in the initial client graph.
- */
 export function MailingListInvite({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);

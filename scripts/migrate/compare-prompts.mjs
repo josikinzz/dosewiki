@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Compare local prompts with Postgres prompts.
- *
- * Shows differences between local files and what's stored in Postgres,
- * helping you decide whether to sync.
- *
- * Usage:
- *   POSTGRES_POOLED_URL="https://..." node scripts/migrate/compare-prompts.mjs
- */
 
 import { pathToFileURL } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";

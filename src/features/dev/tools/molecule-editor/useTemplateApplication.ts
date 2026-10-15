@@ -27,13 +27,10 @@ interface UseTemplateApplicationOptions {
   classKey: string | null;
   templateMolblock?: string;
   members: readonly ClassTemplateMemberOption[];
-  /** RDKit drives the substructure alignment plan. */
   rdkit: RdkitModuleLike | null;
-  /** OpenChemLib renders the before/after preview SVGs. */
   ocl: OclModuleLike | null;
 }
 
-/** Owns the preview/read/plan/apply lifecycle for the templates-mode dialog. */
 export function useTemplateApplication({
   enabled,
   classKey,
@@ -129,7 +126,6 @@ export function useTemplateApplication({
           return { ...member, beforeSvg, ...outcome };
         }
 
-        // Alignment preserves bond order, so the member's bold indices stay valid.
         const afterSvg = renderMoleculeSvg(ocl, outcome.molblock, undefined, depiction.boldBonds);
         if (!beforeSvg || !afterSvg) {
           return {

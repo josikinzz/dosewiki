@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The open block in Copy: a docked pane with one header (the block's name,
- * its key and where it lives, what is stored for it, a corner Close, Back to
- * list below `lg`), then the words, the placeholders the page fills in, a
- * preview drawn the way the public page draws it, the change against what is
- * live, the way back to the checked-in default, and a sticky save dock that
- * holds the result of the last write beside Publish (or Submit for review).
- */
-
 import { useId, useState, type ReactNode, type RefObject } from "react";
 
 import { ExpandIndicator } from "@/components/common/ExpandButton";
@@ -41,7 +32,6 @@ import {
   type PlaceholderCount,
 } from "./copyStudioUtils";
 
-/** What Publish does for an admin: no draft step, every reader of the key changes at once. */
 export const COPY_PUBLISH_SAVE_COPY: SaveLineCopy = {
   label: "Publish goes live at once.",
   detail: "There is no draft step here: publishing writes this block to every public page that reads its key.",
@@ -51,29 +41,20 @@ export const COPY_PUBLISH_SAVE_COPY: SaveLineCopy = {
 
 export type CopyBlockPaneProps = {
   block: CopyStudioBlock;
-  /** "Site / About": the section and group the block is listed under. */
   place: string;
   draft: CopyStudioDraft;
   onChange: (draft: CopyStudioDraft) => void;
   dirty: boolean;
   canApprove: boolean;
-  /** A change proposal for this block waits in Change Review (this session's, or one the proposal list names). */
   pending: boolean;
-  /** The waiting proposal, when the proposal list names one: its Change Review link and who sent it. */
   proposal: { href: string; number: string; mine: boolean; by: string } | null;
-  /** Admin: who stored the live copy, from the catalogue. */
   storedBy: string | null;
-  /** A character target for text a search result or a tab title cuts short. */
   lengthGuide?: { target: number; where: string };
-  /** A write on this block is in flight. */
   saving: boolean;
-  /** The last publication has no confirmed outcome: the draft holds still until it is retried. */
   uncertain: boolean;
-  /** The stored copy has not loaded yet (or failed): editing waits for it. */
   loading: boolean;
   loadError: string | null;
   onRetryLoad: () => void;
-  /** Fields hold still: loading, writing, or an unconfirmed publication. */
   locked: boolean;
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
@@ -82,7 +63,6 @@ export type CopyBlockPaneProps = {
   canReset: boolean;
   onLoadDefault: () => void;
   onRemove: () => void;
-  /** The other publication's wording of the same words, when there is one. */
   twin: CopyStudioBlock | null;
   onOpenTwin: (key: string) => void;
   onClose: () => void;
@@ -92,7 +72,6 @@ export type CopyBlockPaneProps = {
   placeholderDelta: { removed: string[]; added: string[] };
   previewText: string;
   diffText: string;
-  /** The save key as this platform writes it ("⌘S", "Ctrl S"); shown on fine pointers only. */
   saveKeyLabel: string;
 };
 
@@ -188,7 +167,6 @@ export function CopyBlockPane(props: CopyBlockPaneProps) {
         ) : null}
       </header>
 
-      {/* Controls scrolled to by focus or search keep clear of the sticky dock and the public header. */}
       <div className="space-y-7 px-4 py-5 sm:px-5 [&_:is(input,button,textarea)]:scroll-mb-40 [&_:is(input,button,textarea)]:scroll-mt-28">
         {loadError ? (
           <div role="alert">
@@ -246,7 +224,6 @@ export function CopyBlockPane(props: CopyBlockPaneProps) {
             onClick={onPublish}
           >
             <Icon icon={canApprove ? "lucide:upload" : "lucide:send"} size={15} />
-            {/* The pending label is announced by the state line; the name stays the action. */}
             {publishLabel}
             <span aria-hidden className="[@media(pointer:coarse)]:hidden">
               <kbd className="theme-dev-kbd !text-current opacity-70">{saveKeyLabel}</kbd>
@@ -302,7 +279,6 @@ function Preview({ kind, draft, text }: { kind: CopyStudioBlock["kind"]; draft: 
   return kind === "markdown" ? <PublicMarkdownBody content={text} /> : <p className="whitespace-pre-wrap break-words">{text}</p>;
 }
 
-/** The placeholders the draft carries, and any the draft dropped or invented against what is live. */
 function Placeholders({ placeholders, delta }: { placeholders: readonly PlaceholderCount[]; delta: { removed: string[]; added: string[] } }) {
   if (placeholders.length === 0 && delta.removed.length === 0) return null;
   return (
@@ -338,7 +314,6 @@ function Placeholders({ placeholders, delta }: { placeholders: readonly Placehol
   );
 }
 
-/** The Effect Index twin, or the dose.wiki wording a flavored block stands in for. */
 function TwinLine({ block, twin, onOpenTwin }: { block: CopyStudioBlock; twin: CopyStudioBlock | null; onOpenTwin: (key: string) => void }) {
   const flavor = copyBlockFlavorLabel(block.flavor);
   if (!flavor && !twin) return null;
@@ -360,12 +335,6 @@ function TwinLine({ block, twin, onOpenTwin }: { block: CopyStudioBlock; twin: C
   );
 }
 
-/**
- * The way back to the checked-in default: show it, load it into the editor,
- * or (admin) remove the stored copy. Removal is irreversible, so it folds shut
- * at the end of the pane; for a block with no default it is a deletion and
- * says so.
- */
 function DefaultWording({ block, canApprove, canReset, uncertain, saving, onLoadDefault, onRemove }: CopyBlockPaneProps) {
   const resetHelpId = useId();
   const removeHelpId = useId();
@@ -455,7 +424,6 @@ function DefaultWording({ block, canApprove, canReset, uncertain, saving, onLoad
   );
 }
 
-/** The one reason the dock cannot do the obvious thing right now, when there is one. */
 function DockBlocker({ uncertain, loading, failed, pending, canApprove }: { uncertain: boolean; loading: boolean; failed: boolean; pending: boolean; canApprove: boolean }) {
   let content: ReactNode = null;
   if (uncertain) {
@@ -480,7 +448,6 @@ function DockBlocker({ uncertain, loading, failed, pending, canApprove }: { unce
   );
 }
 
-/** One quiet line beside the actions: what the button would do right now. */
 function SaveState({ dirty, saving, canApprove, pending }: { dirty: boolean; saving: boolean; canApprove: boolean; pending: boolean }) {
   let content: ReactNode;
   if (saving) {

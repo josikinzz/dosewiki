@@ -137,7 +137,6 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
     setDraft(next);
     setState({ preset: result.preset, baseHash: result.baseHash, history: [], operation: result });
     setReviewing(false);
-    // Saved on the editor host; the receipt tracks when the public site has it.
     setNotice(`Saved ${result.key} on the editor host. Attributed history is recorded.`);
     startReceipt([{ kind: "banners" }], result.publication);
     router.refresh(); onPublished?.();
@@ -149,7 +148,6 @@ function WarningEditor({ slug, iconSize = SAFETY_BANNER_ICON_SIZE_DEFAULT, onPub
     ? `Only this article's assignment changes on dose.wiki and Effect Index. Shared warning wording is unchanged.`
     : `Shared warning wording changes on dose.wiki and Effect Index for every listed assignment.${draft.allSubstances ? " Sitewide coverage also includes all future substance articles." : ""}${!draft.enabled ? " The preset is currently disabled; this updates its stored wording without enabling it." : ""}`;
 
-  // The shared sheet has already asked; this runs the confirmed write.
   async function publish() {
     if (!draft || !impact || blocked) return;
     setSaving(true); setError(null); setNotice(null);

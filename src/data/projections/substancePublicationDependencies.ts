@@ -23,11 +23,6 @@ function projectionHash(value: unknown): string {
   return contentHash(value);
 }
 
-/**
- * Classify a committed article diff by the public projections it can change.
- * Creation/deletion and lookup changes are membership changes. A change to any
- * collection payload is content-bearing. Everything else is detail-only.
- */
 export function classifySubstancePublicationDependency(
   before: SubstanceArticleRecord | null,
   after: SubstanceArticleRecord | null,
@@ -76,7 +71,6 @@ const DEPENDENCY_RANK: Record<SubstancePublicationDependency, number> = {
   membership: 2,
 };
 
-/** Pending invalidation work can only broaden when publications coalesce. */
 export function mergeSubstancePublicationDependency(
   left: SubstancePublicationDependency | undefined,
   right: SubstancePublicationDependency | undefined,

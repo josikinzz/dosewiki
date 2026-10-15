@@ -1,14 +1,3 @@
-/**
- * Locale mirrors of dose.wiki: one subdomain per language, served by the
- * public deployment from the `/<prefix>/...` routes the middleware rewrites
- * to. Substance articles, the record pages, the indexes and their tab views,
- * psychoactive class views, chemical class pages, psychoactive summaries, and
- * search are localized; every other path on a locale host serves the English
- * page unchanged so navigation never leaves the host.
- *
- * The hosts are deliberately unlisted: each mirror carries `noindex` and a
- * canonical link back to the English page.
- */
 import { normalizeHost } from "./publicHostPolicy";
 import { SUBSTANCE_INDEX_VIEW_PARAMS } from "../../src/utils/indexViewRoutes";
 import {
@@ -19,7 +8,6 @@ import {
 
 export type LiveLocale = Pick<LocaleIdentity<TranslationLocaleCode>, "code"> & {
   pathPrefix: string;
-  /** Language attribute consumed by the existing static route wrappers. */
   htmlLang: string;
 };
 
@@ -45,18 +33,10 @@ export function localeForPathPrefix(pathname: string): LiveLocale | null {
   return null;
 }
 
-/** The mirror route for one public substance slug. */
 export function localizedArticleRoutePath(locale: LiveLocale, slug: string): string {
   return `${locale.pathPrefix}/${slug}`;
 }
 
-/**
- * The English index paths the middleware also localizes, in route order. The
- * Substance and Effect Index group views are the same pages opened on routed
- * tabs, and the replication tabs localize as one section. `/search` renders
- * its results client-side; the mirror
- * route exists so the chrome and the result labels resolve the locale.
- */
 export const LOCALIZED_ROUTE_FAMILIES = Object.freeze({
   indexes: [
     "/",
@@ -101,13 +81,6 @@ export const LOCALIZED_ROUTE_FAMILIES = Object.freeze({
 
 const LOCALIZED_INDEX_PATHS: readonly string[] = LOCALIZED_ROUTE_FAMILIES.indexes;
 
-/** The mirror route for one English index path, when that path localizes. */
-/**
- * The mirror host's 404 page. The middleware rewrites every mirror-host path
- * outside the public corpus here with a 404 status; the page renders the
- * not-found chrome in the mirror's language. Unroutable on English hosts
- * like every other `/zh` path.
- */
 export function localizedNotFoundRoutePath(locale: LiveLocale): string {
   return `${locale.pathPrefix}/unroutable/missing`;
 }
@@ -119,16 +92,6 @@ export function localizedIndexRoutePath(locale: LiveLocale, pathname: string): s
   return pathname === "/" ? locale.pathPrefix : `${locale.pathPrefix}${pathname}`;
 }
 
-/**
- * The mirror route prefix and slug for one mirrored detail path. Substance
- * articles route through the corpus-gated slug check in the middleware; this
- * covers category, effect, report, library article, chemical class,
- * replication permalink, replication artist, and psychoactive summary paths.
- * These routes resolve their dynamic keys against their own public data and
- * return 404 when the key is absent. Artists, class definitions, and summaries
- * are not translation records, so their `kind` values describe routing rather
- * than store records.
- */
 type LocalizedDetailRouteKind =
   | "category"
   | "effect"
@@ -217,10 +180,6 @@ export function localizedRecordRoutePath(
       slug: summaryPath[1],
     };
   }
-  // The viewer route is the middleware's own rewrite target for
-  // `/replications?viewer=`; a document addressed there directly is unroutable
-  // before this runs, so a single segment here is a permalink unless it names
-  // one of the section's tabs, which localize as indexes.
   const replicationSlug = pathname.match(/^\/replications\/([^/]+)\/?$/);
   if (replicationSlug && localizedIndexRoutePath(locale, pathname) === null) {
     return {
@@ -232,37 +191,30 @@ export function localizedRecordRoutePath(
   return null;
 }
 
-/** Every cache path an English article expiry must also expire. */
 export function localizedArticlePaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => localizedArticleRoutePath(locale, slug));
 }
 
-/** Every cache path an English effect expiry must also expire. */
 export function localizedEffectPaths(effectSlug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/effects/${effectSlug}`);
 }
 
-/** Every cache path an English report expiry must also expire. */
 export function localizedReportPaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/reports/${slug}`);
 }
 
-/** Every cache path an English library article expiry must also expire. */
 export function localizedLibraryPaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/articles/${slug}`);
 }
 
-/** Every cache path an English replication permalink expiry must also expire. */
 export function localizedReplicationPaths(slug: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => `${locale.pathPrefix}/replications/${slug}`);
 }
 
-/** The mirror viewer route for one deep-linked replication, per locale. */
 export function localizedReplicationViewerRoutePath(locale: LiveLocale, slug: string): string {
   return `${locale.pathPrefix}/replications/viewer/${slug}`;
 }
 
-/** Every localized index cache path for one English index path. */
 export function localizedIndexPaths(pathname: string): string[] {
   return Object.values(LIVE_LOCALES).map((locale) => localizedIndexRoutePath(locale, pathname)).filter(
     (path): path is string => path !== null,

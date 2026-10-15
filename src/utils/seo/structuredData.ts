@@ -1,10 +1,3 @@
-/**
- * Structured data utilities for SEO.
- *
- * Generates JSON-LD schema.org markup for substance articles.
- * Uses Article and Drug types for rich search results and answer-engine parsing.
- */
-
 import type { SubstanceArticle } from "../../schema";
 import type { Reference } from "../../schema/substance/shared";
 import type { SubjectiveEffectArticle } from "../../features/effects/articleSectionModel";
@@ -13,9 +6,6 @@ import { stripCitationTokens } from "../../lib/citations/citationTokens";
 import { hasKnownCreator } from "../../features/effects/components/replicationCredit";
 import { getReferenceDisplayTitle } from "../../lib/citations/referenceModel";
 
-/**
- * Schema.org Article type for substance profiles.
- */
 interface ArticleSchema {
   "@context": "https://schema.org";
   "@type": "Article";
@@ -47,9 +37,6 @@ interface ArticleSchema {
   };
 }
 
-/**
- * Schema.org Drug type embedded in article.
- */
 interface DrugSchema {
   "@type": "Drug";
   name: string;
@@ -112,14 +99,6 @@ interface ItemListSchema {
   }>;
 }
 
-/**
- * Schema.org ImageObject / VideoObject for a single replication permalink.
- *
- * `license` + `acquireLicensePage` + `creditText` + `creator` are the quartet
- * search engines read to mark an image as licensable — which is the reason the
- * permalink exists, so they are emitted only when a real licence is recorded
- * rather than defaulted to something permissive.
- */
 interface MediaObjectSchema {
   "@context": "https://schema.org";
   "@type": "ImageObject" | "VideoObject" | "AudioObject";
@@ -156,12 +135,6 @@ interface MediaObjectSchema {
 
 type JsonLdSchema = ArticleSchema | ItemListSchema | MediaObjectSchema;
 
-/**
- * Article prose reaches this file with inline `[cite:reference-id]` tokens
- * still in it — those are a rendering instruction for `CitedText`, never
- * content. Structured data has no marker to render them into, so every text
- * field goes through the shared stripper before it ships to crawlers.
- */
 function cleanText(value: string | null | undefined): string | undefined {
   if (typeof value !== "string") return undefined;
   return stripCitationTokens(value) || undefined;
@@ -179,29 +152,22 @@ function unique(values: string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
-/**
- * Generate a description from article data.
- */
 function generateDescription(article: SubstanceArticle): string {
   const parts: string[] = [];
 
-  // Add common name
   const name = article.identification?.common_name || article.title;
   parts.push(name);
 
-  // Add psychoactive class
   const psychoactive = article.classification?.psychoactive_class;
   if (psychoactive && psychoactive.length > 0) {
     parts.push(`is a ${psychoactive.join(", ")}`);
   }
 
-  // Add chemical class
   const chemical = article.classification?.chemical_class;
   if (chemical && chemical.length > 0) {
     parts.push(`(${chemical.join(", ")})`);
   }
 
-  // Add summary if available
   const summary = cleanText(article.summary);
   if (summary) {
     return summary;
@@ -310,13 +276,6 @@ function buildEffectCitationSchemas(effect: SubjectiveEffectArticle): CitationSc
   return citations.length > 0 ? citations : undefined;
 }
 
-/**
- * Build JSON-LD schema for a substance article.
- *
- * @param article The substance article data
- * @param url The canonical URL for this article
- * @returns JSON-LD object ready for serialization
- */
 export function buildSubstanceSchema(
   article: SubstanceArticle,
   url?: string,
@@ -329,7 +288,6 @@ export function buildSubstanceSchema(
 
   const description = generateDescription(article);
 
-  // Build keywords from classifications
   const keywords: string[] = [];
   if (article.classification?.psychoactive_class) {
     keywords.push(...article.classification.psychoactive_class);
@@ -341,7 +299,6 @@ export function buildSubstanceSchema(
     keywords.push(...article.index_categories);
   }
 
-  // Build drug schema
   const drugSchema: DrugSchema = {
     "@type": "Drug",
     name,
@@ -494,8 +451,6 @@ export function buildReplicationSchema(
 ): MediaObjectSchema {
   const siteUrl = getSchemaSiteUrl(url, config);
   const creator = cleanText(input.artist);
-  // `hasKnownCreator` folds the unattributed markers ("Unknown", "Anonymous"),
-  // so the JSON-LD never asserts a Person that the page itself refuses to name.
   const hasNamedCreator = hasKnownCreator(creator);
 
   return {
@@ -519,16 +474,12 @@ export function buildReplicationSchema(
     width: input.width,
     height: input.height,
     encodingFormat: input.format ? input.format.toLowerCase() : undefined,
-    // ISO 8601 duration; schema.org expects the period form, not raw seconds.
     duration: input.durationSeconds
       ? `PT${Math.round(input.durationSeconds)}S`
       : undefined,
     uploadDate: input.createdAt,
     creditText: cleanText(input.creditLine),
     copyrightNotice: cleanText(input.rightsholder ?? (hasNamedCreator ? creator : undefined)),
-    // Absent when no explicit licence is recorded — omitting the field says
-    // "terms unstated", whereas guessing one would assert a permission we do
-    // not have.
     license: input.licenseUrl ?? undefined,
     acquireLicensePage: input.licenseUrl ? url : undefined,
     creator: hasNamedCreator
@@ -546,9 +497,6 @@ export function buildReplicationSchema(
   };
 }
 
-/**
- * Serialize JSON-LD schema to a script tag string.
- */
 export function serializeJsonLd(schema: JsonLdSchema): string {
   return JSON.stringify(schema)
     .replace(/</g, "\\u003c")

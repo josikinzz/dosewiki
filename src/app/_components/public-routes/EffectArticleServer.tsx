@@ -56,7 +56,6 @@ async function ResolvedToc({ article, effectSlug, strip }: { article: EffectArti
   return <Toc article={detail?.groups.length ? article : { ...article, sections: article.sections.filter(section => section.kind !== "relatedSubstances") }} strip={strip} />;
 }
 
-/** Public prose is server-rendered; only independent secondary fragments suspend. */
 export function EffectArticleServer({ effectSlug, ...props }: ComponentProps<typeof EffectArticlePage> & { effectSlug: string }) {
   const sections = [...props.article.sections];
   const relatedIndex = sections.findIndex(section => section.kind === "sources" || section.kind === "contributors");

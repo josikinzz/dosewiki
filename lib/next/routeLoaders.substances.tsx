@@ -98,9 +98,7 @@ function interactionCandidateSlugs(substance: SubstanceArticle): string[] {
 export type SubstanceRouteResult =
   | (OkRouteResult<SubstanceArticleViewModel["pageProps"]> & {
     publicRevision?: string;
-    /** Locale routes only: human review of this article's paragraphs, for the notice. */
     review?: PageReviewState;
-    /** Locale routes only: approved translator's notes by section, rendered in the article body. */
     translatorNotes?: ApprovedTranslatorNotes;
   })
   | RedirectRouteResult
@@ -150,7 +148,6 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
   const { substance, review, translatorNotes } = identity;
 
   const secondaryData = loadSubstanceSecondaryData(substance, slug, locale);
-  // Only identity, linkability, molecule and safety data gate the article shell.
   const [
     moleculeUpdatedAt,
     linkableSubstanceSlugs,
@@ -161,29 +158,16 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     copy,
   ] = await Promise.all([
     getMoleculeUpdatedAt(slug),
-    // Slug set only: which wiki links resolve. The preview corpus would cost
-    // 19 sequential round trips on a cold cache for the same answer.
     getPublicSubstanceSlugsByCandidates(interactionCandidateSlugs(substance as unknown as SubstanceArticle)),
     getPublicCategoryLayout(),
     getCachedReagentDataForArticle(substance, slug),
-    // Banner membership and display metadata stay canonical. Locale routes
-    // overlay only the reader-facing banner corpus fields.
     locale
       ? getLocalizedWarningBannerPresets(locale.code)
       : getWarningBannerPresets(),
-    // One site-wide number shared by every banner. Degrades to the shipped
-    // default rather than to nothing: a display preference must never be able to
-    // suppress a warning.
     getSafetyBannerIconSize(),
-    // Site copy, for the dosage panel's standing disclaimer. Already falls back
-    // to the checked-in default inside the resolver, so an un-seeded deployment
-    // still renders the sentence.
     getCopyByKeys(ARTICLE_COPY_KEYS),
   ]);
 
-  // Editor draft previews re-render against mutable article data, so they need
-  // resolved enrichment values rather than server nodes bound to the publication.
-  // Keep that existing editor behavior without blocking the public artifact.
   const editorEnrichment = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true"
     ? await Promise.all([
       secondaryData.directory,
@@ -197,25 +181,6 @@ export const loadSubstanceRoute = cache(async (slug: string, locale: LiveLocale 
     ? moleculeOverrideImageUrl(slug, moleculeUpdatedAt)
     : null;
 
-  // The one place a banner becomes visible on this article, and it is given a
-  // slug rather than the substance's classification — there is deliberately no
-  // route from `substance.classification` to a rendered warning. Class matchers
-  // are a suggestion inside /dev/banners and nothing more.
-  //
-  // `src/app/[slug]/page.tsx` uses hourly ISR, so flipping `enabledSlugs` only
-  // reaches readers after ISR unless the write route revalidates explicitly.
-  // That is why `/api/dev/warning-banner`
-  // revalidates slugs *removed* from `enabledSlugs` as well as added ones:
-  // otherwise switching a banner off would leave the warning cached on the
-  // article it was just taken off for up to an hour.
-  // Once the citation audit has stripped a refuted marker on this article, the
-  // stored "citation system overhaul" presets (keys `citation-system-overhaul-*`
-  // in the warningBannerPresets table) no longer describe it: the audit has run
-  // here, and the sitewide beta disclaimer takes the banner's slot instead
-  // (rendered by ArticleLayout). resolveArticleBanners filters before the cap, which also
-  // frees the MAX_BANNERS_PER_ARTICLE slot for real safety banners. The apply
-  // script revalidates the article path when it ships a strip, so the swap
-  // reaches readers without a redeploy.
   const showBetaDisclaimer = substanceHasCitationNeeded(substance);
   const warningBanners = resolveArticleBanners(warningBannerPresets, slug, {
     showBetaDisclaimer,
@@ -267,8 +232,6 @@ export type EffectRouteResult =
   | OkRouteResult<EffectArticleViewModel["pageProps"]>
   | NotFoundRouteResult;
 
-// Metadata and the page share the canonical/localized identity, without forcing
-// optional article enrichments into metadata generation.
 const getEffectRouteIdentity = cache(async (effectSlug: string, locale: LiveLocale | null) =>
   locale ? getLocalizedPublicEffectBySlug(effectSlug, locale.code) : getPublicEffectBySlug(effectSlug),
 );
@@ -312,11 +275,6 @@ export const loadEffectRoute = cache(async (effectSlug: string, locale: LiveLoca
   };
 });
 
-/**
- * Selection matches on the English record (tags and English names), then the
- * localized article of the same slug stands in for the mirror so a translated
- * name never has to match the definition.
- */
 function selectPsychoactiveSummaryEffects<T extends { slug: string; name: string; tags: string[] }>(
   effects: T[],
   selection: PsychoactiveSummarySelection,

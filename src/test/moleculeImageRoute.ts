@@ -1,11 +1,8 @@
 import { beforeEach, describe, expect, it, type Mock } from "vitest";
 
 export type MoleculeImageRouteIdentity<Params extends Record<string, string>> = {
-  /** Builds the route URL for a param value, e.g. ("lsd") => "https://dose.wiki/api/molecules/lsd". */
   url: (param: string, query?: string) => string;
-  /** Wraps the param into the handler's params shape. */
   params: (param: string) => Params;
-  /** The Postgres slug the route asks for when the param is `valid`. */
   dataSlugFor: (param: string) => string;
   valid: string;
 };

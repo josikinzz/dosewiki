@@ -23,7 +23,6 @@ import { POST } from "./route";
 
 const context = { params: Promise.resolve({ id: "feedback-1" }) };
 
-/** Shared rules live in src/lib/http/feedbackStatusRoute.test.ts; this file pins the article identity. */
 describe("article feedback status route", () => {
   beforeEach(() => {
     authMocks.requireRoleSession

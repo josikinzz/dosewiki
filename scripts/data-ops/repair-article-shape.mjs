@@ -1,21 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * Repair only absent values that violate the substance article contract.
- *
- * This script deliberately refuses to reinterpret real content. It replaces
- * `null`, missing, or otherwise empty values only when the Zod issue path has
- * a known empty value in `src/schema/substance/`. A replacement is saved only
- * after the complete article validates locally.
- *
- * Usage:
- *   bun scripts/data-ops/repair-article-shape.mjs --dry-run
- *   bun scripts/data-ops/repair-article-shape.mjs --slug=alpha-pcyp --dry-run
- *   bun scripts/data-ops/repair-article-shape.mjs --write \
- *     --confirm-write=repair-article-shape \
- *     --expected-deployment=<deployment-name>
- */
-
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -44,10 +28,6 @@ const emptySensory = () => Object.fromEntries(SENSES.map((sense) => [sense, empt
 const emptyNotes = () => ({ overview: "", sensory: "", cognitive: "", physical: "" });
 const emptyDurationStage = () => ({ min: null, max: null, unit: "" });
 
-/**
- * Every entry corresponds directly to a required field in the contract. Array
- * indices are normalized to `[]` before lookup so route defects use one rule.
- */
 const EMPTY_VALUE_FACTORIES = new Map([
   ["summary", () => ""],
   ["identification.substitutive_name", () => ""],

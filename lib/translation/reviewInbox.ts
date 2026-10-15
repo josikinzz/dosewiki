@@ -1,8 +1,3 @@
-/**
- * Review Inbox read model: everything in one locale that needs a person, read
- * from the existing review tables and stored segments. It writes nothing and
- * adds no approval path; each item's Accept names an existing mutation.
- */
 import "server-only";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 import { resolveLocale } from "../../scripts/translation/locales.mjs";
@@ -33,13 +28,6 @@ import {
   type ReaderSuggestionRow,
 } from "./reviewInboxFindings";
 
-/**
- * Reasons the inbox checks, in list order: reader suggestions first, because
- * a person wrote each one and is waiting on it while the automated checks
- * below can list thousands; then English where readers expect their language,
- * wording readers see wrong, re-checks, QA findings, model fluency
- * suggestions, and unchecked terms.
- */
 const INBOX_ORDER: Record<InboxReason, number> = {
   "reader-suggestion": 0,
   "segment-rejected": 1,
@@ -52,11 +40,9 @@ const INBOX_ORDER: Record<InboxReason, number> = {
   "model-suggestion": 8,
   "glossary-never-checked": 9,
 };
-/** Every reason, so a new reason cannot be left out of the order. */
 export const INBOX_CHECKS: readonly InboxReason[] = (Object.keys(INBOX_ORDER) as InboxReason[]).sort((a, b) => INBOX_ORDER[a] - INBOX_ORDER[b]);
 
 async function glossaryItems(locale: string): Promise<InboxItem[]> {
-  // A projected draft already waits in the Glossary view; only untouched live rows are listed.
   return (await readGlossaryReviewRows(locale))
     .filter((row) => row.status === "approved" && row.review_provenance === "legacy_unverified")
     .map((row) => ({
@@ -80,7 +66,6 @@ async function uiItems(locale: string): Promise<InboxItem[]> {
       id: row.id,
       reason: "ui-source-changed",
       english: row.source,
-      // The stale approval no longer reaches a build; the compiled catalog is what readers get.
       live: row.compiledTarget,
       previous: { english: row.approved!.source, target: row.approved!.target },
       where: row.context,
@@ -100,7 +85,6 @@ function recordOf(entry: ReviewEntry): { kind: unknown; slug: unknown } | null {
 }
 
 async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
-  // The narrative surface accepts substance articles only, so only their approvals are listed.
   const bySlug = new Map<string, ReviewEntry[]>();
   for (const entry of await readReviewEntries(locale, "narrative")) {
     const record = recordOf(entry);
@@ -110,7 +94,6 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
   const items: InboxItem[] = [];
   for (const [slug, entries] of bySlug) {
     const record = await readTranslationRecord(reads, "article", slug);
-    // A withdrawn article or removed field has nothing a reviewer can act on here.
     if (!record) continue;
     const segments = segmentsOf({ ...record, slug }, "article");
     const sourceVersion = narrativeSourceVersion(segments);
@@ -120,7 +103,6 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
       if (!segment) return [];
       const decision = narrativeOverlayDecision("article", segments, segment, entry.approved!);
       if (decision === "apply") return [];
-      // A current draft is a correction in progress, not an approval waiting for a person.
       if (entry.draft && narrativeOverlayDecision("article", segments, segment, entry.draft) !== "stale") return [];
       return [{ entry, segment, decision }];
     });
@@ -128,7 +110,6 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
     for (const { entry, segment, decision } of listed) {
       const approved = entry.approved!;
       const recheck = decision === "apply-recheck";
-      // A re-check approval is still on the page; a stale one falls back to machine wording.
       const live = recheck ? approved.target : (machine.get(segment.hash) ?? null);
       items.push({
         scope: "narrative",
@@ -147,7 +128,6 @@ async function narrativeItems(reads: PublicDataReadAdapter, locale: string): Pro
   return items;
 }
 
-/** Notes whose section left the English article: readers no longer see them, and only Edit applies. */
 async function noteItems(reads: PublicDataReadAdapter, locale: string): Promise<InboxItem[]> {
   const items: InboxItem[] = [];
   const present = new Map<string, Set<string> | null>();
@@ -159,7 +139,6 @@ async function noteItems(reads: PublicDataReadAdapter, locale: string): Promise<
       present.set(location.slug, record ? presentTranslatorNoteSections(record) : null);
     }
     const sections = present.get(location.slug);
-    // A withdrawn article has nothing a reviewer can act on here, as for narrative approvals.
     if (!sections || sections.has(location.section)) continue;
     const label = translatorNoteSectionLabel(location.section);
     items.push({
@@ -177,17 +156,10 @@ async function findingItems(reads: PublicDataReadAdapter, locale: string): Promi
 }
 
 export type ReviewInboxOptions = {
-  /**
-   * The public glossary feedback queue, read by the caller through the
-   * existing feedback query; null when that read is unavailable, so the inbox
-   * does not claim it checked reader suggestions.
-   */
   suggestions?: readonly ReaderSuggestionRow[] | null;
-  /** Only items listed for this reason. */
   reason?: InboxReason | null;
 };
 
-/** One page of the locale's inbox, the total across every page, and the count per reason. */
 export async function readReviewInbox(
   reads: PublicDataReadAdapter,
   locale: string,

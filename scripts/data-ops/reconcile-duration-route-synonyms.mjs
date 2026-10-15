@@ -1,33 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Reconcile duration routes that name the same real-world route twice.
- *
- * Where `prune-orphan-duration-routes.mjs` removes rows that are provably
- * redundant, this script applies *editorial* decisions a human approved: rename a
- * duration route so it pairs with an existing dosage route, or fold one route's
- * timings into another and drop the husk.
- *
- * Because these are judgement calls rather than proofs, the guard rails are
- * tighter, not looser:
- *
- *   - `rename` refuses if the target name is already taken by another duration
- *     route, so it can never silently create a duplicate.
- *   - `merge` only fills stage fields that are EMPTY on the target. If both rows
- *     carry a value for the same stage and the values disagree, the merge is
- *     refused — a real conflict is a question for a human, not something to
- *     resolve by picking a side.
- *   - `drop` requires a written reason and reports exactly which stage values are
- *     being discarded, so a lost number is never invisible in the log.
- *
- * Usage:
- *   node scripts/data-ops/reconcile-duration-route-synonyms.mjs --plan=<path> --dry-run
- *   node scripts/data-ops/reconcile-duration-route-synonyms.mjs --plan=<path> --write \
- *     --confirm-duration-route-reconcile \
- *     --confirm-write=reconcile-duration-route-synonyms \
- *     --expected-deployment=<name>
- */
-
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createDataClient } from "../lib/data-client.ts";
@@ -74,10 +46,6 @@ function findRoute(routes, name) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-/**
- * Build the new duration array for one plan entry, or explain why it is refused.
- * Nothing here mutates the input.
- */
 function planEntry(article, entry) {
   const routes = (article?.duration?.routes ?? []).map((route) => ({ ...route }));
 
@@ -122,7 +90,6 @@ function planEntry(article, entry) {
     if (conflicts.length > 0) {
       return { ok: false, reason: `conflicting stage values — ${conflicts.join("; ")}` };
     }
-    // Carry half-life prose across only when the target has none of its own.
     for (const key of ["half_life", "half_life_notes"]) {
       if (!merged[key] && from.route[key]) {
         merged[key] = from.route[key];
@@ -181,10 +148,6 @@ async function main() {
 
   console.log(`\nPlan: ${plan.length} operation(s)\n`);
 
-  // A plan may touch the same article twice (drop a duplicate, then rename the
-  // survivor into its place). The write loop re-reads between entries so it sees
-  // the first change before applying the second; the preview has to simulate that
-  // chain in memory, or it reports refusals that would never actually happen.
   const simulated = new Map();
 
   const previews = [];
@@ -245,8 +208,6 @@ async function main() {
 
   try {
     for (const entry of previews) {
-      // Re-read per entry: `saveSubstance` writes a whole document, so a snapshot
-      // taken earlier in the run would revert anything edited in between.
       const fresh = await client.query(api.substanceIndex.getBySlug, { slug: entry.slug });
       if (!fresh) {
         console.log(`  SKIP ${entry.slug}: disappeared between plan and write`);
@@ -266,7 +227,6 @@ async function main() {
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        // The first line is only a request id; the validator's reason follows it.
         const detail = message.replace(/\s+/g, " ").slice(0, 300);
         console.log(`  FAIL  ${entry.slug}: ${detail}`);
         failures.push({ slug: entry.slug, op: entry.op, error: message });

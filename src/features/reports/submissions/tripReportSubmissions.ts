@@ -21,12 +21,6 @@ export type TimelineEntryInput = {
 
 export type TripReportSubmissionSubjectInput = {
   name: string;
-  // The three fields below are accepted from clients that still post them and
-  // never stored. Each one publishes something the reader takes as vouched for
-  // by the site — a contributor page link, the face beside a byline, an
-  // outbound link captioned as this report's tracker PDF — and an anonymous
-  // submitter can prove none of it. Normalization drops them and reports each
-  // drop through `warnings`.
   profile_key?: string;
   avatar_url?: string;
   trip_date?: string;
@@ -98,7 +92,6 @@ export type TripReportSubmissionRow = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
-  /** Every status transition, oldest first; see `decisionLogOf` for rows decided before it existed. */
   decision_log?: DecisionLogEntry<TripReportSubmissionStatus>[];
   exported_trip_report_id?: string;
   exported_at?: string;
@@ -107,8 +100,6 @@ export type TripReportSubmissionRow = {
 };
 
 export type DataTripReportImportPayload = Omit<NormalizedTripReportSubmissionReport, "subject"> & {
-  // Attribution appears only on the promotion payload, where a trusted editor
-  // assigned it; it never survives the submission itself.
   subject: NormalizedTripReportSubmissionSubject & { profile_key?: string };
   slug: string;
   featured: boolean;
@@ -135,9 +126,6 @@ export type TransitionTripReportSubmissionOptions = {
   now?: Date;
 };
 
-// Returned to the submitter instead of failing the request: the claims are
-// worth nothing, but the report behind them usually is, so the submission still
-// lands and the submitter is told what was dropped.
 export const IGNORED_PROFILE_KEY_WARNING =
   "Contributor profile key was ignored; an editor assigns report attribution when publishing.";
 
@@ -304,11 +292,6 @@ function normalizeReport(report: TripReportSubmissionReportInput): NormalizedTri
     title: trim(report.title),
     subject: {
       name: trim(report.subject.name) || "Anonymous",
-      // `profile_key`, `avatar_url`, and `pdf_url` are deliberately absent: an
-      // anonymous submitter has no identity to attach and no standing to put a
-      // remote image or outbound link on a published dose.wiki page, so the
-      // claims are dropped before they can be stored or promoted. Postgres
-      // `tripReportSubmissions.create` strips them again.
       trip_date: emptyToUndefined(trim(report.subject.trip_date)),
       age: emptyToUndefined(trim(report.subject.age)),
       gender: emptyToUndefined(trim(report.subject.gender)),

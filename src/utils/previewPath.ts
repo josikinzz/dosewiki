@@ -1,10 +1,5 @@
-/**
- * Parser for pre-launch `/preview` links. Middleware uses it only to issue permanent
- * redirects to ordinary App Paths; client code never renders inside this address space.
- */
 export const PREVIEW_PATH_PREFIX = "/preview";
 
-/** Preview suffixes that map to the launched homepage. */
 const PREVIEW_HOME_SUFFIXES = ["", "/", "/home", "/home/"] as const;
 
 export function stripPreviewPrefix(pathname: string): string | null {

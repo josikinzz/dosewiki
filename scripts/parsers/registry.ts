@@ -1,8 +1,3 @@
-/**
- * Unified parser registry.
- * Keeps source-to-parser mapping separate from aggregation logic.
- */
-
 import type { ParserResult, SourceParser } from "./types";
 import type { SourceParserRegistry } from "./contracts";
 import type { ParseableSourceId } from "./source-identity";

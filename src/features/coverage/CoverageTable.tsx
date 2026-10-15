@@ -37,10 +37,6 @@ const TABLE_WRAP_CLASS =
 const TABLE_SCROLL_CLASS = "max-h-[75vh] overflow-auto";
 const TABLE_CLASS = "w-full border-collapse text-left text-sm";
 const HEAD_ROW_CLASS = "border-b border-dose-divider bg-dose-surface-muted";
-// The corner cell sits at the crossing of both pinned axes, so it needs the
-// highest stacking order and an opaque fill of its own. `w-full` on the label
-// column makes it absorb the table's slack, which keeps the eight status
-// columns at their natural width instead of stretching them apart.
 const CORNER_CELL_CLASS =
   "sticky left-0 top-0 z-40 w-full min-w-52 bg-dose-surface-muted px-4 py-3 text-left";
 const COLUMN_HEAD_CLASS =
@@ -48,8 +44,6 @@ const COLUMN_HEAD_CLASS =
 const ROW_LABEL_CLASS =
   "sticky left-0 z-10 h-8 w-full min-w-52 bg-dose-surface px-4 text-left font-normal";
 const CELL_CLASS = "h-8 px-1 text-center align-middle";
-// The two article-level columns sit outside the per-section grid, so the group
-// is fenced off with a divider rather than reading as a ninth and tenth section.
 const ARTICLE_COLUMN_EDGE_CLASS = "border-l border-dose-divider";
 const FOOT_ROW_CLASS = "border-t border-dose-divider bg-dose-surface-muted";
 const FOOT_LABEL_CLASS =
@@ -59,19 +53,11 @@ const FOOT_CELL_CLASS =
 const BODY_CLASS =
   "divide-y divide-dose-divider [&>tr:nth-child(even)>th]:bg-dose-surface-muted/35 [&>tr:nth-child(even)]:bg-dose-surface-muted/35";
 
-/** Short badge for an article that is not listed on the substance index. */
 const UNLISTED_LABEL: Record<string, string> = {
   hidden: "hidden",
   low_priority: "low priority",
 };
 
-/**
- * One status mark.
- *
- * Statuses with a glyph reference the inlined sprite rather than mounting an
- * icon component, because the table renders thousands of these. Statuses
- * without one draw a plain character, and `blank` draws nothing at all.
- */
 function StatusMark({ display }: { display: CoverageStatusDisplay }) {
   const toneClass = COVERAGE_TONE_CLASS[display.tone];
 
@@ -100,11 +86,6 @@ function StatusMark({ display }: { display: CoverageStatusDisplay }) {
   return null;
 }
 
-/**
- * The two columns that describe the article rather than one of its sections:
- * how many of its route tables are empty shells, and whether the article page
- * banners it as a stub.
- */
 const ARTICLE_COLUMNS = [
   {
     id: "roa",
@@ -126,11 +107,6 @@ const ARTICLE_COLUMNS = [
   },
 ] as const;
 
-/**
- * Empty route tables over routes carried, drawn as text rather than a status
- * mark: the ratio is the point. One hollow ROA out of four is a different
- * problem from four out of four, and a single glyph cannot say which.
- */
 function RoaMark({ roa }: { roa: CoverageRoaCounts }) {
   if (roa.total === 0) {
     return (
@@ -177,7 +153,6 @@ function stubCellLabel(row: CoverageRow): string {
   return reasons ? `Stub: ${reasons}` : COVERAGE_STUB_DISPLAY.stub.label;
 }
 
-/** A footer tally, coloured only when there is something to act on. */
 function FootCount({ value }: { value: number }) {
   return (
     <span
@@ -199,17 +174,7 @@ function Stat({ value, label }: { value: React.ReactNode; label: string }) {
   );
 }
 
-/**
- * The launch-deadline strip: how many public articles still need a manual
- * review, how long is left to do it in, and the pace that implies.
- *
- * Always scoped to publicly listed articles — the launch corpus — no matter
- * what the table's toggles say, so this number means one thing.
- */
 function ReviewDeadlineBanner({ rows }: { rows: CoverageRow[] }) {
-  // `new Date()` runs once on the server render and once on hydration; the
-  // derived day count only disagrees across a midnight boundary, and the
-  // suppressed spans let the client value win quietly when it does.
   const [now] = useState(() => new Date());
   const countdown = useMemo(() => buildReviewCountdown(rows, now), [rows, now]);
   const percentDone =
@@ -270,12 +235,6 @@ function ReviewDeadlineBanner({ rows }: { rows: CoverageRow[] }) {
   );
 }
 
-/**
- * Headline numbers for the audited corpus.
- *
- * These follow the scope toggle but not the search box: they describe what is
- * being measured, not what happens to be on screen.
- */
 function CoverageSummary({
   totals,
   scope,
@@ -339,12 +298,8 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   const [blankRoaOnly, setBlankRoaOnly] = useState(false);
   const [needsReviewOnly, setNeedsReviewOnly] = useState(false);
 
-  // Typing re-filters 577 rows on every keystroke; deferring keeps the field
-  // responsive while the table catches up.
   const deferredQuery = useDeferredValue(query);
 
-  // The audited corpus. Search narrows what you look at; this decides what is
-  // being measured, so the headline totals follow it and ignore the search box.
   const scopedRows = useMemo(
     () =>
       includeUnlisted
@@ -378,9 +333,6 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
     return [...filtered].sort((left, right) => {
       const bySection = gapCount(right) - gapCount(left);
       if (bySection !== 0) return bySection;
-      // Section counts tie constantly, so empty route tables break the tie:
-      // among articles with the same empty sections, the ones whose dosage
-      // section is half scaffolding come first.
       const byRoa = roaHollowCount(right.roa) - roaHollowCount(left.roa);
       if (byRoa !== 0) return byRoa;
       return left.name.localeCompare(right.name);
@@ -395,8 +347,6 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
     needsReviewOnly,
   ]);
 
-  // Footer gaps share one pass over the visible slice so section and
-  // article-level tallies cannot drift or repeatedly scan the same rows.
   const { columnGaps, articleGaps } = useMemo(() => {
     const nextColumnGaps = Array.from({ length: columns.length }, () => 0);
     const nextArticleGaps = { roaHollow: 0, stubs: 0, unreviewed: 0 };
@@ -725,10 +675,6 @@ export function CoverageTable({ columns, rows }: CoverageTableProps) {
   );
 }
 
-/**
- * Sprite definitions for every glyph the table draws. Rendered once per page,
- * visually hidden, and referenced by `<use>` from each cell.
- */
 export function CoverageGlyphSprite() {
   return (
     <svg aria-hidden className="hidden" focusable="false">

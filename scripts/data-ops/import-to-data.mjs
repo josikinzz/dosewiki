@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-/**
- * Import replications to Postgres database.
- *
- * This script imports replications directly to Postgres without file uploads
- * (assumes files will be referenced by path in metadata).
- *
- * Prerequisites:
- * - data dev must be running
- * - Replications schema deployed
- *
- * Usage:
- *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *     bun scripts/data-ops/import-to-data.mjs --dry-run
- *   Add --execute and the printed write confirmations to apply.
- */
 
 import fs from 'fs';
 import path from 'path';
@@ -49,7 +34,6 @@ const runContext = createDataOpsRunContext({
 });
 const client = createDataClient({ target: requireTargetUrl(runContext) }).client;
 
-// Paths
 const METADATA_FILE = path.join(
   __dirname,
   '..',
@@ -59,10 +43,6 @@ const METADATA_FILE = path.join(
   'replications-metadata.json'
 );
 
-
-/**
- * Main import function
- */
 async function importReplications() {
   console.log(`\n${'='.repeat(60)}`);
   console.log('Import Replications to Postgres');
@@ -71,7 +51,6 @@ async function importReplications() {
   if (skipImages) console.log('Skip Images: YES');
   console.log(`${'='.repeat(60)}\n`);
 
-  // Load metadata
   if (!fs.existsSync(METADATA_FILE)) {
     console.error(`Error: Metadata file not found: ${METADATA_FILE}`);
     console.error("Provide the replication metadata export before importing.");
@@ -80,11 +59,9 @@ async function importReplications() {
 
   const { replications } = JSON.parse(fs.readFileSync(METADATA_FILE, 'utf-8'));
 
-  // Filter replications
   let toImport = replications.filter(r => {
     if (skipVideos && r.type === 'video') return false;
     if (skipImages && r.type === 'image') return false;
-    // Skip images without effect_slug
     if (r.type === 'image' && !r.effect_slug) return false;
     return true;
   });
@@ -122,7 +99,6 @@ async function importReplications() {
   const errors = [];
 
   try {
-    // Use bulk import mutation
     const result = await client.mutation(api.replications.bulkImport, {
       replications: toImport,
       apiKey: requireAdminIntentToken(runContext.intent).token,
@@ -138,7 +114,6 @@ async function importReplications() {
     process.exit(1);
   }
 
-  // Summary
   console.log(`${'='.repeat(60)}`);
   console.log('Import Summary');
   console.log(`${'='.repeat(60)}`);
@@ -165,7 +140,6 @@ async function importReplications() {
   }
 }
 
-// Run
 importReplications().catch(error => {
   console.error('Fatal error:', error);
   process.exit(1);

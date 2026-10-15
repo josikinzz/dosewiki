@@ -4,10 +4,6 @@ import { evaluate, filterBuilder, lit, readPath, type Expr } from "./dbFilter";
 import { boundToSql, columnExpr, IndexRange, SQL_TYPE, sqlParam, type Fetch } from "./dbIndexRange";
 import { fromRow, quote, type Doc, type SqlExecutor } from "./dbRows";
 
-// ---------------------------------------------------------------------------
-// Query builder
-// ---------------------------------------------------------------------------
-
 type Order = "asc" | "desc";
 type PaginationResult = { page: Doc[]; isDone: boolean; continueCursor: string };
 
@@ -44,11 +40,6 @@ class Query implements AsyncIterable<Doc> {
     return this.filters.every((f) => evaluate(f, doc) === true);
   }
 
-  /**
-   * Stream index-ordered rows in batches, applying in-process filters.
-   * `wanted` bounds the first batch so `first()`/`take(n)` do not pull a page
-   * of full documents across the wire; JS filters widen it since rows may drop.
-   */
   private async *rows(startAfter?: Doc, wanted?: number): AsyncGenerator<Doc> {
     const fetch: Fetch = { where: [], params: [] };
     for (const bound of this.range?.bounds ?? []) boundToSql(this.table, bound, fetch);

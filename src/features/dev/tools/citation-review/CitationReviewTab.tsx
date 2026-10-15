@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * Citations (`/dev/citation-review`, alias `/dev/citations`): admins read the
- * evidence behind each claim-level citation and approve it into the article's
- * public evidence, or reject it with a reason for the next editor.
- *
- * Layout: the triage workspace. The article queue (four filters, search, the
- * windowed list) sits left and sticky; the open article docks right with the
- * checks, its evidence by section and a decision dock. The status route writes
- * without a revision check, so every decision reads the rows again first and
- * refuses when someone else changed them since they were shown.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -73,11 +61,9 @@ import { useCitationReviewData } from "./useCitationReviewData";
 
 type CitationReviewTabProps = {
   initialSlug?: string;
-  /** The signed-in address, so the hold line can tell your claim from another admin's. */
   actorEmail?: string | null;
 };
 
-/** One sentence the reviewer can act on or report: what failed, and the id to quote. */
 function formatQueueLoadFailure(failure: CitationReviewQueueLoadFailure): string {
   const parts = [failure.error];
   if (failure.cause) {
@@ -97,7 +83,6 @@ const SHORTCUTS = [
 
 const OPEN_A_ROW_HINT = "Open an evidence row first: a approves it, r rejects it with a reason. o opens the next unread ready row.";
 
-/** Row keys in the order the reviewer first saw them, so a decision never moves a row. */
 type RowOrder = { slug: string; keys: string[] };
 
 export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationReviewTabProps) {
@@ -172,9 +157,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
   }, [allSubstanceRecords, articles]);
   const titleOf = useCallback((slug: string) => articleTitleBySlug.get(slug) ?? slug, [articleTitleBySlug]);
 
-  // Library rows carry no article body, so the checks and the marker panel
-  // wait for the whole article rather than read an empty one and report
-  // every section as missing.
   const { isArticleHydrated, requestArticle, failedSlugs } = articleHydration;
   useEffect(() => {
     requestArticle(selectedSlug);
@@ -189,9 +171,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
     [rows, selectedArticle],
   );
 
-  // Hold the order rows first appeared in for this article, so a decision
-  // (which would sort an accepted row last) never moves a row under the
-  // reader. Refresh and switching articles take the fresh order.
   const [rowOrder, setRowOrder] = useState<RowOrder | null>(null);
   const baseGroups = useMemo(() => groupCitationEvidenceBySection(rows), [rows]);
   useEffect(() => {
@@ -223,9 +202,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
     null,
   );
 
-  // Rows opened in this session, per article, kept across article switches.
-  // The section and article-wide approvals unlock only once every ready row
-  // they would approve is opened.
   const [openedBySlug, setOpenedBySlug] = useState<ReadonlyMap<string, ReadonlySet<string>>>(() => new Map());
   const openedClaimKeys = useMemo<ReadonlySet<string>>(
     () => (selectedSlug ? openedBySlug.get(selectedSlug) ?? new Set() : new Set()),
@@ -238,8 +214,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
     (row) => commands.bulkApprove.claimKeys.includes(row.claimKey) && !openedClaimKeys.has(row.claimKey),
   )?.claimKey ?? null;
 
-  // Where a multi-row approval came from, so its undo renders in that place:
-  // a section id, or "article" for the article-wide approval.
   const [bulkOrigin, setBulkOrigin] = useState<string | null>(null);
 
   const flaggedCount = useCallback(
@@ -283,14 +257,12 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
     [confirm, flaggedCount, rows, updateStatuses],
   );
 
-  // The evidence row the triage keys act on: the one opened last, while it stays open.
   const [activeClaim, setActiveClaim] = useState<{ slug: string | null; claimKey: string } | null>(null);
   const activeClaimKey = activeClaim && activeClaim.slug === selectedSlug ? activeClaim.claimKey : null;
   const [rejectRequest, setRejectRequest] = useState<CitationRejectRequest | null>(null);
   const [openRequest, setOpenRequest] = useState<CitationOpenRequest | null>(null);
   const [keyHint, setKeyHint] = useState<string | null>(null);
 
-  /** Approve one row; a rejected row or one a check flagged asks first. */
   const approveRow = useCallback(
     (claimKey: string) => {
       const row = rows.find((entry) => entry.claimKey === claimKey);
@@ -359,9 +331,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
         : null,
     [dismissUndo, isBulkUpdating, pendingClaimKeys.length, undoLastDecision, undoableDecision],
   );
-  // The undo renders beside what it changed: inside the row for a single-row
-  // decision, in the section for a section, in the dock for the article-wide
-  // approval. A decision on another article shows in the dock with its name.
   const undoOnScreen = undoOffer && undoOffer.decision.slug === selectedSlug ? undoOffer : null;
   const isSingleRowUndo = undoOnScreen !== null && undoOnScreen.decision.prior.length === 1;
   const rowUndo = isSingleRowUndo ? undoOnScreen : null;
@@ -378,15 +347,10 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
   const selectedIndex = selectedSlug ? visibleQueue.findIndex((entry) => entry.slug === selectedSlug) : -1;
   const inQueue = selectedSlug ? queue.some((entry) => entry.slug === selectedSlug) : false;
 
-  // Below the lg split the list stacks above the pane. Keyed on the tapped
-  // row, not `selectedSlug`, so the first-row fallback after a queue load or
-  // filter change does not move the page, and phones show no pane until a pick.
   const detailRef = useRef<HTMLElement | null>(null);
   const [pickedSlug, setPickedSlug] = useState<string | null>(null);
   useScrollToDetail(detailRef, pickedSlug);
   const [focusRequest, setFocusRequest] = useState(0);
-  // A deep link counts as a pick once its article is in the list: the pane
-  // scrolls in on phones and its heading takes focus.
   const deepLinkRef = useRef(initialSlug ?? null);
   useEffect(() => {
     const wanted = deepLinkRef.current;
@@ -452,7 +416,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
     [nextUnreadKey],
   );
 
-  // Claims are advisory, so they are announced rather than shown as a result.
   const [claimPending, setClaimPending] = useState<"claim" | "release" | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const hold = async (action: "claim" | "release") => {
@@ -752,7 +715,6 @@ export function CitationReviewTab({ initialSlug, actorEmail = null }: CitationRe
   }
 
   const paneVisible = selectedSlug !== null;
-  // Phones show the pane only after a pick; the automatic first row is a desktop convenience.
   const paneOnPhone = pickedSlug !== null && pickedSlug === selectedSlug;
 
   return (

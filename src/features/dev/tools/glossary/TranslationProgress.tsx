@@ -8,7 +8,6 @@ import styles from "./TranslationProgress.module.css";
 
 export function TranslationProgress({ data, starting, error, onRefresh, onRetryExhausted, retryDisabled = false }: {
   data: GlossaryList; starting: boolean; error: string | null; onRefresh: () => void;
-  /** Offered to admins once a run has settled with pages that stopped after repeated failures. */
   onRetryExhausted?: () => void; retryDisabled?: boolean;
 }) {
   const { jobs } = data;

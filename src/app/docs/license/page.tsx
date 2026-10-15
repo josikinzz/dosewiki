@@ -54,10 +54,6 @@ const CARD_TITLE_CLASS = "theme-accent-heading mb-1.5 text-base font-semibold";
 const LIST_CLASS =
   "theme-text-secondary space-y-2 leading-7 marker:text-dose-accent-muted";
 const PANEL_PROSE_CLASS = "theme-text-secondary leading-7";
-// Right-edge fade hints at off-screen columns. It lives on the non-scrolling
-// wrapper (not the scroll container) so the gradient stays pinned to the
-// visible edge instead of scrolling away, and fades the card surface to
-// transparent so the affordance tracks the theme in both modes.
 const TABLE_WRAP_CLASS =
   "relative overflow-hidden border-dose-card-border shadow-[var(--theme-elevation-xl)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-30 after:w-10 after:bg-gradient-to-l after:from-dose-surface after:to-transparent";
 const TABLE_SCROLL_CLASS = "overflow-x-auto";
@@ -67,16 +63,10 @@ const TABLE_HEAD_ROW_CLASS =
   "border-b border-dose-divider bg-dose-surface-muted/55";
 const TABLE_BODY_CLASS =
   "theme-text-secondary divide-y divide-dose-divider [&>tr:nth-child(even)]:bg-dose-surface-muted/35";
-// Pin the row-label column so the "Material"/"You want to" label stays in view
-// while the wider columns scroll. Opaque tokens keep scrolled content from
-// bleeding through the pinned cells.
 const TABLE_STICKY_HEAD_CLASS = "sticky left-0 z-20 bg-dose-surface-muted";
 const TABLE_STICKY_CELL_CLASS = "sticky left-0 z-10 bg-dose-surface";
 const PRE_CLASS =
   "theme-text-secondary overflow-x-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap";
-// Matrix status chips are tone-driven via the shared StatusBadge primitive
-// (style guide §7): the `tone` prop owns color, and className carries only the
-// layout deltas the matrix needs (single-line, tabular-friendly sizing).
 const MATRIX_BADGE_CLASS = "whitespace-nowrap text-[11px]";
 const ROW_GROUP_CLASS = "mt-6 overflow-hidden";
 const ROW_ITEM_CLASS =
@@ -132,9 +122,6 @@ export default async function DocsLicensePage() {
         className="theme-toc-strip-scope"
         contentClassName="gap-10"
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
-            under the site header from the very first scroll; replaced by
-            the sticky gutter TOC at >=1200px. */}
         <PublicTocStrip items={tocItems} />
 
         <header className="flex max-w-[72ch] flex-col gap-4 border-b border-dose-divider pb-8">
@@ -973,8 +960,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.`}</pre>
           </DisclosureCard>
 
-          {/* Open by default and directly addressable: the replication
-              surfaces link here as their credit-correction and removal route. */}
           <DisclosureCard
             id="replication-media-terms"
             defaultOpen

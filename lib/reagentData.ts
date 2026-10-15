@@ -13,10 +13,6 @@ function hasStaticReagentData(article: ReagentLookupArticle): boolean {
   );
 }
 
-/**
- * Static article data remains authoritative. Otherwise resolve the imported
- * ProtestKit snapshot from Postgres by canonical DoseWiki slug.
- */
 export async function getCachedReagentDataForArticle(
   article: ReagentLookupArticle,
   slug: string,

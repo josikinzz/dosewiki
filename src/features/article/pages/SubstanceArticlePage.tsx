@@ -1,10 +1,3 @@
-/**
- * Public-facing substance article page using the unified ArticleLayout.
- *
- * The Next public route preloads the article on the server, so this component
- * stays purely presentational and avoids bundling client-side Postgres fetch code.
- */
-
 import { type ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
 import type { SubstanceContent } from "@/types/content";
@@ -32,37 +25,15 @@ interface SubstanceArticlePageProps {
   contributorAvatars?: ContributorAvatarMap;
   contributorDirectory?: ContributorDirectory;
   externalReagentData?: NormalizedReagentData | null;
-  /** Resolved for this slug by `resolveEnabledBanners`; absent means none. */
   warningBanners?: WarningBannerPreset[];
-  /**
-   * The site-wide banner glyph size from `getSafetyBannerIconSize`; absent
-   * renders at the shipped default. One editor setting for the whole site, so it
-   * travels beside `warningBanners` rather than on any preset.
-   */
   warningBannerIconSize?: number;
-  /**
-   * Swap the stored citation-overhaul banner for the sitewide beta disclaimer;
-   * set by the route loader once the citation audit has stripped a refuted
-   * marker on this article. The loader has already filtered the overhaul
-   * presets out of `warningBanners` when this is true.
-   */
   showBetaDisclaimer?: boolean;
-  /**
-   * The `dosage-panel-disclaimer` and `tolerance-section-disclaimer` copy
-   * blocks, read by the route loader; absent renders the checked-in defaults.
-   */
   dosageDisclaimer?: string;
   toleranceDisclaimer?: string;
-  /**
-   * The `review-status-banner` and `expert-review-credit` copy blocks, read by
-   * the route loader; absent renders the checked-in defaults.
-   */
   reviewStatusCopy?: string;
   expertReviewCredit?: string;
   recentChanges?: ArticleRecentChange[];
-  /** Rendered in the banner slot above the safety banners; the locale mirrors' machine-translation notice. */
   warningBannerNotice?: ReactNode;
-  /** Locale mirrors only: approved translator's notes rendered by the route, by section. */
   translatorNotes?: ArticleLayoutProps["translatorNotes"];
 }
 

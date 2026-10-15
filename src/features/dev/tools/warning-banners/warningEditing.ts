@@ -1,6 +1,5 @@
 import type { WarningBannerPreset } from "@/data/substanceWarningBanners";
 
-/** Private editor projection; public warning DTOs carry no revision token. */
 export type EditableWarningPreset = WarningBannerPreset & { baseHash?: string };
 
 export type WarningRevision = {
@@ -13,7 +12,6 @@ export type WarningRevision = {
 export type WarningResult = {
   key: string; changeId: string; baseHash: string; preset: WarningBannerPreset | null;
   affectedSlugs: string[]; allSubstances: boolean; enabledSlugs: string[];
-  /** The delivery receipt the route returns; absent on a reconciled replay. */
   publication?: { status?: string };
 };
 export type WarningEditorState = {
@@ -34,8 +32,6 @@ export async function readWarningJson<T>(url: string): Promise<T> {
   return payload as T;
 }
 
-// An uncertain write keeps its operation identity, including across panel reopens.
-// Retrying reconciles first and can only repeat that exact idempotent request.
 type PendingWarning = {
   fingerprint: string; changeId: string; method: "POST" | "DELETE";
   body: Record<string, unknown> & { key: string };
@@ -53,7 +49,6 @@ export function pendingArticleWarning(slug: string) {
   return null;
 }
 
-/** Only an explicit user retry calls this; it never reconstructs a changed draft. */
 export async function retryPendingWarning(key: string) {
   const operation = pending.get(key);
   if (!operation) throw new Error("No unresolved warning operation remains. Reload its current version.");

@@ -38,11 +38,6 @@ const badgeVariants = cva(
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof badgeVariants> {
-  /**
-   * Render the badge as its single child instead of a `div` — the same escape
-   * hatch `Button` has. Use it when a badge sits inside phrasing content (a
-   * label, a caption, the inside of a button) where a block element is invalid.
-   */
   asChild?: boolean
 }
 

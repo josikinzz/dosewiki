@@ -1,17 +1,9 @@
 import type { PublicEffectArticle, PublicReportPreview } from "./publicData.shared";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 
-/** Content-derived revision of the non-library public search sources. */
-
-/**
- * FNV-1a, the same fold `getSearchIndexInputHash` uses. Non-cryptographic on
- * purpose: the digest only has to move when a row moves, never resist forgery.
- */
 const SIGNATURE_OFFSET_BASIS = 2166136261;
 const SIGNATURE_PRIME = 16777619;
-/** Unit separator, so neighbouring field values cannot fold into one another. */
 const SIGNATURE_FIELD_BREAK = 31;
-/** Absent field marker, keeping `undefined` distinct from the empty string. */
 const SIGNATURE_ABSENT = 30;
 
 function foldText(hash: number, value: string | null | undefined): number {
@@ -31,10 +23,6 @@ function foldNumber(hash: number, value: number): number {
   return foldText(hash, value.toString(36));
 }
 
-/**
- * Long-form bodies are folded by length alone: reading `String.length` is free,
- * folding kilobytes of markdown per row per request is not.
- */
 function foldTextLength(hash: number, value: string | null | undefined): number {
   return foldNumber(hash, typeof value === "string" ? value.length : -1);
 }
@@ -48,7 +36,6 @@ function foldTextList(hash: number, values: readonly string[] | undefined): numb
   return next;
 }
 
-/** Identity `slug`. No revision column reaches the public projection. */
 function foldEffectArticle(hash: number, effect: PublicEffectArticle): number {
   let next = foldText(hash, effect.slug);
   next = foldText(next, effect.name);
@@ -64,7 +51,6 @@ function foldEffectArticle(hash: number, effect: PublicEffectArticle): number {
   return foldNumber(next, effect.see_also?.length ?? -1);
 }
 
-/** Identity `slug`. `introduction` is already the trimmed narrative excerpt. */
 function foldReportPreview(hash: number, report: PublicReportPreview): number {
   let next = foldText(hash, report.slug);
   next = foldText(next, report.title);
@@ -89,11 +75,6 @@ function foldReportPreview(hash: number, report: PublicReportPreview): number {
   return foldText(next, report.setting);
 }
 
-/**
- * Identity `key`. Aliases stay out, exactly as they stay out of the index:
- * they can carry internal reviewer handles that public search must never
- * match, so they must not force a rebuild either.
- */
 function foldContributorProfile(hash: number, profile: NormalizedUserProfile): number {
   let next = foldText(hash, profile.key);
   next = foldText(next, profile.displayName);
@@ -102,10 +83,6 @@ function foldContributorProfile(hash: number, profile: NormalizedUserProfile): n
   return foldText(next, profile.bio);
 }
 
-/**
- * Revision of the non-library search sources. Substance changes are caught by
- * the library instance; these projections need a content-derived identity.
- */
 export function buildSearchSourceSignature(
   effectDefinitions: readonly PublicEffectArticle[],
   reports: readonly PublicReportPreview[],

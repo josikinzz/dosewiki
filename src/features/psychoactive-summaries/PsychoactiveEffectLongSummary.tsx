@@ -12,14 +12,9 @@ import { t } from "@/i18n/server";
 interface PsychoactiveEffectLongSummaryProps {
   effect: PublicEffectSummary;
   artistCreditLinks?: ArtistCreditLinks;
-  /** The drug class this summary page speaks for. */
   mediaVariantKey?: string;
 }
 
-/**
- * Effect Index's long-summary block, adapted to the public dose.wiki article
- * typography. Data selection stays in the server route loader.
- */
 export function PsychoactiveEffectLongSummary({
   effect,
   artistCreditLinks,

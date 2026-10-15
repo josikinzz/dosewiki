@@ -41,11 +41,6 @@ import {
   useReviewStatusWrites,
 } from "./useReviewWrites";
 
-/**
- * True when a key event starts inside a menu, list box, popover, or dialog.
- * Those widgets own their keys (ArrowRight in the Open in menu, a letter in a
- * menu's typeahead), whether or not they mark the event handled.
- */
 function isWidgetTarget(target: EventTarget | null): boolean {
   return (
     target instanceof Element &&
@@ -53,7 +48,6 @@ function isWidgetTarget(target: EventTarget | null): boolean {
   );
 }
 
-/** True when a key event originates inside a form control the user is typing in. */
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
@@ -67,23 +61,6 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 type ReviewExperienceProps = Pick<SubstanceEditorTabProps, "initialSlug">;
 
-/**
- * The full-bleed review workbench (`/review/[slug]`).
- *
- * A sticky bar over one article (where you are, how to move, the tools) and a
- * review dock under it (where this article's review stands, hold, notes, the
- * tick and the result of the last change, with Undo). The tick persists
- * through `/api/dev/editorial-review` (never the full save flow) and stays in
- * sync with the editor form's own review fields in both directions; see
- * `ReviewStatusOverride.baseStatus` for the drift rule. Keyboard: ← / k
- * previous, → / j next, R toggle reviewed, U undo the last status change, H
- * hold, F notes and flags, M the molecule panel, C the citation palette, E
- * inline editing, ? help.
- *
- * This file only composes: settings and history live in `useReviewSettings`,
- * the queue in `useReviewQueue`, the direct writes in `useReviewWrites`, and
- * the chrome in `ReviewCommandBar`, `ReviewDock` and `ReviewArticleView`.
- */
 export const ReviewExperience = memo(function ReviewExperience({
   initialSlug,
 }: ReviewExperienceProps) {
@@ -94,25 +71,17 @@ export const ReviewExperience = memo(function ReviewExperience({
   } = useDevMode();
   const router = useRouter();
 
-  // The queue, picker, and chrome read only slim library rows (reference
-  // counts arrive projected as `reference_count`), so the workbench renders as
-  // soon as the list lands. Article bodies hydrate one slug at a time below.
   const { hydratedSlugs, failedSlugs, isArticleHydrated, requestArticle } = articleHydration;
   const { layout } = useLightweightData();
   const typedArticles = articles as SubstanceArticle[];
 
-  // Editors can draft in context; publication is separately admin-gated.
   const session = useSession();
   const canEditArticle =
     session.status === "authenticated" &&
     canDraft(resolveSessionRole({ role: session.data?.user?.role }));
-  // Completing a review is admin-only at the route; nobody else gets a tick
-  // that can only fail.
   const canSignOff =
     session.status === "authenticated" &&
     canApprove(resolveSessionRole({ role: session.data?.user?.role }));
-  // Editors recommend instead: R records "Recommended reviewed" for an admin
-  // to approve in Change Review, and never completes the review itself.
   const canRecommend =
     !canSignOff &&
     session.status === "authenticated" &&
@@ -128,11 +97,7 @@ export const ReviewExperience = memo(function ReviewExperience({
   } = settings;
 
   const overlays = useReviewOverlays();
-  // Review Flags written from the notes panel, keyed by slug, until the
-  // working set re-reads them.
   const [flagOverrides, setFlagOverrides] = useState<Record<string, ReviewFlag[]>>({});
-  // Each article's current published revision, so a sign-off that an edit
-  // has since overtaken reads "Changed since review".
   const publishedRevisions = usePublishedRevisions();
   const queueState = useReviewQueue({
     typedArticles,
@@ -153,15 +118,10 @@ export const ReviewExperience = memo(function ReviewExperience({
     allReviewed,
   } = queueState;
 
-  // Hydrate the selected article's body; its slim library row has none.
-  // `requestArticle` no-ops on slugs already requested or hydrated and
-  // unlatches on failure, so navigating away and back re-attempts a miss.
   useEffect(() => {
     requestArticle(currentSlug);
   }, [currentSlug, requestArticle]);
 
-  // Once the current body has landed, warm the flip-through's next two and
-  // previous one so arrowing through the queue rarely waits on the network.
   useEffect(() => {
     if (!current || !isArticleHydrated(current.slug)) return;
     for (const index of [position - 1, position + 1, position + 2]) {
@@ -169,17 +129,12 @@ export const ReviewExperience = memo(function ReviewExperience({
     }
   }, [current, hydratedSlugs, isArticleHydrated, position, requestArticle, visibleQueue]);
 
-  // Until the body lands, only the article area waits: the bar, the queue
-  // position, and the picker read slim rows and stay interactive. A failed
-  // request is its own state so the area offers a retry.
   const currentArticleHydrated = current ? isArticleHydrated(current.slug) : false;
   const currentArticleFailed =
     current !== null && !currentArticleHydrated && failedSlugs.has(current.slug);
   const retryCurrentArticle = useCallback(() => {
     requestArticle(currentSlugRef.current);
   }, [currentSlugRef, requestArticle]);
-  // An article the renderer could not draw was not read, so it cannot be
-  // signed off here either. Keyed by slug, so moving on forgets it.
   const [drawFailedSlug, setDrawFailedSlug] = useState<string | null>(null);
   const currentDrawFailed = current !== null && drawFailedSlug === current.slug;
   const currentReadable = currentArticleHydrated && !currentDrawFailed;
@@ -187,21 +142,14 @@ export const ReviewExperience = memo(function ReviewExperience({
     setDrawFailedSlug(failed ? currentSlugRef.current : null);
   }, [currentSlugRef]);
 
-  // Deliberately not persisted: the panel is a per-article detour, and a stored
-  // "open" would make every fresh session boot the WASM editor unasked.
   const [moleculePanelOpen, setMoleculePanelOpen] = useState(false);
   const [citationPanelOpen, setCitationPanelOpen] = useState(false);
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
-  // Controlled so `?` can open it.
   const [helpOpen, setHelpOpen] = useState(false);
-  // Controlled so `/` can open the article list with its search focused.
   const [pickerOpen, setPickerOpen] = useState(false);
-  // What the reviewer typed in the notes panel and has not added yet, per
-  // article, so closing the panel or moving on never drops it.
   const [noteDrafts, setNoteDrafts] = useState<Record<string, NotesDraft>>({});
   const notesButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Human Reviewed status is independent of the private article draft.
   const currentOverride = current ? overlays.overrides[current.slug] : undefined;
   const articleForView = useMemo(
     () => article
@@ -212,10 +160,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     [article, currentOverride],
   );
 
-  // The public route resolves the depiction server-side; this surface is
-  // client-rendered, so it reads the metadata through the editor route. A save
-  // in the inline molecule panel invalidates this key, so the article image
-  // re-versions without a refresh.
   const moleculeMeta = useEditorRead(
     "moleculeOverrides:getMetadataBySlug",
     current ? { slug: current.slug } : "skip",
@@ -239,14 +183,11 @@ export const ReviewExperience = memo(function ReviewExperience({
     status;
   const { frozen } = useWriteFreeze();
 
-  // An editor's R asks once, with room for an optional note, before the
-  // recommendation is recorded against the version on screen.
   const { confirm: confirmRecommend, dialog: recommendDialog } = useConfirm();
   const recommendNoteRef = useRef<HTMLInputElement | null>(null);
   const { currentRecommendation, recommendReviewed } = status;
   const requestRecommendation = useCallback(() => {
     if (!current || !canRecommend || !currentReadable || isTicking) return;
-    // A current sign-off needs no recommendation; a stale one does.
     if (current.status === "completed") return;
     if (currentRecommendation && !currentRecommendation.stale) return;
     confirmRecommend({
@@ -262,18 +203,12 @@ export const ReviewExperience = memo(function ReviewExperience({
       onConfirm: () => recommendReviewed(recommendNoteRef.current?.value ?? ""),
     });
   }, [canRecommend, confirmRecommend, current, currentReadable, currentRecommendation, isTicking, recommendReviewed]);
-  // The re-sign-off gate: on a changed article the first press opens what
-  // changed since the last review, and only a press after that acts: an
-  // admin's signs it off (the same request and revision as a one-step
-  // sign-off), an editor's opens the recommend confirm. Keyed by slug, so
-  // moving on resets it; other articles take one step.
   const [changesSeenSlug, setChangesSeenSlug] = useState<string | null>(null);
   const [changesOpenSignal, setChangesOpenSignal] = useState(0);
   const staleGateApplies =
     (canSignOff || canRecommend) && current !== null && current.status === "stale" && Boolean(current.reviewedRevision);
   const staleGateClosed = staleGateApplies && changesSeenSlug !== current?.slug;
   const staleChangesShown = staleGateApplies && changesSeenSlug === current?.slug;
-  // A recommendation already waiting on this version has nothing to gate.
   const recommendationWaiting = Boolean(currentRecommendation && !currentRecommendation.stale);
   const markChangesSeen = useCallback(() => {
     setChangesSeenSlug(currentSlugRef.current);
@@ -314,8 +249,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     guardNavigation: articleNavigation.guard,
   });
 
-  // The next article in the queue still waiting for a sign-off, after the
-  // one on screen and wrapping round, so a result can offer it.
   const nextWaiting = useMemo(() => {
     if (visibleQueue.length === 0) return null;
     for (let step = 1; step < visibleQueue.length; step += 1) {
@@ -328,8 +261,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     if (nextWaiting) navigateTo(nextWaiting.slug);
   }, [navigateTo, nextWaiting]);
 
-  // Leaving for the editor asks first while article edits are unsaved; a
-  // modified click still opens a new tab.
   const leaveWorkbench = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
     if (!articleDirty || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
@@ -345,7 +276,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     if (!currentSlugRef.current) return;
     setNotesPanelOpen((open) => !open);
   }, [currentSlugRef]);
-  // Closing the panel hands focus back to the button that opened it.
   const closeNotesPanel = useCallback(() => {
     setNotesPanelOpen(false);
     window.requestAnimationFrame(() => notesButtonRef.current?.focus({ preventScroll: true }));
@@ -372,21 +302,11 @@ export const ReviewExperience = memo(function ReviewExperience({
     setCitationPanelOpen((open) => !open);
   }, [currentSlugRef, citationPanelOpen, updateSettings]);
 
-  // Scoped to the webpage view, the only place the mode does anything, so
-  // neither the key nor the bar button can arm it invisibly from the editor.
-  // Both editor and admin roles may arm local editing.
   const toggleInlineEdit = useCallback(() => {
     if (viewModeRef.current !== "webpage" || !canEditArticle) return;
     articleNavigation.guard(() => updateSettings({ inlineEdit: !inlineEdit }));
   }, [canEditArticle, inlineEdit, updateSettings, viewModeRef, articleNavigation.guard]);
 
-  /**
-   * Swallow link activations inside the rendered article while the
-   * `articleLinks` setting is off. Capture phase, so it runs before both the
-   * anchor's own handler and Next's client-side router; keyboard activation
-   * (Enter on a focused link) arrives here as a click too. Same-page `#`
-   * anchors stay live, so a contents jump never loses the reviewer's place.
-   */
   const blockArticleLinks = useCallback((event: React.MouseEvent) => {
     if (!(event.target instanceof Element)) return;
     const anchor = event.target.closest("a[href]");
@@ -395,9 +315,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     event.stopPropagation();
   }, []);
 
-  // Moving on collapses the panels, so the WASM canvas never lingers over the
-  // wrong molecule (and the palette never lists the wrong article's sources);
-  // the next article starts from the article itself.
   useEffect(() => {
     setMoleculePanelOpen(false);
     setCitationPanelOpen(false);
@@ -407,8 +324,6 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      // A key something else already handled, or one aimed at a menu or
-      // popover, is not a workbench command.
       if (event.defaultPrevented) return;
       if (isTypingTarget(event.target) || isWidgetTarget(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
@@ -432,19 +347,12 @@ export const ReviewExperience = memo(function ReviewExperience({
         event.preventDefault();
         toggleMoleculePanel();
       } else if (key === "c") {
-        // Plain C, not Shift+C: inside a textarea Shift+C is how a capital C
-        // is typed, and the typing guard above already keeps every bare-letter
-        // shortcut out of form fields.
         event.preventDefault();
         toggleCitationPanel();
       } else if (key === "f") {
-        // Notes and flags, where a held article gets its reason. The panel
-        // takes focus in the note, so the next keys type rather than command.
         event.preventDefault();
         toggleNotesPanel();
       } else if (key === "e") {
-        // The typing guard above keeps E out of the very inputs the mode
-        // creates, so the key that turns editing on can never type into it.
         event.preventDefault();
         toggleInlineEdit();
       } else if (key === "n") {
@@ -496,9 +404,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     );
   }
 
-  // The frames between mount and the landing pick: hold the shell rather than
-  // paint a bar with no article under it. `current` is only ever null before
-  // the landing runs; once a slug is chosen the queue filter always keeps it.
   if (!current && !currentSlug) {
     return <main className="theme-page-shell min-h-screen" aria-busy="true" />;
   }
@@ -511,7 +416,6 @@ export const ReviewExperience = memo(function ReviewExperience({
   const flagCount = (current ? flagOverrides[current.slug] ?? article?.editorial_review?.flags ?? [] : []).length;
   const isHeld = current?.status === "in_progress";
 
-  // Why the tick is off, when it is, in the dock's words.
   const tickReason = !current
     ? null
     : currentDrawFailed
@@ -544,8 +448,6 @@ export const ReviewExperience = memo(function ReviewExperience({
     </>
   ) : null;
 
-  // The one result the dock shows: a refused write first, then the last
-  // change with its Undo (and what it finished), then a recommendation.
   const tickResultTitle = lastTick && lastTick.status === "completed"
     ? celebration && celebration.level === "section"
       ? `${celebration.groupLabel ? `${celebration.groupLabel}, ${celebration.label}` : celebration.label} complete, all ${celebration.total.toLocaleString()} reviewed`
@@ -656,7 +558,6 @@ export const ReviewExperience = memo(function ReviewExperience({
 
   return (
     <main className="theme-page-shell flex min-h-screen flex-col">
-      {/* Screen-reader narration for keyboard-driven article changes. */}
       <p aria-live="polite" className="sr-only">
         {current
           ? `${current.name}, ${dot?.label ?? ""}. ${reviewedCount} of ${queue.length} reviewed.`
@@ -760,9 +661,6 @@ export const ReviewExperience = memo(function ReviewExperience({
         actions={actions}
       />
 
-      {/* A finished psychoactive category: confetti plus the medallion card.
-          When that same tick finished the whole corpus, FinishedState is the
-          headline; the confetti still flies, the card stays home. */}
       {celebration?.level === "group" ? (
         <ReviewClassCelebration
           key={celebration.id}

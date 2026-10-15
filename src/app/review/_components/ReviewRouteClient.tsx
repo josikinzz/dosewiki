@@ -21,18 +21,11 @@ type ReviewRouteClientProps = {
   initialSlug?: string;
 };
 
-/**
- * Workbench host: the same data/provider stack the /dev shell mounts, minus
- * the dev-tools page chrome. The dev page controller still runs underneath so
- * the editor view's commit panel behaves identically to the main editor tab.
- */
 function ReviewWorkbench({ initialSlug, libraryEmpty }: { initialSlug?: string; libraryEmpty: boolean }) {
   const router = useRouter();
 
   const onTabChange = useCallback(
     (tab: DevModeTab) => {
-      // The workbench has no tab strip; any shell-level tab change (e.g. the
-      // non-editor bounce to "profile") returns to the dev shell.
       router.push(`/dev/${tab}`);
     },
     [router],
@@ -44,8 +37,6 @@ function ReviewWorkbench({ initialSlug, libraryEmpty }: { initialSlug?: string; 
     onTabChange,
   });
 
-  // An empty library is an answer, not a pending load: the workbench says
-  // there is nothing to review rather than wait for rows that never come.
   if (controller.articlesLength === 0 && !libraryEmpty) {
     return (
       <main className="theme-page-shell flex min-h-screen items-center justify-center p-8">
@@ -65,8 +56,6 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // The slim library rows already carry everything the lightweight lookup
-  // needs (slug, name, priority), so the separate getLookupPage drain is gone.
   const substances = useMemo<SubstanceLookupEntry[]>(() => {
     if (!library) {
       return [];
@@ -108,7 +97,6 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   const navigate = useCallback((path: string) => router.push(path), [router]);
   const getCurrentPath = useCallback(() => pathname ?? "/review", [pathname]);
   const retryLibrary = useCallback(() => {
-    // The hook reports the outcome through `error` and `library`.
     requestLibrary().catch(() => {});
   }, [requestLibrary]);
 
@@ -127,10 +115,6 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
     );
   }
   if (categoryLayout === undefined || isLoadingLibrary || !library) {
-    // Content-shaped skeleton instead of a full-screen splash: the shell stays
-    // up and the load reads as the page assembling rather than the app
-    // rebooting. The branded LoadingScreen stays cataloged in /dev/kit for
-    // genuine full-screen boot holds.
     return (
       <div className="theme-page-shell min-h-screen overflow-y-auto px-4 py-10">
         <RouteLoading
@@ -171,13 +155,7 @@ function ReviewDataLoader({ initialSlug }: { initialSlug?: string }) {
   );
 }
 
-/**
- * Reads go through the `/api/editor/*` routes on the layout-level TanStack
- * Query client, mirroring the /dev shell (see NextDevRouteClient).
- */
 export function ReviewRouteClient({ initialSlug }: ReviewRouteClientProps) {
-  // Outside the /dev shell, so the workbench watches its own writes for the
-  // write freeze; the review dock reads it.
   useWriteFreezeObserver();
   return <ReviewDataLoader initialSlug={initialSlug} />;
 }

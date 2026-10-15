@@ -35,27 +35,8 @@ import { getCurationDetailHandler, uniqueSubstanceBySlug } from "./lib/substance
 import { resolvedReplication } from "./lib/replicationValidators";
 import { galleryMatchProjection } from "./lib/publicReadIndexes";
 
-/**
- * Per-substance Replication Showcase: automatic drug/class placement and the
- * low-priority Visual Disconnection still-image fallback behind stored
- * editorial ordering and exclusion deltas.
- *
- * Exact drug work belongs only to that drug. General dissociative and
- * deliriant work belongs to every article carrying that psychoactive class.
- * Eligible Visual Disconnection stills close every dissociative collection.
- * General psychedelic work and combinations are never broadly automatic.
- * Stored `curated_slugs` retain unmatched direct placements.
- * `carousel_order` is the exact cross-tier presentation prefix, while
- * `removed_slugs` suppresses every source.
- *
- * The pure policy lives in `src/data/substanceReplicationGallery` so public
- * reads, editor reads, association inspection, and writes cannot drift.
- */
-
-/** One shared ceiling with the save route and the portal's exclusion meter. */
 const MAX_GALLERY_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
-/** Bound public showcase scans and their per-row media lookups. */
 const PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE = 64;
 
 const substanceGalleryProvenanceValidator = v.object({
@@ -98,7 +79,6 @@ const publicSubstanceGalleryPageResult = v.object({
   isDone: v.boolean(),
 });
 
-/** Clamp caller input so no public invocation scans more than 64 raw rows. */
 export function clampPublicSubstanceGalleryPageSize(requested?: number): number {
   const normalized =
     requested !== undefined && Number.isFinite(requested)
@@ -107,7 +87,6 @@ export function clampPublicSubstanceGalleryPageSize(requested?: number): number 
   return Math.min(Math.max(normalized, 1), PUBLIC_SUBSTANCE_GALLERY_PAGE_SIZE);
 }
 
-/** The stored curation row for one substance, or null when never curated. */
 export const getBySubstance = query({
   args: { substance_slug: v.string() },
   handler: async (ctx, args) => {
@@ -118,15 +97,6 @@ export const getBySubstance = query({
   },
 });
 
-/**
- * One storage-ordered scan page for a substance's public Replication Showcase.
- *
- * Filtering can make a page sparse. Callers must follow `cursor` until
- * `isDone`, concatenate `items`, then pass the accumulated matches and
- * `curation` through `mergeCuratedGallery`. That final client-side merge
- * preserves the historical cross-tier, curated, carousel, and exclusion order
- * without loading the whole replication table in a single transaction.
- */
 export async function getPublicReplicationsForSubstancePageHandler(
   ctx: QueryCtx,
   args: { substance_slug: string; cursor?: string; limit?: number },
@@ -188,9 +158,6 @@ export async function getPublicReplicationsForSubstancePageHandler(
   };
 }
 
-// Retained for the previous build and scripts: the currently live site build
-// still drains this URL-resolving per-substance scan. Superseded by the slim
-// `getPublicMatchableReplicationsPage` corpus read below.
 export const getPublicReplicationsForSubstance = query({
   args: {
     substance_slug: v.string(),
@@ -201,12 +168,6 @@ export const getPublicReplicationsForSubstance = query({
   handler: getPublicReplicationsForSubstancePageHandler,
 });
 
-/**
- * The slim matchable projection of one `replications` row: exactly the fields
- * the shared placement policy reads (`SubstanceGalleryMatchableRow` in
- * `src/data/substanceReplicationGallery`) — no storage locators, no rights
- * metadata, no URL resolution.
- */
 const publicMatchableReplicationRow = v.object({
   slug: v.string(),
   title: v.string(),
@@ -220,14 +181,8 @@ const publicMatchableReplicationRow = v.object({
   publication_state: v.optional(v.union(v.literal("published"), v.literal("unpublished"), v.literal("duplicate-suppressed"))),
 });
 
-/**
- * The matchable scan resolves no storage URLs, so a page reads only the row
- * documents themselves. Its 256-row page therefore permits more rows than
- * the 64-row URL-resolving scan, which also performs per-row media lookups.
- */
 const PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE = 256;
 
-/** Clamp caller input so no public invocation scans more than 256 raw rows. */
 function clampPublicMatchableReplicationsPageSize(requested?: number): number {
   const normalized =
     requested !== undefined && Number.isFinite(requested)
@@ -236,18 +191,6 @@ function clampPublicMatchableReplicationsPageSize(requested?: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_MATCHABLE_REPLICATIONS_PAGE_SIZE);
 }
 
-
-/**
- * One storage-ordered page of the shared matchable corpus: every replication
- * row projected down to the placement-policy fields, matched by nobody here.
- *
- * This is the slim half of the substance showcase read. The Next side drains
- * these pages once, caches them per page across every substance article, runs
- * `matchSubstanceGalleryReplications` / `includeDirectlyAssociatedRows` /
- * `mergeCuratedGallery` itself, and resolves only the merged winners through
- * the indexed `replications:getBySlugs`. The per-substance whole-table scan in
- * `getPublicReplicationsForSubstance` above becomes one shared corpus read.
- */
 export async function getPublicMatchableReplicationsPageHandler(
   ctx: QueryCtx,
   args: { cursor?: string; limit?: number },
@@ -276,11 +219,6 @@ export const getPublicMatchableReplicationsPage = query({
   handler: getPublicMatchableReplicationsPageHandler,
 });
 
-/**
- * The whole merged, ordered public showcase for one substance in a single
- * round trip; see `server/lib/substanceGalleryPublicReads`. This is the native
- * server read used by the public showcase.
- */
 export const getPublicGalleryBySubstance = query({
   args: { substance_slug: v.string() },
   returns: v.object({
@@ -295,7 +233,6 @@ export const getPublicGalleryBySubstance = query({
   handler: getPublicGalleryBySubstanceHandler,
 });
 
-/** How the curation portal's batched picker read pages the substance index. */
 const CURATION_CANDIDATE_PAGE_SIZE = 32;
 const CURATION_CANDIDATE_MAX_PAGE_SIZE = 100;
 
@@ -306,11 +243,6 @@ const curationMatchBucketValidator = v.object({
   count: v.number(),
 });
 
-/**
- * The eligible corpus reduced to policy buckets, read once per picker load.
- * `listCurationCandidatesPage` then counts each article against it without
- * re-reading the corpus for every page.
- */
 export const getCurationMatchDigest = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -328,11 +260,6 @@ export const getCurationMatchDigest = query({
   },
 });
 
-/**
- * One page of the curation portal's substance picker: every substance with its
- * automatic candidate count (from the caller-supplied digest) and whether a
- * curation delta exists.
- */
 export const listCurationCandidatesPage = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -380,16 +307,6 @@ export const listCurationCandidatesPage = query({
   },
 });
 
-/**
- * Everything the curation portal's per-substance panel draws in one read:
- * automatic policy matches plus unmatched rows carrying a stored direct
- * curation or exclusion, with provenance and resolved media URLs.
- *
- * Public ordering is automatic-tier first; stored curation is an ordering and
- * direct-association delta rather than a publication gate.
- *
- * Returns null for a slug naming no (or an ambiguous) substance.
- */
 export const getCurationDetail = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -399,25 +316,6 @@ export const getCurationDetail = query({
   handler: getCurationDetailHandler,
 });
 
-/**
- * Replace one substance's curation with the full submitted arrays.
- *
- * Slugs that are no longer showcase-eligible are pruned here rather than
- * stored — a deleted, retired, or otherwise ineligible replication must not
- * survive as a phantom association — and what was dropped comes back so the
- * editor can be told rather than left guessing. A curated∩removed overlap is
- * rejected outright: it is a client bug, not a preference. The caller adopts
- * the returned pruned echo as its new state.
- *
- * `expectedUpdatedAt` is the version check, in the spirit of
- * `replications:updateEditorialFields`' `expected` snapshot: omit it to write
- * unconditionally, pass `null` to assert this substance has never been
- * curated, or pass the `updated_at` the editor loaded to assert nobody has
- * saved since. A failed check writes nothing and returns
- * `{ status: "conflict", server }` carrying the row as it stands right now, so
- * the caller can show the editor both sides instead of clobbering a colleague.
- * Every write returns `{ status: "ok", … }`.
- */
 export const upsert = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -456,8 +354,6 @@ export const upsert = mutation({
       .withIndex("by_substance", (q) => q.eq("substance_slug", args.substance_slug))
       .first();
 
-    // Checked before the corpus scan: a stale save is answered with the row as
-    // it stands, not with work done on a payload nobody is going to store.
     const expected = args.expectedUpdatedAt;
     if (
       expected !== undefined &&
@@ -527,7 +423,6 @@ export const upsert = mutation({
   },
 });
 
-/** Replace the exact presentation order for one substance's current showcase. */
 export const setCarouselOrder = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -611,7 +506,6 @@ export const setCarouselOrder = mutation({
   },
 });
 
-/** Suppress every current and future source without destroying curation. */
 export const setDisabled = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -637,11 +531,6 @@ export const setDisabled = mutation({
   },
 });
 
-/**
- * How this one replication earns an automatic place on a substance, or null.
- * A single-row corpus is handed to the shared policy so exact-drug,
- * permitted-class, combination, and eligibility rules cannot drift.
- */
 function associationProvenance(
   replication: SubstanceGalleryMatchableRow,
   substance: unknown,
@@ -652,14 +541,6 @@ function associationProvenance(
   return matches.length > 0 ? matches[0].provenance : null;
 }
 
-/**
- * The other side of the same derivation: which substance articles one
- * replication is automatically or directly associated with.
- *
- * `excluded` and `curatedPosition` are the stored editorial delta. Automatic
- * associations publish unless excluded; direct associations publish when
- * curated and not excluded.
- */
 export const getReplicationAssociationsPage = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -696,7 +577,6 @@ export const getReplicationAssociationsPage = query({
     const items: ReplicationAssociation[] = [];
     for (const substance of page.page) {
       const substanceSlug = substance.slug;
-      // A slugless article has no gallery row and no match target.
       if (!substanceSlug) continue;
       const gallery = await ctx.db
         .query("substanceGalleries")
@@ -733,7 +613,6 @@ export const getReplicationAssociationsPage = query({
   },
 });
 
-/** Add or remove one explicit replication-to-substance association atomically. */
 export const setReplicationDirectAssociation = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -826,21 +705,6 @@ export const setReplicationDirectAssociation = mutation({
   },
 });
 
-/**
- * Reconcile which substances suppress one replication, from the replication's
- * side.
- *
- * `excludedSubstanceSlugs` is the authoritative full set, unordered: every
- * named substance ends up suppressing this replication and every other
- * substance that currently suppresses it stops. Storage is unchanged — each
- * decision lands in that one substance's `removed_slugs`, the same field the
- * per-substance curation portal writes.
- *
- * Exclusion is per-substance: a work may be appropriate for its exact drug but
- * still be a poor editorial fit on that article. Adding an exclusion strips a
- * manual position because the two stored lists may never overlap; each dropped
- * position is returned to the editor.
- */
 export const setReplicationExclusions = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -872,17 +736,9 @@ export const setReplicationExclusions = mutation({
 
     const wanted = new Set(args.excludedSubstanceSlugs);
 
-    // Curated rows are the only place an existing exclusion can hide, and there
-    // is no index from a suppressed slug back to its substances, so the delta
-    // table is read whole. It holds one document per curated substance.
     const galleries = await ctx.db.query("substanceGalleries").collect();
     const galleryBySubstance = new Map(galleries.map((row) => [row.substance_slug, row]));
 
-    // Every substance whose stored state could differ from the submitted set:
-    // the named ones (which must still match to be written) and the ones
-    // already suppressing this replication (which must stop if unnamed). A
-    // matching substance that is neither named nor suppressed has nothing to
-    // change, so it is never read.
     const candidates = [...args.excludedSubstanceSlugs];
     const seen = new Set(candidates);
     for (const row of galleries) {
@@ -937,8 +793,6 @@ export const setReplicationExclusions = mutation({
           });
         }
       } else {
-        // Only a stored row can carry an exclusion, so `gallery` is non-null
-        // here; dropping one leaves the rest of the curation untouched.
         await ctx.db.patch(gallery!._id, {
           removed_slugs: gallery!.removed_slugs.filter((slug) => slug !== args.replicationSlug),
           updated_at,

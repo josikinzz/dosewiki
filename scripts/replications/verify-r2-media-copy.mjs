@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/** Full-byte and range verification of R2 objects against a retained migration ledger. */
-
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";

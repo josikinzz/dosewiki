@@ -20,11 +20,6 @@ import { cn } from "@/lib/utils";
 interface UserTripReportsSectionProps {
   profileKey: string;
   tripReports: ReportCardModel[];
-  /**
-   * The contributor's curated report ordering. Applied here rather than only on
-   * the server because this section owns the featured/alphabetical default sort
-   * below — a curation applied upstream would be sorted straight back out.
-   */
   reportOrder?: readonly string[];
   reportHrefPrefix?: string;
 }
@@ -34,7 +29,6 @@ interface UserContributionsSectionProps {
   history: PublicProfileHistoryEntry[];
 }
 
-/** How many changelog rows the section shows before the count expander. */
 const COLLAPSED_CONTRIBUTION_ROWS = 4;
 
 export function UserTripReportsSection({
@@ -104,11 +98,6 @@ export function UserTripReportsSection({
 
 const CONTRIBUTION_ARTICLE_PILL_CAP = 3;
 
-/**
- * One compact changelog row: timestamp (or commit sha) · save message ·
- * article pills · a faint per-row expander that reveals the diff. Resting
- * state never shows diff text.
- */
 function ContributionRow({ entry }: { entry: PublicProfileHistoryEntry }) {
   const [isDiffExpanded, setIsDiffExpanded] = useState(false);
   const [hasOpenedDiff, setHasOpenedDiff] = useState(false);
@@ -190,7 +179,6 @@ type ContributionDayGroup = {
   entries: PublicProfileHistoryEntry[];
 };
 
-/** Groups already-sorted entries into contiguous same-day runs. */
 function groupContributionsByDay(
   entries: readonly PublicProfileHistoryEntry[],
   dayFormat: Intl.DateTimeFormat,

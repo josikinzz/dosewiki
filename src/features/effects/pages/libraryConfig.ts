@@ -9,30 +9,14 @@ import {
 } from "@/features/articles/domain/articleGuides";
 import { msg } from "@/i18n/messages";
 
-/**
- * The Library tab of the Subjective Effect Index: the long-form articles the
- * effect entries lean on, arranged by what a reader is looking for rather than
- * by publication date. The archive is nine articles, so this is hand curation
- * over `articleGuides` plus the handful of pieces that belong to no class.
- * Nothing here needs runtime data; every href is a public App Path. Every
- * reader-visible literal is a `msg()` key that `LibraryPanelSection` renders
- * through `t()`, so the mirror sees it in its own language.
- */
-
 interface LibraryItem { href: string;
 title: string;
-/** One clause, sentence case, no trailing period; wraps under the title. */
 description?: string; }
 
 interface LibraryLink { href: string;
 label: string; }
 
-/**
- * A run of rows under one optional sub-label. Class-owned panels label each
- * run with the class once instead of stamping it on every row.
- */
 interface LibraryGroup { label?: string;
-/** One clause about the group as a whole, shown under its label. */
 note?: string;
 items: LibraryItem[]; }
 
@@ -42,7 +26,6 @@ export interface LibraryPanel {
   icon: IconName;
   blurb: string;
   groups: LibraryGroup[];
-  /** Related pages that are not themselves library articles. */
   footerLinks?: LibraryLink[];
 }
 
@@ -54,7 +37,6 @@ function guideItem(guide: ArticleGuideLink): LibraryItem {
   };
 }
 
-/** What each `/psychoactive/*` summary page covers, for the Drug classes panel. */
 const CLASS_PAGE_DESCRIPTIONS = {
   psychedelic: msg("The visual, cognitive, and transpersonal effects the class shares"),
   dissociative: msg("The disconnective effects that define the class, from holes to voids"),
@@ -123,8 +105,6 @@ export const LIBRARY_PANELS: LibraryPanel[] = [
         ],
       },
     ],
-    // The two published SEI effects about dreaming, so a reader who came for
-    // the dream article can find the entries that cite it.
     footerLinks: [
       { href: "/effects/dream-potentiation", label: msg("Dream potentiation") },
       { href: "/effects/dream-suppression", label: msg("Dream suppression") },
@@ -137,8 +117,6 @@ export const LIBRARY_PANELS: LibraryPanel[] = [
     blurb: msg(
       "Single-substance guides that walk the experience end to end, with their own dosing tiers and intensity models.",
     ),
-    // One group per class so the class is said once as a sub-label rather
-    // than trailing every row. A class with no guide written yet has no group.
     groups: GUIDE_CLASSES.flatMap((guideClass) => {
       const { guides, label } = ARTICLE_GUIDES_BY_CLASS[guideClass];
       return guides.length > 0 ? [{ label, items: guides.map(guideItem) }] : [];
@@ -151,10 +129,6 @@ export const LIBRARY_PANELS: LibraryPanel[] = [
     blurb: msg(
       "The general effect descriptions for each psychoactive class: what its substances have in common, with no single substance in view.",
     ),
-    // One row per summary page rather than one per class: psychedelics own
-    // three (visual, cognitive, miscellaneous), and collapsing them behind a
-    // single "Psychedelics" row hid two published articles. The class note
-    // belongs to the class, so it rides the group, not a row.
     groups: GUIDE_CLASSES.map((guideClass) => {
       const { label, summaries } = ARTICLE_GUIDES_BY_CLASS[guideClass];
       return {

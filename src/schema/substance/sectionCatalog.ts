@@ -68,10 +68,6 @@ export type SubstanceEditorFormAdapter =
 export interface SubstanceSectionPresenceContext {
   hasExternalReagentData?: boolean;
   isLoadingExternalReagentData?: boolean;
-  /**
-   * Trip reports live in Postgres, not on the article, so the host resolves
-   * whether any related reports exist and hands the answer down here.
-   */
   hasTripReports?: boolean;
 }
 
@@ -310,8 +306,6 @@ export const ARTICLE_SECTION_CATALOG = [
   {
     id: "subjective-effects",
     label: msg("Subjective Effects"),
-    // Same glyph the Effects nav item uses (`routeChromeIcons`), so the TOC,
-    // the header and the section heading all show one icon for this subject.
     icon: icons.subjectiveEffectIndex,
     articleFields: ["subjective_effects", "comparisons"],
     editor: { visible: true, adapter: "SubjectiveEffectsFieldsRHF", order: 5 },
@@ -520,8 +514,6 @@ export const ARTICLE_SECTION_CATALOG = [
       visible: true,
       toc: true,
       renderer: "HarmPotentialSection",
-      // Content, not key presence: an empty harm_potential scaffold used to count
-      // as a populated section and render blank subsections.
       isPresent: (article) => hasHarmPotentialContent(article.harm_potential),
     },
     generator: {
@@ -606,8 +598,6 @@ export const ARTICLE_SECTION_CATALOG = [
       visible: true,
       toc: true,
       renderer: "TripReportsSection",
-      // Related reports are fetched from Postgres rather than stored on the
-      // article, so presence comes entirely from the host-provided context.
       isPresent: (_article, context) => context?.hasTripReports ?? false,
     },
   },
@@ -658,7 +648,6 @@ export const ARTICLE_SECTION_CATALOG = [
   {
     id: "sources",
     label: msg("Sources"),
-    // The rendered heading is "References", numbered — not a shelf of sources.
     icon: icons.listOrdered,
     articleFields: ["references", "source_citations", "citations"],
     editor: { visible: true, adapter: "SourceCitationsFieldsRHF", order: 13 },

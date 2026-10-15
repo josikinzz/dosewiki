@@ -33,7 +33,6 @@ describe("three-way merge of a local draft and the latest record", () => {
     const result = merge({ ...base, summary: "My summary" }, { ...base, summary: "Their summary" });
     expect(result.conflicts).toEqual([{ path: "summary", base: "Original summary", mine: "My summary", theirs: "Their summary" }]);
     expect(result.unresolved).toEqual(["summary"]);
-    // Until someone chooses, the proposal holds the latest record's value.
     expect((result.merged as typeof base).summary).toBe("Their summary");
 
     const chosen = merge({ ...base, summary: "My summary" }, { ...base, summary: "Their summary" }, { summary: "mine" });
@@ -72,7 +71,6 @@ describe("three-way merge of a local draft and the latest record", () => {
     const theirs = { ...base, references: [reference("doi-1", "First"), reference("doi-2", "Theirs")] };
     const result = merge(mine, theirs);
     expect(result.conflicts.map((conflict) => conflict.path)).toEqual(["references[doi-2].title"]);
-    // Only this editor moved the entries, so their order carries forward.
     expect((result.merged as typeof base).references.map((entry) => entry.id)).toEqual(["doi-2", "doi-1"]);
     expect(result.mine.map((change) => change.path)).toEqual(["references order"]);
   });

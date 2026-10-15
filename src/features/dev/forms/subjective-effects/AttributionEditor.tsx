@@ -1,8 +1,3 @@
-/**
- * AttributionEditor - Edit the attribution section for subjective effects.
- * Contains author, text, and url fields.
- */
-
 import { get, useFormContext, useFormState } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
@@ -11,7 +6,6 @@ import { FormEditorField } from "../FormEditorField";
 import type { SubstanceArticle } from "@/schema";
 
 export interface AttributionEditorProps {
-  /** Prefix for input IDs */
   idPrefix: string;
   pairedIndicator?: boolean;
 }

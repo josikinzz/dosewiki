@@ -31,7 +31,6 @@ describe("credentials callback rate limiting", () => {
   });
 
   it("allows the policy budget of credential attempts then answers 429 in the NextAuth client shape", async () => {
-    // Unique IP per test: the limiter's in-memory fallback store is module-global.
     const ip = "192.0.2.55";
 
     for (let index = 0; index < 10; index += 1) {
@@ -46,13 +45,10 @@ describe("credentials callback rate limiting", () => {
     expect(limited.headers.get("Retry-After")).toBeTruthy();
 
     const body = (await limited.json()) as { url?: string };
-    // next-auth/react reads new URL(data.url).searchParams.get("error") — the url must be absolute.
     expect(new URL(body.url ?? "").pathname).toBe("/sign-in");
     expect(new URL(body.url ?? "").searchParams.get("error")).toBe("RateLimited");
-    // The limited request never reaches NextAuth.
     expect(handlerMock.mock.calls.length).toBe(passthroughCalls);
 
-    // The window is per-IP: another address is unaffected.
     const otherIp = await POST(credentialsRequest("192.0.2.57"), context);
     expect(otherIp.status).toBe(200);
   });

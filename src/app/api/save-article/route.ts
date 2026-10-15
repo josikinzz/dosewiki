@@ -99,8 +99,6 @@ function getSafeDataSaveError(error: unknown): {
   };
 }
 
-// Admin floor: editors stage the same payload through /api/dev/proposals and an
-// admin applies it; only an admin writes production directly from the panel.
 export const POST = protectedRouteOperation<SaveArticleBody>({
   auth: "admin",
   rateLimit: "editorHeavyWrite",
@@ -239,9 +237,6 @@ export const POST = protectedRouteOperation<SaveArticleBody>({
         path !== "/substances" || hasMembershipChange || publishedLayoutTypes.length > 0);
 
       phase = "revalidation";
-      // The Postgres write is already durable here. A public deployment that
-      // refuses or drops its refresh is reported as an unpublished target, not
-      // raised as a save failure that would invite a duplicate write.
       const savedRevisions = articleOutcomes.flatMap((outcome) =>
         outcome.action !== "skipped" && outcome.publicRevision && outcome.next?.slug
           ? [{ slug: outcome.next.slug, revision: outcome.publicRevision }] : []);

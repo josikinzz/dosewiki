@@ -2,24 +2,6 @@ import type { Doc, Id } from "../../lib/postgres/runtime/dataModel"
 import type { MutationCtx, QueryCtx } from "../../lib/postgres/runtime/server"
 import { publicReadIndexReady } from "./publicReadIndexes";
 
-/**
- * Denormalized substance-name lookup for `tripReports`.
- *
- * The report-name join index avoids scanning the whole `tripReports` table
- * on every article render to find reports that mention a substance.
- * `tripReportSubstances` holds one row per distinct
- * (report, lowercase substance name) pair with an index on the name, which
- * turns that scan into a handful of point reads.
- *
- * The key is `name.toLowerCase()` and nothing else: the read path it replaces
- * compared `s.name.toLowerCase() === query.toLowerCase()`, and a stricter
- * normalization (trimming, diacritics) would change which reports match.
- *
- * The central indexed mutation boundary maintains every source write. Until
- * a complete durable backfill pass is certified, readers keep full results
- * through the temporary legacy scan, even when some join rows already exist.
- */
-
 export function tripReportSubstanceKey(name: string): string {
   return name.toLowerCase();
 }
@@ -82,15 +64,6 @@ export async function deleteTripReportSubstanceRows(
   return existing.length;
 }
 
-
-/**
- * Reports whose `substances` contain any of `substanceNames`, case-insensitive,
- * in `_creationTime` order, which is the order the legacy full scan returned.
- *
- * Falls back only while the durable completion marker is absent. Every hit
- * is re-checked against the report, so stale or orphaned legacy join rows
- * cannot surface a report that no longer mentions the substance.
- */
 export async function findTripReportsBySubstanceNames(
   ctx: QueryCtx,
   substanceNames: ReadonlyArray<string>,

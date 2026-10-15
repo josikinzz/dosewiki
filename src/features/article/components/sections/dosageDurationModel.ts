@@ -35,11 +35,6 @@ export function formatRouteLabel(t: Translate, route: string): string {
   return t(getRouteLabelKey(route));
 }
 
-/**
- * A stored dose range as a reader sees it: "10-20 mg", "60+ mg", "~10 mg" for
- * a threshold. Units are never converted. A change diff also reads a duration
- * stage through it, because a diff shows the stored triple as it is.
- */
 export function formatDose(
   range: { min: number | null; max: number | null; unit: string } | null,
   isThreshold = false,

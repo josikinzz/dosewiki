@@ -11,15 +11,6 @@ const normalizeUsername = (username: string) => username.trim().toLowerCase();
 const nextPasswordUpdatedAt = (previous?: string) =>
   new Date(Math.max(Date.now(), (Date.parse(previous ?? "") || 0) + 1)).toISOString();
 
-// Every function here takes only the server key (no `actorEmail`), which
-// `requireRole` resolves to admin: the Auth.js server callback and the seed
-// script are the only callers, and both hold the key. The deployment URL is
-// public, so nothing here may be reachable without it.
-
-/**
- * JWT refresh lookup. Hashes and reset tokens never leave the row; the
- * projection here is the whole contract, as with `listRoster`.
- */
 export const getByEmail = query({
   args: {
     apiKey: v.string(),
@@ -63,10 +54,6 @@ export const getByEmail = query({
   },
 });
 
-/**
- * Sign-in lookup. Returns the banned row too (with `bannedAt`) so the caller
- * can refuse it explicitly rather than treating a banned member as unknown.
- */
 export const getCredentialsByUsername = query({
   args: {
     apiKey: v.string(),
@@ -128,11 +115,6 @@ export const touchSignIn = mutation({
   },
 });
 
-/**
- * Seeds or resets an admin account. Only `scripts/auth/seed-admin-accounts.mjs`
- * calls this; it upserts by username so re-running the seed rotates the
- * password instead of duplicating the row.
- */
 export const setAdminAccount = mutation({
   args: {
     apiKey: v.string(),
@@ -190,19 +172,6 @@ export const setAdminAccount = mutation({
   },
 });
 
-/**
- * Renames an account in place: username, email and display name change, the
- * password hash stays, so the person signs in under the new username with the
- * password they already use. Only `scripts/auth/rename-account.mjs` calls this.
- *
- * A row already holding the new username or email is removed only when it has
- * never signed in (an unused placeholder); anything else is refused, so a
- * rename can never swallow a live account. The password timestamp moves
- * forward, ending sessions issued under the old email. Article drafts move to
- * the new email so they stay with their owner. Rows that stamp the old email
- * as history (reviews, changelog, decisions) are left as they are; the
- * deployment's `LEGACY_CONTRIBUTOR_HANDLE_GROUPS` attributes them.
- */
 export const renameAccount = mutation({
   args: {
     apiKey: v.string(),
@@ -293,10 +262,6 @@ export const renameAccount = mutation({
   },
 });
 
-/**
- * One-off migration: drops the rows the retired OAuth sign-in minted as
- * `viewer`. Rows that already carry a username are accounts and are kept.
- */
 export const retireViewerMemberships = mutation({
   args: {
     apiKey: v.string(),
@@ -323,9 +288,6 @@ export const retireViewerMemberships = mutation({
   },
 });
 
-// Roster management. Every function below takes `actorEmail` so the route's
-// session decides the role; `requireRole` refuses anyone below admin.
-
 const rosterRoleValidator = v.union(v.literal("editor"), v.literal("translator"), v.literal("editor_translator"), v.literal("contributor"));
 
 const rosterRow = v.object({
@@ -344,10 +306,6 @@ const rosterActorArgs = {
   actorEmail: v.string(),
 };
 
-/**
- * The Members tab roster. Hashes and reset tokens never leave the row; the
- * projection here is the whole contract.
- */
 export const listRoster = query({
   args: rosterActorArgs,
   returns: v.array(rosterRow),
@@ -368,11 +326,6 @@ export const listRoster = query({
   },
 });
 
-/**
- * Resolves the row an admin action targets. Admin rows are off limits to
- * every roster action (admins are seeded and rotated from a workstation), and
- * so is the actor's own row: locking yourself out is a script's job.
- */
 async function requireManagedTarget(
   ctx: Parameters<typeof requireRole>[0],
   args: { apiKey: string; actorEmail: string; email: string },
@@ -445,11 +398,6 @@ export const unban = mutation({
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
-/**
- * Stores a reset token the route already generated and hashed. The plaintext
- * is shown to the admin exactly once; only its sha256 hex lands here. A banned
- * member gets no link: unban first, so the ban stays the single switch.
- */
 export const issuePasswordReset = mutation({
   args: {
     ...rosterActorArgs,
@@ -478,13 +426,6 @@ export const issuePasswordReset = mutation({
   },
 });
 
-/**
- * Redeems a reset link. Server key only: the person resetting has no session,
- * so the token is the whole credential and the route rate-limits it like a
- * sign-in attempt. Expired and unknown tokens fail identically, and so does a
- * link whose member was banned after it was issued: a ban must not leave an
- * unexpired link that still rotates the hash.
- */
 export const consumePasswordReset = mutation({
   args: {
     apiKey: v.string(),

@@ -20,7 +20,6 @@ beforeEach(() => {
 afterEach(() => { process.env = originalEnv; vi.restoreAllMocks(); });
 
 const request = async () => {
-  // Re-import after resetModules so each test exercises fresh capability configuration.
   const { GET } = await import("./route");
   return GET(new Request("https://dose.wiki/api/editor-config-health"));
 };

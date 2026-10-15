@@ -7,13 +7,11 @@ interface UnsavedWorkMetadata {
   id: string;
   save?: never;
   publishesLive?: never;
-  /** The rail tab that holds this scope. Defaults to `id`. */
   tab?: string;
   label: string;
   dirty: boolean;
   discard: () => void;
   saveLabel?: string;
-  /** Shared working sets survive a rail switch, but not leaving the editor. */
   keepsOnTabSwitch?: boolean;
 }
 
@@ -23,28 +21,15 @@ export type UnsavedWorkEntry = UnsavedWorkMetadata & (
   | { kind: "submit-proposal"; submit: () => Promise<void>; saveDraft?: never; because?: never }
 );
 
-/** What is about to drop the work: a rail switch, or leaving the editor entirely. */
 export type UnsavedWorkExit = "tab" | "leave";
 
 export interface UnsavedWorkExitScope {
-  /**
-   * Only this rail tab's work is at stake: a switch inside one tool that
-   * replaces all of its scopes at once (the Glossary language picker).
-   */
   tab?: string;
 }
 
 export interface UnsavedWorkRegistry {
-  /** Every registered entry that is dirty right now, in registration order. */
   dirtyEntries: readonly UnsavedWorkEntry[];
-  /** Whether any dirty entry lives on this rail tab. */
   isDirty: (tab: string) => boolean;
-  /**
-   * Runs `proceed` at once when nothing would be lost. Otherwise opens the one
-   * dialog, and runs `proceed` only after every listed entry is saved or
-   * discarded. Cancel runs nothing. `scope.tab` narrows the question to one
-   * tool's work.
-   */
   confirmExit: (proceed: () => void, exit?: UnsavedWorkExit, scope?: UnsavedWorkExitScope) => void;
 }
 
@@ -54,7 +39,6 @@ type RegistryContext = UnsavedWorkRegistry & {
 
 const UnsavedWorkContext = createContext<RegistryContext | null>(null);
 
-/** Outside the shell (a tool rendered alone, a test) nothing is tracked and nothing blocks. */
 const INERT_REGISTRY: UnsavedWorkRegistry = {
   dirtyEntries: [],
   isDirty: () => false,
@@ -76,11 +60,6 @@ function exitBlockers(
   );
 }
 
-/**
- * Holds every tool's unsaved work for the /dev shell and owns the one dialog
- * that stands between that work and a rail click, Leave, sign-out or a
- * browser unload.
- */
 export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   const entriesRef = useRef(new Map<string, UnsavedWorkEntry>());
   const [snapshot, setSnapshot] = useState<readonly UnsavedWorkEntry[]>([]);
@@ -110,8 +89,6 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   }, [anyDirty]);
 
   const [pending, setPending] = useState<PendingExit | null>(null);
-  // Entries saved or discarded inside the open dialog. A ref, because a tool's
-  // own `dirty` flag may lag one render behind its save resolving.
   const resolvedRef = useRef(new Set<string>());
   const [, setResolvedCount] = useState(0);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -128,8 +105,6 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
     setPending({ ids: blockers.map((entry) => entry.id), proceed });
   }, []);
 
-  // Entries read live from the map, so the dialog always calls the tool's
-  // latest save and discard. Work that unregistered meanwhile is gone already.
   const openIdsOf = (exit: PendingExit | null) =>
     exit?.ids.filter((id) => !resolvedRef.current.has(id) && entriesRef.current.get(id)?.dirty) ?? [];
 
@@ -185,8 +160,6 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
 
   const busy = savingId !== null;
   const rows = openIdsOf(pending).map((id) => entriesRef.current.get(id)).filter((entry): entry is UnsavedWorkEntry => !!entry);
-  // Only promise a save when some row offers one: a dialog that says "Save"
-  // and then shows only Discard leaves the editor hunting for a button.
   const anySavable = rows.some((entry) => entry.kind !== "discard-only");
   const request = pending && rows.length > 0
     ? {
@@ -247,7 +220,6 @@ export function UnsavedWorkProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** The shell's view of every tool's unsaved work. Inert outside the provider. */
 export function useUnsavedWorkRegistry(): UnsavedWorkRegistry {
   return useContext(UnsavedWorkContext) ?? INERT_REGISTRY;
 }

@@ -105,9 +105,6 @@ function buildChatRequest({
     maxTokens,
   };
 
-  // Some endpoints reason unconditionally and reject reasoning.enabled=false.
-  // Asking for the lowest effort and excluding the trace is the only way to
-  // stop paying for tokens the caller will never read.
   if (excludeReasoning) {
     request.reasoning = { effort: reasoningEffort || "low", exclude: true };
     return request;
@@ -135,11 +132,6 @@ function normalizeUsage(usage) {
   };
 }
 
-/**
- * A failed chat call. An `Error`, so logs and stored job errors read as text,
- * carrying the HTTP status (null for network failures) and whether a retry of
- * the same request can succeed.
- */
 export class OpenRouterChatError extends Error {
   constructor({ status, message, retryable, cause }) {
     super(message, { cause });
@@ -197,8 +189,6 @@ export async function callOpenRouterChat({
   try {
     signal?.throwIfAborted();
     const client = createOpenRouterClient(apiKey, appTitle);
-    // The SDK's backoff sleep cannot be aborted. Signal-bearing callers own
-    // retries so cancellation cannot leave an SDK retry waiting in the background.
     const response = await client.chat.send({
       chatRequest: buildChatRequest({
         model,

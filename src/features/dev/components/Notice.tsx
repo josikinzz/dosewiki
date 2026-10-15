@@ -7,10 +7,6 @@ import { TOUCH_HALO } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 
-/**
- * `loading` is its own tone so an in-flight action can never be announced as
- * an alert: only `danger` takes `role="alert"`.
- */
 export type NoticeTone =
   | "neutral"
   | "info"
@@ -19,14 +15,8 @@ export type NoticeTone =
   | "warning"
   | "danger";
 
-/**
- * `page` is the block banner for a panel or page. `inline` is the compact pill
- * that sits beside the control that caused it, so the outcome shows where the
- * editor is looking.
- */
 export type NoticePlacement = "inline" | "page";
 
-/** A notice held in state: spread it into `<Notice {...notice} />`. */
 export interface NoticeMessage {
   tone?: NoticeTone;
   title?: ReactNode;
@@ -38,26 +28,14 @@ export interface NoticeMessage {
 export interface NoticeProps {
   tone?: NoticeTone;
   placement?: NoticePlacement;
-  /**
-   * Clears the notice. Given this, the notice follows one dismissal rule:
-   * errors persist until the editor dismisses them, and successes clear on
-   * their own after `autoClearMs`. Every other tone stays until dismissed.
-   */
   dismiss?: () => void;
-  /**
-   * Success auto-clear delay. Defaults to `NOTICE_AUTO_CLEAR_MS`, or to no
-   * auto-clear when the notice carries actions (an editor should not lose a
-   * button under the pointer). `null` turns auto-clear off.
-   */
   autoClearMs?: number | null;
   title?: ReactNode;
-  /** The notice text. `children` is the same slot for JSX callers. */
   message?: ReactNode;
   children?: ReactNode;
   icon?: IconName;
   actions?: ReactNode;
   className?: string;
-  /** Page placement only: exposes the title as a heading at this level. */
   headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
 }
 
@@ -90,14 +68,12 @@ const iconByTone: Record<NoticeTone, IconName> = {
   danger: "lucide:circle-alert",
 };
 
-/** The pill keeps the lighter glyphs it always wore beside a control. */
 const inlineIconByTone: Record<NoticeTone, IconName> = {
   ...iconByTone,
   success: "lucide:check",
   danger: "lucide:triangle-alert",
 };
 
-/** Errors interrupt; everything else, loading included, is a polite status. */
 export function noticeLiveRole(tone: NoticeTone) {
   return tone === "danger"
     ? ({ role: "alert" } as const)
@@ -123,10 +99,6 @@ function useSuccessAutoClear(
   }, [delay, enabled, messageKey]);
 }
 
-/**
- * The one notice for dev tools. Every tool reports loading, success, warning
- * and error through it, in page or inline placement.
- */
 export function Notice({
   tone = "neutral",
   placement = "page",

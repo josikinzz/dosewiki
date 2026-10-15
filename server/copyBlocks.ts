@@ -28,21 +28,6 @@ export const getForEditor = query({
   },
 });
 
-/**
- * Editable site copy ("copy blocks").
- *
- * Public pages used to hardcode their prose. A copy block lifts one of those
- * strings into Postgres under a stable `key`, so the /dev Copy Studio can edit it
- * and the public read helper (`lib/next/copyBlocks.ts`) can serve it without a
- * deploy. Every block still has a checked-in local default, so an empty table
- * renders exactly what the hardcoded strings rendered.
- *
- * Reads are public on purpose: this is the copy a reader already sees. Writes
- * are admin-gated through `requireRole`: an editor's copy edits arrive as
- * change proposals and `approveAndApply` runs this same upsert with the
- * approving admin as the actor.
- */
-
 export const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const;
 
 const copyBlockKindValidator = v.union(
@@ -51,11 +36,6 @@ const copyBlockKindValidator = v.union(
   v.literal("list"),
 );
 
-/**
- * The editable fields of one block, as `upsert` takes them and as a change
- * proposal carries them. Shared so a proposal can never smuggle a shape the
- * direct save would refuse.
- */
 export const copyBlockDocumentFields = {
   key: v.string(),
   flavor: v.optional(v.string()),
@@ -94,7 +74,6 @@ const copyBlockDocValidator = v.object({
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
-/** A generous ceiling; the longest seeded block is a few paragraphs of prose. */
 const BODY_MAX_LENGTH = 20_000;
 const ITEM_MAX_LENGTH = 2_000;
 const MAX_ITEMS = 64;
@@ -105,11 +84,6 @@ function reject(message: string): never {
   throw new PostgresError({ code: "invalidCopyBlock", message });
 }
 
-/**
- * `kind` decides which payload field is authoritative, so the other one is
- * cleared rather than left behind: a block that flips from a list to markdown
- * must not keep serving stale `items` to a reader whose renderer still looks.
- */
 export function normalizeCopyBlockPayload(args: {
   kind: CopyBlockKind;
   body?: string;
@@ -136,11 +110,6 @@ export function normalizeCopyBlockPayload(args: {
   return { body, items: undefined };
 }
 
-/**
- * Every copy block, unfiltered. The table is one row per editable string —
- * tens of rows, not thousands — so the whole set is one read for both the
- * public helper and the Copy Studio rail.
- */
 export const getAll = query({
   args: {},
   returns: v.array(copyBlockDocValidator),
@@ -149,7 +118,6 @@ export const getAll = query({
   },
 });
 
-/** Metadata-only editor catalogue; full content and revision load by selected key. */
 export const getEditorCatalogue = query({
   args: {},
   handler: async (ctx) => {
@@ -232,13 +200,6 @@ export async function upsertCopyBlockHandler(ctx: MutationCtx, args: UpsertCopyB
   return { updated: !!existing, id, key, revision, replayed: false, unchanged: false };
 }
 
-/**
- * Create or replace one copy block, addressed by `key`.
- *
- * Idempotent by key: a retried save patches the same row instead of minting a
- * duplicate, which matters because the public read resolves a key to exactly
- * one block.
- */
 export const upsert = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -285,10 +246,6 @@ export async function removeCopyBlockHandler(
   return { removed: true, key, revision, replayed: false, unchanged: false };
 }
 
-/**
- * Delete one copy block. Removing a row is not destructive to a reader: the
- * public helper falls straight back to the checked-in default for that key.
- */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),

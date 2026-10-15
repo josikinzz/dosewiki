@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-/** Identification section */
 export const identificationSchema = z.object({
   common_name: z.string(),
   substitutive_name: z.string(),
@@ -15,7 +14,6 @@ export const identificationSchema = z.object({
   botanical_name: z.string().nullable().default(""),
 });
 
-/** Classification section */
 export const classificationSchema = z.object({
   psychoactive_class: z.array(z.string()),
   chemical_class: z.array(z.string()),

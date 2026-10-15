@@ -5,11 +5,6 @@ import { useId, useState } from "react";
 import { ExpandIndicator } from "@/components/common/ExpandButton";
 import { EditorStatusPill, type EditorStatusPillTone } from "@/features/dev/components";
 
-/**
- * The one legend for review states across the workbench, and the one place it
- * says that approval is not deployment. Panels name a state; this defines it,
- * drawn as the pill each panel shows.
- */
 export const STATUS_LEGEND: readonly { state: string; meaning: string; tone: EditorStatusPillTone }[] = [
   { state: "Machine", meaning: "Stored model wording. No person has checked it.", tone: "neutral" },
   { state: "Draft (unreviewed)", meaning: "Saved wording waiting for someone to approve it. Readers do not see it yet.", tone: "warning" },

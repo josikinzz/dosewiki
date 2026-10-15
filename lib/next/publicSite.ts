@@ -38,10 +38,6 @@ function normalizeSiteUrl(value: string | undefined): string | null {
   }
 }
 
-/**
- * An explicitly configured `NEXT_PUBLIC_SITE_URL` always wins; otherwise the active
- * flavor's default canonical base is used.
- */
 export function getPublicSiteUrl(
   env: PublicSiteEnv = { NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL },
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
@@ -49,11 +45,9 @@ export function getPublicSiteUrl(
   return normalizeSiteUrl(env.NEXT_PUBLIC_SITE_URL) ?? config.defaultSiteUrl;
 }
 
-/** The flavored identity every public metadata surface reads from. */
 export type PublicSiteIdentity = {
   flavor: SiteFlavor;
   name: string;
-  /** Browser-tab title suffix; `buildPublicPageMetadata` appends " - <suffix>" once. */
   titleSuffix: string;
   url: string;
   description: string;
@@ -85,10 +79,6 @@ function buildShortDescriptionSuffix(siteName: string): string {
   return ` Explore related ${siteName} records, sources, and route context.`;
 }
 
-/**
- * A per-page Open Graph image override (e.g. the substance molecule card).
- * `path` is a site-relative asset or route path; the builder makes it absolute.
- */
 type PublicPageSocialImage = {
   path: string;
   width: number;
@@ -102,7 +92,6 @@ export type PublicPageMetadataInput = {
   route?: PublicRouteIdentity;
   pathname?: string;
   noIndex?: boolean;
-  /** Overrides the flavor-wide social card for this page only. */
   socialImage?: PublicPageSocialImage;
 };
 
@@ -132,15 +121,6 @@ function buildMetaDescription(description: string, siteName: string): string {
   return `${snippet.trimEnd()}...`;
 }
 
-/**
- * The one owner of the title-suffix convention: routes pass a bare page name and this
- * composes `<name> - <suffix>`. An empty name yields the suffix alone — the homepage's
- * form, which is why it is the only tab title without the trailing " - <suffix>".
- */
-/**
- * The page name renders in the request's UI locale: index titles are catalog
- * keys, record names pass through unchanged when the catalog has no entry.
- */
 function composePageTitle(title: string, site: PublicSiteIdentity): string {
   const pageName = title.trim();
   return pageName ? `${t(pageName)} - ${site.titleSuffix}` : site.titleSuffix;

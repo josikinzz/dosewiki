@@ -3,46 +3,16 @@ import type { SectionGapNeighbour, SectionGapReason, SubstanceArticle } from "@/
 import type { ArticleStubVerdict } from "@/schema/substance/articleStubPolicy";
 import type { SubstanceSectionId } from "@/schema/substance/sectionManifest";
 
-/**
- * Wording and policy for sections that have no published content.
- *
- * The per-article data (neighbours, family, reason) lives on the article record
- * under `section_gaps`. What lives here is the part that must not vary between
- * articles: the sentences, and which sections are allowed to phrase their
- * neighbour list as an inference about this substance.
- */
-
-/**
- * Whether the neighbour list may be read as a claim about this compound.
- *
- * `hedge`   — class membership genuinely predicts the answer, so the copy may say so.
- * `pointer` — it does not, so the neighbours are navigation only, plus a caution.
- * `none`    — nothing worth pointing at; the absence is the whole statement.
- */
 type NeighbourStyle = "hedge" | "pointer" | "none"
 
 export interface ArticleGapPolicy {
-  /**
-   * Section id, matching the public renderer and the TOC anchor. The notice
-   * heading takes its glyph from the catalog entry under this id, so an empty
-   * section and a filled one show the same icon.
-   */
   id: SubstanceSectionId;
-  /** Key under `section_gaps.sections`, matching the quote-section ids. */
   gapKey: string;
   label: string;
-  /** Lowercase noun used mid-sentence. */
   topic: string;
-  /** Whether `topic` takes a plural verb — "subjective effects are", "tolerance is". */
   pluralTopic?: boolean;
   neighbourStyle: NeighbourStyle;
-  /** Shown wherever an analogy could be misread as advice. */
   caution?: string;
-  /**
-   * Where to look instead. Unlike `caution`, which qualifies a neighbour list,
-   * this stands on its own — it is shown whenever the section is empty, because
-   * for some sections the absence is precisely what the reader has to act on.
-   */
   lookElsewhere?: string;
 }
 
@@ -75,9 +45,6 @@ export const ARTICLE_GAP_POLICIES = {
     gapKey: "interactions",
     label: msg("Interactions"),
     topic: msg("interaction"),
-    // Combination risk is a property of the pair, not of the chemical class, so
-    // a neighbour's combo chart says nothing about this one. The absence is the
-    // whole statement, and the reader is sent to a dedicated checker instead.
     neighbourStyle: "none",
     lookElsewhere: msg(
       "An unlisted combination is an unknown one, not a safe one. Check a dedicated combination chart before mixing.",
@@ -117,7 +84,6 @@ export const ARTICLE_GAP_POLICIES = {
 
 export type ArticleGapPolicyKey = keyof typeof ARTICLE_GAP_POLICIES;
 
-/** Article order, for the stub-banner count and the missing-section list. */
 export const ARTICLE_GAP_ORDER: ArticleGapPolicyKey[] = [
   "dosage_duration",
   "subjective_effects",
@@ -129,27 +95,10 @@ export const ARTICLE_GAP_ORDER: ArticleGapPolicyKey[] = [
   "legality",
 ];
 
-/**
- * Wording for a single empty slot inside a section that does render.
- *
- * The three absence notices are deliberately not the same thing, and the words
- * have to keep them apart. An *article* can be a stub — started, incomplete,
- * and the reader should discount the whole page accordingly. A *section* is
- * "not written up yet" — a body of work nobody has done. A *slot* like
- * metabolites or half-life is neither: it is one fact, either recorded or not,
- * so it says "not documented" and claims nothing about the rest of the article.
- * "Stub" never appears at this level.
- *
- * `label` names the slot rather than repeating the subsection heading above it,
- * so the row adds information instead of echoing what the reader just read.
- */
 export interface SubsectionGapPolicy {
-  /** Key under `section_gaps.sections`, namespaced by its parent section. */
   gapKey: string;
   label: string;
-  /** Shown when the slot is empty because nobody has written it up. */
   unwritten: string;
-  /** Shown when extraction ran and the sources genuinely had nothing. */
   silent: string;
 }
 
@@ -170,15 +119,6 @@ export const SUBSECTION_GAP_POLICIES = {
 
 export type SubsectionGapPolicyKey = keyof typeof SUBSECTION_GAP_POLICIES;
 
-/**
- * The reason for one empty slot.
- *
- * Falls back through the parent section's override to the article default, so
- * an article whose pharmacology gaps are already recorded as `sources-silent`
- * does not have to repeat that per slot. The final default is `not-written`,
- * for the same reason it is at section level: "every source is silent" is an
- * evidence claim and must be recorded deliberately, never assumed.
- */
 export function resolveSubsectionGapReason(
   article: SubstanceArticle,
   policy: SubsectionGapPolicy,
@@ -210,7 +150,6 @@ export interface ResolvedGap {
   neighbours: SectionGapNeighbour[];
 }
 
-/** Merge the article-level defaults with any per-section override. */
 export function resolveGap(
   article: SubstanceArticle,
   policy: ArticleGapPolicy,
@@ -218,9 +157,6 @@ export function resolveGap(
   const gaps = article.section_gaps;
   const override = gaps?.sections?.[policy.gapKey];
   return {
-    // Absent metadata is the common case while the backfill is in progress, and
-    // "not written up yet" is the honest default: claiming every source is silent
-    // is an evidence claim, and it must be recorded deliberately, never assumed.
     reason: override?.reason ?? gaps?.reason ?? "not-written",
     family: gaps?.family ?? null,
     neighbours: override?.neighbours ?? gaps?.neighbours ?? [],
@@ -229,7 +165,6 @@ export function resolveGap(
 
 export interface ArticleGapCopy {
   title: string;
-  /** Sentence introducing the neighbour list. Empty when there is nothing to introduce. */
   lead: string;
   caution?: string;
   lookElsewhere?: string;
@@ -245,9 +180,6 @@ export function buildArticleGapCopy(
       ? t("No published {{topic}} data", { topic: t(policy.topic) })
       : t("{{label}} not written up yet", { label: t(policy.label) });
 
-  // The hedge stays soft on purpose. "Broadly consistent across the class" would
-  // assert something nobody has measured for this compound; "likely somewhat
-  // similar" is as far as class membership licenses.
   let lead = "";
   if (gap.neighbours.length > 0 && policy.neighbourStyle !== "none") {
     if (policy.neighbourStyle === "hedge") {
@@ -275,15 +207,6 @@ export function buildArticleGapCopy(
   };
 }
 
-/**
- * Tooltip for the stub banner.
- *
- * An article qualifies as a stub for either of two independent reasons, and the
- * sentence has to name the one that actually fired: an article with two empty
- * sections and no dose ranges is a stub, but telling the reader "two of its
- * seven sections have no published data" would explain the banner by a count
- * that does not on its own trigger it.
- */
 export function buildArticleStubCopy(t: Translate, verdict: ArticleStubVerdict, total: number): string {
   const sentences: string[] = [];
 

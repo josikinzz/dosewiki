@@ -1,27 +1,3 @@
-/**
- * Editor read + write for the Effect Index featured carousel
- * (`/dev` → Replications → Featured).
- *
- *   GET  /api/dev/replications/featured            → { slugs, curated, updatedAt, updatedBy }
- *   POST /api/dev/replications/featured  { slugs } → replace the selection (admin only)
- *
- * The browser holds no admin intent token, so the write is delegated here the
- * way the Copy Studio delegates its own: the route checks the session floor,
- * then calls Postgres with the server's token plus the actor's email for the
- * audit trail. The selection is site configuration, so the write is admin.
- *
- * `curated: false` on the GET means this deployment has never stored a
- * selection and the homepage is still running on the checked-in JSON list. The
- * studio shows that list as the starting point, so saving from an uncurated
- * deployment records what was already on screen rather than silently replacing
- * it with something else.
- *
- * The POST finishes by publishing the featured replication set, which expires
- * the featured-replications tag with `expire: 0` and the Effect Index home
- * route that renders the carousel, on this deployment and on the public ones.
- * That is what makes a re-curation reach the homepage immediately instead of at
- * the end of the 15-minute public-data window.
- */
 import { NextResponse } from "next/server";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "@server/postgres/runtime/api";
@@ -34,7 +10,6 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 
-/** Matches the ceiling enforced in `server/siteConfig.ts`. */
 const MAX_FEATURED = 120;
 
 type FeaturedBody = { slugs?: unknown };

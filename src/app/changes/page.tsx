@@ -8,8 +8,6 @@ import { getPublicSubstanceLookupBySlug } from "@server/data/publicData.substanc
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { ChangesPage } from "@/components/pages/ChangesPage";
 
-// The list reads through the shared 15-minute Postgres cache; the article filter
-// is a query string, so the page itself renders per request.
 export const dynamic = "force-dynamic";
 
 type ChangesRouteProps = {

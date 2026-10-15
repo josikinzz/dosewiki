@@ -1,14 +1,3 @@
-/**
- * POST /api/dev/translation-inbox/exception
- *   { locale, finding: "glossary-disagreement" | "leftover-latin", hash, term, revision }
- *
- * Translator and up, for an assigned locale only. "Fine here" on an Inbox QA
- * finding: records a qa-exception in the review tables, keyed by locale,
- * segment hash, term, and the revision the reviewer saw, with the actor in
- * review history. The finding returns only when the source, the rendering, or
- * the stored translation changes. A changed revision is refused (409) and
- * writes nothing; the write freeze fails closed (503).
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

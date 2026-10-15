@@ -11,8 +11,6 @@ import {
   type SubstancePublicationDependency,
 } from "../../src/data/projections/substancePublicationDependencies";
 
-// Public source tables only. Drafts, proposals, intake, accounts, evidence,
-// archives other than public blog posts, playlists and unpublished molecule templates are absent.
 const tables = ["substanceIndex", "subjectiveEffects", "effectIndexArticles", "effectIndexArchive", "tripReports", "replications", "substanceGalleries", "contributorProfiles", "replicationArtistTaxonomy", "replicationIdentityAttributions", "replicationIdentityProfileBindings", "replicationSocialAssets", "replicationSourceAttribution", "replicationDateResearch", "reagentTests", "moleculeOverrides", "changelog", "copyBlocks", "siteConfig", "categoryLayout", "indexLayouts", "warningBannerPresets"] as const;
 type Table = typeof tables[number];
 
@@ -74,10 +72,6 @@ function snapshot(table: Table, row: Row | null): string | null {
   return contentHash(content);
 }
 
-/** The editorial caller of the publication outbox (`lib/next/publicationOutbox.ts`).
- * Capture original and final state in the writer transaction. A crash after the
- * Postgres commit cannot lose this notification; cron reads only indexed due rows.
- * Coalescing leaves one durable receipt per identity, not a growing event log. */
 export function withPublicationOutbox(ctx: MutationCtx) {
   const changes = new Map<string, { table: Table; id: Id<Table>; before: Row | null }>();
   let failure: { error: unknown } | undefined;
@@ -150,13 +144,10 @@ export function withPublicationOutbox(ctx: MutationCtx) {
         const current = await ctx.db.query("publicCachePublications").withIndex("by_key", (q) => q.eq("key", key)).unique();
         const target = pending.target;
         const knownRevision = pending.revision;
-        // Dependency-only commits must not discard an article's unverified
-        // revision. Resolve the latest committed source within this transaction.
         const article = target.kind === "article" && !knownRevision ? await ctx.db.query("substanceIndex")
           .withIndex("by_slug", (q) => q.eq("slug", target.slug)).first() : null;
         const revision = knownRevision ?? (article ? projectPublicArticle(article).publicRevision : target.kind === "article" ? null : undefined);
         const value = pendingPublicationRow(current as PublicationOutboxRow | null, { target, revision }, Date.now(), "editorial");
-        // A new commit re-pends a dead-lettered identity.
         if (current) await ctx.db.patch(current._id, { ...value, deadLetteredAt: undefined });
         else await ctx.db.insert("publicCachePublications", value);
       }

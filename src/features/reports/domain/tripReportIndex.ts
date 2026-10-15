@@ -11,11 +11,6 @@ import { formatMessage, msg, type Translate } from "@/i18n/messages";
 export type ReportSortDirection = "asc" | "desc";
 export type ReportSortKey = "alphabetical" | "count" | "date";
 
-/**
- * What a group heading already tells the reader, so a row never repeats it.
- * `mixed` covers the catch-all shelves (combinations, folded singletons) whose
- * heading names no single substance and no single author.
- */
 type ReportGroupKind = "substance" | "author" | "letter" | "mixed"
 
 const COMBINATIONS_GROUP_NAME = msg("Combinations")
@@ -23,11 +18,9 @@ const OTHER_SUBSTANCES_GROUP_NAME = msg("Other substances")
 
 export interface TripReportGroup<TReport> {
   name: string;
-  /** Stable in-page anchor, so a substance section is linkable and jumpable. */
   anchor: string;
   kind: ReportGroupKind;
   reports: TReport[];
-  /** Full group size when the reports array is a bounded browsing page. */
   reportCount?: number;
 }
 
@@ -140,13 +133,6 @@ export function groupTripReports<TReport extends ReportLike>(
   return groups;
 }
 
-/**
- * Collapse the long tail of one-report substances into a single shelf. Sixty of
- * the corpus's eighty-nine substance groups hold exactly one report, and a
- * heading plus divider costs more vertical space than the row it introduces.
- * Left alone below `minFolded` foldable groups, so a filtered index that is
- * already short does not grow a pointless catch-all.
- */
 export function foldSparseGroups<TReport>(
   groups: readonly TripReportGroup<TReport>[],
   options: { name?: string; minGroupSize?: number; minFolded?: number } = {},
@@ -176,19 +162,6 @@ export function foldSparseGroups<TReport>(
     : [...kept.slice(0, tailIndex), folded, ...kept.slice(tailIndex)];
 }
 
-/**
- * The band's two lists.
- *
- * `added` answers "what is new here", which is the only question the front
- * door could not answer before: nineteen of the corpus's reports are featured
- * and the band holds five, so a featured-first order could never surface
- * anything newer than the oldest curation decision. It ranks on the read-edge
- * publication date, then falls back to the experience date, so a deployment
- * whose projection predates `published_at` still orders the band by the most
- * recent thing it can prove rather than by nothing.
- *
- * `featured` is the curated shelf, still newest-experience-first inside it.
- */
 export function selectRecentlyAddedReports<TReport extends ReportLike>(
   reports: readonly TReport[],
   limit: number,
@@ -218,11 +191,6 @@ export function selectFeaturedReports<TReport extends ReportLike>(
     .slice(0, Math.max(limit, 0));
 }
 
-/**
- * An unparseable or absent publication date sinks below every dated row
- * rather than being treated as new, the same rule `workDateMs` applies to the
- * replication gallery.
- */
 function publicationValue<TReport extends ReportLike>(report: TReport): number {
   const parsed = report.publishedAt ? Date.parse(report.publishedAt) : Number.NaN;
   return Number.isFinite(parsed) ? parsed : 0;
@@ -244,11 +212,6 @@ function sortWithinGroup<TReport extends ReportLike>(
   });
 }
 
-/**
- * Catch-all shelves stay pinned last whatever the sort: they name no substance,
- * so letting a fifteen-report combinations bucket win a count sort would open
- * the index on the one heading that says nothing.
- */
 function orderGroups<TReport extends ReportLike>(
   groups: TripReportGroup<TReport>[],
   sortKey: ReportSortKey,
@@ -260,8 +223,6 @@ function orderGroups<TReport extends ReportLike>(
     return groups.sort((left, right) => factor * left.name.localeCompare(right.name));
   }
 
-  // Rank once per group: a comparator that rescanned a group's reports on every
-  // comparison would walk the whole corpus O(n log n) times.
   return groups
     .map((group) => ({
       group,
@@ -351,10 +312,6 @@ export function getReportBackTarget({
   report?: Pick<TripReport, "substances"> | null;
   substanceBySlug: Record<string, SubstanceLookupRecord> | Map<string, SubstanceLookupRecord>;
   fromSubstanceSlug?: string;
-  /**
-   * The `t` of the surface rendering the label, so "Back to …" names the
-   * target in the UI locale. Defaults to English formatting.
-   */
   translate?: Translate;
 }): ReportBackTarget {
   const lookup = substanceBySlug instanceof Map ? substanceBySlug : new Map(Object.entries(substanceBySlug));

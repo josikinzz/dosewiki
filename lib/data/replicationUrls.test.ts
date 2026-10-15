@@ -16,7 +16,6 @@ describe("isValidR2Key", () => {
     expect(isValidR2Key("")).toBe(false);
     expect(isValidR2Key(`media/sha256/../${SHA_A}.mp4`)).toBe(false);
     expect(isValidR2Key(`other/sha256/ab/${SHA_A}.mp4`)).toBe(false);
-    // Shard directory must repeat the digest's first two characters.
     expect(isValidR2Key(`media/sha256/cd/${SHA_A}.mp4`)).toBe(false);
     expect(isValidR2Key(`media/sha256/AB/${SHA_A.toUpperCase()}.mp4`)).toBe(false);
     expect(isValidR2Key(`media/sha256/ab/${SHA_A}`)).toBe(false);

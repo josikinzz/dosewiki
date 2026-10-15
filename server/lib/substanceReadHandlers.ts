@@ -85,8 +85,6 @@ export async function getPublicReviewedArticlesPageHandler(
   if (!reviewerEmails || reviewerEmails.size === 0) {
     return { items: [], cursor: "", isDone: true };
   }
-  // A cursor issued by the legacy source pager finishes on that pager even
-  // when readiness changes between requests. Fresh reads use only the index.
   if ((!args.cursor || args.cursor.startsWith(REVIEWED_ARTICLES_CURSOR_PREFIX))
     && await publicReadIndexReady(ctx, "reviews")) {
     return reviewedArticlesPage(ctx, reviewerEmails, args);
@@ -107,20 +105,6 @@ export async function getPublicReviewedArticlesPageHandler(
   };
 }
 
-/**
- * One page of public-safe review credits across the whole corpus: which
- * contributor profile completed the expert review of which article. This is
- * the bulk counterpart of `getPublicReviewedArticlesPageHandler` above — one
- * corpus pass answers "who reviewed what" for *every* profile at once, which
- * is what the About roster's reference counting needs, where the per-profile
- * read would cost a full corpus scan per contributor.
- *
- * The email→profile index is rebuilt from the (small) profile table on each
- * page call; a stored email claimed by two profiles goes to the earlier row,
- * and the counting side re-resolves the returned keys alias-aware anyway, so
- * a legacy shadow profile converges on the canonical one. Reviewer emails are
- * matched here and discarded: only slug + profile key leave the deployment.
- */
 export async function getPublicReviewedArticleCreditsPageHandler(
   ctx: QueryCtx,
   args: { cursor?: string; numItems: number },

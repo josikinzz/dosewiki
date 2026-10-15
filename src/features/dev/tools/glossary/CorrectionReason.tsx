@@ -1,14 +1,4 @@
 "use client";
-/**
- * The reason control and approval actions every surface of the translation
- * workbench shares (terms, interface text, article paragraphs, style guide):
- * four reason chips with an optional note, one save-then-approve button set,
- * the glossary conflict notice ("Fine here" or "Update the glossary"), and a
- * glossary proposal that saves a draft and never approves it.
- *
- * The one rule: changed wording needs a reason kind before it is saved;
- * approving saved wording as it stands needs none.
- */
 import { useId, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,24 +7,19 @@ import { CORRECTION_REASON_KINDS, CORRECTION_REASON_LABEL, type CorrectionReason
 import { findGlossaryConflicts, glossaryConflictMessage, type GlossaryMention } from "../../../../../lib/translation/glossaryConflicts";
 import { editTerm } from "./glossaryModel";
 
-/** What the reviewer has chosen so far. `exceptions` hold only for the segment named by `segment`. */
 export type CorrectionDraft = { kind: CorrectionReasonKind | null; note: string; segment: string; exceptions: string[] };
 export const EMPTY_CORRECTION: CorrectionDraft = { kind: null, note: "", segment: "", exceptions: [] };
 
-/** The request's reason, or null until a kind is chosen. */
 export function correctionReason(draft: CorrectionDraft): ReviewReason | null {
   return draft.kind ? { kind: draft.kind, note: draft.note.trim() } : null;
 }
-/** "Fine here" choices recorded for this segment; another segment starts with none. */
 export function exceptionsFor(draft: CorrectionDraft, segment: string): string[] {
   return draft.segment === segment ? draft.exceptions : [];
 }
-/** Approved terms the English mentions that the wording drops and the reviewer has not excused. */
 export function openConflicts(source: string, target: string, mentions: readonly GlossaryMention[] | undefined, exceptions: readonly string[]): GlossaryMention[] {
   return findGlossaryConflicts(source, target, (mentions ?? []).filter((row) => row.approved), exceptions);
 }
 
-/** The four reason chips; one is chosen at a time. */
 export function ReasonKindChips({ value, onChange, disabled, label = "Reason" }: { value: CorrectionReasonKind | null; onChange: (kind: CorrectionReasonKind) => void; disabled?: boolean; label?: string }) {
   return <div className="flex flex-col items-start gap-x-2 gap-y-1 sm:flex-row sm:flex-wrap sm:items-center">
     <span className="theme-text-secondary text-xs">{label}</span>
@@ -46,21 +31,14 @@ export function ReasonKindChips({ value, onChange, disabled, label = "Reason" }:
   </div>;
 }
 
-/** What the reason control holds: a kind once chosen, and an optional note. */
 export type ReasonDraft = { kind: CorrectionReasonKind | null; note: string };
 export const EMPTY_REASON: ReasonDraft = { kind: null, note: "" };
 export const REASON_NEEDED = "Choose a reason to save this change.";
 
-/**
- * The one reason control: the four kinds and an optional note, the same on
- * every surface. `needed` says in visible text why saving waits, so a
- * disabled button never has to explain itself in a tooltip.
- */
 export function ReasonPicker({ value, onChange, disabled, needed = false, noteLabel = "Note (optional)", noteAriaLabel }: {
   value: ReasonDraft;
   onChange: (next: ReasonDraft) => void;
   disabled?: boolean;
-  /** Changed wording is waiting on a kind. */
   needed?: boolean;
   noteLabel?: string;
   noteAriaLabel?: string;
@@ -76,30 +54,14 @@ export function ReasonPicker({ value, onChange, disabled, needed = false, noteLa
   </div>;
 }
 
-/**
- * The reason a write sends: the chosen kind and note, or, when saved wording
- * is approved or restored as it stands, a plain note saying so. The routes
- * that record history need one or the other.
- */
 export function reasonFor(draft: ReasonDraft, fallback: string): ReviewReason {
   return draft.kind ? { kind: draft.kind, note: draft.note.trim() } : { kind: "unspecified", note: draft.note.trim() || fallback };
 }
 
-/**
- * The one approval action. Changed wording offers Save and approve (the main
- * action) and Save draft; saved wording waiting for review offers Approve. A
- * translator may approve their own edits. `extra` is a surface's own main
- * action when there is nothing to approve (Confirm on a live, never checked
- * term); `children` follow the save buttons.
- */
 export function ApprovalActions({ changed, canSave = changed, approvable, blocked = false, busy = false, label, onSave, onSaveAndApprove, onApprove, extra, quiet = false, children }: {
-  /** The wording differs from what is saved. */
   changed: boolean;
-  /** Save draft applies; defaults to `changed`. */
   canSave?: boolean;
-  /** A saved draft is waiting and nothing unsaved sits on top of it. */
   approvable: boolean;
-  /** Saving waits on a reason or an open glossary conflict; the surface says which in text. */
   blocked?: boolean;
   busy?: boolean;
   label?: string;
@@ -107,15 +69,9 @@ export function ApprovalActions({ changed, canSave = changed, approvable, blocke
   onSaveAndApprove: () => void;
   onApprove: () => void;
   extra?: ReactNode;
-  /**
-   * In a list of many items, a clean item's Approve is outline so the one
-   * item being edited carries the accent; an edited item's Save and approve
-   * stays accent.
-   */
   quiet?: boolean;
   children?: ReactNode;
 }) {
-  // An accent that cannot be pressed reads as the live primary on dark panels, so a blocked main action is drawn outline.
   const saveApproveOff = busy || blocked;
   return <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
     {changed ? <Button type="button" variant={saveApproveOff ? "outline" : "accent"} size="sm" disabled={saveApproveOff} onClick={onSaveAndApprove}>Save and approve</Button>
@@ -129,14 +85,12 @@ export function ApprovalActions({ changed, canSave = changed, approvable, blocke
 export function CorrectionReasonFields({ value, onChange, segment, source, target, mentions, locale, disabled, needed, noteLabel = "Note (optional)", noteAriaLabel }: {
   value: CorrectionDraft;
   onChange: (next: CorrectionDraft) => void;
-  /** The segment or label being corrected; "Fine here" applies to it alone. */
   segment: string;
   source: string;
   target: string;
   mentions: readonly GlossaryMention[] | undefined;
   locale: string;
   disabled?: boolean;
-  /** Changed wording is waiting on a reason kind. */
   needed?: boolean;
   noteLabel?: string;
   noteAriaLabel?: string;
@@ -158,7 +112,6 @@ export function CorrectionReasonFields({ value, onChange, segment, source, targe
   </div>;
 }
 
-/** A prefilled glossary draft. Saving goes through the glossary's own draft save and waits for approval in Words. */
 function GlossaryProposal({ locale, mentions, initialTerm, disabled, onClose }: {
   locale: string;
   mentions: readonly GlossaryMention[];

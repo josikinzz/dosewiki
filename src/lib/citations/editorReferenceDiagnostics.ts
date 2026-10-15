@@ -69,11 +69,6 @@ function collectCitationTextFields(
   });
 }
 
-/**
- * Every string leaf in the article that contains a `[cite:` marker, paired
- * with the field path it lives at. Shared by the diagnostics panel and the
- * reference editor's removal cleanup so both walk the document identically.
- */
 export function collectCitationTextEntries(root: unknown): Array<{ path: string; value: string }> {
   const entries: Array<{ path: string; value: string }> = [];
   collectCitationTextFields(root, "", entries, new WeakSet());

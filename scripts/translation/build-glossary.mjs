@@ -1,23 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Draft a locale's glossary into Postgres, or export it for review.
- *
- * The glossary lives in `translationGlossary` (lib/translation/glossary.ts).
- * `--locale X` renders every term the site publishes that the locale has no
- * row for, each alone, and writes the results as draft rows (`source` model);
- * a row that exists at any status is never touched, so a rerun only fills
- * gaps. A reviewer then approves or edits each draft in the Glossary tab
- * (`/dev/glossary`), and only approved rows reach a prompt.
- *
- * `--export` writes `data/i18n/glossary/<locale>.json`, a snapshot
- * of the table for diffing and review. Nothing reads that file at runtime.
- *
- * Usage (reads go through Postgres, so the app's connection variables apply):
- *   export DATA_BACKEND=postgres
- *   npm run translate:glossary -- --locale zh-Hans --dry-run     # count the missing terms, call nothing
- *   npm run translate:glossary -- --locale zh-Hans               # draft them (OPENROUTER_API_KEY)
- *   npm run translate:glossary -- --locale zh-Hans --export      # snapshot the table to glossary/zh-Hans.json
- */
 
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";

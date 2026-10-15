@@ -9,15 +9,10 @@ export type ArticleRecord = SubstanceArticle;
 
 export type DevModePrimaryTab = "tools" | DevChromeTab;
 
-/**
- * Tools that read the substance corpus. Only these wait on the library drain;
- * everything else fetches its own data and renders straight away.
- */
 export const LIBRARY_DEPENDENT_TABS: ReadonlySet<DevModeTab> = new Set(
   DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library")).map((tab) => tab.id),
 );
 
-/** Tabs that make the shell drain the editor corpus, including deferred consumers. */
 export const LIBRARY_FETCHING_TABS: ReadonlySet<DevModeTab> = new Set(
   DEV_TAB_REGISTRY.filter((tab) => tab.data.has("library") || tab.data.has("library-deferred")).map(
     (tab) => tab.id,
@@ -28,16 +23,13 @@ export function tabNeedsLibrary(tab: DevModeTab): boolean {
   return LIBRARY_FETCHING_TABS.has(tab);
 }
 
-/** Tabs that read the shared changelog feed (`changelog.getRecent`). */
 export function tabNeedsChangelogFeed(tab: DevModeTab): boolean {
   return findDevTab(tab).data.has("changelog");
 }
 
-/** Tabs that read the contributor profile directory. */
 export function tabNeedsContributorProfiles(tab: DevModeTab): boolean {
   return findDevTab(tab).data.has("contributors");
 }
-/** Tabs that consume revision-bearing editor index layouts. */
 export function tabNeedsIndexLayouts(tab: DevModeTab): boolean {
   return findDevTab(tab).data.has("layouts");
 }

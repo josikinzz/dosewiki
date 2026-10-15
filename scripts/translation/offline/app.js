@@ -1,12 +1,9 @@
-/* dose.wiki 中文 · offline reader. Vanilla JS; inlined into the single-file edition by build-offline.mjs.
-   Layouts follow dose.wiki's home, substance index, and substance article pages. */
 (() => {
   "use strict";
 
   const $app = document.getElementById("app");
   let D = null;
 
-  // ---------- boot: inflate the gzip+base64 bundle ----------
   async function boot() {
     const raw = document.getElementById("data").textContent.trim();
     if (typeof DecompressionStream !== "function") {
@@ -22,7 +19,6 @@
     render();
   }
 
-  // ---------- helpers ----------
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const icon = (name, cls = "i") => {
     const def = D.icons[name];
@@ -39,7 +35,6 @@
   const STAGE_ORDER = ["onset", "come_up", "peak", "offset", "after_effects", "total_duration"];
   const UNIT_ZH = { minutes: "分钟", hours: "小时", days: "天", seconds: "秒", weeks: "周" };
 
-  // ---------- markdown ----------
   function inline(text) {
     let s = text
       .replace(/<sup>/g, "\uE000sup\uE001").replace(/<\/sup>/g, "\uE000/sup\uE001")
@@ -49,7 +44,6 @@
     s = s.replace(/\uE000sup\uE001/g, "<sup>").replace(/\uE000\/sup\uE001/g, "</sup>").replace(/\uE000a ([^\uE001]+)\uE001/g, '<a id="$1"></a>')
       .replace(/\uE000cnote\uE001/g, '<span class="cnote">').replace(/\uE000\/cnote\uE001/g, "</span>");
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-    // Citation markers: [\[3\]](#ref-x-3) -> superscript reference.
     s = s.replace(/\[\\\[(\d+)\\\]\]\((#[^)\s]+)\)/g, '<sup class="ref"><a href="$2">$1</a></sup>');
     s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => link(href, label));
     s = s.replace(/&lt;(https?:\/\/[^\s&]+)&gt;/g, (_, url) => link(url, url));
@@ -114,14 +108,12 @@
     list.next = i;
     const tag = ordered ? "ol" : "ul";
     const item = (it) => {
-      // Effect tag lists: `[name](route)：description` becomes a tag with its note beneath, like the site's effect chips.
       const m = list.chips && it.text.match(/^(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|[^：:[*]{1,40})\s*[：:]\s*(.+)$/);
       if (m) return `<li class="wide"><span class="tag">${inline(m[1])}</span><span class="desc">${inline(m[2])}</span>${it.children}</li>`;
       return `<li>${inline(it.text)}${it.children}</li>`;
     };
     return `<${tag}>${items.map(item).join("")}</${tag}>`;
   }
-  /** Split a page at its `## ` headings: [{ heading, body }], with the pre-heading part as heading "". */
   function splitSections(md) {
     const parts = [];
     let current = { heading: "", body: [] };
@@ -134,7 +126,6 @@
     return parts.map((p) => ({ heading: p.heading, body: p.body.join("\n").trim() }));
   }
 
-  // ---------- chrome ----------
   function route() {
     const hash = decodeURIComponent(location.hash.replace(/^#\/?/, ""));
     const [head, ...rest] = hash.split("/");
@@ -176,7 +167,6 @@
     if (anchor) document.getElementById(anchor[1])?.scrollIntoView(); else window.scrollTo(0, 0);
   }
 
-  // ---------- generic markdown page with site-style section headers ----------
   function doc(routeKey, { back, extra = "", sectionIds = {} } = {}) {
     const md = D.pages[routeKey];
     if (!md) return notFound();
@@ -191,7 +181,6 @@
       <div class="hero-card">${extra}<h1>${esc(title)}</h1>${markdown(lead)}</div>${sections.join("")}</article>`;
   }
 
-  // ---------- views ----------
   const views = {
     home() {
       const counts = { substances: D.substances.length, effects: D.effects.length, reports: D.reports.length, library: D.library.length, downloads: D.downloads.length };
@@ -284,7 +273,6 @@
     },
   };
 
-  // ---------- substance article ----------
   const zhUnits = (text) => String(text).replace(/\b(\d+(?:\.\d+)?(?:\s*[-–]\s*\d+(?:\.\d+)?)?)\s*(seconds?|minutes?|hours?|days?|weeks?)\b/gi, (_, n, u) => `${n.replace(/\s*-\s*/, "–")} ${UNIT_ZH[u.toLowerCase().replace(/s$/, "") + "s"] ?? u}`);
   const fmtRange = (v) => {
     if (!v) return "";
@@ -304,7 +292,6 @@
       <div class="panel"><h3>${icon("lucide:chart-line")}时长</h3>${stages || '<p class="note">暂无该途径的时长数据。</p>'}${t?.halfLife ? `<div class="stage hl"><span>半衰期</span><code>${esc(zhUnits(t.halfLife))}</code></div>` : ""}</div>
     </div>`;
   }
-  /** The site's rule: presets are enabled on named slugs, tone-ordered, at most two per article. */
   const bannersFor = (slug) => D.banners.filter((b) => b.slugs.includes(slug)).slice(0, 2);
   const bannerHtml = (b) => `<aside class="banner banner--${b.tone}" role="${b.tone === "danger" ? "alert" : "status"}">
     <div class="bi">${icon(b.icon, "")}</div>
@@ -349,11 +336,6 @@
     const toc = `<aside class="toc"><div class="toc-in"><p>目录</p><a href="#/substances/${slug}#sec-overview">${icon("lucide:file-text")}简介</a>${D.sections.filter((x) => x.toc && present.has(x.id)).map((x) => `<a href="#/substances/${slug}#sec-${x.id}">${icon(x.icon)}${esc(x.label)}</a>`).join("")}</div></aside>`;
     return { wide: true, html: `<div class="article">${toc}<article class="doc" id="sec-overview">${beta()}${bannersFor(slug).map(bannerHtml).join("")}${hero}${dd}${sections.join("")}</article></div>`, sub: s };
   }
-  /**
-   * The exporter writes the country table and then a "各国备注" list of each
-   * country's note. The site keeps the note inside the country's row, so fold
-   * the list back into the table and drop the second listing.
-   */
   function legalityBody(body) {
     const marker = body.indexOf("#### 各国备注");
     if (marker < 0) return body;
@@ -374,7 +356,6 @@
     return [...head, ...rest].join("\n");
   }
 
-  /** The exporter's lead block minus the title and its own dosage/duration tables, which the reader draws itself. */
   function leadOf(body) {
     const lines = body.replace(/^# .*\n?/, "").split("\n");
     const out = [];
@@ -386,14 +367,7 @@
     return out.join("\n").trim();
   }
 
-  // ---------- trip report ----------
   const REPORT_META_ICON = { "投稿人": "lucide:user", "年龄": "lucide:calendar", "性别": "lucide:user", "体重": "lucide:scale", "身高": "lucide:ruler", "情境": "lucide:map-pin", "日期": "lucide:clock" };
-  /**
-   * The exporter writes the record header as a two-column Markdown table and
-   * repeats the "物质" row once per dose. The site shows those as labelled
-   * facts and dose chips, so the reader rebuilds them rather than printing a
-   * table with two meaningless column headings.
-   */
   function reportPage(slug) {
     const md = D.pages[`reports/${slug}`];
     if (!md) return notFound();
@@ -420,10 +394,8 @@
       </div>${sections.join("")}
     </article>`;
   }
-  /** `**T+00:15**` or `**11:23 PM**` alone on a line is a timeline stamp, not a bold paragraph. */
   const timeline = (body) => body.replace(/^\*\*([T\d][^*]{0,24})\*\*\s*$/gm, "###### $1");
 
-  // ---------- delegated interactions ----------
   document.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-tabs] button[data-route]");
     if (tab) {

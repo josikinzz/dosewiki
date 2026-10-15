@@ -37,11 +37,6 @@ export type SelectUniqueArticleForReferenceAuthorRepairResult<T> =
       reason: string;
     };
 
-/**
- * Resolve the bounded result of a slug-index lookup without trusting the index
- * to be unique. Callers query at most two rows; zero and duplicate matches fail
- * closed before any reference-level CAS logic can run.
- */
 export function selectUniqueArticleForReferenceAuthorRepair<T>(
   articles: readonly T[],
   slug: string,
@@ -101,14 +96,6 @@ function hasExpectedIdentity(
     && normalizeOptionalPmid(reference.pmid) === normalizeOptionalPmid(expected.pmid);
 }
 
-/**
- * Apply one reviewed authors-only repair to one stored article snapshot.
- *
- * The mutation supplies the document and persists only the returned `references`
- * array. Identity fields plus the exact expected author list form the bounded CAS
- * guard. An already-applied proposal is idempotent, but any other divergence is
- * refused rather than merged silently.
- */
 export function applyReferenceAuthorRepair(
   document: Record<string, unknown>,
   input: {

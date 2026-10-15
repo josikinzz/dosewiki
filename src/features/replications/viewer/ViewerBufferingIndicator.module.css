@@ -72,14 +72,13 @@
   transition: transform 200ms ease-out;
 }
 
-/* Leans with the stage media, the way the transport iconography does. */
 .indicator[data-rotated="true"] .label {
   transform: rotate(90deg);
 }
 
 .ellipsis {
   display: inline-block;
-  /* Hold all three dots so the word never shifts as the count breathes. */
+
   width: 1.4em;
   text-align: left;
 }
@@ -118,7 +117,6 @@
   animation: none;
 }
 
-/* Matches the animated dots' own specificity, so the ellipsis rests full. */
 .indicator[data-reduced-motion="true"] .dot:nth-child(n + 2) {
   opacity: 1;
   animation: none;
@@ -130,7 +128,6 @@
   }
 }
 
-/* One dot, two, three, back to two: the count breathes instead of marching. */
 @keyframes ellipsisSecond {
   0% {
     opacity: 0;

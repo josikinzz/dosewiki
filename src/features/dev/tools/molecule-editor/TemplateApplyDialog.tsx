@@ -73,7 +73,6 @@ function MoleculePreviewFrame({ svg, empty }: { svg?: string | null; empty: stri
       {svg ? (
         <div
           className="h-32 w-full [&>svg]:h-full [&>svg]:w-full [&>svg]:object-contain"
-          // RDKit.js output rendered from the guarded current/plan MOL blocks.
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (

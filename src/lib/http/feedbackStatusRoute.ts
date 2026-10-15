@@ -21,18 +21,10 @@ type FeedbackStatusStore<Status extends string> = {
 };
 
 export type FeedbackStatusRouteOptions<Status extends string> = {
-  /** Type guard over the route's status vocabulary. */
   isStatus: (value: unknown) => value is Status;
-  /**
-   * Type guard over the explicit outcomes this source records with a decision
-   * (article feedback: duplicate, explanation provided, no change needed). A
-   * source without one refuses any outcome.
-   */
   isOutcome?: (value: unknown) => boolean;
   getStore: () => Promise<FeedbackStatusStore<Status>>;
-  /** Thrown by the store when the id names no row; mapped to 404. */
   NotFoundError: abstract new (...args: never[]) => Error;
-  /** Thrown by the store factory when storage is unconfigured; mapped to 503. */
   StorageConfigurationError: abstract new (...args: never[]) => Error;
   notFoundMessage: string;
   unexpectedErrorLabel: string;
@@ -41,17 +33,11 @@ export type FeedbackStatusRouteOptions<Status extends string> = {
 
 const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
-/**
- * Admin-only status transition for a feedback queue. Article feedback and site
- * feedback share every rule (origin gate, rate limit, admin floor, body
- * grammar, error mapping); only the store and its error vocabulary differ.
- */
 export function feedbackStatusRoute<Status extends string>(
   options: FeedbackStatusRouteOptions<Status>,
 ) {
   return async function POST(request: Request, context: FeedbackStatusRouteContext) {
     return protectedRouteOperation<StatusBody, { status: Status; note?: string; outcome?: string }>({
-      // Triage moves feedback through the queue; that is an admin decision.
       auth: "admin",
       rateLimit: "editorSmallWrite",
       body: {
@@ -67,7 +53,6 @@ export function feedbackStatusRoute<Status extends string>(
       },
       unexpectedErrorLabel: options.unexpectedErrorLabel,
       unexpectedErrorMessage: options.unexpectedErrorMessage,
-      // Total, so every failure keeps this route's own response shape.
       mapError: (error) => mapStatusRouteError(error, options),
       operation: async ({ actorEmail, body }) => {
         const { id } = await Promise.resolve(context.params);

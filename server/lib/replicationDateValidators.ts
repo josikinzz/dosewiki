@@ -1,14 +1,5 @@
 import { type Infer, v } from "../../lib/postgres/runtime/values"
 
-/**
- * The precision/shape of the best defensible temporal statement for a work.
- *
- * A value is not necessarily a creation date. `event_type` says whether it
- * dates creation, first publication, a preserved export, a source post, or
- * another evidence-bearing event. Keeping those concepts separate prevents a
- * database import timestamp or earliest-known appearance from silently turning
- * into an asserted artwork completion date.
- */
 export const replicationDateKind = v.union(
   v.literal("exact_date"),
   v.literal("year"),
@@ -27,7 +18,6 @@ export const replicationDateConfidence = v.union(
   v.literal("none"),
 );
 
-/** Compact summary stored on the replication row for cheap public reads. */
 export const replicationDateInfo = v.object({
   value: v.optional(v.string()),
   kind: replicationDateKind,
@@ -38,9 +28,6 @@ export const replicationDateInfo = v.object({
 
 export const replicationDateEvidence = v.object({
   url: v.optional(v.string()),
-  // Local files and repository artifacts can be legitimate evidence even when
-  // they have no public URL. They stay in the private research table; no public
-  // function exposes this field today.
   source_locator: v.optional(v.string()),
   source_type: v.optional(v.string()),
   description: v.string(),
@@ -63,11 +50,8 @@ export const replicationAlternativeDate = v.object({
   evidence: v.optional(v.array(replicationDateEvidence)),
 });
 
-/** Full research dossier stored one-to-one with a replication. */
 export const replicationDateResearch = v.object({
   replication_id: v.id("replications"),
-  // Identity snapshot at import time. Current title/artist/slug remain owned by
-  // the replication row and are protected by compare-and-swap during backfill.
   replication_slug: v.string(),
   replication_title: v.string(),
   replication_artist: v.string(),

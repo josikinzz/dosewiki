@@ -39,14 +39,6 @@ export type ServerDataDeploymentMetadata = {
   sourceEnvVar: DataRuntimeTarget["sourceEnvVar"];
 };
 
-/**
- * Mutations where the server is the actor because the public caller has no
- * authenticated identity to delegate. Keep this allowlist narrow so ordinary
- * route writes cannot bypass the actor gate.
- *
- * `mailingList`, `glossaryFeedback`, and `publicationRecovery` are invoked
- * without a user actor by the same-origin intake and authenticated cron routes.
- */
 const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "articleFeedback:create": true,
   "mailingList:subscribe": true,
@@ -58,11 +50,6 @@ const SERVICE_MUTATION_NAMES: Record<string, true> = {
   "tripReportSubmissions:create": true,
 };
 
-/**
- * Routes see one freeze refusal whether the process flag or a read-only
- * database refused the write. The runtime client already retried transient
- * failures, so everything else passes through unchanged.
- */
 async function reportingFreeze<T>(name: string, write: () => Promise<T>): Promise<T> {
   try {
     return await write();
@@ -74,11 +61,6 @@ async function reportingFreeze<T>(name: string, write: () => Promise<T>): Promis
   }
 }
 
-/**
- * The Postgres client handed to Next routes. Regular mutations and actions must
- * name the actor they run as. Public intake uses `mutationAsService`, which is
- * restricted to the fixed actorless mutation allowlist above.
- */
 export class ServerDataWriteClient {
   constructor(private readonly inner: PostgresClient) {}
 
@@ -183,13 +165,6 @@ export function getServerDataReadUrl(): string | null {
   return getPublicServerReadTarget().selectedUrl;
 }
 
-/**
- * Ask the deployment whether a credential is actually accepted.
- *
- * Presence is not validity: a rotated key may still be configured but rejected.
- * Replay the actual route credential against a read to check acceptance.
- * `apiKey` defaults to the admin key; pass the scoped token to check that one.
- */
 export async function probeServerDataAdminCredential(
   actorEmail: string,
   apiKey?: string,
@@ -234,7 +209,6 @@ function getCachedWriteClient(): ServerDataWriteClient {
   return cachedWriteClient;
 }
 
-/** Public form intake cannot borrow an editorial credential or inspect private queues. */
 export function getPublicIntakeWriteCapability(): {
   client: Pick<ServerDataWriteClient, "mutationAsService">;
   apiKey: string;

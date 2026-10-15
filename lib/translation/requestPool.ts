@@ -1,10 +1,5 @@
 export const MAX_TRANSLATION_REQUEST_CONCURRENCY = 100;
 
-/**
- * Each lane's share of the 100-request ceiling. The lanes hold separate leases
- * and can run at once, so their quotas together never exceed it. `review` is
- * the admin-started fluency review (one per article, per process).
- */
 export const TRANSLATION_REQUEST_QUOTA = Object.freeze({ bulk: 90, incremental: 8, review: 2 } as const);
 
 export type TranslationRequestPool = {
@@ -14,7 +9,6 @@ export type TranslationRequestPool = {
   run<T>(task: () => Promise<T>): Promise<T>;
 };
 
-/** One shared semaphore for every model batch in a bulk refresh invocation. */
 export function createTranslationRequestPool(limit = MAX_TRANSLATION_REQUEST_CONCURRENCY): TranslationRequestPool {
   if (!Number.isInteger(limit) || limit < 1 || limit > MAX_TRANSLATION_REQUEST_CONCURRENCY) {
     throw new Error(`Translation concurrency must be between 1 and ${MAX_TRANSLATION_REQUEST_CONCURRENCY}.`);

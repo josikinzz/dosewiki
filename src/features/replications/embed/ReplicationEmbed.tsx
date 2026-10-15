@@ -140,9 +140,6 @@ export function ReplicationEmbed({ collection, parentOrigin, initialSlug = null,
     if (connection !== "embedded" && connection !== "standalone") return;
     const root = rootRef.current;
     if (!root) return;
-    /* The root, never the document: `documentElement.scrollHeight` is at least
-       the frame's own viewport, so reporting it would ratchet the frame to
-       whatever height the host already gave it and never shrink. */
     const height = () => Math.max(160, Math.ceil(root.getBoundingClientRect().height));
     post({ type: "ready", height: height() });
     readyRef.current = true;
@@ -153,8 +150,6 @@ export function ReplicationEmbed({ collection, parentOrigin, initialSlug = null,
     return () => { readyRef.current = false; observer.disconnect(); };
   }, [connection, error, initialSlug, post, select]);
 
-  // Canonical public links remain ordinary links, but cannot navigate this frame
-  // away from its protocol host. Viewer-entry links still run their own handler.
   useEffect(() => {
     if (connection !== "embedded") return;
     const prepareLink = (event: MouseEvent) => {
@@ -187,8 +182,6 @@ export function ReplicationEmbed({ collection, parentOrigin, initialSlug = null,
     const publishSelection = (url: string) => {
       const slug = parseReplicationViewerSlug(new URL(url, window.location.origin).searchParams);
       if (!slug || !remoteRef.current?.works.some((work) => work.slug === slug)) return;
-      // Do not feed navigation back through initialSlug: a work can belong to
-      // several effect groups, and URL synchronization would jump to the first.
       activeSlugRef.current = slug;
       post({ type: "viewer", slug });
     };
@@ -202,9 +195,6 @@ export function ReplicationEmbed({ collection, parentOrigin, initialSlug = null,
 
   const unavailable = connection === "blocked" ? "This site is not allowed to embed these replications." : error;
   const usable = connection === "embedded" || connection === "standalone";
-  // Framed by another app (osmanthus.io): carousel only — the host supplies its
-  // own section heading and rights context, so ours is duplicate clutter. Opened
-  // directly on dose.wiki, the document keeps its heading and media terms.
   const chrome = connection === "standalone";
   return (
     <main id="main-content" ref={rootRef} data-replication-embed className={collection && !chrome ? "min-w-0" : "min-w-0 space-y-3 p-1"}>

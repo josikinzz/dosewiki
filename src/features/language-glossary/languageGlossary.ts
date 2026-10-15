@@ -24,11 +24,9 @@ export const glossaryLanguages = Object.entries(names).map(([code, name]) => ({
 export function glossaryLanguage(code: string) {
   return glossaryLanguages.find((language) => language.code === code);
 }
-/** "German, Simplified Chinese" for visible text; a code with no known name reads as itself. */
 export function languageNames(codes: readonly string[] | undefined): string {
   return (codes ?? []).map((code) => glossaryLanguage(code)?.name ?? code).join(", ");
 }
-/** Who stands behind the shown wording. Never names the reviewer. */
 export type PublicGlossaryProvenance =
   | "human_review"
   | "machine_suggestion"
@@ -36,7 +34,6 @@ export type PublicGlossaryProvenance =
   | "missing";
 export const PUBLIC_GLOSSARY_PROVENANCES: readonly PublicGlossaryProvenance[] =
   ["human_review", "machine_suggestion", "legacy_unverified", "missing"];
-/** One real sentence from the site, both sides trimmed around the term. */
 export type GlossaryExample = { english: string; target: string; href: string };
 export type PublicGlossaryEntry = {
   term: string;
@@ -53,19 +50,11 @@ export type Rendering = {
   kind: string;
   target: string;
   status: "draft" | "approved";
-  /** Absent reads as unchecked: approved wording is never assumed checked. */
   provenance?: Exclude<PublicGlossaryProvenance, "missing">;
   updated_at: number;
-  /** Draft/restore changes advance this even when approved bytes are unchanged. */
   review_revision?: number;
 };
-/**
- * The version a reader sees for a term with no rendering in their language.
- * A suggestion sent against it fails as stale once any rendering appears,
- * exactly as a suggestion against an edited rendering does.
- */
 export const MISSING_RENDERING_VERSION = JSON.stringify(["missing"]);
-/** Include the exact rendering and status so even same-millisecond edits cannot share a version. */
 export function renderingVersion(row: Rendering): string {
   return JSON.stringify([
     row.updated_at,
@@ -107,26 +96,12 @@ export function projectGlossary(
     });
   return [...entries.values()].sort((a, b) => a.term.localeCompare(b.term));
 }
-/**
- * Which terms most need a person, first: nothing yet, then a machine draft,
- * then live wording nobody checked, then checked wording.
- */
 const REVIEW_PRIORITY: Record<PublicGlossaryProvenance, number> = {
   missing: 0,
   machine_suggestion: 1,
   legacy_unverified: 2,
   human_review: 3,
 };
-/**
- * Which kinds of term most need a person, first. Wording that takes judgment
- * comes before wording a rule settles: the harm-reduction register and the
- * labels every article repeats, then the Subjective Effect Index, whose coined
- * names have no outside standard (what people settle on here becomes the
- * standard), then site wording, then chemical and reagent names, which follow
- * IUPAC conventions or stay proper names and want a specialist check, not a
- * crowd. Kinds stay together within a tier so a whole scale is translated at
- * once. A kind not listed waits with site wording.
- */
 const REVIEW_TIERS: readonly (readonly string[])[] = [
   ["register", "enum:dose-tier", "enum:duration-stage", "enum:interaction-tier", "enum:risk-level", "enum:legal-status", "enum:evidence-level", "enum:carcinogenicity-level", "route", "frequency", "psychoactive-class"],
   ["effect-category", "effect-subcategory", "effect-name"],
@@ -143,11 +118,6 @@ function kindRank(kind: string) {
 export function needsHumanReview(entry: Pick<PublicGlossaryEntry, "provenance">): boolean {
   return entry.provenance !== "human_review";
 }
-/**
- * Tier first, then review priority, then kind, then English term, so a
- * missing chemical name still waits behind a machine-drafted effect name and
- * equal rows keep a stable order.
- */
 export function sortByReviewPriority<T extends Pick<PublicGlossaryEntry, "provenance" | "term" | "kind">>(
   entries: readonly T[],
 ): T[] {

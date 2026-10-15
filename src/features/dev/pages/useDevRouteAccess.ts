@@ -12,7 +12,6 @@ import {
 import { resolvePrimaryTab, type DevModePrimaryTab } from "./devModePageUtils";
 import { findDevTab, firstUsableTab, type DevModeTab } from "./devTabRegistry";
 
-/** Where a primary section opens: Tools lands on the first tool the role can use. */
 function primarySectionTab(primaryTab: DevModePrimaryTab, role: AppRole | null): DevModeTab {
   return primaryTab === "change-log" ? "change-log" : firstUsableTab(role);
 }
@@ -70,28 +69,6 @@ export function useDevRouteAccess({
 
   const sessionStatus = nextSession.status;
 
-  /**
-   * Whether an unauthenticated reading is trustworthy enough to route on.
-   *
-   * "loading" is the cold-load case: redirecting there bounces editors off
-   * their deep-linked tab before the session has ever resolved.
-   *
-   * A session that *disappears* after having resolved is the harder case.
-   * next-auth's SessionProvider defaults `refetchOnWindowFocus` to true, and
-   * its client turns a failed /api/auth/session request into `null` rather than
-   * an error (`fetchData` in next-auth/client/_utils returns null on any fetch,
-   * parse, or non-ok response). It also never flips back to "loading" for that
-   * refetch. So one network blip on tab refocus is indistinguishable from a
-   * clean sign-out, and on the review workbench that costs a reviewer their
-   * place mid-pass. Confirm a vanished session with one forced re-check before
-   * acting on it; only a second unauthenticated answer routes.
-   *
-   * This is presentation only. Access itself is decided server-side by
-   * `getDevRouteDecision` in the /dev and /review route handlers, and every
-   * write path keeps its own session and role checks. The settled reading
-   * decides whether the open tool is swapped for its locked panel, so a blip
-   * never unmounts a tool mid-edit.
-   */
   const sawAuthenticatedSessionRef = useRef(false);
   const recheckInFlightRef = useRef(false);
   const [sessionLossConfirmed, setSessionLossConfirmed] = useState(false);
@@ -109,8 +86,6 @@ export function useDevRouteAccess({
     }
 
     if (!sawAuthenticatedSessionRef.current) {
-      // Nothing was lost — this mount never saw a session, so the signed-out
-      // reading is the first settled answer and can be acted on immediately.
       setSessionLossConfirmed(true);
       return;
     }
@@ -121,8 +96,6 @@ export function useDevRouteAccess({
 
     recheckInFlightRef.current = true;
     let cancelled = false;
-    // `getSession()` broadcasts by default, so a session that comes back is
-    // adopted by the provider and re-runs this effect through `sessionStatus`.
     void getSession()
       .catch(() => null)
       .then((session) => {
@@ -146,9 +119,6 @@ export function useDevRouteAccess({
   const isSessionSettled =
     sessionStatus !== "loading" && (isSignedIn || sessionLossConfirmed);
 
-  // The rail disables every tab above the role, so this covers deep links and
-  // sessions that change underneath an open tab (role downgrade, sign-out
-  // confirmed above). Null while the reading is unsettled: the tool stays up.
   const activeTabLockReason = isSessionSettled
     ? getRoleFloorLockReason(role, findDevTab(activeTab).role)
     : null;

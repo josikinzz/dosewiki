@@ -1,4 +1,3 @@
-/** Read-only candidate packet. Sampling never creates adjudicated gold labels. */
 import { mkdir, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";

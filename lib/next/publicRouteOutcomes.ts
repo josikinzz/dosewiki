@@ -27,9 +27,6 @@ export type SubstancesLayoutRouteOutcome =
 export const effectsIndexEmptyState: PublicRouteEmptyState = {
   badge: "No effects",
   title: "No effects found",
-  // Reader-facing. This used to read "Run the migration flow to populate this
-  // index." — an instruction to an operator, naming an internal pipeline, shown
-  // to a visitor who has no migration flow to run.
   description:
     "No subjective effects are published yet. They will appear here once the index is available.",
   icon: "lucide:search-x",

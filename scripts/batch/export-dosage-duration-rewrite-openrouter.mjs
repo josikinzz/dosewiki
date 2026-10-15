@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * Export OpenRouter-ready payloads for dosage/duration note rewrites.
- *
- * Reads the previously generated direct-note rewrite queue and emits:
- * - NDJSON item jobs for one-note-at-a-time processing
- * - JSON article payloads for one-article-at-a-time processing
- *
- * Usage:
- *   node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs
- *   node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs --article=2c-b
- *   node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs --limit=10
- *   node scripts/batch/export-dosage-duration-rewrite-openrouter.mjs --model=anthropic/claude-opus-4.5
- */
 
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";

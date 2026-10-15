@@ -46,7 +46,6 @@ const ROOT_ROUTE_SEGMENTS = new Set([
   "review",
   "search",
   "sign-in",
-  // Rewritten to /api/subscribe by next.config.ts; never a substance slug.
   "subscribe",
   "substances",
   "unauthorized",
@@ -65,7 +64,6 @@ function decodeSegment(value: string): string | null {
   }
 }
 
-/** Reject dynamic page paths that are absent from the build's public corpus. */
 export function isUnavailablePublicDynamicPath(pathname: string): boolean {
   const glossaryMatch = pathname.match(/^\/glossary\/([^/]+)\/?$/);
   if (glossaryMatch && glossaryMatch[1] !== "languages" && glossaryMatch[1] !== "en") {
@@ -84,14 +82,10 @@ export function isUnavailablePublicDynamicPath(pathname: string): boolean {
   if (!rootMatch) return false;
   const slug = decodeSegment(rootMatch[1]);
   if (!slug) return true;
-  // A root file (`/robots.txt`, `/llms.txt`, the open-data JSON dumps) is a
-  // metadata route or a public/ asset, never a substance slug: no slug carries
-  // a dot. Left to the slug check they answered 404 from 2026-08-31 until this.
   if (slug.includes(".")) return false;
   return !ROOT_ROUTE_SEGMENTS.has(slug) && !substanceSlugs.has(slug);
 }
 
-/** The substance slug a root path addresses, when it is one in the build's public corpus. */
 export function publicSubstanceSlugForPath(pathname: string): string | null {
   const rootMatch = pathname.match(/^\/([^/]+)\/?$/);
   if (!rootMatch) return null;

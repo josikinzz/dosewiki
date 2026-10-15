@@ -1,26 +1,4 @@
 #!/usr/bin/env node
-/**
- * Copy the canonical molecule depiction set between Postgres deployments
- * (e.g. production → dev mirror) via `moleculeOverrides.replicate`, which
- * preserves each row's provenance (`source`, `updatedAt`, `updatedBy`)
- * verbatim.
- *
- * Dry run (default — queries only, prints the copy plan):
- *   SOURCE_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   node scripts/data-ops/copy-molecule-overrides.mjs
- *
- * Write:
- *   SOURCE_POSTGRES_URL=... TARGET_POSTGRES_URL=... \
- *   node scripts/data-ops/copy-molecule-overrides.mjs --write \
- *     --confirm-molecule-copy \
- *     --confirm-write=<operationName> \
- *     --expected-deployment=<fingerprint> \
- *     [--delete-extra]
- *
- * `--delete-extra` (default OFF) also removes target rows absent on the
- * source via `moleculeOverrides.remove`; without it extras are only reported.
- */
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -116,7 +94,6 @@ async function main() {
     } else if (target.updatedAt !== row.updatedAt) {
       toUpdate.push(row.slug);
     } else {
-      // Same updatedAt: fall back to svg equality before calling it unchanged.
       sameUpdatedAt.push(row.slug);
     }
   }

@@ -16,11 +16,9 @@ export interface EffectCategoryGroupEffect {
 }
 
 export interface EffectCategoryGroup {
-  /** Stable anchor id for the section and its table-of-contents entry. */
   id: string;
   title: string;
   icon: IconName;
-  /** Route slug of the subcategory's own page, when it has one. */
   categorySlug?: string;
   description?: string;
   effects: EffectCategoryGroupEffect[];
@@ -44,15 +42,6 @@ function sameTags(left: string[], right: string[]): boolean {
   return a.length === b.length && a.every((tag, index) => tag === b[index]);
 }
 
-/**
- * Route slug of the category page that covers exactly `tags`.
- *
- * Subcategories are declared as tag conjunctions in `effectsIndexConfig`, while
- * pages are declared as tag groups in `effectCategoryDefinitions`. A page owns a
- * subcategory only when it matches that single conjunction — a page such as
- * smell-and-taste-effects, which unions several conjunctions, is the parent
- * rather than the subcategory and is excluded along with the parent itself.
- */
 export function resolveSubcategorySlug(
   tags: string[],
   parentSlug: string,
@@ -65,9 +54,6 @@ export function resolveSubcategorySlug(
   return match?.[0];
 }
 
-/**
- * Top-level category config for a route slug, if the slug is a parent category.
- */
 export function getParentCategoryConfig(
   categorySlug: string,
 ): ParentCategoryConfig | undefined {
@@ -77,19 +63,9 @@ export function getParentCategoryConfig(
 interface BuildEffectCategoryGroupsInput {
   categorySlug: string;
   effects: EffectCategoryGroupEffect[];
-  /** Editable subcategory descriptions by slug; the definition is the fallback. */
   descriptions?: Record<string, string>;
 }
 
-/**
- * Split a category's effects into its subcategory groups.
- *
- * Returns an empty array when the slug is a leaf category, or when the parent
- * declares fewer than two named subcategories — those pages render a single
- * flat list instead. Effects that match the parent but none of its
- * subcategories are collected into a trailing "Other" group so nothing is
- * dropped.
- */
 export function buildEffectCategoryGroups({
   categorySlug,
   effects,

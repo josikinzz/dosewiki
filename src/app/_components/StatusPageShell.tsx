@@ -18,8 +18,6 @@ type StatusPageShellProps = {
   actions?: ReactNode;
   children?: ReactNode;
   complement?: ReactNode;
-  /** Optional overline rendered above the complement facts (e.g. "Access details").
-   *  Centralizes the eyebrow that every status page previously hand-wrote. */
   complementHeading?: ReactNode;
   statusIcon?: IconName;
   statusTone?: "accent" | "success" | "warning" | "danger" | "neutral";

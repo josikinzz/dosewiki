@@ -18,8 +18,6 @@ const DEPLOY_KEYS = [
 test("the executable wrapper cannot invoke a deploy child for any deploy-key class", async () => {
   const binDir = await mkdtemp(path.join(os.tmpdir(), "dosewiki vercel build "));
   const callsPath = path.join(binDir, "calls.log");
-  // The wrapper imports two sibling build modules by relative path, so the copy
-  // keeps the scripts/deploy and scripts/build layout under the temp root.
   const wrapperPath = path.join(binDir, "scripts/deploy/vercel-build.mjs");
   const nodeShim = `#!/bin/sh\nprintf '%s\\n' "$0 $*" >> "$CALLS_PATH"\nexit "\${VERIFY_STATUS:-0}"\n`;
   const commandShim = `#!/bin/sh\nprintf '%s\\n' "$0 $*" >> "$CALLS_PATH"\n`;

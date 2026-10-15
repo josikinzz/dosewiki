@@ -1,7 +1,3 @@
-/**
- * Inline contributor avatar bytes are validated before authorization and stored
- * immutably in R2 before a profile mutation can publish their identity.
- */
 import { Buffer } from "node:buffer";
 import { api } from "../postgres/runtime/api";
 import type { ServerDataWriteCapability } from "@server/data/serverWriteCapability";
@@ -22,11 +18,6 @@ export type NormalizedAvatarUpload = {
   base64: string;
 };
 
-/**
- * Returns `null` when no upload was supplied at all, and throws when one was
- * supplied but is unusable. A missing image and a broken image are different
- * answers and the caller must not conflate them.
- */
 export function normalizeAvatarUpload(
   value: AvatarUploadInput | undefined | null,
 ): NormalizedAvatarUpload | null {
@@ -91,8 +82,6 @@ export async function uploadAvatarToR2(
   },
 ): Promise<{ r2Key: string; receipt: string }> {
   const apiKey = capability.getAdminIntentToken?.("profileMediaWrite") ?? capability.adminKey;
-  // Storage cannot roll back with the database. Resolve the database-backed
-  // role, ownership, editor field restrictions and revision before any PUT.
   const authorized = await capability.client.query(api.contributorProfiles.authorizeAvatarUpload, {
     apiKey,
     actorEmail,

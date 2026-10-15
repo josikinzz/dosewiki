@@ -1,10 +1,3 @@
-/**
- * Body validation for the contributor profile POST.
- *
- * Kept beside the route so the route file carries only its HTTP method
- * exports. Every failure is a `JsonBodyError` the route's error mapper turns
- * into a 400 with the message shown here.
- */
 import { MAX_CONTRIBUTOR_PROFILE_LINKS as MAX_LINKS } from "@server/contributorProfileIdentity";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import {
@@ -69,11 +62,6 @@ function requireProfileKey(raw: unknown): string {
   return key;
 }
 
-/**
- * `undefined` means the field was not sent and must be left alone; an emptied
- * string means the editor cleared it, which is `null` on the Postgres side. The
- * patch mutation cannot express "clear" any other way.
- */
 function parseNullableText(raw: unknown, label: string): string | null | undefined {
   if (raw === undefined) {
     return undefined;
@@ -133,12 +121,6 @@ function parseAliases(raw: unknown): string[] {
   });
 }
 
-/**
- * `null` (or a note emptied down to nothing) clears the stored staff note;
- * anything else must be a `{ markdown, attribution? }` object. The Postgres
- * patch builder does the canonical sanitization; the length caps here just
- * bound the payload the same way the bio field is bounded.
- */
 function parseStaffNote(
   raw: unknown,
 ): { markdown: string; attribution?: string } | null {

@@ -2,7 +2,6 @@ import { query } from "../lib/postgres/runtime/server";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./lib/replicationUrls";
 
-/** Artist destinations need corpus-wide existence, not effect membership. */
 export const getRows = query({
   args: {},
   handler: async (ctx) => {

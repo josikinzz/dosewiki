@@ -3,10 +3,6 @@ import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 import { publicMarkdownComponents } from "./PublicMarkdownBody";
 
-// The shared public prose component map now lives in `PublicMarkdownBody` so the archived
-// Effect Index blog renders through the same styling. This page keeps its own first-
-// paragraph override on top of it.
-
 export function AboutMissionMarkdown({ content }: { content: string }) {
   return (
     <div className="max-w-none">

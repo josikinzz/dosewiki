@@ -17,25 +17,16 @@ export type DevCommitNotice = {
   actionLabel?: string;
 };
 
-/** Where the primary action sends the draft: written to production or held for review. */
 export type DevCommitDestination = "production" | "proposal";
 
-/** The returned proposal the draft revises; the card names it above the save controls. */
 export type DevCommitRebase = {
   proposalId: string;
   reason: string | null;
   onDiscard: () => void;
 };
 
-/** Short id shown in the banner: the tail of a proposal id is what differs between rows. */
 const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
-/**
- * The one place the save model is spelled out. `title` is the verb on the
- * button, `description` says what the editor sees next. Tabs never add a
- * second explanation. (The "Live site" / "Review queue" eyebrow is gone: the
- * title already says where the draft goes.)
- */
 const DESTINATION_COPY: Record<
   DevCommitDestination,
   { title: string; description: string; idle: string }
@@ -56,16 +47,11 @@ const DESTINATION_COPY: Record<
 
 type DevCommitCardProps = {
   notice: DevCommitNotice | null;
-  /** Defaults to a production commit; editors without approval rights propose instead. */
   destination?: DevCommitDestination;
   footerSlot?: ReactNode;
-  /** The save controls (server health, commit button). */
   actionSlot?: ReactNode;
-  /** Panel description. Defaults to copy for the destination. */
   description?: ReactNode;
-  /** Set while the draft was seeded from a returned proposal; the next save supersedes it. */
   rebase?: DevCommitRebase | null;
-  /** Clears the notice. An error offers it and stays until used; successes clear on their own. */
   onDismissNotice?: () => void;
 };
 
@@ -79,7 +65,6 @@ export function DevCommitCard({
   onDismissNotice,
 }: DevCommitCardProps) {
   const copy = DESTINATION_COPY[destination];
-  // The save hook clears successes on its own clock, so the notice does not add a second one.
   const noticeContent = notice ? (
     <Notice
       placement="inline"

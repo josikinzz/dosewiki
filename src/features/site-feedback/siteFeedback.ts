@@ -1,14 +1,3 @@
-/**
- * Site feedback domain model: the public "general feedback" intake at
- * /about/feedback covering the site as a whole (article requests, technical
- * issues, UI/design, performance, accessibility, misc).
- *
- * This module stays isomorphic (no Node imports) so the public form and the
- * /dev review tab can share the enums, labels, placeholders, and validation
- * at runtime. Server-only concerns (IP hashing, Postgres store, Turnstile
- * verification) live in siteFeedbackStore.server.ts.
- */
-
 import type { DecisionLogEntry } from "@/features/intake/decisionLog";
 import { msg } from "@/i18n/messages";
 
@@ -34,10 +23,6 @@ export const SITE_FEEDBACK_CATEGORY_LABELS: Record<SiteFeedbackCategory, string>
   misc: msg("Miscellaneous"),
 };
 
-/**
- * Per-category placeholder copy for the details textarea (Lyrea's texts,
- * verbatim from the PRD prototype).
- */
 export const SITE_FEEDBACK_CATEGORY_PLACEHOLDERS: Record<SiteFeedbackCategory, string> = {
   "article-request": msg(
     "Which article do you wish for? The more additional data provided the easier it will be to get started. Name, CAS#, experience reports and scientific literature all greatly help.",
@@ -75,7 +60,6 @@ export const SITE_FEEDBACK_URGENCY_LABELS: Record<SiteFeedbackUrgency, string> =
   low: msg("Low: cosmetic"),
 };
 
-/** Categories where the urgency dropdown applies (bug-like categories). */
 const SITE_FEEDBACK_URGENCY_CATEGORIES = [
   "technical",
   "performance",
@@ -96,11 +80,6 @@ const SITE_FEEDBACK_STATUSES = [
 
 export type SiteFeedbackStatus = (typeof SITE_FEEDBACK_STATUSES)[number];
 
-/**
- * Statuses that are still asking for an editor. The Feedback tab's rail badge
- * counts exactly these rows, so the badge and the queue agree on what is
- * pending.
- */
 export const SITE_FEEDBACK_PENDING_STATUSES = ["new", "reviewing"] as const satisfies readonly SiteFeedbackStatus[];
 
 export const SITE_FEEDBACK_STATUS_TRANSITIONS: Record<
@@ -143,7 +122,6 @@ export type SiteFeedbackRow = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
-  /** Every status transition, oldest first. */
   decision_log?: DecisionLogEntry<SiteFeedbackStatus>[];
   created_at: string;
   updated_at: string;

@@ -1,18 +1,3 @@
-/**
- * Read + create endpoint for the Replication Studio (`/dev` → Replications).
- *
- * Both verbs use the authenticated Postgres write target, so an editor reads
- * the same corpus they edit. The studio includes figures and effect-less rows
- * that no public projection returns. Creation verifies an R2 upload receipt
- * and the stored bytes before inserting a durable media reference.
- *
- * A new row inserts unpublished: no public page shows it until a curator
- * publishes it through the editorial route, which requires a known rights
- * status and a source. Creating it therefore publishes nothing.
- *
- *   GET  /api/dev/replications                       → { rows, effects }
- *   POST /api/dev/replications  { …asset fields }    → create one row
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -177,8 +162,6 @@ export const GET = protectedRouteOperation({
       const corpus = await dataWrite.client.query(api.replications.getStudioRows, { apiKey, actorEmail });
       return NextResponse.json({ ok: true, ...corpus });
     } catch (error) {
-      // A stale admin token is a configuration fact, not an outage — but Postgres
-      // sends the same opaque error either way, so ask the deployment which it is.
       const diagnosis = await diagnoseDataAdminCredential({
         intent: "replicationMaintenance",
         probe: () => probeServerDataAdminCredential(actorEmail, apiKey),
@@ -242,8 +225,6 @@ export const POST = protectedRouteOperation<CreateAssetBody, ParsedCreateAsset>(
       publication_state: "unpublished",
     });
 
-    // Unpublished, so no public page changed: its gallery, permalink and
-    // locale mirror publish when the curator publishes it.
     return NextResponse.json({ ok: true, slug: result.slug, id: result.id, published: false });
   },
 });

@@ -7,7 +7,6 @@ import type { PostgresClient } from "../postgres/runtime/client";
 type QueryArgs = Record<string, unknown>;
 const QUERY_RETRY_DELAYS_MS = [250, 750, 1500] as const;
 
-/** Function-reference client for reads through the in-process Postgres runtime. */
 export type ServerReadClient = Pick<PostgresClient, "query">;
 
 export function getServerDataReadClient(): ServerReadClient {

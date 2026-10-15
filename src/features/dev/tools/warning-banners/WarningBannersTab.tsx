@@ -1,26 +1,5 @@
 "use client";
 
-/**
- * Banner Studio: `/dev` → Banners, deep-linked at `/dev/banners/<slug>`.
- *
- * Two jobs with very different frequencies live in one tab:
- * `Presets` authors the handful of banners that will ever exist, `Coverage`
- * audits what a reader actually sees on one substance. This module owns
- * everything the two views must not disagree about: the preset list, the loaded
- * corpus, the draft, every write, and the rollout readout.
- *
- * Three disciplines are load-bearing. Banners are opt-in: nothing here maps a
- * classification onto a rendered banner, and `searchWarningBannerTargets` only
- * ever produces slugs for an editor to enable by hand. Saving is never
- * optimistic: the route's echoed `enabledSlugs` is adopted verbatim because the
- * server drops slugs that no longer resolve, and a pruned slug that silently
- * stayed on screen would be a lie about what the public site shows. And the
- * glyph size is site-wide, so it is held here on its own wire (its own query,
- * its own draft, its own save state and its own notice), because a preset save
- * and a size save can be in flight at once and must never be mistaken for each
- * other.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -83,20 +62,8 @@ import {
 } from "./warningEditing";
 import type { EditableWarningPreset } from "./warningEditing";
 
-
-/**
- * A separate endpoint, not a field on the preset write: the size is one document
- * for the whole site, and posting it alongside a preset would make every preset
- * save a chance to change every banner.
- */
 const WARNING_BANNER_DISPLAY_API = "/api/dev/warning-banner/display";
 
-/**
- * The stored row as it arrives from `warningBannerPresets`. `tone` is narrowed
- * below rather than trusted: the read validator keeps it a string union on the
- * wire, but a row written before a tone was renamed must still load and be
- * editable rather than fail the query.
- */
 type WarningBannerPresetDoc = {
   key: string;
   tone: string;
@@ -114,15 +81,8 @@ type StudioView = WarningBannersStudioViewMode;
 
 type SaveState = EditorActionStatusState | "idle";
 
-/**
- * A preset notice, plus whether it reports a write that did not land. When the
- * shell has seen the write freeze, a failed write reads as the freeze rather
- * than as the reconcile step's "not yet confirmed", which is what the client
- * says after any 5xx.
- */
 type BannerNotice = NoticeMessage & { writeFailed?: boolean };
 
-/** A save refused by the revision check: someone published this preset after it was opened. */
 function isRevisionConflict(error: unknown): boolean {
   return (error instanceof WarningRequestError && error.status === 409)
     || (error instanceof Error && /changed since it was opened/i.test(error.message));
@@ -143,26 +103,15 @@ const BLANK_PRESET: WarningBannerPreset = {
   severityLabel: "",
   headline: "",
   points: [""],
-  // Both opt-in gates start shut, so a half-written preset cannot reach a
-  // reader between its first Save and the editor finishing the copy.
   enabled: false,
   allSubstances: false,
   enabledSlugs: [],
 };
 
 export type WarningBannersTabProps = {
-  /**
-   * `/dev/banners/<slug>` opens Coverage on that substance;
-   * `/dev/banners/preset:<key>` opens that preset's editor.
-   */
   initialSubstanceSlug?: string;
 };
 
-/**
- * Exported entry point. The boundary sits outside `WarningBannersStudio` because
- * the display read throws during that component's render when the server cannot
- * answer, and a boundary cannot catch a throw from itself.
- */
 export function WarningBannersTab(props: WarningBannersTabProps) {
   return (
     <WarningBannersBoundary>
@@ -231,55 +180,30 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   const listRef = useRef<HTMLElement>(null);
   const paneRef = useRef<HTMLElement>(null);
   const paneTitleRef = useRef<HTMLHeadingElement>(null);
-  /** Set when a row opens a preset, so the pane's heading takes focus once it has rendered. */
   const focusPaneOnOpen = useRef(false);
 
   const isDirty = editor ? isCopyDirty(editor) || isScopeDirty(editor) : false;
   const draft = useMemo(() => (editor ? composeDraft(editor) : null), [editor]);
-  // Replacing the open draft (another preset, New preset, Coverage's Edit, or
-  // closing the pane) asks first while it holds unsaved work.
-  // The shell owns rail clicks, Leave and unload; this guard keeps the
-  // in-tool switches.
   const { guard: guardDraft, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, { warnOnUnload: false });
 
-  // Phones stack the pane under the list: opening a preset scrolls it in.
   const openIdentity = editor ? (editor.origin?.key ?? "new") : null;
   useScrollToDetail(paneRef, view === "presets" ? openIdentity : null);
-  // Name the preset for keyboard and screen reader users once its pane is in
-  // the page. An effect, not a frame later, so a click that lands in a field
-  // right after cannot lose its focus to the heading.
   useEffect(() => {
     if (openIdentity === null || !focusPaneOnOpen.current) return;
     focusPaneOnOpen.current = false;
     paneTitleRef.current?.focus({ preventScroll: true });
   }, [openIdentity]);
 
-  /**
-   * The site-wide glyph size. Its own query, draft, save state and notice, none
-   * of them shared with `submitPreset`: an editor who saves a preset must not see
-   * a pill claiming the size was stored, and vice versa.
-   */
-  // Read without throwing, so a failed read degrades the size control alone
-  // and the presets stay editable; the boundary is the net for anything else.
   const displayRead = useEditorReadState("siteConfig:getBannerDisplay", {}, "list");
   const display = displayRead.data;
   const invalidateEditorReads = useInvalidateEditorReads();
   const storedIconSize = display
     ? clampSafetyBannerIconSize(display.iconSize)
     : SAFETY_BANNER_ICON_SIZE_DEFAULT;
-  /**
-   * Raw text rather than a number, because clamping on every keystroke turns
-   * typing `50` into `24` at the first digit. `null` means "whatever is stored",
-   * so the field adopts a late-arriving query instead of pinning the fallback
-   * the previews rendered at while it loaded.
-   */
   const [iconSizeDraft, setIconSizeDraft] = useState<string | null>(null);
   const [iconSizeSaveState, setIconSizeSaveState] = useState<SaveState>("idle");
   const [iconSizeNotice, setIconSizeNotice] = useState<NoticeMessage | null>(null);
 
-  // The corpus is read once per visit (and cached across visits), so the
-  // readout's denominator, Coverage and the substance search are all ready
-  // without waiting for a view to ask.
   useEffect(() => {
     let cancelled = false;
     fetchWarningBannerTargets({ refresh: targetsToken > 0 }).then(
@@ -304,9 +228,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     };
   }, [targetsToken]);
 
-  // A deep link can arrive while the tab is already mounted: an editor reading
-  // an article clicks through to `/dev/banners/<slug>` and the controller hands
-  // down a new slug rather than remounting. Mirrors `ReplicationStudioTab`.
   useEffect(() => {
     if (initialSubstanceSlug) {
       setCoverageSlug(initialSubstanceSlug);
@@ -314,18 +235,12 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     }
   }, [initialSubstanceSlug]);
 
-  /**
-   * The blast radius, and the loudest thing on the page, split by tone so a
-   * death warning on 31 substances is not hidden behind a sitewide caution
-   * notice.
-   */
   const coverage = useMemo(() => summarizeBannerCoverage(presets), [presets]);
   const capped = useMemo(
     () => summarizeCapSuppression(presets, targets.map((target) => target.slug)),
     [presets, targets],
   );
 
-  /** Re-read one preset after a conflict and put the latest version in front of the editor. */
   const loadLatest = useCallback(async (key: string) => {
     const state = await readWarningState(key);
     const latest = state.preset ? { ...state.preset, baseHash: state.baseHash } : null;
@@ -352,7 +267,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     });
   }, [confirm, loadLatest]);
 
-  /** The notice for a write that did not land, with its way forward. */
   const failureNotice = useCallback((key: string, error: unknown, fallback: string): BannerNotice => {
     const retry = pendingWarning(key) ? (
       <Button variant="outline" size="sm" onClick={() => recoverPending(key)}>Retry original change</Button>
@@ -376,17 +290,9 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
       actions: retry,
       writeFailed: true,
     };
-    // `recoverPending` is a plain function declared below; it only reads module state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [askLoadLatest]);
 
-  /**
-   * One POST is every write in this tool: authoring copy, enabling a class of
-   * substances, and disabling one slug all submit a whole preset. Scope writes
-   * submit the saved copy, never the pane's unsaved words. Returns the
-   * confirmed preset and its new revision for the caller to adopt, or `null`
-   * when the write failed and local edits must remain untouched.
-   */
   const submitPreset = useCallback(
     async (preset: EditableWarningPreset): Promise<EditableWarningPreset | null> => {
       const submitted = normalizeEnabledSlugs(preset.enabledSlugs);
@@ -427,16 +333,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     [failureNotice],
   );
 
-  /**
-   * Every enablement write, from Coverage's single `Disable on <slug>` to the
-   * search block's `Enable on all N results`, funnels through here so all of
-   * them are confirmed the same way, write the same way and offer Undo. Undo is
-   * the one caller that re-enters without a dialog: it is the escape hatch, and
-   * a confirm on it would be clicked through blindly.
-   *
-   * A plain function rather than a `useCallback` so Undo can re-enter it with
-   * the previous list, which is the whole of the undo mechanism.
-   */
   async function commitEnabledSlugs(
     preset: WarningBannerPreset,
     nextSlugs: string[],
@@ -445,8 +341,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const previous = preset.enabledSlugs;
     const adopted = await submitPreset({ ...preset, enabledSlugs: nextSlugs });
     if (!adopted) return;
-    // Keep an open pane in step with a write made from inside it: the saved
-    // list becomes the scope draft's list, and unsaved words stay a draft.
     setEditor((current) =>
       current?.origin?.key === adopted.key
         ? {
@@ -480,14 +374,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     });
   }
 
-  /**
-   * The only door to `commitEnabledSlugs` from a view. Disabling a slug removes
-   * a warning from a public article the moment the write lands, so it confirms
-   * as destructive; enabling confirms too. Both write the saved copy with the
-   * new list, and the dialog says unsaved words stay behind. A preset that does
-   * not exist yet has nothing live to change, so its list is a draft that
-   * publishes with the preset.
-   */
   function requestEnablement(preset: WarningBannerPreset, change: EnablementChange) {
     if (editor && editor.origin === null) {
       const { nextSlugs } = planEnablementChange(
@@ -503,7 +389,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     const saved = open?.origin ?? preset;
     const dirty = open !== null && isCopyDirty(open);
     const plan = planEnablementChange(saved, change, targets, { dirty });
-    // An enable that the two-banner cap would hide says so before it is confirmed.
     const hidden = change.action === "enable" && saved.enabled
       ? slugsHiddenByCap(presets, saved, plan.nextSlugs, change.slugs)
       : [];
@@ -551,13 +436,9 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
       tone: "warning", message: "An earlier change to this preset is still unconfirmed. Retry the original change before making another.",
       actions: <Button variant="outline" size="sm" onClick={() => recoverPending(preset.key)}>Retry original change</Button>,
     } : null);
-    // `recoverPending` only reads module state and opens the confirm.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // `/dev/banners/preset:<key>` (the Cmd+K palette's preset records) opens
-  // that preset's editor once the presets arrive. Each key opens once, so
-  // closing the pane sticks.
   const openedPresetRef = useRef<string | null>(null);
   useEffect(() => {
     if (!initialPresetKey || rows === undefined || openedPresetRef.current === initialPresetKey) return;
@@ -665,8 +546,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     [confirm, deletePreset],
   );
 
-  // What the field shows, and what everything else renders at. They differ only
-  // while a number is half typed; the clamp is the one that reaches the server.
   const iconSizeText = iconSizeDraft ?? String(storedIconSize);
   const iconSize = clampSafetyBannerIconSize(Number.parseInt(iconSizeText, 10));
   const iconSizeDirty = iconSizeDraft !== null && iconSize !== storedIconSize;
@@ -690,9 +569,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
         );
       }
 
-      // Adopt the echoed number, not the typed one: it is what the clamp stored,
-      // and re-seeding the draft from it clears the unsaved line without waiting
-      // for the reactive query to come back round.
       const stored = clampSafetyBannerIconSize(payload.iconSize);
       setIconSizeDraft(String(stored));
       void invalidateEditorReads(["siteConfig:getBannerDisplay"]);
@@ -712,7 +588,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     }
   }, [iconSize, invalidateEditorReads]);
 
-  // The size changes every banner on the site, so it asks first and says so.
   const handleSaveIconSize = useCallback(() => {
     confirm({
       title: `Change the icon size on every banner to ${iconSize}px?`,
@@ -722,8 +597,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     });
   }, [confirm, iconSize, saveIconSize, storedIconSize]);
 
-  // Both drafts would go live on save (a preset on its articles, the size on
-  // every banner), so the shell only discards them.
   useUnsavedWork({
     kind: "discard-only",
     because: "This change would go live. Publish it from the tool; leaving here never publishes.",
@@ -747,8 +620,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     },
   });
 
-  // Cmd+S or Ctrl+S asks to publish the open preset; it never publishes past
-  // the confirm. `/` focuses the substance search on screen.
   const paneOpen = editor !== null && view === "presets";
   useDevShortcuts(paneOpen ? EDITOR_SHORTCUTS : VIEW_SHORTCUTS, rows !== undefined);
   const handleSaveRef = useRef(handleSave);
@@ -819,8 +690,6 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
     );
   }
 
-  // Freeze turns a failed write's notice into the freeze's own words; the
-  // draft stays, and the retry (when there is one) stays with it.
   const { writeFailed, ...plainNotice } = notice ?? { writeFailed: false };
   const shownNotice: NoticeMessage | null = notice
     ? writeFailed && freeze.frozen

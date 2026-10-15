@@ -11,8 +11,6 @@ import { slugify } from "../../src/utils/slug";
 import { validateArticleForIngestion } from "./validators";
 import { bulkRowFailure } from "./bulkImportFailures";
 
-// Re-exported so other server modules keep a single import site for the
-// canonical substance slug algorithm (src/utils/slug.ts).
 export { slugify };
 
 export type StoredSubstance = {
@@ -208,10 +206,6 @@ export function mergeArticleReferenceMetadataForReplacement<T extends Record<str
   storedReferences: Reference[] = [],
 ) {
   const incomingReferences = (Array.isArray(article.references) ? article.references : []) as Reference[];
-  // Replacement writes keep deletion semantics: omitted stored references are
-  // deleted. Stored entries retain unambiguous canonical marker ids and enrich
-  // incoming records, while explicit fetched/inspected provenance may replace
-  // lower-rank scalar metadata.
   const merged = mergeReferenceCollections(storedReferences, incomingReferences, {
     allowTrustedScalarOverride: true,
     retainExistingUnmatched: false,
@@ -395,7 +389,6 @@ export async function ingestSubstanceArticle({
   ).article;
   const previous = toSubstanceSnapshot(existing);
   const next = toSubstanceSnapshot(articleWithMergedReferences);
-  // Database reads retain complete documents; StoredSubstance names only identity fields.
   const previousDocument = existing as unknown as SubstanceArticleRecord | null;
   const publicationDependency = classifySubstancePublicationDependency(
     previousDocument,
@@ -460,8 +453,6 @@ export async function ingestSubstanceArticles({
   db: SubstanceDb;
   articles: Array<SubstanceArticleLike & Record<string, unknown>>;
 }): Promise<SubstanceIngestionResult> {
-  // Structural validation runs before any SQL. One invalid article leaves the
-  // whole batch unwritten, so the counts never describe a partial batch.
   const invalid = articles.map((article, index) => {
     const validation = validateArticleForIngestion(article);
     return validation.ok === false ? invalidArticleOutcome(article, index, validation) : null;
@@ -475,8 +466,6 @@ export async function ingestSubstanceArticles({
       try {
         outcomes.push(await ingestSubstanceArticle({ db, article, index }));
       } catch (error) {
-        // The runtime issues no savepoints: a failed statement aborts the
-        // transaction, so the batch fails as a whole (see bulkImportFailures).
         throw bulkRowFailure(`Substance ${article.title}`, error);
       }
     }

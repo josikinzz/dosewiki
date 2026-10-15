@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * Presets: the authoring and enablement surface.
- *
- * An editor workspace, like My reports: the presets on the left as link rows
- * (sticky on desktop), each saying its tone and where it renders without a
- * click, because "what does a reader see right now?" is the question this
- * tool exists to answer; the open preset in a docked pane on the right with
- * its save dock at the bottom. One preset opens at a time; editing two at
- * once is not a real workflow and would double the unsaved-state surface. On
- * a phone the pane stacks under the list, opening a preset scrolls it in, and
- * the pane carries Back to list.
- *
- * The site-wide glyph size sits under the list, apart from the pane, because
- * it is the one control here that changes every banner rather than the one
- * being edited.
- */
-
 import { useState, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -47,18 +30,11 @@ import type { EnablementChange } from "./enablement";
 import type { DrawerPreview } from "./PresetDrawer";
 import { PresetPane } from "./PresetPane";
 
-/**
- * The site-wide glyph size, wired as one object so the prop bundle reads as a
- * single global setting rather than seven loose fields that could be mistaken
- * for preset state. `text` is raw field input and `size` is the clamped value
- * every preview renders at; they disagree only while a number is half typed.
- */
 export type BannerIconSizeControl = {
   size: number;
   text: string;
   dirty: boolean;
   saveState: EditorActionStatusState | "idle";
-  /** The stored size could not be read; the field and previews fall back to the default. */
   loadError?: string | null;
   retrying?: boolean;
   onRetryLoad?: () => void;
@@ -70,20 +46,15 @@ export type BannerIconSizeControl = {
 export type PresetsViewProps = {
   presets: WarningBannerPreset[];
   targets: WarningBannerTarget[];
-  /** Where the two-banner cap hides each preset; omitted in isolation. */
   capped?: CapSuppression;
-  /** Global, not per preset: the same size renders on every banner on the site. */
   iconSizeControl: BannerIconSizeControl;
   iconSizeNotice: NoticeMessage | null;
   onDismissIconSizeNotice: () => void;
-  /** The open draft, or null when no preset is open. */
   draft: WarningBannerPreset | null;
-  /** The stored preset the open draft started from; null for a new preset. */
   saved: WarningBannerPreset | null;
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
   iconValid: boolean;
-  /** The result of the last preset write: in the save dock while a preset is open, above the list otherwise. */
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
   saveKeyLabel: string;
@@ -98,7 +69,6 @@ export type PresetsViewProps = {
   onDiscard: () => void;
   onClose: () => void;
   onBackToList: () => void;
-  /** Asks the controller to confirm and write one enablement change. */
   onRequestEnablement: (preset: WarningBannerPreset, change: EnablementChange) => void;
   onRequestDelete: (preset: WarningBannerPreset) => void;
   onInspectCoverage: (slug: string) => void;
@@ -135,15 +105,11 @@ export function PresetsView({
   onInspectCoverage,
 }: PresetsViewProps) {
   const openKey = draft && saved ? saved.key : null;
-  // A phone opens the preview at phone width, where the banner is readable;
-  // the frame's own switch still offers the other width.
   const [narrowScreen] = useState(
     () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(max-width: 639px)").matches,
   );
   const isNew = draft !== null && saved === null;
 
-  // The draft in the article's real banner stack: every stored preset stays
-  // in play, so the order and the two-banner cap are the ones readers get.
   const renderPreview = ({ draft: previewDraft, slug, slugOptions, onSlugChange }: DrawerPreview) => (
     <ArticlePreviewFrame
       label="Banner preview"
@@ -264,7 +230,6 @@ export function PresetsView({
   );
 }
 
-/** What the pane says on desktop before a preset is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({ empty }: { empty: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6">
@@ -335,12 +300,6 @@ function PresetRow({
   );
 }
 
-/**
- * The only global setting in the tool, labelled with its blast radius rather
- * than its unit: an editor adjusting the size of the banner in front of them
- * is in fact adjusting every banner on the site. It never lives in the pane
- * for exactly that reason, and it asks before it saves.
- */
 function IconSizeSection({
   control,
   notice,
@@ -350,12 +309,6 @@ function IconSizeSection({
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
 }) {
-  /**
-   * The field holds raw text so typing `50` is not clamped to `24` at the first
-   * digit, which means the number on screen and the size the previews render at
-   * can legitimately disagree for a keystroke. This line says which one the
-   * server will believe, because the clamp never rejects a save.
-   */
   const typedSize = control.text.trim();
   const parsedSize = Number.parseInt(typedSize, 10);
   const sizeHint = !Number.isFinite(parsedSize)
@@ -406,7 +359,6 @@ function IconSizeSection({
               value={control.text}
               onChange={(event) => control.onTextChange(event.target.value)}
             />
-            {/* A glyph at the size it saves as, so the number reads as a size. */}
             <span
               aria-hidden
               title={`${control.size}px`}
@@ -414,9 +366,6 @@ function IconSizeSection({
             >
               <Icon icon="lucide:triangle-alert" size={control.size} className="theme-text-secondary" />
             </span>
-            {/* `Save size` and `Reset`, never `Publish preset` and `Discard
-                edits`: the two writes are independent and the words are the
-                only thing keeping them apart on screen. */}
             <Button
               type="button"
               variant="secondary"
@@ -439,8 +388,6 @@ function IconSizeSection({
           Unsaved size
         </p>
       ) : null}
-      {/* Its own notice, apart from the preset notice, so a size save and a
-          preset save never overwrite each other's outcome on screen. */}
       {notice ? <Notice {...notice} dismiss={onDismissNotice} className="text-sm" /> : null}
     </section>
   );

@@ -1,12 +1,5 @@
 import registry from "../../content/i18n/localeRegistry.json" with { type: "json" };
 
-/**
- * Shared locale identity and presentation policy.
- *
- * Public routing consumes only entries with a non-empty pathPrefix. A locale
- * may therefore be exercised by local tooling without launching a host or
- * making an ordinary production request addressable under a new prefix.
- */
 for (const code in registry) {
   Object.freeze(registry[code].coveragePolicy);
   Object.freeze(registry[code]);

@@ -5,11 +5,8 @@ import { getPortalRecord } from "../server/tripReports";
 import { updateHandler } from "../server/lib/tripReportPortalHandlers";
 import { create, promoteHandler } from "../server/tripReportSubmissions";
 
-// Postgres registered functions keep the original handler on `_handler`; there is
-// no in-repo Postgres runtime harness, so the handler is exercised directly.
 type RegisteredHandler = { _handler: (ctx: MutationCtx, args: unknown) => Promise<unknown> };
 const handlerOf = (fn: unknown) => {
-  // Postgres's RegisteredMutation type hides `_handler`; the runtime object always carries it.
   const registered = fn as RegisteredHandler;
   return registered._handler;
 };
@@ -26,13 +23,6 @@ type Cursor = {
   order: (direction: "asc" | "desc") => Cursor;
 };
 
-/**
- * In-memory tables with the `withIndex(...).eq(field, value)` shape the
- * handlers use: `memberships.by_email` for `requireRole` and the owner
- * lookups, `tripReports.by_slug` / `by_owner_email`, `tripReportSubmissions.by_public_id`,
- * `tripReportSubstances.by_report`, and the unindexed `contributorProfiles`
- * collect the byline guard performs.
- */
 function createCtx(seed: Record<string, Row[]>): FakeDb {
   const tables = new Map<string, Map<string, Row>>();
   for (const [table, rows] of Object.entries(seed)) {

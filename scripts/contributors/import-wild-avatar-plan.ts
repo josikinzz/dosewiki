@@ -1,7 +1,3 @@
-// Pure identity resolution for wild-sourced contributor avatars: which artist a
-// findings row belongs to, which profile carries it, and which spellings fold
-// into it. No network, no filesystem, no Postgres - so the decision that matters
-// most here is the one that is cheapest to test.
 import {
   findContributorProfileByAuthorName,
   normalizeProfileAlias,
@@ -26,7 +22,6 @@ export interface Finding {
 export interface ProfileRow extends StoredContributorProfile {
   key: string;
   displayName: string;
-  /** Always present on a read row, and required by the alias-aware matcher. */
   aliases: string[];
 }
 
@@ -35,28 +30,21 @@ export interface ReplicationRow {
   artist_url?: string;
 }
 
-/** One artist's findings, however many credit lines they arrived under. */
 interface Cluster {
   key: string;
   profile: ProfileRow | null;
   members: Finding[];
-  /** Every credit line folded into this identity, including ones with no finding. */
   creditLines: Set<string>;
 }
 
 export interface PlanEntry {
-  /** The best-evidenced finding in the cluster; the one whose bytes get installed. */
   finding: Finding;
-  /** The profile the avatar lands on; `null` until one is created for it. */
   profile: ProfileRow | null;
   key: string;
   displayName: string;
   avatarUrl: string;
-  /** Other spellings of this artist, to record on the profile so they resolve to it. */
   aliasesToAdd: string[];
-  /** Every credit line folded into this identity, for the report and the manifest. */
   consolidated: string[];
-  /** What the artist's heading shows today, for the report. */
   replaces: "artwork-cut" | "other-image" | "monogram";
 }
 
@@ -65,32 +53,13 @@ export interface SkippedFinding {
   reason: string;
 }
 
-/** Findings below this are reported and skipped, never installed. */
 const INSTALLABLE_CONFIDENCE: Record<string, true> = {
   high: true,
   medium: true,
 };
 
-/**
- * Smallest source short side worth installing.
- *
- * Nothing here upscales, so a 50x50 legacy avatar is delivered at 50px and
- * renders soft in a 40 CSS px frame on a 2x screen - softer than the sharp
- * artwork crop it would be replacing. A find that loses to the stand-in is not
- * an improvement, so it is reported and left alone. 96 keeps the 100x100 avatars
- * the older platforms still serve.
- */
 export const MIN_SOURCE_SHORT_SIDE = 96;
 
-/**
- * A profile key derived from a credit line.
- *
- * `normalizeProfileKey` only trims and uppercases, so the separator-stripping
- * that produced `SYMMETRICVISION` from "Symmetric Vision" and `UHSD5` from
- * "u/hsd5" happens here, then goes through it. Collisions are not an error at
- * this level: they are resolved by consolidating the two spellings into one
- * identity rather than by minting a second row.
- */
 function newProfileKeyFor(displayName: string): string {
   const key = normalizeProfileKey(displayName.replace(/[^A-Za-z0-9]/g, ""));
   if (!key) {
@@ -101,7 +70,6 @@ function newProfileKeyFor(displayName: string): string {
   return key;
 }
 
-/** True when `left` becomes `right` with at most one insertion, deletion or substitution. */
 function editDistanceAtMostOne(left: string, right: string): boolean {
   if (left === right) return true;
   const [shorter, longer] =
@@ -125,23 +93,6 @@ function editDistanceAtMostOne(left: string, right: string): boolean {
   return true;
 }
 
-/**
- * Keys that look like the same artist spelled two ways.
- *
- * Containment catches the "X" / "X Art" shape; a single edit catches a
- * transposed or dropped letter, which is how "Shupliak" and "Shuplyak" ended up
- * as two artists. A match means the two spellings are consolidated onto one
- * profile with the loser recorded as an alias - never two rows for one person.
- *
- * An exact match counts. Two credit lines that derive the same key - which is
- * what a reviewed merge group produces, since every member derives the key of
- * the spelling that leads it - are the same identity by construction, and
- * callers pass lists that never contain the key being tested.
- *
- * Deliberately narrow otherwise. Two genuinely different artists whose names
- * differ by one letter would be merged by this, so anything it catches is
- * printed in the run's consolidation report rather than applied silently.
- */
 function nearDuplicateOf(
   key: string,
   others: readonly string[],
@@ -170,21 +121,10 @@ export interface PlanInput {
   findings: readonly Finding[];
   profiles: readonly ProfileRow[];
   replications: readonly ReplicationRow[];
-  /** Profile keys whose current avatar is a crop of the artist's own work. */
   artworkKeys: ReadonlySet<string>;
-  /** Reviewed groups of credit lines that name the same human. */
   mergeGroups: readonly string[][];
 }
 
-/**
- * Findings in, one entry per artist out.
- *
- * The whole point of this function is that an artist ends up with exactly one
- * profile no matter how many names the corpus credits them under. Two artists
- * merged by mistake is the expensive failure - it hands one person's page to
- * another - so consolidation only happens on a reviewed merge group or a
- * near-identical key, and everything it does is reported by the caller.
- */
 export function buildWildAvatarPlan({
   findings,
   profiles,
@@ -192,9 +132,6 @@ export function buildWildAvatarPlan({
   artworkKeys,
   mergeGroups,
 }: PlanInput): { plan: PlanEntry[]; skipped: SkippedFinding[] } {
-  // Every credit line the gallery shows, with its weight. A findings row naming
-  // an artist nobody is credited as is caught here rather than installed
-  // nowhere, and the counts decide which spelling leads a consolidated identity.
   const worksByCredit = new Map<string, number>();
   for (const row of replications) {
     const credit = normalizeProfileAlias(row.artist ?? "");
@@ -254,8 +191,6 @@ export function buildWildAvatarPlan({
       continue;
     }
 
-    // A reviewed merge group speaks for the whole identity, so the profile
-    // lookup and the derived key both run against the spelling that leads it.
     const group = mergeGroupByCredit.get(normalizeProfileAlias(finding.artist));
     const groupLines = group ?? [finding.artist];
     const leadCredit = [...groupLines].sort(
@@ -341,8 +276,6 @@ export function buildWildAvatarPlan({
         left.artist.localeCompare(right.artist),
     );
 
-    // Every spelling folded into this identity, whether or not it had a finding
-    // of its own: an alias is what makes the other gallery group resolve here.
     const creditLines = [...cluster.creditLines].sort(
       (left, right) => works(right) - works(left) || left.localeCompare(right),
     );

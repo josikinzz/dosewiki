@@ -1,6 +1,5 @@
 import type { TranslationRecordKind } from "./liveTranslation";
 
-/** Units are distinct source hashes within each record, summed across records. */
 export type CoverageCounts = {
   records: number;
   units: number;
@@ -8,11 +7,8 @@ export type CoverageCounts = {
   missing: number;
   stale: number;
   rejected: number;
-  /** Advisory glossary disagreements, overlapping the four storage states. */
   glossaryMisses: number;
-  /** Stored targets with doubled full-width punctuation (REPEATED_PUNCTUATION), overlapping storage states. */
   repeatedPunctuation: number;
-  /** Stored Chinese targets with leftover English words (LEFTOVER_LATIN), a review finding. */
   leftoverLatin: number;
 };
 export type TranslationQueueCoverage = {
@@ -20,7 +16,6 @@ export type TranslationQueueCoverage = {
   running: number;
   failed: number;
   completed: number;
-  /** Subset of queued jobs with a recorded failed attempt. */
   retrying: number;
 };
 export type TranslationCoveragePage = CoverageCounts & {

@@ -1,18 +1,8 @@
-/**
- * Pure state and the HTTP client for the Playlists tab
- * (`/api/dev/replications/playlists`).
- *
- * A member's own replication playlists: the same rows the replication studio
- * edits, read through the same routes, but scoped by ownership. The studio's
- * key rule is reused so a playlist minted here is addressed the same way there.
- */
-
 import { playlistKeyOf } from "@/features/dev/tools/replication-studio/replicationPlaylistModel";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
 export { playlistKeyOf };
 
-/** Compact playlist metadata returned by the collection route. */
 export type OwnedPlaylistSummary = {
   key: string;
   title: string;
@@ -20,27 +10,18 @@ export type OwnedPlaylistSummary = {
   updated_at: string;
   updated_by: string | null;
   owner_email: string | null;
-  /** Whether the signed-in member may change this row (owner or admin). */
   editable: boolean;
 };
 
-/** Complete playlist returned by keyed reads and mutations. */
 export type OwnedPlaylist = Omit<OwnedPlaylistSummary, "work_count"> & {
   replication_slugs: string[];
 };
 
-/** The playlist being edited: an existing key, or a new one not yet saved. */
 export type PlaylistDraft = {
   key: string;
   title: string;
   slugs: string[];
-  /** The `updated_at` this draft was loaded from; `null` for a playlist that does not exist yet. */
   expectedUpdatedAt: string | null;
-  /**
-   * Admin only, and only while creating: the member the new playlist belongs
-   * to. An existing playlist's owner is changed through `assignPlaylistOwner`,
-   * not through this draft.
-   */
   ownerEmail: string;
 };
 
@@ -62,7 +43,6 @@ export const EMPTY_DRAFT: PlaylistDraft = {
   ownerEmail: "",
 };
 
-/** Move the entry at `index` one step; out-of-range moves return the same array. */
 export function moveSlug(slugs: readonly string[], index: number, direction: -1 | 1): string[] {
   const target = index + direction;
   if (index < 0 || index >= slugs.length || target < 0 || target >= slugs.length) {
@@ -84,7 +64,6 @@ export function isDraftDirty(draft: PlaylistDraft, saved: OwnedPlaylist | null):
   );
 }
 
-/** Titles named in one line of the save summary before it counts the rest. */
 const SUMMARY_NAME_LIMIT = 6;
 
 function nameList(slugs: readonly string[], labelOf: (slug: string) => string): string {
@@ -96,17 +75,10 @@ function nameList(slugs: readonly string[], labelOf: (slug: string) => string): 
 const works = (count: number) => `${count} ${count === 1 ? "work" : "works"}`;
 
 type PlaylistChangeSummary = {
-  /** Plain sentences for the confirm, in reading order. */
   lines: string[];
-  /** Entries on the draft that are not works a playlist can hold; saving leaves them out. */
   leftOut: string[];
 };
 
-/**
- * What a save will do, in words, for the confirm dialog. `labelOf` turns a
- * slug into the work's title where it is known; `unavailable` holds the slugs
- * the lookup could not find, which the server would drop on save.
- */
 export function summarizePlaylistChange({
   before,
   after,
@@ -154,7 +126,6 @@ export async function fetchPlaylists(): Promise<OwnedPlaylistSummary[]> {
   });
   return Array.isArray(payload.playlists) ? (payload.playlists as OwnedPlaylistSummary[]) : [];
 }
-/** Fetch one deep-linked playlist without waiting for the collection projection. */
 export async function fetchPlaylist(key: string): Promise<OwnedPlaylist> {
   const payload = await requestJson(`${BASE_PATH}/${encodeURIComponent(key)}`, undefined, {
     network: "Network error while loading that playlist.",
@@ -174,7 +145,6 @@ export class PlaylistConflictError extends Error {
   }
 }
 
-/** Create or replace one playlist. `ownerEmail` is only sent on create, by an admin. */
 export async function savePlaylist(
   draft: PlaylistDraft,
   options: { sendOwner: boolean },
@@ -209,7 +179,6 @@ export async function deletePlaylist(key: string): Promise<void> {
   );
 }
 
-/** Admin: hand a playlist to a member, or (`null`) leave it unowned. */
 export async function assignPlaylistOwner(
   key: string,
   ownerEmail: string | null,
@@ -240,7 +209,6 @@ function requestJson(
   });
 }
 
-/** The list row a stored playlist stands for, so a save updates the list without a second read. */
 export function summaryOf(playlist: OwnedPlaylist): OwnedPlaylistSummary {
   return {
     key: playlist.key,
@@ -253,27 +221,20 @@ export function summaryOf(playlist: OwnedPlaylist): OwnedPlaylistSummary {
   };
 }
 
-/** Rows in reading order: by name, the way the collection route sorts them. */
 export function sortPlaylists<T extends { title: string }>(rows: readonly T[]): T[] {
   return [...rows].sort((left, right) => left.title.localeCompare(right.title));
 }
 
-/** Why Save cannot run right now, in words, or `null` when it can. */
 export function saveBlocker(draft: PlaylistDraft): string | null {
   if (draft.title.trim().length === 0) return "Name the playlist to save it.";
   if (draft.key.length === 0) return "Use letters or numbers in the name, so the playlist gets a key.";
   return null;
 }
 
-/** A write refused because writes are frozen (the write boundary's wording). */
 export function isWriteFreezeRefusal(message: string): boolean {
   return /frozen|writes are paused/i.test(message);
 }
 
-/**
- * The parts of a playlist a save changes, for the dock's state line and the
- * confirm heading: "the name and the order".
- */
 export function changedPlaylistParts(draft: PlaylistDraft, saved: OwnedPlaylist | null): string[] {
   if (!saved) return [];
   const parts: string[] = [];

@@ -1,12 +1,6 @@
-/**
- * Request-body validation for one Writing row, shared by the admin's direct
- * save (`POST /api/dev/writing-article`) and the proposal route, so an
- * editor's proposal is held to exactly what the admin's save is held to.
- */
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { isValidPublicationDate } from "@/utils/archiveDate";
 
-/** Mirrors `SLUG_PATTERN` in `server/effectIndexArticles.ts`. */
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const TITLE_MAX_LENGTH = 200;
@@ -34,7 +28,6 @@ export type WritingArticleBody = {
   publicationDate?: unknown;
 };
 
-/** The row's content fields: what a proposal carries under `payload.writing`. */
 export type ParsedWritingDocument = {
   slug: string;
   bodyFormat: "vcode" | "markdown";
@@ -50,10 +43,6 @@ export type ParsedWritingDocument = {
 };
 
 export type ParsedWritingArticle = ParsedWritingDocument & {
-  /**
-   * The slug the editor loaded the row with. When it differs from `slug` the
-   * mutation renames that row instead of inserting a second one.
-   */
   originalSlug?: string;
   expectedRevision: string;
   operationId: string;
@@ -101,7 +90,6 @@ function stringList(raw: unknown, label: string, maxItems: number): string[] {
   });
 }
 
-/** The content fields every Writing write carries, validated the same way for both routes. */
 export function parseWritingDocument(raw: WritingArticleBody): ParsedWritingDocument {
   const slug = requireSlug(raw.slug);
   if (raw.bodyFormat !== "markdown" && raw.bodyFormat !== "vcode") throw new JsonBodyError(400, "The original writing format is required.");
@@ -126,8 +114,6 @@ export function parseWritingDocument(raw: WritingArticleBody): ParsedWritingDocu
     throw new JsonBodyError(400, `The body must be ${BODY_MAX_LENGTH} characters or fewer.`);
   }
 
-  // The same refusal the mutation makes, made early so the editor gets a plain
-  // sentence back instead of a Postgres error string.
   if (raw.status === "published" && raw.body.trim() === "") {
     throw new JsonBodyError(400, "An empty body cannot be published. Save it as a draft instead.");
   }
@@ -170,11 +156,6 @@ export function parseWritingArticleBody(raw: WritingArticleBody): ParsedWritingA
   };
 }
 
-/**
- * The `writing` entry of a proposal payload, or `null` when the payload
- * carries none. A proposal never renames a row: the slug is the row's key,
- * so a rename goes through an admin's direct save.
- */
 export function parseWritingPayload(raw: unknown): ParsedWritingDocument | null {
   if (raw === undefined || raw === null) {
     return null;

@@ -1,13 +1,3 @@
-/**
- * Article feedback domain model: the private "report an issue / suggest an
- * edit" intake shown at the bottom of every substance article.
- *
- * This module stays isomorphic (no Node imports) so the public form and the
- * /dev review tab can share the enums, labels, and validation at runtime.
- * Server-only concerns (IP hashing, Postgres store) live in
- * articleFeedbackStore.server.ts.
- */
-
 import type { DecisionLogEntry } from "@/features/intake/decisionLog";
 import { msg } from "@/i18n/messages";
 
@@ -57,11 +47,6 @@ const ARTICLE_FEEDBACK_STATUSES = [
 
 export type ArticleFeedbackStatus = (typeof ARTICLE_FEEDBACK_STATUSES)[number];
 
-/**
- * Statuses that are still asking for an editor. The Feedback tab's rail badge
- * counts exactly these rows, so the badge and the queue agree on what is
- * pending.
- */
 export const ARTICLE_FEEDBACK_PENDING_STATUSES = ["new", "reviewing"] as const satisfies readonly ArticleFeedbackStatus[];
 
 export const ARTICLE_FEEDBACK_STATUS_TRANSITIONS: Record<
@@ -109,7 +94,6 @@ export type ArticleFeedbackRow = {
   review_notes?: string;
   reviewed_by?: string;
   reviewed_at?: string;
-  /** Every status transition, oldest first. */
   decision_log?: DecisionLogEntry<ArticleFeedbackStatus>[];
   created_at: string;
   updated_at: string;

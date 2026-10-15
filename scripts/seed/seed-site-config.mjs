@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed the siteConfig table with existing static About page content.
- *
- * Usage (dry run by default):
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki node scripts/seed/seed-site-config.mjs
- *
- * Write: add --write --confirm-write=seed-site-config --expected-deployment=<fingerprint>.
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
@@ -25,7 +17,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const command = createProductionWriteCommand({ operation: "seed-site-config" });
 printProductionWriteCommand(command);
 
-// Read the static content files
 const aboutMarkdown = fs.readFileSync(
   path.join(__dirname, "../../content/about/about.md"),
   "utf-8"

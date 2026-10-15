@@ -17,9 +17,6 @@ import glossarySeeds from "./glossaryMessageSeeds.json";
 import { resolveUiMessage, uiMessageId } from "./uiMessageDefinitions";
 import { UI_MESSAGE_SEEDS } from "./uiMessageSeeds";
 
-/** Compiled catalog wording wins. A contextual message the checked-in catalog
- * has not caught up with yet renders the authored seed for that same locale,
- * the value the next catalog compile would carry. */
 function withLocaleSeeds(locale: string, catalog: Readonly<Record<string, string>>): Readonly<Record<string, string>> {
   return { ...UI_MESSAGE_SEEDS[locale], ...catalog };
 }
@@ -40,19 +37,14 @@ const UI_CATALOGS: Readonly<Record<string, Readonly<Record<string, string>>>> = 
   ko: withLocaleSeeds("ko", ko),
 };
 
-/** The catalog of one locale; English and unknown locales have none. */
 function uiCatalogFor(locale: string): Readonly<Record<string, string>> | undefined {
   return Object.prototype.hasOwnProperty.call(UI_CATALOGS, locale) ? UI_CATALOGS[locale] : undefined;
 }
 
-/** Server callers keep the complete catalog outside shared client helpers.
- * A locale without a catalog renders English, never another translation. */
 export function translateMessage(locale: string, text: string, values?: MessageValues): string {
   return formatMessage(resolveUiMessage(uiCatalogFor(locale), text), values);
 }
 
-
-/** Serialize only glossary controls, keeping full mirror catalogs on the server. */
 export function glossaryUiCatalogFor(locale: string): Readonly<Record<string, string>> {
   const keys = glossarySeeds[locale as keyof typeof glossarySeeds];
   if (!keys) return {};

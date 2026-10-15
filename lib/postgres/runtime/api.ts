@@ -49,6 +49,5 @@ function references(): Api {
   });
 }
 
-/** Browser-safe references contain names only; server modules are type-only imports. */
 export const api = references() as VisibleApi<"public">;
 export const internal = references() as VisibleApi<"internal">;

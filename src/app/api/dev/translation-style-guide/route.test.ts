@@ -42,7 +42,6 @@ let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
   for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  // Adapt the transport only. The routes, access checks, stores, and SQL are production code.
   transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
   transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
 }, 180_000);

@@ -35,12 +35,6 @@ import {
   type ViewerBufferState,
 } from "./viewerBuffering";
 
-/** Overlay controls float directly on the media: no pills, no chips — just
-    filled glyphs (fluent) with the 44px hit area and rounded focus ring the
-    rest of the app expects. The four hard 1px drop-shadows compound into a
-    solid black contour around each glyph AND bleed through the alpha into
-    enclosed hollows (the HD counters, the info "i"), so the white shapes
-    survive any backdrop; the soft final shadow lifts them off busy frames. */
 const glyphContourClassName =
   "[filter:drop-shadow(1px_0_0_#000)_drop-shadow(-1px_0_0_#000)_drop-shadow(0_1px_0_#000)_drop-shadow(0_-1px_0_#000)_drop-shadow(0_1px_2px_rgba(0,0,0,0.6))]";
 
@@ -57,7 +51,6 @@ const dockControlClassName = cn(
   focusRingClassName,
 );
 
-/** Toggle glyphs signal state by weight alone: dimmed is off, full is on. */
 const dockToggleOffClassName =
   "opacity-55 transition-opacity hover:opacity-85 motion-reduce:transition-none";
 
@@ -92,12 +85,6 @@ function browserRequestsDataSaving(): boolean {
 
 type AudioPresence = "unknown" | "present" | "absent";
 
-/**
- * Read audio presence from whichever track API this browser exposes. The
- * decoded-byte counter only accumulates while audio is actually rendered, so
- * a zero on a muted (or never-unmuted) video proves nothing — "absent" is only
- * concluded from a real track API or from silent *unmuted* playback.
- */
 function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
   const probed = video as HTMLVideoElement & {
     mozHasAudio?: boolean;
@@ -117,19 +104,15 @@ function probeAudioPresence(video: HTMLVideoElement): AudioPresence {
   return "unknown";
 }
 
-/** Gesture-safe verbs the overlay drives from keyboard shortcuts and taps. */
 export interface ViewerTransportHandle {
   togglePlayback: () => void;
   toggleMuted: () => void;
-  /** A plain tap on the media surface only toggles chrome. */
   surfaceTap: () => void;
-  /** Pure chrome visibility toggle; never touches the sound IOU. */
   toggleChrome: () => void;
 }
 
 export interface ViewerTransportProps {
   item: ReplicationViewerMediaItem;
-  /** The pooled media element currently on the active pane; null for stills. */
   video: HTMLVideoElement | null;
   muted: boolean;
   volume: number;
@@ -140,33 +123,19 @@ export interface ViewerTransportProps {
   onInfo?: () => void;
   infoOpen?: boolean;
   infoControls?: string;
-  /** The session's sticky rotate-mode preference (owned by the overlay). */
   rotateMode?: boolean;
   rotated?: boolean;
   onRotateModeChange?: (rotateMode: boolean) => void;
-  /** Whether rotate-to-fit is available in this viewport. */
   canRotate: boolean;
-  /**
-   * Reports whether the transport chrome is currently presented, so the
-   * overlay can fade its own chrome in step for a true immersive state.
-   */
   onTransportVisibleChange?: (visible: boolean) => void;
   onBufferHealthChange?: (mediaKey: string, healthy: boolean) => void;
-  /** Receives gesture-safe playback verbs; called with null on unmount. */
   onTransportHandle?: (handle: ViewerTransportHandle | null) => void;
   onFullscreen?: () => void;
-  /** Whether this platform can honour a fullscreen request at all. */
   fullscreenSupported: boolean;
   previousLabel?: string;
   nextLabel?: string;
 }
 
-/**
- * The viewer's single set of playback chrome, floating above the pooled
- * track and bound to whichever element the active pane holds. It owns
- * playback intent (play/pause, sound, seek) but never the media
- * elements themselves, which live in the track's recycled pool.
- */
 export function ViewerTransport({
   item,
   video,
@@ -201,7 +170,6 @@ export function ViewerTransport({
   const bufferingControllerRef = useRef<ViewerBufferingController | null>(null);
   const healthCallbackRef = useRef(onBufferHealthChange);
   healthCallbackRef.current = onBufferHealthChange;
-  /** Latest shared state, readable from per-work effects without re-running. */
   const mutedRef = useRef(muted);
   const volumeRef = useRef(volume);
   const transportRef = useRef<HTMLElement>(null);
@@ -209,11 +177,8 @@ export function ViewerTransport({
   const progressBufferedRef = useRef<HTMLDivElement>(null);
   const progressThumbRef = useRef<HTMLDivElement>(null);
   const progressSliderRef = useRef<HTMLDivElement>(null);
-  /** Scrub-time clock node; written per-frame like the playhead. */
   const timeReadoutRef = useRef<HTMLSpanElement>(null);
-  /** True while a pointer owns the playhead; the rAF meter yields to it. */
   const scrubbingRef = useRef(false);
-  /** Last whole second written to aria-valuenow, deduping per-frame writes. */
   const ariaSecondRef = useRef(-1);
   const reducedMotion = useReducedMotion();
   const [playback, setPlayback] = useState<ViewerBufferState>({
@@ -235,14 +200,10 @@ export function ViewerTransport({
     volumeRef.current = volume;
   });
 
-  // Catalogued waveform evidence beats runtime track probes: a row proven
-  // silent hides sound controls outright; a row with audible signal keeps
-  // them. GIF motion renditions are generated silent by contract.
   const soundAvailable =
     ordinaryVideo && knownAudio !== false && audioPresence !== "absent";
   const autoplayAllowed = !reducedMotion && !browserRequestsDataSaving();
 
-  /** Only explicit chrome gestures change the reader's visibility preference. */
   const showControls = useCallback(() => setControlsVisible(true), []);
 
   const toggleChrome = useCallback(() => {
@@ -263,20 +224,14 @@ export function ViewerTransport({
   }
   const soundCustody = soundCustodyRef.current;
 
-  // Reset per-work presentation state whenever the active work changes.
   useEffect(() => {
     setPlayback({ phase: null, wantsPlaying: false, blocked: false, error: false });
     setAudioPresence(knownAudio === true ? "present" : "unknown");
     setScrubbing(false);
     scrubbingRef.current = false;
-    // A new work re-asks for the shared sound preference in the binding
-    // effect below; any refusal re-arms the IOU there, so a stale debt from
-    // the previous work never carries over.
     soundCustody.clearIou();
-    // knownAudio is derived from the same slug change that resets here.
   }, [replication.slug]);
 
-  /** Settle audio presence from track APIs as the media loads and plays. */
   const settleAudioPresence = useCallback(
     (element: HTMLVideoElement) => {
       if (!ordinaryVideo) return;
@@ -287,11 +242,7 @@ export function ViewerTransport({
     [ordinaryVideo],
   );
 
-  // Bind the active pooled element: subscribe to its playback lifecycle and
-  // adopt whatever state it arrived in (a drag-committed neighbor is often
-  // already playing; a neighbor that failed carries its error).
   useEffect(() => {
-    // The active item can commit before the track reports its next pooled node.
     if (!video || !moving || (video.dataset.slug && video.dataset.slug !== replication.slug)) {
       setPlayback({ phase: null, wantsPlaying: false, blocked: false, error: false });
       return;
@@ -315,7 +266,6 @@ export function ViewerTransport({
     video.addEventListener("timeupdate", onTimeUpdate);
     video.addEventListener("volumechange", syncMuted);
     syncMuted();
-    // Adopt the element's current condition on bind.
     syncLoop();
     soundCustody.applyPreference(video, mutedRef.current);
     const controller = createViewerBuffering({
@@ -359,12 +309,6 @@ export function ViewerTransport({
     bufferingControllerRef.current?.togglePlayback();
   }, []);
 
-  /**
-   * The mute button's whole gesture, shared with the keyboard shortcut: flip
-   * the element inside the live user activation — WebKit only honours an
-   * unmute (and any needed replay) there; a state-sync alone would land
-   * outside it and be refused.
-   */
   const toggleMuted = useCallback(() => {
     const next = !(video?.muted ?? mutedRef.current);
     if (video) {
@@ -379,7 +323,6 @@ export function ViewerTransport({
 
   const surfaceTap = toggleChrome;
 
-  // Hand the overlay gesture-safe playback verbs for keyboard and gestures.
   useEffect(() => {
     if (!onTransportHandle) return;
     onTransportHandle({
@@ -391,7 +334,6 @@ export function ViewerTransport({
     return () => onTransportHandle(null);
   }, [onTransportHandle, surfaceTap, toggleChrome, toggleMuted, togglePlayback]);
 
-  /** Use the full file's duration, with catalogue timing until metadata arrives. */
   const resolveSeekDuration = useCallback(
     (element: HTMLVideoElement): number => {
       const own =
@@ -407,7 +349,6 @@ export function ViewerTransport({
     [replication.duration],
   );
 
-  /** One direct-DOM write moves both the accent fill and its thumb. */
   const paintPlayhead = useCallback((ratio: number) => {
     const fill = progressFillRef.current;
     if (fill) fill.style.transform = `scaleX(${ratio})`;
@@ -415,7 +356,6 @@ export function ViewerTransport({
     if (thumb) thumb.style.left = `${ratio * 100}%`;
   }, []);
 
-  /** Seek the full work directly without replacing its pooled source. */
   const seekToPointer = useCallback(
     (clientX: number) => {
       const slider = progressSliderRef.current;
@@ -442,9 +382,6 @@ export function ViewerTransport({
     bufferingControllerRef.current?.endSeek();
   }, []);
 
-  // The compact playback meter: per-frame direct-DOM writes keep the accent
-  // fill, its thumb, and the buffered layer glassy-smooth without
-  // re-rendering. While a pointer is scrubbing, the pointer owns the playhead.
   useEffect(() => {
     if (!ordinaryVideo || !video) return;
     ariaSecondRef.current = -1;
@@ -511,7 +448,6 @@ export function ViewerTransport({
     video,
   ]);
 
-  // Recovery can reveal controls temporarily without erasing a hidden preference.
   const transportVisible = controlsVisible || error || (moving && blocked);
   useLayoutEffect(() => {
     if (transportVisible) return;
@@ -523,17 +459,10 @@ export function ViewerTransport({
       else focused.blur();
     }
   }, [transportVisible]);
-  // The overlay fades its own chrome (header, rail, byline) in step with
-  // the transport, so hidden chrome means the whole screen belongs to the
-  // work — not just the corner controls.
   useEffect(() => {
     onTransportVisibleChange?.(transportVisible);
   }, [onTransportVisibleChange, transportVisible]);
 
-  /**
-   * The error card's second chance: re-run the load algorithm from inside
-   * the click gesture, so a replay is blessed.
-   */
   const retryLoad = useCallback(() => {
     if (!video) return;
     reloadPooledElement(video);
@@ -582,13 +511,6 @@ export function ViewerTransport({
       />
 
       {ordinaryVideo && !error && moving ? (
-        // The YouTube grammar: a hairline meter that is secretly a full
-        // slider. A tall invisible hit area owns the pointer so a scrub can
-        // never read as a stage tap or a swipe; the visible track fattens
-        // under the pointer and while dragging via a bottom-origin scale —
-        // a compositor transform, so the hairline never relayouts. The bar
-        // keeps the screen's bottom edge in every orientation: rotated
-        // media turns under an upright transport, matching the header.
         <div
           ref={progressSliderRef}
           role="slider"
@@ -700,9 +622,6 @@ export function ViewerTransport({
             : "invisible opacity-0 [&_*]:!pointer-events-none",
         )}
       >
-        {/* Work navigation sits at the stage's vertical midline (the classic
-            lightbox grammar), leaving the bottom edge to the control dock.
-            Touch readers swipe instead. */}
         {showWorkNavigation ? (
           <button
             type="button"
@@ -738,10 +657,6 @@ export function ViewerTransport({
           </button>
         ) : null}
 
-        {/* The control dock: every transport control in one screen-anchored
-            bar over a quiet bottom scrim, upright in every orientation like
-            the header. Playback verbs sit left; work-level modes sit right.
-            The scrim itself never eats taps — only the controls do. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-[var(--viewer-rail-height,0px)] flex items-center justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8 sm:gap-2 sm:px-3">
           <div className="flex min-w-0 items-center gap-0 sm:gap-1">
             {moving ? (
@@ -823,8 +738,6 @@ export function ViewerTransport({
                   </>
                 ) : null}
                 {ordinaryVideo ? (
-                  // The playback clock, written per-frame by the rAF meter
-                  // alongside the playhead; empty until a duration settles.
                   <span
                     ref={timeReadoutRef}
                     aria-hidden

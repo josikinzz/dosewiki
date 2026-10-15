@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * The open person in People: a docked pane with one header (the name, how
- * they sign in, their role and whether their profile is linked; a corner
- * Close; Back to list and a pager below `lg`), then two blocks that save
- * differently and say so: Account (each change applies on the member's next
- * request, after a confirm) and Public profile (the link, then the profile
- * editor, whose saves go live at once). Every write's result lands in the
- * block that made it.
- */
-
 import { useId, useMemo, useState, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -35,35 +25,27 @@ import type { MemberRow } from "../members/membersModel";
 import type { MemberPendingKind } from "../members/useMemberActions";
 import { PERSON_FLAG_LABEL, PERSON_FLAG_ICON, personLabel, type Person } from "./peopleModel";
 
-/** Why the link controls are off while the profile holds unsaved edits. */
 const DIRTY_LINK_REASON = "Save or discard the profile's changes before changing its link.";
 
 type PersonPaneProps = {
   person: Person;
-  /** Everyone, for the link pickers: accounts without a profile, profiles without an account. */
   people: readonly Person[];
   self: string;
-  /** Where this person sits in the visible list, for the pager. */
   position: { index: number; total: number };
   onMove: (step: 1 | -1) => void;
   onClose: () => void;
   onBackToList: () => void;
   onShowRoles: () => void;
-  /** A member's name for an address ("you" for the viewer). */
   nameOf: (email: string) => string;
-  /** Opens another person (the account's other profile). */
   onOpenPerson: (id: string) => void;
-  /** Opens Invites with a note naming this person. */
   onInvite: (note: string) => void;
   titleRef: RefObject<HTMLHeadingElement | null>;
-  /** The member actions' results, routed here while this person is open. */
   accountNotices: ReactNode;
   pending: MemberPendingKind | null;
   onChangeRole: (row: MemberRow, role: ManagedRole, glossaryLocales: string[]) => void;
   onToggleBan: (row: MemberRow) => void;
   onIssueReset: (row: MemberRow) => void;
   controller: ContributorsController;
-  /** Asks, then links `key` to `email` (or unlinks with `null`). */
   onLink: (key: string, email: string | null) => void;
   linkBusy: boolean;
   linkNotice: NoticeMessage | null;
@@ -210,7 +192,6 @@ export function PersonPane({
                 }
               />
             )}
-            {/* Results land under the buttons that made them: the one-time reset link above all. */}
             {accountNotices}
           </div>
         </PaneBlock>
@@ -275,7 +256,6 @@ export function PersonPane({
   );
 }
 
-/** One block of the pane: an icon heading and one plain sentence on when its changes land. */
 function PaneBlock({
   id,
   icon,
@@ -290,7 +270,6 @@ function PaneBlock({
   children: ReactNode;
 }) {
   return (
-    // A labelled section is a region named by its heading ("Account", "Public profile").
     <section aria-labelledby={id} className="space-y-4 px-4 py-5 sm:px-5">
       <div className="space-y-1">
         <h4 id={id} className="theme-text-primary flex items-center gap-2 text-base font-semibold">
@@ -304,7 +283,6 @@ function PaneBlock({
   );
 }
 
-/** "3 of 8" with previous and next; `k` and `j` do the same from anywhere in the tool. */
 function Pager({ position, onMove }: { position: { index: number; total: number }; onMove: (step: 1 | -1) => void }) {
   if (position.index < 0 || position.total < 2) return null;
   return (
@@ -342,7 +320,6 @@ function Pager({ position, onMove }: { position: { index: number; total: number 
   );
 }
 
-/** A second profile on one account: name the first and offer to open it. */
 function SharedLinkNote({ person, people, onOpenPerson }: { person: Person; people: readonly Person[]; onOpenPerson: (id: string) => void }) {
   const holder = people.find((entry) => entry.account && entry.account.email === person.linkedEmail);
   return (
@@ -360,7 +337,6 @@ function SharedLinkNote({ person, people, onOpenPerson }: { person: Person; peop
   );
 }
 
-/** Initials in a quiet disc: an account reads solid, a profile nobody signs in to reads outlined. */
 export function Monogram({ person, size = "sm" }: { person: Person; size?: "sm" | "lg" }) {
   const initials = useMemo(() => {
     const basis = personLabel(person).replace(/[^\p{L}\p{N} ]/gu, " ").trim();
@@ -382,7 +358,6 @@ export function Monogram({ person, size = "sm" }: { person: Person; size?: "sm" 
   );
 }
 
-/** The loaded profile's editor, with its load and save states. */
 function ProfileEditor({ controller }: { controller: ContributorsController }) {
   const { notice, detail, detailError, isDetailLoading, retryDetail } = controller;
   return (
@@ -431,13 +406,11 @@ function LinkPicker({
   placeholder: string;
   emptyText: string;
   options: readonly SearchablePickerOption[];
-  /** Said instead of an empty picker when nothing could be linked at all. */
   noneLeft: string;
   actionLabel: string;
   disabledReason: string | null;
   busy: boolean;
   onLink: (value: string) => void;
-  /** Another way forward beside the picker. */
   onward?: ReactNode;
 }) {
   const [choice, setChoice] = useState<string | null>(null);

@@ -5,32 +5,15 @@ import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 
 export interface EntryCardProps extends PropsWithChildren {
-  /** Optional title rendered in the entry header row. */
   title?: ReactNode;
-  /** Optional leading icon for the title. */
   icon?: ReactNode;
-  /** Optional badge / index chip rendered after the title. */
   badge?: ReactNode;
-  /** When provided, renders a token-correct danger remove button. */
   onRemove?: () => void;
-  /** Accessible label for the remove control. */
   removeLabel?: string;
-  /** Body spacing between children. Defaults to `space-y-3`. */
   bodyClassName?: string;
   className?: string;
 }
 
-/**
- * Canonical array-item entry for the dev article forms.
- *
- * Renders as the lightest inset well — a hairline border over a faint
- * `--theme-surface-soft` fill, no shadow / blur / frosted highlight — so a list
- * of entries inside an already-carded accordion section reads as recessed rows
- * rather than another stack of floating cards. When `onRemove` is supplied it
- * renders a header row with an optional title/badge and a token-correct danger
- * ghost remove button (`Button variant="destructivePill"`, driven by
- * `--theme-danger-*` so it stays reverso-safe in both themes).
- */
 export function EntryCard({
   title,
   icon,

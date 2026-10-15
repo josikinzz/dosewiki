@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * Step 2 of the subsection citation rollout: seed (or merge into) the
- * dedicated slug+section rollout tracker in the citation workbench.
- *
- * Reads the refreshed audit ledger (step 1) and writes one row per viable
- * uncited cohort subsection. Existing rows keep their status and frozen
- * originalContentHash; live drift and externally resolved rows are reported,
- * never silently rewritten. The slug-level citation queue is left untouched.
- *
- * Usage:
- *   node scripts/citations/seed-subsection-rollout-tracker.mjs --dry-run
- *   node scripts/citations/seed-subsection-rollout-tracker.mjs
- */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";

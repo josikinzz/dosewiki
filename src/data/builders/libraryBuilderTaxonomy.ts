@@ -207,8 +207,6 @@ export function buildEffectData(substanceRecords: SubstanceRecord[]) {
       const { base } = parseEffectEntryLabel(trimmed);
       const baseName = base.length > 0 ? base : trimmed;
 
-      // A name the alias table deliberately resolves to nothing (a removed effect,
-      // or shorthand naming two at once) has no effect page to be listed on.
       const resolved = index < resolvedSlugs.length ? resolvedSlugs[index] : undefined;
       if (resolved === null) {
         return;

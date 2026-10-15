@@ -6,19 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { DiffPreview } from "../components/DiffPreview";
 import type { CommitScopeDataset } from "./commitScope";
 
-/**
- * The body of the commit sheet: every dataset the working set changes, each
- * with its change count and its diff behind a disclosure, then an optional
- * change note. The note is uncontrolled so the dialog request stays static;
- * `onNoteChange` hands each keystroke to the caller.
- */
 export function CommitScopeSheet({
   scope,
   lead,
   onNoteChange,
 }: {
   scope: CommitScopeDataset[];
-  /** What the change means in the tool's own terms, above the datasets (Tags lists its tag changes). */
   lead?: ReactNode;
   onNoteChange: (note: string) => void;
 }) {

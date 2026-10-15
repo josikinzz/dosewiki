@@ -20,7 +20,6 @@ import {
 interface DosageDurationSectionProps {
   article: SubstanceArticle;
   dosageDisclaimer?: string;
-  /** Article slug for the "Log in Piru" pill; absent renders no pill. */
   piruSlug?: string;
 }
 
@@ -60,7 +59,6 @@ function renderNoteLines(
     </ul>
   );
 }
-/** Pure server-compatible projection boundary around the route tab controller. */
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
   dosageDisclaimer,

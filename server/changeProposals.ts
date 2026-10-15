@@ -25,19 +25,6 @@ import { projectProposalComment, projectProposalDetail, projectProposalSummary }
 import { articleDocument, validateArticleChange } from "./lib/articleLifecycleValidation";
 import { readFeedbackRef, type FeedbackRef } from "../src/features/intake/feedbackCorrection";
 
-/**
- * Editor change proposals: the commit panel's staged save, held for an admin
- * instead of written. This module owns submission, the reads (the editor's
- * own, the review queue, one proposal with live hashes) and discussion
- * comments; approve, apply, reject, and revert live in changeProposalReview.ts.
- *
- * Document shape (`changeProposals`):
- *   proposedBy, createdAt, updatedAt, status, targets[{kind,key,baseHash}],
- *   payload (the save-article body), summary, diff, comments[], and the
- *   optional review/apply fields declared in schema.ts.
- */
-
-/** The body a proposal wraps, validated with the validators the direct saves use. */
 export const changeProposalPayloadValidator = v.object({
   articles: v.optional(v.array(substanceArticleLightValidator)),
   indexLayouts: v.optional(v.array(indexLayoutValidator)),
@@ -65,26 +52,14 @@ type SubmitArgs = {
   };
   summary: string;
   baselines: ProposalBaseline[];
-  /** The returned proposal this one replaces; it becomes `superseded` in the same mutation. */
   revisionOf?: Id<"changeProposals">;
-  /**
-   * The reader feedback this proposal answers, already checked by the caller.
-   * Stored as `payload.feedbackRef` (id and section only); a revision without
-   * one keeps the reference of the proposal it replaces.
-   */
   feedbackRef?: FeedbackRef;
 };
 
 const SUMMARY_MAX_LENGTH = 500;
 
-/** A proposal an editor may rebase: returned with changes requested, or still waiting. */
 const REVISABLE_STATUSES: readonly ProposalStatus[] = ["submitted", "changes_requested"];
 
-/**
- * The refusals the Writing upsert would make at apply time, made at submit so
- * an editor hears them now rather than an admin at approval: a saved row keeps
- * its family and format, and VCode must parse.
- */
 async function validateWritingProposal(ctx: MutationCtx, writing: WritingProposalDocument) {
   const stored = await ctx.db
     .query("effectIndexArticles")
@@ -112,11 +87,6 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     "editor",
   );
 
-  // Targets are derived from the payload here, never taken from the caller:
-  // a proposal may never pin (and on revert, write back) a row the payload
-  // does not touch. Emptiness is derived from every kind the payload can
-  // carry, so a proposal that changes only a copy block or the About page is
-  // not refused here.
   const implied = await deriveProposalTargets(ctx, args.payload);
   if (implied.length === 0) {
     throw new PostgresError({
@@ -173,10 +143,6 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     snapshots.push({ ...target, document });
   }
 
-  // Rebase: the earlier revision must be the actor's own (or the actor an
-  // admin), still open to the proposer, and about at least one of the same
-  // rows; it is superseded in the same write so the queue never shows both
-  // revisions as live.
   const prior = args.revisionOf ? await ctx.db.get(args.revisionOf) : null;
   if (args.revisionOf) {
     if (!prior) {
@@ -210,8 +176,6 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
     updatedAt: now,
     status: "submitted",
     targets,
-    // The structured patch rides in the payload jsonb, so Change Review reads
-    // the same field changes the author saw without a schema change.
     payload: {
       ...args.payload,
       articlePatches: buildArticlePatches(args.payload as ProposalPayload, snapshots),
@@ -228,16 +192,11 @@ export async function submitHandler(ctx: MutationCtx, args: SubmitArgs) {
   }
   if (prior) {
     await ctx.db.patch(prior._id, { status: "superseded", updatedAt: now });
-    // The revision is a new Inbox item; the superseded one's claim goes with it.
     await clearInboxClaim(ctx, "proposals", prior._id);
   }
   return { proposalId };
 }
 
-/**
- * Submit one commit-panel save as a proposal. Each loaded baseline must match
- * production before the server pins its hash and generates the review diff.
- */
 export const submit = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -256,7 +215,6 @@ export const submit = mutation({
 
 const LIST_MINE_LIMIT = 50;
 
-/** Only an explicitly linked public profile may supply a display name. */
 function proposalNameResolver(ctx: QueryCtx | MutationCtx) {
   const names = new Map<string, Promise<string | undefined>>();
   return (email: string) => {
@@ -299,7 +257,6 @@ export async function listMineHandler(
   return summarizeProposals(ctx, rows, actor.email);
 }
 
-/** The actor's own proposals, newest first, without payload or diff. Editor floor. */
 export const listMine = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -322,7 +279,6 @@ export async function countHandler(ctx: QueryCtx, args: { apiKey?: string; actor
   return { submitted: submitted.length };
 }
 
-/** Open-queue size for rail badges. Editor floor. */
 export const count = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -374,7 +330,6 @@ export async function listHandler(
   return summarizeProposals(ctx, rows, actor.email);
 }
 
-/** Admin-global review queue; editors see only their own submissions. */
 export const list = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -397,8 +352,6 @@ export async function getHandler(
   if (!row || (actor.role !== "admin" && row.proposedBy !== actor.email)) {
     return null;
   }
-  // The production hash of each target as it stands now: a reviewer sees a
-  // target has drifted from `baseHash` before approve refuses it.
   const liveHashes: Array<Pick<Doc<"changeProposals">["targets"][number], "kind" | "key"> & { hash: string }> = [];
   const baseline: Array<Pick<Doc<"changeProposals">["targets"][number], "kind" | "key"> & { document: unknown }> = [];
   for (const target of row.targets) {
@@ -420,9 +373,6 @@ export async function getHandler(
     : comparisonMode === "submitted" ? row.diff
     : comparisonMode === "verified_live" ? buildProposalDiff(row.payload as ProposalPayload, baseline)
     : "";
-  // The patch stored at submit is what the author saw. An older proposal has
-  // none, so it is computed from the same before and after the text diff
-  // uses, whenever that comparison is trustworthy.
   const patchBaseline = comparisonMode === "applied" ? row.snapshotBefore as ProposalSnapshotEntry[]
     : comparisonMode === "verified_live" || (comparisonMode === "submitted" && liveMatchesBase) ? baseline
     : null;
@@ -432,7 +382,6 @@ export async function getHandler(
     try {
       articlePatches = buildArticlePatches(row.payload as ProposalPayload, patchBaseline);
     } catch {
-      // A payload the current validators refuse still has its text diff.
       articlePatches = undefined;
     }
   }
@@ -451,7 +400,6 @@ export async function getHandler(
   }, actor.email, { includePayload: args.includePayload });
 }
 
-/** One proposal in full, with the live hash of every target. Editor floor. */
 export const get = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -489,7 +437,6 @@ export async function commentHandler(
   return projectProposalComment({ ...comment, authorName: await proposalNameResolver(ctx)(actor.email) });
 }
 
-/** Append a discussion comment. Editor floor; any status, including terminal ones. */
 export const comment = mutation({
   args: {
     apiKey: v.optional(v.string()),

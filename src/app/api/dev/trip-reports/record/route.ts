@@ -1,25 +1,3 @@
-/**
- * Per-record write for the Trip Report Portal (`/dev` → Trip reports).
- *
- * One POST with a discriminated body rather than a `[id]` route, because the
- * shared `protectedRouteOperation` wrapper handles a bare `Request` and does not
- * thread Next's dynamic route params; `api/dev/replications/editorial` reaches
- * for the same shape for the same reason.
- *
- *   GET  ?id=…  → { report: { id, slug, ownerEmail, fields, revision } }
- *   POST { mode: "save", id, expected, expectedRevision, updates, profile_key?, confirm_author_name_claim? }
- *   POST { mode: "delete", id }   (admin only; refused here and again in Postgres)
- *
- * The GET is the read half of the portal's split payload: `/api/dev/trip-reports`
- * returns an index projection with no report bodies in it, and this returns the
- * one body the editor pane actually opened.
- *
- * Contributor floor: My reports (`/dev/my-reports`) reads and saves through the
- * same two handlers. Postgres decides per row: an editor reads any report but,
- * like a contributor, saves only one whose `owner_email` is theirs
- * (`NOT_OWNER` otherwise) and only its content fields; an admin saves any
- * report with the full form.
- */
 import { NextResponse } from "next/server";
 import { publishPublicCache } from "@server/next/publishPublicCache";
 import { api } from "@server/postgres/runtime/api";
@@ -84,9 +62,6 @@ function requireFields(value: unknown, field: string): TripReportEditableFields 
     }
   }
 
-  // Normalizing here rather than in the browser is what makes the concurrency
-  // check honest: the mutation compares against this same normalizer, so a
-  // client that trims differently cannot manufacture a false conflict.
   return normalizeEditableFields(candidate as unknown as Parameters<typeof normalizeEditableFields>[0]);
 }
 
@@ -117,8 +92,6 @@ function parseRecordBody(body: RecordBody): ParsedRecord {
     parsed.operationId = body.operationId;
   }
 
-  // Absent leaves the stored attribution alone; an empty string clears it. The
-  // two are different instructions, so the key is only forwarded when present.
   if (typeof body.profile_key === "string") {
     parsed.profileKey = body.profile_key.trim();
   }
@@ -179,9 +152,6 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
   mapError: (error) => {
     const message = error instanceof Error ? error.message : "";
 
-    // The byline claim guard is an adjudication request, not a failure: the
-    // portal re-offers the save with an explicit attribution decision. Same
-    // 409 the promotion route uses for the same refusal.
     if (message.includes("matches contributor profile")) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
@@ -217,8 +187,6 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
         id: body.id as Id<"tripReports">,
       });
 
-      // The deleted row leaves no slug behind, so only the index it dropped
-      // out of can be named.
       await publishPublicCache({ targets: [{ kind: "report-lists" }], source: "manual" });
       return NextResponse.json({ ok: true, deleted: result.deleted });
     }
@@ -235,7 +203,6 @@ export const POST = protectedRouteOperation<RecordBody, ParsedRecord>({
       operationId: body.operationId,
     });
 
-    // The published report and the index that lists it both went stale.
     await publishPublicCache({
       targets: [{ kind: "report", slug: result.slug }, { kind: "report-lists" }],
       source: "manual",

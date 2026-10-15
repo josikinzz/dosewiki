@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The open preset in the Presets workspace: a docked pane with one header
- * (the preset's key, its tone and where it renders, Close), the drawer's three
- * sections (preview, words, where it shows), a quiet Delete at the end, and a
- * sticky save dock that holds the result of the last write, why Publish is
- * blocked when it is, and the actions. It follows My reports' editing pane, so
- * the outcome of a publish shows where the Publish button is.
- */
-
 import { useId, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -35,7 +26,6 @@ import type { BannerIconSizeControl } from "./PresetsView";
 
 export type PresetPaneProps = {
   draft: WarningBannerPreset;
-  /** The stored preset the draft started from; null for a new preset. */
   saved: WarningBannerPreset | null;
   isDirty: boolean;
   saveState: EditorActionStatusState | "idle";
@@ -43,7 +33,6 @@ export type PresetPaneProps = {
   iconSizeControl: BannerIconSizeControl;
   targets: WarningBannerTarget[];
   notice: NoticeMessage | null;
-  /** The save key as this platform writes it ("⌘S", "Ctrl S"); shown on fine pointers only. */
   saveKeyLabel: string;
   titleRef: RefObject<HTMLHeadingElement | null>;
   renderPreview: (preview: DrawerPreview) => ReactNode;
@@ -87,15 +76,12 @@ export function PresetPane({
   const isNew = saved === null;
   const saving = saveState === "saving";
   const blocker = publishBlocker(presetDraftIssues(draft), iconValid, isNew);
-  // The header describes the stored preset, which is what readers see now;
-  // the draft's own state is in the preview's description.
   const shown = saved ?? draft;
   const state = warningBannerPresetState(shown);
 
   return (
     <EditorPanel className="overflow-visible" role="region" aria-labelledby={headingId} data-testid="banner-preset-editor">
       <header className="theme-portal-rule relative space-y-2.5 border-b px-4 py-3.5 sm:px-5">
-        {/* One Close for both layouts, pinned to the corner; the rows it shares keep clear of it. */}
         <Button
           type="button"
           variant="iconGhost"
@@ -199,7 +185,6 @@ export function PresetPane({
             onClick={onSave}
           >
             {saving ? "Publishing" : "Publish preset"}
-            {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
             <span aria-hidden className="[@media(pointer:coarse)]:hidden">
               <kbd className="theme-dev-kbd !text-current opacity-70">{saveKeyLabel}</kbd>
             </span>
@@ -214,7 +199,6 @@ export function PresetPane({
   );
 }
 
-/** One quiet line beside the actions: what Publish would do right now. */
 function SaveState({ dirty, saveState }: { dirty: boolean; saveState: EditorActionStatusState | "idle" }) {
   let content: ReactNode;
   if (saveState === "saving") {

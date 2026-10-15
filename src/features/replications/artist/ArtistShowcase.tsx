@@ -19,23 +19,14 @@ import { LazyReplicationViewerOverlay } from "../components/LazyReplicationViewe
 import type { ReplicationViewerCollection } from "../viewer/viewerModel";
 
 export interface ArtistShowcaseProps {
-  /** Persistent identity shown by the expanded viewer's heading. */
   label: string;
-  /** Opening filmstrip, capped on the server. */
   works: ShowcaseWork[];
-  /** The body of work's complete size; beyond the cap it drives the "+N" tile. */
   totalCount: number;
-  /** Viewer identity and opening works; offscreen works resolve on intent. */
   collection: ReplicationViewerCollection;
   artistKey: string;
-  /** The Artist Page path the `?viewer=` URL contract writes against. */
   sourcePath: string;
 }
 
-/**
- * The Artist Page owns the viewer URL contract and resolves its validated
- * complete collection only on launch or a direct viewer link.
- */
 export function ArtistShowcase({
   label,
   works,
@@ -73,8 +64,6 @@ export function ArtistShowcase({
           closeReplicationViewerUrl(source),
         );
       }
-      // Keep the cover until the viewer closes or history leaves its URL,
-      // including while the collection or viewer chunk is still loading.
       if (!slug) {
         dismissViewerDeepLinkCover();
       }
@@ -104,9 +93,6 @@ export function ArtistShowcase({
 
   return (
     <>
-      {/* Before the stages in document order: a `?viewer=` deep link's first
-          paint is black, and the resolution effect above dismisses the cover
-          if the slug is unknown here. */}
       <ViewerDeepLinkCover />
 
       <ReplicationShowcase
@@ -114,12 +100,10 @@ export function ArtistShowcase({
         totalCount={totalCount}
         collectionLabel={label}
         showCreator={false}
-        /* The page's only heading above this is its own h1. */
         headingLevel={2}
         controller={controller}
       />
 
-      {/* Rights footnote — the page's, not the stage's. */}
       <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
         {rightsBefore}
         <Link

@@ -23,7 +23,6 @@ const selectTriggerVariants = cva(
       selectSize: {
         sm: `h-10 px-3 py-2 pr-10 text-[16px] md:text-sm ${TOUCH_PILL}`,
         default: "h-11 px-3 py-2 pr-10 text-[16px] md:text-sm",
-        // Kept as an alias of default so existing call sites keep compiling.
         compact: "h-11 px-3 py-2 pr-10 text-[16px] md:text-sm",
         lg: "h-12 px-4 py-3 pr-12 text-base",
       },

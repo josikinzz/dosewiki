@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The open playlist in Playlists: a docked pane with one header (the saved
- * name, its key, when it last changed, a corner Close, Back to list below
- * `lg`), the name, the works and how to add more, the owner block for an admin,
- * Remove at the end, and a sticky save dock that holds the result of the last
- * write beside Save. A playlist the member may only read opens without the
- * dock, with a way to copy it into a playlist of their own.
- */
-
 import { useId, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -33,7 +24,6 @@ import { PlaylistWorks } from "./PlaylistWorks";
 import { playlistKeyOf, saveBlocker, type OwnedPlaylist, type PlaylistDraft } from "./playlistsModel";
 import type { WorkCards } from "./useWorkCards";
 
-/** What a save does here: the three shell models would each misstate it. */
 export const PLAYLIST_SAVE_COPY: SaveLineCopy = {
   label: "Saving publishes nothing.",
   detail: "A saved playlist waits here until an admin applies it to a gallery in Replication Studio. Galleries that already copied it keep their copy.",
@@ -74,9 +64,7 @@ export function PlaylistPane({
   draft: PlaylistDraft;
   saved: OwnedPlaylist | null;
   dirty: boolean;
-  /** A save is in flight: Save names it. */
   saving: boolean;
-  /** Any write is in flight: controls hold still. */
   busy: boolean;
   isAdmin: boolean;
   notice: NoticeMessage | null;
@@ -96,7 +84,6 @@ export function PlaylistPane({
   rosterError: string | null;
   onRetryRoster: () => void;
   ownerName: (email: string) => string;
-  /** The save key as this platform writes it ("⌘S", "Ctrl S"); shown on fine pointers only. */
   saveKeyLabel: string;
 }) {
   const headingId = useId();
@@ -108,7 +95,6 @@ export function PlaylistPane({
   return (
     <EditorPanel className="overflow-visible" data-testid="playlist-pane" aria-labelledby={headingId} role="region">
       <header className="theme-portal-rule relative space-y-2 border-b px-4 py-3.5 sm:px-5">
-        {/* One Close for both layouts, pinned to the corner; the rows it shares keep clear of it. */}
         <Button
           type="button"
           variant="iconGhost"
@@ -173,7 +159,6 @@ export function PlaylistPane({
         ) : null}
       </header>
 
-      {/* Controls scrolled to by focus or search keep clear of the sticky dock and the public header. */}
       <div className="space-y-6 px-4 py-5 sm:px-5 [&_:is(input,button)]:scroll-mb-40 [&_:is(input,button)]:scroll-mt-28">
         {readOnly ? null : (
           <EditorField
@@ -286,7 +271,6 @@ export function PlaylistPane({
               onClick={onSave}
             >
               {saving ? (isNew ? "Creating" : "Saving") : isNew ? "Create playlist" : "Save playlist"}
-              {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
               <span aria-hidden className="[@media(pointer:coarse)]:hidden">
                 <kbd className="theme-dev-kbd !text-current opacity-70">{saveKeyLabel}</kbd>
               </span>
@@ -305,7 +289,6 @@ export function PlaylistPane({
   );
 }
 
-/** One quiet line beside the actions: what Save would do right now. */
 function SaveState({ dirty, saving, isNew }: { dirty: boolean; saving: boolean; isNew: boolean }) {
   let content: ReactNode;
   if (saving) {

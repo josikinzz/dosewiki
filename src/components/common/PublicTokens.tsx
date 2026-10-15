@@ -13,9 +13,6 @@ type PolymorphicProps<TElement extends ElementType> = {
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<TElement>, "as" | "className" | "children">;
 
-// Accent is drawn with plain accent aliases rather than `theme-badge-surface`:
-// the frosted appearance rule repaints that class in body text on every
-// scheme, which left an accent pill indistinguishable from a neutral one.
 const toneClasses: Record<PublicTone, string> = {
   accent: "border-dose-accent/35 bg-dose-accent/10 text-dose-accent-strong",
   neutral: "theme-badge-surface",
@@ -154,8 +151,6 @@ export function PublicChipNav({
     <nav className={cn("flex flex-wrap gap-2", className)} aria-label={ariaLabel}>
       {items.map((item) => {
         const tone = item.active ? (item.tone ?? "accent") : (item.tone ?? "neutral");
-        // The accent tone alone reads as a tint in the light schemes, so the
-        // active chip also takes a full-strength accent stroke.
         const chipClassName = cn(
           "theme-focus-ring",
           item.active && "border-dose-accent-strong",

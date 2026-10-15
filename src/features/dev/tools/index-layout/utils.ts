@@ -117,11 +117,6 @@ export const generateUniqueKey = (base: string, existing: Set<string>): string =
   return `${normalizedBase}-${suffix}`;
 };
 
-
-/**
- * Compare two manual configurations (arrays of ManualCategoryDefinition).
- * This is effectively an alias for areCategoriesEqual since manuals are category arrays.
- */
 export const areManualsEqual = (
   first: ManualIndexConfig,
   second: ManualIndexConfig,

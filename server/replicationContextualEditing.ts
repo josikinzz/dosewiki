@@ -39,7 +39,6 @@ export const collectionDetail = query({
 });
 const failConflict = () => { throw new PostgresError({ code: "CONFLICT", message: "This record changed. Your draft is retained; reload the stored version before publishing." }); };
 
-/** Prefix lookup reads at most eight narrative records, never the effect corpus. */
 export const searchEffectOptions = query({
   args: { ...credentials, prefix: v.string() },
   handler: async (ctx, args) => {
@@ -106,7 +105,6 @@ export const publishMetadata = mutation({
     }
     await updateEditorialFieldsHandler(ctx, { apiKey: args.apiKey, actorEmail: args.actorEmail, id: args.id, expected: editorialSnapshotOf(row), updates: args.updates });
     await ctx.db.patch(row._id, { source_url: args.sourceUrl || undefined });
-    // The immutable receipt ID is the resulting publication revision, included in subsequent CAS tokens.
     const resultRevision = await ctx.db.insert("replicationEditReceipts", { requestId: args.requestId, actorEmail: actor.email, actorRole: actor.role, operation: "canonical-metadata", expectedRevision: args.expectedRevision, publications: ["dosewiki", "effectindex"], target, before: row, after: { requested: after, stored: await ctx.db.get(row._id) }, createdAt: new Date().toISOString() });
     return { ok: true, reconciled: false, resultRevision };
   },
@@ -132,11 +130,6 @@ export const publishCollection = mutation({
     if ((args.targetKind === "playlist" || args.targetKind === "artist") && args.slugs.length > 250) throw new PostgresError({ code: "INVALID_REPLICATION_EDIT", message: "Playlists and artist collections require at most 250 distinct works." });
     const orderOnly = submitted.size === previous.size && args.slugs.every(slug => previous.has(slug));
     if (!args.title.trim() || args.title.length > 400) throw new PostgresError({ code: "INVALID_REPLICATION_EDIT", message: "A collection title is required." })
-    // Showcase eligibility is a substance-placement rule: `showcase_excluded` and
-    // combination titles are kept out of drug showcases, not out of the effect and
-    // artist collections they legitimately belong to. Effect and artist orders take
-    // their membership from canonical metadata and are order-only below, so a work
-    // being present is already the membership decision; only the row must exist.
     for (const slug of args.slugs) {
       const row = await ctx.db.query("replications").withIndex("by_slug", q => q.eq("slug", slug)).first();
       if (!row) throw new PostgresError({ code: "INVALID_REPLICATION_EDIT", message: `The work ${slug} no longer exists.` })
@@ -153,8 +146,6 @@ export const publishCollection = mutation({
       if (gallery?.disabled) throw new PostgresError({ code: "INVALID_REPLICATION_EDIT", message: "This drug's showcase is disabled. Change its eligibility before publishing a collection." });
       const members = await getSubstanceGalleryMembers(ctx, substance, gallery);
       if (members.length !== previous.size || members.some(({ row }) => !previous.has(row.slug))) return failConflict();
-      // A permutation changes presentation only, never automatic associations.
-      // Membership edits retain the existing delta workflow, including exclusions.
       const patch = { carousel_order: args.slugs, updated_at: now, updated_by: actor.email };
       if (orderOnly) {
         if (gallery) await ctx.db.patch(gallery._id, patch);
@@ -171,7 +162,6 @@ export const publishCollection = mutation({
         else await ctx.db.insert("substanceGalleries", { substance_slug: args.targetKey, ...membership });
       }
     } else if (args.targetKind === "effect" && stored && "slug" in stored) {
-      // Effect/artist collections derive membership from canonical metadata; only their order is editable here.
       if (!orderOnly) throw new PostgresError({ code: "INVALID_REPLICATION_EDIT", message: "This collection supports ordering only; membership follows canonical metadata." })
       await ctx.db.patch(stored._id, { gallery_order: args.slugs });
     } else if (args.targetKind === "artist" && stored && "displayName" in stored) {

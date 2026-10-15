@@ -1,8 +1,3 @@
-/**
- * Request-body validation for the About page document, shared by the direct
- * save (`POST /api/dev/about`) and the proposal route, so an editor's proposal
- * is held to exactly what the admin's save is held to.
- */
 import { normalizeFounderKeys } from "@/data/content/about";
 import {
   parseTranslationCredits,
@@ -14,8 +9,6 @@ import { JsonBodyError } from "@/lib/http/readJsonBody";
 const MARKDOWN_MAX_LENGTH = 400_000;
 const SUBTITLE_MAX_LENGTH = 2_000;
 const MAX_FOUNDER_KEYS = 48;
-// The stable contributor key grammar (`server/lib/contributorProfileImports`
-// PROFILE_KEY) and the length ceiling `/api/dev/contributor-profile` applies.
 const FOUNDER_KEY_PATTERN = /^[A-Z0-9-]+$/;
 const FOUNDER_KEY_MAX_LENGTH = 200;
 
@@ -30,7 +23,6 @@ export type ParsedAbout = {
   aboutMarkdown: string;
   aboutSubtitle: string;
   founderProfileKeys: string[];
-  /** Absent when the request carries none, so the stored credits stay as they are. */
   translationCredits?: TranslationCredits;
 };
 
@@ -80,7 +72,6 @@ export function parseAboutBody(raw: AboutBody): ParsedAbout {
   }
 }
 
-/** The `about` entry of a proposal payload, or `null` when the payload carries none. */
 export function parseAboutPayload(raw: unknown): ParsedAbout | null {
   if (raw === undefined || raw === null) {
     return null;

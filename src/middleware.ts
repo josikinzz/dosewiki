@@ -39,7 +39,6 @@ import {
 import { isReplicationEmbedPath } from "@server/next/replicationEmbedPolicy";
 import { isServiceCronRequest } from "@server/http/serviceCronPaths";
 
-// Next resolves these environment reads for the deployment's Edge middleware.
 const R2_UPLOAD_ORIGIN = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true"
   ? process.env.CLOUDFLARE_R2_S3_ENDPOINT
   : undefined;
@@ -50,15 +49,6 @@ type BrowserSecurityHeaderSet = {
   csp: string;
 };
 
-/**
- * Public security headers vary by normalized host and the exact replication embed
- * document policy. Cache those variants separately so a frameable embed response can
- * never weaken the ordinary document policy.
- *
- * The Host header is attacker-controlled, so the cache is bounded: past the cap, unknown
- * hosts still get correct headers, they just pay the rebuild. The legitimate host set
- * (dose.wiki, www, the admin Vercel host, localhost) is far below the cap.
- */
 const publicHeadersByHostAndPolicy = new Map<string, BrowserSecurityHeaderSet>();
 const PUBLIC_HEADER_CACHE_LIMIT = 16;
 
@@ -99,12 +89,6 @@ function getPublicSecurityHeaderSet(
   return headerSet;
 }
 
-/**
- * `appPath` is the route the request addresses, which is not `request.nextUrl.pathname`
- * under the `/preview` prefix. The policy split is by route kind — /dev gets the strict
- * nonce policy, `/api/*` gets no document CSP at all — so it has to read the resolved
- * path or `/preview/api/...` would be handed a document policy it is not a document for.
- */
 function getBrowserPolicyContext(request: NextRequest, appPath: string, privateResponse = false) {
   const pathname = appPath;
   const isDevRoute = pathname.startsWith("/dev");
@@ -115,7 +99,6 @@ function getBrowserPolicyContext(request: NextRequest, appPath: string, privateR
   let headerSet: BrowserSecurityHeaderSet;
 
   if (isDevRoute) {
-    // The /dev CSP embeds a fresh nonce, so this variant stays per-request by design.
     nonce = crypto.randomUUID();
     const responseHeaders = getBrowserSecurityHeaders({
       host: request.headers.get("host"),
@@ -197,15 +180,6 @@ function getSubstanceAliasRedirectUrl(
   return targetUrl;
 }
 
-/**
- * Renamed replication slugs, redirected here rather than in the route.
- *
- * `/replications/[slug]` is prerendered with `dynamicParams = false`, and a
- * `permanentRedirect()` from inside a prerendered page renders the not-found
- * body at HTTP 200 instead of emitting a redirect — a soft 404 on exactly the
- * links we renamed. Middleware answers before routing, the same way substance
- * aliases already do.
- */
 function getReplicationAliasRedirectUrl(
   request: NextRequest,
   appPath: string,
@@ -229,18 +203,6 @@ function getReplicationAliasRedirectUrl(
 
 const REPLICATION_VIEWER_ROUTE_PREFIX = "/replications/viewer/";
 
-/**
- * `/replications` is statically prerendered, so its HTML cannot vary on the
- * query string — yet a shared `/replications?viewer=<slug>` link must unfurl
- * with that work's social card. Document requests carrying the param are
- * rewritten to the per-slug ISR route that renders the same page with the
- * right metadata. Client-side navigations (`RSC` header) are left alone so the
- * mounted explorer keeps its route segment while the reader browses. A mirror
- * host lands on its own viewer route so the page renders in its language.
- *
- * The grammar mirrors the viewer param's client parser; the route re-parses
- * the slug and 404s anything the rewrite let through.
- */
 function getReplicationViewerRewriteUrl(
   request: NextRequest,
   appPath: string,
@@ -301,7 +263,6 @@ function getLegacySearchRedirectUrl(
   try {
     query = decodeURIComponent(query);
   } catch {
-    // Keep the raw segment if it is malformed; URLSearchParams will escape it.
   }
 
   const targetUrl = request.nextUrl.clone();
@@ -318,8 +279,6 @@ function getLegacySearchRedirectUrl(
 
 export async function middleware(request: NextRequest) {
   const requestPath = request.nextUrl.pathname;
-  // `/preview/...` was the pre-launch address space. Keep parsing it so old links can
-  // redirect to their permanent app paths instead of becoming duplicate content.
   const previewAppPath = isEffectIndex() ? null : stripPreviewPrefix(requestPath);
   const isPreviewRequest = previewAppPath !== null;
   const appPath = previewAppPath ?? requestPath;
@@ -331,22 +290,13 @@ export async function middleware(request: NextRequest) {
   });
   const browserPolicy = getBrowserPolicyContext(request, appPath, delivery !== "public");
 
-  // Vercel invokes crons on the deployment URL, never a listed host. Those
-  // GETs carry CRON_SECRET and are checked in their handlers, so they pass the
-  // host gate; every other request on an unlisted alias or public origin is
-  // refused before an editor build serves it.
   const isServiceCron = isServiceCronRequest(request.method, requestPath);
   if (delivery === "closed" && !(isServiceCron && process.env.NEXT_PUBLIC_EDITOR_BUILD === "true")) {
     return browserPolicy.secure(new NextResponse("Editor deployment is unavailable.", { status: 503 }));
   }
-  // Browser assets contain no credentials or private records. Keep sign-in resources
-  // reachable without a session; documents, RSC, and APIs remain authenticated below.
   if (delivery === "public" ? isPresentationAsset(requestPath) : isEditorBootstrapAsset(requestPath)) {
     return browserPolicy.secure(NextResponse.next());
   }
-  // These exact requests authenticate their own token in the route handler
-  // (a scoped admin token for the revalidation POST, CRON_SECRET for the
-  // Vercel crons). All other editor APIs stay behind session auth.
   const isArticleRevalidation = request.method === "POST"
     && requestPath === "/api/dev/revalidate-article";
   if (delivery === "editor" && !isEditorAuthBootstrapPath(appPath) && !isArticleRevalidation && !isServiceCron) {
@@ -371,8 +321,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Flavor gate first: a route this publication does not own must answer a real 404, and
-  // a prerendered page's own `notFound()` cannot set the status on a static response.
   if (isFlavorGatedRequestPath(appPath)) {
     return browserPolicy.secure(
       NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
@@ -393,8 +341,6 @@ export async function middleware(request: NextRequest) {
     return browserPolicy.secure(NextResponse.redirect(editorHandoffUrl));
   }
 
-  // Authenticated APIs belong to the editor origin. A cross-origin redirect would drop
-  // cookies and misreport the caller as signed out, so the public host rejects the path.
   if (publicHost && isPublicRestrictedPath(appPath)) {
     return browserPolicy.secure(NextResponse.redirect(new URL("/", request.url)));
   }
@@ -445,8 +391,6 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // The viewer route exists only as the rewrite target above; addressed
-  // directly it would be a second URL for the gallery index.
   if (appPath.startsWith(REPLICATION_VIEWER_ROUTE_PREFIX)) {
     return browserPolicy.secure(
       NextResponse.rewrite(new URL(FLAVOR_GATED_NOT_FOUND_PATH, request.url), {
@@ -455,12 +399,6 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Dynamic replication and substance pages are generated on first request so
-  // clean deployments stay bounded. Next streams an in-page `notFound()` at
-  // HTTP 200, so reject slugs absent from the build's public corpus here and
-  // let the deliberately unroutable target produce a real 404. A mirror host
-  // rewrites to its own 404 page instead, carrying the status here, so the
-  // 404 renders in the mirror's language as ordinary server output.
   if (isUnavailablePublicDynamicPath(appPath)) {
     const mirrorHost = localeForHost(request.headers.get("host"));
     const target = mirrorHost
@@ -474,23 +412,12 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // The pre-launch prefix is now compatibility-only. One permanent redirect collapses old
-  // preview links onto the launched address while preserving query parameters.
   if (isPreviewRequest) {
     const launchedUrl = request.nextUrl.clone();
     launchedUrl.pathname = appPath;
     return browserPolicy.secure(NextResponse.redirect(launchedUrl, 308));
   }
 
-  // Locale mirrors: `zh.dose.wiki/<slug>` renders the localized article route;
-  // category and chemical-class details, other record paths
-  // (`/effects/<slug>`, `/reports/<slug>`, ..., psychoactive summaries), and
-  // supported Substance Index class views render their localized detail or
-  // index routes. The homepage, indexes, tab views, and `/search` likewise
-  // render localized routes with the query string intact. Every other path on
-  // the mirror host serves the English page so navigation never leaves it. A
-  // route addressed directly on any other host would be a second URL for the
-  // page, so it is unroutable there.
   const localeHost = localeForHost(request.headers.get("host"));
   const localizedSlug = localeHost ? publicSubstanceSlugForPath(appPath) : null;
   if (localeHost && localizedSlug) {
@@ -530,9 +457,6 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Local `next dev` screenshot viewer: GET/HEAD `/dev` documents only, and
-  // only with the opt-in, the write freeze, and a loopback host. Its APIs stay
-  // behind their own session and role checks. See lib/auth/devScreenshotViewer.ts.
   if (admitsDevScreenshotViewer({ method: request.method, pathname: request.nextUrl.pathname, headers: request.headers })) {
     return browserPolicy.secure(
       NextResponse.next({ request: { headers: browserPolicy.requestHeaders } }),
@@ -569,6 +493,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Static assets MUST traverse the fail-closed editor deployment gate too.
   matcher: ["/:path*"],
 };

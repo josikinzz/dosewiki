@@ -4,11 +4,6 @@ import type { DecisionLogEntry } from "@/features/intake/decisionLog";
 import type { FeedbackOutcome } from "@/features/intake/feedbackCorrection";
 import { formatReviewerIdentity } from "@/features/dev/tools/reviewerIdentity";
 
-/**
- * An intake item's decision log as the review panels show it: every status
- * change, oldest first, with who made it, when, the move, and the note. An
- * article feedback entry also names its outcome, or the change it linked.
- */
 export function DecisionLogSection<Status extends string>({
   entries,
   statusLabel,
@@ -16,7 +11,6 @@ export function DecisionLogSection<Status extends string>({
 }: {
   entries: readonly DecisionLogEntry<Status>[];
   statusLabel: (status: Status) => string;
-  /** How a recorded outcome reads; sources without outcomes leave it out. */
   outcomeLabel?: (outcome: FeedbackOutcome) => string;
 }) {
   const headingId = useId();

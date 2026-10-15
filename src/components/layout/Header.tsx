@@ -18,14 +18,6 @@ import { icons } from "@/utils/iconNames";
 import { resolveRouteChromeIcon } from "@/utils/routeChromeIcons";
 import { useT } from "@/i18n/client";
 
-
-/**
- * One link inside a nav dropdown or mobile accordion.
- *
- * Children are addressed by href, not by view, so they may be routed subsections,
- * query strings, or other sites; external links open in a new tab and say so to
- * screen readers rather than relying on the icon alone.
- */
 function NavChildLink({
   child,
   className,
@@ -63,8 +55,6 @@ function NavChildLink({
         role={role}
         tabIndex={tabIndex}
         className={className}
-        // The icon alone does not announce that this leaves the site; the label is repeated
-        // first so the accessible name still starts with the visible text.
         aria-label={t("{{label}} (opens in a new tab)", { label })}
         onClick={onSelect}
       >
@@ -90,48 +80,20 @@ function NavChildLink({
 const DESKTOP_SUBMENU_LINK_CLASS =
   "theme-header-nav-link theme-focus-ring flex min-h-10 items-center gap-2 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
 
-/** A top-level link in the desktop bar; the About item at the end of the row shares it. */
 const DESKTOP_NAV_LINK_CLASS =
   "theme-header-nav-link theme-focus-ring relative flex min-h-11 items-center gap-2.5 rounded-full border border-transparent px-3 py-2 text-sm font-medium";
 
-/**
- * The header's two floating panels, the desktop dropdown and the mobile sheet, are one
- * surface: same corner, inset and single hairline. Only the width differs, because the
- * sheet also carries section icons and disclosure chevrons.
- *
- * theme-mobile-nav-panel is what paints a panel as part of the dark Effect Index chrome
- * rather than as a light popover; it is the header's panel surface, not a mobile-only
- * class.
- */
 const NAV_PANEL_CLASS =
   "theme-overlay-surface theme-mobile-nav-panel theme-overlay-enter absolute top-[calc(100%+0.5rem)] rounded-card border p-2 shadow-[var(--theme-elevation-xl)] backdrop-blur-[var(--frost-blur)]";
 
-/** One glyph size for the whole chrome: nav, menu and appearance here, and the footer icons. */
 const CHROME_ICON_SIZE = 20;
 
 const CHEVRON_TRANSITION_CLASS =
   "transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] motion-reduce:transition-none";
 
-/**
- * The chevron's own hit target. A real button, sized 36×44 so it clears the 24px minimum on
- * its own rather than borrowing the label's area, tucked against the label with a negative
- * margin so the pair still reads as one nav item.
- */
 const DESKTOP_DISCLOSURE_CLASS =
   "theme-header-nav-link theme-focus-ring -ml-1.5 flex h-11 w-9 shrink-0 items-center justify-center rounded-full border border-transparent";
 
-/**
- * A top-level desktop nav item: a plain link when there is no submenu, and a label link plus
- * a separate disclosure chevron when there is.
- *
- * The split is the point. A parent that only opened a panel made its own destination
- * unreachable except through the panel; here the label navigates and the chevron discloses,
- * so `/effects` and its tabs are both one click away. The disclosure state, and every ARIA
- * attribute describing it, belongs to the chevron — the link goes somewhere, it does not
- * expand anything.
- *
- * Click/tap toggles: deliberately not hover-only, which no touch device can use.
- */
 function DesktopNavItem({
   item,
   className,
@@ -169,8 +131,6 @@ function DesktopNavItem({
     [menuLinks],
   );
 
-  // Focus cannot be moved into a panel that has not rendered yet, so opening records the
-  // edge it wants and this effect delivers it once the panel is in the DOM.
   useEffect(() => {
     if (!isOpen || pendingFocusRef.current === null) {
       return;
@@ -214,11 +174,6 @@ function DesktopNavItem({
     }
   };
 
-  /**
-   * Escape closes the panel. Focus returns to the chevron when it came from inside the panel
-   * or from the chevron itself — the control that owns the panel — but a reader who pressed
-   * Escape while on the label keeps their place on the label.
-   */
   const handleEscape = (
     event: ReactKeyboardEvent<HTMLElement>,
     returnFocus: boolean,
@@ -226,7 +181,6 @@ function DesktopNavItem({
     if (event.key !== "Escape" || !isOpen) {
       return false;
     }
-    // Stopped so one Escape does not also dismiss the surrounding mobile sheet.
     event.stopPropagation();
     close(returnFocus);
 
@@ -245,15 +199,10 @@ function DesktopNavItem({
       event.preventDefault();
       openAt("last");
     } else if (event.key === "Tab") {
-      // Tabbing past the chevron must not leave an orphaned panel hanging over the page.
       onOpenChange(null);
     }
   };
 
-  /**
-   * The label is a link, so Enter follows it and the arrows are free: they open the panel and
-   * step into it, which keeps the shortcut the single combined control used to offer.
-   */
   const handleLabelKeyDown = (event: ReactKeyboardEvent<HTMLAnchorElement>) => {
     if (handleEscape(event, false)) {
       return;
@@ -294,7 +243,6 @@ function DesktopNavItem({
         focusAt(links.length - 1);
         break;
       case "Tab":
-        // Let focus leave naturally; the panel just should not be left hanging open.
         onOpenChange(null);
         break;
       default:
@@ -323,11 +271,7 @@ function DesktopNavItem({
         className={DESKTOP_DISCLOSURE_CLASS}
         aria-haspopup="true"
         aria-expanded={isOpen}
-        // Only referenced while the panel exists: a dangling IDREF is an ARIA validity error.
         aria-controls={isOpen ? panelId : undefined}
-        // The chevron has no text of its own, and "Effects" is already taken by the link
-        // beside it; naming the action keeps the two controls distinguishable in a list of
-        // links and buttons. Static on purpose — aria-expanded carries the state.
         aria-label={t("Show {{label}} submenu", { label: t(item.label) })}
         onClick={() => (isOpen ? close(false) : onOpenChange(item.id))}
         onKeyDown={handleChevronKeyDown}
@@ -346,11 +290,7 @@ function DesktopNavItem({
           ref={panelRef}
           id={panelId}
           role="menu"
-          // Programmatically focusable only: focus lives on the roving menu items, but the
-          // container itself must be focusable for the role to be valid.
           tabIndex={-1}
-          // Named after the section, not after the chevron that opened it: "Effects" reads
-          // better than "Show Effects submenu".
           aria-labelledby={labelId}
           onKeyDown={handlePanelKeyDown}
           className={`${NAV_PANEL_CLASS} z-50 flex w-56 flex-col gap-0.5 ${
@@ -376,24 +316,12 @@ function DesktopNavItem({
 const MOBILE_SUBMENU_LINK_CLASS =
   "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-10 items-center gap-2 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
 
-/**
- * A top-level row in the mobile sheet: the desktop bar's icon-label gap and weight, on a
- * full 44px touch row with the dropdown's corner.
- */
 const MOBILE_NAV_LINK_CLASS =
   "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex min-h-11 items-center gap-2.5 rounded-control border border-transparent px-3 py-2 text-sm font-medium";
 
-/** The mobile chevron's hit target: a full 44×44 square at the right edge of the row. */
 const MOBILE_DISCLOSURE_CLASS =
   "theme-header-nav-link theme-focus-ring theme-mobile-nav-link flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-transparent";
 
-/**
- * A top-level item in the mobile sheet, split the same way as the desktop bar: the label
- * navigates, the chevron expands the group beneath it.
- *
- * The original site made touch parents pure expanders, but that leaves a top-level
- * destination reachable only by opening a menu. Two controls in the row keep both.
- */
 function MobileNavItem({
   item,
   className,
@@ -401,7 +329,6 @@ function MobileNavItem({
   isExpanded,
   onToggle,
   onNavigate,
-  // The utility row (About) never carried the active dot the section rows have.
   showActiveIndicator = false,
 }: {
   item: RouteChromeNavItem;
@@ -460,8 +387,6 @@ function MobileNavItem({
           type="button"
           data-active={item.active}
           className={MOBILE_DISCLOSURE_CLASS}
-          // An accordion, not a popup: the group opens in place, so aria-expanded and
-          // aria-controls describe it and aria-haspopup would be a false promise.
           aria-expanded={isExpanded}
           aria-controls={isExpanded ? submenuId : undefined}
           aria-label={t("Show {{label}} submenu", { label })}
@@ -522,8 +447,6 @@ export function Header({
   const t = useT();
   const aboutItem = model.secondaryNavItems.find((item) => item.id === "about");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // At most one desktop dropdown is open at a time; the mobile sheet allows several groups
-  // expanded at once, as the original's pullout did.
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [expandedMobileIds, setExpandedMobileIds] = useState<readonly string[]>([]);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -596,10 +519,6 @@ export function Header({
     };
   }, [isMenuOpen]);
 
-  // `theme-chrome-dark` pins the dark palette on this subtree, so the banner
-  // stays dark chrome over a light page in every theme — the Effect Index
-  // treatment, generalised. Nothing in the header portals out, so the one class
-  // covers the nav panels, the mobile sheet and the search field.
   return (
     <header className="app-header theme-chrome-dark theme-header-surface backdrop-blur-[var(--frost-blur)] backdrop-safe">
       <div
@@ -616,8 +535,6 @@ export function Header({
           className="group/brand flex h-11 w-auto items-center gap-2 p-0 text-left hover:bg-transparent xl:h-10 xl:pl-0"
         >
           <SmartLink href={model.headerLogo.href} scroll={false} eager>
-          {/* Logo and wordmark lift by the same amount on hover, so the brand grows as
-              one mark rather than two pieces at different rates. */}
           <span className={`relative inline-flex items-center justify-center ${BRAND_LIFT_CLASS}`}>
             <DoseWikiLogo
               width={40}
@@ -627,9 +544,6 @@ export function Header({
             />
             <SiteVersionBadge variant="logoOverlay" />
           </span>
-          {/* From xl the brand text is a two-row column beside the logo: wordmark on
-              top, compact version pill underneath. Tight leading and a 9px pill keep
-              the column inside the button's height so the header never grows. */}
           <span className="hidden flex-col items-start justify-center gap-0.5 xl:flex">
             <span className={`theme-text-primary inline-flex items-center text-2xl font-display font-bold leading-none tracking-tight ${BRAND_LIFT_CLASS}`}>
               <SiteWordmark />
@@ -678,8 +592,6 @@ export function Header({
           {aboutItem && (
             <DesktopNavItem
               item={aboutItem}
-              // Last item in the bar: its panel is anchored to the right edge so it cannot
-              // run off the viewport.
               align="right"
               isOpen={openMenuId === aboutItem.id}
               onOpenChange={setOpenMenuId}
@@ -689,17 +601,10 @@ export function Header({
 
           <div className="theme-divider mx-2 h-6 w-px" />
 
-          {/* Desktop settings is a flat glyph at the chrome size, matching the adjacent
-              navigation icons; the divider alone marks the boundary after About. */}
           <AppearanceControls iconSize={CHROME_ICON_SIZE} />
         </div>
 
         <div className={forceMobileNav ? "ml-auto flex flex-shrink-0 items-center gap-2" : "ml-auto flex flex-shrink-0 items-center gap-2 lg:hidden"}>
-          {/* Appearance settings stays left of the mobile menu so the familiar hamburger
-              owns the top-right corner. Its glyph matches the hamburger's; the 44px hit
-              area is what serves touch. The panel lands on the same insets the mobile nav
-              sheet reaches: one button + one gap right (the sheet is right-0 inside the
-              hamburger's wrapper), and the header's own 16px edge padding below the bar. */}
           <AppearanceControls iconSize={CHROME_ICON_SIZE} alignOffset={-52} sideOffset={20} />
           <div className="relative">
             <Button
@@ -708,7 +613,6 @@ export function Header({
               size="icon"
               onClick={() => setIsMenuOpen((prev) => !prev)}
               data-open={isMenuOpen}
-              // The Button base pins every svg at 16px; the menu glyph takes the chrome size.
               className="theme-header-icon-button h-11 w-11 rounded-xl [&_svg]:size-5"
               aria-haspopup="true"
               aria-expanded={isMenuOpen}

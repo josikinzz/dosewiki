@@ -1,56 +1,27 @@
-/**
- * Reconciling a local draft with a record someone else changed meanwhile.
- *
- * Three versions meet here: the original baseline the draft was edited from,
- * the local draft ("mine"), and the latest record ("theirs"). A field only one
- * side changed carries forward into the proposed draft on its own. A field
- * both sides changed to different values is a conflict: the proposal holds the
- * latest record's value until a person chooses a side, and nothing is final
- * while any conflict is unresolved.
- *
- * The walk reads a document the way the article patch does, so a conflict's
- * path is the same path Change Review shows (`dosage.routes[oral].notes`,
- * `references[doi-1]`, `legality.countries.US`): records by key, keyed arrays
- * by their domain identity, never by position, and ranges as one value. A list
- * of plain names (interaction partners, tags) merges as a set.
- *
- * Choosing is not publishing. The merged draft still goes through the tool's
- * own write with the latest revision check, which refuses any further change
- * that lands after this merge.
- */
-
 import { fieldChangesAt, isRangeValue, type ArticleFieldChange } from "./articlePatch";
 
 export type MergeSide = "mine" | "theirs";
 
-/** One field both sides changed to different values. `undefined` means removed or absent. */
 export type MergeConflict = { path: string; base: unknown; mine: unknown; theirs: unknown };
 
-/** The side chosen for each conflict, by its path. */
 export type MergeChoices = Readonly<Record<string, MergeSide>>;
 
 export type ThreeWayMerge<T> = {
-  /** The proposed draft. An unresolved conflict holds the latest record's value. */
   merged: T;
   conflicts: MergeConflict[];
-  /** Conflict paths still waiting on a choice; the merge is final only when empty. */
   unresolved: string[];
-  /** Changes only the local draft made, carried forward. */
   mine: ArticleFieldChange[];
-  /** Changes only the latest record made, carried forward. */
   theirs: ArticleFieldChange[];
 };
 
 export type MergeOptions = {
   choices?: MergeChoices;
-  /** The field naming each entry of the keyed array at `path`, or null for none. */
   identity?: (path: string) => string | null;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/** Structural equality that ignores key order, so a re-serialized record is not a change. */
 export function sameValue(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((item, index) => sameValue(item, b[index]));
@@ -64,14 +35,12 @@ export function sameValue(a: unknown, b: unknown): boolean {
 
 const isPlainRecord = (value: unknown): value is Record<string, unknown> => isRecord(value) && !isRangeValue(value);
 
-/** A list of distinct names or numbers, which merges as a set. */
 function isNameSet(value: unknown): value is Array<string | number> {
   return Array.isArray(value)
     && value.every((item) => typeof item === "string" || typeof item === "number")
     && new Set(value).size === value.length;
 }
 
-/** The entries of a keyed array by identity, or null when any entry lacks a distinct one. */
 function keyedEntries(value: unknown, key: string): Map<string, unknown> | null {
   if (!Array.isArray(value)) return null;
   const entries = new Map<string, unknown>();
@@ -87,10 +56,6 @@ function keyedEntries(value: unknown, key: string): Map<string, unknown> | null 
 
 const sameOrder = (a: string[], b: string[]) => a.length === b.length && a.every((item, index) => item === b[index]);
 
-/**
- * Lays the other side's new entries into a chosen order: each goes before the
- * entry that followed it on its own side, or at the end when none did.
- */
 function weaveOrder(skeleton: string[], other: string[]): string[] {
   const order = [...skeleton];
   for (let index = other.length - 1; index >= 0; index -= 1) {
@@ -137,8 +102,6 @@ export function mergeThreeWay<T = unknown>(base: unknown, mine: unknown, theirs:
       for (const id of new Set([...latest.keys(), ...local.keys(), ...before.keys()])) {
         values.set(id, walk(before.get(id), local.get(id), latest.get(id), `${path}[${id}]`));
       }
-      // Order is its own field: only entries every side still holds can say
-      // whether someone moved them.
       const shared = (ids: Iterable<string>) => [...ids].filter((id) => before.has(id) && local.has(id) && latest.has(id));
       const baseOrder = shared(before.keys()), mineOrder = shared(local.keys()), theirOrder = shared(latest.keys());
       const orderPath = `${path} order`;

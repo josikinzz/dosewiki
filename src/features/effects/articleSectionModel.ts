@@ -9,9 +9,6 @@ import type { VCodeContent } from "./vcode/types";
 import { msg } from "@/i18n/messages";
 import { normalizeVCodeContent, unwrapTopLevelQuotes } from "./vcode/normalize";
 
-/**
- * Subjective effect article from Postgres.
- */
 export interface SubjectiveEffectArticle {
   slug: string;
   name: string;
@@ -47,12 +44,6 @@ interface EffectArticleHeroModel {
   name: string;
   summary?: string;
   icon: IconName;
-  /**
-   * The psychoactive class whose long-form guides grade this effect, set only
-   * for the disconnective family: those effects are what the dissociative
-   * intensity scale measures, so the article can offer the scale as a next
-   * read. Absent for every other effect, and then no guide line renders.
-   */
   guideClass?: GuideClass;
 }
 
@@ -107,7 +98,6 @@ interface EffectArticleContributorsSectionModel extends EffectArticleBaseSection
 interface EffectArticleAttributionModel {
   name: string;
   avatarSrc: string;
-  /** When the attributed writing was authored, e.g. "~2017–2021". */
   era?: string;
 }
 
@@ -136,12 +126,6 @@ const EFFECT_PERSONAL_COMMENTARY_ATTRIBUTION: EffectArticleAttributionModel = {
   era: "~2017–2021",
 };
 
-/**
- * Every heading an effect article can carry, by section kind, so the table of
- * contents, the section headings and the glossary drafter all read one list.
- * Overview, sources and contributors render no heading of their own; their
- * entries are the TOC labels.
- */
 export const EFFECT_ARTICLE_SECTION_TITLES = {
   overview: msg("Overview"),
   analysis: msg("Analysis"),
@@ -281,7 +265,6 @@ export function buildEffectArticleModel({
       name: effect.name,
       summary: effect.summary,
       icon: getEffectArticleIcon(effect.tags),
-      // The disconnective family is the one the dissociative scale grades.
       ...(effectMatchesCategorySlug(effect, "disconnective-effects")
         ? { guideClass: "dissociative" as const }
         : {}),
@@ -290,12 +273,6 @@ export function buildEffectArticleModel({
   };
 }
 
-/**
- * Derive table-of-contents items from whatever sections an effect article
- * happens to have. Labels and icons mirror each section's own heading; the
- * sections that carry no heading of their own (overview / sources /
- * contributors) get explicit fallbacks that match how they render.
- */
 export function getEffectArticleTocItems(article: EffectArticleModel): PublicTableOfContentsItem[] {
   return article.sections.map((section): PublicTableOfContentsItem => {
     switch (section.kind) {

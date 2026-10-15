@@ -15,15 +15,6 @@ import { LoadErrorState } from "../components";
 import { DevWriteStatus } from "./DevToolSaveLine";
 import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
 
-/**
- * Every tool is its own lazily-loaded chunk. The shell used to pull every tool
- * bundle into the first paint even though exactly one of them is ever on
- * screen; splitting them keeps the tab rail cheap and lets a tool's code arrive
- * alongside its data instead of ahead of every other tool's.
- *
- * `ssr: false` throughout: these surfaces are editor-only, already behind the
- * client-side Postgres provider, and never render on the server.
- */
 const loading = () => <DevToolLoadingPanel />;
 const DevModeChangeLogTab = dynamic(
   () => import("./DevModeChangeLogTab").then((m) => m.DevModeChangeLogTab),
@@ -112,11 +103,6 @@ type DevModePageViewProps = {
   controller: DevModePageControllerState;
 };
 
-/**
- * Stands in for a tool the settled session may not use. The tab stays
- * addressable so a deep link explains itself instead of bouncing; the tool's
- * chunk is never loaded and none of its reads start.
- */
 function DevToolLockedPanel({ label, reason, onGoHome }: { label: string; reason: string; onGoHome?: () => void }) {
   return (
     <div className="mx-auto mt-10 max-w-xl">
@@ -158,8 +144,6 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
     controller.isLibraryLoading && LIBRARY_DEPENDENT_TABS.has(controller.activeTab);
   const isWaitingOnLayouts =
     controller.activeTab === "index-layout" && controller.indexLayoutsReadiness.status !== "ready";
-  // The write status describes a save the editor can make now: never over a
-  // locked tool or a loading panel.
   const toolReady = controller.activeTabLockReason === null && !isWaitingOnLibrary && !isWaitingOnLayouts;
 
   return (
@@ -187,7 +171,6 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
 
       <DevWriteStatus tab={activeDescriptor} canApprove={controller.canApprove} ready={toolReady} />
 
-      {/* Keyed so a Cmd+K record remounts the open tool on the record it names. */}
       <div key={controller.toolMountKey} className={controller.contentWrapperClass}>
         {controller.canDraft ? (
           <StagedArticlesRecoveryNotice

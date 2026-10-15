@@ -13,7 +13,6 @@ import { EditorField } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import type { CopyStudioBlock, CopyStudioDraft } from "./copyStudioUtils";
 
-/** The server keeps at most this many list items. */
 const MAX_ITEMS = 64;
 
 const DESCRIPTIONS: Record<CopyStudioBlock["kind"], string> = {
@@ -23,19 +22,8 @@ const DESCRIPTIONS: Record<CopyStudioBlock["kind"], string> = {
 };
 
 const ICON_BUTTON = "size-8 shrink-0 px-0 [@media(pointer:coarse)]:size-11";
-/** Move and Remove sit on the row from `sm` up; on a phone they fold into the row's menu so the field keeps its width. */
 const ROW_ONLY = "max-sm:hidden";
 
-/**
- * The editable body of one copy block, shared by Copy in the editor and the
- * contextual editor on public pages. Markdown and plain blocks are one
- * textarea labelled "Copy" that grows with its words; a list is one field per
- * item with Move up, Move down and Remove (with a way to undo it) and Add
- * item, and focus follows every change so a keyboard never loses its place.
- *
- * `lengthGuide` (optional) shows a running character count against a target,
- * for text a search result or a browser tab cuts short.
- */
 export function CopyBlockFields({
   kind,
   draft,
@@ -50,7 +38,6 @@ export function CopyBlockFields({
   const [removed, setRemoved] = useState<{ item: string; index: number; items: string[] } | null>(null);
   const [moved, setMoved] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  /** What to focus once the list has re-rendered: a row's field or one of its buttons, or Add item. */
   const focusTarget = useRef<{ index: number; control: "field" | "up" | "down" } | "add" | null>(null);
 
   useEffect(() => {

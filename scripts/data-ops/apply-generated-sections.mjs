@@ -1,37 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * Publish generated article sections from a reviewed run directory.
- *
- * The generation side of this workflow (prompt assembly, batched generation,
- * schema validation) happens elsewhere; this script only takes drafts that have
- * already been validated and writes them to a deployment. It exists so that
- * publishing is a guarded, audited, reversible operation rather than an ad-hoc
- * one.
- *
- * The central guard is that a section is written only when the live section is
- * empty. Generated prose must never displace authored prose, and "empty" is the
- * only condition under which that is guaranteed. Overwriting a populated section
- * requires naming it explicitly, one `slug:section` pair at a time — there is
- * deliberately no run-wide overwrite flag, because the blast radius of one is
- * every article in the run.
- *
- * Run directory shape — one file per section, as written by the validation step:
- *
- *   <run-dir>/<slug>__<section>.json   ->  { slug, section, value }
- *
- * Usage:
- *   bun scripts/data-ops/apply-generated-sections.mjs --run-dir=<dir> --dry-run
- *   bun scripts/data-ops/apply-generated-sections.mjs --run-dir=<dir> --slug=meai --dry-run
- *   bun scripts/data-ops/apply-generated-sections.mjs --run-dir=<dir> --write \
- *     --confirm-generated-publication \
- *     --confirm-write=apply-generated-sections \
- *     --expected-deployment=<deployment-name>
- *
- *   # Replace one already-populated section, named explicitly:
- *   ... --overwrite=meai:summary --overwrite=ur-144:pharmacology
- */
-
 import { readdirSync, readFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { resolve } from "node:path";
@@ -52,7 +20,6 @@ requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAudi
 const OPERATION = "apply-generated-sections";
 const INTENT = "generatedPublicationWrite";
 
-/** Sections this script is allowed to publish. */
 const PUBLISHABLE = new Set([
   "summary",
   "pharmacology",
@@ -63,10 +30,6 @@ const PUBLISHABLE = new Set([
   "harm_potential",
 ]);
 
-/**
- * A section counts as populated when any leaf under it holds content. An object
- * of empty strings is empty; one filled field anywhere makes it authored.
- */
 function hasContent(value) {
   if (value === null || value === undefined) return false;
   if (typeof value === "string") return value.trim().length > 0;
@@ -105,10 +68,6 @@ function planArticle({ article, drafts, allowOverwrite }) {
   const held = [];
 
   for (const draft of drafts) {
-    // A draft can be legitimately empty — a section whose sources said nothing
-    // quantitative yields the empty structure, which is a correct result. Every
-    // section already exists in its empty form, so publishing one writes nothing
-    // and would otherwise re-plan on every subsequent run.
     if (!hasContent(draft.value)) {
       held.push({ section: draft.section, reason: "draft is empty; section already holds its empty form" });
       continue;
@@ -188,8 +147,6 @@ async function main() {
   if (!context.argv.includes("--confirm-generated-publication")) {
     throw new Error(`${OPERATION} requires --confirm-generated-publication to write.`);
   }
-  // Checked before the empty-work exit so a misaimed or under-flagged invocation
-  // fails loudly rather than looking like a clean no-op run.
   assertDataOpsWriteAllowed(context);
   const adminKey = requireAdminIntentToken(INTENT).token;
   if (work.length === 0) {
@@ -212,9 +169,6 @@ async function main() {
 
   for (const item of work) {
     try {
-      // saveSubstance replaces the whole document, so the plan is recomputed
-      // against a fresh read; a snapshot from planning time would silently
-      // revert any edit made in between.
       const fresh = await client.query(api.substanceIndex.getBySlug, { slug: item.slug });
       if (!fresh) {
         failures.push({ slug: item.slug, error: "disappeared before write" });
@@ -239,7 +193,6 @@ async function main() {
       updateAuditLog(audit.path, { mutations: applied, failures });
       console.log(`  wrote ${item.slug}: ${plan.writes.map((entry) => entry.section).join(", ")}`);
     } catch (error) {
-      // Postgres's first error line is only a request id; the reason follows it.
       const message = error instanceof Error ? error.message : String(error);
       failures.push({ slug: item.slug, error: message });
       updateAuditLog(audit.path, { mutations: applied, failures });

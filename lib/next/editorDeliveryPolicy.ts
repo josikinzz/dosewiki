@@ -6,7 +6,6 @@ export const PRIVATE_CACHE_HEADERS = [
   ["Vercel-CDN-Cache-Control", "no-store"],
 ] as const;
 
-/** No wildcard deployment aliases: an editor artifact must never serve a public origin. */
 export function getEditorDeliveryDecision(input: {
   host: string | null;
   editorBuild: boolean;
@@ -23,7 +22,6 @@ export function getEditorDeliveryDecision(input: {
   return "editor";
 }
 
-/** Account bootstrap is public; its handlers enforce credentials and invitation/reset tokens. */
 export function isEditorAuthBootstrapPath(pathname: string): boolean {
   return pathname === "/sign-in" || pathname === "/unauthorized"
     || pathname === "/invite" || pathname.startsWith("/invite/")
@@ -38,7 +36,6 @@ export function isPresentationAsset(pathname: string): boolean {
   return pathname.startsWith("/_next/static/") || pathname === "/_next/image"
     || /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|xml|webmanifest|woff2?|zip|md|mp3|ogg|afdesign)$/.test(pathname);
 }
-/** Only genuine bootstrap resources, never a dynamic page merely ending in .js/.png. */
 export function isEditorBootstrapAsset(pathname: string): boolean {
   return pathname.startsWith("/_next/static/") || pathname === "/_next/image"
     || /^\/fonts\/.+\.(?:woff2?|ttf|otf)$/.test(pathname)

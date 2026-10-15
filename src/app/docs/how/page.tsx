@@ -3,8 +3,6 @@ import { getPublicAboutPreviewSubstances } from "@server/data/publicData";
 import { getMoleculePackDownloadStats } from "@server/open-data/downloadStats";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { getCopyByKeys, getCopyKeysByPrefix } from "@server/next/copyBlocks";
-// Committed copies of the prompts shown on this page. Generation uses editable
-// live copies of section prompts, which can differ from these files.
 import exDosageDuration from "@content/prompts/extraction/dosage-duration-extraction.md?raw";
 import exHarmPotential from "@content/prompts/extraction/harm-potential-extraction.md?raw";
 import exHistoryCulture from "@content/prompts/extraction/history-culture-extraction.md?raw";
@@ -56,8 +54,6 @@ const DOCS_HOW_COPY_KEYS = [
   ...getCopyKeysByPrefix("docs-how-"),
 ];
 
-// The sample-record preview and substance count read Postgres; refresh them on the
-// same cadence as the About page rather than per request.
 export const revalidate = 3600;
 
 export async function generateMetadata() {
@@ -72,7 +68,6 @@ export async function generateMetadata() {
   });
 }
 
-// TOC labels are copy blocks (docs-how-toc-<id>); ids and icons stay in code.
 const TOC = [
   { id: "made", icon: "lucide:layout-list" },
   { id: "sources", icon: "lucide:database" },
@@ -167,17 +162,12 @@ User reports have described the effects of 2C-B as moderate, warm, colorful, and
 
 2C-B was developed by Alexander Shulgin in 1974 and was described by him in the scientific literature in 1975.`;
 
-// Prompt bodies are bundled from committed files; live section prompts can differ.
-// Each import is a literal path so the bundler can trace it; a computed path makes
-// Turbopack scan the whole repo.
 const withSize = <T extends { body: string }>(entry: T) => ({
   ...entry,
   body: entry.body.trim(),
   sizeLabel: `${Math.max(1, Math.round(entry.body.trim().length / 1024))} KB`,
 });
 
-// The eight topic prompts, in pipeline order. Each defines topic relevance,
-// source-fidelity rules, and the excerpt-document output format.
 const EXTRACTION_PROMPTS = [
   { slug: "intro-text", label: "intro text", body: exIntro },
   { slug: "dosage-duration", label: "dosage & duration", body: exDosageDuration },
@@ -189,8 +179,6 @@ const EXTRACTION_PROMPTS = [
   { slug: "legality", label: "legality", body: exLegality },
 ].map(withSize);
 
-
-// The six fully AI-written sections, largest prompt first.
 const SECTION_PROMPTS = [
   { slug: "pharmacology", label: "pharmacology", body: secPharmacology },
   { slug: "harmPotential", label: "harm potential", body: secHarmPotential },
@@ -245,8 +233,6 @@ const PIPELINE_DIAGRAM = `graph TD
   classDef human fill:#391a40,stroke:#e879f9,color:#f6e2fa
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb`;
 
-// The legality deep-research workflow (section 06). Same five-tone classDef
-// palette as PIPELINE_DIAGRAM above; the two diagrams share one legend key.
 const LEGALITY_DIAGRAM = `graph TD
   PACKET[("Export packet<br/>substance names, current legality<br/>entries, core-country list")]:::data
   CITEPASS["Cite pass<br/>re-source every existing<br/>country entry"]:::ext
@@ -281,16 +267,11 @@ const LEGALITY_DIAGRAM = `graph TD
   classDef human fill:#391a40,stroke:#e879f9,color:#f6e2fa
   classDef pub fill:#15263e,stroke:#7dd3fc,color:#ddeefb`;
 
-// The shared docs prose recipe. `/articles/<slug>` renders its body through the
-// same strings, so the two long-reading surfaces cannot drift apart.
 const TABLE_CLASS = `${DOC_TABLE_CLASS} min-w-[760px]`;
 const SWATCH_CLASS = "h-3 w-3 shrink-0 rounded-[3px]";
 const LEGEND_CLASS = "mt-5 flex flex-wrap gap-x-5 gap-y-2";
 const LEGEND_ITEM_CLASS =
   "theme-text-muted flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em]";
-// Quiet stepper: a tone-colored 1px top rule carries the stage color (the
-// border-color arrives inline from STAGE_TONE); no card chrome, because
-// process steps are prose-adjacent, not panels.
 const PIPELINE_STEP_CLASS =
   "flex min-w-[8.5rem] flex-1 flex-col gap-1 border-t pt-2.5 text-center";
 const STEP_NUM_CLASS = "theme-accent-heading text-sm font-semibold tabular-nums";
@@ -301,23 +282,13 @@ const PIPELINE_ARROW_CLASS =
 const PROMPT_META_CLASS = "theme-text-muted mb-3 text-sm leading-6";
 const PROMPT_BODY_CLASS =
   "theme-text-secondary focus-visible-ring max-h-[480px] overflow-auto rounded-xl border border-dose-divider bg-dose-surface-muted p-4 font-mono text-[12px] leading-6 whitespace-pre-wrap break-words shadow-[var(--theme-elevation-inner)]";
-// Unboxed editorial pull statement: display voice, accent ink, 1px hanging
-// rule. Emphasis lives in the typography, not a card.
 const PULL_CLASS =
   "theme-accent-heading theme-accent-emphasis font-display my-8 border-l border-l-dose-accent-strong pl-5 text-xl font-medium leading-8";
 
-// Flattened "grouped explanation" surface: one ContentCard whose interior rows are
-// separated by quiet token dividers (Divider Policy: divide-y is for card internals).
-// DIVIDED_LIST_CLASS goes on a padding="none" card.
 const DIVIDED_LIST_CLASS = "divide-y divide-dose-border";
 const DIVIDED_ITEM_CLASS = "px-5 py-5 sm:px-6";
-// Demoted informational note (contact card only): emphasized prose on the
-// card's own surface, no status role.
 const NOTE_CLASS = `${DOC_PROSE_CLASS} text-[0.9375rem]`;
 
-// Published prompt text: a scrollable read-only region. Keyboard users need
-// focus to scroll it (axe: scrollable-region-focusable), which jsx-a11y's
-// static rule cannot see; role="region" + aria-label name it for AT.
 function PromptBody({ label, children }: { label: string; children: ReactNode }) {
   return (
     <pre
@@ -331,19 +302,8 @@ function PromptBody({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-
-// Pipeline-stage categories. Color carries category, but each step also renders a
-// redundant text label (see PipelineStep) so meaning never depends on color alone.
-// Tokens resolve in both themes; no inline hex outside this map, no banned
-// sky/teal, green reserved for the genuinely "published / success" stage only.
 type StageTone = "source" | "automated" | "stored" | "review" | "published";
 const STAGE_TONE: Record<StageTone, { accentVar: string; tag: string }> = {
-  // Swatch colors intentionally mirror the Mermaid diagram classDef strokes
-  // (ext/auto/data/human/pub) below; this legend is the key for those
-  // diagrams. Charts carry the dark-theme strokes verbatim; in light mode the
-  // Mermaid component remaps each to a darker same-hue variant (LIGHT_PALETTE
-  // in docs/_components/Mermaid.tsx), so the five hues must stay in lockstep
-  // across both maps rather than collapse onto shared theme tokens.
   source: { accentVar: "#f9a8d4", tag: "Source" },
   automated: { accentVar: "#fdba74", tag: "Automated" },
   stored: { accentVar: "#6ee7b7", tag: "Stored" },
@@ -388,10 +348,6 @@ function StageSwatch({ tone }: { tone: StageTone }) {
   );
 }
 
-// Method labels for the tables: quiet swatch-plus-text rows reusing the
-// legend's own styling, so cells and the legend share one color key (the old
-// pill badges never carried the legend's tones). Toneless labels (the sources
-// table has no legend) render as plain tracked text.
 function Method({ tone, children }: { tone?: StageTone; children: ReactNode }) {
   return (
     <div className={`${LEGEND_ITEM_CLASS} whitespace-nowrap`}>
@@ -401,9 +357,6 @@ function Method({ tone, children }: { tone?: StageTone; children: ReactNode }) {
   );
 }
 
-// Section cross-references. Every mention links to the section and carries its
-// title. `comma` renders "section 04, Verbatim excerpts" for use inside an
-// existing parenthetical; the default renders "section 04 (Verbatim excerpts)".
 const SECTION_TITLES = {
   made: { num: "00", title: "What is in an article" },
   sources: { num: "01", title: "The ten source sites" },
@@ -442,7 +395,6 @@ export default async function DocsHowPage() {
     getCopyByKeys(DOCS_HOW_COPY_KEYS),
     getPublicAboutPreviewSubstances(),
   ]);
-  // Same sample-record preview the About page shows, narrowed to the substance file and molecule pack.
   const previewSnapshots = buildAboutPreviewSnapshots(
     previewSubstances.map(({ slug: _slug, ...article }) => article as unknown as SubstanceArticle),
   );
@@ -458,9 +410,6 @@ export default async function DocsHowPage() {
         className="theme-toc-strip-scope"
         contentClassName="gap-10"
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
-            under the site header from the very first scroll; replaced by
-            the sticky gutter TOC at >=1200px. */}
         <PublicTocStrip items={toc} />
 
         <header className="flex flex-col gap-4">
@@ -1015,8 +964,6 @@ export default async function DocsHowPage() {
           Each site needs its own, because each site structures its pages differently.
         </p>
 
-        {/* Implementation reference, not narrative: each parser subsection
-            collapses behind the same disclosure device as the prompts. */}
         <div className="mt-6 space-y-3">
           <DisclosureCard
             variant="subtle"
@@ -1375,7 +1322,6 @@ export default async function DocsHowPage() {
           </PipelineStep>
         </div>
 
-        {/* Citation policy bullets are reference material; the narrative stays open. */}
         <DisclosureCard
           variant="subtle"
           className="mt-6"
@@ -1467,7 +1413,6 @@ export default async function DocsHowPage() {
           />
         </div>
 
-        {/* Workflow invariants are reference material; the narrative stays open. */}
         <DisclosureCard
           variant="subtle"
           className="mt-6"
@@ -1883,11 +1828,6 @@ export default async function DocsHowPage() {
           </div>
         </ContentCard></section>
 
-        {/*
-          Back-to-top escape hatch for small screens. The sticky gutter TOC only
-          appears at >=1200px, so below that this is the persistent way back to
-          the top of a very long page. Hidden where the sticky TOC takes over.
-        */}
         <Button
           asChild
           variant="glass"

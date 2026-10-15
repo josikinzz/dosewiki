@@ -4,13 +4,9 @@ import { Button } from "@/components/ui/button";
 import type { MergeChoices, MergeConflict, MergeSide } from "../../../../lib/proposals/threeWayMerge";
 
 export type MergeConflictCopy = {
-  /** Who made the local draft's change: "You changed". */
   mine: string;
-  /** Who made the latest record's change: "Someone else changed". */
   theirs: string;
-  /** The button that keeps the local value: "Use yours". */
   useMine: string;
-  /** The button that keeps the latest value: "Use theirs". */
   useTheirs: string;
 };
 
@@ -21,7 +17,6 @@ export const MERGE_CONFLICT_COPY: MergeConflictCopy = {
   useTheirs: "Use theirs",
 };
 
-/** How many overlapping fields still wait on a choice, as one line. */
 export function unresolvedConflictText(count: number): string {
   return count === 0
     ? "Every field both of you changed has a chosen version."
@@ -40,21 +35,13 @@ function Side({ heading, value, chosen, action, label, onChoose }: {
   </div>;
 }
 
-/**
- * The fields both sides of a merge changed, each with both versions side by
- * side and who changed what. Nothing is chosen for the person: every row waits
- * for an explicit pick, and the caller keeps its final action closed until
- * `unresolved` is empty. Choosing writes nothing anywhere.
- */
 export function MergeConflictChoices({
   conflicts, choices, onChoose, label, format, copy = MERGE_CONFLICT_COPY,
 }: {
   conflicts: MergeConflict[];
   choices: MergeChoices;
   onChoose: (path: string, side: MergeSide) => void;
-  /** The field's place in words. */
   label: (path: string) => string;
-  /** One side's value as a person reads it. */
   format: (value: unknown, path: string) => string;
   copy?: MergeConflictCopy;
 }) {

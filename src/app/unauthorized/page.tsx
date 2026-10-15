@@ -26,11 +26,6 @@ type UnauthorizedPageProps = {
   }>;
 };
 
-/**
- * A session minted before a security update carries no password stamp, so the
- * JWT callback degrades it to `viewer`. That check stays; this only tells the
- * person how to recover. An unreadable session shows no hint.
- */
 async function isDegradedViewerSession(): Promise<boolean> {
   try {
     const session = await getServerSession(authOptions);

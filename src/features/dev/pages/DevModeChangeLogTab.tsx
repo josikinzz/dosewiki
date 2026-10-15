@@ -28,7 +28,6 @@ import type { ChangeLogController } from "./useDevModeChangeLog";
 
 type DevModeChangeLogTabProps = {
   controller: ChangeLogController;
-  /** The contributor directory, so a save names who made it rather than a stamped key. */
   contributorProfiles?: readonly NormalizedUserProfile[];
 };
 
@@ -37,14 +36,8 @@ const SHORTCUTS = [
   { keys: "j / k", label: "Next and previous save" },
 ] as const;
 
-/** How many saves "Show more" adds; the controller reveals loaded saves in batches of this size. */
 const REVEAL_BATCH = 20;
 
-/**
- * Every save made in the editor, newest first, grouped by day. Filters sit in
- * a sticky column on desktop and fold behind one button on phones; each save
- * is one line that opens its diff in place.
- */
 export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: DevModeChangeLogTabProps) {
   const {
     notice,
@@ -82,12 +75,8 @@ export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: De
     [contributorProfiles],
   );
 
-  // Diffs stay closed until asked for; ids are stable across filtering, so
-  // an entry opened before a filter change is still open when it returns.
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => new Set());
 
-  // Saves that land while the tab is open wait above the list instead of
-  // shifting it under the reader: the newest time seen is the line.
   const [seenUpTo, setSeenUpTo] = useState<number | null>(null);
   const newestTime = latestEntry ? Date.parse(latestEntry.createdAt) : null;
   if (seenUpTo === null && feedWindow.loadedCount > 0 && newestTime !== null && !Number.isNaN(newestTime)) {
@@ -136,7 +125,6 @@ export function DevModeChangeLogTab({ controller, contributorProfiles = [] }: De
     [shownEntries],
   );
 
-  // `/` finds, j and k walk the saves; Enter or Space on a save opens it.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;

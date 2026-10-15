@@ -7,13 +7,6 @@ import type { DevCommitControls } from "@/features/dev/pages/useDevModeSaveActio
 
 import type { StoryDef } from "../registry/types";
 
-/*
- * Shell pieces the redesign passes share that live beside the shell rather
- * than in the editor kit index (src/features/dev/pages). They document no
- * barrel export, so `exports` stays empty; the completeness gate covers the
- * index, and these are here so a builder finds them before building another.
- */
-
 function commitControls(overrides: Partial<DevCommitControls> = {}): DevCommitControls {
   return {
     destination: "production",

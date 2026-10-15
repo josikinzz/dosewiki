@@ -23,21 +23,11 @@ interface EffectsIndexPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  /** Editable intro prose, resolved from the copy blocks on the server. */
   introCopy?: SEIIntroCopy;
-  /** Editable per-tab intro blobs, resolved on the server. */
   tabBlobs?: Partial<Record<TabId, string>>;
-  /** Server-resolved URL state for the first rendered explorer view. */
   initialView?: EffectIndexView;
 }
 
-/**
- * Server shell for the subjective effects index.
- *
- * The tabbed filtering and responsive masonry controls live in
- * EffectsIndexExplorer so the route header and initial data render below a
- * server component boundary.
- */
 export function EffectsIndexPage({
   effects,
   effectHrefPrefix,
@@ -46,16 +36,11 @@ export function EffectsIndexPage({
   tabBlobs,
   initialView = EFFECT_INDEX_DEFAULT_VIEW,
 }: EffectsIndexPageProps) {
-  // Translate the plain-string catalog key, but keep the non-breaking-space
-  // English title when no translation applies, so the English layout keeps
-  // "Effect Index" on one line when the title wraps.
   const seiTitle = t("Subjective Effect Index");
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto w-full px-4 pb-20 pt-12 2xl:px-8">
       <div className="mx-auto max-w-3xl md:max-w-4xl">
         <PageHeader
-          // Non-breaking space: "Effect Index" stays on one line when the
-          // title wraps, so a phone reads "Subjective / Effect Index".
           title={seiTitle === "Subjective Effect Index" ? "Subjective Effect\u00A0Index" : seiTitle}
           icon={icons.subjectiveEffectIndex}
         />

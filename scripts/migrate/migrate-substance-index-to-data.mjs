@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-/**
- * Migrate SubstanceIndex.json to Postgres.
- *
- * This script reads SubstanceIndex.json and uploads all substances to the Postgres database.
- *
- * Prerequisites:
- * 1. Set DATA_BACKEND=postgres and configure an explicit Postgres target
- * 2. Ensure POSTGRES_DIRECT_URL is set in your environment or .env.local
- *
- * Usage:
- *   node scripts/migrate-substance-index-to-data.mjs
- *   node scripts/migrate-substance-index-to-data.mjs --dry-run
- *
- * Whole-corpus --replace mode is retired. Use bounded per-article/CAS writes.
- */
 
 import { readFileSync } from "fs";
 import { createDataClient } from "../lib/data-client.ts";
@@ -29,7 +14,6 @@ import { assertSubstanceIndexReplaceModeRetired } from "./substance-index-migrat
 
 const SUBSTANCE_INDEX_PATH = "./src/data/SubstanceIndex.json";
 
-// Greek letter to ASCII mapping for field name sanitization
 const GREEK_TO_ASCII = {
   'α': 'alpha',
   'β': 'beta',
@@ -57,16 +41,11 @@ const GREEK_TO_ASCII = {
   'ω': 'omega',
 };
 
-/**
- * Sanitize a string to only contain ASCII characters (for Postgres field names).
- * Replaces Greek letters with their ASCII names.
- */
 function sanitizeFieldName(name) {
   let result = name;
   for (const [greek, ascii] of Object.entries(GREEK_TO_ASCII)) {
     result = result.replace(new RegExp(greek, 'g'), ascii);
   }
-  // Replace any remaining non-ASCII with underscores
   let sanitizedName = '';
   for (let index = 0; index < result.length; index += 1) {
     sanitizedName += result.charCodeAt(index) <= 0x7F ? result[index] : '_';
@@ -74,10 +53,6 @@ function sanitizeFieldName(name) {
   return sanitizedName;
 }
 
-/**
- * Deep sanitize an object's keys to ensure they're ASCII-only.
- * Postgres doesn't allow non-ASCII characters in field names.
- */
 function sanitizeObjectKeys(obj) {
   if (obj === null || obj === undefined) {
     return obj;
@@ -137,8 +112,7 @@ async function main() {
   
   console.log(`Found ${articles.length} articles.`);
   console.log(`Total size: ${(articlesContent.length / 1024 / 1024).toFixed(2)} MB`);
-  
-  // Sanitize all article keys for Postgres compatibility
+
   console.log("Sanitizing field names for Postgres compatibility...");
   const sanitizedArticles = articles.map(sanitizeObjectKeys);
 
@@ -170,7 +144,6 @@ async function main() {
     return;
   }
 
-  // Create Postgres client
   const client = createDataClient({ target: dataUrl }).client;
 
   try {
@@ -183,7 +156,6 @@ async function main() {
   console.log("\nImporting articles to Postgres (upsert mode)...");
   console.log("Existing articles with matching IDs will be updated.\n");
 
-  // Import in batches to avoid timeout
   const BATCH_SIZE = 50;
   let totalCreated = 0;
   let totalUpdated = 0;
@@ -229,7 +201,6 @@ async function main() {
     console.log(`  Skipped: ${totalSkipped}`);
   }
   if (totalErrors.length > 0) {
-    // A rejected or invalid batch wrote none of its articles.
     console.log(`  Errors: ${totalErrors.length}`);
     totalErrors.slice(0, 10).forEach((e) => console.log(`    - ${e}`));
     if (totalErrors.length > 10) {

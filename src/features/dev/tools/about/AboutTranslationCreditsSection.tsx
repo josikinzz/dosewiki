@@ -30,11 +30,6 @@ type AboutTranslationCreditsSectionProps = {
   onReset: () => void;
 };
 
-/**
- * Admin-only: who each language's glossary and About mirror credit for its
- * translation. A credit names an existing contributor profile and adds one
- * contribution line; the profile's name and links come from the profile.
- */
 export function AboutTranslationCreditsSection({
   availableProfiles,
   credits,
@@ -44,7 +39,6 @@ export function AboutTranslationCreditsSection({
   onContributionChange,
   onReset,
 }: AboutTranslationCreditsSectionProps) {
-  // Open on the first language that credits anyone, so what is stored shows first.
   const [locale, setLocale] = useState<string>(
     () => TRANSLATION_CREDIT_LOCALES.find((code) => (credits[code]?.length ?? 0) > 0) ?? TRANSLATION_CREDIT_LOCALES[0] ?? "zh-Hans",
   );

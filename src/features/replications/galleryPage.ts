@@ -9,7 +9,6 @@ export interface GalleryGroupSummary {
   count: number;
   imageCount: number;
   videoCount: number;
-  /** Present for rail pages; empty means this rail has not been selected yet. */
   itemIds?: string[];
 }
 export interface GalleryFacets {
@@ -28,7 +27,6 @@ export interface GalleryPagePayload extends GalleryPageState {
   contributorDirectory?: ContributorDirectory;
 }
 
-/** Shared normalized input to the server's revision-bound query fingerprint. */
 export function galleryQueryIdentity(locale: string, browse: GalleryBrowseState, focus?: GalleryFocus | null): string {
   const normalized = parseGalleryBrowseState(new URLSearchParams(buildGalleryBrowseUrl(browse).split("?")[1]));
   return JSON.stringify([parseUiLocale(locale), normalized, focus ? { kind: focus.kind, key: focus.key } : null]);

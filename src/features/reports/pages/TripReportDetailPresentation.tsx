@@ -18,8 +18,6 @@ import type { TripReport } from "@/types/tripReport";
 import { ReportBackLink } from "../components/ReportBackLink";
 import { type SubstanceLookupRecord } from "../domain/tripReportIndex";
 
-/** Section titles + icons defined once so the TOC, the section heading, and
- *  the heading icon never drift apart. */
 const INTRODUCTION_SECTION = {
   title: "Introduction",
   icon: "lucide:book-open-text" as const,
@@ -32,21 +30,13 @@ const CONCLUSION_SECTION = {
 
 export interface TripReportDetailPageProps {
   report: TripReport;
-  /** Public substance slug -> name lookup; the client back link resolves the
-   *  `?from=` slug (and the default label) against it. Built by the route
-   *  loader in `page.tsx`. */
   substanceBySlug: Record<string, SubstanceLookupRecord>;
-  /** Map of report substance name -> public article href, for substances that
-   *  resolve to a known article. Built by the route loader in `page.tsx`. */
   substanceLinks?: Record<string, string>;
   preview?: boolean;
   t: Translate;
   editor?: ReactNode;
 }
 
-/**
- * Detail page for a single trip report.
- */
 export const TripReportDetailPresentation = memo(function TripReportDetailPresentation({
   report,
   substanceBySlug,
@@ -83,9 +73,6 @@ export const TripReportDetailPresentation = memo(function TripReportDetailPresen
   return (
     <main id={preview ? undefined : "main-content"} tabIndex={-1} className="theme-page-shell min-h-screen focus:outline-none">
       <StickyTocLayout toc={tocNode} contentClassName="gap-6" className="theme-toc-strip-scope">
-        {/* Mobile/tablet TOC: sticky chip strip above the hero, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         {tocNode ? <PublicTocStrip items={tocItems} /> : null}
 
         {!preview ? <ReportBackLink substances={report.substances} substanceBySlug={substanceBySlug} /> : null}
@@ -113,8 +100,6 @@ export const TripReportDetailPresentation = memo(function TripReportDetailPresen
           />
         </div>
 
-        {/* The narrative reads as one open article column capped at a
-            comfortable measure; the timeline phases share a continuous rail. */}
         <article className="max-w-[70ch] space-y-10 pt-2">
           {report.introduction ? (
             <div id={preview ? undefined : "report-introduction"} className="scroll-mt-24">
@@ -157,11 +142,6 @@ export const TripReportDetailPresentation = memo(function TripReportDetailPresen
   );
 });
 
-/**
- * Onward-path block at the foot of the narrative. The highest-intent moment on
- * the page: the reader just finished a report. Offers the page's single accent
- * CTA (share your own) plus quiet links back into the reports collection.
- */
 function ReportFooterActions({ t }: { t: Translate }) {
   return (
     <footer className="theme-report-dossier mt-2 flex flex-col gap-4 rounded-2xl px-5 py-5 sm:flex-row sm:items-center sm:justify-between">

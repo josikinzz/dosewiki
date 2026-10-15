@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 
-// Rebase a marker-only workbench citation draft onto the current live article.
-//
-// For every marked string field in the draft, if stripping `[cite:...]` markers
-// reproduces the live article text exactly, the markers are transplanted onto a
-// clone of the live section. Fields whose live prose has changed drop their
-// markers (recorded in the rebase report), and evidence/references/sources that
-// only backed dropped markers are pruned so the rebased draft stays coherent.
-// The strict byte-equality apply validation is unchanged; a rebased draft
-// matches live text by construction for every field it still marks.
-
 import { dirname, join, resolve } from "node:path";
 import { readFileSync, writeFileSync } from "node:fs";
 import { createDataClient } from "../lib/data-client.ts";
@@ -158,13 +148,7 @@ export function mergeCitationMarkers(liveText, draftText, referenceAliases = new
 
 const clone = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
 
-// Reference fields the Postgres article contract rejects if left in their raw
-// workbench form: a `template` outside the allowed set, or numeric
-// volume/issue/pages. Any code path that writes references into a draft the
-// apply step will consume must run them through this first.
 const ALLOWED_TEMPLATES = new Set(["cite_journal", "cite_book", "cite_web", "cite_report", "cite_database", "unknown"]);
-// Canonical status is a schema enum, not reader-facing prose. Citation markers
-// would change its stored value and make the entire article fail ingestion.
 function isMarkerWritableField(sectionKey, path) {
   return !(sectionKey === "legality" && /(^|\.)countries\.[^.]+\.canonicalStatus$/.test(path));
 }
@@ -304,8 +288,6 @@ export function rebaseWorkbenchDraft({ draft, article }) {
     skippedSections,
     sections: Object.keys(rebasedSections),
     selectedSections: selected ? [...selected] : null,
-    // Scoped runs: selected sections whose markers all dropped return to
-    // "ready" in the subsection rollout tracker.
     droppedSelectedSections: selected
       ? [...new Set(dropped.map((entry) => entry.section))]
       : [],

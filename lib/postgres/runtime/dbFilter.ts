@@ -1,10 +1,6 @@
 import { encodeDocumentValue } from "../documentCodec";
 import type { Doc } from "./dbRows";
 
-// ---------------------------------------------------------------------------
-// Filter expressions (`q.eq(q.field("x"), 1)` etc.) evaluated in process.
-// ---------------------------------------------------------------------------
-
 export type Expr =
   | { kind: "field"; path: string }
   | { kind: "literal"; value: unknown }
@@ -34,7 +30,6 @@ export const filterBuilder = {
   not: (a: unknown): Expr => ({ kind: "op", op: "not", args: [lit(a)] }),
 };
 
-/** Document value order: undefined < null < bigint < number < boolean < string < bytes < array < object. */
 function typeRank(value: unknown): number {
   if (value === undefined) return 0;
   if (value === null) return 1;

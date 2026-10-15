@@ -1,27 +1,14 @@
-/**
- * Server-side paging for the reader feedback queues. Status and search
- * filters run in SQL, so every matching row is reachable however many newer
- * rows sit above it; pages follow a keyset cursor, so rows arriving or
- * changing between pages never shift or repeat the rows already loaded.
- */
-
 import { losslessSelectList } from "../documentCodec";
 import { fromRow, quote, type Doc, type SqlExecutor } from "./dbRows";
 
 export type FeedbackQueueTable = "articleFeedback" | "siteFeedback";
 
-/**
- * `oldest` puts the report that has waited longest first, the order for
- * working through unresolved rows. `importance` ranks critical first, then
- * oldest within a level; rows without a level sort last.
- */
 export const FEEDBACK_QUEUE_ORDERS = ["oldest", "newest", "importance"] as const;
 export type FeedbackQueueOrder = (typeof FEEDBACK_QUEUE_ORDERS)[number];
 
 export const FEEDBACK_QUEUE_STATUSES = ["new", "reviewing", "resolved", "rejected", "spam"] as const;
 export type FeedbackQueueStatusCounts = Record<(typeof FEEDBACK_QUEUE_STATUSES)[number], number>;
 
-/** The status filter for New and Reviewing together: every item still waiting on a decision. */
 export const FEEDBACK_QUEUE_UNRESOLVED = "unresolved";
 
 export const FEEDBACK_QUEUE_MAX_PAGE = 250;
@@ -41,12 +28,6 @@ export class InvalidFeedbackQueueCursorError extends Error {
   }
 }
 
-/**
- * The columns search reads. Reader contact details (`contact_email`, `email`)
- * are left out on purpose: search travels in the GET query string, and a
- * contact detail must never enter a URL (docs/glossary.md), so the queue
- * cannot be searched by one.
- */
 const FEEDBACK_SEARCH_COLUMNS: Record<FeedbackQueueTable, readonly string[]> = {
   articleFeedback: ["substance_title", "substance_slug", "category", "details", "source_url", "review_notes"],
   siteFeedback: ["category", "urgency", "details", "page", "review_notes"],
@@ -64,7 +45,6 @@ function importanceRank(table: FeedbackQueueTable): string {
   return `(CASE ${column} WHEN 'critical' THEN 0 WHEN 'high' THEN 1 WHEN 'normal' THEN 2 WHEN 'low' THEN 3 ELSE 4 END)`;
 }
 
-/** The WHERE terms both the page and the counts share: search only; status is added by the page. */
 function searchTerm(table: FeedbackQueueTable, search: string | undefined, params: unknown[]): string | null {
   const trimmed = search?.trim();
   if (!trimmed) return null;
@@ -165,7 +145,6 @@ export async function readFeedbackQueuePage(
   };
 }
 
-/** Rows per status among those matching the search; the queue's filter counts and totals. */
 export async function readFeedbackQueueCounts(
   client: SqlExecutor,
   table: FeedbackQueueTable,

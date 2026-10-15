@@ -93,12 +93,6 @@ const ABOUT_PREVIEW_COUNT = 12;
 const ABOUT_PREVIEW_MAX_PAGES = 128;
 const ABOUT_PREVIEW_MAX_ROWS = 8_192;
 
-/**
- * A full substance article document as stored in Postgres, minus nothing: the
- * open-data export publishes the same record shape as the archival
- * `SubstanceIndex.json`, so no projection narrows it here. Postgres internals
- * (`_id`, `_creationTime`) are stripped at the serving edge.
- */
 export type PublicFullSubstanceDocument = Record<string, unknown>;
 
 type PublicGalleryReplicationPage = {
@@ -107,17 +101,12 @@ type PublicGalleryReplicationPage = {
   isDone: boolean;
 }
 
-/** One slim page of the shared substance-showcase matchable corpus. */
 type PublicMatchableReplicationPage = {
   items: SubstanceGalleryMatchableRow[];
   cursor: string;
   isDone: boolean;
 }
 
-/**
- * The stored curation row's public fields, extracted from the
- * `substanceGalleries:getBySubstance` document.
- */
 type PublicSubstanceGalleryCuration = {
   curated_slugs: string[];
   removed_slugs: string[];
@@ -131,7 +120,6 @@ export type PublicDataReadAdapter = {
   getPublicEffectMembershipInput(): Promise<PublicSubstanceLibraryRecord[]>;
   getPublicCoverageSubstances(): Promise<CoverageRow[]>;
   getPublicSubstanceDocuments(): Promise<PublicSubstanceArticleRecord[]>;
-  /** Bounded bulk source for whole-corpus translation audits. */
   getPublicTranslationSubstanceDocuments?(): Promise<PublicSubstanceArticleRecord[]>;
   getPublicMechanismRouteInput(): Promise<PublicMechanismRouteInput[]>;
   getPublicAboutPreviewSubstances(): Promise<PublicSubstanceArticleRecord[]>;
@@ -171,7 +159,6 @@ export type PublicDataReadAdapter = {
   getPublicReplicationsByArtistNames(artistNames: string[]): Promise<ReplicationWithUrl[]>;
   getPublicMatchableReplicationPage(cursor?: string): Promise<PublicMatchableReplicationPage>;
   getPublicSubstanceGalleryCuration(substanceSlug: string): Promise<PublicSubstanceGalleryCuration | null>;
-  /** The merged showcase, or null while the query or its complete index is unavailable. */
   getPublicSubstanceGallery(substanceSlug: string): Promise<PublicSubstanceGallery | null>;
   getPublicTripReportPreviews(): Promise<TripReportRecord[]>;
   getPublicReportSearchSummaries(): Promise<Array<{ slug: string; title: string; introduction?: string }>>;
@@ -187,10 +174,8 @@ export type PublicDataReadAdapter = {
   getPublicFeaturedReplicationSlugs(): Promise<string[] | null>;
   getPublicIndexLayoutByType(type: IndexLayoutType): Promise<IndexLayoutRecord | null>;
   getPublicMoleculeOverrideSummaries(): Promise<PublicMoleculeOverrideSummary[]>;
-  /** Published `updatedAt` for one depiction, or null when none is published. */
   getPublicMoleculeUpdatedAt(slug: string): Promise<string | null>;
   getPublicMoleculeBySlug(slug: string): Promise<PublicMolecule | null>;
-  /** Raw rows; callers normalize, redact, and cap diffs before caching. */
   getPublicChangelogBySubmitters(submitters: string[], limit: number): Promise<PublicChangelogRow[]>;
   getPublicChangelogByArticleSlug(slug: string, limit: number): Promise<PublicChangelogRow[]>;
   getPublicRecentChangelog(limit: number): Promise<PublicChangelogRow[]>;
@@ -199,9 +184,7 @@ export type PublicDataReadAdapter = {
   getPublicChangelogById(entryId: string): Promise<PublicChangelogRow | null>;
   getPublicReplicationIdentityAttribution(replicationId: string): Promise<PublicReplicationIdentityAttribution | null>;
   getPublicContributorIdentityByKey(key: string): Promise<PublicContributorIdentity | null>;
-  /** Unvalidated ProtestKit payload; the caller owns schema validation. */
   getPublicReagentTestBySlug(slug: string): Promise<unknown>;
-  /** Unvalidated rows; the caller parses and falls back to defaults. */
   getPublicCopyBlocks(): Promise<unknown>;
   getPublicCopyBlocksByKeys(keys: string[]): Promise<unknown[]>;
   getPublicWarningBannerPresets(): Promise<unknown>;
@@ -250,8 +233,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       queryPaginatedPublicProjectionRead(
         query,
         publicDataReadCatalog.publicSubstanceEffectMembershipInput,
-        // Reuse canonical identity/effect normalization without fetching the
-        // unrelated article sections. These empty fields never leave membership.
         (records: SubstanceEffectMembershipInput[]) => parsePublicSubstanceLibraryInputRecords(records.map(record => ({
           ...record,
           summary: "",
@@ -345,10 +326,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       ),
     getPublicEffectSlugs: () =>
       query<string[]>(publicDataReadCatalog.publicEffectSlugs.functionName, {}),
-    // Slug set only, for link resolution. Additive across function rollout: a
-    // deployment that predates `getPublicSlugsPage` falls back to draining the
-    // preview pages, which is the read this one replaces, so nothing degrades
-    // beyond the round trips it costs.
     getPublicSubstanceSlugs: async () => {
       let slugs: string[];
       try {
@@ -357,10 +334,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
           publicDataReadCatalog.publicSubstanceSlugs,
         );
       } catch (error) {
-        // Production Postgres reports an undeployed function as an opaque
-        // "Server Error", never the explicit missing-function text, so any
-        // failure here takes the fallback: the preview drain is the read this
-        // one replaced and was serving every article until now.
         if (!hasWarnedAboutSubstanceSlugsRead) {
           hasWarnedAboutSubstanceSlugsRead = true;
           console.warn(
@@ -388,11 +361,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         query,
         publicDataReadCatalog.publicSubstanceFullDocuments,
       ),
-    // Contributor-scoped reviewed-articles aggregate. Additive like the
-    // contributor replication read below: a deployment that predates the query
-    // degrades to "no reviewed articles" (the profile renders no section) —
-    // but says so, because an unreviewed contributor and a missing function
-    // look identical on the rendered page.
     getPublicReviewedArticlesByContributor: async (profileKey) => {
       try {
         return await drainPublicCorpusPages<ContributorReviewedArticle>(query, {
@@ -411,9 +379,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         throw error;
       }
     },
-    // Bulk counterpart of the read above, for the About roster's reference
-    // counts: every completed review as a (slug, profileKey) credit in one
-    // corpus pass. Same additive degrade, same reason to say so out loud.
     getPublicReviewedArticleCredits: async () => {
       try {
         return await drainPublicCorpusPages<ReviewedArticleCredit>(query, {
@@ -498,8 +463,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
           publicDataReadCatalog.publicEffectIndexArticleBySlug.args(slug),
         ),
       ),
-    // Archive failures must reject: empty lists and null are authoritative absence
-    // and would otherwise be persisted as successful indexes or not-found pages.
     getPublicEffectIndexPosts: async () =>
       projectPublicEffectIndexPosts(
         await query<unknown[]>(
@@ -517,10 +480,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
     getPublishedPublicationIndex: (kind) => query("effectIndexArticles:getPublishedIndex", { kind }),
     getPublicArtistCreditRows: () => query("publicArtistCredits:getRows", {}),
     getPublicReplications: async () =>
-      // This compatibility-shaped catalog is intentionally reconstructed from
-      // slim, bounded gallery pages. Public callers that only need routing,
-      // counts, artist/effect grouping, or a shortlist must never invoke the
-      // legacy whole-table resolver.
       drainPublicCorpusPages<GalleryReplication>(
         query,
         publicDataReadCatalog.publicReplicationGalleryPage,
@@ -542,8 +501,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         publicDataReadCatalog.publicReplicationArtistsByKeys.args(keys),
       );
     },
-    // Single-row read for the replication permalink. Deliberately not served off
-    // getPublicReplications() — that pulls the whole table for one item.
     getPublicReplicationBySlug: (slug) =>
       query<ReplicationWithUrl | null, { slug: string }>(
         publicDataReadCatalog.publicReplicationBySlug.functionName,
@@ -556,7 +513,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         publicDataReadCatalog.publicReplicationsBySlugs.args(slugs),
       );
     },
-    // Contributor replication read degrades explicitly when an older deployment lacks it.
     getPublicReplicationsByArtistNames: async (artistNames) => {
       try {
         return await drainPublicCorpusPages<ReplicationWithUrl>(query, {
@@ -578,10 +534,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         throw error;
       }
     },
-    // One slim matchable-corpus page for the substance showcases. Additive
-    // across function rollout like the per-substance read it replaces: a
-    // deployment that predates the query degrades to an empty done page (an
-    // empty automatic pool) — and says so.
     getPublicMatchableReplicationPage: async (cursor) => {
       try {
         return await query<PublicMatchableReplicationPage, { cursor?: string; limit: number }>(
@@ -598,8 +550,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         throw error;
       }
     },
-    // The stored curation row for one substance. `getBySubstance` is a
-    // long-deployed public query, so no rollout degrade is needed here.
     getPublicSubstanceGalleryCuration: async (substanceSlug) => {
       const doc = await query<
         { curated_slugs: string[]; removed_slugs: string[]; carousel_order?: string[]; disabled?: boolean } | null,
@@ -616,8 +566,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         disabled: doc.disabled ?? false,
       };
     },
-    // A missing query or incomplete index must use the shared paged corpus.
-    // Cached null means use that complete fallback, never an empty gallery.
     getPublicSubstanceGallery: async (substanceSlug) => {
       try {
         return await query<PublicSubstanceGallery, { substance_slug: string }>(
@@ -685,11 +633,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
     getPublicContributorByKey: (key) => query("contributorProfiles:getByKey", { key }),
     getPublicChangelogById: (entryId) => query("changelog:getByEntryId", { entryId }),
     getPublicAboutConfig: () => query<AboutConfigRecord | null>(publicDataReadCatalog.publicAboutConfig.functionName, {}),
-    // The portal-editable featured carousel. `null` means "nobody has curated
-    // this deployment", which is also what a deployment that predates the
-    // function reports — both leave the homepage on its checked-in list, so an
-    // undeployed function degrades to the previous behaviour instead of an
-    // empty carousel.
     getPublicFeaturedReplicationSlugs: async () => {
       try {
         const config = await query<{ slugs: string[] } | null>(
@@ -698,9 +641,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         );
         return config?.slugs ?? null;
       } catch (error) {
-        // The homepage must never fail to render over the featured list:
-        // mid-deploy the function can be transiently absent or erroring, and
-        // null falls back to the checked-in JSON either way.
         if (!isExplicitMissingPublicFunctionError(error)) {
           console.warn(
             "[replications] featured-slugs read failed; using the checked-in fallback.",
@@ -784,9 +724,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
   };
 }
 
-// Persist bounded corpus pages, never assembled multi-megabyte inputs.
-// Full documents use smaller pages than slim library and route projections.
-// Compositions above these leaves remain request-only to avoid nested bypass.
 const readPublicSubstanceProjectionPage = publicDataCache(
   async (name: string, args: QueryArgs) => queryData<unknown, QueryArgs>(name, args),
   ["data-public-substance-projection-page-v1"],

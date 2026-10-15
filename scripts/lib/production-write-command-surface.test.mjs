@@ -48,12 +48,6 @@ const SHARED_CLIENT_LIBRARIES = new Set([
   "scripts/lib/data-client.ts",
 ]);
 
-// Local-Postgres rehearsals and parity harnesses write scratch rows through
-// the runtime and are gated by targetGuard (loopback only unless
-// --allow-remote plus POSTGRES_IMPORT_CONFIRM), not by the Postgres deployment
-// ceremony. The `it.each` below holds them to that guard. Operator commands
-// that write shared tables, such as the derived-table rebuild and the snapshot
-// importer, are production boundaries instead and never match this pattern.
 const POSTGRES_GUARDED_WRITER_PATTERN =
   /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
 
@@ -72,10 +66,6 @@ function postgresRehearsalWriters() {
     .sort();
 }
 
-/**
- * Files whose raw SQL writes (`TRUNCATE`, `DELETE FROM`, `INSERT`, and the
- * like, sent through `.query(`) carry no inventory classification.
- */
 function unclassifiedRawSqlWriters(detections) {
   const classified = new Set([
     ...classifiedDirectProductionWriterPaths,
@@ -99,8 +89,6 @@ function hasStrongBoundary(source) {
 }
 
 function sourceWithoutGuardedDryRunReadFallbacks(source) {
-  // The write assertion makes command.targetUrl mandatory, so later terms in
-  // this leftmost-target chain are reachable only while reporting a dry run.
   return source.replace(
     /const\s+readUrl\s*=\s*command\.targetUrl\s*(?:\?\?|\|\|)[^;]+;/g,
     "",

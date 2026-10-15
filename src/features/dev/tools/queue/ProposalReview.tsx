@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * One proposal read for review, in parts: where it stands, the facts, the
- * feedback it came back with, what it changes (with drift against the live
- * content), the diff, the other editors that revise it, and the discussion.
- *
- * Change Review's `ProposalPane` lays the parts out in its triage pane with a
- * decision dock. `ProposalReview` composes the same parts with the decision
- * controls inline for the article page's `ArticleProposalReview`.
- */
-
 import type { KeyboardEvent, ReactNode, RefObject } from "react";
 
 import { ChangelogDiff } from "@/components/changelog/ChangelogDiff";
@@ -63,7 +53,6 @@ function SectionHeading({ as: Heading = "h4", id, children }: { as?: SectionHead
   );
 }
 
-/** A moment as relative words, with the full date and time as its title. */
 export function ProposalTime({ iso, fallback = "unknown date" }: { iso: string | undefined; fallback?: string }) {
   const day = iso ? describeDay(iso) : null;
   if (!iso || !day) return <>{fallback}</>;
@@ -74,7 +63,6 @@ export function ProposalTime({ iso, fallback = "unknown date" }: { iso: string |
   );
 }
 
-/** Where the proposal stands and what happens next, for this reader. */
 export function ProposalNextStep({ proposal, canApprove }: { proposal: ProposalDetail; canApprove: boolean }) {
   const open = isOpenProposal(proposal.status);
   const icon = proposal.status === "applied"
@@ -92,20 +80,13 @@ export function ProposalNextStep({ proposal, canApprove }: { proposal: ProposalD
   );
 }
 
-/**
- * The facts of a proposal as a `dl` of meta-label terms over body values:
- * who proposed it and when, who reviewed it, when it was published or
- * reverted, and the reader feedback it answers (advisory only).
- */
 export function ProposalFacts({
   proposal,
   showStatus = true,
   showProposer = true,
 }: {
   proposal: ProposalDetail;
-  /** Off where a header already carries the status pill. */
   showStatus?: boolean;
-  /** Off where a header already names the proposer and the age. */
   showProposer?: boolean;
 }) {
   const facts: { label: string; value: ReactNode }[] = [];
@@ -131,7 +112,6 @@ export function ProposalFacts({
       ? ` (${ARTICLE_SECTION_LABELS[proposal.feedbackRef.section]})`
       : "";
     facts.push({
-      // Advisory context only: the feedback never gates this review.
       label: "Answers",
       value: (
         <a
@@ -157,7 +137,6 @@ export function ProposalFacts({
   );
 }
 
-/** What the reviewer said, and why a returned proposal came back. */
 export function ProposalFeedback({ proposal, headingLevel = "h4" }: { proposal: ProposalDetail; headingLevel?: SectionHeadingLevel }) {
   const returned = proposal.status === "changes_requested" && proposal.conflictReason;
   if (!proposal.reviewNotes && !returned) return null;
@@ -181,7 +160,6 @@ export function ProposalFeedback({ proposal, headingLevel = "h4" }: { proposal: 
   );
 }
 
-/** Each item the proposal changes; on an open proposal, whether the live content still matches it. */
 export function ProposalTargets({
   proposal,
   headingLevel = "h4",
@@ -189,7 +167,6 @@ export function ProposalTargets({
 }: {
   proposal: ProposalDetail;
   headingLevel?: SectionHeadingLevel;
-  /** Off where a decision dock already says what approving a moved proposal does. */
   showDrift?: boolean;
 }) {
   const targets = targetDrift(proposal);
@@ -229,11 +206,8 @@ export function ProposalTargets({
   );
 }
 
-/** The change itself: article fields read as the author saw them, then the text diff of everything else. */
 export function ProposalChanges({ proposal, headingLevel = "h4" }: { proposal: ProposalDetail; headingLevel?: SectionHeadingLevel }) {
   const articlePatches = proposal.comparisonMode === "unavailable" ? [] : proposal.articlePatches ?? [];
-  // Copy blocks, About and index layouts have no field reading yet and keep
-  // the text diff; article sections already shown above are left out of it.
   const otherDiff = diffWithoutArticles(proposal.diff, articlePatches.map((patch) => patch.slug));
   return (
     <section className="space-y-2">
@@ -249,7 +223,6 @@ export function ProposalChanges({ proposal, headingLevel = "h4" }: { proposal: P
               : proposal.comparisonMode === "verified_live" ? "Changes compared with the live article the proposal was written against." : "Recorded change comparison."}
         </p>
       )}
-      {/* Article changes read exactly as the author saw them in the page. */}
       {articlePatches.map((patch) => (
         <div key={patch.slug} className="space-y-2" data-testid="proposal-article-changes">
           {proposal.targets.length > 1 ? (
@@ -283,7 +256,6 @@ export function ProposalChanges({ proposal, headingLevel = "h4" }: { proposal: P
   );
 }
 
-/** The About, Copy and Writing targets a proposer revises in their own editors, since they cannot be loaded here. */
 export function proposalOtherEditors(proposal: ProposalDetail) {
   const open = isOpenProposal(proposal.status);
   if (!(open || proposal.status === "rejected" || proposal.status === "reverted")) return [];
@@ -325,13 +297,11 @@ export type ProposalDiscussionProps = {
   busy: boolean;
   posting: boolean;
   headingLevel?: SectionHeadingLevel;
-  /** The result of the last comment, shown under the button that posted it. */
   notice?: NoticeMessage | null;
   onDismissNotice?: () => void;
   fieldRef?: RefObject<HTMLTextAreaElement | null>;
 };
 
-/** The conversation on a proposal and the field that adds to it. Cmd/Ctrl+Enter posts. */
 export function ProposalDiscussion({
   proposal,
   canApprove,
@@ -407,7 +377,6 @@ type ProposalReviewProps = {
   proposal: ProposalDetail;
   canApprove: boolean;
   isAuthor: boolean;
-  /** The viewer may rebase this proposal (proposer or admin, and it is still open). */
   canLoad: boolean;
   libraryReady: boolean;
   pending: "approve" | "reject" | "revert" | "comment" | "load" | null;
@@ -426,10 +395,6 @@ type ProposalReviewProps = {
   readOnly?: boolean;
 };
 
-/**
- * The whole review in one column with its decisions inline, for the article
- * page's contextual editor. Change Review uses `ProposalPane` instead.
- */
 export function ProposalReview({
   proposal,
   canApprove,

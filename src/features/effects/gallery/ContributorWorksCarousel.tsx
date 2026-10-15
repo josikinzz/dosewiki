@@ -15,18 +15,8 @@ import {
   buildReplicationViewerUrl,
 } from "@/features/replications/galleryUrlState";
 
-/**
- * A contributor's replications, as a rail you can step through.
- *
- * The track is a plain scroll-snap row, so it swipes on touch and still works
- * with no JavaScript at all; the arrows are a keyboard and mouse convenience on
- * top of that rather than the only way through. Stepping is clamped, not
- * circular — this is a finite body of work, and wrapping from the last piece
- * back to the first reads as the rail losing its place rather than as an end.
- */
 interface ContributorWorksCarouselProps {
   works: readonly GalleryReplication[];
-  /** Whose works these are; used to name the rail for assistive tech. */
   contributorName: string;
 }
 
@@ -38,11 +28,6 @@ export function ContributorWorksCarousel({
   const [index, setIndex] = useState(0);
   const trackRef = useRef<HTMLUListElement | null>(null);
 
-  // A profile is the most artist-oriented surface there is, so it withholds
-  // the same works the gallery's artist grouping does. The count pill and the
-  // stepper both read off this list, so the rail can never claim more works
-  // than it will scroll through. See `isWithheldFromArtistViews`: the works
-  // are still on their effect's page, not taken down.
   const shown = useMemo(
     () => works.filter((work) => !isWithheldFromArtistViews(work)),
     [works],
@@ -59,9 +44,6 @@ export function ContributorWorksCarousel({
 
     const target = trackRef.current?.children[next];
     if (target instanceof HTMLElement) {
-      // Read at event time rather than held in state: this is the only place
-      // the preference matters, and reading it here keeps the component free of
-      // a media-query effect that would have to run on the server too.
       const reducedMotion =
         typeof window !== "undefined" &&
         typeof window.matchMedia === "function" &&
@@ -75,7 +57,6 @@ export function ContributorWorksCarousel({
     }
   };
 
-  /** Left/right arrows step the rail, bound to the controls that already have focus. */
   const handleArrowKeys = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
@@ -86,8 +67,6 @@ export function ContributorWorksCarousel({
     }
   };
 
-  // An artist with nothing credited to them renders no section at all, the same
-  // way the trip reports section stays absent rather than showing an empty shell.
   if (count === 0) {
     return null;
   }

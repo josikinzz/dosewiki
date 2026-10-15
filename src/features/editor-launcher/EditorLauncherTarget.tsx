@@ -4,7 +4,6 @@ import { useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { EditorTargetContext, type EditorTarget } from "./context";
 
-/** A loaded record declares identity without importing sessions or editor code. */
 export function EditorLauncherTarget({
   target,
   priority = "page",
@@ -18,10 +17,8 @@ export function EditorLauncherTarget({
   const slug = target.kind === "generic" ? undefined : target.slug;
   const writingKind = target.kind === "writing" ? target.writingKind : undefined;
   const key = JSON.stringify([kind, slug, name, writingKind, priority]);
-  // Retained outgoing content must not claim the incoming pathname while it loads.
   const [identity, setIdentity] = useState({ key, pathname });
   if (identity.key !== key) setIdentity({ key, pathname });
-  // Viewer item navigation changes its address without replacing the source collection.
   const targetPathname = priority === "overlay" ? pathname : identity.pathname;
 
   useEffect(() => {

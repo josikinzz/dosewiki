@@ -147,8 +147,6 @@ export function PublicFactTile({
     </>
   );
 
-  // Surface owns the border, corner (the card role) and inset; the tile adds only
-  // its hover treatment.
   const tileClassName = cn(
     "theme-public-card-hover-quiet block transition",
     className,
@@ -302,10 +300,6 @@ export function PublicDetailHero({
         <div className={cn("relative flex flex-col gap-6", media ? "pr-0 md:pr-24" : undefined)}>
           <div className="flex flex-wrap items-start gap-4 sm:gap-5">
             {icon ? (
-              // A circle, not a rounded tile: IconBadge's `.theme-status-orb` sets an
-              // unlayered `border-radius: 9999px` that no corner utility here can beat.
-              // The translucent accent stops over the muted surface give the same tint
-              // the old colour-mix stops did, and follow the accent hue.
               <IconBadge
                 icon={icon}
                 label={iconLabel ?? (typeof title === "string" ? title : undefined)}
