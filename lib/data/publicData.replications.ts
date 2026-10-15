@@ -1,9 +1,9 @@
 import "server-only";
 
-import { publicDataCache, publicSubstanceGalleryTag } from "./publicData.cache";
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { publicSubstanceGalleryTag, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { cache } from "react";
 import { contributorMatchNames, findContributorProfileByAuthorName } from "../contributorProfileIdentity";
-import { PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import {

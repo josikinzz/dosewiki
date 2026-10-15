@@ -1,13 +1,13 @@
 import "server-only";
 
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
 import {
-  publicDataCache,
   publicSubstanceTag,
   PUBLIC_SUBSTANCE_CONTENT_TAG,
   PUBLIC_SUBSTANCE_LISTS_TAG,
-} from "./publicData.cache";
+  PUBLIC_DATA_CACHE_TAGS,
+} from "./publicData.cacheTags";
 import { cache } from "react";
-import { PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cache";
 import { getPublicDataReadAdapter, type PublicFullSubstanceDocument } from "./publicData.reads";
 import type { PublicSubstanceArticleRecord } from "./publicData.substanceContract";
 import type {

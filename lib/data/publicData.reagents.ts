@@ -1,14 +1,10 @@
 import "server-only";
 
-import { publicDataCache } from "./publicData.cache"
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS, publicSubstanceTag } from "./publicData.cacheTags";
 import { cache } from "react";
 import { validateProtestKitResponse } from "@/lib/reagentTesting";
 import type { ProtestKitResponse } from "@/types/reagent";
-import {
-  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_DATA_CACHE_TAGS,
-  publicSubstanceTag,
-} from "./publicData.cache";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 
 export const getPublicReagentTestBySlug = cache(

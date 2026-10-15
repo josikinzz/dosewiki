@@ -310,6 +310,10 @@ the key. Lookup, slug, and preview reads use field-specific Postgres
 projections rather than transporting complete article documents. Index counts
 read their own canonical membership, not unrelated public corpora.
 
+`lib/data/publicData.cacheTags.ts` owns the pure tag vocabulary. The publication
+contract imports it directly, without loading the Next cache adapter or the
+Postgres target resolver in `publicData.cache.ts`.
+
 Library and mechanism input pages persist separately, including on cold
 instances. Derived library and search caches check a shared Next Data Cache
 revision identity before reusing process-local values. Concurrent refreshes

@@ -1,12 +1,9 @@
 import "server-only";
 
-import { publicDataCache } from "./publicData.cache"
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { cache } from "react";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
-import {
-  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_DATA_CACHE_TAGS,
-} from "./publicData.cache";
 import {
   findContributorProfileByKeyOrAlias,
   normalizeProfileKey,

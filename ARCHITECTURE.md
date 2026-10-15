@@ -25,6 +25,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
 - `/glossary` and its locale mirrors share `src/features/language-glossary/GlossaryRoute.tsx` and one renderer. Translation pages include private reader suggestions; old `/glossary/<locale>` links redirect to the merged address.
 - Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
+- `lib/data/publicData.cacheTags.ts` owns pure cache tags shared by the publication contract and the Next cache adapter in `publicData.cache.ts`.
 - Protected editor routes live under `/dev`; `src/middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
 - `lib/auth/devScreenshotViewer.ts` is a local `next dev` exception that renders `/dev` documents without an account for screenshots. It never admits an API, a mutation, or a production build.
 - Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.

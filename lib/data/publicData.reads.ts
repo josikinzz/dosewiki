@@ -68,13 +68,8 @@ import {
   type QueryArgs,
   type QueryTransport,
 } from "./publicData.pagination";
-import {
-  publicDataCache,
-  PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  PUBLIC_DATA_CACHE_TAGS,
-  PUBLIC_SUBSTANCE_CONTENT_TAG,
-  PUBLIC_SUBSTANCE_DOCUMENTS_TAG,
-} from "./publicData.cache";
+import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG, PUBLIC_SUBSTANCE_DOCUMENTS_TAG } from "./publicData.cacheTags";
 import {
   normalizePublicEffectArticle,
   normalizePublicEffectArticles,

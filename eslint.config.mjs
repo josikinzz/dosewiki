@@ -7,6 +7,17 @@ import globals from 'globals';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';
 
+const pureFreezeImports = [
+  {
+    regex: '(?:^|/)writeFreeze(?:\\.[cm]?[jt]sx?)?$',
+    message: 'Import the pure classifier from writeFreezeRefusal instead of the React hook wrapper.',
+  },
+  {
+    regex: '(?:^|/)(?:features/dev/)?components(?:/index)?(?:\\.[cm]?[jt]sx?)?/?$',
+    message: 'Import the pure classifier directly from writeFreezeRefusal instead of the components barrel.',
+  },
+];
+
 export default tseslint.config(
   {
     ignores: [
@@ -186,6 +197,50 @@ export default tseslint.config(
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
       'vercel-guardrails/require-rate-limit': 'warn',
       'vercel-guardrails/validate-function-config': 'warn',
+    },
+  },
+  {
+    files: [
+      'server/**/*.ts',
+      'lib/**/*.ts',
+      'src/app/api/**/*.ts',
+      'src/features/dev/tools/glossary/glossaryModel.ts',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: pureFreezeImports }],
+    },
+  },
+  {
+    files: [
+      'lib/data/publicData.cacheTags.ts',
+      'lib/next/publicCacheContract.ts',
+      'lib/next/publicationWire.ts',
+      'lib/next/localeHostPolicy.ts',
+      'src/features/dev/components/writeFreezeRefusal.ts',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [
+          ...pureFreezeImports,
+          {
+            regex: '^\\.(?:/index(?:\\.[cm]?[jt]sx?)?)?$',
+            importNames: ['WRITE_FREEZE_CODE', 'isWriteFreezeRefusal'],
+            message: 'Import the pure classifier directly from writeFreezeRefusal instead of the components barrel.',
+          },
+          {
+            regex: '(?:^|/)publicData\\.cache(?:\\.[cm]?[jt]s)?$',
+            message: 'Import pure cache tags from publicData.cacheTags instead of the Next cache adapter.',
+          },
+          {
+            regex: '^next/cache$|(?:^|/)postgres/runtime/target(?:\\.[cm]?[jt]s)?$',
+            message: 'Keep runtime adapters outside pure contracts. Cache tag imports belong in publicData.cacheTags.',
+          },
+          {
+            regex: '^react(?:/|$)',
+            message: 'Keep pure contracts React-free. The write-freeze classifier belongs in writeFreezeRefusal.',
+          },
+        ],
+      }],
     },
   },
 );
