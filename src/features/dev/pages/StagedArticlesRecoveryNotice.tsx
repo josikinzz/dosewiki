@@ -75,7 +75,7 @@ export function StagedArticlesRecoveryNotice({
           tone="warning" title={`${articleCount(held.length)} not restored`} message={(
               <>
                 <span className="block">
-                  These articles changed after your copy was made, or could not be loaded. Your edits are kept aside and the newer version stays in place until you choose. Applying merges your edits into the newer version; a field you both changed needs your choice first.
+                  These articles changed after your copy was made, could not be loaded, or need review before your copy can be restored safely. Your edits are kept aside and the newer version stays in place until you choose. Applying merges your edits into the newer version; a field you both changed needs your choice first.
                 </span>
                 <ul className="mt-2 space-y-3">
                   {held.map(({ change, current, merge, choices }) => (
