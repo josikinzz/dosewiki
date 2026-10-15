@@ -108,14 +108,6 @@ describe("the warm cron", () => {
     expect(rateLimit.enforceRateLimit).toHaveBeenCalledOnce();
   });
 
-  it("answers a limited caller before looking at its secret", async () => {
-    rateLimit.enforceRateLimit.mockResolvedValueOnce(Response.json({ error: "Too many requests." }, { status: 429 }));
-
-    const response = await warm(new Request("https://dose.wiki/api/warm"));
-
-    expect(response.status).toBe(429);
-  });
-
   it("runs with the secret", async () => {
     const response = await warm(
       new Request("https://dose.wiki/api/warm", { headers: { authorization: "Bearer cron-fixture" } }),

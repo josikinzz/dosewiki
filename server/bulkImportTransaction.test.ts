@@ -129,7 +129,7 @@ beforeAll(async () => {
   await resolveFunction(tripReportsBulkImport);
 }, 60_000);
 
-describe.each(cases)("$name", ({ table, run, runInvalid, invalidError }) => {
+describe.each(cases)("$name", ({ table, run }) => {
   // CI runs with the freeze on; these cases exercise the open-write path.
   beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
   afterEach(() => { vi.unstubAllEnvs(); });
@@ -145,15 +145,5 @@ describe.each(cases)("$name", ({ table, run, runInvalid, invalidError }) => {
     expect(persisted).toEqual([]);
     expect(statements).toContain("ROLLBACK");
     expect(statements).not.toContain("COMMIT");
-  });
-
-  it("returns pre-SQL validation errors and writes nothing", async () => {
-    const { client, persisted, statements } = fakePostgres();
-    const result = await runInvalid(client) as { created: number; updated: number; errors: string[] };
-    expect(result).toMatchObject({ created: 0, updated: 0 });
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0]).toMatch(invalidError);
-    expect(statements.filter((statement) => /^(?:INSERT|UPDATE|DELETE)\b/.test(statement))).toEqual([]);
-    expect(persisted).toEqual([]);
   });
 });

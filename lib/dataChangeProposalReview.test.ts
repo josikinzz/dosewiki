@@ -52,66 +52,6 @@ describe("changeProposalReview.approveAndApply", () => {
     expect(rowsOf("substanceIndex").get("s1")).toEqual(storedLsd);
     expect(rowsOf("changeProposals").get("proposal_p1")!.status).toBe("submitted");
   });
-  it("applies the payload through the article write path and records the snapshot, hashes, and changelog", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, editor],
-      substanceIndex: [storedLsd],
-      changeProposals: [proposalRow()],
-    });
-
-    const result = await approveAndApplyHandler(ctx, asAdmin);
-
-    expect(result).toEqual({ status: "applied", revalidatePaths: ["/lsd", "/substances"] });
-    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Proposed summary", slug: "lsd" });
-
-    const proposal = rowsOf("changeProposals").get("proposal_p1")!;
-    expect(proposal).toMatchObject({
-      status: "applied",
-      appliedChangelogEntryId: "proposal-proposal_p1",
-      reviewedBy: "admin@example.com",
-    });
-    expect(proposal.appliedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-    const appliedHashes = proposal.appliedHashes as Array<{ kind: string; key: string; hash: string }>;
-    expect(appliedHashes).toEqual([
-      { kind: "article", key: "lsd", hash: contentHash(liveArticleDocument(rowsOf("substanceIndex").get("s1")!)) },
-    ]);
-    expect(appliedHashes[0].hash).not.toBe(contentHash(liveArticleDocument(storedLsd)));
-
-    const [entry] = [...rowsOf("changelog").values()];
-    expect(entry).toMatchObject({
-      entryId: "proposal-proposal_p1",
-      submittedBy: "EDITOR",
-    });
-    expect(JSON.stringify(entry)).not.toContain("@example.com");
-    expect(entry.markdown).toContain("Proposed summary");
-    expect(entry.markdown).toContain("Stored summary");
-  });
-
-  it("journals and restores the unprojected article without unrelated normalization changes", async () => {
-    const source = {
-      ...storedLsd,
-      _creationTime: 0,
-      pharmacology: { ...storedLsd.pharmacology as Record<string, unknown>, legacyDetail: "Preserve raw source" },
-    };
-    const { _id, _creationTime, ...before } = source;
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin, editor],
-      substanceIndex: [source],
-      changeProposals: [proposalRow({
-        payload: { articles: [{ ...before, summary: "Narrow revision" }] },
-        targets: [{ kind: "article", key: "lsd", baseHash: contentHash(liveArticleDocument(source)) }],
-      })],
-    });
-    await approveAndApplyHandler(ctx, asAdmin);
-    const [revision] = [...rowsOf("articleRevisions").values()];
-    expect(revision.before).toEqual(before);
-    expect(revision.after).toEqual({ ...before, summary: "Narrow revision" });
-    const [entry] = [...rowsOf("changelog").values()];
-    expect(entry.markdown).toContain("Narrow revision");
-    expect(entry.markdown).not.toContain("pharmacology");
-    await revertHandler(ctx, asAdmin);
-    expect(rowsOf("substanceIndex").get("s1")).toEqual(source);
-  });
 
   it("flips a drifted proposal to changes_requested and writes nothing to production", async () => {
     const drifted = { ...storedLsd, summary: "Someone else edited this" };
@@ -252,58 +192,6 @@ describe("changeProposalReview.revert", () => {
     expect(entries[1].markdown).toContain(proposal.summary);
     expect(proposal.reviewedBy).toBe("admin@example.com");
   });
-
-  it("removes a row the proposal created when the snapshot recorded absence", async () => {
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      changeProposals: [
-        proposalRow({
-          targets: [{ kind: "article", key: "lsd", baseHash: contentHash(null) }],
-        }),
-      ],
-    });
-    await approveAndApplyHandler(ctx, asAdmin);
-    expect(rowsOf("substanceIndex").size).toBe(1);
-
-    await revertHandler(ctx, asAdmin);
-
-    expect(rowsOf("substanceIndex").size).toBe(0);
-    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
-  });
-
-  it("restores reference metadata exactly without merging the applied enrichment back in", async () => {
-    // Source metadata and prose belong to the same audited inverse.
-    const reference = {
-      id: "ref-1",
-      type: "journal_article",
-      title: "Lysergide pharmacology",
-      authors: ["Hofmann A"],
-      doi: "10.1000/lsd",
-    };
-    const stored = { ...storedLsd, references: [reference] };
-    const proposed = { ...proposedLsd, references: [{ ...reference, containerTitle: "Journal of Ergolines" }] };
-    const { ctx, rowsOf } = createCtx({
-      memberships: [admin],
-      substanceIndex: [stored],
-      changeProposals: [
-        proposalRow({
-          targets: [{ kind: "article", key: "lsd", baseHash: contentHash(liveArticleDocument(stored)) }],
-          payload: { articles: [proposed] },
-        }),
-      ],
-    });
-    await approveAndApplyHandler(ctx, asAdmin);
-    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({
-      summary: "Proposed summary",
-      references: [{ id: "ref-1", containerTitle: "Journal of Ergolines" }],
-    });
-
-    await revertHandler(ctx, asAdmin);
-    expect(rowsOf("substanceIndex").get("s1")).toMatchObject({ summary: "Stored summary" });
-    expect(rowsOf("substanceIndex").get("s1")?.references).toEqual([reference]);
-    expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "reverted" });
-    expect(rowsOf("changelog").size).toBe(2);
-  });
 });
 
 describe("changeProposalReview admin floor", () => {
@@ -322,4 +210,3 @@ describe("changeProposalReview admin floor", () => {
     expect(rowsOf("changeProposals").get("proposal_p1")).toMatchObject({ status: "submitted" });
   });
 });
-

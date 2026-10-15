@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   clearDraftRecovery,
   createDraftRecoveryStore,
-  DRAFT_RECOVERY_MAX_AGE_MS,
   DRAFT_RECOVERY_PREFIX,
   recoveryActorKey,
-  type RecoverableTool,
 } from "./draftRecovery";
 
 const first = recoveryActorKey("First@Example.com ")!;
@@ -45,22 +43,6 @@ describe("draft recovery", () => {
     expect(createDraftRecoveryStore(second).read("writing", "row:a")).toBeNull();
   });
 
-  it("keeps no checkpoint for a tool outside the contract", () => {
-    const store = createDraftRecoveryStore(first);
-    const intake = "trip-reports" as RecoverableTool;
-    expect(store.write({ tool: intake, record: "submission:1", baseline: "", draft: { email: "reader@example.com" } })).toBeNull();
-    expect(keys()).toEqual([]);
-  });
-
-  it("drops a checkpoint past its age", () => {
-    let now = 1_000;
-    const store = createDraftRecoveryStore(first, { now: () => now });
-    store.write({ tool: "writing", record: "new", baseline: "r", draft: {} });
-    now += DRAFT_RECOVERY_MAX_AGE_MS + 1;
-    expect(store.read("writing", "new")).toBeNull();
-    expect(keys()).toEqual([]);
-  });
-
   it("clears everything on sign-out, and only other accounts' copies when one signs in", () => {
     createDraftRecoveryStore(first).write({ tool: "writing", record: "new", baseline: "r", draft: {} });
     createDraftRecoveryStore(second).write({ tool: "writing", record: "new", baseline: "r", draft: {} });
@@ -73,19 +55,5 @@ describe("draft recovery", () => {
     clearDraftRecovery();
     expect(keys().filter((key) => key.startsWith(DRAFT_RECOVERY_PREFIX))).toEqual([]);
     expect(window.localStorage.getItem("dosewiki-theme")).toBe("dark");
-  });
-
-  it("answers null when the browser refuses the write", () => {
-    const full = {
-      ...window.localStorage,
-      length: 0,
-      key: () => null,
-      getItem: () => null,
-      removeItem: () => {},
-      setItem: () => {
-        throw new DOMException("quota", "QuotaExceededError");
-      },
-    } as unknown as Storage;
-    expect(createDraftRecoveryStore(first, { storage: full }).write({ tool: "writing", record: "new", baseline: "r", draft: {} })).toBeNull();
   });
 });

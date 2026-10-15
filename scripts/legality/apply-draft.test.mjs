@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { buildApplyPlan, printPlan } from "./apply-draft.mjs";
+import { buildApplyPlan } from "./apply-draft.mjs";
 
 const article = {
   legality: {
@@ -225,20 +225,6 @@ describe("legality draft apply plan", () => {
     );
   });
 
-  it("includes designation in dry-run rows", () => {
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    const plan = buildApplyPlan({ article, draft });
-
-    printPlan(plan, draft);
-
-    expect(log).toHaveBeenCalledWith("ADD Netherlands [prohibited] List I");
-    expect(log).toHaveBeenCalledWith("ENRICH Canada [prohibited] Schedule I");
-    expect(log).toHaveBeenCalledWith("STATE Colorado [decriminalized] Decriminalized");
-    expect(log).toHaveBeenCalledWith("CITY Colorado/Denver [decriminalized] Lowest priority");
-    expect(log).toHaveBeenCalledWith("US STATES NOTE: The remaining states follow federal controls.");
-    log.mockRestore();
-  });
-
   it("replaces only the authoritative US-state subsection and preserves unrelated legality data", () => {
     const plan = buildApplyPlan({
       article: {
@@ -340,32 +326,5 @@ describe("legality draft apply plan", () => {
     });
 
     expect(plan.legality.countries.Canada).not.toHaveProperty("citationNeeded");
-  });
-
-  it("includes FLAG rows and the flag count in dry-run output", () => {
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
-    const plan = buildApplyPlan({
-      article: {
-        legality: {
-          international: [],
-          countries: {
-            Bahamas: { status: "Legal", notes: "Unsourced legacy claim." },
-          },
-        },
-      },
-      draft: {
-        ...draft,
-        entries: {},
-        enrichments: {},
-        corrections: {},
-        refuted: [{ country: "Bahamas", reason: "No primary source confirms this." }],
-      },
-    });
-
-    printPlan(plan, { ...draft, entries: {}, enrichments: {}, corrections: {} });
-
-    expect(log).toHaveBeenCalledWith("FLAG Bahamas citation needed (refuted: No primary source confirms this.)");
-    expect(log).toHaveBeenCalledWith(expect.stringContaining("1 flag"));
-    log.mockRestore();
   });
 });

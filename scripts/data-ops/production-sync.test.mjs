@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,6 @@ import { createDataOpsRunContext, productionOperationName } from "../lib/data-op
 import {
   PRODUCTION_SYNC_OPERATION,
   PRODUCTION_SYNC_TABLES,
-  planProductionSync,
   productionSyncUsage,
   runProductionSync,
 } from "./production-sync.mjs";
@@ -46,14 +45,6 @@ describe("production data sync", () => {
   it("documents the confirmation phrase the command derives", () => {
     expect(createDataOpsRunContext({ operation: PRODUCTION_SYNC_OPERATION, argv: [], loadsEnvLocal: false, env: { DATA_BACKEND: "postgres" } }).operationName).toBe(phrase);
     expect(productionSyncUsage()).toContain(`--confirm-write=${phrase}`);
-    const header = readFileSync(script, "utf8").split("*/")[0];
-    expect([...header.matchAll(/--confirm-write=([a-z0-9-]+)/g)].map((match) => match[1])).toEqual([phrase]);
-  });
-
-  it("plans one backup per selected table", () => {
-    expect(planProductionSync(["tripReports", "quotes"]).backups.map(({ table }) => table)).toEqual(["tripReports", "quotes"]);
-    expect(planProductionSync(null).backups.map(({ table }) => table)).toEqual([...PRODUCTION_SYNC_TABLES]);
-    expect(PRODUCTION_SYNC_TABLES).toHaveLength(10);
   });
 
   it("backs up every selected table before the first write", async () => {

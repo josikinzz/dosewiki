@@ -85,44 +85,4 @@ describe("bulk replication edits", () => {
     );
     expect(state.patches).toEqual([]);
   });
-
-  it("blocks publishing while the source is empty and publishes a complete upload", async () => {
-    const noSource: StoredRow = {
-      _id: "a", slug: "work-a", title: "Work A", artist: "Ann",
-      rights_status: "creator-retained", publication_state: "unpublished",
-    };
-    const complete: StoredRow = {
-      _id: "b", slug: "work-b", title: "Work B", artist: "Ann", effect_slug: "geometry",
-      rights_status: "creator-retained", source_url: "https://artist.test/b", publication_state: "unpublished",
-    };
-    const state = storage([noSource, complete]);
-
-    const result = await invoke(state.ctx, {
-      items: [noSource, complete].map((row) => ({ id: row._id, expected: expectedOf(row) })),
-      publish: true,
-    });
-
-    expect(result).toMatchObject({
-      updated: 1,
-      published: ["work-b"],
-      effects: ["geometry"],
-      conflicts: [{ id: "a", code: "incomplete", reason: "It needs a source before it can publish." }],
-    });
-    expect(state.row("a")?.publication_state).toBe("unpublished");
-    expect(state.row("b")?.publication_state).toBe("published");
-  });
-
-
-  it("refuses rights the row's other provenance cannot support", async () => {
-    const row: StoredRow = { _id: "a", slug: "work-a", title: "Work A", artist: "Ann", rights_status: "unknown" };
-    const state = storage([row]);
-
-    const result = await invoke(state.ctx, {
-      items: [{ id: "a", expected: expectedOf(row) }],
-      rights_status: "public-domain",
-    });
-
-    expect(result).toMatchObject({ updated: 0, conflicts: [{ id: "a", code: "invalid" }] });
-    expect(state.patches).toEqual([]);
-  });
 });

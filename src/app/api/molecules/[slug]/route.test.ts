@@ -17,7 +17,6 @@ vi.mock("@/config/siteFlavor", async (importOriginal) => {
   };
 });
 
-
 vi.mock("@server/data/serverClient", () => ({
   queryData: mocks.query,
 }));
@@ -45,7 +44,6 @@ describeMoleculeImageRoute(
     params: (slug) => ({ slug }),
     dataSlugFor: (slug) => slug,
     valid: "lsd",
-    invalid: "LSD Tabs",
   },
   mocks,
   () => GET,

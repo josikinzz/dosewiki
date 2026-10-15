@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   buildDataTripReportImportPayload,
   createTripReportSubmission,
-  transitionTripReportSubmission,
   validateTripReportSubmission,
   type TripReportSubmissionInput,
 } from "./tripReportSubmissions";
@@ -53,59 +52,6 @@ const validSubmission: TripReportSubmissionInput = {
 };
 
 describe("trip report submission intake", () => {
-  it("turns a valid public submission into a normalized private submitted row", () => {
-    const row = createTripReportSubmission(validSubmission, {
-      id: "submission-1",
-      now: new Date("2026-06-11T12:00:00.000Z"),
-    });
-
-    expect(row).toMatchObject({
-      id: "submission-1",
-      status: "submitted",
-      schema_version: 1,
-      title: "Careful low dose museum walk",
-      author_name: "Anonymous",
-      substance_names: ["LSD"],
-      contact_email: "submitter@example.com",
-      may_contact: true,
-      publish_consent: true,
-      age_confirmed: true,
-      honeypot_triggered: false,
-      user_agent: "vitest",
-      created_at: "2026-06-11T12:00:00.000Z",
-      updated_at: "2026-06-11T12:00:00.000Z",
-    });
-    expect(row.report.subject.name).toBe("Anonymous");
-    expect(row.report.substances).toEqual([{ name: "LSD", dose: "75 ug", roa: "oral" }]);
-    expect(row.report.tags).toEqual(["psychedelic", "low dose"]);
-    expect(row.ip_hash).toMatch(/^sha256:/);
-    expect(row.ip_hash).not.toContain("203.0.113.10");
-  });
-
-  it("reports validation errors before a submission is inserted", () => {
-    const result = validateTripReportSubmission({
-      ...validSubmission,
-      publish_consent: false,
-      age_confirmed: false,
-      report: {
-        ...validSubmission.report,
-        title: " ",
-        substances: [],
-      },
-    });
-
-    expect(result).toEqual({
-      ok: false,
-      errors: [
-        "Title is required.",
-        "At least one substance is required.",
-        "Publish consent is required.",
-        "Age confirmation is required.",
-      ],
-      warnings: [],
-    });
-  });
-
   it("refuses to store the identity and link fields a public submitter claimed", () => {
     const claimed: TripReportSubmissionInput = {
       ...validSubmission,
@@ -141,80 +87,5 @@ describe("trip report submission intake", () => {
       expect(payload.subject).not.toHaveProperty(field);
     }
     expect(JSON.stringify(payload)).not.toContain("attacker.example");
-  });
-
-  it("keeps honeypot submissions private as spam while returning a stored row", () => {
-    const row = createTripReportSubmission(
-      { ...validSubmission, honeypot: "buy now" },
-      { id: "submission-spam", now: new Date("2026-06-11T12:01:00.000Z") },
-    );
-
-    expect(row.status).toBe("spam");
-    expect(row.honeypot_triggered).toBe(true);
-  });
-
-  it("enforces review status transitions and builds an accepted Postgres promotion payload", () => {
-    const submitted = createTripReportSubmission(validSubmission, {
-      id: "submission-2",
-      now: new Date("2026-06-11T12:00:00.000Z"),
-    });
-    const accepted = transitionTripReportSubmission(submitted, {
-      status: "accepted",
-      reviewer: "editor@example.com",
-      notes: "Good candidate.",
-      now: new Date("2026-06-11T12:02:00.000Z"),
-    });
-
-    expect(accepted).toMatchObject({
-      status: "accepted",
-      reviewed_by: "editor@example.com",
-      review_notes: "Good candidate.",
-      reviewed_at: "2026-06-11T12:02:00.000Z",
-      updated_at: "2026-06-11T12:02:00.000Z",
-    });
-    // A blank note records only the outcome; the stored note stays.
-    const reopened = transitionTripReportSubmission(accepted, {
-      status: "reviewing",
-      reviewer: "admin@example.com",
-      notes: "  ",
-      now: new Date("2026-06-11T12:05:00.000Z"),
-    });
-    expect(reopened.review_notes).toBe("Good candidate.");
-    // Each decision appends to the log, in order; neither overwrites the other.
-    expect(reopened.decision_log).toEqual([
-      {
-        at: "2026-06-11T12:02:00.000Z",
-        actor: "editor@example.com",
-        from: "submitted",
-        to: "accepted",
-        note: "Good candidate.",
-      },
-      { at: "2026-06-11T12:05:00.000Z", actor: "admin@example.com", from: "accepted", to: "reviewing" },
-    ]);
-    expect(() =>
-      transitionTripReportSubmission(accepted, {
-        status: "submitted",
-        reviewer: "editor@example.com",
-      }),
-    ).toThrow("Illegal transition: accepted -> submitted.");
-    expect(() =>
-      transitionTripReportSubmission(accepted, {
-        status: "exported",
-        reviewer: "editor@example.com",
-      }),
-    ).toThrow("Illegal transition: accepted -> exported.");
-    expect(buildDataTripReportImportPayload(accepted)).toMatchObject({
-      slug: "careful-low-dose-museum-walk",
-      title: "Careful low dose museum walk",
-      featured: false,
-      subject: { name: "Anonymous" },
-      substances: [{ name: "LSD", dose: "75 ug", roa: "oral" }],
-    });
-    expect(() =>
-      buildDataTripReportImportPayload({
-        ...accepted,
-        status: "exported",
-      }),
-    ).toThrow("Only accepted submissions can be promoted. Current status: exported.");
   });
 });

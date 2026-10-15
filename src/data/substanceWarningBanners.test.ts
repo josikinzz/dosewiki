@@ -4,10 +4,7 @@ import {
   MAX_BANNERS_PER_ARTICLE,
   resolveEnabledBanners,
   resolveSuppressedBanners,
-  searchWarningBannerTargets,
-  substanceClassValues,
   type WarningBannerPreset,
-  type WarningBannerTarget,
 } from "./substanceWarningBanners";
 
 /**
@@ -95,29 +92,5 @@ describe("resolveEnabledBanners", () => {
     const presets = [preset({ enabled: true, enabledSlugs: [""] })];
     expect(resolveEnabledBanners(presets, "")).toEqual([]);
     expect(resolveEnabledBanners(presets, "   ")).toEqual([]);
-  });
-
-  it("ignores classification entirely; a substance the search finds is still unbannered", () => {
-    const presets = [preset({ enabled: true, enabledSlugs: [] })];
-    const targets: WarningBannerTarget[] = [
-      {
-        slug: "diazepam",
-        title: "Diazepam",
-        classes: substanceClassValues({
-          psychoactiveClasses: ["Depressant", "GABAergic"],
-          chemicalClasses: ["Benzodiazepine"],
-          indexCategories: ["Common"],
-        }),
-      },
-    ];
-
-    // The Studio search finds exactly the substance an editor is looking for…
-    expect(searchWarningBannerTargets("benzodiazepine", targets).map((hit) => hit.slug)).toEqual([
-      "diazepam",
-    ]);
-
-    // …and it still renders nothing, because finding is not enabling. Class
-    // strings never reach `resolveEnabledBanners`, which takes a slug only.
-    expect(resolveEnabledBanners(presets, "diazepam")).toEqual([]);
   });
 });

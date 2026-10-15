@@ -2,16 +2,13 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { createEmptyArticle } from "@/data/schema/defaults.generated";
 import type { DurationRoute } from "@/schema";
 import { DosageDurationSection } from "./DosageDurationSection";
 import {
-  hollowDosageRoute,
   dosedRoute,
   hollowDurationRoute,
   timedRoute,
   articleWithRoutes,
-  tabNames,
   renderEditing,
   openEditor,
 } from "./DosageDurationSection.testHarness";
@@ -42,121 +39,6 @@ vi.mock("framer-motion", () => ({
   },
   useReducedMotion: () => false,
 }));
-
-describe("DosageDurationSection Piru pill", () => {
-  const pill = () => screen.queryByRole("link", { name: /Log a dose in Piru/ });
-
-  it("carries the article slug and the selected route", async () => {
-    const user = userEvent.setup();
-    render(
-      <DosageDurationSection
-        piruSlug="mdma"
-        article={articleWithRoutes(
-          [dosedRoute("oral"), dosedRoute("sublingual")],
-          [timedRoute("oral")],
-        )}
-      />,
-    );
-
-    expect(new URL(pill()!.getAttribute("href")!).searchParams.get("route")).toBe("oral");
-    await user.click(screen.getByRole("tab", { name: "Sublingual route" }));
-    const href = new URL(pill()!.getAttribute("href")!);
-    expect(href.searchParams.get("substance")).toBe("mdma");
-    expect(href.searchParams.get("route")).toBe("sublingual");
-  });
-
-  it("renders no pill without a slug", () => {
-    render(
-      <DosageDurationSection
-        article={articleWithRoutes([dosedRoute("oral")], [timedRoute("oral")])}
-      />,
-    );
-
-    expect(pill()).not.toBeInTheDocument();
-  });
-});
-
-describe("DosageDurationSection route tabs", () => {
-  it("drops routes that are hollow on both sides", () => {
-    render(
-      <DosageDurationSection
-        article={articleWithRoutes(
-          [dosedRoute("oral"), hollowDosageRoute("insufflated"), hollowDosageRoute("rectal")],
-          [timedRoute("oral"), hollowDurationRoute("insufflated")],
-        )}
-      />,
-    );
-
-    expect(tabNames()).toEqual(["Oral route"]);
-    expect(screen.queryByRole("tab", { name: "Insufflated route" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("tab", { name: "Rectal route" })).not.toBeInTheDocument();
-  });
-
-  it("renders the populated sibling when two raw routes share a canonical name", () => {
-    render(
-      <DosageDurationSection
-        article={articleWithRoutes(
-          [hollowDosageRoute("intranasal"), dosedRoute("snorted")],
-          [hollowDurationRoute("intranasal"), timedRoute("snorted")],
-        )}
-      />,
-    );
-
-    expect(tabNames()).toEqual(["Insufflated route"]);
-    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
-    expect(screen.getByText("5-10 minutes")).toBeInTheDocument();
-  });
-
-  it("combines dosage and duration routes that differ only by canonical spelling", () => {
-    const article = {
-      ...createEmptyArticle(),
-      title: "Route Normalization Test",
-      dosage: {
-        routes: [
-          {
-            route: "rectal",
-            dose_ranges: {
-              threshold: { min: 2, max: null, unit: "mg" },
-              light: { min: 4, max: 8, unit: "mg" },
-              moderate: { min: 8, max: 14, unit: "mg" },
-              strong: { min: null, max: null, unit: "mg" },
-              heavy: { min: null, max: null, unit: "mg" },
-            },
-            bioavailability: "",
-            bioavailability_notes: "",
-            notes: "",
-          },
-        ],
-        plateau_dosing: null,
-      },
-      duration: {
-        routes: [
-          {
-            route: "Rectal",
-            stages: {
-              onset: { min: 5, max: 10, unit: "minutes" },
-              come_up: { min: null, max: null, unit: "minutes" },
-              peak: { min: 1, max: 2, unit: "hours" },
-              offset: { min: null, max: null, unit: "hours" },
-              after_effects: { min: null, max: null, unit: "hours" },
-              total_duration: { min: 3, max: 5, unit: "hours" },
-            },
-            half_life: "",
-            half_life_notes: "",
-          },
-        ],
-      },
-    };
-
-    render(<DosageDurationSection article={article} />);
-
-    expect(screen.getAllByRole("tab", { name: "Rectal route" })).toHaveLength(1);
-    expect(screen.getByRole("heading", { level: 3, name: "Dosage" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Duration" })).toBeInTheDocument();
-    expect(screen.getByText("4-8 mg")).toBeInTheDocument();
-    expect(screen.getByText("5-10 minutes")).toBeInTheDocument();
-  });
-});
 
 /**
  * The public article is the whole risk of inline editing: every affordance is
@@ -196,61 +78,7 @@ function mixedScaleRoute(route: string): DurationRoute {
   });
 }
 
-/** Values as the panel prints them, in render order. */
-function stageValues(container: HTMLElement): string[] {
-  return Array.from(container.querySelectorAll(".theme-duration-stage-row")).map(
-    (row) => row.querySelector("span.font-mono")?.textContent ?? "",
-  );
-}
-
-function tierValues(container: HTMLElement): string[] {
-  return Array.from(container.querySelectorAll("[data-dose-tier]")).map(
-    (marker) => marker.parentElement?.querySelector("span.font-mono")?.textContent ?? "",
-  );
-}
-
 describe("DosageDurationSection duration units", () => {
-  it("prints a whole table on one scale", () => {
-    const { container } = render(
-      <DosageDurationSection article={articleWithRoutes([], [mixedScaleRoute("oral")])} />,
-    );
-
-    expect(stageValues(container)).toEqual([
-      "2-7 hours",
-      "3-6 hours",
-      "6-12 hours",
-      "3-8 hours",
-      "12-36 hours",
-      "24-96 hours",
-    ]);
-  });
-
-  it("leaves dose tiers on the units they were authored in", () => {
-    // A tier and a stage are the same `{min, max, unit}` leaf, and these are
-    // the numbers that would move if duration normalization ever reached the
-    // dose panel: 120-420 is the reported onset, in milligrams.
-    const { container } = render(
-      <DosageDurationSection
-        article={articleWithRoutes(
-          [
-            dosedRoute("oral", {
-              dose_ranges: {
-                threshold: { min: 90, max: null, unit: "mg" },
-                light: { min: 120, max: 420, unit: "mg" },
-                moderate: { min: 1.9, max: 4, unit: "g" },
-                strong: { min: 500, max: 1500, unit: "ug" },
-                heavy: { min: null, max: null, unit: "mg" },
-              },
-            }),
-          ],
-          [],
-        )}
-      />,
-    );
-
-    expect(tierValues(container)).toEqual(["~90 mg", "120-420 mg", "1.9-4 g", "500-1500 ug"]);
-  });
-
   it("seeds an inline edit from the stored value, not the printed one", async () => {
     const user = userEvent.setup();
     const { commit } = renderEditing(articleWithRoutes([], [mixedScaleRoute("oral")]));

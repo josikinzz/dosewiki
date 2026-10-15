@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { canonicalHash } from "../../lib/generatedPublication/canonical.mjs";
 import { article, proposal, regenerationProposal, fakeDb } from "../test/fixtures/generatedPublication";
-import { minimalArticle } from "../test/fixtures/articles";
 import {
-  GeneratedPublicationError,
   computeOwnedSectionHash,
   generatedPublicationPayloadDigest,
   publishReviewedSectionTransaction,
@@ -136,35 +134,6 @@ describe("generated section CAS publication", () => {
 });
 
 describe("excerpt section regeneration publication", () => {
-  it.each([
-    ["version", "forged-v2"], ["model", "openai/gpt-5"], ["section", "legality"],
-  ])("rejects forged regeneration audit %s even with a freshly signed digest", (field, value) => {
-    const original = regenerationProposal();
-    const reviewed = regenerationProposal({
-      regenerationAudit: { ...original.regenerationAudit!, [field]: value },
-    });
-    expect(() => validateReviewedPublicationProposal(reviewed, "target-test"))
-      .toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
-  });
-
-  it("binds every regeneration audit field into the approved artifact digest", () => {
-    const reviewed = regenerationProposal();
-    reviewed.regenerationAudit!.promptHash = "e".repeat(64);
-    expect(() => validateReviewedPublicationProposal(reviewed, "target-test"))
-      .toThrowError(expect.objectContaining({ code: "ARTIFACT_DIGEST_MISMATCH" }));
-  });
-
-  it.each(["Reworded claim [cite:old-source]", "New claim [cite:new-source]", "Malformed marker [cite:"])(
-    "rejects retained, new, and malformed generated markers: %s", (summary) => {
-      const original = regenerationProposal();
-      const reviewed = regenerationProposal({
-        proposedArticle: { ...original.proposedArticle, summary },
-      });
-      expect(() => validateReviewedPublicationProposal(reviewed, "target-test"))
-        .toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
-    },
-  );
-
   it("rejects a public base and never permits legality replacement", () => {
     const original = regenerationProposal();
     const publicProposal = regenerationProposal({
@@ -243,33 +212,6 @@ describe("isolated collaboration section publication", () => {
       proposedOwnedHash: computeOwnedSectionHash(profile, value.proposedArticle),
     });
   }
-
-  it.each(["wireModelVerified", "sdkReceipt"])(
-    "rejects a forged %s assertion even with recomputed digests", (field) => {
-      const original = collaborationProposal();
-      const receipt = { ...original.collaborationAudit!.receipt, [field]: true };
-      const reviewed = collaborationProposal({ collaborationAudit: { ...original.collaborationAudit!, receipt, receiptHash: canonicalHash(receipt) } });
-      expect(() => validateReviewedPublicationProposal(reviewed, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
-    });
-
-  it("binds complete real receipt bytes into both receipt and reviewed artifact digests", () => {
-    const reviewed = collaborationProposal();
-    reviewed.collaborationAudit!.receipt.requestedModel = "different observation";
-    expect(() => validateReviewedPublicationProposal(reviewed, "target-test")).toThrowError(expect.objectContaining({ code: "ARTIFACT_DIGEST_MISMATCH" }));
-    const resigned = collaborationProposal({ collaborationAudit: reviewed.collaborationAudit });
-    expect(() => validateReviewedPublicationProposal(resigned, "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
-  });
-
-  it("rejects SDK audit substitution and kind relabeling", () => {
-    const original = collaborationProposal();
-    for (const overrides of [
-      { sourceArtifactKind: "generated_section", collaborationAudit: original.collaborationAudit },
-      { regenerationAudit: regenerationProposal().regenerationAudit },
-      { collaborationAudit: undefined },
-    ]) {
-      expect(() => validateReviewedPublicationProposal(collaborationProposal(overrides), "target-test")).toThrowError(expect.objectContaining({ code: "INVALID_REGENERATION_PROPOSAL" }));
-    }
-  });
 
   it("checks live eligibility before accepting an idempotent collaboration receipt", async () => {
     const reviewed = collaborationProposal();

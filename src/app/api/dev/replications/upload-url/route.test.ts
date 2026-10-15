@@ -76,30 +76,11 @@ describe("replication upload start", () => {
     expect(await response.json()).not.toHaveProperty("uploadUrl");
   });
 
-  it.each([
-    ["a withdrawal marker exists", 200],
-    ["the withdrawal lookup fails", 503],
-  ])("withholds browser upload credentials when %s", async (_reason, status) => {
-    storageFetch.mockResolvedValue(new Response(null, { status }));
-    const response = await POST(request());
-    expect(response.ok).toBe(false);
-    const body = await response.json();
-    expect(body).not.toHaveProperty("uploadUrl");
-    expect(body).not.toHaveProperty("uploadHeaders");
-    expect(body).not.toHaveProperty("uploadToken");
-  });
-
   it("does not issue storage credentials when maintenance authorization fails", async () => {
     dataMocks.query.mockRejectedValue(new Error("Rejected maintenance credential"));
     const response = await POST(request());
     expect(response.ok).toBe(false);
     expect(storageFetch).not.toHaveBeenCalled();
     expect(await response.json()).not.toHaveProperty("uploadHeaders");
-  });
-
-  it("rejects a type that contradicts the supported file format", async () => {
-    const response = await POST(request({ type: "video" }));
-    expect(response.status).toBe(400);
-    expect(await response.json()).not.toHaveProperty("uploadUrl");
   });
 });

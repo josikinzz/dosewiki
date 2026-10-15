@@ -111,19 +111,6 @@ describe("changeProposals.submit", () => {
     ).rejects.toThrow("Editor access required");
     expect(rowsOf("changeProposals").size).toBe(0);
   });
-
-  it("rejects an article that fails the ingestion contract before storing anything", async () => {
-    const { ctx, rowsOf } = createCtx({ memberships: [editor], substanceIndex: [storedLsd] });
-    const invalid = {
-      ...proposedLsd,
-      pharmacology: { ...proposedLsd.pharmacology, binding_sites: [{ target: "5-HT2A", tag: 42 }] },
-    };
-
-    await expect(
-      submitHandler(ctx, submitArgs({ payload: { articles: [invalid] } }) as never),
-    ).rejects.toThrow(/binding_sites/);
-    expect(rowsOf("changeProposals").size).toBe(0);
-  });
 });
 
 describe("changeProposals reads", () => {

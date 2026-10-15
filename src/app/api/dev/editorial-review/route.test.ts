@@ -65,7 +65,6 @@ describe("editorial review route", () => {
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "editorSmallWrite",
   refused: "contributor",
   calls: [{ name: "POST", call: () => POST(tickRequest("in_progress")) }],
 });

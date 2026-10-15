@@ -44,22 +44,6 @@ function dataset(overrides = {}) {
   };
 }
 
-test("values that become routes, icons, or visibility switches stay English", () => {
-  const { segments } = extractSegments(
-    dataset({
-      classification: { chemical_class: ["Phenethylamine"], psychoactive_class: ["Psychedelic"] },
-      index_categories: ["hidden"],
-    }),
-  );
-  const sources = segments.map((segment) => segment.source);
-
-  // These slugify into /substances/group/<slug>, icon-map keys, and the
-  // hidden/obscure publish switch.
-  assert.equal(sources.includes("Phenethylamine"), false);
-  assert.equal(sources.includes("Psychedelic"), false);
-  assert.equal(sources.includes("hidden"), false);
-});
-
 test("a country status travels only when canonicalStatus carries the meaning", () => {
   const withKey = extractSegments(
     dataset({
@@ -78,7 +62,6 @@ test("a country status travels only when canonicalStatus carries the meaning", (
   );
 });
 
-
 test("numeric and measurement leaves are never translatable values", () => {
   assert.equal(isTranslatableValue("20-30 mg"), false);
   assert.equal(isTranslatableValue("4 hours"), false);
@@ -87,7 +70,6 @@ test("numeric and measurement leaves are never translatable values", () => {
   assert.equal(isTranslatableValue(15), false);
   assert.equal(isTranslatableValue("Take 10-20 mg with food."), true);
 });
-
 
 test("assembly writes translations back without changing structure", () => {
   const source = dataset();

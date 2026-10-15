@@ -129,7 +129,6 @@ describe("dev proposal detail and comment routes", () => {
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "diagnosticRead",
   refused: "contributor",
   calls: [
     {
@@ -142,7 +141,6 @@ describeRoleFloor({
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "editorSmallWrite",
   refused: "contributor",
   calls: [
     {

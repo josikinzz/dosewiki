@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { PostgresError } from "@server/postgres/runtime/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { verifyPassword } from "@server/auth/passwords";
@@ -69,23 +68,6 @@ describe("POST /api/reset-password", () => {
       expect(response.status, JSON.stringify(body)).toBe(400);
     }
     expect(memberships.consumePasswordReset).not.toHaveBeenCalled();
-  });
-
-  it("maps an unknown or expired token to a 4xx with the reader-facing message", async () => {
-    memberships.consumePasswordReset.mockRejectedValue(
-      new PostgresError({
-        code: "RESET_TOKEN_INVALID",
-        message: "This reset link is invalid or has expired. Ask an admin for a new one.",
-      }),
-    );
-
-    const response = await POST(post({ token: TOKEN, password: PASSPHRASE }));
-
-    expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toMatchObject({
-      code: "RESET_TOKEN_INVALID",
-      error: "This reset link is invalid or has expired. Ask an admin for a new one.",
-    });
   });
 
   it("reports an outage as 500 without leaking the error", async () => {

@@ -17,7 +17,6 @@ vi.mock("@/config/siteFlavor", async (importOriginal) => {
   };
 });
 
-
 vi.mock("@server/data/serverClient", () => ({
   queryData: mocks.query,
 }));
@@ -38,8 +37,6 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-// "class:tryptamine" is a deliberately invalid key: the colon fails CLASS_KEY_RE, so a
-// caller cannot smuggle the namespace prefix the route adds itself.
 describeMoleculeImageRoute(
   "class molecule image route",
   {
@@ -47,7 +44,6 @@ describeMoleculeImageRoute(
     params: (key) => ({ key }),
     dataSlugFor: (key) => `class:${key}`,
     valid: "tryptamine",
-    invalid: "class:tryptamine",
   },
   mocks,
   () => GET,

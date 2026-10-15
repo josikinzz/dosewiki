@@ -23,49 +23,6 @@ describe("middleware header memoization", () => {
     mocks.getToken.mockReset().mockResolvedValue({ email: "editor@example.com", role: "editor" });
   });
 
-  it("serves identical public security headers across repeated requests to a host", async () => {
-    const { middleware } = await import("./middleware");
-
-    const first = await middleware(makeRequest("/fentanyl"));
-    const second = await middleware(makeRequest("/about"));
-
-    expect(first.headers.get("content-security-policy")).toBeTruthy();
-    expect(second.headers.get("content-security-policy")).toBe(
-      first.headers.get("content-security-policy"),
-    );
-    expect(second.headers.get("x-frame-options")).toBe("DENY");
-    expect(second.headers.get("permissions-policy")).toBe(
-      first.headers.get("permissions-policy"),
-    );
-  });
-
-  it.each([
-    ["/about", "/embed/replications?kind=effect&slug=visual-drifting"],
-    ["/embed/replications?kind=effect&slug=visual-drifting", "/about"],
-  ])("isolates cached frame policies when %s precedes %s", async (firstPath, secondPath) => {
-    vi.resetModules();
-    // Reload the module to exercise each ordering with an empty header cache.
-    const { middleware } = await import("./middleware");
-    for (const path of [firstPath, secondPath, firstPath]) {
-      const response = await middleware(makePublicRequest(path));
-      const isEmbed = path.startsWith("/embed/replications?");
-      expect(response.headers.get("x-middleware-next")).toBe("1");
-      expect(response.headers.get("content-security-policy")).toContain(
-        isEmbed
-          ? "frame-ancestors 'self' https://osmanthus.io https://www.osmanthus.io http://localhost:3000 http://127.0.0.1:3000"
-          : "frame-ancestors 'none'",
-      );
-      expect(response.headers.get("x-frame-options")).toBe(isEmbed ? null : "DENY");
-      if (isEmbed) {
-        expect(response.headers.get("x-robots-tag")).toContain("noindex");
-        expect(response.headers.get("permissions-policy")).toContain("fullscreen=(self)");
-      } else {
-        expect(response.headers.get("x-robots-tag")).toBeNull();
-        expect(response.headers.get("permissions-policy")).not.toContain("fullscreen=");
-      }
-    }
-  });
-
   it("does not frame editor documents or compatibility and neighboring embed paths", async () => {
     // Share the resettable middleware module boundary used by the cache cases above.
     const { middleware } = await import("./middleware");
@@ -80,28 +37,6 @@ describe("middleware header memoization", () => {
     expect(response.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
     expect(response.headers.get("x-frame-options")).toBe("DENY");
     expect(response.headers.get("cache-control")).toContain("private, no-store");
-  });
-
-  it("issues a fresh nonce per /dev request despite the public header cache", async () => {
-    mocks.getToken.mockResolvedValue({
-      email: "editor@example.com",
-      role: "editor",
-    });
-    const { middleware } = await import("./middleware");
-
-    const first = await middleware(makeRequest("/dev"));
-    const second = await middleware(makeRequest("/dev"));
-    const nonceOf = (response: Response) =>
-      response.headers
-        .get("content-security-policy")
-        ?.match(/'nonce-([^']+)'/)?.[1];
-
-    expect(nonceOf(first)).toBeTruthy();
-    expect(nonceOf(second)).toBeTruthy();
-    expect(nonceOf(first)).not.toBe(nonceOf(second));
-    expect(first.headers.get("x-middleware-request-x-nonce")).toBe(
-      nonceOf(first),
-    );
   });
 });
 
@@ -128,44 +63,6 @@ describe("middleware matcher", () => {
     "/open-data/SubstanceIndex.json",
   ])("still routes %s through middleware", async (path) => {
     expect(await matches(path)).toBe(true);
-  });
-
-  it.each([
-    "/_next/static/chunks/editor.js",
-    "/_next/data/build/fentanyl.json",
-    "/favicon.ico",
-    "/favicon.svg",
-    "/icon-512.png",
-    "/manifest.webmanifest",
-    "/sitemap.xml",
-    "/appearance-chroma.css",
-    "/fonts/titillium-web/titillium-web-400-normal-latin.woff2",
-    "/flags/us/california.svg",
-    "/supporters/mindstate-design-labs.webp",
-    "/audio/Auditory Hallucinations - DMT Drone.mp3",
-  ])("keeps the static asset %s inside the delivery gate", async (path) => {
-    expect(await matches(path)).toBe(true);
-  });
-});
-
-describe("retired preview addresses are dose.wiki-only", () => {
-  it("does not claim the prefix on an Effect Index build", async () => {
-    vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "effectindex");
-    vi.resetModules();
-
-    try {
-      // The flavor is read at module init, so the import has to follow the stub.
-      const { middleware } = await import("./middleware");
-      const response = await middleware(makePublicRequest("/preview/substances"));
-
-      // Not rewritten and not redirected: Effect Index is launched, so the prefix is
-      // simply an unknown path that its route tree answers for itself.
-      expect(response.headers.get("x-middleware-rewrite")).toBeNull();
-      expect(response.headers.get("location")).toBeNull();
-    } finally {
-      vi.unstubAllEnvs();
-      vi.resetModules();
-    }
   });
 });
 

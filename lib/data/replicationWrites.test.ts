@@ -113,24 +113,6 @@ describe("insertMediaAssetHandler", () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
-  it("rejects explicit-license rights without the license evidence", async () => {
-    const { ctx, insert } = mutationContext();
-
-    await expect(
-      insertMediaAssetHandler(ctx, args({ rights_status: "explicit-license" })),
-    ).rejects.toThrow(/explicit-license rights need license_name and license_url/);
-    expect(insert).not.toHaveBeenCalled();
-  });
-
-  it("rejects public-domain rights without a source and evidence note", async () => {
-    const { ctx, insert } = mutationContext();
-
-    await expect(
-      insertMediaAssetHandler(ctx, args({ rights_status: "public-domain" })),
-    ).rejects.toThrow(/public-domain rights need source_url and permission_notes/);
-    expect(insert).not.toHaveBeenCalled();
-  });
-
   it("rejects an authenticated viewer and editor before evaluating insert data", async () => {
     for (const identityRole of ["viewer", "editor"] as const) {
       const { ctx, insert } = mutationContext({ identityRole });

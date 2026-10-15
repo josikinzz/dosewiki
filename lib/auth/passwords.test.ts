@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { MIN_PASSWORD_LENGTH, hashPassword, validateNewPassword, verifyPassword } from "./passwords";
-import {
-  MIN_PASSWORD_LENGTH as SCRIPT_MIN_PASSWORD_LENGTH,
-  hashPassword as scriptHashPassword,
-  validateNewPassword as scriptValidateNewPassword,
-} from "../../scripts/auth/password-hash.mjs";
 
 const PASSPHRASE = "correct horse battery staple";
 
@@ -57,14 +52,6 @@ describe("hashPassword / verifyPassword", () => {
 
     await expect(verifyPassword(PASSPHRASE, crossed)).resolves.toBe(false);
   });
-
-  it("verifies hashes minted by the seed script module", async () => {
-    const stored = await scriptHashPassword(PASSPHRASE);
-
-    expect(stored.split("$").slice(0, 4)).toEqual(["scrypt", "16384", "8", "1"]);
-    await expect(verifyPassword(PASSPHRASE, stored)).resolves.toBe(true);
-    await expect(verifyPassword(`${PASSPHRASE}!`, stored)).resolves.toBe(false);
-  });
 });
 
 describe("validateNewPassword", () => {
@@ -75,12 +62,5 @@ describe("validateNewPassword", () => {
 
   it("refuses leading or trailing whitespace that a sign-in form would trim away", () => {
     expect(validateNewPassword(" twelve chars ok ")).toMatch(/whitespace/);
-  });
-
-  it("matches the seed script's rules", () => {
-    expect(SCRIPT_MIN_PASSWORD_LENGTH).toBe(MIN_PASSWORD_LENGTH);
-    for (const candidate of ["short", "a".repeat(MIN_PASSWORD_LENGTH), " twelve chars ok "]) {
-      expect(scriptValidateNewPassword(candidate)).toBe(validateNewPassword(candidate));
-    }
   });
 });

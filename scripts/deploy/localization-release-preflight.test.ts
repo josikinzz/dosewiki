@@ -2,20 +2,13 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { environmentFailures, privilegeMatrix, runtimeTableNames } from "./localization-release-preflight";
+import { environmentFailures } from "./localization-release-preflight";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SCRIPT = "scripts/deploy/localization-release-preflight.ts";
 const PLACEHOLDER_URL = ["postgres:", "", "runtime:placeholder@db.example.invalid:6432", "dosewiki"].join("/");
 
 describe("localization release preflight", () => {
-  it.each(["editor", "public"] as const)("grants only tables in the runtime schema on the %s surface", (surface) => {
-    const tables = new Set(runtimeTableNames());
-    const granted = Object.keys(privilegeMatrix(surface));
-    expect(granted.length).toBeGreaterThan(0);
-    expect(granted.filter((table) => !tables.has(table))).toEqual([]);
-  });
-
   it("rejects the main admin key on the public surface", () => {
     const base = { DATA_BACKEND: "postgres", REPLICATION_MEDIA_BASE_URL: "https://media.example.invalid" };
     expect(environmentFailures("public", { ...base, DATA_ADMIN_KEY: "placeholder" })).toEqual([

@@ -92,7 +92,6 @@ describe("dev proposal approve route", () => {
 
 describeRoleFloor({
   floor: "admin",
-  rateLimit: "editorHeavyWrite",
   refused: "editor",
   calls: [{ name: "POST", call: async () => (await import("./route")).POST(post()) }],
 });

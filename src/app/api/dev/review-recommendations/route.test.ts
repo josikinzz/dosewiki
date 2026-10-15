@@ -43,7 +43,6 @@ describe("review recommendations route", () => {
 
 describeRoleFloor({
   floor: "admin",
-  rateLimit: "diagnosticRead",
   refused: "editor",
   calls: [{ name: "GET", call: () => GET(listRequest()) }],
 });

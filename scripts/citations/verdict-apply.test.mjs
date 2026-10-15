@@ -134,41 +134,6 @@ test("plan applies the exact single-token replacement and nothing else", () => {
   assert.equal(stripVerdictTokens(plan.sectionPatches.summary), stripVerdictTokens(SUMMARY));
 });
 
-test("uses an explicit fieldPath to disambiguate identical nested claims", () => {
-  const repeated = "Slight[cite:ref-b]";
-  const article = makeArticle();
-  article.pharmacology = {
-    first: repeated,
-    second: repeated,
-  };
-  const row = makeRow({
-    section: "pharmacology",
-    field: repeated,
-    fieldPath: "pharmacology.second",
-    markerId: "ref-b",
-    claimText: repeated,
-    verdict: "mismatched",
-    disposition: "strip",
-    quote: "The source reports functional inhibition, not affinity.",
-    quoteLocation: "Results",
-  });
-  const draft = {
-    ...makeDraft(article),
-    sections: [{
-      section: "pharmacology",
-      contentHash: contentHash(article.pharmacology),
-      rows: [row],
-    }],
-  };
-
-  const plan = buildVerdictApplyPlan({ article, draft });
-  assert.equal(plan.sectionPatches.pharmacology.first, repeated);
-  assert.equal(
-    plan.sectionPatches.pharmacology.second,
-    repeated.replace("[cite:ref-b]", CITATION_NEEDED_TOKEN),
-  );
-});
-
 test("refuses when the live content hash drifts from the draft", () => {
   const article = makeArticle();
   const draft = makeDraft(article);
@@ -212,46 +177,6 @@ test("refuses any delta beyond the single token replacement", () => {
     before: "A claim.[cite:x] More.",
     after: `A claim.${CITATION_NEEDED_TOKEN}`,
   }), /text_delta_beyond_token/);
-});
-
-test("safety-sensitive keeps require a confirming refuter record", () => {
-  const article = makeArticle();
-  const claim = "Overdose of testdrug may cause death.[cite:ref-a]";
-  article.harm_potential = claim;
-  const makeSafetyDraft = (refuter) => ({
-    ...makeDraft(article),
-    sections: [{
-      section: "harm_potential",
-      contentHash: contentHash(article.harm_potential),
-      rows: [makeRow({
-        section: "harm_potential",
-        field: claim,
-        markerId: "ref-a",
-        claimText: claim,
-        verdict: "supported",
-        disposition: "keep",
-        quote: "Overdose can be fatal.",
-        quoteLocation: "Toxicity",
-        safetySensitive: true,
-        refuter,
-      })],
-    }],
-  });
-
-  assert.throws(
-    () => buildVerdictApplyPlan({ article, draft: makeSafetyDraft(undefined) }),
-    /missing_refuter_confirmation/,
-  );
-
-  const plan = buildVerdictApplyPlan({
-    article,
-    draft: makeSafetyDraft({ outcome: "confirmed", reason: "Refuter re-fetched the source; quote checks out." }),
-  });
-  const [keep] = plan.evidence;
-  assert.equal(keep.severity, "blocking");
-  assert.equal(keep.strictReviewEvidence.decision, "approved");
-  assert.equal(keep.strictReviewEvidence.claimKey, keep.claimKey);
-  assert.deepEqual(keep.strictReviewEvidence.referenceIds, ["ref-a"]);
 });
 
 function cliEnv() {

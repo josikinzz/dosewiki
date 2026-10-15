@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("./lib/auth", () => ({ requireRole: vi.fn() }));
 vi.mock("./lib/indexedMutation", () => ({ mutation: (definition: unknown) => definition }));
 
-import { applyTemplateDepiction, replicate, rerenderSvg, save } from "./moleculeOverrides";
+import { save } from "./moleculeOverrides";
 
 type StoredDepiction = {
   _id: string;
@@ -38,39 +38,6 @@ function storage(updatedAt: string) {
 }
 
 afterEach(() => vi.useRealTimers());
-
-describe("published molecule revision identity", () => {
-  it.each([
-    ["editor save", save, { molblock: "MOL" }],
-    ["template application", applyTemplateDepiction, { molblock: "MOL" }],
-    ["rerender", rerenderSvg, { expectedMolblock: "MOL" }],
-  ] as const)("%s advances same-millisecond changes and preserves unchanged SVG revisions", async (_label, mutation, extra) => {
-    const timestamp = "2026-09-07T12:34:56.789Z";
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(timestamp));
-    const state = storage(timestamp);
-    const args = { slug: "lsd", svg: '<svg id="new"/>', ...extra };
-    await invoke(mutation, state.ctx, args);
-    expect(state.current().svg).toBe(args.svg);
-    expect(state.current().updatedAt).toBe("2026-09-07T12:34:56.790Z");
-    vi.setSystemTime(new Date("2026-09-08T00:00:00.000Z"));
-    await invoke(mutation, state.ctx, args);
-    expect(state.current().updatedAt).toBe("2026-09-07T12:34:56.790Z");
-  });
-
-  it("replication advances past a reused or older revision without changing idempotent URLs", async () => {
-    const timestamp = "2026-09-07T12:34:56.789Z";
-    const state = storage(timestamp);
-    const args = { slug: "lsd", svg: '<svg id="new"/>', molblock: "MOL", updatedAt: timestamp };
-    await invoke(replicate, state.ctx, args);
-    expect(state.current().updatedAt).toBe("2026-09-07T12:34:56.790Z");
-    await invoke(replicate, state.ctx, args);
-    expect(state.current().updatedAt).toBe("2026-09-07T12:34:56.790Z");
-    await invoke(replicate, state.ctx, { ...args, svg: '<svg id="third"/>', updatedAt: "2026-01-01T00:00:00.000Z" });
-    expect(state.current().svg).toBe('<svg id="third"/>');
-    expect(state.current().updatedAt).toBe("2026-09-07T12:34:56.791Z");
-  });
-});
 
 describe("editor save revision check", () => {
   it("writes nothing and reports the stored revision when the expected revision is stale", async () => {

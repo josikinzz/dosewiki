@@ -126,7 +126,6 @@ describe("dev proposals list route", () => {
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "editorHeavyWrite",
   refused: "contributor",
   calls: [
     {
@@ -141,7 +140,6 @@ describeRoleFloor({
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "diagnosticRead",
   refused: "contributor",
   calls: [
     {

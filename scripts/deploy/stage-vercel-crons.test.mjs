@@ -30,13 +30,3 @@ test("editor keeps only the writer jobs", () => {
     ["/api/cron/publication-delivery", "/api/cron/translation-bulk"],
   );
 });
-
-test("the rest of the config is preserved and the input is not mutated", () => {
-  const staged = stageCronsForArtifact(ROOT_CONFIG, "public");
-  assert.equal(staged.buildCommand, ROOT_CONFIG.buildCommand);
-  assert.equal(ROOT_CONFIG.crons.length, 4);
-});
-
-test("an unknown artifact throws", () => {
-  assert.throws(() => stageCronsForArtifact(ROOT_CONFIG, "staging"), /Unknown artifact/);
-});

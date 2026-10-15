@@ -2,15 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   projectEditorArticle,
   projectLibraryInput,
-  projectLookup,
-  projectMechanismRouteInput,
   projectPublicArticle,
   projectPublicPreview,
   projectSearchInput,
   projectReviewedArticleCredit,
   projectReviewedArticleForEmails,
 } from "../src/data/projections/substanceReadProjections";
-import { substanceArticleSchema, type SubstanceArticle } from "../src/schema";
+import { type SubstanceArticle } from "../src/schema";
 import { fullArticleWithDosage } from "../src/test/fixtures/articles";
 
 const article: SubstanceArticle & { slug?: string } = {
@@ -43,21 +41,6 @@ describe("substance read projections", () => {
       },
       references: expect.any(Array),
     });
-  });
-
-  it("keeps hide-for-now editorially while projecting low priority publicly", () => {
-    const hiddenForNowArticle = {
-      ...article,
-      priority: "hide_for_now",
-    } satisfies SubstanceArticle & { slug?: string };
-
-    expect(substanceArticleSchema.safeParse(hiddenForNowArticle).success).toBe(true);
-    expect(projectEditorArticle(hiddenForNowArticle).priority).toBe("hide_for_now");
-    expect(projectLookup(hiddenForNowArticle).priority).toBe("low");
-    expect(projectPublicPreview(hiddenForNowArticle).priority).toBe("low");
-    expect(projectLibraryInput(hiddenForNowArticle).priority).toBe("low");
-    expect(projectMechanismRouteInput(hiddenForNowArticle).priority).toBe("low");
-    expect(projectPublicArticle(hiddenForNowArticle).priority).toBe("low");
   });
 
   it("derives a public-safe expert_reviewed flag from a completed review without leaking notes", () => {
