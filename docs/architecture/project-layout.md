@@ -19,7 +19,7 @@ server/         Authored Postgres callable handlers, document schema, and domain
 scripts/        Local operational scripts for migration, generation, parsing, and audits
 scripts/config/ Secondary tsconfig and Vitest configs for scripts and route handlers
 scripts/tools/  RDKit asset copier and the Pi citation workflow bridge
-scripts/perf/   Cold-load, bundle-size, and replication transport harnesses
+scripts/perf/   Cold-load and bundle-size harnesses
 scripts/eslint-plugins/  Local ESLint plugin loaded by eslint.config.mjs
 scripts/deploy/ Vercel build, route warming, and the analytics redirect project config
 data/           Tracked datasets, third-party inputs, and the generated-data lineage manifest

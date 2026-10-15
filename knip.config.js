@@ -31,7 +31,8 @@ const allowlistedScripts = [
   "scripts/tools/pi-citation-workflow/pi-run-manifest.mjs",
   "scripts/tools/pi-citation-workflow/prepare-local-proposal-run.mjs",
   "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs", // content/README.md
-  "scripts/perf/*.mjs", // manual performance probes
+  "scripts/perf/bundle-size.mjs",
+  "scripts/perf/measure.mjs",
   "scripts/legality/inventory-coverage.mjs", // read-only legality campaign inventory, run by hand
   "scripts/build/generate{Substance,Page,Entity}SocialCards.ts", // spawned by generateSocialCards.mjs
   "scripts/data-ops/data-import-substance-index.mjs", // lineage consumer of the substance index export
