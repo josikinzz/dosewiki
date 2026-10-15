@@ -360,7 +360,7 @@ existing row, including an existing draft, is preserved.
 
 ```bash
 DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 \
-  npm run translate:glossary:import-drafts -- \
+  bun run translate:glossary:import-drafts -- \
   --locales <approved-comma-separated-locales> \
   --dry-run --allow-remote
 ```
@@ -408,7 +408,7 @@ workflow; remote reads and provider/model calls retain their own authorization.
   protection on `all_except_custom_domains` every cron on the project silently
   never ran (2026-01 to 2026-09-11).
 - Production builds must run with `DATA_BACKEND=postgres`, or the prerendered
-  mirror pages ship with English titles; a local `npm run build` needs it
+  mirror pages ship with English titles; a local `bun run build` needs it
   too before a mirror smoke.
 - The mirror calls the shared `getStaticSubstanceParams` loader in
   `lib/next/staticParams.ts` with its locale, and `lib/next/prerenderPolicy.ts`

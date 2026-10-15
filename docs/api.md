@@ -853,7 +853,7 @@ Do not call similarly named `/api/dev/*`, `/api/reagent-proxy`, `/api/molecules/
 
 ## Source-of-truth pointers for maintainers
 
-When the API changes, update this document alongside the implementation:
+The implementation lives in these files:
 
 - public API projection, envelopes, CORS, caching, and cursor rules: `lib/public-api/v1.ts`;
 - canonical substance media adapter and revision-bound cursor rules: `lib/public-api/substanceReplications.ts`;
