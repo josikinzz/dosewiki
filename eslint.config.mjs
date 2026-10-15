@@ -4,6 +4,8 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
+import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.js';
+import { codeCommentFiles, commentExclusions, generatedCommentPaths } from './scripts/lib/comment-scope.mjs';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';
 
@@ -18,7 +20,8 @@ const pureFreezeImports = [
   },
 ];
 
-export default tseslint.config(
+const commentOnlyFiles = ['*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}', 'scripts/eslint-plugins/**', 'tools/**'];
+const existingConfig = tseslint.config(
   {
     ignores: [
       'dist/**',
@@ -26,10 +29,7 @@ export default tseslint.config(
       'coverage/**',
       'public/**',
       'node_modules/**',
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.ts',
-      'scripts/eslint-plugins/**',
+      'vendor/**',
     ],
   },
   js.configs.recommended,
@@ -38,6 +38,7 @@ export default tseslint.config(
       // Keep ESLint 10 from expanding this upgrade into unrelated existing-code cleanup.
       'no-useless-assignment': 'off',
       'preserve-caught-error': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
   ...tseslint.configs.recommended,
@@ -240,3 +241,16 @@ export default tseslint.config(
     },
   },
 );
+
+export default [
+  ...existingConfig.map((config) => config.ignores && Object.keys(config).length === 1
+    ? config
+    : { ...config, ignores: [...(config.ignores ?? []), ...commentOnlyFiles] }),
+  {
+    files: codeCommentFiles,
+    ignores: [...commentExclusions, ...generatedCommentPaths(import.meta.dirname)],
+    languageOptions: { parser: tseslint.parser, parserOptions: { ecmaFeatures: { jsx: true } } },
+    plugins: { 'code-hygiene': codeHygiene },
+    rules: { 'code-hygiene/no-comments': 'off' },
+  },
+];

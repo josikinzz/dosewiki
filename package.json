@@ -163,7 +163,7 @@
     "typecheck:scripts": "tsc --noEmit -p scripts/config/tsconfig.scripts.json",
     "typecheck:handlers": "tsc --noEmit -p scripts/config/tsconfig.handlers.json",
     "lint": "eslint src/ lib/ && node scripts/lint/check-em-dashes.mjs",
-    "lint:all": "eslint src lib server scripts && node scripts/lint/check-em-dashes.mjs",
+    "lint:all": "eslint . && node scripts/lint/check-css-comments.mjs --warn && node scripts/lint/check-em-dashes.mjs",
     "prepare": "husky || true",
     "security:check": "./.husky/check-secrets.sh",
     "verify": "bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint:all && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run postgres:verify-migrations && bun run postgres:check-schema"
