@@ -13,8 +13,7 @@ contract stable.
   as `--font-family-display`; `tailwind.config.mjs` maps `font-display` to that
   token.
 
-Read those files for the current family, weights, and formats. Do not maintain a
-second font inventory in this guide.
+Those files hold the current family, weights, and formats.
 
 ## Change a face
 
@@ -22,19 +21,17 @@ second font inventory in this guide.
    assets under `public/fonts/` and update the literal `next/font/local` entries.
    For a Google face, update the literal `next/font/google` configuration.
 2. Keep the module export named `siteFont` and its CSS variable named
-   `--font-display`. The selector and downstream token chain should not change
-   for a routine swap.
-3. Include every weight and style the UI actually uses. Remove an old asset only
-   after no active font module references it.
-4. Search `font-display` call sites only when the design scope changes. A face
-   swap alone should not expand display typography into body copy or dense data.
+   `--font-display`, because `src/app/layout.tsx` and `src/styles/base.css`
+   read those names.
+3. Include every weight and style the UI uses. Remove an old asset once no
+   font module references it.
 
 ## Verify
 
-1. Run `npm run dev` with the target `NEXT_PUBLIC_SITE_FLAVOR`.
+1. Run `bun run dev` with the target `NEXT_PUBLIC_SITE_FLAVOR`.
 2. Open `/dev/kit` and a public article. Confirm the wordmark and top-level
    headings use the new face, body copy keeps the sans stack, and no font request
    fails in the browser network panel.
 3. Switch between dark and light themes and check narrow and wide viewports for
    clipping, fallback flashes, and changed line wrapping.
-4. Run `npm run build` to catch font loading errors.
+4. Run `bun run build` to catch font loading errors.

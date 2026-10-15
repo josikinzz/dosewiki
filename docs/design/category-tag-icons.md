@@ -17,16 +17,14 @@ inventory:
 2. Update `CATEGORY_ICON_MAP` when a normalized symbolic key and its singular or
    plural aliases should resolve consistently across builders and article
    surfaces.
-3. Keep `DEFAULT_CATEGORY_ICON` for unknown keys so a taxonomy addition cannot
-   remove the visual affordance.
-4. Render the resolved name through the shared `Icon` or `IconBadge` component;
-   do not import an icon package directly for a category tag.
+3. Render the resolved name through the shared `Icon` or `IconBadge` component.
+   Unknown keys resolve to `DEFAULT_CATEGORY_ICON`.
 
 ## Verify
 
-1. Run `npm run dev`, then open `/substances`, a substance article with the
+1. Run `bun run dev`, then open `/substances`, a substance article with the
    affected category, and the protected `/dev/index-layout` editor.
 2. Confirm the icon renders at tag and card sizes, has an accessible label where
    the icon carries meaning, and remains legible in dark and light themes.
-4. Test an unknown symbolic key and confirm it still resolves to
+3. Test an unknown symbolic key and confirm it still resolves to
    `DEFAULT_CATEGORY_ICON`.

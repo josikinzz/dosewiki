@@ -30,7 +30,7 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   single lasso-selected bond still applies immediately without entering pick mode. Pick-mode
   hit-testing needs no view transform because the editor molecule's atom coordinates live in
   the drawing canvas's device-pixel space: the same space the fork's pointer glue feeds to
-  `Molecule.findBond` (see `lib/canvas_editor/events.js`); the overlay maps pointer positions
+  `Molecule.findBond` (see `vendor/openchemlib/lib/canvas_editor/events.js`); the overlay maps pointer positions
   with the drawing canvas's client rect (inside the open shadow root) and `devicePixelRatio`.
   **Straighten** removes a uniform tilt by rotating by the circular mean of every bond's
   deviation from the 30° drawing grid. Rigid rotation cannot invert a stereocentre, so
@@ -96,10 +96,10 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   article and chemical-class comparison panels serve the stored SVG through a URL versioned by
   `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
   revalidation propagation delay can remain. A save does not rewrite the committed
-  download pack immediately: run `npm run molecules:pack` to update it locally, or
+  download pack immediately: run `bun run molecules:pack` to update it locally, or
   let `.github/workflows/molecule-pack-nightly.yml` rebuild and commit changed pack
   files. The updated downloads become public when that commit is deployed.
-  `npm run molecules:rerender` regenerates every stored SVG from its stored
+  `bun run molecules:rerender` regenerates every stored SVG from its stored
   MOL block (svg-only, provenance-preserving, race-guarded): used once for the
   RDKit→OpenChemLib engine switch and available for any future renderer change.
 

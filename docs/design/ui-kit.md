@@ -1,295 +1,99 @@
-# UI Kit
+# UI kit
 
-The dose.wiki UI Kit is the catalog and how-to authority for shared UI building
-blocks. **Before building UI, browse the kit and reuse an existing component.
-Do not hand-roll a button, badge, card, input, dialog, or surface that already
-exists.**
+The UI kit is the set of shared components in `src/components/` and the editor kit in `src/features/dev/components/`. `/dev/kit` renders every shared export with its real variants, an import line, and usage notes. When this page and a rendered component disagree, the component source is right. Color, type, corner, height, and motion values live in the [visual style guide](visual-style-guide.md).
 
-The second half of this document ([Ownership](#ownership)) is the authority for
-shared UI extraction: ownership boundaries, promotion criteria, variant
-vocabulary, and dependency policy. For brand and visual language, read the
-[visual style guide](visual-style-guide.md).
+## Browse the catalog
 
-## Browse it live: `/dev/kit`
+Run `bun run dev` and open `/dev/kit`. The route is auth-gated like the rest of `/dev`.
 
-The catalog renders each shared primitive with its real variants and properties.
-It also provides an import line and use guidance.
+The appearance cog has four independent controls: color scheme, visual style, surfaces, and accent. The catalog covers color scheme and visual style. Readers see the styles as **Vivid** and **Clinical**. Code and stylesheets call them `fun` and `pro`, carried as `data-visual-style`. The color scheme axis is `ColorScheme` in code and `data-theme` in the DOM.
 
-The appearance cog contains four independent controls: color scheme, visual style,
-surfaces, and accent. The catalog covers color scheme and visual style.
+## Tiers
 
-Two vocabularies name the same axes. Readers see **Vivid** and **Clinical** in
-the cog's Style picker; code and stylesheets call them `fun` and `pro`
-(`data-visual-style`). Readers see dark and light; code calls the axis
-`ColorScheme` and carries it as `data-theme`. The identifiers never change;
-only the labels are reader-facing.
+Each tier has its own barrel.
 
-- Route: **`/dev/kit`** (auth-gated under `/dev`, like the rest of the editor surface).
-- Run `npm run dev` and open `/dev/kit`. The catalog demonstrates the current
-  component behavior; when prose and a rendered component disagree, inspect the
-  component source and correct the catalog or guide.
-
-## Where the kit lives
-
-Four tiers, each with its own barrel and ownership boundary:
-
-| Tier | Path | What lives here |
+| Tier | Path | Contents |
 | --- | --- | --- |
-| **Primitives** | `src/components/ui/` | Radix/shadcn building blocks: `Button`, `Badge`, `Surface` (+ `ContentCard`, `InteractiveContentCard`, `NestedContentCard`, `StatusState`, `DangerCallout`), `Dialog`, `Select`, `Tabs`, `Input`, `Popover`, etc. |
-| **Common** | `src/components/common/` | Shared recipes on top of primitives: `Icon`, `IconBadge`, `SectionCard`, `StateCard`, `ExpandButton`, `DisclosureCard`, `ArticleSection`, public tokens. |
-| **Layout** | `src/components/layout/` | Public page shells and chrome: `Header`, `Footer`, `PageHeader`, public content/feedback/page primitives, segmented tabs. |
-| **Editor kit** | `src/features/dev/components/` | Dev tool and in-page editor components: `Notice`, `EditorSection`, `EditorField`, `EditorList`, `ConfirmDialog`, `SaveLine`, the unsaved-work registry and shortcut hooks. Editor build only. |
-
-Every dev tool reports loading, success, warning and error through `Notice`
-(`tone`, `placement="page" | "inline"`, `dismiss`). Only `danger` is announced as
-an alert; loading and every other tone are a polite status. Given `dismiss`, an
-error stays until the editor dismisses it and a success clears itself. Dev tool
-requests go through `devFetch()` in `src/features/dev/tools/devFetch.ts`, and each
-caller still validates the fields it reads.
-
-`Surface` is the meta-primitive: most card/panel shells should compose a `Surface`
-variant before reaching for a raw `<div>` with border + background classes.
-
-Import from the barrels:
+| Primitives | `src/components/ui/` | Radix and shadcn building blocks: `Button`, `Badge`, `Surface` (with `ContentCard`, `InteractiveContentCard`, `NestedContentCard`, `StatusState`, `DangerCallout`), `Dialog`, `Select`, `Tabs`, `Input`, `Popover`, and more |
+| Common | `src/components/common/` | Recipes on top of primitives: `Icon`, `IconBadge`, `SectionCard`, `StateCard`, `ExpandButton`, `DisclosureCard`, `ArticleSection`, public tokens |
+| Layout | `src/components/layout/` | Public page shells and chrome: `Header`, `Footer`, `PageHeader`, public content and page primitives, segmented tabs |
+| Editor kit | `src/features/dev/components/` | Dev tool components: `Notice`, `EditorSection`, `EditorField`, `EditorList`, `ConfirmDialog`, `SaveLine`, the unsaved-work registry, and shortcut hooks. Editor build only. |
 
 ```ts
 import { Button, Badge, Surface, ContentCard } from "@/components/ui";
 ```
 
-## Rules
+`Surface` is the shared card and panel shell. `SectionCard` composes `InteractiveContentCard` for public section content.
 
-1. **Reuse first.** Check `/dev/kit` and this guide before writing new UI. If a
-   primitive almost fits, extend it through props or variants rather than forking
-   it. Consult [Ownership](#ownership) when deciding which layer owns the result.
-2. **Keep variants primitive.** Button and Badge variant names describe visual
-   behavior (tone, emphasis, shape, icon affordance), never a feature or route.
-3. **Promote intentionally.** Keep feature-local components beside their feature
-   until they have multiple real consumers and a stable, data-shaped API. The
-   promotion criteria live under [Promotion criteria](#promotion-criteria).
-   The same rule governs CSS: a `.theme-*` class one feature consumes lives in
-   that feature's own sheet (`src/features/dev/dev-tools.css`,
-   `src/app/china/china.css`), declared inside `@layer utilities`; a class two
-   features or the shared tiers consume lives in
-   `src/styles/utilities-theme.css`.
-   Never key a component rule on `data-theme`: a value that differs between
-   dark and light is a `--theme-*` token with a value per scheme in
-   `src/styles/site-colors.css`.
-4. **Disclosure affordances use the doubled ellipsis + chevron indicator.**
-   Expand/collapse controls go through `ExpandButton`/`ExpandIndicator`
-   (`src/components/common/ExpandButton.tsx`), never a bare chevron. The
-   `⋯ ⌄` pair is an accessibility decision: dose.wiki readers may be heavily
-   intoxicated, and the doubled cue stays legible as "there is more here"
-   when a lone chevron does not.
-5. **Touch targets are a public style contract.** Under a coarse pointer every
-   compact control reaches 44px: the Button sizes `sm`, `pill`, `xs`, `chip`,
-   and `quiet` carry `[@media(pointer:coarse)]:min-h-11`, and standalone
-   icon-only controls that stay compact on desktop append `TOUCH_ICON` from
-   `src/components/ui/touchTargets.ts` (`TOUCH_PILL` for height-only floors).
-   The floor may be invisible: `ExpandButton`, `ExpandIndicator` hosts, and
-   any control nested inside a chip or a prose row use `TOUCH_HALO`, which
-   grows a centered `::before` hit area to 44px while the rendered box keeps
-   its desktop geometry. Never draw the floor on a chip-sized control; a
-   rendered 44px box turns a 24px pill into a lozenge and inflates the chip
-   it sits in. Controls that sit shoulder to shoulder in one row, such as the
-   citation backlink numerals, use `TOUCH_HALO_Y`: only the height grows, and
-   the row supplies its own coarse-pointer spacing so neighbouring halos never
-   overlap and steal each other's tap.
-   Fields keep 16px on phones so iOS does not zoom on focus: the `sm` size of
-   `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders
-   `text-[16px] md:text-sm`.
-6. **Index panels share one measure.** Use `IndexPanelGrid` or
-   `IndexPanelMasonry` for substance, effect, category, and article panels.
-   Both prefer 320px columns, shrink only when the container is narrower, and
-   use 20px gaps below `lg` or 24px at `lg`. Responsive grouped grids pass the
-   `ref`, `count`, and `gate` returned by `useResponsiveColumnCount` so column
-   counts follow the actual content box rather than viewport width.
-7. **Effect category icons follow the index registry.** Resolve category titles,
-   slugs, or display labels with `resolveEffectCategoryIcon` from
-   `src/features/effects/pages/effectsIndexConfig.ts`. Keep bespoke fallback icons
-   only for sections that do not correspond to a canonical effect category.
-8. **Corners are roles, not sizes.** Shared components ask for a corner role:
-   `rounded-control` (buttons, fields, tabs, menu items), `rounded-chip`
-   (name chips, small tags), `rounded-card` (cards, dialogs, popovers),
-   `rounded-panel` (state and hero panels), `rounded-pill` (capsules). The
-   roles are `--radius-*` tokens in `src/styles/base.css` with a value per
-   visual style (`pro-theme.css` re-seats them), so Clinical squares every
-   card without touching a component. The roles nest in order in both
-   styles: chip <= control <= card <= panel (Vivid 4/5/6/12px, Clinical
-   3/4/4/6px), so an item never comes out rounder than its container.
-   Don't use a Tailwind radius size in the primitives tier; `rounded-full`
-   and `rounded-none` stay allowed.
-9. **Focus is quiet, not an accent frame.** Use `focusRingClassName` or
-   `theme-focus-ring` for a 1px neutral keyboard-focus cue. Use
-   `theme-field-focus` for text fields and selects, which emphasize their
-   existing border without an outside ring. Do not add thick accent outlines,
-   `ring-2`, or ring offsets for clicking, focusing, or loading states in any
-   visual style or color variation. Preserve semantic validation borders and
-   system high-contrast focus indicators.
-10. **One height ladder.** Controls that sit side by side share heights:
-   24 badge and metadata pill, 28 chip and name chip (`Button` `chip`/`xs`),
-   32 compact button, pill, quiet, toggle `sm`, and tab trigger, 36 menu
-   row, 40 `Button` default and `icon` and `Input`/`Select` `sm`, 44
-   `Button` `lg` and the default field, 48 the large field. Chips and pills
-   pin their height with `h-*`; a ring or a border never changes it.
-11. **Floating lists share one row.** `DropdownMenu`, `Select`, and
-   `Command` rows use `.theme-menu-row` (36px, `rounded-control`, an
-   instant highlight lift) and group headings use `.theme-menu-label`.
+The `editor-guardrails/use-shared-guard-and-confirm` ESLint rule makes editor folders use the shared unsaved-work guard and `ConfirmDialog` instead of their own `beforeunload` handlers and `window.confirm` calls.
 
-## Accent usage rules
+## Editor status and requests
 
-Accent color always resolves through theme tokens so the appearance cog's hue
-slider repaints every accented pixel. In shared and feature UI:
+Every dev tool reports loading, success, warning, and error through `Notice` (`tone`, `placement="page" | "inline"`, `dismiss`). Only `danger` is announced as an alert. Loading and every other tone are a polite status. With `dismiss`, an error stays until the editor dismisses it, and a success clears itself. Dev tool requests go through `devFetch()` in `src/features/dev/tools/devFetch.ts`, and each caller validates the fields it reads.
 
-- **Section headings** color from `--theme-section-heading`: either
-  `text-[var(--theme-section-heading)]` or the `.theme-accent-heading` utility.
-- **Prose emphasis** (accented `<strong>`) uses `.theme-accent-emphasis`, or
-  `.theme-accent-emphasis-scope` on a containing element.
-- **Accent icons** use `.theme-icon-accent`. Where a Tailwind variant is
-  required (`hover:`, `group-open:`), use `text-dose-accent-strong` variants.
-- **Link underlines** use `.theme-accent-underline`.
-- **Never raw accents.** Raw `fuchsia-*`/`violet-*` utilities and accent hex
-  literals are prohibited in component `className`/`style`. Reach accent
-  through `--theme-*` tokens, the token-backed `dose-*` Tailwind aliases, or
-  `rgb(var(--c-*))` channel seeds for rings, gradients, and color mixes.
+## Touch targets
 
-## Public page loading
+Under a coarse pointer, compact controls reach 44px.
 
-For article/server rendering, gallery pagination, media readiness or lazy runtime
-loading changes, follow [Public page loading](../architecture/runtime-and-data.md#public-page-loading).
+- The `Button` sizes `sm`, `pill`, `xs`, `chip`, and `quiet` carry `[@media(pointer:coarse)]:min-h-11`.
+- `src/components/ui/touchTargets.ts` exports the other recipes. `TOUCH_ICON` sizes a standalone icon-only control, and `TOUCH_PILL` sets a height-only floor.
+- `TOUCH_HALO` grows a centered `::before` hit area to 44px while the rendered box keeps its desktop geometry. `ExpandButton`, `ExpandIndicator` hosts, and controls nested in a chip or a prose row use it.
+- `TOUCH_HALO_Y` grows only the height. Controls that sit side by side, such as citation backlink numerals, use it, and the row supplies coarse-pointer spacing so neighboring halos do not overlap.
 
-## Adding or changing a shared component
+The `sm` size of `Input`, `Textarea`, `EditorSelect`, and the Select trigger renders `text-[16px] md:text-sm`, so iOS does not zoom on focus.
 
-Every runtime export from `ui/`, `common/`, `layout/` and the editor kit index
-(`src/features/dev/components/index.ts`) should have one catalog story, and editor
-kit exports sit in the Editor kit tier.
+## Disclosure
 
-To add or change a shared component:
+`ExpandButton` and `ExpandIndicator` (`src/components/common/ExpandButton.tsx`) draw the doubled ellipsis and chevron. The doubled cue reads as "there is more here" to an intoxicated reader where a lone chevron may not. `ExpandIndicator` goes inside a row or card header that is already a button. Selects, dropdown menus, mobile menus, and navigation disclosures keep their own chevron.
 
-1. Place it in the tier selected by [Promotion criteria](#promotion-criteria) and export it from that
-   tier's barrel.
-2. Add or update a story in `src/app/dev/kit/stories/`. Use the `StoryDef`
-   contract in `src/app/dev/kit/registry/types.ts`, list every runtime symbol in
-   `exports`, and show each one in an example.
+| `ExpandButton` variant | Use |
+| --- | --- |
+| `inline` | Icon only, with no container. Inside chips, badges, inline prose, and compact value rows. Legality country rows and the History and Culture preview pair it with `theme-text-muted`. |
+| `chip` | The whole chip is the control, with its label and the indicator in one capsule |
+| `count` | Hidden-list counts such as `+3`: aliases, report lists, references, reagent rows |
+| `floating` | A standalone section reveal that needs its own weight |
+| `card` | A contained reveal inside a larger card |
+
+## Name chips and pills
+
+`PublicNameChip` renders names of public entities and concepts: subjective effects, interaction substances and compound groups, classifications, index categories, source pages, and contributors. It renders as a link, button, or span. When the chip itself expands content, it renders as a button with `ExpandIndicator` inside. When a linked name has a separate expansion, the chip holds the link and an `inline` `ExpandButton`. Source-attribution pills such as TripSit and PROtestkit use `theme-external-source-pill`, which shares the name-chip surface tokens. `Badge` carries status and severity, `PublicChipNav` carries navigation and filter chips, and `PublicPill` carries metadata.
+
+## Index panels
+
+`IndexPanelGrid` and `IndexPanelMasonry` lay out substance, effect, category, and article panels. Both prefer 320px columns, shrink only when the container is narrower, and use 20px gaps below `lg` and 24px at `lg`. Responsive grouped grids pass the `ref`, `count`, and `gate` from `useResponsiveColumnCount`, so column counts follow the content box instead of the viewport. `resolveEffectCategoryIcon` in `src/features/effects/pages/effectsIndexConfig.ts` resolves effect category titles, slugs, and labels to icons.
+
+## Menus and focus
+
+`DropdownMenu`, `Select`, and `Command` rows use `.theme-menu-row`, and group headings use `.theme-menu-label`. `focusRingClassName` and `theme-focus-ring` draw a 1px neutral keyboard-focus cue. `theme-field-focus` emphasizes a text field's or select's existing border without an outside ring.
+
+## Accent utilities
+
+Accent color resolves through theme tokens, so the appearance cog's hue slider repaints every accented pixel.
+
+| Element | Utility |
+| --- | --- |
+| Section headings | `.theme-accent-heading` or `text-[var(--theme-section-heading)]` |
+| Accented `<strong>` | `.theme-accent-emphasis`, or `.theme-accent-emphasis-scope` on a container |
+| Accent icons | `.theme-icon-accent`, or `text-dose-accent-strong` where a Tailwind variant such as `hover:` is needed |
+| Link underlines | `.theme-accent-underline` |
+| Rings, gradients, color mixes | `--theme-*` tokens, the `dose-*` Tailwind aliases, or `rgb(var(--c-*))` channel seeds |
+
+## Dividers
+
+- `theme-horizontal-divider` separates article content, expanded detail blocks, menu groups, and rich text. It draws `--theme-horizontal-divider-image`. `theme-gradient-divider` is an older name for the same image.
+- `theme-section-group-divider` marks major article group transitions, such as subjective-effect families. It owns its top spacing and hides itself on the first group.
+- `theme-horizontal-divider-block` draws matching top and bottom rules.
+- Plain token borders and `divide-y` separate table rows, dense lists, and card internals.
+
+## CSS placement
+
+A `.theme-*` class that one feature uses lives in that feature's sheet inside `@layer utilities`, for example `src/features/dev/dev-tools.css` or `src/app/china/china.css`. A class that two features or the shared tiers use lives in `src/styles/utilities-theme.css`. Values that differ between dark and light are `--theme-*` tokens with a value per scheme in `src/styles/site-colors.css`.
+
+## Add a story
+
+Each runtime export from `ui/`, `common/`, `layout/`, and `src/features/dev/components/index.ts` has a catalog story.
+
+1. Export the component from its tier's barrel.
+2. Add or update a story in `src/app/dev/kit/stories/`. Use the `StoryDef` contract in `src/app/dev/kit/registry/types.ts`, list every runtime symbol in `exports`, and show each one in an example.
 3. Register the story in `src/app/dev/kit/registry/index.ts`.
-4. Open `/dev/kit` and check the story renders.
-
-The registry and `src/app/dev/kit/` own the current catalog layout; inspect them
-when adding a story rather than maintaining a parallel directory inventory.
-
-## Scope
-
-The catalog covers the runtime exports of all three shared barrels: `ui/`, `common/`, and `layout/`. Read the barrels
-and the registry for the current inventory rather than maintaining a second list
-here.
-
-Feature-local article, effects, reports, and editor components stay beside their
-features unless they meet the [promotion criteria](#promotion-criteria).
-
-## Ownership
-
-Keep shared components small, data-shaped, and tokenized; route policy, feature
-data, and editor workflows stay with their owning feature. The component
-inventory and tier barrels are listed under [Where the kit lives](#where-the-kit-lives);
-this section owns promotion criteria and the policies below, not a second
-component catalog.
-## Promotion criteria
-
-Public/common promotion requires all of these:
-
-- At least a second runtime consumer with the same UI intent.
-- Stable, data-shaped props; no imports from `src/features`, `src/app`, schema modules, server data modules, or public route builders.
-- Styling through shared tokens, `Surface`, `Button`, `Badge`, or existing public token classes.
-- Accessible semantics are owned by the primitive when the behavior is reusable.
-
-Article primitives may live in `src/components/common` when they serve more than one public content lane and receive projected display data. Feature-specific article policy, citation evidence projection, route loading, and schema interpretation stay under the owning feature or app route.
-
-Public layout/content primitives live in `src/components/layout` when they compose common primitives for multiple public page families. They may depend on `next/link` and public helpers, but should not own route model decisions.
-
-Protected dev/editor primitives live under `src/features/dev/components`. They may use editor-only dependencies and dense workflow language. Promotion out of dev requires removing protected-editor assumptions and satisfying the public/common criteria.
-
-## Variant Axis Vocabulary
-
-Every shared component that declares `cva` variants names its axes from this
-list, so `tone` means the same thing on `Button`, `Badge`, and `Surface`:
-
-| Axis | Meaning | Values |
-| --- | --- | --- |
-| `variant` | The visual recipe: tone, emphasis, and shape together, until a component splits them | Component-specific; primitive names only, per the Button policy below |
-| `size` | Type size and control height | `sm`, `default`, `lg`, plus the touch-target recipes named in the kit |
-| `tone` | Semantic color: status and severity | `StatusBadge` today: `red`, `rose`, `yellow`, `orange`, `blue`, `green`, `emerald`, `gray`, `white`. Color names, not meanings; the geometry and tone normalization in the kit polish plan renames them. |
-| `selected` | Boolean selected state on a surface or control | `true`, `false` |
-| `padding` | Inner spacing role on a surface | `none`, `xs`, `sm`, `md`, `lg`, `xl` |
-| `radius` | Corner role on a surface | `none`, `md` (chip role), `lg` (control role), `xl` and `index` (card role), `state` and `compactState` (panel role); each resolves to a `--radius-*` role token |
-
-Recorded exceptions: `Input`, `Select`, and `Textarea` carry `inputSize`,
-`selectSize`, and `textareaSize` because `size` collides with the native
-attribute on `<input>` and `<select>`, and the three field controls keep one
-shape. No other axis name is allowed.
-
-## Button Variant Policy
-
-`Button` variants should describe primitive visual behavior: tone, emphasis, shape, icon-only affordances, and broad interaction state. Feature names and composed UI recipes belong in the owning component.
-
-Keep route-specific and composed recipes in their owning components; name primitive variants only by the visual or interaction behavior they expose.
-
-Composed-recipe variants still on the primitive, with a decision per row.
-`tabPrimary`, `tabPrimaryDisabled`, and `tabSecondary` were removed once
-`PublicSegmentedTabs` absorbed them.
-
-| Variant | Consumers | Decision |
-| --- | --- | --- |
-| `card` | Public/search result cards, article section cards, catalog | Migrate into a public card-button component after geometry normalization (Phase 2 of the kit polish plan). |
-| `listItem` | `PublicPagePrimitives` | Migrate into the taxonomy/list row component in the same Phase 2 work. |
-| `suggestion` | `EffectTagInput` | Migrate into a search suggestion option component in the same Phase 2 work. |
-| `suggestionActive` | `EffectTagInput` | Same as `suggestion`; the pair moves together. |
-| `tagRemove` | Dev `TagToken` | Migrate into `TagToken`; it has one consumer and no public surface. |
-
-Remove a row when its owning component absorbs the recipe. Do not add rows.
-
-## Name Chip Policy
-
-Use `PublicNameChip` for compact badges that contain names of public entities or concepts: subjective effects, interaction substances or compound groups, classifications, index categories, source-page names, contributor names, and effect catalog links. It owns the subjective-effect badge treatment: `rounded-chip` at 28px, quiet translucent fill in dark mode, paper-white fill in light mode, `ring-1`, normal-case medium text, and the same hover/focus behavior across article and effects surfaces. Source-attribution pills such as TripSit and PROtestkit should use `theme-external-source-pill`, which draws from the same name-chip surface tokens while preserving its prefix/favicon layout.
-
-`PublicNameChip` may render as a link, button, or span. When the chip itself expands content, render it as a button and place `ExpandIndicator` inside the chip. When a linked name has a separate expansion affordance, keep the linked text and use `ExpandButton` variant `inline` inside the same chip; do not add a nested control capsule.
-
-Use `Badge` or a feature status component for status/severity, `ExpandButton` for hidden-list counts and standalone expanders, `PublicChipNav` for navigation/filter chips, and `PublicPill` for metadata. Reserve `PublicNameChip` for entity and concept names.
-
-## Expand Affordance Policy
-
-Use `ExpandButton` for reusable content-reveal controls and `ExpandIndicator` when the whole row or card header is already a button. Normal selects, dropdown menus, mobile menus, and navigation disclosure controls may keep their own chevron-only treatment because they do not mean "show more article content."
-
-Variant intent:
-
-- `inline`: icon-only `...` plus chevron with no pill/container styling. Use inside badge-like parents, chips, inline prose, and compact value rows such as interaction badges, subjective effect badges, bioavailability, half-life, and dosage plateau rows. Do not nest a pill inside another pill.
-- `chip`: the whole control is a badge/chip, with label text and the inline `...` plus chevron inside the same outer capsule. Use for subjective effect chips where the chip itself is the expandable surface.
-- `count`: quantitative hidden-list controls like `+3` plus chevron. Use for aliases, report lists, references, reagent rows, and other collapsed list counts.
-- `floating`: standalone centered or inline section reveal pills. Use for list reveals when the control is not inside another badge-like surface and needs its own weight to be found.
-- Row and prose reveals go container-less: legality country rows and the History & Culture text preview use `inline` with `theme-text-muted`, so the `...` plus chevron reads as a row affordance rather than a chip competing with the row's own tags.
-- `card`: contained mini reveal controls inside larger cards or expanded inline cards where a visible control capsule helps the action read clearly.
-
-If a new expand affordance needs the `...` plus chevron symbol, add or reuse one of these semantic variants instead of composing `Icon` instances locally.
-
-## Divider Policy
-
-Use `theme-horizontal-divider` for standalone horizontal rules that separate article content, expanded detail blocks, menu groups, or rendered rich-text content. It draws from `--theme-horizontal-divider-image`, so dark and light themes stay coordinated.
-
-Use `theme-section-group-divider` for major article-content group transitions where the divider is part of the reading hierarchy, such as subjective-effect families. It owns the top spacing, hides itself on the first group, and adds a restrained accent lead-in over the shared horizontal divider image.
-
-Use `theme-horizontal-divider-block` when a content block needs matching top and bottom horizontal rules. Use `theme-gradient-divider` only as the legacy compact class name; it maps to the same shared divider image.
-
-Use plain token borders or `divide-y` only for table-like rows, dense lists, card internals, and vertical separators where the separator should be quiet structure rather than a content transition.
-
-Add or adjust a theme utility for article hierarchy dividers so dark and light themes remain coordinated.
-
-## Dependency Ownership
-
-Icons: shared UI should import `Icon` from `src/components/common/Icon`. That abstraction owns `@iconify/react`, local `custom:` icons, and Iconify names such as `lucide:search`. Direct `lucide-react` imports are legacy or route-local only; do not add new direct imports in `src/components/common`.
-
-Motion: shared primitives prefer CSS transitions, tokenized animations, and reduced-motion-safe classes. `framer-motion` is allowed only in components that need presence, gesture, or layout animation; `src/components/ui/motion-card.tsx` and article animation sections are current owners during migration.
-
-Editor code and diff: `react-simple-code-editor` and `prismjs` are protected dev dependencies owned by `src/features/dev/components/JsonEditor.tsx`. Human-readable diff generation via `diff` is owned by data/editor changelog utilities such as `src/utils/data/changelog.ts`. These dependencies should not move into public/common primitives.
-
-## Guardrails
-
-Editorial ownership review maintains the common import/export boundary,
-primitive variant behavior, and the temporary recipe migration table above.
+4. Open `/dev/kit` and confirm that the story renders.
