@@ -18,6 +18,23 @@ import { loadGlosses } from "../../lib/translation/glossaryGloss.ts";
 import { loadApprovedStyleGuide } from "../../lib/translation/approvedStyleGuide.ts";
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize.ts";
 
+const USAGE = `Usage: bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/translate.mjs [options]
+  --locale=<code>          Target locale (default: zh-Hans)
+  --corpus=<id>            Corpus (default: substances)
+  --slug=<a,b>             Select record slugs
+  --limit=<n>              Limit work units
+  --concurrency=<n>        In-flight requests (default: 100)
+  --model=<id>             OpenRouter model
+  --batch-chars=<n>        Source characters per request (default: 6000)
+  --source=<path|url>      Export location
+  --out=<dir>              Local run directory
+  --resume                Reuse checkpointed translations
+  --revalidate            Recheck checkpointed translations
+  --reglossary            Refresh glossary-dependent translations
+  --dry-run               Build manifests and batches without model calls
+  --help                  Print usage
+Reads the approved Postgres glossary and style guide. Writes local artifacts only.`;
+
 const CORPUS_CONTEXT_KIND = {
   substances: "article",
   effects: "effect",
@@ -134,7 +151,7 @@ async function runPool({ batches, concurrency, worker }) {
 async function main() {
   const options = parseOptions(process.argv.slice(2));
   if (options.help) {
-    console.log(await readFile(fileURLToPath(import.meta.url), "utf8").then((text) => text.slice(0, text.indexOf(" */") + 3)));
+    console.log(USAGE);
     return;
   }
 

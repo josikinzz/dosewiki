@@ -38,7 +38,16 @@ const LOCALE = values.locale;
 const command = positionals[0];
 const target = values.target ?? process.env.TARGET_POSTGRES_URL;
 if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].includes(command)) {
-  throw new Error("Usage: live-mirror.ts <import|enqueue|run|backfill|stale|status> [options]");
+  throw new Error(`Usage: bun scripts/translation/live-mirror.ts <command> [options]
+  import --run=<batch run directory> [--corpus=<corpus>]
+  enqueue (--all|--slug=<a,b>) [--kind=<article|effect|report|library|replication>]
+  run [--limit=<n>]
+  backfill [--kind=<article|effect|report|library|replication>] (default: every kind)
+  stale [--term=<term>] (repeat --term to select multiple terms)
+  status
+Options: [--locale=<code>] [--target=<postgres-url>] [--allow-remote] [--write]
+Set TARGET_POSTGRES_URL instead of --target. Without --write, commands report only.
+Follow docs/operations/data-credentials.md for the Postgres write ceremony.`);
 }
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
 guardTarget(target, values["allow-remote"]);

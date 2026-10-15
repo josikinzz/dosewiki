@@ -10,7 +10,7 @@ import {
   warmUrls,
 } from "./warm-public-routes.lib.mjs";
 
-const USAGE = `Usage: node scripts/deploy/warm-public-routes.mjs --base-url <url>[,<url>...] [--base-url <url>] [--all] [--concurrency 4] [--timeout 20000] [--max-failure-percent 10]`;
+const USAGE = `Usage: node scripts/deploy/warm-public-routes.mjs --base-url <url>[,<url>...] [--base-url <url>] [--all] [--concurrency 4] [--timeout 20000] [--max-failure-percent 10] [--slowest 10]`;
 
 async function warmHost(baseUrl, options) {
   const startedAt = Date.now();

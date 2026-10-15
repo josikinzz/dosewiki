@@ -27,6 +27,17 @@ import { getUiMessageDefinition, UI_MESSAGE_ALIASES, UI_MESSAGE_DEFINITIONS } fr
 import { UI_MESSAGE_SEEDS } from "../../src/i18n/uiMessageSeeds";
 import { guardTarget } from "../postgres/targetGuard";
 
+const USAGE = `Usage: bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts [options]
+  --locale=<code>          Target locale (default: zh-Hans)
+  --seed=<layout run>      Seed from a layout run's source export and translations
+  --checkpoint=<tmp/path> Reuse translations under this checkout's ignored tmp/
+  --offline               Compile local seeds without reading Postgres or calling a model
+  --write                 Write local catalog artifacts; omit to preview
+  --live-copy             Include current copy from the selected Postgres read target
+  --max-units=<n>         Limit model translation units
+  --target=<postgres-url> Online read target (or TARGET_POSTGRES_URL)
+  --allow-remote          Allow a remote read target with the required target guards`;
+
 const GLOSSARY_KINDS = new Set([
   "effect-name",
   "effect-category",
@@ -73,7 +84,7 @@ if (!/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/.test(localeCode)) throw new Error("
 if (values.offline && values["live-copy"]) throw new Error("--offline cannot read --live-copy");
 if (!values.offline) {
   const target = values.target ?? process.env.TARGET_POSTGRES_URL;
-  if (!target) throw new Error("Online catalog builds require --target <postgres-url> or TARGET_POSTGRES_URL; use --offline for local seeds only");
+  if (!target) throw new Error("Online catalog builds require --target <postgres-url> or TARGET_POSTGRES_URL; use --offline for local seeds only\n" + USAGE);
   guardTarget(target, values["allow-remote"]);
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
