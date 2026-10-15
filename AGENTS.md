@@ -1,73 +1,47 @@
 # AGENTS.md
 
-## About dose.wiki
-
-**dose.wiki** synthesizes factual knowledge about psychoactive substances from harm-reduction and reference sources into a single open dataset. It aims to establish an open standard for psychopharmacology datasets, supporting research and education.
-
-- **[Substance articles](https://dose.wiki/substances):** dose, duration, effects, interactions, chemistry, and legality by country.
-- **[Subjective effect articles](https://dose.wiki/effects):** individual components of altered states, from [visual drifting](https://dose.wiki/effects/drifting) to [ego death](https://dose.wiki/effects/ego-death).
-- **[Replications](https://dose.wiki/replications):** images, videos, and audio that recreate subjective effects.
-- **[Trip reports](https://dose.wiki/reports):** first-person accounts of individual experiences.
-
-### Sources and review
-
-The factual knowledge within substance articles draw on decades of documentation by scientists, psychonauts, and the harm-reduction community, gathered from [ten harm-reduction and reference resources](https://dose.wiki/docs/how#sources). Each article links to the source pages that informed it.
-
-Substance articles were drafted by LLMs, with dosage information transcribed by software from online tables. Real life human beings then reviewed and carefully edited each output over the course of months. The [how articles are made](https://dose.wiki/docs/how) explains the process in depth.
-
-So, why did we use LLMs as part of this process? This was done for several reasons, but primarily speed, practicality, and reproducibility. Josie Kins, a co-founder of this project, the founder of PsychonautWiki, and numerous other similar projects, has real-world experience hand-crafting substance encyclopedias with teams of human beings. We know what it takes. It is an incredibly arduous and long term process. For example, the first draft of psychonautwiki took an entire community of people from 2011-2016. With incredibly few people reliably sticking around, and their workflows always leaving with them. Our community doesn't need a modern and open platform in 5 years from now. We need one yesterday.
-
-This is why factual knowledge from across the internet was carefully scraped from online resources, assembled into either mechanistic parsers or an LLM synthesis pipeline, and aggregated into a single beautifully machine readable dataset, for anybody to download. A process that was followed by months of human review before we felt comfortable publishing it, and in total took about a year to complete. We deeply care about what we are doing here, and are now building as humans on top of this new open standard.
-
-**dose.wiki is in beta.** Each article's **Article Status** section tracks its progress and identifies whether it has been human-reviewed. Review is essential to trustworthiness: reviewers verify pharmacology, check dosage and interactions for potentially harmful errors, and add corrections, references, and their own explanations. Errors can have serious real-world consequences, so we welcome anyone able to submit feedback via the forms at the bottom of each substance article!
-
-The other collections are entirely human-created:
-
-- **Effect articles** form the [Subjective Effect Index](https://dose.wiki/effects), written over more than a decade across several websites.
-- **Replications** depict the subjective appearance of experiences through artwork, mostly by members of Reddit's [r/replications](https://reddit.com/r/replications) community.
-- **Trip reports** are written by their authors and reviewed by an editor before publication.
-
-The site and dataset continue to evolve toward 1.0. Check back for updates, or [send questions, comments, and corrections](https://dose.wiki/about#contact).
+dose.wiki is an open encyclopedia of psychoactive substances for harm reduction, research, and education. This public repository is the Next.js application behind dose.wiki and its Effect Index publication. Errors in published dosage, interaction, or legality data can hurt readers, which is why most rules below guard writes and published content.
 
 ## Rules
 
-1. PlanetScale Postgres is the only runtime and the source of truth; files under `data/` and `content/` are seeds and exports, never the live record.
-2. Production writes need `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, and every guard the command names; a dry run is not authorization.
-3. `DATA_WRITES_FROZEN=1` fails closed at every write boundary; never weaken the freeze, target checks, confirmation phrases, or role checks.
-4. Public, editor, and Effect Index builds are separate artifacts; only the editor build carries write credentials or editorial browser modules.
-5. Never commit credentials; `.env.example` documents every variable and `.env.local` stays untracked.
-6. Never hand-edit a file that `data/lineage.json` names as generated; change the producer input and run its recorded command.
-7. Article shape is owned by `src/schema/substance.schema.ts`; runtime types and schema files under `lib/postgres/` derive from it.
-8. Preserve Auth.js identity, database-backed roles, human editorial authority, and revision checks; never infer authorization from a credential alone.
-9. Write links as App Paths; a local source change is not a deployed change, so never claim production state without deployment evidence.
-10. Em dashes are banned in all text.
+"Judgment" marks a rule that no check enforces. Nothing fails when you skip it, so read those rows before you act.
 
-## Public repository hygiene
+| Rule | Enforced by |
+| --- | --- |
+| PlanetScale Postgres is the only runtime and the source of truth. Files under `data/` and `content/` are seeds and exports, never the live record. | `requirePostgresBackend` in `lib/postgres/runtime/target.ts` throws unless `DATA_BACKEND=postgres`. No other backend exists. |
+| A production write needs `DATA_BACKEND=postgres`, an explicit `--target` or `TARGET_POSTGRES_URL`, and every confirmation the command names. Follow [data credentials](docs/operations/data-credentials.md). | `authorizeProductionWrite` in `scripts/lib/production-write-command.mjs`, the allowlist in `scripts/lib/production-writer-inventory.mjs`, and `scripts/postgres/targetGuard.ts` |
+| A dry run or a passing guard is not authorization. A human approves each production write. | Judgment |
+| `DATA_WRITES_FROZEN=1` fails closed at every write boundary. Never weaken the freeze, target checks, confirmation phrases, or role checks. | `assertDataWritesNotFrozen` in `lib/runtime/dataWriteFreeze.ts`, the `pureFreezeImports` restriction in `eslint.config.mjs`, and CI running with `DATA_WRITES_FROZEN: "1"`. Weakening a guard: judgment. |
+| Public, editor, and Effect Index builds are separate artifacts. Only the editor build carries write credentials or editorial browser modules. | `scripts/build/editor-artifact-audit.mjs`, which `bun run build` runs on Vercel builds and in the `release-build` job. Pull request CI does not build. |
+| Authorization comes from an Auth.js session plus the current `memberships` role, never from a credential alone. | `protectedRouteOperation` in `src/lib/http/protectedRouteOperation.ts` requires an `auth` floor. `requireRole` in `server/lib/auth.ts` and `roleMeetsFloor` in `src/lib/auth/roles.ts` check it. |
+| Sign-in is username and password against `memberships`. Do not add password-only browser auth or OAuth providers. | `lib/auth/authOptions.ts` registers only `CredentialsProvider`. Adding a provider: judgment. |
+| Article saves carry the revision the editor loaded, and a stale save fails. | `baseHash` checks in `server/lib/articleWrite.ts` and `server/saveArticleBatch.ts` |
+| Only a human editor sets review status. Agent review writes only advisory flags ([ADR 0003](docs/adr/0003-advisory-review-flags.md)). | The review workflow writes through `replaceAgentReviewFlagsForArticle` in `server/substanceIndex.ts`, which replaces agent flags and cannot change review status. |
+| Never commit credentials, credential-bearing URLs, or `.env` files other than `.env.example`. | `scripts/security/scan-secrets.mjs` in `.husky/pre-commit` (`--staged`) and CI (`--tracked`). `.husky/pre-commit` and the CI step "Check .env files not committed" reject `.env` files. |
+| Add each new environment variable to `.env.example`. | Judgment |
+| Never commit personal data, private contact details, visitor addresses, private hostnames, or workstation paths. Use reserved example identities in tests and docs. | Judgment. `scan-secrets.mjs` finds credential shapes only. |
+| If a secret or private record enters Git, stop publishing and report only its location and a redacted fingerprint. Removing it from the latest tree is not enough. The owner decides on revocation and history cleanup. | Judgment |
+| Workflows for public or Effect Index builds never receive write-tier secrets such as `DATA_ADMIN_KEY` or write-grant database URLs. | Judgment. The `release-build` job in `.github/workflows/vercel-policy-checks.yml` uses only `POSTGRES_POOLED_READONLY_URL`. |
+| Never hand-edit a file that `data/lineage.json` marks `do-not-edit-by-hand`. Change the producer input and run its `refreshCommand`. | CI runs `bun run postgres:check-schema`, `bun run postgres:verify-migrations`, and `scripts/build/check-function-references.mjs` for the Postgres outputs. `bun run provenance:check` validates the manifest only. Other generated files: judgment. |
+| `src/schema/substance.schema.ts` owns article shape. `src/data/schema/` is generated from it by `bun run generate:schema`. | `server/lib/articleLifecycleValidation.ts` validates article writes against `src/schema/substance/`. Generated helper drift: judgment. |
+| A failed read surfaces as an error. It never becomes empty published content. | Judgment |
+| Published content is educational, never medical advice. Legality text follows the reader register in [legality](docs/workflows/legality.md). | `bun run legality:validate` for legality drafts. Everything else: judgment. |
+| Never claim production state without deployment evidence. A local change is not a deployed change. | Judgment |
+| Add a test only for write guards, auth and roles, revision conflicts, secrets, or data that feeds published dosage, interaction, or legality information. | Judgment |
+| No em dashes (U+2014) in `docs/`, `content/`, `README.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`, `data/README.md`, or string literals and JSX text under `src/`, `lib/`, and `server/`. Comments there may not add new ones. | `scripts/lint/check-em-dashes.mjs`, run by `bun run lint:all` in CI |
 
-This is the public source repository for dose.wiki and the repository used for development and deployment. Treat every commit, branch, tag, pull request, and uploaded artifact as potentially public.
+Act on reversible work without asking. Ask before deleting data, force-pushing, or changing anything outside this repository.
 
-- Leave the area you changed tidier than you found it. Keep cleanup within the task's scope, preserve unrelated work, and follow generated-file ownership.
-- Commit maintained source, documented inputs, licensed assets, and reproducible generated outputs. Keep scratch files, run receipts, private notes, logs, database snapshots, and local agent state outside Git in the approved private workspace.
-- Never commit credentials, credential-bearing URLs, secret environment files, private account/contact data, visitor addresses, or unapproved personal information. Use reserved example identities in tests and documentation. Keep public attribution and contact details only with permission and clear purpose.
-- Stage explicit paths. Before committing, inspect the staged diff and run the staged secret checker. Confirm new files have a maintained owner and purpose; placeholders must be visibly synthetic.
-- If a secret or private record enters Git, stop publication and report only its location and a redacted fingerprint. Removing it from the latest tree is insufficient. Credential revocation and any history/ref cleanup require the owner's incident decision.
-- Preserve Postgres target, role, revision, confirmation, and freeze guards, Auth.js identity, and separate public/editor artifacts. Public source code does not grant access to editorial systems or authorize data writes.
-- Keep source-code and contribution links pointed at this canonical repository. Report local implementation, verification, and deployment evidence separately.
+## Where to look
 
-## Working style
-
-When a step doesn't need my input, keep going. Put status notes in the same message as your next action.
-Stop and ask only when you can't continue without me, or before anything destructive: deleting data, force-pushing, or changing anything outside this repository.
-
-## Where to read next
-
-- Before any non-trivial change, read [docs/glossary.md](docs/glossary.md) for the vocabulary and [ARCHITECTURE.md](ARCHITECTURE.md) for the layout.
-- For install, dev, and verification commands, read [CONTRIBUTING.md](CONTRIBUTING.md); `package.json` is the command catalog.
-- For deployment, credentials, or the write ceremony, read [docs/operations/deployment.md](docs/operations/deployment.md) and [docs/operations/data-credentials.md](docs/operations/data-credentials.md).
-- For citations, legality drafts, replication intake, or trip-report timelines, read the matching runbook in [docs/workflows/](docs/README.md#workflows).
-- For UI work, read [docs/design/ui-kit.md](docs/design/ui-kit.md) and [docs/design/visual-style-guide.md](docs/design/visual-style-guide.md).
-- For molecule editing or rendering, read [docs/design/molecule-editor.md](docs/design/molecule-editor.md) and [docs/architecture/openchemlib-fork.md](docs/architecture/openchemlib-fork.md).
-- For datasets and prose, read [data/README.md](data/README.md) and [content/README.md](content/README.md).
+- [ARCHITECTURE.md](ARCHITECTURE.md) maps the repository and its generated code.
+- [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, local tools, and verification.
+- `package.json` is the command catalog.
+- [docs/README.md](docs/README.md) indexes every runbook and workflow.
+- [docs/glossary.md](docs/glossary.md) defines the domain vocabulary.
+- [docs/operations/data-credentials.md](docs/operations/data-credentials.md) is the production write ceremony.
+- [docs/operations/deployment.md](docs/operations/deployment.md) covers hosts, builds, and releases.
+- [docs/design/ui-kit.md](docs/design/ui-kit.md) covers shared UI.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
