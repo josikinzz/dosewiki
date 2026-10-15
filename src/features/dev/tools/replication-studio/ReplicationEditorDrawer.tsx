@@ -574,24 +574,24 @@ export function ReplicationEditorDrawer({
 
   // Both drafts report to the shell. Editorial saves to a published work go
   // live, so the shell only discards; saving stays the inspector's own step.
-  // An unpublished upload's save reaches no public page.
-  const allUnpublished = selected.length > 0 && selected.every(isUnpublished);
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Review and save these replication changes from the tool.",
     id: "replications/inspector",
     tab: "replications",
     label: `Replications: ${single?.title ?? "open work"}`,
     dirty,
-    publishesLive: !allUnpublished,
     discard: () => {
       if (single) setDraft(draftOf(single));
     },
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Review and save these replication changes from the tool.",
     id: "replications/bulk",
     tab: "replications",
     label: `Replications: bulk edit of ${selected.length} works`,
     dirty: bulkDirty,
-    publishesLive: !allUnpublished,
     discard: resetBulk,
   });
 

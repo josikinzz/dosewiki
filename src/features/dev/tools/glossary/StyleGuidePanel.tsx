@@ -118,13 +118,13 @@ export function StyleGuidePanel({ locale }: { locale: string }) {
     label: `Glossary: style guide for ${languageLabel(locale)}`,
     dirty: unsaved,
     saveLabel: "Save draft",
-    save: reason.kind && packet
-      ? async () => {
+    ...(reason.kind && packet
+      ? { kind: "save-unpublished" as const, saveDraft: async () => {
           await send("save", packet.revision);
           setReason(EMPTY_REASON);
           await load();
-        }
-      : undefined,
+        } }
+      : { kind: "discard-only" as const, because: "Choose a reason before saving the guide draft." }),
     discard: () => {
       if (packet) setValue(working(packet.draft ?? packet.approved));
       setReason(EMPTY_REASON);

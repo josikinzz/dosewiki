@@ -138,7 +138,9 @@ export const SubstanceEditorTab = memo(function SubstanceEditorTab({ initialSlug
     id: "articles",
     label: `Substances: ${selectedRow?.name ?? "article"}`,
     dirty,
-    save: operationLocked ? undefined : saveDraft,
+    ...(operationLocked
+      ? { kind: "discard-only" as const, because: "Confirm the pending private draft save before leaving." }
+      : { kind: "save-unpublished" as const, saveDraft }),
     saveLabel: "Save draft",
     discard: () => draftGuardRef.current?.discard(),
   });

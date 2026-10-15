@@ -1695,7 +1695,7 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     };
     if (key && key !== body.slug) writing.delete(key);
     writing.set(body.slug, row);
-    return json(200, { ok: true, slug: body.slug, revision });
+    return json(200, { ok: true, slug: body.slug, created: !existing, revision, operationId: body.operationId, intent: body.intent });
   }
 
   /** The portal's index projection of one published report: no body. */

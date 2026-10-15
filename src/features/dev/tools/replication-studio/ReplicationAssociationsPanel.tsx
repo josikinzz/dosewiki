@@ -467,11 +467,12 @@ export function ReplicationAssociationsPanel({
   // Eligibility decides which live galleries may show the work, so the shell
   // only discards.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "replications/showcase",
     tab: "replications",
     label: `Replications: ${row.title} drug associations`,
     dirty: isDirty,
-    publishesLive: true,
     discard: () => {
       if (!busy) setDraft({ excluded: [...saved.excluded] });
     },

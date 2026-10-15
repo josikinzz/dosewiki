@@ -222,6 +222,7 @@ export async function applyTarget(
         // approver. Compare-and-swap already pinned the row, so the expected
         // revision is the row as it stands now.
         await upsertWritingArticleHandler(ctx, {
+          intent: "publish",
           apiKey: auth.apiKey,
           actorEmail: auth.actorEmail,
           ...writingUpsertFields(document as WritingProposalDocument),

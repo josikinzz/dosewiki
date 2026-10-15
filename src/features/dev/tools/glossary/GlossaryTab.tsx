@@ -301,6 +301,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const hasUiDrafts = useDraftMapHasEntries(uiEditDrafts);
   const languageName = locale ? languageLabel(locale) : "this language";
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Save each term change from the Glossary after review.",
     id: "glossary:terms",
     tab: "glossary",
     label: `Glossary: term wording in ${languageName}`,
@@ -308,6 +310,8 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     discard: () => termEditDrafts.clear(),
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Save each interface text change from the Glossary after review.",
     id: "glossary:ui-text",
     tab: "glossary",
     label: `Glossary: interface text in ${languageName}`,

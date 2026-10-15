@@ -439,6 +439,23 @@ keyboard events do not drive viewer navigation. The existing inline gallery
 editor and its desktop restriction are unchanged. Dev edits still target
 production data; following a shortcut does not save anything.
 
+### Editor exit actions
+
+The shell's `UnsavedWorkEntry` requires one action: `discard-only` with its
+reason, `save-unpublished` with a private save operation, or `submit-proposal`
+with a proposal operation. Publication stays inside each tool's explicit review
+and confirmation. Shared staged work retains its tab-switch behavior.
+
+Writing direct commands carry mandatory `save-unpublished` or `publish` intent.
+`upsertWritingArticleHandler` enforces the intent, roles, freeze, revision and
+operation identity, including trusted direct helper calls. An unpublished save
+requires an explicitly draft source and result, or an explicit new draft. Legacy
+rows without status remain potentially public. Reviewed publication and guarded
+partial operator patches use explicit `publish` intent. Proposal approval supplies
+that intent after its independent approval gates; reverts restore exact snapshots.
+Unpublished saves trigger neither cache publication nor translation jobs. Unknown
+outcomes retain the original operation ID, payload and intent for retry and recovery.
+
 ### Editor read flow
 
 Editor pages hold no data-backend client in the browser. Every read is a

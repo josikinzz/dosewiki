@@ -230,6 +230,8 @@ export function PlaylistsTab({ isAdmin, initialKey }: PlaylistsTabProps) {
   const discardDraft = () =>
     setOpen((current) => (current ? { ...current, draft: current.saved ? draftOf(current.saved) : { ...EMPTY_DRAFT } } : current));
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Review the changed parts and save this playlist from the tool.",
     id: "playlists",
     label: `Playlists: “${open?.draft.title.trim() || "Untitled"}”`,
     dirty: isDirty,

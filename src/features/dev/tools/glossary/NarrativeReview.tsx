@@ -435,6 +435,8 @@ export function NarrativeReview({
   // typing. A correction needs its reason and conflict checks, so the shell
   // only discards it.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Review and save this correction from the Glossary.",
     id: "glossary:article-correction",
     tab: "glossary",
     label: `Glossary: correction to ${packet?.slug ?? "an article"}${row ? `, ${row.field}` : ""} in ${languageLabel(locale)}`,

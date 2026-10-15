@@ -129,11 +129,12 @@ export function useFeaturedController({
     loaded &&
     (order.length !== savedOrder.length || order.some((slug, index) => slug !== savedOrder[index]));
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "replications/featured",
     tab: "replications",
     label: "Replications: Featured order",
     dirty,
-    publishesLive: true,
     discard: reset,
   });
 

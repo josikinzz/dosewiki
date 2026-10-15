@@ -480,14 +480,15 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     label: `Copy: ${activeBlock?.label ?? "open block"}`,
     dirty: isDirty,
     saveLabel: "Submit for review",
-    publishesLive: canApprove,
-    save: shellCanSave
-      ? async () => {
+    ...(!canApprove && shellCanSave
+      ? { kind: "submit-proposal" as const, submit: async () => {
           if (!(await handleSave())) {
             throw new Error(`“${activeBlock?.label ?? "This block"}” was not submitted. The reason is shown in Copy.`);
           }
-        }
-      : undefined,
+        } }
+      : { kind: "discard-only" as const, because: canApprove
+          ? "This change would go live. Publish it from the tool; leaving here never publishes."
+          : "Finish this proposal from Copy before leaving." }),
     discard: () => {
       if (loadedBlock && !uncertain && !saving) setDraft(draftFromBlock(loadedBlock));
     },

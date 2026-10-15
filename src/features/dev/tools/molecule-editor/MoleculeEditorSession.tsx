@@ -823,10 +823,11 @@ export function MoleculeEditorSession({
   // live depiction, and even a template save waits on the chemistry checks
   // here, so the shell only discards: the canvas reloads its baseline.
   useUnsavedWork({
+    kind: "discard-only",
+    because: mode === "templates" ? "Review the chemistry checks and save this template from the tool." : "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "molecule-editor",
     label: `Molecules: ${publishName ?? selected ?? "open depiction"}`,
     dirty,
-    publishesLive: mode !== "templates",
     discard: () => {
       if (!saving) loadSource(source, { force: true, boldBonds: boldBaseline });
     },

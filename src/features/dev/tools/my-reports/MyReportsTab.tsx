@@ -89,11 +89,12 @@ export function MyReportsTab({ canApprove = false }: { canApprove?: boolean }) {
   // Leave and unload. Saving republishes the page, so the shell only discards.
   const { guard, dialog: discardDialog } = useDirtyGuard(dirty, { ...DISCARD_COPY, warnOnUnload: false });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "my-reports:report",
     tab: "my-reports",
     label: `My reports: edits to /reports/${open?.record.slug ?? ""}`,
     dirty,
-    publishesLive: true,
     discard: () => setOpen((current) => (current ? { ...current, draft: current.record.fields } : current)),
   });
   const { confirm, dialog: confirmDialog } = useConfirm();

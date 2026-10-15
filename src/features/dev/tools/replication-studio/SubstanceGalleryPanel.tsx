@@ -137,11 +137,12 @@ export function SubstanceGalleryPanel({
   }, [corpusRows, matches]);
   // A showcase save changes a live article gallery, so the shell only discards.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "replications/showcase",
     tab: "replications",
     label: `Replications: ${substanceSlug ?? "drug"} showcase`,
     dirty: save.isDirty,
-    publishesLive: true,
     discard: save.discard,
   });
 

@@ -164,6 +164,7 @@ async function main() {
     const expectedAst = prepareVCode(VCODE);
     const operation1 = randomUUID();
     const created = await client.mutation(api.effectIndexArticles.upsertArticle, {
+      intent: "publish",
       apiKey: scopedToken,
       actorEmail: adminEmail,
       expectedRevision: narrativeRevision(null),
@@ -194,6 +195,7 @@ async function main() {
     const byTag = await client.query(api.effectIndexArticles.getByTag, { tag });
     expect("round-trip", "public getByTag finds it by its tag", byTag.length === 1 && isDeepStrictEqual(byTag[0], publicArticle));
     const replay = await client.mutation(api.effectIndexArticles.upsertArticle, {
+      intent: "publish",
       apiKey: scopedToken,
       actorEmail: adminEmail,
       expectedRevision: narrativeRevision(null),
@@ -225,6 +227,7 @@ async function main() {
     // ---------------------------------------------------------------- b. draft
     const draftOperation = randomUUID();
     const draft = await client.mutation(api.effectIndexArticles.upsertArticle, {
+      intent: "save-unpublished",
       apiKey: scopedToken,
       actorEmail: adminEmail,
       expectedRevision: narrativeRevision(null),
@@ -246,6 +249,24 @@ async function main() {
     expect("draft", "listForEditor (editor floor) still lists the draft as a draft", editorList.some((row) => row.slug === draftSlug && row.status === "draft"));
     const editorRow = await client.query(api.effectIndexArticles.getForEditor, { apiKey: scopedToken, actorEmail: editorEmail, slug: draftSlug });
     expect("draft", "getForEditor opens the draft with its base revision", editorRow?.status === "draft" && editorRow.baseRevision === draft.revision && editorRow.history.length === 1);
+
+    const draftSave = { apiKey: scopedToken, actorEmail: adminEmail, slug: draftSlug, expectedRevision: draft.revision, operationId: randomUUID(), intent: "save-unpublished" as const, status: "draft" as const, title: `Rehearsal private edit ${prefix}` };
+    const draftOutboxBefore = Number((await pool.query('SELECT count(*) AS n FROM "publicCachePublications"')).rows[0].n);
+    const savedDraft = await client.mutation(api.effectIndexArticles.upsertArticle, draftSave);
+    const privateReplay = await client.mutation(api.effectIndexArticles.upsertArticle, draftSave);
+    expect("intent", "draft-to-draft save replays its exact receipt", isDeepStrictEqual(savedDraft, privateReplay));
+    expect("intent", "private Writing save adds no publication outbox row", Number((await pool.query('SELECT count(*) AS n FROM "publicCachePublications"')).rows[0].n) === draftOutboxBefore);
+    const privateBefore = await client.query(api.effectIndexArticles.getForEditor, { apiKey: scopedToken, actorEmail: adminEmail, slug: draftSlug });
+    const refusedIntents = [
+      { ...draftSave, operationId: randomUUID(), expectedRevision: savedDraft.revision, intent: undefined },
+      { ...draftSave, operationId: randomUUID(), expectedRevision: savedDraft.revision, intent: "save-private" },
+      { ...draftSave, operationId: randomUUID(), expectedRevision: savedDraft.revision, status: "published" },
+      { ...draftSave, slug, operationId: randomUUID(), expectedRevision: created.revision },
+      { ...draftSave, intent: "publish" },
+    ];
+    for (const [index, request] of refusedIntents.entries()) expect("intent", `unsafe or reclassified command ${index + 1} refuses`, await refused(() => client.mutation(api.effectIndexArticles.upsertArticle, request as never)) !== null);
+    expect("intent", "refusals preserve private content and journal", isDeepStrictEqual(privateBefore, await client.query(api.effectIndexArticles.getForEditor, { apiKey: scopedToken, actorEmail: adminEmail, slug: draftSlug })));
+    expect("intent", "refusals leave the publication outbox unchanged", Number((await pool.query('SELECT count(*) AS n FROM "publicCachePublications"')).rows[0].n) === draftOutboxBefore);
 
     expect("draft", "DATA_BACKEND selects postgres for the app read boundary", getDataBackend() === "postgres");
     const adapter = getPublicDataReadAdapter();
@@ -280,6 +301,7 @@ async function main() {
     };
     const operation2 = randomUUID();
     const revised = await client.mutation(api.effectIndexArticles.upsertArticle, {
+      intent: "publish",
       apiKey: scopedToken,
       actorEmail: adminEmail,
       slug,
@@ -352,11 +374,11 @@ async function main() {
     // Refusals. None may write.
     const before = { article: await client.query(api.effectIndexArticles.getBySlug, { slug }), effect: afterPublish, receipts: (await pool.query('SELECT count(*)::int AS n FROM "narrativeRevisions" WHERE "key" LIKE $1', [`${prefix}%`])).rows[0].n as number };
     const attempts: { name: string; run: () => Promise<unknown>; pattern: RegExp }[] = [
-      { name: "wrong api key", pattern: /Authentication failed/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { apiKey: `${scopedToken}-wrong`, actorEmail: adminEmail, slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
-      { name: "editor-role actor below the admin floor", pattern: /Admin access required/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { apiKey: scopedToken, actorEmail: editorEmail, slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
-      { name: "no credentials (identity provider absent)", pattern: /Authentication required/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
+      { name: "wrong api key", pattern: /Authentication failed/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { intent: "publish", apiKey: `${scopedToken}-wrong`, actorEmail: adminEmail, slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
+      { name: "editor-role actor below the admin floor", pattern: /Admin access required/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { intent: "publish", apiKey: scopedToken, actorEmail: editorEmail, slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
+      { name: "no credentials (identity provider absent)", pattern: /Authentication required/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { intent: "publish", slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
       { name: "editorArticleWrite token against the legacyAdmin intent", pattern: /Authentication failed/, run: () => client.mutation(api.subjectiveEffects.update, { apiKey: scopedToken, slug: effectSlug, updates: { summary: "never" } }) },
-      { name: "scoped token with a stale revision", pattern: /changed\. Reload/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { apiKey: scopedToken, actorEmail: adminEmail, slug, expectedRevision: created.revision, operationId: randomUUID(), title: "never" }) },
+      { name: "scoped token with a stale revision", pattern: /changed\. Reload/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { intent: "publish", apiKey: scopedToken, actorEmail: adminEmail, slug, expectedRevision: created.revision, operationId: randomUUID(), title: "never" }) },
     ];
     for (const attempt of attempts) {
       const message = await refused(attempt.run);

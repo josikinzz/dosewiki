@@ -130,6 +130,7 @@ async function backfillAuthorProfileKeys() {
       const baseline = await client.query(api.effectIndexArticles.getForEditor, { apiKey: credential.token, slug: article.slug });
       if (!baseline || baseline.authorProfileKeys?.length) throw new Error("Writing attribution changed after this backfill was planned.");
       await client.mutation(api.effectIndexArticles.upsertArticle, {
+        intent: "publish",
         apiKey: credential.token,
         slug: article.slug,
         expectedRevision: baseline.baseRevision,

@@ -121,6 +121,7 @@ async function repairBodies() {
       const baseline = await client.query(api.effectIndexArticles.getForEditor, { apiKey: credential.token, slug: repair.article.slug });
       if (!baseline || baseline.body_raw !== repair.article.body_raw) throw new Error("Writing source changed after this repair was planned.");
       await client.mutation(api.effectIndexArticles.upsertArticle, {
+        intent: "publish",
         apiKey: credential.token,
         slug: repair.article.slug,
         expectedRevision: baseline.baseRevision,

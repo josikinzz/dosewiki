@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { approveAndApplyHandler, rejectHandler, revertHandler } from "../server/changeProposalReview";
+import { readProposalTarget } from "../server/lib/changeProposalTargets";
 import { contentHash } from "./proposals/contentHash";
 import {
   SERVER_KEY,
@@ -25,6 +26,22 @@ afterEach(() => {
 });
 
 describe("changeProposalReview.approveAndApply", () => {
+  it("publishes an independently approved Writing proposal and restores its exact stored snapshot", async () => {
+    const source = { _id: "writing1", _creationTime: 1, slug: "synthetic-writing", title: "Stored writing", tags: [], bodyFormat: "markdown", body_raw: "Original body", status: "draft", kind: "article", citations: [{ url: "https://example.test/source", text: "Stored citation" }], featured: true, authors: ["Synthetic author"] };
+    const writing = { slug: source.slug, title: "Reviewed writing", tags: [], bodyFormat: "markdown", body: "Reviewed body", status: "published", kind: "article", teaser: "", coverImageUrl: "", authorProfileKeys: [] };
+    const { ctx, rowsOf } = createCtx({ memberships: [admin, editor], effectIndexArticles: [source] });
+    const baseline = await readProposalTarget(ctx, { kind: "writing", key: source.slug });
+    rowsOf("changeProposals").set("proposal_p1", proposalRow({ targets: [{ kind: "writing", key: source.slug, baseHash: contentHash(baseline) }], payload: { writing }, summary: "Review synthetic writing" }));
+    await expect(approveAndApplyHandler(ctx, { ...asAdmin, actorEmail: editor.email as string })).rejects.toThrow("Admin access required");
+    expect(rowsOf("effectIndexArticles").get(source._id)).toEqual(source);
+    await approveAndApplyHandler(ctx, asAdmin);
+    expect(rowsOf("effectIndexArticles").get(source._id)).toMatchObject({ title: writing.title, status: "published", body_raw: writing.body, featured: source.featured, citations: source.citations });
+    expect(rowsOf("narrativeRevisions").size).toBe(1);
+    await revertHandler(ctx, asAdmin);
+    expect(rowsOf("effectIndexArticles").get(source._id)).toEqual(source);
+    expect(rowsOf("narrativeRevisions").size).toBe(2);
+  });
+
   it("requires a different admin to approve an admin-authored proposal", async () => {
     const { ctx, rowsOf } = createCtx({
       memberships: [admin],

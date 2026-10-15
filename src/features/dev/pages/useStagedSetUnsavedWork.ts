@@ -24,6 +24,8 @@ export function useStagedSetUnsavedWork({
   onDiscardArticles?: () => void;
 }): void {
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Commit these live article edits from the tool after review.",
     id: "staged-set:articles",
     tab: "tag-editor",
     label: "Tags: article edits not yet committed",
@@ -32,6 +34,8 @@ export function useStagedSetUnsavedWork({
     keepsOnTabSwitch: true,
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Commit these live layout edits from the tool after review.",
     id: "staged-set:index-layouts",
     tab: "index-layout",
     label: "Index layout: layout edits not yet committed",

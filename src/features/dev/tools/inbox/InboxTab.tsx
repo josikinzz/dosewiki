@@ -215,6 +215,8 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   // Discard and Keep editing, never Save.
   const typedNotes = Object.values(notes).filter((value) => value.trim()).length;
   useUnsavedWork({
+    kind: "discard-only",
+    because: "These notes belong to the inbox decision. Finish it from the tool.",
     id: "inbox:notes",
     tab: "inbox",
     label: `Inbox: ${typedNotes} review ${typedNotes === 1 ? "note" : "notes"}, sent only when you resolve, reject or mark as spam`,

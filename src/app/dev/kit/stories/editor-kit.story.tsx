@@ -760,7 +760,14 @@ const mergeStory: StoryDef = {
 function UnsavedWorkDemoTool() {
   const [value, setValue] = useState("");
   const dirty = value.length > 0;
-  useUnsavedWork({ id: "kit-demo", label: "Kit demo draft", dirty, discard: () => setValue("") });
+  useUnsavedWork({
+    kind: "discard-only",
+    because: "Finish this demo in the kit.",
+    id: "kit-demo",
+    label: "Kit demo draft",
+    dirty,
+    discard: () => setValue(""),
+  });
   const registry = useUnsavedWorkRegistry();
   const { guard, dialog } = useDirtyGuard(dirty, { warnOnUnload: false });
   return (

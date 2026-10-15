@@ -162,11 +162,12 @@ function MemberAccountControls({
   // them: it asks before a rail click, Leave or a reload drops the staged
   // change, and only discards.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "Confirm this account change from the tool.",
     id: "people:permissions",
     tab: "people",
     label: `People: permissions for ${label}`,
     dirty: changed,
-    publishesLive: true,
     discard,
   });
   return (

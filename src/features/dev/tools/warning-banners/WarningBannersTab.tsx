@@ -725,20 +725,22 @@ function WarningBannersStudio({ initialSubstanceSlug: initialSlug }: WarningBann
   // Both drafts would go live on save (a preset on its articles, the size on
   // every banner), so the shell only discards them.
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "banners:preset",
     tab: "banners",
     label: `Banners: ${draft?.headline.trim() || draft?.key || "new preset"}`,
     dirty: isDirty,
-    publishesLive: true,
     discard: () =>
       setEditor((current) => (current?.origin ? editorFor(current.origin, BLANK_PRESET) : null)),
   });
   useUnsavedWork({
+    kind: "discard-only",
+    because: "This change would go live. Publish it from the tool; leaving here never publishes.",
     id: "banners:icon-size",
     tab: "banners",
     label: "Banners: icon size for every banner",
     dirty: iconSizeDirty,
-    publishesLive: true,
     discard: () => {
       setIconSizeDraft(null);
       setIconSizeSaveState("idle");
