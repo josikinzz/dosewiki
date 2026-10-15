@@ -26,12 +26,6 @@ const searchSuggestionsInflight = new Map<string, Promise<SearchSuggestion[]>>()
 const buildCacheKey = (trimmed: string, limit: number, locale: string) =>
   `${locale}::${trimmed.toLowerCase()}::${limit}`;
 
-/** Test seam: forget every cached and in-flight suggestion response. */
-export function resetSearchSuggestionsCacheForTests() {
-  searchSuggestionsCache.clear();
-  searchSuggestionsInflight.clear();
-}
-
 /**
  * Results already fetched for the longest prefix of `trimmed`, if any. Typing one
  * more character can only narrow the result set, so the previous round's results

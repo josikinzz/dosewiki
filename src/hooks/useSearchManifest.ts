@@ -64,13 +64,6 @@ export function loadSearchManifestIndex(
   return promise;
 }
 
-/** Test seam: forget any loaded or in-flight manifest. */
-export function resetSearchManifestForTests() {
-  manifestIndexPromises.clear();
-  loadedManifestIndexes.clear();
-  emitManifestChange();
-}
-
 /**
  * The manifest index once it is available, or `null` while it loads or if it
  * failed. `enabled` defers the request until the user actually engages search.

@@ -22,7 +22,6 @@ import { useT } from "@/i18n/client";
 
 interface SiteVersionBadgeProps {
   variant: "hero" | "header" | "logoOverlay";
-  /** Injected for tests; defaults to the ambient build-time flavor. */
   config?: SiteFlavorConfig;
 }
 

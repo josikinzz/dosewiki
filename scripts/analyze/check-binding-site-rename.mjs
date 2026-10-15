@@ -12,7 +12,6 @@ const excludedPrefixes = [
 ];
 const legacyIdentifierAllowedFiles = new Set([
   "lib/article/normalization.mjs",
-  "lib/article/normalization.test.ts",
   "lib/dataSubstanceIngestion.test.ts",
   "lib/public-api/v1.ts",
   "lib/public-api/v1.test.ts",

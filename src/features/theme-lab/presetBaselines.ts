@@ -173,18 +173,6 @@ export function getThemeBaselines(
 }
 
 /**
- * Forget every cached sample.
- *
- * A test seam, and only that: nothing in the app invalidates baselines, because a
- * look's pristine values come from stylesheets the build shipped and cannot move
- * while the page is alive. Tests install their own fixture stylesheets between
- * cases, which is exactly the one thing that *can* move them.
- */
-export function clearThemeBaselineCache(): void {
-  cache.clear();
-}
-
-/**
  * Read tokens exactly as they render in one appearance combination, with
  * everything that paints the visitor's look left in place.
  *

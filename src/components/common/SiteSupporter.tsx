@@ -34,7 +34,6 @@ interface SiteSupporterProps {
    */
   align?: "start" | "center" | "end";
   className?: string;
-  /** Injected for tests and the kit catalog; defaults to the ambient build-time flavor. */
   config?: SiteFlavorConfig;
   /** Mark height in `rem`. The width follows from the asset's aspect ratio. */
   markHeightRem?: number;

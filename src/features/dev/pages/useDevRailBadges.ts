@@ -135,12 +135,6 @@ export function invalidateDevRailBadge(badge: DevRailBadge) {
   emit();
 }
 
-export function resetDevRailBadgesForTests() {
-  activeOwner = null;
-  snapshot = INITIAL_SNAPSHOT;
-  emit();
-}
-
 async function readCount(badge: DevRailBadge): Promise<BadgeReading | null> {
   const source = BADGE_SOURCES[badge];
   try {

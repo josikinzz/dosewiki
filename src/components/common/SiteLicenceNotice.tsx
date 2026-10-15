@@ -20,7 +20,6 @@ import {
 
 interface SiteLicenceNoticeProps {
   className?: string;
-  /** Injected for tests; defaults to the ambient build-time flavor. */
   config?: SiteFlavorConfig;
   /**
    * Which reuse-rights line to render. Defaults to the footer's; the About page's Open
