@@ -120,14 +120,6 @@ export const stableWorkflowCommands = [
     dryRun: workflowDryRunPolicies.none,
   }),
   command({
-    name: 'cleanup:metrics',
-    purpose: 'Collect cleanup metrics for local analysis.',
-    scriptPath: 'scripts/analyze/cleanup-metrics.ts',
-    reads: [workflowAccessTargets.localArtifacts],
-    writes: [workflowAccessTargets.localExportArtifacts],
-    dryRun: workflowDryRunPolicies.reportOnly,
-  }),
-  command({
     name: 'hygiene:check',
     purpose: 'Report local generated/cache artifacts covered by hygiene policy.',
     scriptPath: 'scripts/util/clean-local-artifacts.mjs',

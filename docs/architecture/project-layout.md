@@ -48,7 +48,6 @@ Keep dev-owned editor widgets out of the common barrel, don't import feature/app
 
 Package-level UI dependency ownership is documented in [Dependency Ownership](../design/ui-kit.md#dependency-ownership): shared icons go through `Icon`, motion defaults to CSS/shared tokens unless a feature needs `framer-motion`, gallery/lightbox packages stay with media features, and code/diff dependencies stay in protected editor/data utilities.
 
-Feature folders must be reachable from the active App Router tree or explicitly listed in `docs/architecture/feature-reachability.json` with dormant ownership metadata (`owner`, `since`, and `deleteTrigger`). Run `npm run features:reachability` after adding or moving a feature folder.
 
 ## Operational and Generated Code
 

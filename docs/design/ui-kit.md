@@ -70,8 +70,7 @@ import { Button, Badge, Surface, ContentCard } from "@/components/ui";
    that feature's own sheet (`src/features/dev/dev-tools.css`,
    `src/app/china/china.css`), declared inside `@layer utilities`; a class two
    features or the shared tiers consume lives in
-   `src/styles/utilities-theme.css`. `npm run theme:classes:check` reports
-   classes nothing renders.
+   `src/styles/utilities-theme.css`.
    Never key a component rule on `data-theme`: a value that differs between
    dark and light is a `--theme-*` token with a value per scheme in
    `src/styles/site-colors.css`.
@@ -152,12 +151,6 @@ slider repaints every accented pixel. In shared and feature UI:
   literals are prohibited in component `className`/`style`. Reach accent
   through `--theme-*` tokens, the token-backed `dose-*` Tailwind aliases, or
   `rgb(var(--c-*))` channel seeds for rings, gradients, and color mixes.
-
-The theme token audit (`npm run theme:tokens:check`, rules `raw-accent-utility`
-and `raw-accent-hex`) enforces the last rule. The same audit's
-`direct-theme-variable` rule diffs inline `var(--theme-*)` usage against
-`src/theme/theme-token-audit-baseline.json`, so a new inline theme variable
-fails the check until it is expressed as a utility or token alias.
 
 ## Public page loading
 

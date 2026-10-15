@@ -129,7 +129,6 @@ aggregate locally for a small change.
 | `npm run test:journeys` | Browser journeys through `/dev` against deterministic fixtures; needs `npm run dev:journeys-server` running |
 | `npm run verify:workflow` | Workflow tests, script lint, script and handler type checks, and data provenance |
 | `npm run verify:all` | Both aggregates; use when app and workflow surfaces both changed |
-| `npm run theme:tokens:check`, `npm run theme:classes:check` | Theme token and utility class audits for UI changes |
 | `npm run security:check` | The pre-commit secret scan, runnable by hand |
 
 The pre-commit hook in `.husky/` runs the secret scanner against the staged

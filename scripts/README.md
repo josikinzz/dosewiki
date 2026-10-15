@@ -66,7 +66,7 @@ One row per directory that ships in the repository. Every script keeps its input
 | Directory | Purpose |
 | --- | --- |
 | `scripts/admin/` | Guarded data-admin CLI for reviewed production edits. |
-| `scripts/analyze/` | Read-only audits: plagiarism, prose language, cleanup metrics, feature reachability, binding-site renames. |
+| `scripts/analyze/` | Read-only audits: plagiarism, prose language, and binding-site renames. |
 | `scripts/article-source-documents/` | Contract for the article source-document shape. |
 | `scripts/articles/` | Markdown shortcode and paragraph repair for article bodies. |
 | `scripts/auth/` | Password hashing and admin account seeding. |
