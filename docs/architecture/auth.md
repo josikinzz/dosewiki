@@ -1,85 +1,45 @@
-# Next + Auth.js contributor guide
+# Auth and roles
 
-This project has one primary application path: the Next.js App Router in
-`src/app/`. PlanetScale Postgres is the production data authority. Authored
-handlers live in `server/`; `lib/data/` owns public server adapters and
-`lib/postgres/runtime/` owns native execution.
+Auth.js owns browser identity and sessions. The Postgres `memberships` table owns roles. Authorization comes from a session plus the current membership row. A credential alone authorizes only a few scoped callers, listed under [Token-checked exceptions](#token-checked-exceptions).
 
-## Core Rules
+## Where it lives
 
-- Public pages render through Next route segments in `src/app/`.
-- Auth.js owns browser identity and session handling.
-- `lib/auth/runtimePolicy.ts` owns active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
-- The Postgres `memberships` table is the source of truth for roles: `admin`, `editor`, and `contributor`. A banned account resolves to `viewer`, which passes no floor.
-- Local JSON files are inputs, exports, or recovery artifacts only when their owning consumer says so.
+- `lib/auth/authOptions.ts` configures Auth.js. Its credentials provider checks a username and password against `memberships`, and its `jwt` callback re-reads the stored role on every refresh.
+- `lib/auth/passwords.ts` hashes and verifies passwords with scrypt.
+- `lib/auth/runtimePolicy.ts` owns the active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
+- `src/lib/auth/roles.ts` defines the roles and what each one may do.
+- `src/middleware.ts` gates `/dev` and other protected routes.
+- `src/lib/http/protectedRouteOperation.ts` wraps each session-protected API route.
+- `server/lib/auth.ts` resolves the actor and checks the role floor inside each Postgres handler.
 
-## Main Entry Points
+## Roles
 
-- App shell: `src/app/layout.tsx`
-- Auth config: `lib/auth/authOptions.ts`
-- Middleware: `src/middleware.ts`
-- Protected API handlers: `src/app/api/`
-- Public data adapters: `lib/data/publicData.ts`; active backend selection: `lib/postgres/runtime/backend.ts`
+`src/lib/auth/roles.ts` defines six roles: `admin`, `editor_translator`, `editor`, `translator`, `contributor`, and `viewer`. Editor and Translator are independent capabilities. A banned account, or a session whose membership read fails, resolves to `viewer`, which passes no floor. `contributor` is the lowest floor a route can require.
 
-## Public Route Work
+## Accounts
 
-- Prefer server components for public route framing and data loading.
-- Use `lib/next/metadata.ts` for public metadata behavior.
-- Add new crawlable routes under `src/app/`, not under a client-side router.
+Accounts come from two paths.
 
-## Editor/Auth Work
+- `scripts/auth/seed-admin-accounts.mjs` seeds the first admins from a workstation. Only that script or an existing admin grants `admin`.
+- Everyone else redeems an invite at `/invite?code=...` and chooses a username and password. An admin mints the invite in `/dev/people`, and the invite fixes one of the `MANAGED_ROLES`: `editor`, `translator`, `editor_translator`, or `contributor`.
 
-Sign-in is username plus password against the active backend's `memberships`
-table; there is no OAuth provider and no env-var password. Account operations
-remain actor- and intent-scoped. The production ceremony lives in
-[data credentials](../operations/data-credentials.md#credentials-and-freeze).
+An admin manages roles, bans, and password-reset links in `/dev/people`, beside each account's public contributor profile. The profile's membership email links the two. A ban or role change applies on the next request because the `jwt` callback re-reads the role.
 
-- Accounts exist only through two paths. The first admins are seeded from a
-  workstation with `scripts/auth/seed-admin-accounts.mjs`; everyone else
-  redeems an invite an admin minted in `/dev/people` at `/invite?code=...`,
-  choosing a username and password. The invite fixes the role (`editor` or
-  `contributor`).
-- Roles, bans, and password-reset links are managed in `/dev/people` (the
-  retired `/dev/members` still opens it) by an admin, beside each account's
-  public contributor profile. The link between the two is the profile's
-  membership email, chosen there from a picker. Admin itself is a stored role granted only by the seed script or an
-  existing admin; the roster cannot grant or revoke it.
-- `auth.ts` verifies the password with scrypt (`lib/auth/passwords.ts`) and
-  re-reads the stored role on every JWT refresh, so a ban or role change lands
-  on the next request. A failed membership read degrades the session to
-  `viewer` rather than keeping the old role.
-- Protect `/dev` through Auth.js session checks and role checks.
-- Guard every protected route with `protectedRouteOperation({ auth: <floor> })`
-  (`src/lib/http/protectedRouteOperation.ts`), which calls
-  `requireRoleSession(floor)`. `contributor` is the lowest floor; routes at that
-  floor then check ownership in the active data backend. Do not add a floor below it.
-- Every route write names the session's `actorEmail`; the backend role check
-  resolves the current membership row, so a misconfigured route cannot escalate.
-- Do not reintroduce password-only browser auth, OAuth providers, or Vercel
-  `api/*.js` entrypoints.
-- For Vercel previews or production, set `AUTH_SECRET` or Auth.js-backed routes
-  will fail in production mode. Preview sign-in uses a real account; there is
-  no preview-only credential.
+## Protected routes
 
-## Data Work
+`protectedRouteOperation({ auth: <floor> })` calls `requireRoleSession(floor)` before the handler runs, and `auth` is a required option. Routes at the `contributor` floor then check ownership in the data backend. Every session route write passes the session's `actorEmail`, and `server/lib/auth.ts` checks the actor's current membership row, so a misconfigured route cannot escalate.
 
-- Set `DATA_BACKEND=postgres` for production operations and bind
-  `TARGET_POSTGRES_URL` explicitly under the shared write ceremony.
-- Use the native callable references, `/api/save-article`, and `DATA_ADMIN_TOKEN_*`
-  credentials; do not restore historical aliases.
-- Reuse existing schema helpers before introducing cross-boundary validators.
-- Keep Zod at real runtime boundaries rather than duplicating schemas.
+## Token-checked exceptions
 
-## Commands
+These callers authenticate a credential in the handler instead of a session.
 
-- `npm run dev`
-- `npm run build`
-- `npm run start`
-- `npm run test`
-- `npm run lint`
-- `npm run typecheck`
+- `/api/dev/revalidate-article` accepts a bearer `citationEvidenceWrite` admin-intent token, checked by `validateAdminIntentToken`. `src/middleware.ts` lets only its POST past the editor session gate.
+- The cron routes under `src/app/api/cron/` and `src/app/api/warm/route.ts` accept `CRON_SECRET` through `cronRoute` in `lib/http/cronAuthorization.ts`. `src/middleware.ts` lets the service cron GETs listed in `lib/http/serviceCronPaths.ts` past the editor session gate.
+- `/api/public-cache/revalidate` runs on public hosts and accepts a body signed with the publication secret. It can only expire caches.
+- Workstation scripts call Postgres handlers with an admin-intent token. A call that names an `actorEmail` acts with that member's role. A call that names nobody resolves to `admin` in `server/lib/auth.ts`.
 
-## Current Deferred Debt
+Adding another exception is a judgment call. Public source code grants no access to editorial systems and does not authorize data writes.
 
-- Some shared routing helpers still exist because Next client surfaces reuse them for internal path generation.
-- End-to-end preview role verification still requires a real browser sign-in against the live Auth.js provider.
+## Deployment secrets
+
+Vercel previews and production need `AUTH_SECRET`. Preview sign-in uses a real account. There is no preview-only credential.

@@ -68,13 +68,13 @@ location comes from `DOSEWIKI_CITATION_WORKBENCH` or an explicit path argument;
 
 | Command | Purpose |
 | --- | --- |
-| `npm run citations:export-workbench-task` | Export one substance's task packet (`--sections`/`--tracker-scope` freeze a section scope; `--second-pass-plan` freezes a research brief) |
-| `npm run citations:plan-second-pass` | Plan a second research pass for rows that still lack support |
-| `npm run citations:campaign` | `init` creates a campaign file once; `status` reads it and counts coverage only when a draft hash matches its finalized manifest |
-| `npm run citations:apply-workbench` | Guarded dry run or write of a reviewed apply-bound draft |
-| `npm run citations:rebase-workbench` | Rebase a draft onto the current production article before apply |
-| `npm run citations:archive-production-dataset` | Snapshot the production dataset before a rollout batch |
-| `npm run citations:audit-subsections` | Read-only audit of citation coverage per subsection |
+| `bun run citations:export-workbench-task` | Export one substance's task packet (`--sections`/`--tracker-scope` freeze a section scope; `--second-pass-plan` freezes a research brief) |
+| `bun run citations:plan-second-pass` | Plan a second research pass for rows that still lack support |
+| `bun run citations:campaign` | `init` creates a campaign file once; `status` reads it and counts coverage only when a draft hash matches its finalized manifest |
+| `bun run citations:apply-workbench` | Guarded dry run or write of a reviewed apply-bound draft |
+| `bun run citations:rebase-workbench` | Rebase a draft onto the current production article before apply |
+| `bun run citations:archive-production-dataset` | Snapshot the production dataset before a rollout batch |
+| `bun run citations:audit-subsections` | Read-only audit of citation coverage per subsection |
 
 Run orchestration is `node scripts/tools/pi-citation-workflow/pi-run-manifest.mjs`
 (`$MANIFEST` below). `scripts/lib/citation-command-surface.mjs` is the
@@ -235,7 +235,7 @@ SHA-256 equals the recorded accepted hash.
 ## Applying a draft
 
 An editor, separately from any research run, may take a reviewed apply-bound
-live-task draft through `npm run citations:apply-workbench`. The command
+live-task draft through `bun run citations:apply-workbench`. The command
 enforces the full ceremony from [data credentials](../operations/data-credentials.md):
 `DATA_BACKEND=postgres`, an explicit `TARGET_POSTGRES_URL`,
 `--expected-deployment=<region>.pg.psdb.cloud/postgres`, `--allow-remote` with
@@ -244,7 +244,7 @@ enforces the full ceremony from [data credentials](../operations/data-credential
 `data:sync-production` is not a substitute. A clean dry run authorizes neither a
 write nor another target.
 
-Before a rollout batch, `npm run citations:archive-production-dataset` writes
+Before a rollout batch, `bun run citations:archive-production-dataset` writes
 `archive/citation-rollout/<dated>/{SubstanceIndex.json,manifest.json,slugs.txt}`.
 After a write, verify the public article at `https://dose.wiki/<slug>` and the
 review diagnostics at `/dev/citation-review/<slug>` on the editor host.

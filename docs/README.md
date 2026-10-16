@@ -1,10 +1,9 @@
 # dose.wiki documentation
 
-Contributor documentation for the dose.wiki repository. Root documents
-([README](../README.md), [ARCHITECTURE](../ARCHITECTURE.md),
-[CONTRIBUTING](../CONTRIBUTING.md), [AGENTS](../AGENTS.md)) are the entry
-points; everything below is the detail they link to. Source code remains
-authoritative when prose and code disagree.
+Contributor documentation for the dose.wiki repository. The root documents
+are the entry points: [README](../README.md), [ARCHITECTURE](../ARCHITECTURE.md),
+[CONTRIBUTING](../CONTRIBUTING.md), and [AGENTS](../AGENTS.md). When prose and
+source disagree, the source is right.
 
 ## Reference
 
@@ -17,10 +16,8 @@ authoritative when prose and code disagree.
 
 | Document | Purpose |
 | --- | --- |
-| [architecture/project-layout.md](architecture/project-layout.md) | Folder ownership, UI promotion rules, and local artifact hygiene |
-| [architecture/runtime-and-data.md](architecture/runtime-and-data.md) | Postgres document model, public and editor data flows, auth, and integrations |
-| [architecture/operations-and-direction.md](architecture/operations-and-direction.md) | Build strategy, quality gates, test ownership policy, known debt, and direction |
-| [architecture/auth.md](architecture/auth.md) | Auth.js, membership roles, and route protection rules for contributors |
+| [architecture/runtime-and-data.md](architecture/runtime-and-data.md) | Postgres document model, public and editor data flows, rendering and revalidation, auth, and integrations |
+| [architecture/auth.md](architecture/auth.md) | Auth.js, accounts, membership roles, and route protection |
 | [architecture/openchemlib-fork.md](architecture/openchemlib-fork.md) | Ownership, provenance, rebuild, and update contract for the vendored OpenChemLib fork |
 
 ## Decisions
@@ -36,8 +33,8 @@ authoritative when prose and code disagree.
 
 | Document | Purpose |
 | --- | --- |
-| [design/ui-kit.md](design/ui-kit.md) | Shared UI catalog, rules, accent usage, promotion criteria, and component ownership |
-| [design/visual-style-guide.md](design/visual-style-guide.md) | Brand and visual language |
+| [design/ui-kit.md](design/ui-kit.md) | Shared UI tiers, the `/dev/kit` catalog, and how the shared components behave |
+| [design/visual-style-guide.md](design/visual-style-guide.md) | Color, type, geometry, and motion tokens and where they live |
 | [design/font-swap-howto.md](design/font-swap-howto.md) | How to change the site fonts |
 | [design/category-tag-icons.md](design/category-tag-icons.md) | Category tag icon set and how to add one |
 | [design/molecule-editor.md](design/molecule-editor.md) | Molecule depiction editor design notes: OpenChemLib canvas, stereo guards, and override rows |
@@ -64,6 +61,8 @@ authoritative when prose and code disagree.
 | [workflows/trip-report-timeline.md](workflows/trip-report-timeline.md) | Lossless reshaping of flat trip reports onto the phase rail |
 | [workflows/article-source-quote-extraction.md](workflows/article-source-quote-extraction.md) | Shared contract for verbatim quote extraction from article sources |
 | [workflows/public-search.md](workflows/public-search.md) | Public search identity, localized matching, exact CAS lookup, and navigation freshness |
+| [workflows/translation-workbench.md](workflows/translation-workbench.md) | The `/dev/glossary` translation workbench: terms, interface text, articles, and publication evidence |
+| [workflows/public-language-glossaries.md](workflows/public-language-glossaries.md) | Public `/glossary` pages, locale mirrors, and reader suggestions |
 
 ## Source corpora kept under content
 

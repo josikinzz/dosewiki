@@ -13,13 +13,13 @@ and `src/schema/substance/legalStatuses.ts`.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run legality:export` | Export one substance's run packet for research |
-| `npm run legality:validate` | Validate a draft (fails on voice, status, and designation violations) |
-| `npm run legality:apply` | Guarded dry run or write of a validated draft |
-| `npm run legality:cite` | Guarded citation application for existing country rows |
-| `npm run legality:audit-subsections` | Read-only audit of live country subsections |
-| `npm run legality:audit-voice` | Report voice violations per row and field from a subsection audit |
-| `npm run legality:build-repair-drafts` | Fold reviewed repair proposals into drafts |
+| `bun run legality:export` | Export one substance's run packet for research |
+| `bun run legality:validate` | Validate a draft (fails on voice, status, and designation violations) |
+| `bun run legality:apply` | Guarded dry run or write of a validated draft |
+| `bun run legality:cite` | Guarded citation application for existing country rows |
+| `bun run legality:audit-subsections` | Read-only audit of live country subsections |
+| `bun run legality:audit-voice` | Report voice violations per row and field from a subsection audit |
+| `bun run legality:build-repair-drafts` | Fold reviewed repair proposals into drafts |
 
 Every remote read or dry run follows [data credentials](../operations/data-credentials.md)
 first. `legality:apply` and `legality:cite` reach Postgres mutations only with
@@ -48,7 +48,7 @@ Enforcement lives in code rather than in prompts:
   phrases such as `supports` and `this entry` that also occur in legal prose.
   Citation markers are stripped before matching; `status` only matches
   underscore tokens.
-- **Validator gate.** `npm run legality:validate` fails a draft on any blocking
+- **Validator gate.** `bun run legality:validate` fails a draft on any blocking
   match in a reader field, on a `status` that differs from
   `CANONICAL_STATUS_LABELS[canonicalStatus]`, and on a `designation` longer than
   40 characters or containing a comma or semicolon. `legality:apply` refuses a
@@ -64,9 +64,9 @@ This sweep produces reviewed local repairs only.
 
 ```bash
 export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<region>.pg.psdb.cloud
-npm run postgres:check-env-isolation
-npm run legality:audit-subsections -- --allow-remote --scope=all --out=tmp/legality-subsection-audit-<date>.json
-npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.json --out=tmp/legality-voice-audit-<date>.json
+bun run postgres:check-env-isolation
+bun run legality:audit-subsections -- --allow-remote --scope=all --out=tmp/legality-subsection-audit-<date>.json
+bun run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.json --out=tmp/legality-voice-audit-<date>.json
 ```
 
 1. Batch the voice-audit rows into `tmp/legality-voice-fix-<date>/inputs/batch-NN.json`
@@ -74,7 +74,7 @@ npm run legality:audit-voice -- --audit=tmp/legality-subsection-audit-<date>.jso
    reviewer or copyediting worker re-judge every hit into
    `proposals/batch-NN.json`. A `noChange` verdict with a legal-usage reason is
    a valid outcome; the regex is a lead list, not a ruling.
-2. `npm run legality:build-repair-drafts -- --voice-audit=... --proposals=... --campaign=voice-scrub-<date>`
+2. `bun run legality:build-repair-drafts -- --voice-audit=... --proposals=... --campaign=voice-scrub-<date>`
    folds accepted proposals into `runs/legality/<slug>/voice-scrub-<date>/legality-draft.json`
    using `notesRepairs`, `statusRepairs`, `designationRepairs`, and
    `instrumentRepairs`, and writes `runs/legality/_manifests/voice-scrub-<date>.json`.

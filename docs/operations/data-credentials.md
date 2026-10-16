@@ -27,8 +27,8 @@ export DATA_BACKEND=postgres
 export TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL"
 export POSTGRES_IMPORT_CONFIRM=<region>.pg.psdb.cloud
 
-npm run <command> -- <operation-args> --dry-run --allow-remote
-npm run <command> -- <operation-args> --write --allow-remote \
+bun run <command> -- <operation-args> --dry-run --allow-remote
+bun run <command> -- <operation-args> --write --allow-remote \
   --confirm-write=<operation-phrase> \
   --expected-deployment=<region>.pg.psdb.cloud/postgres
 ```
@@ -38,7 +38,7 @@ For commands that accept only a planning invocation rather than `--dry-run`, omi
 For a local rehearsal, use an explicit target:
 
 ```bash
-DATA_BACKEND=postgres npm run <command> -- <operation-args> \
+DATA_BACKEND=postgres bun run <command> -- <operation-args> \
   --target postgres://localhost:5432/dosewiki
 ```
 
@@ -60,7 +60,7 @@ The Postgres runtime needs `REPLICATION_MEDIA_BASE_URL` for correct replication 
 
 ## Schema migrations
 
-`npm run postgres:migrate` is the only production schema path. Its implementation must require an explicit `--target` or `TARGET_POSTGRES_URL`, preserve `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM` for non-loopback targets, use the fixed repository Drizzle config, reject arbitrary forwarded arguments, and support a no-write plan before execution.
+`bun run postgres:migrate` is the only production schema path. Its implementation must require an explicit `--target` or `TARGET_POSTGRES_URL`, preserve `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM` for non-loopback targets, use the fixed repository Drizzle config, reject arbitrary forwarded arguments, and support a no-write plan before execution.
 
 Preconditions: inspect generated migrations and `lib/postgres/migrations/meta/_journal.json`, run the migration's plan mode against the exact target, review pending migrations, and obtain production authorization. Expected result: only the reviewed pending migrations apply, followed by a clean schema verification. Recovery is the migration-specific forward repair or the owner-approved database recovery plan, never an ad hoc down migration.
 

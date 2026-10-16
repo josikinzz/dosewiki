@@ -39,7 +39,7 @@ Install and validate normally:
 
 ```bash
 bun install
-npm run openchemlib:verify
+bun run openchemlib:verify
 bun run verify
 bun run build
 ```
@@ -48,16 +48,16 @@ bun run build
 
 ## Fork test lane
 
-`npm run openchemlib:test` runs the package's own Vitest suite (`vendor/openchemlib/tests`): the imported upstream tests plus the DoseWiki delta tests under `vendor/openchemlib/tests/dosewiki`. The artifact manifest records this lane under `verification.testLane`.
+`bun run openchemlib:test` runs the package's own Vitest suite (`vendor/openchemlib/tests`): the imported upstream tests plus the DoseWiki delta tests under `vendor/openchemlib/tests/dosewiki`. The artifact manifest records this lane under `verification.testLane`.
 
 Prerequisite: only the package-local dev dependencies. The repository ignores npm lockfiles, so install without one:
 
 ```bash
 npm --prefix vendor/openchemlib install --ignore-scripts
-npm run openchemlib:test
+bun run openchemlib:test
 ```
 
-The lane resolves `#lib` and `#lib_debug` to the committed `dist/openchemlib.js` and `dist/openchemlib.debug.js` (see `vendor/openchemlib/vitest.config.ts`), so it exercises exactly the bundles the application ships and needs neither a JDK, GWT, nor the ignored `lib/java` intermediate. After `npm run openchemlib:build` the same lane validates the rebuilt bundles.
+The lane resolves `#lib` and `#lib_debug` to the committed `dist/openchemlib.js` and `dist/openchemlib.debug.js` (see `vendor/openchemlib/vitest.config.ts`), so it exercises exactly the bundles the application ships and needs neither a JDK, GWT, nor the ignored `lib/java` intermediate. After `bun run openchemlib:build` the same lane validates the rebuilt bundles.
 
 The delta tests fail if a local change is reverted:
 
@@ -87,9 +87,9 @@ Prepare the package-local dependencies and tools, then run:
 npm --prefix vendor/openchemlib install --ignore-scripts
 JAVA_HOME=/path/to/jdk-21 \
 GWT_HOME=/path/to/gwt-2.13.0 \
-npm run openchemlib:build
-npm run openchemlib:verify
-npm run openchemlib:test
+bun run openchemlib:build
+bun run openchemlib:verify
+bun run openchemlib:test
 ```
 
 The root build command compiles minified and debug JavaScript, bundles the CanvasEditor wrapper, copies type declarations, rebuilds resources, and updates the deterministic artifact manifest. Review every source, distributable, type, resource, and manifest diff together. Do not hand-edit committed distribution files.
@@ -104,8 +104,8 @@ There is no automatic upstream merge workflow. To evaluate a later release:
 4. Import the new source without nested Git metadata or a submodule.
 5. Reapply the smallest possible DoseWiki delta, including the fine-rotation Java field/setter, GWT export, CanvasEditor option/runtime method, and types.
 6. Update provenance, license material if required, and the modifications ledger.
-7. Rebuild through `npm run openchemlib:build`.
-8. Run `npm run openchemlib:test`, the complete molecule editor/integration tests, lint, type checking, artifact verification, and the production build.
+7. Rebuild through `bun run openchemlib:build`.
+8. Run `bun run openchemlib:test`, the complete molecule editor/integration tests, lint, type checking, artifact verification, and the production build.
 9. Manually verify coarse and fine pointer rotation in the protected editor before shipping.
 
 Do not broadly reformat imported source. A narrow delta keeps later provenance review and security comparison tractable.

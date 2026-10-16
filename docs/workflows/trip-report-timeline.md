@@ -34,18 +34,18 @@ Prose before the first timestamp becomes the introduction on its own, so a lead-
 
    ```bash
    DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<region>.pg.psdb.cloud \
-     npm run reports:format-flat -- --slug=<slug> --dry-run --allow-remote
+     bun run reports:format-flat -- --slug=<slug> --dry-run --allow-remote
    ```
 
    Done when it prints `reproduces the original exactly` and the previewed phases read the way the plan intended. A refusal instead is the next section.
 
-3. Before a write, confirm the command is production-allowlisted, obtain approval for the exact report and plan, run `npm run postgres:check-env-isolation`, and verify the dry-run target fingerprint. Use the scoped `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential; preserve freeze and confirmation gates. A refusal is a stop condition, not permission to bypass a guard.
+3. Before a write, confirm the command is production-allowlisted, obtain approval for the exact report and plan, run `bun run postgres:check-env-isolation`, and verify the dry-run target fingerprint. Use the scoped `DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE` credential; preserve freeze and confirmation gates. A refusal is a stop condition, not permission to bypass a guard.
 
 4. Apply only the separately approved plan:
 
    ```bash
    DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<region>.pg.psdb.cloud \
-     npm run reports:format-flat -- --slug=<slug> --write \
+     bun run reports:format-flat -- --slug=<slug> --write \
      --confirm-write=format-flat-trip-report --expected-deployment=<region>.pg.psdb.cloud/postgres --allow-remote
    ```
 

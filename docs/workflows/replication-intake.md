@@ -160,7 +160,7 @@ zero held items, zero unresolved required fields, and no stale live snapshot.
 
 ### 9. Canary
 
-Run `npm run postgres:check-env-isolation`, export the Postgres write
+Run `bun run postgres:check-env-isolation`, export the Postgres write
 ceremony from [data credentials](../operations/data-credentials.md), and confirm the dry run
 names target `<region>.pg.psdb.cloud/postgres`. Select a small canary covering image, video, GIF, new profile,
 existing profile, multiple effects, and explicit unknown-rights labeling. Read
@@ -238,8 +238,8 @@ are still recorded with the rights metadata scripts.
 Run the tests for the files you changed, plus:
 
 ```sh
-npm run postgres:check-env-isolation
-npm run provenance:check
+bun run postgres:check-env-isolation
+bun run provenance:check
 ```
 
 Save commands, versions, exit codes, exact artifact hashes,

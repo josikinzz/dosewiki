@@ -2,8 +2,6 @@
 
 This appendix holds the runtime, data-flow, auth, and integration details that support the root [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
-Update this file when route ownership, Postgres read/write paths, role enforcement, or third-party integration boundaries change.
-
 ## Data Architecture
 
 ### Postgres document model
@@ -518,8 +516,7 @@ reader suggestions keep their existing fresh reads and revision checks.
 The private inbox response exposes `suggestions` and `inbox` durations in
 `Server-Timing` for authenticated browser inspection.
 
-These numbers come from a one-off benchmark, since removed under the
-[test policy](operations-and-direction.md#test-policy): an isolated PGlite database
+These numbers come from a one-off benchmark, since removed, that ran against an isolated PGlite database
 with 693 glossary terms and 200 archived substance articles (7,128 source
 units). Terms are treated as approved and stored translations are synthetic
 English, so this measures a repeatable workload rather than production
@@ -722,11 +719,40 @@ Public substance routes resolve one indexed metadata row by slug, while cached c
 comparison data resolves the depiction index through `lib/data/publicData.molecules.ts`. Those
 reads and the SVG served by the three public molecule routes persist through `publicDataCache`, so
 a warm request inside the revalidate window makes no database call. A transport failure is never
-persisted: the index reads degrade to the static fallback and the image routes answer 502/503. A
-stored row uses `/api/molecules/<slug>?v=<updatedAt>`; missing rows or query failures retain the
-static `public/molecules` fallback. Editor saves revalidate the owner page and expire
+persisted. The index reads propagate it, and the image routes answer 502/503. A
+stored row uses `/api/molecules/<slug>?v=<updatedAt>`, and an article without a row has no
+depiction. Editor saves revalidate the owner page and expire
 `data-public:molecules:<slug>` plus `data-public:molecules`. The versioned image response is
 immutable, so propagation is governed by page revalidation rather than stale image bytes.
+
+## Rendering and revalidation
+
+The app mixes static routes, SSG routes with generated params, and dynamic
+routes for sign-in, the editor, and API handlers. `/dev` and API handlers stay
+dynamic. `/reports/[slug]` pre-renders known slugs through
+`generateStaticParams` and renders other slugs on demand. Use the current
+`next build` route summary for page counts.
+
+Each route module's `revalidate` export and its matching `lib/postgres/`
+publication transaction own cache behavior. `/api/save-article` writes through
+the native Postgres handlers and revalidates the affected public paths.
+
+Persistent public cache keys use an opaque digest for the Postgres target,
+never a connection URL, because Next includes those keys in revalidation
+errors. Gallery taxonomy joins drain batches and collect matching artists
+together, including during background refreshes, instead of issuing one
+indexed read per artist. The Postgres adapter pages collections and evaluates
+their filters in-process. `lib/postgres/transactionTimeouts.ts` owns pool and
+transaction bounds. A failed read surfaces as an error. It never becomes empty
+content.
+
+Sequential cached page, media-detail, and taxonomy drains opt into
+`publicDataCache`'s `awaitRefresh` barrier. Without it, a stale Next cache hit
+starts a background read and advances the cursor at once, which floods the
+four-connection pool. The barrier waits for the refresh that invocation
+started, so the 15-minute freshness policy, bounded cache entries, and Next's
+stale-on-error behavior stay intact. Other public leaves keep ordinary
+stale-while-revalidate behavior.
 
 ## Auth and Authorization
 
@@ -840,6 +866,6 @@ Rate-limit intent policies live in `lib/http/rateLimitPolicy.ts`. Routes select 
 
 ### ProtestKit reagent-test snapshot
 
-ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `npm run reagents:cache` writes a slug-keyed point-in-time snapshot to `data/third-party/protestkit/reagentTests.json`. That directory is gitignored: the dataset is used with permission and cannot be redistributed, so the snapshot lives only on the operator's workstation and `npm run reagents:import` refuses to run until it has been fetched. The import validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
+ProtestKit is an explicit offline ingestion source, not a runtime dependency. With the API owner's permission, `bun run reagents:cache` writes a slug-keyed point-in-time snapshot to `data/third-party/protestkit/reagentTests.json`. That directory is gitignored: the dataset is used with permission and cannot be redistributed, so the snapshot lives only on the operator's workstation and `bun run reagents:import` refuses to run until it has been fetched. The import validates and upserts all matched and no-match records into the indexed Postgres `reagentTests` table.
 
 Public substance route loaders read one record by canonical DoseWiki slug through `lib/data/publicData.reagents.ts`; authored `substanceIndex.reagent_testing` content remains authoritative when present. The legacy-path `src/app/api/reagent-proxy/route.ts` is retained for editor and client-preview compatibility, but it now reads Postgres and performs no ProtestKit egress. It continues to apply rate limiting, CORS origin policy, and cache headers.

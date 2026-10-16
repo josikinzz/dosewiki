@@ -1,58 +1,63 @@
-# dose.wiki Architecture
+# dose.wiki architecture
 
-This is the root current-state architecture map. Source files remain authoritative for details, and fast-changing operator procedures belong in their owning runbooks.
+This is the current-state map of the repository. When this file and the source disagree, the source is right.
 
 ## System
 
-This repository builds three Next.js application surfaces from one route tree:
+The repository builds three Next.js applications from one route tree:
 
 - public DoseWiki, built as `DOSEWIKI_BUILD_SURFACE=public` for `dose.wiki` and `www.dose.wiki`;
 - editor DoseWiki, built as `DOSEWIKI_BUILD_SURFACE=editor` for `dev.dose.wiki` and `dosewiki-admin.vercel.app`;
 - Effect Index, a separate public, read-only flavor selected by `NEXT_PUBLIC_SITE_FLAVOR=effectindex`.
 
-`scripts/build/build-surface.mjs` owns artifact identity: from a release artifact name (`public`, `editor`, `effectindex`) it derives the build surface, flavor, build directory, cron ownership, and prebuilt-upload rules that `next.config.ts`, the deploy scripts, and the build workflows read. `src/config/siteFlavor.ts` owns publication identity and route availability, normalising the flavor through that module. `src/middleware.ts` and `lib/next/flavorGatedRoutes.ts` own host and route enforcement. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. [Deployment](docs/operations/deployment.md) owns the Vercel topology and release procedure.
+`scripts/build/build-surface.mjs` owns artifact identity. From a release artifact name (`public`, `editor`, `effectindex`) it derives the build surface, flavor, build directory, cron ownership, and prebuilt-upload rules that `next.config.ts`, the deploy scripts, and the build workflows read. `src/config/siteFlavor.ts` owns publication identity and route availability. `src/middleware.ts` and `lib/next/flavorGatedRoutes.ts` enforce hosts and routes. Public and editor delivery are separate compiled artifacts, not request-time branches of one build. `bun run build` ends with `scripts/build/editor-artifact-audit.mjs`, which fails when a public artifact contains an editor-only module. [Deployment](docs/operations/deployment.md) owns the Vercel topology and release procedure.
 
 ## Runtime data
 
-PlanetScale Postgres is production runtime truth. `DATA_BACKEND=postgres` runs authored `server/` handlers in-process through `lib/postgres/runtime/`. `server/schema.ts` owns persisted document validation; the handler modules own callable contracts. `src/schema/substance.schema.ts` owns the stricter article shape.
+PlanetScale Postgres is the production runtime source of truth. `DATA_BACKEND=postgres` runs the authored `server/` handlers in-process through `lib/postgres/runtime/`. There is no alternate backend. `server/schema.ts` owns persisted document validation, and `src/schema/substance.schema.ts` owns the stricter article shape.
 
-The active repository contains only the native Postgres runtime and operator graph. [Data credentials](docs/operations/data-credentials.md) owns current targets and write gates. There is no alternate backend or environment flip; application rollback restores a previous compatible Postgres artifact and configuration.
-
-Public DoseWiki and Effect Index are read-only and carry no admin credential. Only the editor deployment may carry the write credential tier. All surfaces require `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries.
+Public DoseWiki and Effect Index are read-only and carry no admin credential. Only the editor deployment carries the write credential tier. Every surface needs `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries through `lib/runtime/dataWriteFreeze.ts`. [Data credentials](docs/operations/data-credentials.md) owns targets, credential tiers, and the production write ceremony.
 
 ## Runtime boundaries
 
-- Public pages use the App Router under `src/app/`, with static generation or ISR where declared.
-- `/glossary` and its locale mirrors share `src/features/language-glossary/GlossaryRoute.tsx` and one renderer. Translation pages include private reader suggestions; old `/glossary/<locale>` links redirect to the merged address.
-- Public data loaders live under `lib/data/` and `lib/next/`; native Postgres executes the registered handlers.
-- `lib/data/publicData.cacheTags.ts` owns pure cache tags shared by the publication contract and the Next cache adapter in `publicData.cache.ts`.
-- Protected editor routes live under `/dev`; `src/middleware.ts`, `auth.ts`, and `src/lib/auth/roles.ts` own access.
-- `lib/auth/devScreenshotViewer.ts` is a local `next dev` exception that renders `/dev` documents without an account for screenshots. It never admits an API, a mutation, or a production build.
-- Auth.js supplies identity, database membership rows supply roles, and server write capabilities enforce actor and intent.
-- `server/lib/articleWrite.ts` owns editorial article patches and their revision journal. `server/saveArticleBatch.ts` owns atomic staged publication and actor-scoped durable batch receipts. Specialized article writers and operator ingestion contracts are listed in [runtime and data](docs/architecture/runtime-and-data.md#article-write-owners).
-- The public `/api/v1` surface exposes public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints.
-- Local JSON and Markdown are migration inputs, exports, prompts, backups, or generated artifacts unless active source reads them. `data/lineage.json` owns generated-data lineage.
+- Public pages use the App Router under `src/app/`, with static generation or ISR where declared. [Runtime and data](docs/architecture/runtime-and-data.md#rendering-and-revalidation) covers rendering and cache freshness.
+- `/glossary` and its locale mirrors share `src/features/language-glossary/GlossaryRoute.tsx` and one renderer.
+- Public data loaders live under `lib/data/` and `lib/next/`. `lib/data/publicData.cacheTags.ts` owns the pure cache tags shared by the publication contract and the Next cache adapter in `lib/data/publicData.cache.ts`.
+- Protected editor routes live under `/dev`. `src/middleware.ts`, `lib/auth/authOptions.ts`, `server/lib/auth.ts`, and `src/lib/auth/roles.ts` own access. [Auth](docs/architecture/auth.md) describes accounts and roles.
+- `lib/auth/devScreenshotViewer.ts` lets a local `next dev` render `/dev` documents without an account. It never admits an API call, a mutation, or a production build.
+- `server/lib/articleWrite.ts` owns editorial article patches and their revision journal. `server/saveArticleBatch.ts` owns atomic staged publication and durable batch receipts. Other article writers are listed in [runtime and data](docs/architecture/runtime-and-data.md#article-write-owners).
+- The public `/api/v1` surface serves public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints, and [docs/api.md](docs/api.md) is the consumer contract.
+- Local JSON and Markdown under `data/` and `content/` are seeds, exports, prompts, and generated artifacts. They are runtime truth only where active source reads them.
 
-## Repository ownership
+## Repository layout
 
-| Path | Responsibility |
+| Path | Contents |
 | --- | --- |
-| `src/app/` | App Router pages and route handlers |
-| `src/features/` | Feature UI and editor modules |
-| `lib/` | Runtime, server, Postgres, auth, and Next adapters |
-| `server/` | Authored Postgres schema, handlers, and domain contracts |
-| `scripts/` | Guarded operator, migration, generation, and analysis workflows, plus `config/` (secondary tsconfig files), `tools/`, `perf/`, `eslint-plugins/`, and `deploy/` |
-| `src/data/` | Content builders, static configuration, and generated helpers |
-| `data/` | Tracked datasets, `schemas/` for the hand-maintained index files, third-party inputs, and the lineage manifest |
-| `docs/` | Contributor documentation ([index](docs/README.md)): architecture appendices, ADRs, design, operations runbooks, and editorial workflows |
+| `src/app/` | App Router pages, layouts, metadata routes, and API route handlers (`src/app/api/`) |
+| `src/features/` | Feature UI and editor workflows; the editor kit is `src/features/dev/components/` |
+| `src/components/` | Shared UI: `ui/` primitives, `common/` recipes, `layout/` page chrome, `pages/` route-owned public pages ([UI kit](docs/design/ui-kit.md)) |
+| `src/schema/` | Canonical Zod schemas, including `substance.schema.ts` and the adapter `substance/contract.ts` |
+| `src/data/` | Content loaders, static configuration, and generated schema helpers (`src/data/schema/`) |
+| `src/lib/`, `src/utils/`, `src/hooks/` | Client and shared helpers: auth roles, HTTP route wrappers, routing, SEO, slugs, hooks |
+| `src/styles/`, `src/theme/` | Global CSS partials, theme tokens, and the appearance palette sources ([visual style guide](docs/design/visual-style-guide.md)) |
+| `src/i18n/` | Locale registry, message providers, and generated catalog manifests |
+| `lib/` | Server-side runtime: `postgres/` (runtime, schema, migrations), `data/` (public reads), `auth/`, `http/`, `next/`, `runtime/` |
+| `server/` | Authored Postgres handlers, the document schema `schema.ts`, and `lib/` domain helpers |
+| `scripts/` | Operator, generation, migration, build, deploy, lint, and security tooling ([scripts README](scripts/README.md)) |
+| `data/` | Tracked open datasets, third-party inputs, and the generated-data manifest `lineage.json` ([data README](data/README.md)) |
+| `content/` | Authored prose and prompts loaded by code ([content README](content/README.md)) |
+| `public/` | Static assets, fonts, icons, the molecule pack, and the archival `SubstanceIndex.json` |
+| `vendor/openchemlib/` | The repository-owned OpenChemLib fork ([fork contract](docs/architecture/openchemlib-fork.md)) |
+| `docs/` | Contributor documentation ([index](docs/README.md)) |
 
-Use [project layout](docs/architecture/project-layout.md) for detailed ownership, [runtime and data](docs/architecture/runtime-and-data.md) for the data model and flows, [operations and direction](docs/architecture/operations-and-direction.md) for quality gates, and [scripts README](scripts/README.md) for script-wide execution rules.
+`package.json` is the command catalog. `scripts/lib/local-artifact-hygiene-policy.mjs` decides which ignored local artifacts `bun run hygiene:clean` may remove.
 
-## Change rules
+## Generated code
 
-- Keep public links on ordinary App Paths. `/preview` exists only for permanent compatibility redirects.
-- Keep public artifacts free of editorial browser modules and credentials.
-- Preserve explicit data targets, intent credentials, write confirmations, the global freeze, read-only flavor boundaries, and generated-data lineage.
-- Update this map when runtime ownership or build topology changes. Update the owning runbook rather than copying branch-specific credential or release detail here.
+`data/lineage.json` records every generated artifact with its producer, inputs, `editPolicy`, and `refreshCommand`. `bun run provenance:check` validates the manifest paths and retention. It does not check that outputs are fresh. The generators with drift checks are:
 
-Expected result after an architecture change: source ownership, this map, and each owning guide agree. Recovery is to restore the previous local source and documentation snapshot; no documentation change proves or performs a deployment.
+- `bun run generate:postgres-schema` reads `server/schema.ts` and writes `lib/postgres/schema.generated.ts` and `lib/postgres/runtime/dataModel.ts`. `bun run postgres:check-schema` fails in CI when either is stale.
+- `bun run generate:postgres-functions` reads `lib/postgres/runtime/functionOwnership.json` and the owned `server/*.ts` modules, and writes `lib/postgres/runtime/functions.generated.ts` and `lib/postgres/runtime/api.generated.ts`. `scripts/build/check-function-references.mjs` fails in CI when a call site names a function the checkout does not define.
+- `bun run postgres:verify-migrations` fails in CI when `lib/postgres/migrations/` drifts from the schema.
+
+`bun run generate:schema` writes `src/data/schema/` from `src/schema/substance.schema.ts`. Nothing checks it for drift. `vendor/openchemlib/dist/` is rebuilt from the fork source, never edited by hand.
