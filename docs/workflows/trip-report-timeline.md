@@ -11,7 +11,6 @@ Reshaping it moves text and edits none of it. `scripts/reports/` makes that **lo
 | `scripts/reports/flatTripReportTimeline.mjs` | The formatter, its inverse, and `assertLossless`. Pure; no Postgres. |
 | `scripts/reports/format-flat-trip-report.mjs` | The command. Dry run by default; snapshots the original, writes, re-proves. |
 | `scripts/reports/timeline-plans/<slug>.json` | The **plan**: your phase boundaries, one file per report. |
-| `scripts/reports/flatTripReportTimeline.test.mjs` | `node --test`; covers the round trip and every refusal. |
 
 The formatter keeps timestamps exactly as the author typed them, `~8:40 PM` and `After 10:40 PM` stay as written, alongside the corpus's `T+0:25` style. An untimed paragraph continues the entry above it.
 

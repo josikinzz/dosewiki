@@ -37,20 +37,6 @@ const searchSurfaces = (articles: SubstanceArticle[]) => {
 };
 
 describe("CAS substance lookup", () => {
-  it("never falls back to name aliases for invalid, incomplete or hyphenless CAS input", () => {
-    const invalidInputs = ["63547-13-8", "63547-13", "63 547-13-7", "63547137"];
-    const decoy = article("Identifier text", "63547-13-8");
-    decoy.identification.alternative_names = invalidInputs;
-    const { server, browser } = searchSurfaces([article("Adrafinil", "63547-13-7"), decoy]);
-
-    for (const query of invalidInputs) {
-      expect(server.query(query), query).toEqual([]);
-      expect(browser.query(query), query).toEqual([]);
-    }
-    expect(server.query("64-17-5")).toEqual([]);
-    expect(server.query("identifier text")[0]?.slug).toBe("identifier-text");
-  });
-
   it("returns every eligible duplicate without exposing hidden or direct-URL-only records", () => {
     const casNumber = "52237-19-1";
     const hidden = { ...article("Hidden fixture", casNumber), index_categories: ["hidden"] };

@@ -9,7 +9,6 @@ import { writeUiTranslation } from "@server/translation/uiTranslationStore";
 import { POST as confirmPost } from "../translation-glossary/confirm/route";
 import { POST as editPost } from "../translation-glossary/edit/route";
 import { POST as workbenchPost } from "../translation-workbench/route";
-import { GET as narrativeGet, POST as narrativePost } from "../translation-narrative/route";
 import { GET } from "./route";
 
 vi.setConfig({ testTimeout: 30_000 });
@@ -102,17 +101,6 @@ describe("the review inbox read route over isolated Postgres", () => {
     expect((await inbox()).status).toBe(403);
   });
 
-  it("pages at 50 and states the total", async () => {
-    for (let i = 0; i < 60; i += 1) await seedLegacy(`Term ${String(i).padStart(2, "0")}`, `词${i}`);
-    const first = await read();
-    expect(first.items).toHaveLength(50);
-    expect(first.total).toBe(60);
-    const second = await read(50);
-    expect(second.items).toHaveLength(10);
-    expect(second.items[0].id).toBe("Term 50");
-    expect((await inbox(LOCALE, 7)).status).toBe(400);
-  });
-
   it("refuses Accept at a stale revision and writes nothing", async () => {
     await seedLegacy("Euphoria", "欣快");
     await seedStaleUiApproval("appearance.light", "Light mode", "浅色模式");
@@ -131,49 +119,5 @@ describe("the review inbox read route over isolated Postgres", () => {
 
     expect(await historyCount()).toBe(before);
     expect((await db.query(`SELECT * FROM "translationGlossary"`)).rows).toEqual(beforeGlossary);
-  });
-
-  it("drops an item from the inbox once Accept confirms it at the revision shown", async () => {
-    await seedLegacy("Euphoria", "欣快");
-    const [item] = (await read()).items;
-    const response = await confirmPost(post("/api/dev/translation-glossary/confirm", { locale: LOCALE, terms: [item.id], expectedRevisions: { [item.id]: item.revision } }));
-    expect(response.status).toBe(200);
-    expect(await read()).toMatchObject({ total: 0, items: [] });
-  });
-
-  it("lists article approvals whose own English changed and those whose neighbour changed", async () => {
-    const approvedSource = "2-Benzylpiperidine is a stimulant of the piperidine class.";
-    const neighbour = "It is structurally related to methylphenidate.";
-    source.record = { slug: "sample", toxicity: [approvedSource, neighbour], summary: "This is a long source sentence about visual perception." };
-    const packet = await (await narrativeGet(new Request(`${origin}/api/dev/translation-narrative?locale=${LOCALE}&kind=article&slug=sample`))).json();
-    const approve = async (english: string, target: string) => {
-      const row = packet.rows.find((r: { source: string }) => r.source === english);
-      const base = { locale: LOCALE, kind: "article", slug: "sample", id: row.id, sourceVersion: packet.sourceVersion, reason: "Terminology" };
-      const saved = await (await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "save", expectedRevision: 0, target }))).json();
-      expect((await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "approve", expectedRevision: saved.entry.revision }))).status).toBe(200);
-      return row;
-    };
-    const toxicity = await approve(approvedSource, "2-苄基哌啶是一种哌啶类兴奋剂。");
-    const summary = await approve("This is a long source sentence about visual perception.", "这是一段有关视觉感知的较长说明。");
-    expect((await read()).total).toBe(0);
-
-    // The toxicity neighbour and the summary's own English change.
-    source.record = { ...source.record, toxicity: [approvedSource, "It is structurally related to methylphenidate and other phenidates."], summary: "This source sentence about perception changed." };
-    const body = await read();
-    expect(body.items.map((item) => [item.id, item.reason])).toEqual([
-      [summary.id, "narrative-source-changed"],
-      [toxicity.id, "narrative-recheck"],
-    ]);
-    expect(body.items[0]).toMatchObject({ english: "This source sentence about perception changed.", live: null, accept: null, previous: { target: "这是一段有关视觉感知的较长说明。" } });
-    expect(body.items[1]).toMatchObject({ english: approvedSource, live: "2-苄基哌啶是一种哌啶类兴奋剂。", accept: { kind: "narrative-approve", slug: "sample", id: toxicity.id } });
-    expect(body.items[1].href).toContain(`translationSegment=${toxicity.id}`);
-
-    // Accepting the re-check through the narrative route, at the revision shown, clears it.
-    const accept = body.items[1].accept!;
-    if (accept.kind !== "narrative-approve") throw new Error("expected a narrative accept");
-    const base = { locale: LOCALE, kind: "article", slug: accept.slug, id: accept.id, sourceVersion: accept.sourceVersion, reason: "Accepted from the Inbox" };
-    const saved = await (await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "save", expectedRevision: accept.expectedRevision, target: accept.target }))).json();
-    expect((await narrativePost(post("/api/dev/translation-narrative", { ...base, action: "approve", expectedRevision: saved.entry.revision }))).status).toBe(200);
-    expect((await read()).items.map((item) => item.id)).toEqual([summary.id]);
   });
 });

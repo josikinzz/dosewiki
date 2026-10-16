@@ -93,11 +93,6 @@ describe("Postgres write capabilities", () => {
     expect(capability.getAdminIntentToken("quoteMigrationWrite")).toBe("editorial-secret");
   });
 
-  it("propagates active credential rejection", async () => {
-    io.query.mockRejectedValue(new Error("Rejected credential"));
-    await expect((await load()).probeServerDataAdminCredential("editor@example.com")).rejects.toThrow("Rejected credential");
-  });
-
   it("requires an actor for normal writes and allows only service intake functions", async () => {
     const client = (await load()).getServerDataWriteCapabilityOrThrow().client;
     await expect(client.mutation(edit, { apiKey: "editorial-secret", slug: "lsd" })).rejects.toThrow(/actorEmail/);

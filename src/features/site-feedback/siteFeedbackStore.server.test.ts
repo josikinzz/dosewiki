@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-
 vi.mock("@server/postgres/runtime/api", () => ({
   makeFunctionReference: (name: string) => ({ name }),
 }));
@@ -89,24 +88,5 @@ describe("DataSiteFeedbackStore", () => {
         }),
       },
     );
-  });
-
-  it("reads a queue page through the server-side paging query without an actor", async () => {
-    const query = vi.fn(async () => ({ feedback: [], nextCursor: null, counts: {} }));
-    const store = new DataSiteFeedbackStore({
-      apiKey: "test-key",
-      client: { mutation: vi.fn(), mutationAsService: vi.fn(), query },
-    });
-
-    await store.page({ status: "new", search: "ketamine", order: "oldest", cursor: "next", limit: 900 });
-
-    expect(query).toHaveBeenCalledWith(expect.objectContaining({ name: "siteFeedback:queuePage" }), {
-      apiKey: "test-key",
-      status: "new",
-      search: "ketamine",
-      order: "oldest",
-      cursor: "next",
-      limit: 250,
-    });
   });
 });

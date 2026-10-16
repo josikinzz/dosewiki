@@ -565,7 +565,6 @@ their own transaction: `withPublicationOutbox` in
 `lib/postgres/publicationOutboxStore.ts` for reviewed-section publication and
 for translation completion, which enqueues with its `translation-queue` receipt
 already recorded. `server/publicationRecovery.ts` is the runtime store adapter;
-`lib/next/publicationOutbox.memory.ts` is the in-memory adapter tests use.
 `src/app/api/cron/publication-delivery/route.ts` drives delivery with the signed
 HTTP transport and awaits `enqueueTranslationJobs` in
 `lib/translation/segmentStore.ts` before dispatch.

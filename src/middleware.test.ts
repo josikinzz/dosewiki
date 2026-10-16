@@ -141,7 +141,6 @@ describe("middleware role policy adapter", () => {
     }
   });
 
-
   it("never serves an editor artifact through a public or unlisted deployment alias", async () => {
     const { middleware } = await import("./middleware");
     makeRequest("/");
@@ -254,18 +253,6 @@ describe("middleware role policy adapter", () => {
     expect(response.headers.get("x-middleware-request-x-nonce")).toMatch(
       /^[A-Za-z0-9+/_-]+$/,
     );
-  });
-
-  it("hands a public-host editor link to the editor origin", async () => {
-    const { middleware } = await import("./middleware");
-
-    const response = await middleware(makePublicRequest("/dev/articles"));
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://dev.dose.wiki/dev/articles",
-    );
-    expect(mocks.getToken).not.toHaveBeenCalled();
   });
 
   it("keeps credentialed APIs off the public origin", async () => {

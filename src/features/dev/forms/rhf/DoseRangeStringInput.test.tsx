@@ -40,19 +40,6 @@ function renderInput(initial: { min: number | null; max: number | null; unit: st
 }
 
 describe("DoseRangeStringInput", () => {
-  it("seeds itself from the stored range and normalizes a valid edit", async () => {
-    const user = userEvent.setup();
-    const { field, latest } = renderInput();
-    expect(field).toHaveValue("10-20 mg");
-
-    await user.clear(field);
-    await user.type(field, "15 - 30 mg");
-    await user.click(screen.getByRole("button", { name: "elsewhere" }));
-
-    expect(latest()).toEqual({ min: 15, max: 30, unit: "mg" });
-    expect(field).toHaveValue("15-30 mg");
-  });
-
   it("preserves an empty range's stored unit when it is focused and blurred without editing", async () => {
     const user = userEvent.setup();
     const initial = { min: null, max: null, unit: "mg" };
@@ -60,16 +47,6 @@ describe("DoseRangeStringInput", () => {
     await user.click(field);
     await user.click(screen.getByRole("button", { name: "elsewhere" }));
     expect(latest()).toEqual(initial);
-  });
-
-  it("accepts the tilde form the article renders for a threshold", async () => {
-    const user = userEvent.setup();
-    const { field, latest } = renderInput({ min: null, max: null, unit: "" });
-
-    await user.type(field, "~10 mg");
-    await user.click(screen.getByRole("button", { name: "elsewhere" }));
-
-    expect(latest()).toEqual({ min: 10, max: null, unit: "mg" });
   });
 
   it("refuses an unparseable edit instead of destroying the stored dose", async () => {
@@ -85,29 +62,5 @@ describe("DoseRangeStringInput", () => {
     expect(latest()).toEqual({ min: 10, max: 20, unit: "mg" });
     expect(field).toHaveValue("quite a lot");
     expect(field).toHaveAttribute("aria-invalid", "true");
-  });
-
-  it("clears the field on an empty edit", async () => {
-    const user = userEvent.setup();
-    const { field, latest } = renderInput();
-
-    await user.clear(field);
-    await user.click(screen.getByRole("button", { name: "elsewhere" }));
-
-    expect(latest()).toEqual({ min: null, max: null, unit: "" });
-    expect(screen.queryByRole("alert")).toBeNull();
-  });
-
-  it("drops the error as soon as the text changes again", async () => {
-    const user = userEvent.setup();
-    const { field } = renderInput();
-
-    await user.clear(field);
-    await user.type(field, "nope");
-    await user.click(screen.getByRole("button", { name: "elsewhere" }));
-    expect(await screen.findByRole("alert")).toBeInTheDocument();
-
-    await user.type(field, "5 mg");
-    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

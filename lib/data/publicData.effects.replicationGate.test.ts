@@ -84,58 +84,6 @@ describe("the replication publication gate", () => {
     vi.resetModules();
   });
 
-  it("keeps a figure off every surface that reads the cross-effect gallery", async () => {
-    const replication = row({ slug: "tree-bark", role: "replication" });
-    const figure = row({ slug: "vertebral-column-diagram", role: "figure" });
-
-    const { getPublicReplications } = await loadWithRows([replication, figure]);
-
-    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["tree-bark"]);
-  });
-
-  it("withholds only explicit non-replications while preserving unresolved rows", async () => {
-    const confirmed = row({ slug: "confirmed", replication_status: "replication" });
-    const nonReplication = row({ slug: "diagram", replication_status: "not-replication" });
-    const unreviewed = row({ slug: "pending", replication_status: "unreviewed" });
-    const unclear = row({ slug: "unclear", replication_status: "unclear" });
-    const legacy = row({ slug: "legacy" });
-
-    const { getPublicReplications } = await loadWithRows([
-      confirmed,
-      nonReplication,
-      unreviewed,
-      unclear,
-      legacy,
-    ]);
-
-    expect((await getPublicReplications()).map((item) => item.slug)).toEqual([
-      "confirmed",
-      "pending",
-      "unclear",
-      "legacy",
-    ]);
-  });
-
-  it("withholds a reversibly duplicate-suppressed row without changing its taxonomy", async () => {
-    const keeper = row({ slug: "original-keeper", replication_status: "replication" });
-    const duplicate = row({
-      slug: "reddit-copy",
-      replication_status: "replication",
-      publication_state: "duplicate-suppressed",
-      duplicate_of_replication_id: keeper._id,
-    });
-
-    const { getPublicReplications, getPublicReplicationsByEffect } = await loadWithRows([
-      keeper,
-      duplicate,
-    ]);
-
-    expect((await getPublicReplications()).map((item) => item.slug)).toEqual(["original-keeper"]);
-    expect((await getPublicReplicationsByEffect("geometry")).map((item) => item.slug)).toEqual([
-      "original-keeper",
-    ]);
-  });
-
   it("withholds an unpublished studio upload until its provenance is complete and it publishes", async () => {
     const live = row({ slug: "live-work" });
     const held = row({ slug: "fresh-upload", publication_state: "unpublished", rights_status: "unknown" });

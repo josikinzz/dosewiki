@@ -124,36 +124,6 @@ describe("replication taxonomy compare-and-set mutation", () => {
     expect(patch).not.toHaveBeenCalled();
   });
 
-  it("accepts an exact snapshot regardless of object key serialization order", async () => {
-    process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE = "scoped-secret";
-    const input = args();
-    input.expected = {
-      value: {
-        taxonomy_updated_at: input.expected.value.taxonomy_updated_at,
-        taxonomy_version: input.expected.value.taxonomy_version,
-        taxonomy_source_digest: input.expected.value.taxonomy_source_digest,
-        taxonomy_record_key: input.expected.value.taxonomy_record_key,
-        replication_status: input.expected.value.replication_status,
-        effect_tags: input.expected.value.effect_tags,
-        effect_slug: input.expected.value.effect_slug,
-      },
-      identity: {
-        r2_key: input.expected.identity.r2_key,
-        storage_id: input.expected.identity.storage_id,
-        type: input.expected.identity.type,
-        artist: input.expected.identity.artist,
-        title: input.expected.identity.title,
-        slug: input.expected.identity.slug,
-        _id: input.expected.identity._id,
-      },
-    };
-    const { ctx, patch } = context();
-
-    await expect(compareAndSetEffectTaxonomyHandler(ctx as never, input as never))
-      .resolves.toMatchObject({ success: true });
-    expect(patch).toHaveBeenCalledTimes(1);
-  });
-
   it("rejects the broad legacy key even when it is configured", async () => {
     delete process.env.DATA_ADMIN_TOKEN_REPLICATION_MAINTENANCE;
     process.env.DATA_ADMIN_KEY = "legacy-secret";

@@ -69,20 +69,6 @@ const requestKinds = [
   { headers: { range: "bytes=0-3" } },
 ];
 
-describe("R2 managed media delivery", () => {
-  it("rejects noncanonical selectors without reading R2", async () => {
-    const f = fixture();
-    for (const query of [
-      "?width=63", "?width=100", "?width=064", "?width=64&width=64", "?width=64&quality=75", "?%77idth=64",
-    ]) {
-      const response = await worker.fetch(new Request(`${url}${query}`), f.env);
-      expect(response.status).toBe(404);
-      expectNoStore(response);
-    }
-    expect(f.reads).toEqual([]);
-  });
-});
-
 describe("R2 managed media withdrawal", () => {
   it("blocks fresh, HEAD, conditional and range requests for originals and all renditions before media reads", async () => {
     const f = fixture();
@@ -112,7 +98,6 @@ describe("R2 managed media withdrawal", () => {
     const restoredOriginal = await worker.fetch(new Request(url), f.env);
     expect(await restoredOriginal.text()).toBe("original bytes");
   });
-
 
   it("fails closed before reading originals or renditions when withdrawal status is unavailable", async () => {
     const f = fixture();

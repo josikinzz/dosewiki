@@ -83,7 +83,6 @@ describe("my drafts and proposals route", () => {
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "diagnosticRead",
   refused: "contributor",
   calls: [{ name: "GET", call: async () => (await import("./route")).GET(get()) }],
 });

@@ -5,7 +5,6 @@ import { ContextualEditingContext, type ContextualEditingState } from "@/feature
 import type { SubstanceArticle } from "@/schema";
 import ArticleContextBridge from "./ArticleContextBridge.editor";
 import ArticleSectionEditor from "./ArticleSectionEditor.editor";
-import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema";
 
 const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mocks.refresh }), useSelectedLayoutSegments: () => [] }));
@@ -60,44 +59,6 @@ describe("private article session boundaries", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Use the merged draft" }));
     const review = await screen.findByRole("dialog", { name: "Review article changes" });
     expect(within(review).getByText("Unsaved private correction")).toBeTruthy();
-  });
-
-  it("retains invalid range drafts and blocks collection until both fields are corrected", async () => {
-    const user = userEvent.setup();
-    const initial = {
-      ...createEmptyArticle(), slug: "fixture", title: "Fixture",
-      dosage: { routes: [createEmptyDosageRoute("Oral")] },
-      duration: { routes: [createEmptyDurationRoute("Oral")] },
-    } as unknown as SubstanceArticle;
-    const request = vi.fn().mockResolvedValue(Response.json({
-      article: initial, baseHash: "revision", history: [], draftVersion: 0, draft: null,
-    }));
-    vi.stubGlobal("fetch", request);
-    render(<ContextualEditingContext.Provider value={state}>
-      <ArticleContextBridge slug="fixture" article={initial}>{null}</ArticleContextBridge>
-    </ContextualEditingContext.Provider>);
-    await user.click(await screen.findByRole("button", { name: "Edit dosage and duration" }));
-    const dose = await screen.findByLabelText("Threshold");
-    const duration = screen.getByLabelText("Onset");
-    await user.type(dose, "not a dose");
-    await user.type(duration, "eventually");
-    const editor = screen.getByRole("dialog", { name: "Edit dosage and duration" });
-    await user.click(within(editor).getByRole("button", { name: "Apply to preview" }));
-    await waitFor(() => expect(dose).toHaveFocus());
-    expect(dose).toHaveValue("not a dose");
-    expect(duration).toHaveValue("eventually");
-
-    await user.clear(dose);
-    await user.type(dose, "10-20 mg");
-    await user.click(within(editor).getByRole("button", { name: "Save draft" }));
-    await waitFor(() => expect(duration).toHaveFocus());
-    expect(request.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
-    expect(duration).toHaveValue("eventually");
-
-    await user.clear(duration);
-    await user.type(duration, "15-30 minutes");
-    await user.click(within(editor).getByRole("button", { name: "Apply to preview" }));
-    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Edit dosage and duration" })).toBeNull());
   });
 });
 

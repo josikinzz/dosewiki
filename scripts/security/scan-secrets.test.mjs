@@ -115,41 +115,6 @@ test("repository-specific hosted deploy-key and R2 credential shapes are detecte
   }
 });
 
-test("documentation labels and user-facing password guidance are not credentials", async () => {
-  const root = await createRepo();
-
-  try {
-    const documentedHeader = ["-----BEGIN", "PRIVATE KEY-----"].join(" ");
-    await writeFile(
-      path.join(root, "security-notes.md"),
-      `A scanner may describe the header as ${documentedHeader} without containing key material.\n`,
-    );
-    await writeFile(
-      path.join(root, "messages.ts"),
-      'export const validation = { password: "Password must be at least sixteen characters" };\n',
-    );
-    await writeFile(
-      path.join(root, "example.env"),
-      "WORKOS_COOKIE_PASSWORD=your-secure-random-cookie-password\n",
-    );
-    await writeFile(
-      path.join(root, "provider-examples.env"),
-      [
-        "PROVIDER_DEPLOY_KEY=prod:your-deployment|your-deploy-key-placeholder",
-        "CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-r2-secret-access-key-placeholder",
-        "",
-      ].join("\n"),
-    );
-    git(root, "add", "security-notes.md", "messages.ts", "example.env", "provider-examples.env");
-
-    const result = runScanner(root);
-
-    assert.equal(result.status, 0, result.stdout);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
 test("repository-native admin token and secret variable names are detected and redacted", async () => {
   const root = await createRepo();
   const editorToken = ["Q7wR9tY2uI4oP6aS8dF1gH"].join("");

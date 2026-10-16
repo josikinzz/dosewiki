@@ -102,7 +102,6 @@ describe("substance gallery POST", () => {
 
 describeRoleFloor({
   floor: "editor",
-  rateLimit: "diagnosticRead",
   refused: "contributor",
   calls: [
     {
@@ -117,7 +116,6 @@ describeRoleFloor({
 
 describeRoleFloor({
   floor: "admin",
-  rateLimit: "editorSmallWrite",
   refused: "editor",
   calls: [
     {

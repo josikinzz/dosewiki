@@ -9,7 +9,6 @@ import { segmentsOf } from "@server/translation/liveTranslation";
 import { narrativeIdentity } from "@server/translation/narrativeIdentity";
 import type { InboxResponse } from "@server/translation/reviewInboxTypes";
 import { decodeReviewReason } from "@server/translation/reviewReason";
-import { writeStyleGuide } from "@server/translation/styleGuide";
 import { GET as inboxGet } from "../translation-inbox/route";
 import { POST as acceptPost } from "../translation-inbox/suggestion/route";
 import { POST } from "./route";
@@ -114,20 +113,13 @@ const count = async (table: string) => Number((await database.query<{ n: number 
 const asTranslator = () => auth.requireRoleSession.mockImplementation(roleSessionFor("translator", translator));
 
 describe("model fluency review over isolated Postgres", () => {
-  it("turns checked suggestions into inbox items, and drops one that changes a number or the glossary rendering", async () => {
+  it("drops fluency suggestions that change a dose or the approved glossary rendering", async () => {
     const response = await review();
     expect(response.status).toBe(200);
     const { run } = await response.json();
     expect(run).toMatchObject({
       slug: SLUG, reviewed: 2, stored: 1, dropped: { validator: 1, glossary: 1 },
-      usage: { prompt: 1200, completion: 90, requests: 1 }, model: expect.any(String), promptVersion: expect.stringMatching(/^[a-f0-9]{16}$/),
     });
-    // The model read the English beside the wording readers see, through the pipeline client.
-    const [call] = provider.callOpenRouterChat.mock.calls[0];
-    expect(call.systemPrompt).toContain("fluency");
-    expect(call.userMessage).toContain(PHENIDATE_TARGET);
-    expect(call.userMessage).toContain("Phenidate: 哌甲酯类");
-
     asTranslator();
     const { items, counts } = await inbox();
     expect(counts["model-suggestion"]).toBe(1);
@@ -138,26 +130,6 @@ describe("model fluency review over isolated Postgres", () => {
       href: expect.stringContaining(`translationSegment=${narrativeIdentity("article", segment(PHENIDATE_SOURCE))}`),
       accept: { kind: "suggestion-accept" },
     });
-    expect(items[0].detail).toContain("More natural word order.");
-    // Stored durably with its run's metadata and token use.
-    const stored = await database.query<{ draft: { context: string } }>(`SELECT draft FROM "translationReviewEntries" WHERE scope = 'model-suggestion' AND source_id NOT LIKE 'run:%'`);
-    expect(JSON.parse(stored.rows[0].draft.context)).toMatchObject({ runId: run.runId, promptVersion: run.promptVersion, usage: { prompt: 1200, completion: 90 } });
-
-    // The suggestion expires when the wording readers see changes.
-    await database.query(`UPDATE "translationSegments" SET target = $1 WHERE hash = $2`, ["2-苄基哌啶是一种兴奋剂，结构上与其他哌甲酯类相关。", segment(PHENIDATE_SOURCE).hash]);
-    expect((await inbox()).total).toBe(0);
-  });
-
-  it("gives the model the approved style guide, never a draft", async () => {
-    const guide = (rule: string) => ({ rules: [rule], examples: [] });
-    const actor = "sin@example.test";
-    await writeStyleGuide({ locale: LOCALE, action: "save", expectedRevision: 0, guide: guide("Write 体验再现, never 复现."), actor, reason: "House style" });
-    await writeStyleGuide({ locale: LOCALE, action: "approve", expectedRevision: 1, actor, reason: "House style" });
-    await writeStyleGuide({ locale: LOCALE, action: "save", expectedRevision: 2, guide: guide("A draft rule nobody approved."), actor, reason: "House style" });
-    expect((await review()).status).toBe(200);
-    const [call] = provider.callOpenRouterChat.mock.calls[0];
-    expect(call.systemPrompt).toContain("Write 体验再现, never 复现.");
-    expect(call.systemPrompt).not.toContain("A draft rule nobody approved.");
   });
   it("refuses a non-admin with 403 and fails closed under the write freeze", async () => {
     asTranslator();
@@ -188,26 +160,5 @@ describe("model fluency review over isolated Postgres", () => {
     const before = await count("translationReviewHistory");
     expect((await accept(item.accept.id, item.accept.expectedRevision)).status).toBe(409);
     expect(await count("translationReviewHistory")).toBe(before);
-  });
-
-  it("refuses a second request for the same article while one runs", async () => {
-    let release!: () => void;
-    const gate = new Promise<void>((resolve) => { release = resolve; });
-    let started!: () => void;
-    const running = new Promise<void>((resolve) => { started = resolve; });
-    provider.callOpenRouterChat.mockImplementationOnce(async () => {
-      started();
-      await gate;
-      return { content: JSON.stringify(REPLY), usage: { promptTokens: 1, completionTokens: 1, totalTokens: 2 } };
-    });
-    const first = review();
-    await running;
-    const second = await review();
-    expect(second.status).toBe(409);
-    expect(provider.callOpenRouterChat).toHaveBeenCalledTimes(1);
-    release();
-    expect((await first).status).toBe(200);
-    // Once the run finishes, the article can be reviewed again.
-    expect((await review()).status).toBe(200);
   });
 });

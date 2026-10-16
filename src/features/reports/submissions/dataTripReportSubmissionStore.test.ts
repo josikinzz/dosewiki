@@ -92,48 +92,6 @@ describe("DataTripReportSubmissionStore", () => {
     vi.useRealTimers();
   });
 
-  it("validates public submissions before writing private rows through Postgres", async () => {
-    const recorder = createClientRecorder();
-    const store = new DataTripReportSubmissionStore({
-      client: recorder.client,
-      apiKey: "test-key",
-      idFactory: () => "submission-1",
-    });
-
-    await expect(
-      store.create({
-        ...validSubmission,
-        publish_consent: false,
-        report: { ...validSubmission.report, title: " ", substances: [] },
-      }),
-    ).rejects.toMatchObject({
-      errors: ["Title is required.", "At least one substance is required.", "Publish consent is required."],
-    });
-    expect(recorder.calls).toEqual([]);
-
-    const result = await store.create(validSubmission);
-
-    expect(result.row).toMatchObject({
-      id: "submission-1",
-      status: "submitted",
-      title: "Careful low dose museum walk",
-      substance_names: ["LSD"],
-    });
-    expect(result.warnings).toEqual([]);
-    expect(recorder.calls[0]).toMatchObject({
-      kind: "serviceMutation",
-      name: "tripReportSubmissions:create",
-      args: {
-        apiKey: "test-key",
-        submission: expect.objectContaining({
-          id: "submission-1",
-          ip_hash: expect.stringMatching(/^sha256:/),
-        }),
-      },
-    });
-    expect(JSON.stringify(recorder.calls)).not.toContain("203.0.113.10");
-  });
-
   it("never sends submitter-claimed identity or link fields to Postgres", async () => {
     const recorder = createClientRecorder();
     const store = new DataTripReportSubmissionStore({

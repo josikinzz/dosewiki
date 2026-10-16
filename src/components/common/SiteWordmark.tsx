@@ -12,7 +12,6 @@ import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
 interface SiteWordmarkProps {
   /** Classes for the accented run. Defaults to the shared heading-accent token. */
   accentClassName?: string;
-  /** Injected for tests; defaults to the ambient build-time flavor. */
   config?: SiteFlavorConfig;
 }
 

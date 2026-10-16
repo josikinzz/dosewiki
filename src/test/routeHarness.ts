@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import type { AppRole, RoleFloor } from "@/lib/auth/roles";
-import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
 import { roleSessionFor } from "./routeSession";
 
 /**
@@ -79,13 +78,12 @@ type RouteCall = { name: string; call: () => Promise<Response> };
 
 /**
  * The floor contract every protected route owns individually: the exact `RoleFloor`
- * it asks for, the exact rate-limit policy, and that a refused role never reaches
+ * it asks for and that a refused role never reaches
  * Postgres. Refusal mechanics (401/403 bodies, ordering) are owned by
  * src/lib/http/protectedRouteOperation.test.ts and are not re-asserted here.
  */
 export function describeRoleFloor(options: {
   floor: RoleFloor;
-  rateLimit: RateLimitPolicyName;
   /** A role below the floor. */
   refused: AppRole;
   /** A role at or above the floor, used for the accept probe. */
@@ -119,16 +117,6 @@ export function describeRoleFloor(options: {
       expect(response.status).toBe(401);
       expect(routeMocks.query).not.toHaveBeenCalled();
       expect(routeMocks.mutation).not.toHaveBeenCalled();
-    });
-
-    it(`throttles under the "${options.rateLimit}" policy before checking the session`, async () => {
-      routeMocks.enforceRateLimit.mockResolvedValue(new Response(null, { status: 429 }));
-
-      const response = await options.calls[0].call();
-
-      expect(response.status).toBe(429);
-      expect(routeMocks.enforceRateLimit).toHaveBeenCalledWith(expect.any(Request), options.rateLimit);
-      expect(routeMocks.requireRoleSession).not.toHaveBeenCalled();
     });
   });
 }

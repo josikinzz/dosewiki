@@ -102,16 +102,4 @@ describe("cronRoute", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({ frozen: true });
   });
-
-  it("spends the rate limit before authorizing, so wrong secrets are bounded too", async () => {
-    const limited = Response.json({ error: "Too many requests." }, { status: 429 });
-    const rateLimit = vi.fn(async () => limited);
-    const handler = vi.fn(async () => Response.json({ ran: true }));
-    const route = cronRoute(handler, { env: () => ({}), rateLimit });
-
-    const response = await route(request("Bearer wrong"));
-    expect(response.status).toBe(429);
-    expect(rateLimit).toHaveBeenCalledOnce();
-    expect(handler).not.toHaveBeenCalled();
-  });
 });

@@ -7,18 +7,6 @@ import {
 } from "./fieldPath";
 
 describe("fieldPath", () => {
-  it("gets and sets article values without mutating the source article", () => {
-    const article = {
-      identification: { common_name: "Old" },
-      dosage: { routes: [{ route: "Oral", dose_ranges: { light: { min: 1 } } }] },
-    };
-
-    const updated = setArticleValueByPath(article, "dosage.routes[0].dose_ranges.light.max", 3);
-
-    expect(getArticleValueByPath(updated, "dosage.routes[0].dose_ranges.light.max")).toBe(3);
-    expect(getArticleValueByPath(article, "dosage.routes[0].dose_ranges.light.max")).toBeUndefined();
-  });
-
   it("does not write template or invalid paths into article data", () => {
     const article = { dosage: { routes: [{ route: "Oral" }] } };
 

@@ -7,8 +7,7 @@
  * (`server/lib/publicationOutbox.ts`, `lib/postgres/articlePublication.ts`) and
  * translation completion (`lib/translation/segmentStore.ts`) are callers that
  * enqueue in their own transaction; `/api/cron/publication-delivery` drives
- * `deliverDuePublications` with the signed HTTP transport. Tests drive the same
- * policy through `publicationOutbox.memory.ts`.
+ * `deliverDuePublications` with the signed HTTP transport.
  *
  * Nothing here touches a database or the network: stores and transports are
  * ports, so the policy is identical in every adapter.

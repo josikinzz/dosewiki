@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 
-import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "@/config/siteFlavor";
+import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { useT } from "@/i18n/client";
 import dosewikiLogoAssetImport from "../../assets/dosewiki-logo.svg";
 
@@ -13,8 +13,6 @@ interface DoseWikiLogoProps {
   alt?: string;
   ariaHidden?: boolean;
   className?: string;
-  /** Injected for tests; defaults to the ambient build-time flavor. */
-  config?: SiteFlavorConfig;
   draggable?: boolean;
   height: number;
   style?: CSSProperties;
@@ -40,15 +38,14 @@ export function DoseWikiLogo({
   alt,
   ariaHidden = false,
   className,
-  config = SITE_FLAVOR_CONFIG,
   draggable = false,
   height,
   style,
   width,
 }: DoseWikiLogoProps) {
   const t = useT();
-  const logoSource = config.logo.markPath ?? dosewikiLogoSource;
-  const resolvedAlt = t(alt ?? config.logo.alt);
+  const logoSource = SITE_FLAVOR_CONFIG.logo.markPath ?? dosewikiLogoSource;
+  const resolvedAlt = t(alt ?? SITE_FLAVOR_CONFIG.logo.alt);
 
   const logoStyle = {
     ...style,

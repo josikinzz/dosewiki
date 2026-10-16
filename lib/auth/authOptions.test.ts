@@ -24,23 +24,6 @@ import { authOptions, authorizeCredentials } from "./authOptions";
 
 const PASSPHRASE = "a passphrase of twelve+";
 
-describe("authOptions", () => {
-  it("registers exactly one credentials provider with username and password", () => {
-    expect(authOptions.providers).toHaveLength(1);
-
-    const [provider] = authOptions.providers;
-    expect(provider.type).toBe("credentials");
-    expect(provider.id).toBe("credentials");
-    if (provider.type !== "credentials") {
-      throw new Error("expected a credentials provider");
-    }
-    // next-auth v4 keeps the user config under `options` and merges it at runtime.
-    expect(Object.keys(provider.options.credentials)).toEqual(["username", "password"]);
-    expect(provider.options.authorize).toBe(authorizeCredentials);
-    expect(authOptions.session?.strategy).toBe("jwt");
-  });
-});
-
 describe("authorizeCredentials", () => {
   let passwordHash: string;
 

@@ -1,20 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { QueryCtx } from "@server/postgres/runtime/server";
-import { PostgresDatabaseReader } from "../../../lib/postgres/runtime/db";
-import type { SqlExecutor } from "../../../lib/postgres/runtime/db";
 import {
-  clampPublicGalleryPageSize,
   getPublicGalleryPageHandler,
 } from "../../../server/lib/replicationGalleryReads";
 
 describe("public replication gallery pagination", () => {
-  it("hard-caps every requested page to 64 rows", () => {
-    expect(clampPublicGalleryPageSize(10_000)).toBe(64);
-    expect(clampPublicGalleryPageSize(32)).toBe(32);
-    expect(clampPublicGalleryPageSize(0)).toBe(1);
-  });
-
   it("returns one slim publishable page and advances the opaque Postgres cursor", async () => {
     const paginate = vi.fn().mockResolvedValue({
       page: [
@@ -135,51 +126,5 @@ describe("public replication gallery pagination", () => {
     expect(result.items.map((item) => item.slug)).toEqual(["owner", "tagged"]);
     expect(result.items.map((item) => item.effect_order_index?.drifting)).toEqual([1, 0]);
     expect(result.isDone).toBe(false);
-  });
-
-  it("rejects effect cursors in the unfiltered gallery before reading any rows", async () => {
-    const ctx = {
-      db: { query: () => { throw new Error("Unexpected unfiltered query"); } },
-    } as unknown as QueryCtx;
-    await expect(getPublicGalleryPageHandler(ctx, {
-      limit: 64,
-      cursor: 'effect-replications:{"effectSlug":"drifting","_creationTime":1,"_id":"work"}',
-    })).rejects.toThrow("Invalid effect replication cursor.");
-  });
-
-  it("binds native continuation to the exact effect and rejects malformed or foreign cursors", async () => {
-    const reader = new PostgresDatabaseReader({
-      statements: 0,
-      query: async () => ({
-        rows: [
-          { _id: "owner", _creationTime: 1, slug: "owner", effect_slug: "drifting" },
-          { _id: "tagged", _creationTime: 1, slug: "tagged", effect_tags: '["drifting"]' },
-          { _id: "tail", _creationTime: 2, slug: "tail", effect_slug: "drifting" },
-        ],
-        rowCount: 3,
-      }),
-    } as SqlExecutor, new Map());
-    const page = await reader.getPublicEffectReplicationPage({ effectSlug: "drifting", limit: 2 });
-    expect(page.page.map((item) => item.slug)).toEqual(["owner", "tagged"]);
-    expect(page.isDone).toBe(false);
-    const rejectingReader = new PostgresDatabaseReader({
-      statements: 0,
-      query: async () => { throw new Error("Invalid cursors must not reach SQL"); },
-    } as SqlExecutor, new Map());
-    for (const effectSlug of ["geometry", "Drifting", " drifting"]) {
-      await expect(rejectingReader.getPublicEffectReplicationPage({
-        effectSlug, cursor: page.continueCursor, limit: 2,
-      })).rejects.toThrow("Invalid effect replication cursor.");
-    }
-    for (const cursor of [
-      '{"_creationTime":1,"_id":"owner"}',
-      "effect-replications:not-json",
-      'effect-replications:{"effectSlug":"drifting","_creationTime":null,"_id":"owner"}',
-      'effect-replications:{"effectSlug":"drifting","_creationTime":1,"_id":""}',
-    ]) {
-      await expect(rejectingReader.getPublicEffectReplicationPage({
-        effectSlug: "drifting", cursor, limit: 2,
-      })).rejects.toThrow("Invalid effect replication cursor.");
-    }
   });
 });

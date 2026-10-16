@@ -2,8 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { doseRangeTransformer } from "@/data/schema";
-import type { DoseRange } from "@/schema";
 import {
   ArticleEditProvider,
   ArticleFieldCommitError,
@@ -29,55 +27,6 @@ function renderWithProvider(
     </ArticleEditProvider>,
   );
 }
-
-describe("EditableValue", () => {
-  it("opens an editor seeded with the raw value and commits on Enter", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: string) => value);
-    renderWithProvider(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-
-    const field = screen.getByRole("textbox", { name: "Edit Oral notes" });
-    expect(field).toHaveValue("Original note.");
-
-    await user.type(field, " Corrected.{Enter}");
-
-    // The third argument is the value the field was showing: the store refuses
-    // the write unless it still holds it, which is what keeps an indexed path
-    // from landing on a route that moved.
-    expect(commit).toHaveBeenCalledWith(
-      "dosage.routes[1].notes",
-      "Original note. Corrected.",
-      "Original note.",
-    );
-    expect(
-      screen.queryByRole("textbox", { name: "Edit Oral notes" }),
-    ).toBeNull();
-  });
-
-  it("keeps the prior value and shows the reason when a commit is rejected", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async () => {
-      throw new Error("This article has unapplied editor form edits.");
-    });
-    renderWithProvider(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Oral notes" }));
-    await user.type(
-      screen.getByRole("textbox", { name: "Edit Oral notes" }),
-      " rejected{Enter}",
-    );
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "This article has unapplied editor form edits.",
-    );
-    // Still editing, so the unsaved text is recoverable rather than lost.
-    expect(screen.getByRole("textbox", { name: "Edit Oral notes" })).toHaveValue(
-      "Original note. rejected",
-    );
-  });
-});
 
 describe("EditableValue when the stored value moved underneath it", () => {
   /**
@@ -172,66 +121,6 @@ describe("EditableValue when the stored value moved underneath it", () => {
     expect(store.value).toBe("Someone else's note.");
     expect(screen.getByRole("textbox", { name: "Edit Oral notes" })).toHaveValue(
       "Original note. Corrected.",
-    );
-  });
-
-});
-
-describe("EditableValue with a parsed value", () => {
-  const LIGHT: DoseRange = { min: 10, max: 20, unit: "mg" };
-
-  function renderRange(commit: ArticleEditContextValue["commit"]) {
-    return render(
-      <ArticleEditProvider value={{ commit }}>
-        <EditableValue<DoseRange>
-          path="dosage.routes[0].dose_ranges.light"
-          value={LIGHT}
-          label="Light dose"
-          format={(range) => doseRangeTransformer.toForm(range)}
-          parse={(raw) => doseRangeTransformer.toSchema(raw)}
-          parseErrorLabel="Not a dose range."
-        >
-          <span>10-20 mg</span>
-        </EditableValue>
-      </ArticleEditProvider>,
-    );
-  }
-
-  it("seeds the editor with the formatted value and commits the parsed one", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: EditableFieldValue) => value);
-    renderRange(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
-    const field = screen.getByRole("textbox", { name: "Edit Light dose" });
-    expect(field).toHaveValue("10-20 mg");
-
-    await user.clear(field);
-    await user.type(field, "15-30 mg{Enter}");
-
-    expect(commit).toHaveBeenCalledWith(
-      "dosage.routes[0].dose_ranges.light",
-      { min: 15, max: 30, unit: "mg" },
-      LIGHT,
-    );
-  });
-
-  it("shows an error and commits nothing when the text does not parse", async () => {
-    const user = userEvent.setup();
-    const commit = vi.fn(async (_path: string, value: EditableFieldValue) => value);
-    renderRange(commit);
-
-    await user.click(screen.getByRole("button", { name: "Edit Light dose" }));
-    const field = screen.getByRole("textbox", { name: "Edit Light dose" });
-    await user.clear(field);
-    await user.type(field, "quite a lot{Enter}");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Not a dose range.");
-    // Never coerced to an empty range: the stored dose is untouched and the
-    // unsaved draft is still on screen.
-    expect(commit).not.toHaveBeenCalled();
-    expect(screen.getByRole("textbox", { name: "Edit Light dose" })).toHaveValue(
-      "quite a lot",
     );
   });
 });

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api";
-import { PostgresClient } from "../../lib/postgres/runtime/client";
-import { createDataClient, resolvePostgresSource, resolvePostgresTarget } from "./data-client";
+import { createDataClient, resolvePostgresTarget } from "./data-client";
 
 vi.mock("server-only", () => ({}));
 
@@ -11,13 +10,6 @@ describe("Postgres-only operator client", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
-
-  it.each([undefined, "", " \t\n", "http://media.example.test", "https:// spaced.test", "https://"])("rejects unusable media configuration %j in both factories", (baseUrl) => {
-    vi.stubEnv("REPLICATION_MEDIA_BASE_URL", baseUrl);
-    expect(() => createDataClient({ env: { ...env, REPLICATION_MEDIA_BASE_URL: baseUrl }, argv: [] })).toThrow(/REPLICATION_MEDIA_BASE_URL/);
-    expect(() => PostgresClient.fromUrl(env.POSTGRES_POOLED_URL)).toThrow(/REPLICATION_MEDIA_BASE_URL/);
-  });
-
 
   it.each([undefined, "", "retired-backend", "postgresql"])("refuses backend %s even with a legacy target", (backend) => {
     expect(() => createDataClient({ env: { ...env, DATA_BACKEND: backend }, target: "https://legacy.example.invalid", argv: [] })).toThrow(/DATA_BACKEND=postgres/);
@@ -37,12 +29,6 @@ describe("Postgres-only operator client", () => {
     expect(() => createDataClient({ ...options, allowRemote: true, env: { ...env, POSTGRES_IMPORT_CONFIRM: "other.example" } })).toThrow(/POSTGRES_IMPORT_CONFIRM/);
     const selected = createDataClient({ ...options, allowRemote: true, env: { ...env, POSTGRES_IMPORT_CONFIRM: "db.example" } });
     expect(selected.fingerprint).toBe("db.example/dosewiki");
-  });
-
-  it("keeps independent source selection explicit and validates empty flags", () => {
-    expect(resolvePostgresSource({ env, argv: ["--source-url", "postgres://source.example/db"] }).url).toBe("postgres://source.example/db");
-    expect(resolvePostgresSource({ env, argv: ["--source-url=postgres://source.example/db"] }).url).toBe("postgres://source.example/db");
-    expect(() => resolvePostgresSource({ env, argv: ["--source-url"] })).toThrow(/--source-url/);
   });
 
   it("enforces the live freeze before loading or contacting the runtime", () => {

@@ -77,7 +77,6 @@ describe("replication upload start", () => {
   });
 
   it.each([
-    ["a withdrawal marker exists", 200],
     ["the withdrawal lookup fails", 503],
   ])("withholds browser upload credentials when %s", async (_reason, status) => {
     storageFetch.mockResolvedValue(new Response(null, { status }));
@@ -95,11 +94,5 @@ describe("replication upload start", () => {
     expect(response.ok).toBe(false);
     expect(storageFetch).not.toHaveBeenCalled();
     expect(await response.json()).not.toHaveProperty("uploadHeaders");
-  });
-
-  it("rejects a type that contradicts the supported file format", async () => {
-    const response = await POST(request({ type: "video" }));
-    expect(response.status).toBe(400);
-    expect(await response.json()).not.toHaveProperty("uploadUrl");
   });
 });

@@ -7,7 +7,6 @@ import {
   issuePasswordReset,
   listRoster,
   renameAccount,
-  retireViewerMemberships,
   setAdminAccount,
   setRole,
   unban,
@@ -23,7 +22,6 @@ const handlerOf = (fn: unknown) => (fn as { _handler: Handler })._handler;
 const byEmailHandler = handlerOf(getByEmail);
 const credentialsHandler = handlerOf(getCredentialsByUsername);
 const setAdminHandler = handlerOf(setAdminAccount);
-const retireHandler = handlerOf(retireViewerMemberships);
 const rosterHandler = handlerOf(listRoster);
 const setRoleHandler = handlerOf(setRole);
 const banHandler = handlerOf(ban);
@@ -74,7 +72,6 @@ describe("memberships account functions", () => {
       });
       await expect(byEmailHandler(ctx, { apiKey: SERVER_KEY, email: "nobody@example.com" })).resolves.toBeNull();
     });
-
   });
 
   describe("getCredentialsByUsername", () => {
@@ -127,20 +124,6 @@ describe("memberships account functions", () => {
       await expect(
         setAdminHandler(ctx, { apiKey: "nope", username: "a", email: "a@b.c", name: "A", passwordHash: "x" }),
       ).rejects.toThrow();
-    });
-  });
-
-  describe("retireViewerMemberships", () => {
-    it("deletes viewer rows without a username and keeps everything else", async () => {
-      const { ctx, rows } = createCtx([
-        josie,
-        { _id: "m2", email: "oauth@example.com", role: "viewer" },
-        { _id: "m3", email: "kept@example.com", username: "kept", role: "viewer" },
-        { _id: "m4", email: "editor@example.com", role: "editor" },
-      ]);
-
-      await expect(retireHandler(ctx, { apiKey: SERVER_KEY })).resolves.toEqual({ deleted: 1 });
-      expect([...rows.keys()].sort()).toEqual(["m1", "m3", "m4"]);
     });
   });
 

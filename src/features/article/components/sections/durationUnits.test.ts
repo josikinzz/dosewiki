@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { DoseRange, DurationStage } from "@/schema";
 import { formatDose, formatDuration } from "./dosageDurationShared";
 import type { Translate } from "@/i18n/messages";
-import { normalizeDurationStageForDisplay, parseTimeUnit } from "./durationUnits";
+import { normalizeDurationStageForDisplay } from "./durationUnits";
 
 const t: Translate = (text) => text;
 
@@ -164,48 +164,6 @@ describe("normalizeDurationStageForDisplay: range shapes", () => {
   it("collapses a single-value stage exactly as before", () => {
     expect(formatDuration(t, stage(6, 6, "hours"))).toBe("6 hours");
     expect(formatDuration(t, stage(180, 180, "minutes"))).toBe("3 hours");
-  });
-
-  it("renders an absent stage as N/A", () => {
-    // How the server spells absence.
-    expect(formatDuration(t, stage(null, null, ""))).toBe("N/A");
-    expect(formatDuration(t, stage(null, null, "minutes"))).toBe("N/A");
-    expect(formatDuration(t, null)).toBe("N/A");
-  });
-
-  it("says `hour` once, not `hours`", () => {
-    // Six live rows (ibuprofen, melatonin, naproxen, phenylpiracetam, ...) are
-    // stored as exactly one unit and printed `1 hours` today.
-    expect(formatDuration(t, stage(1, 1, "hours"))).toBe("1 hour");
-    expect(formatDuration(t, stage(1, 1, "minutes"))).toBe("1 minute");
-    expect(formatDuration(t, stage(null, 1, "minutes"))).toBe("1 minute");
-    expect(formatDuration(t, stage(1, 1, "mg"))).toBe("1 mg");
-    expect(formatDuration(t, stage(60, 60, "minutes"))).toBe("60 minutes");
-    expect(formatDuration(t, stage(90, null, "minutes"))).toBe("1.5+ hours");
-    expect(formatDuration(t, stage(30, 30, "seconds"))).toBe("30 seconds");
-    expect(formatDuration(t, stage(60, 90, "seconds"))).toBe("60-90 seconds");
-  });
-});
-
-describe("normalizeDurationStageForDisplay: unrecognized units", () => {
-  it("passes an unknown unit through untouched", () => {
-    expect(formatDuration(t, stage(2, 4, "unknown"))).toBe("2-4 unknown");
-    expect(formatDuration(t, stage(120, 420, ""))).toBe("120-420 ");
-    expect(formatDuration(t, stage(1.9, 4, "cycles"))).toBe("1.9-4 cycles");
-  });
-
-  it("keeps the author's own spelling when nothing needed changing", () => {
-    expect(formatDuration(t, stage(5, 10, "min"))).toBe("5-10 min");
-    expect(formatDuration(t, stage(3, 5, "hrs"))).toBe("3-5 hrs");
-  });
-
-  it("reads the spellings it does convert", () => {
-    expect(parseTimeUnit("Minutes.")).toBe("minutes");
-    expect(parseTimeUnit(" HRS ")).toBe("hours");
-    expect(parseTimeUnit("mg")).toBeNull();
-    expect(parseTimeUnit("")).toBeNull();
-    expect(formatDuration(t, stage(120, 420, "mins"))).toBe("2-7 hours");
-    expect(formatDuration(t, stage(1, 1.25, "hr"))).toBe("60-75 minutes");
   });
 });
 

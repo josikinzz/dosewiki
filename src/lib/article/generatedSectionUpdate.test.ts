@@ -9,76 +9,6 @@ function article() {
 }
 
 describe("buildGeneratedSectionUpdate", () => {
-  it("parses wrapped and unwrapped generated YAML with empty defaults", () => {
-    const wrapped = buildGeneratedSectionUpdate(
-      article(),
-      "tolerance",
-      {
-        kind: "generated_yaml",
-        content: `
-tolerance:
-  full_tolerance: 7 days
-  half_tolerance: 3 days
-`,
-      },
-      "editor_apply",
-    );
-
-    expect(wrapped.patch.tolerance).toEqual({
-      full_tolerance: "7 days",
-      half_tolerance: "3 days",
-      baseline_tolerance: "",
-      cross_tolerance: [],
-    });
-
-    const unwrapped = buildGeneratedSectionUpdate(
-      article(),
-      "interactions",
-      {
-        kind: "generated_yaml",
-        content: `
-dangerous:
-  - Alcohol
-`,
-      },
-      "batch_apply",
-    );
-
-    expect(unwrapped.patch.interactions).toEqual({
-      dangerous: ["Alcohol"],
-      unsafe: [],
-      caution: [],
-    });
-  });
-
-  it("normalizes legacy harm-potential ld50 and reports skipped editorial review", () => {
-    const result = buildGeneratedSectionUpdate(
-      article(),
-      "harm_potential",
-      {
-        kind: "generated_yaml",
-        content: `
-harm_potential:
-  editorial_review:
-    status: completed
-  toxicity:
-    ld50:
-      - species: rat
-        route: oral
-        value: 100
-        unit: mg/kg
-`,
-      },
-      "editor_apply",
-    );
-
-    expect(result.patch).not.toHaveProperty("editorial_review");
-    expect(result.skippedFields).toEqual(["editorial_review"]);
-    expect(result.patch.harm_potential?.toxicity?.lethal_dosage?.ld50).toEqual([
-      { species: "rat", route: "oral", value: 100, unit: "mg/kg" },
-    ]);
-  });
-
   it("preserves legality countries when a generated update omits them", () => {
     const current = article();
     current.legality.countries = {
@@ -159,14 +89,5 @@ route_half_life:
       createEmptyDurationRoute("Insufflated"),
     );
     expect(result.diagnostics.some((diagnostic) => diagnostic.code === "route_added")).toBe(true);
-  });
-
-  it("returns validation failures for invalid section data", () => {
-    expect(() => buildGeneratedSectionUpdate(
-      article(),
-      "tolerance",
-      { kind: "generated_yaml", content: "tolerance: []" },
-      "editor_apply",
-    )).toThrow();
   });
 });

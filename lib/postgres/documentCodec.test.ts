@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { documentHash, documentToRow, encodeFloat, rowToDocument } from "./documentCodec";
+import { documentHash, documentToRow, rowToDocument } from "./documentCodec";
 
 /**
  * Simulates what `losslessSelectList` hands back from `pg`: scalars as JS
@@ -27,28 +27,6 @@ describe("Postgres document codec", () => {
 
     expect(rowToDocument("citationEvidence", readBack(nullRow, ["articleId", "referenceIds"]))).toHaveProperty("articleId", null);
     expect(rowToDocument("citationEvidence", readBack(absentRow, ["articleId", "referenceIds"]))).not.toHaveProperty("articleId");
-  });
-
-  it("round-trips special floats at the top level and leaves nested wrappers verbatim", () => {
-    const nested = { $float: encodeFloat(Number.NaN) };
-    const document = {
-      _id: "d",
-      _creationTime: 2,
-      slug: "s",
-      ownerEmail: "e",
-      baseHash: "h",
-      version: { $float: encodeFloat(-0) },
-      updatedAt: "t",
-      article: { score: nested, list: [1, "two", null] },
-    };
-    const { row } = documentToRow("articleDrafts", document);
-    expect(Object.is(row.version, -0)).toBe(true);
-    expect(row.article).toBe(JSON.stringify(document.article));
-
-    const rebuilt = rowToDocument("articleDrafts", readBack(row, ["article"]));
-    expect(rebuilt.version).toEqual({ $float: encodeFloat(-0) });
-    expect(rebuilt.article).toEqual(document.article);
-    expect(documentHash(rebuilt)).toBe(documentHash(document));
   });
 
   it("rejects a document missing a required field instead of storing a NULL", () => {

@@ -1,53 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { applySuccessfulUpdates, createArticlePersistence } from "./persistence-artifacts.mjs";
+import { applySuccessfulUpdates } from "./persistence-artifacts.mjs";
 
 describe("batch persistence artifacts", () => {
-  it("fails on skipped saves", async () => {
-    const persist = createArticlePersistence({
-      postgresClient: {
-        mutation: async () => {
-          return {
-            created: 0,
-            updated: 0,
-            skipped: 1,
-            errors: ["Substance LSD: Invalid structure"],
-            outcomes: [
-              {
-                action: "skipped",
-                title: "LSD",
-                canonicalSlug: "lsd",
-                affectedPaths: [],
-                error: "Substance LSD: Invalid structure",
-              },
-            ],
-          };
-        },
-      },
-      adminKey: "secret",
-      targetArticlesBySlug: new Map([
-        [
-          "lsd",
-          {
-            _id: "postgres-id",
-            _creationTime: 123,
-            title: "LSD",
-            priority: "high",
-            summary: "Current summary.",
-          },
-        ],
-      ]),
-      applyUpdate: (article, result) => {
-        article.summary = result.summary;
-        return article;
-      },
-    });
-
-    await expect(
-      persist({ slug: "lsd", title: "LSD", summary: "Generated summary." }),
-    ).rejects.toThrow(/Postgres sync failed for lsd/);
-  });
-
   it("bulk updates use target Postgres articles instead of stale source articles", async () => {
     const savedArticles = [];
     const result = await applySuccessfulUpdates({

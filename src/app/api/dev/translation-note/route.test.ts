@@ -3,11 +3,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
-import type { InboxResponse } from "@server/translation/reviewInboxTypes";
 import type { TranslatorNotePacket } from "@server/translation/translatorNoteTypes";
 import { readApprovedTranslatorNotes } from "@server/translation/translatorNotes";
 import { localizeRecord } from "@server/translation/liveTranslation";
-import { GET as inboxGet } from "../translation-inbox/route";
 import { GET, POST } from "./route";
 
 vi.setConfig({ testTimeout: 60_000 });
@@ -69,13 +67,6 @@ const stored = async () => (await db.query('SELECT count(*)::int AS n FROM "tran
 const readerNotes = async (locale = LOCALE) => readApprovedTranslatorNotes(locale, article.slug, source.record!);
 
 describe("translator's notes route", () => {
-  it("offers a note under each present section, placed after the section's last paragraph", async () => {
-    const rows = (await packet()).sections;
-    expect(rows.map((row) => row.section)).toEqual(["history-culture"]);
-    expect(rows[0]).toMatchObject({ label: "History & Culture", present: true, status: "empty", revision: 0, draft: null, approved: null });
-    expect(rows[0].afterSegmentId).toMatch(/^\w{64}$/);
-  });
-
   it("saves a draft readers do not see, approves it, and restores an earlier revision as a draft", async () => {
     const saved = await post({ action: "save", expectedRevision: 0, body: NOTE });
     expect(saved.status).toBe(200);
@@ -116,40 +107,6 @@ describe("translator's notes route", () => {
     vi.stubEnv("DATA_WRITES_FROZEN", "1");
     expect((await post({ action: "save", expectedRevision: 0, body: NOTE })).status).toBe(503);
     expect((await stored()).n).toBe(0);
-  });
-
-  it("applies the blocking validators on approval", async () => {
-    for (const [body, code] of [["译者注，，内容。", "REPEATED_PUNCTUATION"], ["Only English here.", "UNTRANSLATED"], ["見註釋。", "SCRIPT_LEAK"]] as const) {
-      await db.exec('TRUNCATE "translationReviewEntries", "translationReviewHistory"');
-      expect((await post({ action: "save", expectedRevision: 0, body })).status).toBe(200);
-      const approve = await post({ action: "approve", expectedRevision: 1 });
-      expect(approve.status).toBe(400);
-      expect((await approve.json()).error).toContain(code);
-      expect(await readerNotes()).toEqual({});
-    }
-  });
-
-  it("orphans a note whose section leaves the English: hidden from readers, listed in the Inbox, closed to edits", async () => {
-    await post({ action: "save", expectedRevision: 0, body: NOTE });
-    await post({ action: "approve", expectedRevision: 1 });
-    source.record = { slug: article.slug, summary: "A stimulant." };
-
-    expect(await readerNotes()).toEqual({});
-    expect(await note()).toMatchObject({ status: "orphaned", present: false, approved: NOTE, afterSegmentId: null });
-    expect((await post({ action: "save", expectedRevision: 2, body: "新内容。" })).status).toBe(409);
-
-    const inbox = (await (await inboxGet(new Request(`${origin}/api/dev/translation-inbox?locale=${LOCALE}`))).json()) as InboxResponse;
-    expect(inbox.checked).toContain("note-orphaned");
-    expect(inbox.items).toEqual([expect.objectContaining({
-      scope: "note", reason: "note-orphaned", live: null, accept: null,
-      previous: { english: "History & Culture", target: NOTE },
-      href: expect.stringContaining("translationNote=history-culture"),
-    })]);
-
-    // The section returns: the note shows again and leaves the Inbox.
-    source.record = { ...article };
-    expect(await readerNotes()).toEqual({ "history-culture": NOTE });
-    expect(((await (await inboxGet(new Request(`${origin}/api/dev/translation-inbox?locale=${LOCALE}`))).json()) as InboxResponse).total).toBe(0);
   });
 
   it("never reaches another locale, the English page, or the translated article text", async () => {

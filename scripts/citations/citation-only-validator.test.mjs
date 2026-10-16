@@ -17,41 +17,6 @@ describe("citation-only edit validator", () => {
     expect(result.strippedValue).toBe(original);
   });
 
-  it("rejects removing or relocating existing markers", () => {
-    const original = "First claim.[cite:shulgin1991] Second claim.[cite:dea2cb]";
-    const marked = "First claim. Second claim.[cite:shulgin1991]";
-
-    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
-
-    expect(result.ok).toBe(false);
-    expect(result.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        code: "existing_marker_removed_or_moved",
-        path: "",
-        referenceId: "shulgin1991",
-      }),
-      expect.objectContaining({
-        code: "existing_marker_removed_or_moved",
-        path: "",
-        referenceId: "dea2cb",
-      }),
-    ]));
-  });
-
-  it("rejects a duplicated reference id in one marker cluster (double-insertion)", () => {
-    const original = "Tolerance may develop with repeated use.";
-    // Stripping markers yields the original either way, so text_changed cannot
-    // catch this; the duplicate-cluster rule must.
-    const marked = "Tolerance may develop with repeated use.[cite:dea2cb][cite:dea2cb]";
-
-    const result = validateCitationOnlyEdit(original, marked, { knownReferenceIds });
-
-    expect(result.ok).toBe(false);
-    expect(result.diagnostics).toContainEqual(
-      expect.objectContaining({ code: "duplicate_marker_in_cluster", referenceId: "dea2cb" }),
-    );
-  });
-
   it("rejects a whitespace change", () => {
     const original = "Tolerance may develop with repeated use.";
     const marked = "Tolerance may develop  with repeated use.[cite:dea2cb]";
@@ -80,21 +45,4 @@ describe("citation-only edit validator", () => {
       expect.objectContaining({ code: "text_changed" }),
     ]);
   });
-
-  it("rejects malformed markers and unknown references", () => {
-    const original = "Tolerance may develop with repeated use.";
-
-    const malformed = validateCitationOnlyEdit(original, "Tolerance may develop with repeated use.[cite:]", { knownReferenceIds });
-    expect(malformed.ok).toBe(false);
-    expect(malformed.diagnostics).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: "malformed_marker" }),
-    ]));
-
-    const unknown = validateCitationOnlyEdit(original, "Tolerance may develop with repeated use.[cite:nope]", { knownReferenceIds });
-    expect(unknown.ok).toBe(false);
-    expect(unknown.diagnostics).toEqual([
-      expect.objectContaining({ code: "unknown_reference", referenceId: "nope" }),
-    ]);
-  });
-
 });

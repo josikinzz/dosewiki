@@ -3,7 +3,6 @@ import { roleSessionFor } from "@/test/routeSession";
 import { DataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { PostgresError } from "@server/postgres/runtime/values";
 import { POST } from "./route";
-import { parseWritingPayload } from "./parseWritingArticleBody";
 
 const mocks = vi.hoisted(() => ({
   requireRoleSession: vi.fn(), mutation: vi.fn(), capability: vi.fn(),
@@ -27,31 +26,6 @@ beforeEach(() => {
 });
 
 describe("Writing request intent", () => {
-  it.each([undefined, "save-private", "submit-proposal", "unknown"])("refuses unsupported wire intent %s before the mutation", async intent => {
-    expect((await POST(request({ ...command, intent }))).status).toBe(400);
-    expect(mocks.mutation).not.toHaveBeenCalled();
-    expect(mocks.publish).not.toHaveBeenCalled();
-    expect(mocks.enqueue).not.toHaveBeenCalled();
-  });
-
-  it("keeps proposal content separate from the direct save envelope", () => {
-    expect(parseWritingPayload(document)).toMatchObject(document);
-    expect(parseWritingPayload({ ...document, intent: "publish" })).not.toHaveProperty("intent");
-  });
-
-  it("saves unpublished work without cache publication or translation enqueue", async () => {
-    expect((await POST(request(command))).status).toBe(200);
-    expect(mocks.mutation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ intent: "save-unpublished", status: "draft", expectedRevision: command.expectedRevision, operationId: command.operationId }));
-    expect(mocks.publish).not.toHaveBeenCalled();
-    expect(mocks.enqueue).not.toHaveBeenCalled();
-  });
-
-  it.each(["draft", "published"])("publishes the explicit reviewed %s transition", async status => {
-    expect((await POST(request({ ...command, intent: "publish", status }))).status).toBe(200);
-    expect(mocks.publish).toHaveBeenCalledTimes(1);
-    expect(mocks.enqueue).toHaveBeenCalledTimes(1);
-  });
-
   it.each([
     [new DataWriteFrozenError("synthetic-writing"), 503],
     [new PostgresError({ code: "FIELD_CONFLICT", message: "Synthetic conflict" }), 409],

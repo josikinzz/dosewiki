@@ -331,7 +331,6 @@
   "src/styles/utilities-theme.css": 29,
   "src/styles/utilities-typography.css": 3,
   "src/test/fixtures/accentAppearanceGrid.ts": 21,
-  "src/test/fixtures/devArticleHydration.ts": 1,
   "src/test/setup.ts": 5,
   "src/theme/accents.ts": 18,
   "src/theme/accentStylesheet.ts": 4,

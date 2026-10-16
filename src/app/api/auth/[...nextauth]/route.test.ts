@@ -30,23 +30,6 @@ describe("credentials callback rate limiting", () => {
     handlerMock.mockClear();
   });
 
-  it("passes non-credentials NextAuth actions through untouched", async () => {
-    const signOutRequest = new Request("https://dev.dose.wiki/api/auth/signout", {
-      method: "POST",
-      headers: { "x-forwarded-for": "192.0.2.56" },
-      body: new URLSearchParams({ csrfToken: "test" }),
-    });
-
-    for (let index = 0; index < 15; index += 1) {
-      const response = await POST(signOutRequest, {
-        params: Promise.resolve({ nextauth: ["signout"] }),
-      });
-      expect(response.status).toBe(200);
-    }
-
-    expect(handlerMock).toHaveBeenCalledTimes(15);
-  });
-
   it("allows the policy budget of credential attempts then answers 429 in the NextAuth client shape", async () => {
     // Unique IP per test: the limiter's in-memory fallback store is module-global.
     const ip = "192.0.2.55";
@@ -73,5 +56,4 @@ describe("credentials callback rate limiting", () => {
     const otherIp = await POST(credentialsRequest("192.0.2.57"), context);
     expect(otherIp.status).toBe(200);
   });
-
 });

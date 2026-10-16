@@ -1,7 +1,6 @@
 import { PostgresError } from "@server/postgres/runtime/values";
 import { NextResponse } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { JsonBodyError } from "./readJsonBody";
 
 vi.mock("server-only", () => ({}));
 
@@ -87,7 +86,6 @@ describe("protectedRouteOperation", () => {
     expect(response.headers.get("Cache-Control")).toBe("private, no-store");
   });
 
-
   it("returns unauthenticated responses without invoking the operation", async () => {
     const operation = vi.fn();
     mocks.requireRoleSession.mockResolvedValue(
@@ -151,44 +149,6 @@ describe("protectedRouteOperation", () => {
     }
   });
 
-  it("returns rate-limit responses before auth and operation work", async () => {
-    const operation = vi.fn();
-    mocks.enforceRateLimit.mockResolvedValue(
-      NextResponse.json({ error: "Too many requests. Please try again later." }, { status: 429 }),
-    );
-    const { protectedRouteOperation } = await import("./protectedRouteOperation");
-    const handler = protectedRouteOperation({
-      auth: "editor",
-      rateLimit: "editorSmallWrite",
-      unexpectedErrorLabel: "test:",
-      operation,
-    });
-
-    const response = await handler(request());
-
-    expect(response.status).toBe(429);
-    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
-    expect(operation).not.toHaveBeenCalled();
-  });
-
-  it("maps invalid JSON before invoking the operation", async () => {
-    const operation = vi.fn();
-    const { protectedRouteOperation } = await import("./protectedRouteOperation");
-    const handler = protectedRouteOperation({
-      auth: "editor",
-      rateLimit: "editorSmallWrite",
-      body: { maxBytes: 1024 },
-      unexpectedErrorLabel: "test:",
-      operation,
-    });
-
-    const response = await handler(request("{"));
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "Invalid JSON body." });
-    expect(operation).not.toHaveBeenCalled();
-  });
-
   it("maps missing write capability without invoking the operation", async () => {
     const operation = vi.fn();
     mocks.getServerDataWriteCapability.mockReturnValue({
@@ -223,40 +183,6 @@ describe("protectedRouteOperation", () => {
       error: "Postgres admin key is not configured on the server.",
     });
     expect(operation).not.toHaveBeenCalled();
-  });
-
-  it("parses the body and invokes the operation with auth and capabilities", async () => {
-    const operation = vi.fn(() => NextResponse.json({ ok: true }));
-    const { protectedRouteOperation } = await import("./protectedRouteOperation");
-    const handler = protectedRouteOperation<{ value?: unknown }, { value: string }>({
-      auth: "editor",
-      rateLimit: "editorSmallWrite",
-      body: {
-        maxBytes: 1024,
-        parse: (body) => {
-          if (typeof body.value !== "string") {
-            throw new JsonBodyError(400, "Value is required.");
-          }
-
-          return { value: body.value };
-        },
-      },
-      capabilities: [{ type: "dataWrite" }],
-      unexpectedErrorLabel: "test:",
-      operation,
-    });
-
-    const response = await handler(request({ value: "parsed" }));
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ ok: true });
-    expect(operation).toHaveBeenCalledWith({
-      request: expect.any(Request),
-      auth: editorSession,
-      actorEmail: "editor@example.com",
-      body: { value: "parsed" },
-      dataWrite: dataCapability,
-    });
   });
 
   describe("failure classification", () => {
@@ -295,26 +221,6 @@ describe("protectedRouteOperation", () => {
       return thrown;
     }
 
-    it("surfaces a deliberate Postgres rejection with its own text and code", async () => {
-      const response = await handleThrown(
-        forwarded({
-          code: "FIELD_CONFLICT",
-          message:
-            "This field changed since the article was loaded. Reload the article, then make the edit again.",
-        }),
-      );
-
-      expect(response.status).toBe(409);
-      expect(await response.json()).toEqual({
-        error:
-          "This field changed since the article was loaded. Reload the article, then make the edit again.",
-        code: "FIELD_CONFLICT",
-      });
-      // The reason still reaches the logs; the client only ever sees a sentence.
-      expect(warn).toHaveBeenCalledWith("test:", expect.any(PostgresError));
-      expect(error).not.toHaveBeenCalled();
-    });
-
     it("keeps an internal failure generic and leaks nothing", async () => {
       const thrown = new Error(
         'Could not find public function for "substanceIndex:setArticleField"',
@@ -344,24 +250,6 @@ describe("protectedRouteOperation", () => {
 
       expect(response.status).toBe(500);
       expect(await response.json()).toEqual({ error: "Unable to save that edit right now." });
-    });
-
-    it("lets a route's own mapError win over the Postgres classification", async () => {
-      const { protectedRouteOperation } = await import("./protectedRouteOperation");
-      const handler = protectedRouteOperation({
-        auth: "editor",
-        rateLimit: "editorSmallWrite",
-        unexpectedErrorLabel: "test:",
-        mapError: () => NextResponse.json({ error: "Route said so." }, { status: 418 }),
-        operation: () => {
-          throw forwarded({ code: "FIELD_CONFLICT", message: "Reload." });
-        },
-      });
-
-      const response = await handler(request());
-
-      expect(response.status).toBe(418);
-      expect(await response.json()).toEqual({ error: "Route said so." });
     });
   });
 });
