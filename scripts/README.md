@@ -66,9 +66,8 @@ One row per directory that ships in the repository. Every script keeps its input
 | Directory | Purpose |
 | --- | --- |
 | `scripts/admin/` | Guarded data-admin CLI for reviewed production edits. |
-| `scripts/analyze/` | Read-only audits: plagiarism, prose language, cleanup metrics, feature reachability, binding-site renames. |
+| `scripts/analyze/` | Shared public-prose validation for batch writers. |
 | `scripts/article-source-documents/` | Contract for the article source-document shape. |
-| `scripts/articles/` | Markdown shortcode and paragraph repair for article bodies. |
 | `scripts/auth/` | Password hashing and admin account seeding. |
 | `scripts/batch/` | OpenRouter batch generation for article sections, quotes, and reviewed-section publishing. |
 | `scripts/build/` | Build-time generators: social cards, icon data, appearance CSS, manifests, editor artifact audit. |
@@ -79,13 +78,13 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/data-ops/` | Guarded Postgres data operations: imports, exports, shape repairs, route and dose normalization, production sync. |
 | `scripts/deploy/` | Vercel build wiring and public route warming. |
 | `scripts/effects/` | Subjective-effect article media repairs and embed upgrades. |
-| `scripts/feedback/` | Feedback register scheduling. |
 | `scripts/generate/` | Article schema helper generation. |
 | `scripts/legality/` | Legality subsection audits, drafts, validation, and guarded application. |
 | `scripts/lib/` | Shared runtime: data client, run context, production-write boundary, command surfaces, artifact lineage, hygiene policy. |
 | `scripts/migrate/` | Effect Index and legacy-shape migrations into Postgres, prompt sync, citation restructuring. |
 | `scripts/parsers/` | Source-document parsers behind `parse:sources`. |
 | `scripts/postgres/` | Local database, migrations, snapshot import, derived-table rebuilds, and rehearsal suites. |
+| `scripts/perf/` | Cold-load and build bundle measurements. |
 | `scripts/prepopulate/` | Source-citation prepopulation from legacy articles. |
 | `scripts/reports/` | Trip report timeline formatting. |
 | `scripts/research/` | PsychonautWiki 2015 subjective-effects collection. |
@@ -96,10 +95,9 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/translation/` | Locale translation, glossaries, packs, mirrors, and publication index backfill. |
 | `scripts/util/` | Local artifact hygiene and small one-file utilities. |
 | `scripts/replications/` | Replication corpus maintenance: provenance audits, rights metadata, R2 renditions and delivery worker, galleries, slug and credit corrections. |
-| `scripts/config/` | Secondary TypeScript and Vitest configs for scripts and route handlers. |
+| `scripts/config/` | Secondary TypeScript configs for scripts and route handlers. |
 | `scripts/deploy/analytics-redirect/` | Vercel config for the analytics redirect project. |
 | `scripts/eslint-plugins/` | Local ESLint plugin loaded by `eslint.config.mjs`. |
-| `scripts/perf/` | Cold-load, bundle-size, and replication transport measurement harnesses. |
 | `scripts/tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
 | `scripts/tools/copyRdkitAssets.mjs` | Copies the RDKit runtime into `public/rdkit/`. |
 

@@ -22,7 +22,6 @@ authoritative when prose and code disagree.
 | [architecture/operations-and-direction.md](architecture/operations-and-direction.md) | Build strategy, quality gates, test ownership policy, known debt, and direction |
 | [architecture/auth.md](architecture/auth.md) | Auth.js, membership roles, and route protection rules for contributors |
 | [architecture/openchemlib-fork.md](architecture/openchemlib-fork.md) | Ownership, provenance, rebuild, and update contract for the vendored OpenChemLib fork |
-| [architecture/feature-reachability.json](architecture/feature-reachability.json) | Dormant feature folder allowlist consumed by `npm run features:reachability` |
 
 ## Decisions
 

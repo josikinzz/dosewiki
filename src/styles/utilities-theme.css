@@ -9,7 +9,7 @@
      src/app/china/china.css          (one route)
      src/styles/mantras.css           (one route)
    A class used by two features, or by anything under src/components, stays
-   here. `npm run theme:classes:check` reports classes nothing consumes.
+   here.
 
    Scheme rule. Nothing here keys on data-theme. Every value that differs
    between dark and light is a --theme-* token in site-colors.css with a value
@@ -4569,7 +4569,7 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 }
 
 /* Editor-kit semantic classes. They live in the token layer so dev tool
-   components never name a theme variable directly (theme:tokens:check). */
+   components never name a theme variable directly. */
 /* Changed since review reads as information, never as the accent that
    marks the current choice and the tick. */
 .theme-review-status-stale {

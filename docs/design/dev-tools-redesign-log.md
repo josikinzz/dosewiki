@@ -912,7 +912,7 @@ For later passes:
   shell `?` sheet through `useDevShortcuts`.
 - Every tool: pass `what` to `LoadErrorState`, and consider disabling its
   primary write button while `useWriteFreeze().frozen`.
-- `theme:tokens:check` was already failing at baseline (201 unreviewed
+- The retired theme token audit was already failing at baseline (201 unreviewed
   findings); the new `var(--theme-*)` reads in `dev-tools.css` are CSS
   declarations in the feature sheet, the sanctioned place for them.
 
@@ -966,7 +966,7 @@ Deferred, with reasons:
 - Keyboard shortcuts on Home: every row is a link in tab order and Cmd+K
   reaches any tool; no single primary action warrants a key.
 - Rail badge "13" (stale) vs Home "At least 13": the rail is shell chrome.
-- The `theme:tokens:check` count rises by the twelve `var(--theme-*)` reads
+- The retired theme token audit count rises by the twelve `var(--theme-*)` reads
   in the new `dev-tools.css` rules, the sanctioned place for them.
 
 ### Pass 3: Inbox (`/dev/inbox`)
@@ -2828,7 +2828,7 @@ Shared issues the earlier passes deferred:
 - Glossary: the heading is "Glossary" with "The translation workbench." in
   its description; the role guide names the Glossary; palette keywords add
   translations, i18n and workbench.
-- `theme:classes:check` passes: four unused classes removed.
+- The retired theme class audit passes: four unused classes removed.
 - Editors' "Recommend as reviewed" on a changed-since-review article takes
   the admin's diff-first gate (see Conventions).
 - The rail and Home agree on a partial Inbox count ("13+" / "At least 13";

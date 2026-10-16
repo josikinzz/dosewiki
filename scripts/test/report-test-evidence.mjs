@@ -16,7 +16,6 @@ import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
 // Files that must never skip: TEST-003 fixture-backed workflow tests plus the local fixture stub.
 export const SAFETY_LIST = [
-  "scripts/citations/build-citation-author-repair-evidence-bundle.test.mjs",
 ];
 
 export const SETUP_COST_PATTERN = /initRDKitModule|@rdkit|openchemlib|wasm|OclEditor/;

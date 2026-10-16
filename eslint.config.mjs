@@ -25,7 +25,6 @@ export default tseslint.config(
       'dist-inline/**',
       'coverage/**',
       'public/**',
-      'scripts/**/archive/**',
       'node_modules/**',
       '*.config.js',
       '*.config.mjs',
@@ -152,10 +151,8 @@ export default tseslint.config(
       },
     },
   },
-  // Active workflow scripts run in Node or Bun and are linted through npm run lint:scripts.
   {
     files: ['scripts/**/*.{js,mjs,ts}'],
-    ignores: ['scripts/**/archive/**'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -196,7 +193,6 @@ export default tseslint.config(
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
       'vercel-guardrails/require-rate-limit': 'warn',
-      'vercel-guardrails/validate-function-config': 'warn',
     },
   },
   {

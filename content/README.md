@@ -5,7 +5,7 @@ translation tooling load. Nothing here is generated; edit the files by hand.
 Structured datasets live in `data/` instead.
 
 Application code reaches these files through the `@content/*` alias
-(`tsconfig.json`, `vitest.config.ts`, `scripts/config/vitest.scripts.config.ts`). Plain `.mjs`
+(`tsconfig.json`, `vitest.config.ts`, `scripts/test/vitest.workflow.config.ts`). Plain `.mjs`
 scripts use relative paths. Markdown is imported with `?raw`; JSON is imported
 directly.
 
