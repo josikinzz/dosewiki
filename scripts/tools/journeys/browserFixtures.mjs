@@ -1,17 +1,5 @@
-/**
- * Playwright wiring for `fixtures.mjs`, shared by the journey runner and the
- * screenshot script.
- *
- * The browser only ever talks to a loopback dev server. Requests the fixture
- * owns are answered here and never reach that server; documents and assets
- * go through; every other origin is aborted, so a run cannot fetch remote
- * media or reach a hosted API. A write the fixture does not own is refused in
- * the browser, so nothing is posted to the server either.
- */
-
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-/** Refuses anything but a loopback origin before a browser is launched. */
 export function assertLoopbackBase(value) {
   const base = new URL(value);
   if (!LOOPBACK_HOSTS.has(base.hostname)) {
@@ -30,11 +18,6 @@ function parseBody(request) {
   }
 }
 
-/**
- * Routes every request of `context` through `fixture`. With no fixture, the
- * browser is still read-only and loopback-only: `/api/*` reads go to the
- * server (and answer 401 there) and every non-GET is aborted.
- */
 export async function installFixtureRoutes(context, { base, fixture = null, log = () => {} }) {
   const blocked = [];
   await context.route("**/*", async (route) => {
@@ -63,12 +46,6 @@ export async function installFixtureRoutes(context, { base, fixture = null, log 
   return { blocked };
 }
 
-/**
- * Waits until the `/dev` shell and its tool have settled: the shell chrome is
- * up, fonts are ready, and nothing announces loading or is marked busy. This
- * replaces waiting for network idle plus a fixed sleep; a journey then waits
- * on its own specific locator.
- */
 export async function waitForDevShellReady(page, { timeout = 120_000 } = {}) {
   await page.getByRole("button", { name: "Leave editor" }).first().waitFor({ state: "attached", timeout });
   await page.waitForFunction(

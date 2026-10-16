@@ -88,8 +88,6 @@ export const PATCH = replicationViewerEditorRoute(protectedRouteOperation<
       target = { kind: "contributor", slug: body.targetKey };
     }
 
-    // Reordering never changes membership, but every carousel that reads this
-    // collection is now out of date, including the shared showcase feed.
     await publishPublicCache({
       targets: [target, { kind: "replication-collections" }],
       source: "manual",

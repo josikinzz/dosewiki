@@ -1,22 +1,3 @@
-/**
- * Document database reads and writes over one Postgres transaction.
- *
- * Handlers in `server/` use keyset SQL over the application tables. Documents
- * round-trip through `rowToDocument` / `documentToRow` and
- * `decodeDocumentValue` / `encodeDocumentValue`, preserving NaN, int64, and
- * bytes. `db.get(id)` resolves untagged IDs through targeted `documentIds` reads.
- *
- * Queries run at REPEATABLE READ READ ONLY; mutations run at SERIALIZABLE
- * and retry the complete transaction on serialization or deadlock failure.
- *
- * This module is the public entry. Its transaction-local machinery lives in
- * siblings: `dbRows` (executor and row conversion), `dbIds` (minted IDs and
- * table resolution), `dbFilter` (in-process filter expressions),
- * `dbIndexRange` (index ranges as SQL), `dbQuery` (the query builder), and the
- * targeted projection layers `dbSubstanceReads`, `dbPublicReads`, and
- * `dbEditorialReads` that the reader extends.
- */
-
 import { encodeDocumentValue, encodeField, losslessSelectList } from "../documentCodec";
 import { tableColumns, type ColumnSpec, type TableName } from "../schema.generated";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes } from "../../translation/publicationIndexStore";
@@ -28,12 +9,7 @@ import { assertTable, fromRow, isTableName, quote, toRow, type Doc, type SqlExec
 export { serialExecutor, type Doc, type SqlExecutor } from "./dbRows";
 export { loadIdTableMap, mintDataId, taggedIdTable, type IdTableMap } from "./dbIds";
 
-// ---------------------------------------------------------------------------
-// Database reader / writer
-// ---------------------------------------------------------------------------
-
 export class PostgresDatabaseReader extends EditorialProjectionReader {
-  /** Ids never change table within a transaction, so the map is safe to memoise. */
   private readonly idTables = new Map<string, TableName | null>();
 
   constructor(
@@ -43,7 +19,6 @@ export class PostgresDatabaseReader extends EditorialProjectionReader {
     super(client);
   }
 
-  /** Synchronous resolution: transaction cache, then IDs resolved for this call, then minted-ID tag. */
   protected tableOfSync(id: string): TableName | null | undefined {
     const cached = this.idTables.get(id);
     if (cached !== undefined) return cached;
@@ -54,7 +29,6 @@ export class PostgresDatabaseReader extends EditorialProjectionReader {
     return undefined;
   }
 
-  /** `db.system` mirrors nothing yet: `_storage` and `_scheduled_functions` are not imported. */
   readonly system = {
     get: async () => null,
     query: () => {
@@ -96,7 +70,6 @@ export class PostgresDatabaseReader extends EditorialProjectionReader {
     return new QueryInitializer(this.client, assertTable(table), (id, t) => this.rememberTable(id, t));
   }
 
-  /** Synchronous: `indexedMutation` reads it without awaiting. Unknown ids resolve to null. */
   normalizeId(table: string, id: string): string | null {
     if (typeof id !== "string" || !/^[a-z0-9]{32}$/.test(id)) return null;
     return this.tableOfSync(id) === assertTable(table) ? id : null;
@@ -113,11 +86,6 @@ export class PostgresDatabaseWriter extends PostgresDatabaseReader {
     return doc._id;
   }
 
-  /**
-   * Only the named columns change, and `undefined` clears an optional field.
-   * The UPDATE takes the row lock itself, so the document is never read back
-   * and unrelated JSONB sections are never rewritten.
-   */
   async patch(idOrTable: string, idOrValue: string | Record<string, unknown>, maybeValue?: Record<string, unknown>): Promise<void> {
     const id = typeof idOrValue === "string" ? idOrValue : idOrTable;
     const value = (typeof idOrValue === "string" ? maybeValue : idOrValue) ?? {};

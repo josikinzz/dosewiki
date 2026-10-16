@@ -8,12 +8,6 @@ import {
 
 export type PublicClassificationType = "chemical" | "psychoactive";
 
-/**
- * Psychoactive-class labels that don't have their own Substance Index tab map to
- * the umbrella super-tab (or a canonical sibling) so a badge still opens a real
- * tab. Labels not listed fall through to their own slug, which is the tab id for
- * the per-class tabs (psychedelic, stimulant, entactogen, gabaergic, opioid, …).
- */
 const PSYCHOACTIVE_TAB_ALIASES: Record<string, string> = {
   depressant: "super:depressants",
   sedative: "super:depressants",

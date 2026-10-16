@@ -1,16 +1,3 @@
-/**
- * Normalize microgram spellings in dose tables to the canonical micro sign (µg, U+00B5).
- *
- * Scope is deliberately structural — the opposite of a text sweep:
- *   - `dosage.routes[].dose_ranges.<tier>.unit` values that are exactly `ug` or `mcg`
- *     (case-insensitive, trimmed) become `µg`.
- *   - `dosage.routes[].notes` free text only where a number-anchored token matches
- *     (`4000 ug`, `100-200ug`); words like "drug" can never match.
- *
- * Every article is published atomically through `articleLifecycle:write` against a
- * fresh revision baseline, after refusing stale or reordered dosage plans.
- * Dry-run by default; live writes follow the shared data-ops ceremony.
- */
 import { createDataClient, type DataClient } from "../lib/data-client.ts";
 import type { FunctionArgs } from "../../lib/postgres/runtime/api.ts";
 import { isDeepStrictEqual } from "node:util";
@@ -26,7 +13,7 @@ requireAdminIntentToken,  } from "../lib/data-ops-run-context.mjs"; import { wri
 
 const OPERATION = "normalize-dose-units";
 const CONFIRMATION_FLAG = "--confirm-dose-units";
-const CANONICAL_MICROGRAM = "µg"; // U+00B5 MICRO SIGN — matches DOSE_UNIT_ALIASES in scripts/parsers/base/dose.ts
+const CANONICAL_MICROGRAM = "µg";
 const UNIT_VARIANTS = new Set(["ug", "mcg"]);
 const NOTES_TOKEN_RE = /(\d)\s*(?:ug|mcg)\b/g;
 
@@ -160,8 +147,6 @@ export async function runNormalizeDoseUnits(
   }
   printDataOpsRunContext(context, { logger });
 
-  // Read from the deployment being written so `expected` reflects that store; dry runs
-  // fall back to the public read deployment.
   const readUrl = write
     ? context.targetUrl
     : (env.TARGET_POSTGRES_URL ?? env.POSTGRES_POOLED_URL ?? env.SOURCE_POSTGRES_URL);
@@ -169,8 +154,6 @@ export async function runNormalizeDoseUnits(
     throw new Error("No Postgres URL available. Set TARGET_POSTGRES_URL (writes) or POSTGRES_POOLED_URL / SOURCE_POSTGRES_URL (dry run).");
   }
   const client = createClient(readUrl);
-  // Drain the bounded lookup projection in stable corpus order, then fetch one
-  // article at a time so CAS snapshots come from the selected deployment.
   const lookup = await drainDataPageQuery({
     client,
     query: api.substanceIndex.getLookupPage,
@@ -209,8 +192,6 @@ export async function runNormalizeDoseUnits(
   const operations: Array<Omit<FunctionArgs<typeof api.articleLifecycle.write>, "apiKey" | "actorEmail">> = [];
   let completed = 0;
   try {
-    // Preflight the complete plan before any publication. The service token acts
-    // as the workstation admin; do not invent a delegated member identity.
     const plannedArticles = new Map(articles.map((article) => [article.slug, article]));
     for (const [slug, plannedEdits] of bySlug) {
       const latest = await client.query(api.articleLifecycle.get, { apiKey: token.token, slug });
@@ -237,8 +218,6 @@ export async function runNormalizeDoseUnits(
         changeId: `${OPERATION}:${contentHash(request)}`,
       });
     }
-    // Persist the exact token-free requests before sending them, retaining stable
-    // change IDs and baselines for safe receipt lookup after an ambiguous failure.
     updateAudit(audit.path, { status: "applying", operations });
     for (const operation of operations) {
       results.push(await client.mutation(api.articleLifecycle.write, { ...operation, apiKey: token.token }));

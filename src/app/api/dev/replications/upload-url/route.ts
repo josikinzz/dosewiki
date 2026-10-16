@@ -1,4 +1,3 @@
-/** Starts an immutable R2 PUT. Creating the Postgres row separately verifies the uploaded bytes. */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";

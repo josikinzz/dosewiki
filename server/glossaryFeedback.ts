@@ -42,11 +42,6 @@ function validateIdentity(args: {
   )
     throw new PostgresError("Invalid glossary feedback identity.");
 }
-/**
- * What the reader saw, checked inside the write transaction. A term with no
- * rendering in this language takes only suggestions (`allowMissing`): there
- * is no wording to react to, and its version is `MISSING_RENDERING_VERSION`.
- */
 async function snapshot(
   ctx: QueryCtx,
   args: { locale: string; term: string; version: string },
@@ -152,7 +147,6 @@ export const create = mutation({
     return { id: args.id };
   },
 });
-/** A new event replaces the effective choice. Existing rows are never updated by public intake. */
 export const createReaction = mutation({
   args: { apiKey: v.string(), ...identityArgs, choice: glossaryReactionChoice },
   handler: async (ctx, args) => {
@@ -201,7 +195,6 @@ export const createReaction = mutation({
     return { choice: args.choice };
   },
 });
-/** The newest rows `list` returns per locale; the pending count reads the same window. */
 const LIST_WINDOW = 250;
 function newestForLocale(ctx: QueryCtx, locale: string) {
   return ctx.db
@@ -223,11 +216,6 @@ export const list = query({
     );
   },
 });
-/**
- * Pending glossary feedback across every locale this reviewer may open, for
- * the `/dev` rail badge. It counts inside the window `list` returns, so the
- * badge never names a row the Glossary queue cannot show.
- */
 export const pendingCount = query({
   args: { apiKey: v.string(), actorEmail: v.string() },
   handler: async (ctx, args) => {

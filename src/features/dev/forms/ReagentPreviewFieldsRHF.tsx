@@ -1,7 +1,3 @@
-/**
- * Article-owned reagent results plus the read-only ProtestKit snapshot.
- */
-
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
@@ -28,8 +24,6 @@ export function ReagentPreviewFieldsRHF({ idPrefix }: ReagentPreviewFieldsRHFPro
   const stored = watch("reagent_testing") ?? {};
   const [newReagent, setNewReagent] = useState("");
   const [entryError, setEntryError] = useState<string | null>(null);
-  // Only the reagent lookup identity matters here; watching the whole article
-  // would re-render this preview on every keystroke anywhere in the form.
   const [title, commonName] = useWatch({
     control,
     name: ["title", "identification.common_name"] as const,

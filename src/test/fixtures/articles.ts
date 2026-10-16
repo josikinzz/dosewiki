@@ -1,7 +1,6 @@
 import type { SubstanceArticle } from '@/schema';
 import { createEmptyArticle } from '@/data/schema/defaults.generated';
 
-/** Minimal valid article for basic tests */
 export const minimalArticle: SubstanceArticle = {
   ...createEmptyArticle(),
   id: 1,
@@ -12,7 +11,6 @@ export const minimalArticle: SubstanceArticle = {
   },
 };
 
-/** Article with full dosage/duration data */
 export const fullArticleWithDosage: SubstanceArticle = {
   ...createEmptyArticle(),
   id: 42,
@@ -112,7 +110,6 @@ export const fullArticleWithDosage: SubstanceArticle = {
   ],
 };
 
-/** Article with hidden flag */
 export const hiddenArticle: SubstanceArticle = {
   ...minimalArticle,
   id: 99,

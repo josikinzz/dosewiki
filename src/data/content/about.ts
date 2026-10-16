@@ -2,10 +2,6 @@ import aboutContentSource from "@content/about/about.md?raw";
 import aboutSubtitleSource from "@content/about/subtitle.md?raw";
 import aboutConfigSource from "@content/about/config.json";
 
-/**
- * Shape persisted in content/about/config.json.
- *  - founderProfileKeys: array of profile keys (uppercase strings) to surface as founders.
- */
 type AboutConfig = {
   founderProfileKeys: string[];
 }
@@ -93,5 +89,4 @@ export const resolveAboutSubtitle = (values: AboutPlaceholderValues): string =>
 
 export const normalizeFounderKeys = sanitizeFounderKeys;
 
-// Export applyPlaceholders for use with Postgres content
 export { applyPlaceholders };

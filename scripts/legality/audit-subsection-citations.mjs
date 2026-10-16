@@ -21,8 +21,6 @@ const scope = getFlagValue(argv, "--scope") ?? "all";
 if (!SCOPES.includes(scope)) {
   throw new Error(`--scope must be one of ${SCOPES.join(", ")} (got ${scope}).`);
 }
-// Keys under legality.countries shaped like "United States - Oregon" are US-state
-// rows misfiled as countries; `migrate-usstate-country-rows.mjs` owns them.
 const MISFILED_STATE_KEY = /^United States - /;
 const runContext = createDataOpsRunContext({
   operation: "audit legality subsection citation coverage",
@@ -121,7 +119,6 @@ async function main() {
         value,
       }));
     }
-    // International, U.S. state, territory, and city entries are intentionally out of scope.
   }
   const byVisibility = {};
   for (const row of rows) byVisibility[row.visibility] = (byVisibility[row.visibility] ?? 0) + 1;

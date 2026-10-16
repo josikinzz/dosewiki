@@ -54,8 +54,6 @@ function parseBody(body: CitationEvidenceStatusBody): CitationEvidenceStatusInpu
   }
 
   const status = typeof body.status === "string" ? body.status.trim() : "";
-  // Decisions write approved or rejected; undo writes whatever the row held
-  // before, which can be any evidence status.
   if (!isCitationEvidenceStatus(status)) {
     throw new JsonBodyError(400, "Review status must be an evidence status.");
   }

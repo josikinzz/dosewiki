@@ -64,11 +64,9 @@ import { DECISION_LABEL, PENDING_LABEL, DECISION_KEY, SOURCE_ICON, NOUN, type Pe
 type InboxNotice = {
   tone: "success" | "danger" | "info";
   message: string;
-  /** Offers Undo beside the message: the item the last decision moved. */
   undoKey?: string;
 };
 
-/** The last decision the Inbox made, so `u` and Undo can take it back. */
 type LastDecision = { key: string; source: InboxSourceId; id: string; title: string; label: string };
 
 const ALL_CHIPS = "all";
@@ -84,29 +82,10 @@ async function loadClaims(): Promise<Map<string, InboxClaim>> {
   return new Map((payload.claims as InboxClaim[]).map((claim) => [`${claim.source}:${claim.item_id}`, claim]));
 }
 
-/** A readable name for a claimer: "You" for the signed-in admin. */
 function claimerName(value: string, actorEmail: string | null): string {
   return sameActor(value, actorEmail) ? "You" : formatReviewerIdentity(value) ?? value;
 }
 
-/**
- * The Inbox: one list of everything that waits on an admin, from Trip
- * reports, Feedback (article, site and glossary), Citations and Change Review
- * (proposals and review recommendations). Each source adapter lists the same
- * bucket its rail badge counts, so every counted item is reachable here.
- *
- * Most urgent first, then oldest first. Claiming an item marks it Reviewing
- * with the claimer's name, so a second admin sees who has it. The owning
- * tool's detail renders in place; decisions that need the owning tool's own
- * checks (publishing, citation evidence) open it instead.
- *
- * Layout: the list and its filters on the left (sticky on desktop), the
- * review pane on the right with one header (title, source, age, claim) and a
- * decision bar that stays in view at the bottom of the screen while the pane
- * is on it. Below `lg` the two stack, picking a row scrolls the pane in, and
- * the pane carries Back to list and previous/next so a phone never has to
- * scroll back up to keep triaging.
- */
 export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const [sources] = useState<InboxSourceAdapter[]>(() => createInboxSources());
   const sourceById = useMemo(
@@ -114,8 +93,6 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     [sources],
   );
   const [loadedItems, setItems] = useState<InboxItem[] | null>(null);
-  // Citation rows arrive keyed by slug. Once the shell's corpus lands (the
-  // registry starts it without blocking), they read as article titles.
   const library = useLibraryIfPresent();
   const substanceRecords = library?.allSubstanceRecords;
   const items = useMemo(() => {
@@ -129,13 +106,8 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const [loading, setLoading] = useState(true);
   const [chip, setChip] = useState<InboxChip | null>(null);
   const [assignment, setAssignment] = useState<InboxAssignment>("everyone");
-  // Citation reviews outnumber everything people send in, so All starts
-  // without them. The Citations chip always shows them.
   const [hideCitations, setHideCitations] = useState(true);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  // Drafts live in this browser until the decision they travel with. Nothing
-  // above the selected pane renders them, so reading storage here cannot
-  // disturb hydration.
   const [notes, setNotes] = useState<InboxNotes>(() => readInboxNotes(actorEmail));
   const [notesKept, setNotesKept] = useState(true);
   const [pending, setPending] = useState<{ key: string; action: PendingAction } | null>(null);
@@ -203,16 +175,12 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const selectedSource = selected ? sourceById.get(selected.source) ?? null : null;
   const note = selected ? notes[selected.key] ?? "" : "";
 
-  // Picking a row below `lg` brings the pane into view; a desktop pick stays put.
   useScrollToDetail(reviewRef, selected?.key ?? null);
 
   useEffect(() => {
     setNotesKept(writeInboxNotes(actorEmail, notes));
   }, [actorEmail, notes]);
 
-  // Kept notes survive leaving, so only notes this browser could not store
-  // are at stake. They cannot be sent on their own, so the dialog offers
-  // Discard and Keep editing, never Save.
   const typedNotes = Object.values(notes).filter((value) => value.trim()).length;
   useUnsavedWork({
     kind: "discard-only",
@@ -224,13 +192,11 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     discard: () => setNotes({}),
   });
 
-  /** A hand-picked item: the last result belonged to another item, so it goes. */
   const select = (key: string | null) => {
     setSelectedKey(key);
     if (key !== selectedKey) setNotice(null);
   };
 
-  /** Put a changed item back in the list (or back into it, after an undo), or drop it when it left the Inbox. */
   const replaceItem = (key: string, next: InboxItem | null) => {
     setItems((current) => {
       if (current === null) return current;
@@ -253,7 +219,6 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     try {
       const next = await work();
       if (next === null) {
-        // The next row takes the selection, so triage keeps its rhythm.
         const index = visible.findIndex((entry) => entry.key === item.key);
         const following = visible[index + 1] ?? visible[index - 1] ?? null;
         setSelectedKey(following?.key ?? null);
@@ -274,7 +239,6 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
     }
   };
 
-  /** Claims change the claim strip in place; a screen reader hears the same sentence. */
   const claim = (item: InboxItem) => {
     const source = sourceById.get(item.source);
     if (!source) return;
@@ -420,7 +384,6 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   const queueFailures = errors.filter((error) => error.source !== "Claims").length;
   const loadFailure = describeLoadFailures(errors, queueFailures === sources.length);
   const counted = items !== null && !loading;
-  // A queue that failed has no count: its chip shows none rather than zero, and neither do the totals.
   const failedChips = new Set(
     errors.flatMap((error) => {
       const id = (Object.keys(SOURCE_LABEL) as InboxSourceId[]).find((source) => SOURCE_LABEL[source] === error.source);
@@ -630,7 +593,6 @@ export function InboxTab({ actorEmail }: { actorEmail: string | null }) {
   );
 }
 
-/** One quiet line when any rail count behind the Inbox badge failed to refresh; the list itself reads each queue directly. */
 function RailCountFreshness() {
   const readings = useDevRailBadgeReadings();
   const failed = (Object.entries(readings) as [DevRailBadge, (typeof readings)[DevRailBadge]][]).filter(
@@ -680,7 +642,6 @@ function ListSkeleton() {
   );
 }
 
-/** The age of an item as relative words, with the full date on hover. */
 function Age({ iso, className }: { iso: string; className?: string }) {
   const day = iso ? describeDay(iso) : null;
   if (!day) return null;
@@ -691,7 +652,6 @@ function Age({ iso, className }: { iso: string; className?: string }) {
   );
 }
 
-/** Two lines at a fixed pitch for the windowed list: title and pills, then source, age, claimer and summary. */
 function InboxRow({ item, active, actorEmail }: { item: InboxItem; active: boolean; actorEmail: string | null }) {
   const tone = urgencyTone(item.urgency);
   const claimer = item.claimedBy ? claimerName(item.claimedBy, actorEmail) : null;
@@ -794,12 +754,6 @@ type ReviewPaneProps = {
   onNoteChange: (value: string) => void;
 };
 
-/**
- * One item under review: a header that names it once (title, source, age,
- * status, urgency, claim), the owning tool's detail, the review note, and a
- * decision bar that sticks to the bottom of the screen while the pane is in
- * view. Sources whose tool decides get one accent action instead: open it.
- */
 function ReviewPane({
   item,
   source,
@@ -976,7 +930,6 @@ function ReviewPane({
                 onClick={() => onDecide(decision)}
               >
                 {pending === decision ? pendingLabel[decision] : labels[decision]}
-                {/* The wrapper hides the cap on touch screens; the kbd class sets its own display. */}
                 <span aria-hidden className="[@media(pointer:coarse)]:hidden">
                   <kbd className="theme-dev-kbd !text-current opacity-70">{DECISION_KEY[decision]}</kbd>
                 </span>

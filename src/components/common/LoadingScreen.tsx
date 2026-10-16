@@ -1,13 +1,3 @@
-/**
- * Full-screen branded loading state shown while a client surface bootstraps.
- *
- * Announces itself as a polite live status, breathes the static logo instead
- * of spinning it, sweeps a theme-tokened indeterminate bar, and surfaces a
- * stalled hint after four seconds — mirroring the route skeleton system's
- * accessibility and reduced-motion behaviour (see PublicFeedbackPrimitives).
- * All animation lives in `src/styles/utilities-theme.css`.
- */
-
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { DoseWikiLogo } from "./DoseWikiLogo";
 

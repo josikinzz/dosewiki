@@ -1,5 +1,3 @@
-/** Targeted public projections over effects, replications, reports, and contributors. */
-
 import { losslessSelectList } from "../documentCodec";
 import { fromRow, type Doc } from "./dbRows";
 import { SubstanceProjectionReader } from "./dbSubstanceReads";
@@ -58,11 +56,6 @@ export class PublicProjectionReader extends SubstanceProjectionReader {
     };
   }
 
-  /**
-   * Targeted public projection for the artist taxonomy batch. This deliberately
-   * bypasses the document-shaped query path so a public credit lookup transports
-   * neither unrelated artists nor private taxonomy evidence.
-   */
   async getPublicArtistTaxonomyByKeys(
     keys: readonly string[],
   ): Promise<Array<{ key: string; primary_type: unknown; artist_type_tags: unknown }>> {
@@ -137,11 +130,6 @@ export class PublicProjectionReader extends SubstanceProjectionReader {
     return result.rows.map((row) => fromRow("tripReports", row));
   }
 
-  /**
-   * Complete storage-ordered gallery membership projection. Publication and
-   * contributor policy remain in the handler so this SQL transports only the
-   * fields those shared policies and the browse index consume.
-   */
   async getPublicGalleryMembershipRows(): Promise<Doc[]> {
     const fields = [
       "_id", "_creationTime", "slug", "title", "artist", "artist_url",
@@ -298,12 +286,6 @@ export class PublicProjectionReader extends SubstanceProjectionReader {
     return result.rows;
   }
 
-  /**
-   * Compact related-report cards for article startup. The ready index uses a
-   * targeted join. Before backfill readiness, Postgres scans the same compact
-   * projection and applies the legacy case-insensitive membership test without
-   * transporting narrative bodies.
-   */
   async getPublicTripReportPreviewsBySubstanceNames(
     names: readonly string[],
   ): Promise<Doc[]> {

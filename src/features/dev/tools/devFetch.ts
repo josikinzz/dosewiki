@@ -1,39 +1,14 @@
-/**
- * The one JSON request helper for dev tools. It turns every way a request can
- * fail into an `Error` whose message an editor can read:
- *
- * - the network is down: `messages.network`;
- * - the route refuses: the route's own `error` string, else `messages.failure`
- *   (or whatever `onError` builds from the status and payload);
- * - the route succeeds with a body that is not a JSON object: an unreadable
- *   response error, unless the caller opts into `emptyBodyOk`.
- *
- * It returns the payload as a plain record. Each caller still validates the
- * fields it needs and throws its own malformed-response error when they are
- * missing, so a broken contract never reads as an empty result.
- */
-
 export type DevFetchPayload = Record<string, unknown>;
 
 export interface DevFetchMessages {
   network: string;
   failure: string;
-  /** A 2xx whose body is not a JSON object. */
   unreadable?: string;
 }
 
 export interface DevFetchOptions extends RequestInit {
   messages: DevFetchMessages;
-  /**
-   * Builds the error for a refused request, for routes whose status carries
-   * meaning (a conflict, a gone record). `message` is the route's `error`
-   * string or `messages.failure`. Return undefined for the plain error.
-   */
   onError?: (status: number, payload: DevFetchPayload, message: string) => Error | undefined;
-  /**
-   * A 2xx with an empty or non-object body resolves to `{}` instead of
-   * throwing. Only for routes whose success carries nothing the caller reads.
-   */
   emptyBodyOk?: boolean;
 }
 
@@ -69,7 +44,6 @@ export async function devFetch(url: string, options: DevFetchOptions): Promise<D
   return record;
 }
 
-/** A JSON POST through `devFetch`. */
 export function devPost(
   url: string,
   body: unknown,

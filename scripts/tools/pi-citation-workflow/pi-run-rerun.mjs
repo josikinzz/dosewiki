@@ -1,8 +1,3 @@
-/**
- * Corrective rerun preparation: reserve a unique successor run, copy read-only
- * proposal inputs, and reuse accepted section artifacts whose hashes still match.
- */
-
 import { randomUUID } from "node:crypto";
 import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, readdirSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";

@@ -36,11 +36,6 @@ const LEGACY_HASHES = [
   "gallery",
 ];
 
-/**
- * The editable intro blob of one category tab, translated for the request.
- * The copy block's checked-in default is the tab's own blob, so the config
- * text is the fallback only when a block is deleted outright.
- */
 function tabBlob(copy: CopyResolver, tabId: TabId): string | undefined {
   const text = copy.text(`effects-index-tab-${tabId}`) || TABS.find((tab) => tab.id === tabId)?.blob;
   return text ? t(text) : undefined;

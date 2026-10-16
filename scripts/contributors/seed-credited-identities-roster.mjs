@@ -1,25 +1,10 @@
-// Pure contributor-roster impact preview.
 import { matchNamesOf } from "./seed-credited-identities-plan.mjs";
 import { normalizeKey, normalizeName } from "./seed-credited-identities-policy.mjs";
 
-/* ------------------------------------------------------------------- roster preview */
-
-/** Mirrors `EFFECT_INDEX_FOUNDER_KEY` in src/data/contributorRoster.ts. */
 export const ROSTER_FOUNDER_KEY = "JOSIE";
 
-/** Mirrors `EFFECT_INDEX_EXCLUDED_CONTRIBUTOR_KEYS`. */
 export const ROSTER_EXCLUDED_KEYS = Object.freeze(["LYREA"]);
 
-/**
- * Count the distinct pages that credit each profile.
- *
- * A deliberate re-implementation of `countContributorPageReferences` from
- * `src/data/contributorRoster.ts`, because this script is ESM JavaScript and
- * that module is TypeScript inside the app graph. It is a preview, not a write
- * input: if the two ever drift, the ordering shown here is wrong and nothing
- * stored is. The rule it mirrors — one page counts once for a contributor,
- * however many times that page names them — is stated in that module's header.
- */
 export function countPageReferences(profiles, { effects = [], replications = [], reports = [] } = {}) {
   const pages = new Map();
   const add = (id, name) => {
@@ -75,7 +60,6 @@ export function countPageReferences(profiles, { effects = [], replications = [],
   return counts;
 }
 
-/** The roster as the About page would render it: founder pinned, then by count. */
 export function buildRosterPreview(profiles, counts) {
   const excluded = new Set(ROSTER_EXCLUDED_KEYS.map(normalizeKey));
   const entries = profiles
@@ -99,15 +83,6 @@ export function buildRosterPreview(profiles, counts) {
   return founder ? [founder, ...rest] : rest;
 }
 
-/**
- * What the published contributor roster becomes.
- *
- * This is the part of the run that most needs a human's eye: the import does not
- * quietly add pages, it adds names to a page the site presents as "everyone who
- * has contributed to the archive". So the plan states the before, the after, and
- * every name that is new — in roster order, so the owner can see where each one
- * lands.
- */
 export function previewRosterImpact({ profiles = [], plan, effects = [], replications = [], reports = [] }) {
   const aliasesByKey = new Map(
     plan.aliasAdditions.map((addition) => [addition.key, addition.aliases]),

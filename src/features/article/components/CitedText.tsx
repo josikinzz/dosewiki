@@ -13,26 +13,11 @@ function renderCitationSup(citations: CitationLink[], key: string) {
   return <CitationSup key={key} citations={citations} />;
 }
 
-/**
- * Unresolvable markers — a `[cite:x]` whose id matches no reference, or one
- * sitting in a field the public render-order walk never numbers — render
- * nothing at all. A reader-facing "?" is editorial laundry on the front end;
- * the broken marker is a *review* finding, and it stays loud on review
- * surfaces (the citation panel's dangling-marker list and the editor's
- * citation diagnostics both report it, and the raw token is visible in every
- * inline-edit textarea). The token text itself is still consumed so it never
- * leaks as literal `[cite:x]`.
- */
-
 type InlineCitationToken = {
-  /** Raw text between the previous token (or the text start) and this one. */
   gap: string;
   kind: "cite" | "needed";
-  /** Zero-based position among markers of this kind in the raw scanned text. */
   ordinal: number;
-  /** Resolved target for a numbered `[cite:<id>]`; undefined when dangling. */
   link?: CitationLink;
-  /** Whether a `[citation-needed]` token survives the suppression pass. */
   visible?: boolean;
 };
 
@@ -71,12 +56,6 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
     cursor = index + match[0].length;
   }
 
-  // Suppression pass. Tokens separated by nothing or bare whitespace share a
-  // cluster around one claim:
-  //  - a claim that already carries a resolved citation never shows a
-  //    citation-needed marker — the good citation wins;
-  //  - consecutive citation-needed flags collapse to one until a resolved
-  //    citation intervenes, so an uncited run reads as one flag, not a wall.
   const clusterIds: number[] = [];
   const clustersWithResolvedCite = new Set<number>();
   let clusterId = -1;
@@ -122,8 +101,6 @@ export function renderCitedText(text: string, article: SubstanceArticle): ReactN
       continue;
     }
     if (!token.visible) {
-      // Suppressed marker: consume the token, keep its leading text, and drop
-      // the whitespace that separated it from its claim.
       pending += token.gap.replace(/\s+$/, "");
       continue;
     }
@@ -210,8 +187,6 @@ export function CitationMarker({
   }
 
   const numbering = getArticleCitationModel(article);
-  // Same rule as token rendering: an id that never earned a number is a review
-  // finding, not a reader-facing "?" — it simply does not render here.
   const citations = referenceIds.flatMap((referenceId) => {
     const number = numbering.numbersById.get(referenceId);
     const reference = numbering.referencesById.get(referenceId);

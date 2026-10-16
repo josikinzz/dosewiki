@@ -107,7 +107,6 @@ export async function loadSummaryProposalInputs({
     throw new Error("No usable generic source content found in Postgres articleSources.");
   }
 
-  // This call deliberately preserves the current summary pipeline's exact message construction.
   buildGenericSourceSections(sourceDocument, config);
 
   return {

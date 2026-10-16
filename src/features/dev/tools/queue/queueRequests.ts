@@ -1,9 +1,3 @@
-/**
- * HTTP client for the Queue tab. Reads and comments hit this ticket's routes
- * under `/api/dev/proposals`; approve, reject and revert post to the review
- * routes beneath `/api/dev/proposals/<id>/`.
- */
-
 import type {
   ApproveOutcome,
   ProposalComment,
@@ -19,7 +13,6 @@ import { devFetch } from "@/features/dev/tools/devFetch";
 
 const BASE_PATH = "/api/dev/proposals";
 
-/** A refused request, with its HTTP status so a caller can tell "gone" from "failed". */
 export class QueueRequestError extends Error {
   constructor(message: string, readonly status: number, readonly frozen = false) {
     super(message);
@@ -27,12 +20,10 @@ export class QueueRequestError extends Error {
   }
 }
 
-/** A proposal that was removed, or one the session may not open (an editor's view is their own). */
 export function isMissingRecord(error: unknown): boolean {
   return error instanceof QueueRequestError && (error.status === 404 || error.status === 403);
 }
 
-/** The server's write freeze (`DATA_WRITES_FROZEN`): a 503, or a message that names it. */
 export function isWriteFreezeError(error: unknown): boolean {
   if (error instanceof QueueRequestError && error.frozen) return true;
   return error instanceof Error && /DATA_WRITES_FROZEN|writes are (?:frozen|paused)/i.test(error.message);
@@ -90,7 +81,6 @@ export async function revertProposal(id: string): Promise<void> {
 
 const RECOMMENDATIONS_PATH = "/api/dev/review-recommendations";
 
-/** Every editor recommendation awaiting an admin, with whether each is stale. */
 export async function fetchReviewRecommendations(): Promise<ReviewRecommendationRow[]> {
   const payload = await requestJson(RECOMMENDATIONS_PATH, undefined, {
     network: "Network error while loading review recommendations.",
@@ -102,7 +92,6 @@ export async function fetchReviewRecommendations(): Promise<ReviewRecommendation
   return payload.recommendations as ReviewRecommendationRow[];
 }
 
-/** Approves each recommendation at the revision it covered; stale or changed ones come back unapproved. */
 export async function approveReviewRecommendations(
   items: ReadonlyArray<{ slug: string; revision: string }>,
 ): Promise<RecommendationApproval> {
@@ -124,11 +113,6 @@ export async function approveReviewRecommendations(
 
 const CLAIMS_PATH = "/api/dev/inbox/claims";
 
-/**
- * Who holds each waiting proposal, from the Inbox's claim table (admin only),
- * keyed by proposal id. Claims are advisory: they tell admins who is already
- * reviewing, and never gate a decision.
- */
 export async function fetchProposalClaims(): Promise<Map<string, ProposalClaim>> {
   const payload = await requestJson(CLAIMS_PATH, undefined, {
     network: "Network error while loading who is reviewing what.",
@@ -149,7 +133,6 @@ export async function fetchProposalClaims(): Promise<Map<string, ProposalClaim>>
   return claims;
 }
 
-/** Claims or releases a waiting proposal through the same route the Inbox uses. */
 export async function writeProposalClaim(id: string, action: "claim" | "release"): Promise<ProposalClaim | null> {
   const payload = await requestJson(
     CLAIMS_PATH,

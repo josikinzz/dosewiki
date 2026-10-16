@@ -16,12 +16,6 @@ import { articleConflict, articleDocument, validateArticleChange } from "./artic
 import { articleBaseHash, loadArticle } from "./articleRevisionJournal";
 import { commitArticleChange } from "./articleWrite";
 
-/**
- * Every handler here writes a published article directly, so all of them sit
- * on the admin floor: an editor's changes reach production only through an
- * approved change proposal (`changeProposals.approveAndApply`), which calls
- * `saveSubstancesHandler` with the approving admin as the actor.
- */
 type EditorArgs = { apiKey?: string; actorEmail?: string };
 type SubstanceArticleInput = {
   id: number | null;
@@ -128,9 +122,6 @@ export async function setArticleFieldHandler(
   }
   const candidate = { ...before, [result.topLevelKey]: result.topLevelValue };
   const validated = validateArticleChange(before, candidate);
-  // The alias helper changes one array only. Schema validation can strip
-  // legacy identification siblings or supply defaults, so keep the exact
-  // validated candidate for this narrowly owned append operation.
   const after = aliasAppend ? candidate : validated;
   const revision = await commitArticleChange(ctx, { row: article, before, after, actor, changeId: args.changeId, baseHash: args.baseHash, summary: aliasAppend ? "Append reviewed alternative names" : `Inline edit: ${args.path}` });
   return {

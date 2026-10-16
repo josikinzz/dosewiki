@@ -18,20 +18,11 @@ function allEntries(group: ReviewQueueGroup): ReviewQueueEntry[] {
   ];
 }
 
-/**
- * One medallion per psychoactive category, lit emerald once every article in
- * the class is reviewed. Derived live from the queue's own counts — never
- * stored — so an undo un-earns a trophy as honestly as a tick earned it. The
- * unplaced bucket is not a class, so it earns nothing and is not listed.
- */
 export function ReviewTrophyShelf({
   groups,
   collapsible = false,
 }: {
   groups: readonly ReviewQueueGroup[];
-  /** Fold the shelf behind its heading, closed by default — for hosts where
-      space is contested (the overflow sheet). The heading keeps the earned
-      count visible either way. */
   collapsible?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);

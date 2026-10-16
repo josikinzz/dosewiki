@@ -22,19 +22,9 @@ const FORMATS: { value: PackFormat; zh: string; en: string; icon: IconName }[] =
   { value: "json", zh: "JSON 数据", en: "JSON data", icon: "lucide:file-json" },
 ];
 
-/**
- * One segment of the format switch. The group is the housing; a segment has
- * no border of its own, and the chosen one takes the accent CTA fill so the
- * pair reads as a switch rather than two buttons.
- */
 const SEGMENT_CLASS =
   "theme-china-segment h-auto rounded-full border-0 px-4 py-2 data-[state=on]:shadow-none";
 
-/**
- * One icon per dataset. The three indexes reuse the icons the site's own
- * navigation shows for them, so a reader who has used dose.wiki recognises
- * them; the rest are Lucide picks for what the pack is.
- */
 const DATASET_ICONS: Record<string, IconName> = {
   substances: resolveRouteChromeIcon("substances"),
   effects: resolveRouteChromeIcon("effects"),
@@ -49,7 +39,6 @@ function isFormat(value: string | null): value is PackFormat {
   return value === "json" || value === "markdown";
 }
 
-/** An outbound link in the prose treatment, with the external mark the Markdown renderer uses. */
 export function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" className={`${proseLinkClassName} inline-flex items-center gap-0.5`}>
@@ -59,7 +48,6 @@ export function ExternalLink({ href, children }: { href: string; children: React
   );
 }
 
-/** Chinese first, English beneath, for one title or one line of description. */
 export function Bilingual({ zh, en, as: Tag, className }: { zh: ReactNode; en: ReactNode; as: "h2" | "p"; className: string }) {
   return (
     <Tag className={className}>
@@ -73,7 +61,6 @@ export function Bilingual({ zh, en, as: Tag, className }: { zh: ReactNode; en: R
   );
 }
 
-/** One file: a labelled download button with the count and size beneath it. */
 function PackDownload({ label, lang, file, noun }: { label: string; lang: string; file: TranslationPackFile; noun: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
@@ -141,12 +128,6 @@ function DatasetSection({
   );
 }
 
-/**
- * The datasets under one format toggle. JSON is the pair of files a reader
- * compares; Markdown is the FreeODwiki-shaped tree a maintainer copies in.
- * The choice lives in the URL so a link opens on the right tab, and is
- * remembered for the next visit.
- */
 export function DownloadsCatalogue({
   translations,
   samples,

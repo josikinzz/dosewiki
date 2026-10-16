@@ -1,26 +1,3 @@
-/**
- * Import a protected document snapshot.
- *
- * Loads a document snapshot ZIP (or its extracted directory) into Postgres through
- * the generated Drizzle schema, then reconciles counts, content hashes,
- * duplicate IDs, and reference edges. Resumable: rows upsert by `_id`, so a
- * rerun converges instead of duplicating.
- *
- *   bun scripts/postgres/import-document-snapshot.ts --export <zip|dir> [--tables a,b] [--truncate]
- *       [--skip-verify] [--target <url>]
- *   ... --write --confirm-write=<operation> --expected-deployment=<host/database> [--allow-remote]
- *
- * Runs through the production write command. Without `--write` it prints a
- * plan (per-table export counts and the exact write flags) and opens no
- * connection. A write needs DATA_BACKEND=postgres, an explicit `--target` or
- * TARGET_POSTGRES_URL, `--confirm-write` with the derived operation name
- * (`postgres-import`, or `postgres-import-truncate` with `--truncate`), and the
- * expected `<host>/<database>` fingerprint. `DATA_WRITES_FROZEN=1` refuses a
- * write before any pool exists. Any non-loopback host additionally needs
- * `--allow-remote` AND POSTGRES_IMPORT_CONFIRM equal to that hostname.
- * The report lands in runs/postgres-import/<timestamp>/ (gitignored).
- */
-
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -35,8 +12,6 @@ import { Connection, resilientPool } from "./resilientConnection";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const BATCH_ROWS = 500;
-// Each batch is one statement and one replay unit; keep it small so a dropped
-// upload loses little and articleSources documents (up to ~1 MB) fit alone.
 const BATCH_BYTES = 1024 * 1024;
 
 type Args = {
@@ -84,7 +59,6 @@ function parseArgs(argv: string[]): Args {
   };
 }
 
-/** Truncation is a separate operation so its confirmation names the destructive step. */
 function importOperationName(truncate: boolean): string {
   return truncate ? "postgres-import-truncate" : "postgres-import";
 }
@@ -128,7 +102,6 @@ async function flushBatch(conn: Connection | null, table: TableName, columns: st
     .join(", ");
   const updates = columns.filter((c) => c !== "_id").map((c) => `${quoteIdentifier(c)} = EXCLUDED.${quoteIdentifier(c)}`).join(", ");
   const sql = `INSERT INTO ${quoteIdentifier(table)} (${columnList}) VALUES ${placeholders} ON CONFLICT ("_id") DO UPDATE SET ${updates}`;
-  // `pg` stringifies numbers with String(), which turns -0 into "0"; Postgres float8 accepts the literal "-0".
   const parameters = rows.flat().map((value) => (typeof value === "number" && Object.is(value, -0) ? "-0" : value));
   const result = await conn.run(`${table} batch`, (client) => client.query(sql, parameters));
   return result.rowCount ?? 0;
@@ -199,8 +172,6 @@ async function importTable(
     }
   }
   report.importedRows += await flushBatch(conn, table, columns, batch);
-  // The runtime resolves `db.get(id)` through `documentIds`; an import that
-  // skipped it would leave every imported row unreachable by bare id.
   if (conn) {
     await conn.run("documentIds", (client) =>
       client.query(
@@ -250,7 +221,6 @@ async function main() {
   const argv = process.argv.slice(2);
   const args = parseArgs(argv);
   const command = createProductionWriteCommand({ operation: importOperationName(args.truncate), argv, loadsEnvLocal: false });
-  // Every write gate runs before any pool exists; a plan run authorizes nothing.
   const target = command.writeRequested ? authorizeProductionWrite(command) : null;
   if (!target) printPlan(command, args);
   const exportDirectory = resolveExportDirectory(args.exportPath);

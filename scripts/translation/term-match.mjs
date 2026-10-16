@@ -1,34 +1,14 @@
-/**
- * The shared glossary term matcher: does this English text mention this term?
- *
- * Whole words, case insensitive, and English inflections of every word in the
- * term: plurals and the -ing, -ed, and -ion forms. "phenidates" mentions
- * Phenidate and "replicating" mentions Replication; "lightheaded" does not
- * mention Light, and a synonym ("recreations") never mentions anything.
- * Punctuation, digits, and short words stay literal, so "2C-B" and "5-HT2A"
- * match only as written.
- *
- * One matcher serves every place that asks the question: the prompt builder,
- * the validator's GLOSSARY_MISS check, the QA packet, the coverage lens, the
- * UI catalog compiler, and the scoped stale replay. What gets injected is what
- * gets checked and what gets retranslated. Plain ESM so the pipeline scripts
- * and `lib/translation` (through `term-match.d.ts`) import the same code.
- */
-
 const VOWEL = /[aeiou]/;
 
-/** Stem and suffix alternatives for one word; every form is `stem + suffix`. */
 function inflections(word) {
   const lower = word.toLowerCase();
   if (/[ts]ion$/.test(lower)) {
-    // replication, replications, replicate, replicates, replicated, replicating
     return { stem: lower.slice(0, -3), suffixes: ["ion", "ions", "e", "es", "ed", "ing"] };
   }
   if (lower.endsWith("ee")) {
     return { stem: lower, suffixes: ["", "s", "d", "ing"] };
   }
   if (lower.endsWith("e")) {
-    // phenidate, phenidates, dosed, dosing, sedation
     return { stem: lower.slice(0, -1), suffixes: ["e", "es", "ed", "ing", "ion", "ions"] };
   }
   if (/[^aeiou]y$/.test(lower)) {
@@ -37,7 +17,6 @@ function inflections(word) {
   const suffixes = ["", "s", "es", "ing", "ed", "ion", "ions"];
   const [c1, v, c2] = lower.slice(-3);
   if (lower.length >= 3 && !VOWEL.test(c1) && VOWEL.test(v) && !VOWEL.test(c2) && !"wxy".includes(c2)) {
-    // trip, tripping, tripped
     suffixes.push(`${c2}ing`, `${c2}ed`);
   }
   return { stem: lower, suffixes };
@@ -45,12 +24,6 @@ function inflections(word) {
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-/**
- * The term split into literal pieces and inflectable words, in order. A word
- * inflects when it is all letters and at least three long; the last word also
- * inflects at two letters, so "come-up" matches "come-ups" while "of" inside
- * a phrase stays literal.
- */
 function tokens(term) {
   const parts = term.match(/[A-Za-z0-9]+|[^A-Za-z0-9]+/g) ?? [];
   return parts.map((text, index) => {
@@ -61,10 +34,6 @@ function tokens(term) {
 
 const cache = new Map();
 
-/**
- * The matcher for one term: a case-insensitive, non-global RegExp, so
- * `.test()` carries no state between calls. Cached per term.
- */
 export function termMatcher(term) {
   let pattern = cache.get(term);
   if (!pattern) {
@@ -81,16 +50,10 @@ export function termMatcher(term) {
   return pattern;
 }
 
-/** Whether `text` mentions `term`, inflected forms included. */
 export function mentionsTerm(text, term) {
   return termMatcher(term).test(text);
 }
 
-/**
- * Literal fragments every match of `term` contains, in order (compared case
- * insensitively). A substring prefilter such as SQL `ILIKE '%a%b%'` built from
- * them never drops a text the matcher would accept; the matcher still decides.
- */
 export function termFragments(term) {
   const fragments = [];
   let current = "";
@@ -108,19 +71,8 @@ export function termFragments(term) {
 }
 
 const ALNUM_RUN = /[A-Za-z0-9]+/g;
-/** Letters of a run's start that index a term; a run is looked up by each of its first ones. */
 const KEY_LENGTH = 3;
 
-/**
- * Which of many terms a text mentions, in the order given: the same answer
- * as filtering them with `mentionsTerm`, without running every matcher on
- * every text. A match of a term's first word or identifier is always a whole
- * run of ASCII letters and digits in the text (the matcher's `\b` and the
- * term's own separators bound it, and its case folding never reaches outside
- * ASCII), and that run starts with the word's stem. So the text's runs, keyed
- * by their first letters, name every candidate, and the matcher still decides.
- * Pass `termOf` to get back the caller's own items.
- */
 export function termFinder(items, termOf = (item) => item) {
   const byKey = new Map();
   const always = [];

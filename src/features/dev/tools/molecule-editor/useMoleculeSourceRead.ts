@@ -8,16 +8,11 @@ export type MoleculeSourceDto = {
 };
 
 export type MoleculeSourceReadState = {
-  /** undefined while loading (or after a failure), null when authoritatively absent. */
   data: MoleculeSourceDto | null | undefined;
   error: string | null;
   retry: () => void;
 };
 
-/**
- * Selected molecule chemistry only. A failure stays in the pane (with Try
- * again) instead of throwing to the route error boundary.
- */
 export function useMoleculeSourceReadState(slug: string | null): MoleculeSourceReadState {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{
@@ -56,10 +51,6 @@ export function useMoleculeSourceReadState(slug: string | null): MoleculeSourceR
   return { data: state.value, error: null, retry };
 }
 
-/**
- * The same read for callers that let a failure reach their error boundary
- * (Review's quick editor): undefined is loading, null is authoritatively absent.
- */
 export function useMoleculeSourceRead(slug: string | null): MoleculeSourceDto | null | undefined {
   const state = useMoleculeSourceReadState(slug);
   if (state.error) throw new Error(state.error);

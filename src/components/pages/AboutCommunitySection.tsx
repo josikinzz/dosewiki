@@ -6,17 +6,9 @@ import {
 } from "../../data/content/aboutCommunity";
 import { cn } from "@/lib/utils";
 
-/**
- * Eyebrow shared by the About page's grouped lists (contributor roster groups).
- */
 export const GROUP_LABEL_CLASSNAME =
   "theme-text-faint text-xs font-bold uppercase tracking-[0.15em]";
 
-/**
- * The squircle logo tile every entry shares. Artwork letterboxes by default;
- * square avatar marks bleed to the edges; wordmarks fit by width. `lg` is the
- * Official collaborations row size.
- */
 export function LogoTile({ logo, size = "sm" }: { logo: CommunityLogo; size?: "sm" | "lg" }) {
   const pixels = size === "lg" ? 44 : 36;
   return (
@@ -45,13 +37,6 @@ export function LogoTile({ logo, size = "sm" }: { logo: CommunityLogo; size?: "s
   );
 }
 
-/**
- * Partners & Community section body (dose.wiki only): one flat, compact
- * two-column roster — logo tile plus name, the whole row an external link.
- * The roster is `content/about/community.json`, typed by
- * `src/data/content/aboutCommunity.ts`; it currently carries no descriptive
- * copy by design.
- */
 export function AboutCommunitySection() {
   return (
     <ul className="grid gap-x-6 gap-y-2 sm:grid-cols-2">

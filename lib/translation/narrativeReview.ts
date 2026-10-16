@@ -33,10 +33,8 @@ export async function readNarrativeReview(reads: PublicDataReadAdapter, locale: 
         const status: NarrativeRowStatus = activeDecision === "stale" ? "stale" : e?.draft ? "draft" : overlay === "apply-recheck" ? "recheck" : e?.approved ? "approved" : "unreviewed";
         return { id, hash: s.hash, field: s.path, source: s.source, context, machine: machine.get(s.hash) ?? null, revision: e?.revision ?? 0, draft: e?.draft ?? null, approved: e?.approved ?? null,
             overlay, status, usages: usages[s.hash] ?? null,
-            // The glossary rows this English mentions: the editor checks approved ones while typing and offers any for a proposal.
             glossary: glossaryMentionsFor(s.source, glossary) };
     });
-    // Only an approval that applies without re-check counts; apply-recheck still awaits a person.
     const tally = { humanApproved: rows.filter(r => r.overlay === "apply").length, total: rows.length };
     return { locale, kind, slug: canonicalSlug, sourceVersion, rows, tally };
 }
@@ -52,14 +50,12 @@ export type NarrativeMutation = {
     restoreRevision?: number;
     actor: string;
     reason: ReviewReason | string;
-    /** Approved terms the reviewer marked "Fine here" for this correction. */
     glossaryExceptions?: string[];
 };
 export async function writeNarrativeReview(reads: PublicDataReadAdapter, input: NarrativeMutation) {
     const plan = await planNarrativeReview(reads, input);
     return mutateReviewEntry(plan.mutation, plan.options);
 }
-/** The review mutation and checks of one narrative write, for callers that write it with other entries in one transaction. */
 export async function planNarrativeReview(reads: PublicDataReadAdapter, input: NarrativeMutation): Promise<{ mutation: ReviewMutation; options: ReviewMutationOptions }> {
     const locale = resolveLocale(input.locale);
     const current = await sourceRecord(reads, input.kind, input.slug);
@@ -68,7 +64,6 @@ export async function planNarrativeReview(reads: PublicDataReadAdapter, input: N
     const segment = current.segments.find(s => narrativeIdentity(input.kind, s) === input.id);
     if (!segment)
         throw new TranslationReviewError("This source segment no longer exists.", 409);
-    // A correction that drops an approved term needs the reviewer's explicit exception.
     const glossaryExceptions = input.action === "save" && typeof input.target === "string"
         ? await assertCorrectionKeepsGlossary(input.locale, segment.source, input.target, input.glossaryExceptions)
         : [];

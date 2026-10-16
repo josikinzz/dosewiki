@@ -28,42 +28,19 @@ type HeadingLevel = "h3" | "h4" | "h5";
 type ContributorDangerZoneProps = {
   profileKey: string;
   displayName: string;
-  /** Every other profile, as merge destinations. */
   directory: readonly DirectoryOption[];
-  /** Bylines seen on this contributor's reports, offered as retarget sources. */
   knownAuthorNames: readonly string[];
-  /** Reports that credit this profile now; a delete is refused while any do. */
   creditedReports?: number;
-  /**
-   * An operation finished. `list` for a merge or delete (the profile is gone,
-   * so the result belongs with the list), `zone` for a retarget.
-   */
   onCompleted: (message: string, where?: "list" | "zone") => void;
-  /** The profile is gone; a merge names where its credits went. */
   onProfileRemoved: (nextKey?: string) => void;
-  /** The last successful retarget, shown in the zone. */
   resultNotice?: NoticeMessage | null;
   onDismissResult?: () => void;
-  /** Admin role. The route runs these for admins only; anyone else reads why. */
   canRun?: boolean;
   headingLevel?: HeadingLevel;
 };
 
 const SUB_HEADING: Record<HeadingLevel, "h4" | "h5" | "h6"> = { h3: "h4", h4: "h5", h5: "h6" };
 
-/**
- * The operations that change who a name belongs to, folded shut at the end of
- * the editor and kept visually and structurally apart from it.
- *
- * Merge, delete and retarget were script-only until this tab existed, and the
- * reason to expose them is the same reason to fence them: they are the only
- * repair for a duplicated or misattributed identity, and each of them is
- * irreversible from the UI. Every one is gated on typing the key of the profile
- * that is about to change, not a generic "yes", because the mistake these
- * guard against is acting on the wrong profile, and only re-typing its key
- * catches that. The fold keeps them out of the way of ordinary edits; opening
- * it loosens nothing.
- */
 export function ContributorDangerZone({
   profileKey,
   displayName,
@@ -94,8 +71,6 @@ export function ContributorDangerZone({
   const Heading = headingLevel;
   const SubHeading = SUB_HEADING[headingLevel];
 
-  // Label, key and aliases all feed the picker's match, so the destination is
-  // found the same three ways the directory search finds a row.
   const mergeOptions = useMemo(
     () =>
       directory
@@ -130,7 +105,6 @@ export function ContributorDangerZone({
         try {
           payload = (await response.json()) as typeof payload;
         } catch {
-          // An empty or broken body reads as the generic failure below.
         }
 
         if (!response.ok) {
@@ -213,7 +187,6 @@ export function ContributorDangerZone({
     }
   }, [displayName, onCompleted, profileKey, retargetAuthor, retargetConfirm, run]);
 
-  /** The typed-key field every operation shares: its own hint, and a plain mismatch line. */
   const confirmField = (id: string, value: string, onChange: (next: string) => void, disabled = false, waitingFor?: string) => (
     <EditorField
       id={id}

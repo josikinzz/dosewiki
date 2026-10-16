@@ -14,11 +14,6 @@ class FeedbackError extends Error {}
 type Choice = "right" | "improve" | "clear";
 const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-/**
- * One term's suggestion box, opened by clicking the term. A better (or first)
- * translation leads; the "Looks right" / "Needs improvement" reaction is a
- * secondary choice, offered only when there is wording to react to.
- */
 export function GlossaryFeedback({
   locale,
   entry,
@@ -43,7 +38,6 @@ export function GlossaryFeedback({
   const [reset, setReset] = useState(0);
   const pending = useRef<{ fingerprint: string; id: string } | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  // The box opens because a reader clicked its term; take them straight to it.
   useEffect(() => input.current?.focus(), []);
   const key = `glossary-feedback:${locale}:${entry.term}:${entry.version}`;
   useEffect(() => {
@@ -54,11 +48,9 @@ export function GlossaryFeedback({
         setAlternative(saved.alternative ?? "");
       }
     } catch {
-      /* Feedback remains usable when browser storage is disabled. */
     }
   }, [key]);
   useEffect(() => {
-    // A term with no wording has no reaction to restore.
     if (!hasWording) return;
     const controller = new AbortController();
     setLoadingChoice(true);
@@ -100,7 +92,6 @@ export function GlossaryFeedback({
         JSON.stringify({ details, alternative, choice, ...next }),
       );
     } catch {
-      /* Optional convenience only. */
     }
   }
   async function submit(
@@ -183,7 +174,6 @@ export function GlossaryFeedback({
   const captchaPending = Boolean(siteKey && !token);
   const reactionDisabled =
     busy || loadingChoice || choiceLoadFailed || captchaPending;
-  // An untranslated term needs a translation; otherwise a comment alone is enough.
   const canSuggest = hasWording
     ? Boolean(details.trim() || alternative.trim())
     : Boolean(alternative.trim());

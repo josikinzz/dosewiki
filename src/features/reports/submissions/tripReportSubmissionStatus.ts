@@ -1,9 +1,3 @@
-/**
- * The trip report submission status vocabulary and the transitions between
- * statuses. Client-safe (no node imports), so the review panel, the route, the
- * pure model and the Postgres mutation all read this one table.
- */
-
 export const SUBMISSION_STATUSES = [
   "submitted",
   "reviewing",
@@ -37,10 +31,6 @@ export function canTransitionTripReportSubmission(
   return TRIP_REPORT_SUBMISSION_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-/**
- * A decision note worth storing, or undefined. A blank note means "record only
- * the outcome", so the stored review note stays as it was.
- */
 export function decisionNoteOrUndefined(notes: unknown): string | undefined {
   return typeof notes === "string" && notes.trim() !== "" ? notes : undefined;
 }

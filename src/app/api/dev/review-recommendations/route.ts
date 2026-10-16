@@ -1,18 +1,3 @@
-/**
- * Admin endpoint for editors' review recommendations (Change Review's
- * Review recommendations lane).
- *
- *   GET  /api/dev/review-recommendations                          → { ok, recommendations }
- *   POST /api/dev/review-recommendations { items: [{ slug, revision }] }
- *                                                                → { ok, approved, stale, missing }
- *
- * Editors record recommendations through `/api/dev/editorial-review`
- * (`action: "recommend"`); they never write `completed`. Approving is the
- * admin sign-off, so both methods are admin-only here and again in Postgres
- * (AGENTS rule 8). Each item names the recommendation revision the admin saw:
- * approval writes `completed` at exactly that revision, and a recommendation
- * that is stale or has changed since is reported back instead of approved.
- */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { makeFunctionReference } from "@server/postgres/runtime/api";
@@ -27,7 +12,6 @@ const approveRecommendationsMutation = makeFunctionReference<"mutation">("substa
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const REVISION_RE = /^[A-Za-z0-9]{1,128}$/;
-/** Matches `REVIEW_RECOMMENDATION_BATCH_MAX` in the review handlers. */
 const BATCH_MAX = 100;
 
 type ApproveBody = { items?: unknown };
@@ -86,7 +70,6 @@ export const POST = protectedRouteOperation<ApproveBody, ParsedApprove>({
       items: body.items,
     })) as ApprovalOutcome;
 
-    // Approval changes the public-safe `expert_reviewed` derivation, as the tick does.
     if (outcome.approved.length > 0) {
       revalidatePath("/about/coverage");
       await revalidateSavedPaths(outcome.approved.map((slug) => `/${slug}`), "manual");

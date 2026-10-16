@@ -16,7 +16,6 @@ interface ReviewQueueSettingsPanelProps {
   groupByCategory: boolean;
   unreviewedOnly: boolean;
   changedSinceReview: boolean;
-  /** How many sign-offs are stale, shown beside the filter. */
   changedSinceReviewCount: number;
   inlineEdit: boolean;
   articleLinks: boolean;
@@ -26,7 +25,6 @@ interface ReviewQueueSettingsPanelProps {
   flagGroupBy: ReviewSettings["flagGroupBy"];
   availableFlagLabels: string[];
   updateSettings: (patch: Partial<ReviewSettings>) => void;
-  /** Whether any setting is off its default; offers the reset. */
   settingsChanged?: boolean;
   resetSettings?: () => void;
 }
@@ -42,11 +40,6 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-/**
- * Queue settings, shared by the bar's popover and the More sheet: what the
- * arrows walk and in what order, the flag filters, and how the article reads.
- * Every choice is kept in this browser and the filters ride in the address.
- */
 export function ReviewQueueSettingsPanel({
   order,
   statsState,

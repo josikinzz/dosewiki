@@ -8,7 +8,6 @@ import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import { TagToken } from "./TagToken";
 
-/** Matches rendered per query; the corpus is thousands of profiles. */
 const MAX_RENDERED_MATCHES = 50;
 
 export interface SearchablePickerOption {
@@ -24,7 +23,6 @@ interface PickerBaseProps {
   emptyText: string;
   disabled?: boolean;
   ariaLabel?: string;
-  /** "field" is the outlined select-like control; "quiet" is an inline add row for list feet. */
   triggerVariant?: "field" | "quiet";
 }
 
@@ -38,11 +36,6 @@ export interface SearchableMultiPickerProps extends PickerBaseProps {
   onChange: (values: string[]) => void;
 }
 
-/**
- * Filters outside cmdk so only the first {@link MAX_RENDERED_MATCHES} rows
- * mount: cmdk scores every mounted item on each keystroke, which is fine for
- * fifty rows and not for two thousand.
- */
 function useMatches(options: readonly SearchablePickerOption[], query: string, exclude?: ReadonlySet<string>) {
   return useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -65,10 +58,6 @@ function useMatches(options: readonly SearchablePickerOption[], query: string, e
   }, [options, query, exclude]);
 }
 
-/**
- * The trigger, popover and command list both pickers share. `onPick` receives
- * the chosen value; the caller decides whether the popover closes.
- */
 function PickerMenu({
   id,
   open,
@@ -89,7 +78,6 @@ function PickerMenu({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   triggerLabel: string;
-  /** Trigger shows a placeholder rather than a chosen value. */
   muted: boolean;
   disabled?: boolean;
   options: readonly SearchablePickerOption[];
@@ -182,11 +170,6 @@ function PickerMenu({
   );
 }
 
-/**
- * Single-value picker for people and works. Replaces native selects with
- * hundreds of options: a search box inside a popover, at most fifty matches
- * mounted, at most eight rows visible before the list scrolls.
- */
 export function SearchablePicker({
   id: idProp,
   options,
@@ -239,10 +222,6 @@ export function SearchablePicker({
   );
 }
 
-/**
- * Multi-value companion: chosen options sit above the trigger as removable
- * chips and drop out of the suggestion list.
- */
 export function SearchableMultiPicker({
   id: idProp,
   options,

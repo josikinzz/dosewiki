@@ -7,7 +7,6 @@ import { JsonSyntaxHighlight } from "@/components/pages/AboutArchivePreview";
 import { Button } from "@/components/ui/button";
 import type { TranslationSamplePair } from "@server/next/translationPacks";
 
-/** A Markdown page as its source text, numbered like the JSON side. */
 function MarkdownSource({ text }: { text: string }) {
   return (
     <div className="theme-json-preview-text font-mono text-xs leading-relaxed">
@@ -23,13 +22,6 @@ function MarkdownSource({ text }: { text: string }) {
 
 type LoadedPair = { translated: string; source: string; markdown?: Record<string, string> };
 
-/**
- * One whole record from a dataset, its translation on the left (as JSON, or
- * as the emitted Markdown page) and its English on the right, in the About
- * page's code cell. Collapsed until
- * opened; the record is fetched when the cell opens, since a substance
- * article runs to a hundred kilobytes a side. Shuffle moves to another.
- */
 export function TranslationSampleCompare({
   pairs,
   format,
@@ -38,7 +30,6 @@ export function TranslationSampleCompare({
   sourceLabel,
 }: {
   pairs: TranslationSamplePair[];
-  /** JSON compares the two JSON records; Markdown compares the two emitted pages. */
   format: "json" | "markdown";
   locale: string;
   translatedLabel: string;

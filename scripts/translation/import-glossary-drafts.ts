@@ -1,19 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Import local model glossary artifacts into the editor review queue only.
- * No-write is the default. This never approves, replaces, or enqueues anything.
- *
- * DATA_BACKEND=postgres npm run translate:glossary:import-drafts -- \
- *   --locales ar,cs,de,es,fr,hi,ja,ko,nl,pl,pt,ru --target "$TARGET_POSTGRES_URL" --dry-run
- *
- * Review the JSON plan, then repeat the same target/locales with --write,
- * --confirm-write=import-glossary-drafts, --expected-deployment=<host/database>,
- * --confirm-plan=<planDigest>, --actor-email=<registered-admin>, and
- * --recovery-out=<new-file.jsonl>. Remote reads and writes also require
- * --allow-remote and POSTGRES_IMPORT_CONFIRM=<host>. Writes require the scoped
- * DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE; the legacy master key is not accepted.
- * Import confirmation is not linguistic review: all reviewer fields stay null.
- */
 import { createHash } from "node:crypto";
 import { open, readFile, type FileHandle } from "node:fs/promises";
 import path from "node:path";
@@ -64,7 +49,6 @@ const digest = (value: string | Buffer) => createHash("sha256").update(value).di
 const key = (row: { locale: string; term: string }) => JSON.stringify([row.locale, row.term]);
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 
-/** JSON.parse alone silently discards duplicate keys, including provenance fields. */
 function parseArtifactJson(raw: string): unknown {
   const parsed: unknown = JSON.parse(raw);
   const objects: Array<Set<string> | null> = [];
@@ -97,7 +81,6 @@ async function loadInputs(locales: string[]) {
 
 async function authorize(client: PoolClient, actorEmail: string) {
   const { token } = requireAdminIntentToken(INTENT, { allowLegacy: false });
-  // Keep the membership and its ban/role state fixed through this transaction.
   await client.query('SELECT "_id" FROM "public"."memberships" WHERE "email" = $1 FOR SHARE', [actorEmail]);
   const ctx = { db: new PostgresDatabaseReader(serialExecutor(client), new Map()) } as unknown as QueryCtx;
   await requireRole(ctx, { apiKey: token, actorEmail, adminIntent: INTENT }, "admin");
@@ -134,8 +117,6 @@ async function main() {
   if (!command.targetUrl) throw new Error("Pass --target <postgres-url> or set TARGET_POSTGRES_URL");
   if (values.write && values["dry-run"]) throw new Error("--write and --dry-run cannot be combined");
   const target = new URL(command.targetUrl);
-  // pg accepts connection overrides in URL parameters. Do not let them change
-  // the host/database or search path after the explicit-target gate inspected it.
   if ([...target.searchParams.keys()].some((name) => name !== "sslmode")) {
     throw new Error("Only sslmode is permitted in target URL query parameters");
   }
@@ -201,8 +182,6 @@ async function main() {
       if (values["confirm-plan"] !== planDigest) throw new Error("Plan changed or was not reviewed. Run dry-run and review the new digest");
       journal = await open(values["recovery-out"]!, "wx", 0o600);
       const updatedAt = Date.now();
-      // Persist candidate keys and exact postimages before any INSERT. A crash or
-      // ambiguous COMMIT can then be reconciled without deleting later reviews.
       await appendJournal(journal, { state: "prepared", planDigest, plan, actorEmail, updatedAt, candidates: missing });
       const directory = await open(path.dirname(path.resolve(values["recovery-out"]!)), "r");
       try { await directory.sync(); } finally { await directory.close(); }
@@ -241,7 +220,6 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-  // Connection errors may contain credentials supplied by the operator.
   const message = error instanceof Error ? error.message : String(error);
   console.error(message.replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, "[redacted Postgres URL]"));
   process.exitCode = 1;

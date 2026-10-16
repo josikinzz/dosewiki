@@ -22,7 +22,6 @@ export {
 } from "./lib/replicationUrls";
 export { selectReplicationsByArtistNames } from "./lib/replicationReads";
 
-/** Public and maintenance replication reads. */
 export const getAll = query({
   args: {},
   returns: v.array(validators.storedReplication),
@@ -89,7 +88,6 @@ export const resolveStorageUrls = query({
   handler: reads.resolveStorageUrlsHandler,
 });
 
-/** Authenticated maintenance writes and migration-only internal writes. */
 export const authorizeMediaUpload = query({
   args: validators.authorizeMediaUploadArgs.fields,
   handler: writes.authorizeMediaUploadHandler,
@@ -157,7 +155,6 @@ export const updateStorageIds = mutation({
   handler: writes.updateStorageIdsHandler,
 });
 
-/** Compare-and-swap recovery and provenance operations. */
 export const updatePreviewStorageIds = mutation({
   args: validators.updatePreviewStorageIdsArgs.fields,
   handler: recovery.updatePreviewStorageIdsHandler,
@@ -203,7 +200,6 @@ export const updateRightsMetadata = mutation({
   handler: recovery.updateRightsMetadataHandler,
 });
 
-/** Replication Studio read and guarded editorial writes. */
 export const getStudioRows = query({
   args: validators.getStudioRowsArgs.fields,
   handler: studio.getStudioRowsHandler,

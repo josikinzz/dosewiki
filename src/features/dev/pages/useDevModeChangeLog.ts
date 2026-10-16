@@ -25,7 +25,6 @@ type ChangeLogFilters = {
   startDate: string | null;
   endDate: string | null;
   searchQuery: string;
-  /** A submitter stamp (profile key, upper case) or null for anyone. */
   submitter: string | null;
 };
 
@@ -41,20 +40,16 @@ type ChangeLogArticleOption = {
 };
 
 type ChangeLogSubmitterOption = {
-  /** The stamped key, upper case, as the filter stores it. */
   key: string;
-  /** Loaded saves carrying this stamp. */
   count: number;
 };
 
 export type ChangeLogController = {
   notice: ChangeNotice | null;
-  /** Server paging of the feed, passed through untouched from `useDevChangelogFeed`. */
   feedWindow: ChangelogFeedWindow;
   totalEntriesCount: number;
   filters: ChangeLogFilters;
   articleOptions: ChangeLogArticleOption[];
-  /** Everyone who stamped a loaded save, most saves first. */
   submitterOptions: ChangeLogSubmitterOption[];
   articleFrequency: ReturnType<typeof buildArticleFrequencyIndex>;
   filteredEntries: ChangeLogEntry[];
@@ -67,16 +62,13 @@ export type ChangeLogController = {
   clearEntryFeedback: () => void;
   filtersCardClassName: string;
   handleArticleSelect: (value: string) => void;
-  /** Filters to one submitter stamp; null shows everyone. */
   handleSubmitterSelect: (key: string | null) => void;
   handleSearchChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  /** Sets the search text directly (clearing it from its filter chip). */
   setSearchQuery: (value: string) => void;
   handleDateChange: (
     field: "startDate" | "endDate",
   ) => (event: ChangeEvent<HTMLInputElement>) => void;
   applyQuickDateRange: (days: number | null) => void;
-  /** Sets both ends of the date range at once (swapping a reversed range). */
   setDateRange: (startDate: string | null, endDate: string | null) => void;
   clearFilters: () => void;
   clearNotice: () => void;
@@ -102,9 +94,6 @@ const CHANGELOG_VISIBLE_BATCH_SIZE = 20;
 const toFileSlug = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-// Entry timestamps render in local time, so the date filters must cut on
-// local day boundaries; UTC boundaries exclude entries the list labels as
-// belonging to the selected day.
 const parseLocalDateBoundary = (value: string, boundary: "start" | "end"): number | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) {
@@ -211,7 +200,6 @@ export function useDevModeChangeLog({
             article.title.toLowerCase().includes(query) ||
             article.slug.toLowerCase().includes(query),
         );
-        // The row's own words ("Reworded 3 words in Summary") and who saved it.
         const summary = summarizeEntry(entry);
         const rowWords = [summary.headline, summary.location, summary.detail, entry.submittedBy]
           .filter(Boolean)
@@ -237,7 +225,6 @@ export function useDevModeChangeLog({
     if (filters.articleSlug) {
       count += 1;
     }
-    // One date range is one filter, whichever ends it sets.
     if (filters.startDate || filters.endDate) {
       count += 1;
     }
@@ -263,7 +250,6 @@ export function useDevModeChangeLog({
 
   const latestEntry = changeLogEntries.length > 0 ? changeLogEntries[0] : null;
 
-  // The tab renders this in a Notice, which clears successes and keeps errors until dismissed.
   const pushNotice = useCallback((next: ChangeNotice) => {
     setNotice(next);
   }, []);
@@ -280,7 +266,6 @@ export function useDevModeChangeLog({
     setEntryFeedback(null);
   }, []);
 
-  // Success feedback auto-clears; errors stay until dismissed or replaced.
   const showEntryFeedback = useCallback((next: ChangeLogEntryFeedback) => {
     if (entryFeedbackTimerRef.current !== null) {
       window.clearTimeout(entryFeedbackTimerRef.current);

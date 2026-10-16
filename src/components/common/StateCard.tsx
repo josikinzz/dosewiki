@@ -21,7 +21,6 @@ export interface StateCardProps {
   compact?: boolean;
 }
 
-/** Plain glyph colour per tone; shared with StatusHeader so both read alike. */
 export const stateToneIconClassName: Record<StateTone, string> = {
   accent: "theme-icon-accent",
   success: "theme-success-text-strong",
@@ -30,12 +29,6 @@ export const stateToneIconClassName: Record<StateTone, string> = {
   neutral: "theme-icon-muted",
 };
 
-/**
- * Free-floating empty / status / loading state. No panel, no orb: one small
- * tone-coloured glyph (or, while loading, the theme-tokened indeterminate
- * sweep), a title, a line of description, and whatever actions follow.
- * Callers place it; it only owns its own stack.
- */
 export function StateCard({
   badge,
   badgeVariant = "secondary",
@@ -79,8 +72,6 @@ export function StateCard({
         <h2
           className={cn(
             "theme-text-primary font-semibold",
-            // The display face is for large titles; at the compact size its
-            // tight tracking crowds the letters, so compact reads in the body face.
             compact ? "text-base" : "font-display text-lg tracking-tight sm:text-xl",
           )}
         >

@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Validate a citation verdict draft (`verdict-draft.json`) against the
- * shared draft shape and the verdict contract in docs/workflows/citations.md.
- *
- * Read-only and offline: checks vocabulary, legal verdict/disposition
- * combinations, quote presence rules, suggestedRepair entailment-record rules,
- * offset consistency, pairId format, duplicate pairIds, and the citable
- * section allowlist. Every violation is reported as a named error; the CLI
- * exits non-zero when any is present.
- *
- * Usage:
- *   npm run citations:verdict-validate -- --run=runs/citations/verdicts/<slug>
- *   npm run citations:verdict-validate -- --draft-file=path/to/verdict-draft.json
- */
 
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -23,11 +9,6 @@ import { CITABLE_SECTIONS, DRAFT_SCHEMA_VERSION, claimHash } from "./verdict-lib
 export const VERDICT_DRAFT_SCHEMA_VERSION = DRAFT_SCHEMA_VERSION;
 export const DEFAULT_DRAFT_FILENAME = "verdict-draft.json";
 
-/**
- * Sections a verdict draft may touch. Legality citations are owned entirely
- * by legality-pi: a draft containing a legality section is a named
- * validation error (`legality_section_excluded`), never applied here.
- */
 export const VALIDATABLE_SECTIONS = Object.freeze(
   CITABLE_SECTIONS.filter((section) => section !== "legality"),
 );
@@ -35,11 +16,6 @@ export const VALIDATABLE_SECTIONS = Object.freeze(
 export const VERDICTS = Object.freeze(["supported", "partial", "mismatched", "unverifiable"]);
 export const DISPOSITIONS = Object.freeze(["keep", "strip", "park"]);
 
-/**
- * Legal verdict → disposition combinations. Display policy is supported-only:
- * keep exists solely for supported verdicts; strip covers every failed
- * verdict; park is reserved for unverifiable retry eligibility.
- */
 export const LEGAL_DISPOSITIONS_BY_VERDICT = Object.freeze({
   supported: Object.freeze(["keep"]),
   partial: Object.freeze(["strip"]),
@@ -85,19 +61,9 @@ export const VALIDATION_ERROR_CODES = Object.freeze([
 const MARKER_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;
 const CONTENT_HASH_PATTERN = /^[0-9a-f]{64}$/;
 const CLAIM_HASH_PATTERN = /^[0-9a-f]{12}$/;
-// Signatures of a stitched or elided quote; a quote must be one contiguous
-// verbatim passage of the fetched source.
 const NON_CONTIGUOUS_QUOTE_PATTERN = /\.{3}|…|\[\s*(?:\.\.\.?|…)\s*\]/;
 const REFUTER_OUTCOMES = new Set(["confirmed", "refuted"]);
 
-/**
- * The citation-pi refuter prompt (`prompts/refuter.md`) emits
- * `outcome: "upheld" | "refuted"`, while this validator and verdict-apply
- * speak `confirmed | refuted`. Adapters map the raw refuter outcome through
- * this table before writing a draft row, and keep the raw value beside it
- * (`refuter.rawOutcome`). The validator itself stays strict: an unmapped
- * `upheld` in a draft is still `invalid_refuter`.
- */
 export const REFUTER_OUTCOME_MAPPING_VERSION = "citation-pi-refuter-outcome-v1";
 export const REFUTER_OUTCOME_ALIASES = Object.freeze({
   upheld: "confirmed",
@@ -105,7 +71,6 @@ export const REFUTER_OUTCOME_ALIASES = Object.freeze({
   refuted: "refuted",
 });
 
-/** Map a raw refuter outcome to the draft vocabulary, or null when unknown. */
 export function normalizeRefuterOutcome(rawOutcome) {
   if (typeof rawOutcome !== "string") return null;
   return REFUTER_OUTCOME_ALIASES[rawOutcome.trim().toLowerCase()] ?? null;
@@ -133,10 +98,6 @@ function isIsoTimestamp(value) {
   return isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
 }
 
-/**
- * Split a pairId into its components. markerId may itself contain colons, so
- * parse from both ends: `<slug>:<section>:<markerId>:<12-hex claim hash>`.
- */
 export function parsePairId(pairId) {
   if (typeof pairId !== "string") return null;
   const tail = pairId.match(/^(.+):([0-9a-f]{12})$/);
@@ -154,10 +115,6 @@ function rowPath(sectionIndex, rowIndex) {
   return `sections[${sectionIndex}].rows[${rowIndex}]`;
 }
 
-/**
- * Validate a verdict draft. Returns `{ errors }` where each error is
- * `{ code, path, message }` with `code` drawn from VALIDATION_ERROR_CODES.
- */
 export function validateVerdictDraft(draft) {
   const errors = [];
   const fail = (code, path, message) => errors.push({ code, path, message });

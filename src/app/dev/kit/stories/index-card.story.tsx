@@ -7,7 +7,6 @@ import {
 
 import type { StoryDef } from "../registry/types";
 
-/** Minimal inline stand-in for the IndexCardList / IndexCardListItem siblings. */
 function MockList({ items }: { items: string[] }) {
   return (
     <ul className="-mb-1 space-y-1.5 pb-1">

@@ -15,9 +15,6 @@ const stage = (min: number | null, max: number | null, unit: string): DurationSt
 
 describe("normalizeDurationStageForDisplay: the reported table", () => {
   it("prints the reviewer's own hand correction", () => {
-    // The article that triggered the report: onset and come-up were stored in
-    // minutes directly above hour-denominated peak/offset rows. The reviewer
-    // rewrote them as `2-7 hours` and `3-6 hours` by hand.
     expect(formatDuration(t, stage(120, 420, "minutes"))).toBe("2-7 hours");
     expect(formatDuration(t, stage(180, 360, "minutes"))).toBe("3-6 hours");
   });
@@ -26,9 +23,6 @@ describe("normalizeDurationStageForDisplay: the reported table", () => {
     expect(formatDuration(t, stage(6, 12, "hours"))).toBe("6-12 hours");
     expect(formatDuration(t, stage(3, 8, "hours"))).toBe("3-8 hours");
     expect(formatDuration(t, stage(12, 36, "hours"))).toBe("12-36 hours");
-    // A long total duration stays in hours: bromo-dragonfly was hand-checked in
-    // this form, and promoting only this row to days re-creates the mixed-scale
-    // table the fix exists to remove.
     expect(formatDuration(t, stage(24, 96, "hours"))).toBe("24-96 hours");
   });
 });
@@ -49,11 +43,6 @@ describe("normalizeDurationStageForDisplay: live routes printing hours as minute
     expect(formatDuration(t, stored)).toBe(shown);
   });
 
-  // These four span the hour boundary: the upper bound reads as hours but the
-  // lower bound is genuinely sub-hour. Promoting them printed `0.75-4 hours` /
-  // `0.5-3 hours`, which reads worse than the minutes it replaced — and on mdpv
-  // put `Peak 0.5-3 hours` directly above `Offset 30-120 minutes`, spelling the
-  // same 30 minutes two ways in one table. They stay in minutes.
   it.each([
     { name: "allylescaline oral onset", stored: stage(45, 240, "minutes"), shown: "45-240 minutes" },
     { name: "ibogaine oral onset", stored: stage(45, 180, "minutes"), shown: "45-180 minutes" },
@@ -86,15 +75,10 @@ describe("normalizeDurationStageForDisplay: promotion thresholds", () => {
   });
 
   it("keeps a range with no good single unit exactly as stored", () => {
-    // Five minutes is not half an hour by any rounding, so hours would print a
-    // bound of `0.08`. Minutes is wrong for the top of the range and right for
-    // the bottom; the stored form is the honest one.
     expect(formatDuration(t, stage(5, 180, "minutes"))).toBe("5-180 minutes");
   });
 
   it("climbs the seconds rung on the same rule", () => {
-    // 30s is half a minute, so promoting would have to round it to a whole
-    // minute and overstate the lower bound by 100%. Seconds is the honest form.
     expect(formatDuration(t, stage(30, 180, "seconds"))).toBe("30-180 seconds");
     expect(formatDuration(t, stage(60, 180, "seconds"))).toBe("1-3 minutes");
     expect(formatDuration(t, stage(15, 120, "seconds"))).toBe("15-120 seconds");
@@ -114,7 +98,6 @@ describe("normalizeDurationStageForDisplay: promotion thresholds", () => {
 
 describe("normalizeDurationStageForDisplay: fractional conversion residue", () => {
   it("rounds away false precision without changing the unit", () => {
-    // `1.9 hours` is 114 minutes — a botched hand conversion, not a measurement.
     expect(formatDuration(t, stage(1.9, 4, "hours"))).toBe("2-4 hours");
     expect(formatDuration(t, stage(4.5, 8.4, "hours"))).toBe("4.5-8.5 hours");
   });
@@ -136,7 +119,6 @@ describe("normalizeDurationStageForDisplay: fractional conversion residue", () =
   });
 
   it("prints the stored value rather than collapse a real span", () => {
-    // Quarter-hour rounding would make both bounds `1.75` and erase the range.
     expect(formatDuration(t, stage(100, 110, "minutes"))).toBe("100-110 minutes");
   });
 
@@ -175,9 +157,6 @@ describe("dose rendering is untouched", () => {
   });
 
   it("never converts a dose unit, whatever its magnitude", () => {
-    // A dose tier is the same `{min, max, unit}` leaf as a duration stage, and
-    // these are the numbers that would move if the duration helper ever reached
-    // `formatDose`: 120-420 is the reported onset, in milligrams.
     expect(formatDose(dose(120, 420, "mg"))).toBe("120-420 mg");
     expect(formatDose(dose(1.9, 4, "mg"))).toBe("1.9-4 mg");
     expect(formatDose(dose(500, 1500, "ug"))).toBe("500-1500 ug");
@@ -189,8 +168,6 @@ describe("dose rendering is untouched", () => {
   });
 
   it("does not convert a dose even when its unit reads as time", () => {
-    // `m` is a minutes alias. A dose tier can never reach the helper, because
-    // `formatDose` does not call it — this asserts that wiring, not the alias.
     expect(formatDose(dose(120, 420, "m"))).toBe("120-420 m");
   });
 

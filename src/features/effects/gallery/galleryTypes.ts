@@ -8,7 +8,6 @@ import type {
 
 export type GalleryMode = "artist" | "effect" | "year";
 export type GalleryTypeFilter = "all" | "image" | "video" | "audio";
-/** A year rail key: a year, merged span, or `undated`. */
 export type GalleryYearFilter = "all" | string;
 export const UNDATED_YEAR_FILTER = "undated";
 export type GalleryOrder = "curated" | "newest" | "oldest";
@@ -41,9 +40,7 @@ export function defaultGalleryOrder(mode: GalleryMode): GalleryOrder {
   return mode === "effect" ? "curated" : "newest";
 }
 
-/** Artist rails revealed per "Show more artists" page. */
 export const ARTIST_RAIL_PAGE = 16;
-/** Items shown inline in a rail before "View all" takes over. */
 export const RAIL_PREVIEW_LIMIT = 14;
 
 export interface GalleryGroup {

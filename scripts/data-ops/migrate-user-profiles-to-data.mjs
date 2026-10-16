@@ -50,8 +50,6 @@ const profiles = sourceProfiles.map((profile) => ({
     : [],
   avatarUrl: typeof profile.avatarUrl === "string" ? profile.avatarUrl : undefined,
   bio: typeof profile.bio === "string" ? profile.bio : "",
-  // bulkImport patches every field it is given, so the seed has to carry the
-  // contributor role title or re-seeding would clear it.
   role: typeof profile.role === "string" && profile.role.trim() ? profile.role.trim() : undefined,
   links: Array.isArray(profile.links)
     ? profile.links

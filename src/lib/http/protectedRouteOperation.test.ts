@@ -214,7 +214,6 @@ describe("protectedRouteOperation", () => {
       return handler(request());
     }
 
-    /** Reproduces the native structured error payload seen at the route boundary. */
     function forwarded(data: unknown) {
       const thrown = new PostgresError("Server Error");
       (thrown as { data: unknown }).data = data;
@@ -233,8 +232,6 @@ describe("protectedRouteOperation", () => {
     });
 
     it("keeps an auth failure generic, since it is not a PostgresError", async () => {
-      // `server/lib/auth.ts` extends `Error` on purpose so authorization
-      // detail never becomes a client-visible sentence.
       const thrown = Object.assign(
         new Error("Authentication required: Please sign in or provide an API key"),
         { name: "AuthError" },

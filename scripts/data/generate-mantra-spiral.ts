@@ -1,7 +1,4 @@
 #!/usr/bin/env bun
-// Regenerates the static decorative mantra spiral sheet served on /mantras.
-// Run: npm run generate:mantra-spiral
-// Output: public/mantras/spiral-sheet.svg (referenced by MantraGlyphs.tsx).
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

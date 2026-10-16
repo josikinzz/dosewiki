@@ -15,11 +15,6 @@ interface BlogIndexPageProps {
   emptyState?: PublicRouteEmptyState;
 }
 
-/**
- * The archived Effect Index blog index. The archive holds a handful of posts and will
- * never grow, so this is a plain reverse-chronological list of open rows rather than a
- * paginated or grouped explorer — grouping two posts would read as an empty scaffold.
- */
 export function BlogIndexPage({ posts, emptyState }: BlogIndexPageProps) {
   return (
     <PublicContentShell width="standard" focusTarget>

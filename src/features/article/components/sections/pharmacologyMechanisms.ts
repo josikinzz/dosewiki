@@ -1,6 +1,5 @@
 import { publicHref } from "@/utils/publicHref";
 
-// Convert mechanism text to slug for navigation
 function mechanismToSlug(moa: string): string {
   return moa
     .toLowerCase()
@@ -8,7 +7,6 @@ function mechanismToSlug(moa: string): string {
     .replace(/^-|-$/g, "");
 }
 
-// Parse mechanism entry to extract base name and optional qualifier
 export function parseMechanismEntry(entry: string): {
   base: string;
   qualifier?: string;
@@ -27,11 +25,6 @@ export function parseMechanismEntry(entry: string): {
   return { base: entry.trim() };
 }
 
-/**
- * Activity phrases that can trail a binding-site name in a mechanism label.
- * Ordered longest-first so "partial agonist" wins over "agonist" and
- * "reuptake inhibitor" over "inhibitor".
- */
 const MECHANISM_ACTIVITY_PHRASES = [
   "positive allosteric modulator",
   "negative allosteric modulator",
@@ -50,13 +43,6 @@ const MECHANISM_ACTIVITY_PHRASES = [
   "agent",
 ];
 
-/**
- * Splits "5-HT2A receptor agonist" into the site ("5-HT2A receptor") and the
- * activity ("agonist") so the row's citation marker can sit beside the binding
- * site itself rather than trailing the whole mechanism. Labels that carry no
- * recognised activity phrase — a bare target like "TAAR1", or free prose — stay
- * whole and keep the marker at the end.
- */
 export function splitMechanismActivity(base: string): {
   site: string;
   activity?: string;

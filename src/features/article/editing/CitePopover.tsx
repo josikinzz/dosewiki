@@ -15,40 +15,16 @@ import {
 } from "@/lib/citations/referenceIntake";
 import type { Reference } from "@/schema";
 
-/**
- * Cite the sentence being edited, from inside the field.
- *
- * The old path was a clipboard hop: open the references panel elsewhere, add a
- * source, copy its marker, come back, paste. Editors reported that as two
- * tasks rather than one. Here the source is minted and its marker inserted at
- * the caret without the field ever closing.
- *
- * Detection, metadata lookup, and assembly come from `referenceIntake`, the
- * same functions the references panel's quick-add card uses, so a source
- * minted here and one minted there are the same reference with the same id.
- */
 export type CitePopoverProps = {
-  /** Sources the article already cites, offered for reuse before minting one. */
   references: Reference[];
-  /** Appends the reference and answers with the id a marker must address. */
   addReference: (reference: Reference) => string;
-  /** Receives the marker text to place at the caret. */
   onInsert: (marker: string) => void;
-  /**
-   * Controlled by the field, so activating a citation-needed flag can open the
-   * field and this control in one step.
-   */
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /**
-   * Receives a warning the field must keep showing after this panel closes,
-   * such as a metadata lookup that failed while the citation still applied.
-   */
   onLookupWarning?: (message: string) => void;
   disabled?: boolean;
 };
 
-/** How many stored sources the reuse list offers before it asks for a filter. */
 const MAX_SUGGESTIONS = 6;
 
 function referenceLabel(reference: Reference): string {
@@ -59,10 +35,6 @@ function referenceLabel(reference: Reference): string {
 export function CitePopover({ references, addReference, onInsert, open, onOpenChange, onLookupWarning, disabled = false }: CitePopoverProps) {
   const [query, setQuery] = useState("");
   const queryId = useId();
-  // The popover exists to be typed into, and Radix focuses the panel rather
-  // than the field inside it. A ref avoids `autoFocus`, which the a11y rules
-  // ban for surfaces that appear without being asked for; this one only ever
-  // appears because an editor activated the control.
   const focusOnMount = useCallback((node: HTMLInputElement | null) => { node?.focus(); }, []);
   const [busy, setBusy] = useState(false);
 
@@ -87,12 +59,6 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
     close();
   };
 
-  /**
-   * Mint the pasted identifier. Metadata is fetched first so the stored source
-   * carries a real title, but a lookup that fails must not cost the editor the
-   * citation: the marker still lands and the reference keeps the identifier as
-   * its title for the citation workbench to finish.
-   */
   const addPasted = async () => {
     if (!detection || busy) return;
     setBusy(true);
@@ -114,8 +80,6 @@ export function CitePopover({ references, addReference, onInsert, open, onOpenCh
 
   const onQueryKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
-      // Closes the popover only. The field around it stays open with the
-      // draft intact, because cancelling a citation is not cancelling an edit.
       event.preventDefault();
       event.stopPropagation();
       close();

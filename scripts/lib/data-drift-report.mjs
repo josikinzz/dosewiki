@@ -1,8 +1,3 @@
-/**
- * Report unresolved native callable references in the application checkout.
- * No network requests, credentials, or deployment operations.
- */
-
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { collectAppCallsites } from "./data-app-callsites.mjs";
@@ -11,7 +6,6 @@ import {
   walkSourceFiles,
 } from "./data-function-inventory.mjs";
 
-/** Where the app calls Postgres from. `src/app/api/**` and `lib/data/**` included. */
 const APP_SOURCE_DIRS = ["src", "lib"]
 
 function collectAppCallsitesFromRepo({ repoRoot, knownModules, dirs = APP_SOURCE_DIRS }) { const files = [];
@@ -25,16 +19,6 @@ for (const dir of dirs) {
 }
 return collectAppCallsites({ files, knownModules }); }
 
-/**
- * Every function the app calls must be defined in this checkout.
- *
- * Typecheck already covers the `api.*` form. It cannot see the string form used
- * by `lib/data/publicData.reads.ts`, which is what renders the public site —
- * so this is the only static coverage those names have, and it is the part CI
- * can always enforce.
- *
- * @param {{ repoRoot: string }} input
- */
 export function buildCallsiteIntegrityReport({ repoRoot }) {
   const checkout = collectCheckoutInventory({ repoRoot });
   const knownModules = new Set(checkout.map((entry) => entry.module));

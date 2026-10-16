@@ -1,14 +1,5 @@
 import type { Rendering } from "../../src/features/language-glossary/languageGlossary";
 
-/**
- * Whether a person checked the live wording, decided in SQL so the reviewer
- * never leaves the database: the newest recorded approval must carry these
- * exact bytes and name the actor the row names. Legacy metadata alone is not
- * proof (the rule `projectGlossaryReviewRows` applies in the workbench). The
- * live approved state decides first: a pending draft over approved wording is
- * a proposed change, not what readers see. Only a row with no approved
- * rendering is a suggestion.
- */
 const LIVE = `g."status" = 'approved'`;
 const PROVENANCE = `CASE
     WHEN NOT (${LIVE}) THEN 'machine_suggestion'
@@ -21,10 +12,6 @@ const PROVENANCE = `CASE
     ELSE 'legacy_unverified'
   END`;
 
-/** One SQL snapshot shared by public pages and transactional feedback validation.
- * Select only public rendering fields, never reviewer identities or history.
- * Approved rows show their live wording; a draft shows only where nothing is approved.
- */
 export const PUBLIC_GLOSSARY_RENDERING_SELECT = `SELECT g."term",
   CASE WHEN ${LIVE} THEN g."kind" ELSE COALESCE(r."draft"->>'context', g."kind") END AS "kind",
   CASE WHEN ${LIVE} THEN g."target" ELSE COALESCE(r."draft"->>'target', g."target") END AS "target",
@@ -42,7 +29,6 @@ export function publicGlossaryRendering(
     kind: String(row.kind),
     target: String(row.target),
     status: row.status as "draft" | "approved",
-    // Anything unrecognised reads as the weakest claim, never as checked.
     provenance:
       row.provenance === "human_review" ||
       row.provenance === "legacy_unverified"

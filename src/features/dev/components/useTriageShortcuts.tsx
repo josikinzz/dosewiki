@@ -16,21 +16,13 @@ export { isTextEntryTarget };
 export type TriageAction = "accept" | "reject" | "spam" | "note" | "undo";
 
 export interface TriageShortcutHandlers {
-  /** `j` (1) and `k` (-1): move the selection to the next or previous item. */
   onMove?: (direction: 1 | -1) => void;
-  /** `a`: the queue's positive decision (Accept, Resolve, Approve). */
   onAccept?: () => void;
-  /** `r`: reject; the tool still asks before it writes. */
   onReject?: () => void;
-  /** `s`: mark as spam; the tool still asks before it writes. */
   onSpam?: () => void;
-  /** `n`: put the cursor in the review note. */
   onNote?: () => void;
-  /** `u`: undo the last decision. */
   onUndo?: () => void;
-  /** What each action is called in this tool, for the `?` list. */
   labels?: Partial<Record<TriageAction | "move", string>>;
-  /** False turns every key off, for example while the tool is not showing a queue. */
   enabled?: boolean;
 }
 
@@ -59,12 +51,6 @@ const HANDLER_OF: Record<TriageAction, keyof TriageShortcutHandlers> = {
   undo: "onUndo",
 };
 
-/** One quiet line under a queue so the keys can be found; pointer-only screens skip it. */
-/**
- * The key line under a triage list, in the one wording every list uses:
- * the keys the tool leads with (`children`, such as "j k move"), then
- * "? every key". Fine pointers only.
- */
 export function TriageShortcutHint({ className, children }: { className?: string; children?: ReactNode }) {
   return (
     <p className={`theme-text-faint text-xs [@media(pointer:coarse)]:hidden ${className ?? ""}`}>
@@ -75,20 +61,6 @@ export function TriageShortcutHint({ className, children }: { className?: string
   );
 }
 
-/**
- * The single-key triage layer every intake queue shares (Citations, Trip
- * reports, Feedback): `j`/`k` move, `a` accept, `r` reject, `s` spam, `n`
- * note, `u` undo, `?` lists the keys. A key whose handler is omitted is not
- * bound and is not listed.
- *
- * Keys never fire inside a text field, while a dialog is open, with a
- * modifier held, or when another handler already called `preventDefault`.
- * A handled key is marked handled so it never also types into a field the
- * handler focused. Inside the /dev shell the keys join the shell's one `?`
- * sheet and `helpDialog` is null; rendered alone (a test, a page outside the
- * shell) the hook answers `?` with its own dialog. Render `helpDialog` once
- * near the tool root either way.
- */
 export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDialog: ReactNode } {
   const [helpOpen, setHelpOpen] = useState(false);
   const latest = useRef(handlers);
@@ -103,7 +75,6 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
   for (const [key, action] of Object.entries(ACTION_KEYS)) {
     if (handlers[HANDLER_OF[action]]) rows.push({ keys: key, label: labels[action] });
   }
-  // The shell's sheet lists these rows beside its own `?` and Cmd+K.
   const inShell = useDevShortcuts(rows, enabled);
   rows.push({ keys: "?", label: "Show these keys" });
   const listKey = rows.map((row) => `${row.keys}:${row.label}`).join("|");
@@ -115,7 +86,6 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
 
       const current = latest.current;
       if (event.key === "?") {
-        // The shell owns `?` and opens one sheet for every tool.
         if (inShell) return;
         event.preventDefault();
         setHelpOpen(true);
@@ -168,7 +138,6 @@ export function useTriageShortcuts(handlers: TriageShortcutHandlers): { helpDial
         </DialogContent>
       </Dialog>
     ),
-    // `rows` is rebuilt every render; its text is what matters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [helpOpen, inShell, listKey],
   );

@@ -13,28 +13,18 @@ import type { StudioFeedback } from "./useReplicationCorpus";
 
 export type SelectionStep = { key: "ArrowLeft" | "ArrowRight" | "ArrowUp" | "ArrowDown"; shift: boolean; perRow: number };
 
-/**
- * The one selection model every workspace shares: which works are selected,
- * where the keyboard anchor sits, and the inspector draft that any change of
- * subject has to ask about first.
- */
 export function useReplicationSelection({
   rows,
   visibleIds,
   setFeedback,
 }: {
   rows: readonly StudioRow[];
-  /** The ids the Library shows, in order: ranges and arrows walk these. */
   visibleIds: readonly string[];
   setFeedback: (feedback: StudioFeedback | null) => void;
 }) {
   const [selection, setSelection] = useState<Set<string>>(() => new Set());
   const [anchor, setAnchor] = useState<string | null>(null);
-  // Where a keyboard range starts: the last card chosen without Shift. The
-  // anchor moves with every arrow; this stays put so Shift+arrows span it.
   const [rangeStart, setRangeStart] = useState<string | null>(null);
-  // The inspector's draft is unsaved work: anything that would swap its
-  // subject (a click, an arrow, Esc, a workspace change) waits on a discard.
   const [editorDirty, setEditorDirty] = useState(false);
   const [pendingDiscard, setPendingDiscard] = useState<{ run: () => void } | null>(null);
 
@@ -49,7 +39,6 @@ export function useReplicationSelection({
     setRangeStart(id);
   }, []);
 
-  /** Runs `change` now, or once the editor confirms throwing its draft away. */
   const guardDraft = useCallback(
     (change: () => void) => {
       if (editorDirty) setPendingDiscard({ run: change });
@@ -123,7 +112,6 @@ export function useReplicationSelection({
     [anchor, guardDraft, rangeStart, selection, visibleIds],
   );
 
-  /** One arrow press: moves the anchor, and with Shift spans from the range start. */
   const step = useCallback(
     ({ key, shift, perRow }: SelectionStep) => {
       if (visibleIds.length === 0) return;
@@ -133,8 +121,6 @@ export function useReplicationSelection({
       const nextIndex =
         current === -1 ? 0 : Math.max(0, Math.min(visibleIds.length - 1, current + delta));
       const id = visibleIds[nextIndex];
-      // Shift+arrow spans from where the range started to the new anchor, so
-      // stepping back shrinks the range instead of adding one more card.
       const start = rangeStart && visibleIds.includes(rangeStart) ? rangeStart : anchor;
       let next: Set<string>;
       if (shift && start && visibleIds.includes(start)) {
@@ -153,9 +139,6 @@ export function useReplicationSelection({
     [anchor, guardDraft, rangeStart, visibleIds],
   );
 
-  // A freshly uploaded work becomes the selection once the reloaded corpus
-  // lists it; the grid scrolls its anchor into view. An open draft wins: the
-  // new work is not worth a discard prompt nobody asked for.
   const [revealSlug, setRevealSlug] = useState<string | null>(null);
   useEffect(() => {
     if (!revealSlug) return;

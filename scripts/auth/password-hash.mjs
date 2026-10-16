@@ -1,10 +1,3 @@
-/**
- * Password hashing for workstation scripts. Mirrors `lib/auth/passwords.ts`
- * exactly (scrypt N=16384 r=8 p=1, 16-byte salt, 64-byte key, stored as
- * `scrypt$N$r$p$saltB64$hashB64`) so a hash minted here verifies in the app.
- * `lib/auth/passwords.test.ts` cross-checks the two implementations.
- */
-
 import { randomBytes, scrypt } from "node:crypto";
 import { promisify } from "node:util";
 

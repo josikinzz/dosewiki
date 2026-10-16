@@ -1,18 +1,8 @@
-/**
- * QA packet for a locale translation run. Pure: it reports what the run did,
- * and refuses to describe a run as publishable on its own.
- *
- * The packet is what a human reads before publication: coverage, the failure
- * queue, a review sample beside its sources, every safety segment that carries
- * a warning, and glossary drift.
- */
-
 import { glossaryTermPattern } from "./locales.mjs";
 import { DEFECT_CODES, isBlocking } from "./validate.mjs";
 
 const SAMPLE_SIZE = 20;
 
-/** Deterministic sampler: same run inputs produce the same review sample. */
 function sampleEvenly(items, count) {
   if (items.length <= count) return [...items];
   const step = items.length / count;
@@ -47,10 +37,6 @@ export function buildQaPacket({
     return entry && typeof entry.target === "string" && entry.target.length > 0;
   });
 
-  // A resumed run only lists the failures it produced itself, so counting those
-  // would report a corpus as fully validated while its checkpoint still holds
-  // segments the artifact fell back to English on. The verdict on disk is the
-  // one that decided what shipped, so it is the one that gets counted.
   const rejected = new Set(
     [...translations]
       .filter(([, entry]) => isBlocking(entry.defects ?? []))
@@ -134,9 +120,6 @@ export function buildQaPacket({
       identical: structuralDiff.length === 0,
       mismatches: structuralDiff,
     },
-    // Every VCode body the run rebuilt, and every one whose tree moved and so
-    // kept its English. A rejected body is a defect in the translation, not in
-    // the source: the source parsed, and the source tree is what it failed.
     reconciliation: reconciliation
       ? {
           bodies: reconciliation.bodies,
@@ -166,7 +149,6 @@ export function buildQaPacket({
       })),
     },
     glossaryDrift,
-    // Blocking: these units kept their English and sit in the failure queue.
     repeatedPunctuation: defectCounts[DEFECT_CODES.REPEATED_PUNCTUATION] ?? 0,
     nonBlockingNotes: {
       lengthBand: defectCounts[DEFECT_CODES.LENGTH_BAND] ?? 0,

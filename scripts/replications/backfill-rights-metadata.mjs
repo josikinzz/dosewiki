@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-/**
- * Backfill creator-retained rights metadata for existing Postgres replication rows
- * from notes-and-plans/exports/replications/replications-metadata.json.
- */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

@@ -22,11 +22,6 @@ import {
 } from "./citationReviewModels";
 import { summaryBlockingGaps } from "./citationPaneModel";
 
-/**
- * The four queue filters as a four-column grid in the segmented capsule, so
- * every choice shows on a phone without a sideways scroll. Each refetches the
- * queue; the count of the other filters is unknown until then, so none shows.
- */
 export function CitationFilterChoices({
   value,
   onChange,
@@ -66,12 +61,6 @@ export function CitationFilterChoices({
   );
 }
 
-/**
- * The article queue as the shared triage list: arrows (and j/k from the tab)
- * move the selection, and the search narrows it by title or slug. Open in
- * Review lives on the open article's pane, so each row stays one option with
- * nothing else to tab to.
- */
 export function citationQueueMatches(
   entry: CitationReviewQueueSummary,
   query: string,
@@ -84,12 +73,10 @@ export function citationQueueMatches(
 }
 
 export type CitationQueuePanelProps = {
-  /** The articles to list, already narrowed by `query`. */
   queue: CitationReviewQueueSummary[];
   selectedSlug: string | null;
   articleTitleBySlug: Map<string, string>;
   onSelectSlug: (slug: string) => void;
-  /** The search lives with the tab so j/k step through the same rows the list shows. */
   query?: string;
   onQueryChange?: (query: string) => void;
   listRef?: RefObject<HTMLElement | null>;
@@ -98,30 +85,18 @@ export type CitationQueuePanelProps = {
   searchRef?: RefObject<HTMLInputElement | null>;
   filter?: CitationReviewQueueFilter;
   onFilterChange?: (filter: CitationReviewQueueFilter) => void;
-  /** "4 articles", "1 of 4 shown", "Loading", "Not loaded". */
   countLine?: string;
   refreshing?: boolean;
   onRefresh?: () => void;
   busy?: boolean;
-  /** Who holds each article in the Inbox's claim table; null when unknown or not shown. */
   holdOf?: (slug: string) => ProposalHold | null;
-  /** Rows exist in memory (possibly stale behind a failed refresh). */
   loaded?: boolean;
-  /** Why the list is empty, with the way back to some rows. */
   empty?: ReactNode;
-  /** A failed read, drawn where the list is; rows already loaded stay under it. */
   error?: ReactNode;
-  /** A line about the list itself (a deep link that named nothing here). */
   notice?: ReactNode;
-  /** Rail count freshness line. */
   freshness?: ReactNode;
 };
 
-/**
- * The list column: heading, count and Refresh, the four filters, search, then
- * the windowed list of articles (title, blocking and ready counts, who holds
- * it, rows and when it last changed). Sticky beside the pane from `lg`.
- */
 export function CitationQueuePanel({
   queue,
   selectedSlug,
@@ -245,11 +220,6 @@ export function CitationQueuePanel({
   );
 }
 
-/**
- * Two lines at one pitch for the windowed list: the title with its blocking
- * and ready counts, then who holds it, how many rows it has, how many are
- * accepted, and when it last changed.
- */
 function QueueRow({
   entry,
   active,
@@ -322,7 +292,6 @@ function ListSkeleton() {
   );
 }
 
-/** The open article's link out to the full review workbench. */
 export function CitationOpenInReview({ slug }: { slug: string }) {
   return (
     <a

@@ -14,7 +14,6 @@ import { CANONICAL_REVIEW_FLAG_LABELS } from "@/schema/substance/editorial";
 import { ARTICLE_SECTION_CATALOG } from "@/schema/substance/sectionCatalog";
 import { describeReviewRefusal } from "./reviewDockModel";
 
-/** Ties the dock's toggle `aria-controls` to the panel region. */
 export const NOTES_PANEL_ID = "review-notes-panel";
 
 const FLAG_SEVERITY_TONE: Record<ReviewFlagSeverity, EditorStatusPillTone> = {
@@ -46,14 +45,12 @@ function labelWordCount(label: string): number {
   return label.trim().split(/\s+/).filter(Boolean).length;
 }
 
-/** Why Add flag is off, in words, or null when it can run. */
 function flagLabelProblem(label: string): string | null {
   const words = labelWordCount(label);
   if (words === 0) return null;
   return words > 3 ? `That label has ${words} words; a flag label has one to three.` : null;
 }
 
-/** What the reviewer typed and has not added yet; kept per article by the workbench. */
 export interface NotesDraft {
   note: string;
   label: string;
@@ -70,33 +67,19 @@ export function isEmptyNotesDraft(draft: NotesDraft): boolean {
 export interface ReviewNotesPanelProps {
   slug: string;
   name: string;
-  /** The article's Review Flags as last read or written. */
   flags: readonly ReviewFlag[];
-  /** Called with the full flag list the route returned after a write. */
   onFlagsChange: (slug: string, flags: ReviewFlag[]) => void;
   onClose: () => void;
-  /** The draft to open with, and where each edit to it is reported. */
   draft?: NotesDraft;
   onDraftChange?: (slug: string, draft: NotesDraft) => void;
 }
 
-/**
- * Where a reviewer records why an article is held back: a note plus a Review
- * Flag, written through the editorial review route's `add-flag` and
- * `delete-flag` actions. Each write is immediate; flags stay advisory and never
- * block marking an article reviewed.
- *
- * It opens inside the review dock, over the article at the place the reviewer
- * is reading, so writing a note never scrolls the page away from the passage
- * it is about. Its body scrolls on its own.
- */
 export function ReviewNotesPanel({ slug, name, flags, onFlagsChange, onClose, draft, onDraftChange }: ReviewNotesPanelProps) {
   const start = draft ?? EMPTY_DRAFT;
   const [note, setNote] = useState(start.note);
   const [label, setLabel] = useState(start.label);
   const [severity, setSeverity] = useState<ReviewFlagSeverity>(start.severity);
   const [section, setSection] = useState(start.section);
-  // Every edit is handed up, so closing the panel or moving on keeps it.
   useEffect(() => {
     onDraftChange?.(slug, { note, label, severity, section });
   }, [label, note, onDraftChange, section, severity, slug]);
@@ -105,8 +88,6 @@ export function ReviewNotesPanel({ slug, name, flags, onFlagsChange, onClose, dr
   const [added, setAdded] = useState<string | null>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
 
-  // F opens the panel to write, so the cursor starts in the note, without
-  // scrolling the article the note is about.
   useEffect(() => {
     noteRef.current?.focus({ preventScroll: true });
   }, []);

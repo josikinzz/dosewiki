@@ -16,11 +16,6 @@ import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
 import { articleArrayIdentity } from "../../../../lib/proposals/articlePatch";
 import { mergeThreeWay, type MergeSide } from "../../../../lib/proposals/threeWayMerge";
 
-/**
- * What the local preview holds at one allow-listed field path, or `null` when
- * the path does not resolve to a leaf this editor can hold. Reads only; the
- * write walker in `articleFieldWrites` owns every mutation and its guards.
- */
 function readEditableFieldValue(document: Record<string, unknown>, path: string): EditableFieldValue | null {
   const parts = parseEditableFieldPath(path);
   if (!parts) return null;
@@ -39,8 +34,6 @@ function readEditableFieldValue(document: Record<string, unknown>, path: string)
   if (typeof unit !== "string") return null;
   const lower = typeof min === "number" ? min : null;
   const upper = typeof max === "number" ? max : null;
-  // A bound that is present but not a number means this leaf is not the range
-  // the field would hold, so answer nothing rather than a coerced shape.
   if (lower === null && min !== null && min !== undefined) return null;
   if (upper === null && max !== null && max !== undefined) return null;
   return { min: lower, max: upper, unit };
@@ -57,11 +50,6 @@ type Snapshot = {
   draftVersion?: number;
   proposals?: ProposalSummary[];
 };
-/**
- * The article a local draft was edited from: the loaded public article when
- * the draft's baseline is that revision, else the revision history's copy of
- * it, or null when history no longer has it.
- */
 function articleAtRevision(hash: string, snapshots: Array<Snapshot | null>): SubstanceArticle | null {
   for (const candidate of snapshots) {
     if (!candidate) continue;
@@ -74,11 +62,6 @@ function articleAtRevision(hash: string, snapshots: Array<Snapshot | null>): Sub
 
 export type ArticleLifecycleAction = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
 
-/**
- * One reason an article change cannot be saved or published. `sectionId` is
- * the in-page section whose form edits `path`, derived from the path itself,
- * so a caller that offers "Edit this section" never reads the message text.
- */
 export type ArticleValidationIssue = { path: string; message: string; sectionId: ArticleEditorSection | null };
 
 export function articleValidationIssues(article: SubstanceArticle, before: SubstanceArticle, publication = true): ArticleValidationIssue[] {
@@ -96,23 +79,16 @@ export function articleValidationIssues(article: SubstanceArticle, before: Subst
   }
 }
 
-/** A validation issue as one line a person reads: its place in words, then why. */
 export function describeValidationIssue(issue: ArticleValidationIssue): string {
   return issue.path === "article" ? issue.message : `${placeWords(issue.path)}: ${issue.message}`;
 }
 
-/**
- * Whether an issue at `issuePath` is about the field at `fieldPath`: the same
- * leaf, a part of it (a range's `.unit`), or the group it belongs to (every
- * tier of one route must share a unit, and that rule names the tiers' parent).
- */
 export function issueConcernsField(issuePath: string, fieldPath: string): boolean {
   const within = (inner: string, outer: string) =>
     inner === outer || inner.startsWith(`${outer}.`) || inner.startsWith(`${outer}[`);
   return within(issuePath, fieldPath) || within(fieldPath, issuePath);
 }
 
-/** One field's reason, without the place words the field already stands in for. */
 export function fieldIssueMessage(issues: ArticleValidationIssue[], fieldPath: string): string | null {
   return issues.find((issue) => issue.path !== "article" && issueConcernsField(issue.path, fieldPath))?.message ?? null;
 }
@@ -126,34 +102,26 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [recovery, setRecovery] = useState<Snapshot | null>(null);
   const [baselineRefreshRequired, setBaselineRefreshRequired] = useState(false);
-  // The editor's pick for each field both they and someone else changed.
   const [mergeChoices, setMergeChoices] = useState<Record<string, MergeSide>>({});
   const [savedArticle, setSavedArticle] = useState(initialArticle);
   const [baseHash, setBaseHash] = useState("");
   const [version, setVersion] = useState<number | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  // Set only by a publish or restore, from the receipt the route returned.
   const [publication, setPublication] = useState<ArticlePublicationNotice | null>(null);
-  // The proposal this session just submitted, kept for the pending chip.
   const [submittedProposalId, setSubmittedProposalId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  // The write in flight, so a dock can say what is running.
   const [pendingAction, setPendingAction] = useState<LifecycleAction | null>(null);
-  // Why the last write did not land, when the answer said: frozen, a conflict, or a refusal.
   const [failure, setFailure] = useState<LifecycleFailure | null>(null);
   const [loading, setLoading] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [revisionOf, setRevisionOf] = useState<string | undefined>();
-  // The reader feedback this session corrects (Start correction); a submit carries it once.
   const [feedbackRef, setFeedbackRef] = useState<FeedbackRef | undefined>();
   const [expired, setExpired] = useState(false);
   const current = useRef(article);
   current.current = article;
-  // A fresh baseline starts a fresh set of choices.
   useEffect(() => { setMergeChoices({}); }, [recovery]);
   const requestLock = useRef(false);
-  // Keep an uncertain operation's identity and exact body for a deliberate retry.
   const pending = useRef<{ identity: string; changeId: string } | null>(null);
   const readSnapshot = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`/api/dev/article-lifecycle?slug=${encodeURIComponent(slug)}`, { signal, cache: "no-store" });
@@ -213,20 +181,11 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     preview({ ...current.current, [result.topLevelKey]: result.topLevelValue });
     return result.value;
   }, [preview]);
-  // A refused write earns the recovery panel only when this can name what the
-  // local preview actually holds now. Same kind or nothing: a path holding the
-  // other kind answers null rather than something the field would coerce.
   const refreshStoredValue: ArticleEditContextValue["refreshStoredValue"] = useCallback((path, like) => {
     const stored = readEditableFieldValue(current.current as unknown as Record<string, unknown>, path);
     if (stored === null) return null;
     return typeof like === "string" ? (typeof stored === "string" ? stored : null) : (typeof stored === "string" ? null : stored);
   }, []);
-  /**
-   * Append one reference to the local preview and answer with the id a
-   * citation marker must use. An equivalent source already on the article
-   * answers with its own id and appends nothing, so citing the same paper
-   * twice cannot fork it into two references.
-   */
   const addReference: ArticleEditContextValue["addReference"] = useCallback((reference) => {
     const references = current.current.references ?? [];
     const existing = findEquivalentReference(references, reference);
@@ -241,7 +200,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     setBusy(true); setError(null); setNotice(null);
     try {
       const next = await readSnapshot();
-      // Stage the complete public article/hash pair without rebasing or replacing local work.
       setRecovery(next);
       setExpired(false);
       return next;
@@ -250,11 +208,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       throw failure;
     } finally { requestLock.current = false; setBusy(false); }
   }, [readSnapshot]);
-  /**
-   * The three-way merge of the refreshed public article with the local draft,
-   * measured from the revision the draft was edited against: what only this
-   * editor changed, what only someone else changed, and what both changed.
-   */
   const merge = useMemo(() => {
     if (!recovery) return null;
     const base = articleAtRevision(baseHash, [snapshot, recovery]) ?? snapshot?.article ?? recovery.article;
@@ -265,7 +218,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     if (!recovery || requestLock.current || pending.current) throw new Error("Retry the unconfirmed change before loading the latest version.");
     if (keepDraft) {
       if (!merge || merge.unresolved.length > 0) throw new Error("Choose a version for every field both of you changed before using the merged draft.");
-      // Identity and review state are the record's, never the draft's.
       const value = { ...merge.merged, id: recovery.article.id, slug: recovery.article.slug, editorial_review: recovery.article.editorial_review };
       setSnapshot(recovery);
       setBaseHash(recovery.baseHash);
@@ -314,9 +266,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) setExpired(true);
-        // A refusal the server named (a 4xx, or the write freeze's 503) is
-        // definite: nothing was written, so the same request is not held for
-        // a retry. Only a lost or unexplained answer stays unconfirmed.
         const kind = classifyLifecycleFailure(response.status, data?.code);
         if (kind) {
           pending.current = null;
@@ -332,7 +281,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
         setSnapshot((previous) => previous ? { ...previous, draftVersion: data.draftVersion, draft: { article: nextArticle, baseHash, version: data.draftVersion ?? data.draft?.version ?? 0, revisionOf, updatedAt: new Date().toISOString() } } : previous);
         setNotice("Private draft saved. Published content has not changed.");
       } else if (action === "discardDraft") {
-        // The receipt has a hash but no article. Never pair it with our old public document.
         setBaselineRefreshRequired(true);
         setSnapshot({ ...snapshot, draft: null, draftVersion: data.draftVersion });
         setRevisionOf(undefined);
@@ -349,13 +297,9 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
           setNotice("Private draft discarded. The current published article is loaded; published content has not changed.");
         }
       } else if (action === "submit") {
-        // The proposal now lives in review, so the page goes back to what
-        // readers see. Keeping the proposed content here left a change count
-        // and a Submit button that invited the same proposal twice.
         preview(snapshot.article); setSavedArticle(snapshot.article); setBaseHash(snapshot.baseHash);
         setSnapshot({ ...snapshot, draft: null, draftVersion: data.draftVersion });
         setRevisionOf(undefined);
-        // The proposal now carries the feedback; a later submission is a new change.
         setFeedbackRef(undefined);
         if (typeof data.proposalId === "string") setSubmittedProposalId(data.proposalId);
         setNotice("Submitted for review. Published content has not changed.");
@@ -364,13 +308,10 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
         setRevisionOf(undefined);
         if (action === "publish") setFeedbackRef(undefined);
         setSnapshot({ article: data.article, baseHash: data.baseHash, draft: null, history: snapshot.history, draftVersion: data.draftVersion });
-        // The route answers once the editor host has the change; the public
-        // site catches up later. Only the receipt can say how far it got.
         const delivery = articlePublicationNotice(slug, data.publication);
         setPublication(delivery);
         setNotice(action === "restore" ? `Revision restored as a new change. ${delivery.message}` : delivery.message);
       }
-      // Read-only history/proposal refresh never changes the draft baseline.
       void fetch(`/api/dev/article-lifecycle?slug=${encodeURIComponent(slug)}`, { cache: "no-store" })
         .then(async (result) => { if (result.ok) { const fresh = await result.json() as Snapshot; setSnapshot((previous) => previous ? { ...previous, history: fresh.history, proposals: fresh.proposals } : previous); } }).catch(() => {});
     } catch (failure) {
@@ -392,7 +333,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [savedArticle, preview, snapshot, baselineRefreshRequired, recovery]);
   const getArticle = useCallback(() => current.current, []);
   const published = snapshot?.article ?? initialArticle;
-  /** Whether the preview differs from the published article at one editable path. */
   const isFieldChanged = useCallback((path: string) => {
     const before = readEditableFieldValue(published as unknown as Record<string, unknown>, path);
     const after = readEditableFieldValue(article as unknown as Record<string, unknown>, path);

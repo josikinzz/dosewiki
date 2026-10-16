@@ -1,11 +1,4 @@
 "use client";
-/**
- * The Articles view: the article reader first, then the release facts that
- * used to be drawers under it, each its own section of the view: Coverage,
- * Recent changes, Reactions, and for admins Runs. A section mounts the
- * first time it opens and stays mounted, so a loaded report or a half-typed
- * correction survives a switch. Write results from Runs land in Runs.
- */
 import { useState } from "react";
 
 import { EditorSegmentedControl, EditorStatusPill, type NoticeMessage } from "@/features/dev/components";
@@ -32,9 +25,7 @@ export type RunsProps = {
   onStart: () => void;
   onRetranslate: () => void;
   onRetryExhausted: () => void;
-  /** The latest run in a few words, or null when there has been none. */
   status: string | null;
-  /** What a running run write is doing, or null. */
   activity: string | null;
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
@@ -43,11 +34,8 @@ export type RunsProps = {
 export function ArticlesView({ locale, canAdmin, articleLink, initialSection, sectionRequest = null, onSectionChange, runs }: {
   locale: string;
   canAdmin: boolean;
-  /** Bumped when an Inbox link opens an article, so the reader remounts and reads the link. */
   articleLink: number;
-  /** The section a deep link asked for (`coverage`, `changes`). */
   initialSection: ArticlesSection | null;
-  /** Another view asking for a section (Terms' "Open Runs"); `n` changes on each ask. */
   sectionRequest?: { section: ArticlesSection; n: number } | null;
   onSectionChange: (section: ArticlesSection) => void;
   runs: RunsProps;
@@ -62,7 +50,6 @@ export function ArticlesView({ locale, canAdmin, articleLink, initialSection, se
     setSection(sectionRequest.section);
     setVisited((current) => new Set(current).add(sectionRequest.section));
   }
-  // An Inbox link to an article always lands on the reader.
   if (articleLink !== prevLink) {
     setPrevLink(articleLink);
     setSection("reader");

@@ -80,7 +80,6 @@ describe("changeProposalReview.approveAndApply", () => {
   });
 
   it("treats the id-row moving to another slug as drift, so the apply never patches an unpinned row", async () => {
-    // The proposal pinned the row with id 1 at "lsd"; an admin renamed it since.
     const { ctx, rowsOf } = createCtx({
       memberships: [admin],
       substanceIndex: [{ ...storedLsd, slug: "lysergide" }],

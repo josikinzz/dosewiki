@@ -47,7 +47,6 @@ const PANE_OFFSETS = [[-1, 0], [0, 0], [1, 0], [0, -1], [0, 1]] as const;
 const CENTER = 1;
 type Axis = "x" | "y";
 type Direction = 1 | -1;
-/** Slots at left, center, right, above, below. DOM order never changes. */
 type SlotByPane = readonly [number, number, number, number, number];
 
 function prefersReducedMotion(): boolean {
@@ -63,9 +62,7 @@ function neighborPane(axis: Axis, direction: Direction): number {
 }
 
 export interface ViewerTrackHandle {
-  /** Animate and commit an adjacent work, retaining its pooled player. */
   slide: (direction: Direction) => boolean;
-  /** Animate and commit an adjacent group's remembered work. */
   slideGroup: (direction: Direction) => boolean;
 }
 
@@ -108,7 +105,6 @@ interface ViewerSlideProps {
   controlsVisible: boolean;
 }
 
-/** A persistent player and independently prepared geometry for one pool slot. */
 function ViewerSlide({
   item,
   pane,
@@ -132,8 +128,6 @@ function ViewerSlide({
   const source = replication ? slideMotionSource(replication) : null;
   const poster = replication ? slidePosterSource(replication) : null;
   const gifLike = replication?.format.toLowerCase() === "gif";
-  // A clip has no frame: the pooled <video> stays empty and the stage renders
-  // the shared audio player instead.
   const isAudio = replication?.type === "audio";
   const paintKey = source ? `${replication?.slug}|${source}` : null;
   const knownPosterAspect = posterAspect?.source === poster ? posterAspect : null;
@@ -141,8 +135,6 @@ function ViewerSlide({
     mediaKey: replication ? `${replication.slug}|${replication.url}` : "",
     type: replication?.type ?? "image",
     rotateMode,
-    // Audio carries no intrinsic size. Reporting a square keeps rotate-to-fit
-    // from turning a transport on its side on a portrait phone.
     width: isAudio ? 1 : (replication?.width ?? knownPosterAspect?.width),
     height: isAudio ? 1 : (replication?.height ?? knownPosterAspect?.height),
   });
@@ -170,7 +162,6 @@ function ViewerSlide({
     [registerVideo],
   );
 
-  // Activation never changes the source. Only recycling a slot does so.
   useLayoutEffect(() => {
     const element = videoRef.current;
     if (!element) return;
@@ -206,8 +197,6 @@ function ViewerSlide({
         element.cancelVideoFrameCallback(handle);
       };
     }
-    // Metadata says nothing about a presented frame. Without rVFC, require
-    // current data and a paint opportunity before uncovering the video.
     let frame = 0;
     const present = () => {
       if (frame || element.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
@@ -241,7 +230,6 @@ function ViewerSlide({
       demotePooledElement(element);
       return;
     }
-    // A gesture may decode one frame, never leave an offscreen loop running.
     element.loop = false;
     warmPooledElement(element);
     const timer = window.setTimeout(() => {
@@ -253,7 +241,6 @@ function ViewerSlide({
     };
   }, [active, source, preparation, paintedSource, paintKey]);
 
-  // Metadata from the active or selected neighbor refines catalog/poster geometry.
   useEffect(() => {
     const element = videoRef.current;
     if (!element || !source) return;
@@ -267,8 +254,6 @@ function ViewerSlide({
     if (active && aspectSettled) onProbeAspect(mediaAspect, 1);
   }, [active, aspectSettled, mediaAspect, onProbeAspect, replication?.slug]);
 
-  // Slides stay mounted in the pool, so a clip left playing would keep going
-  // from an offscreen pane. Leaving the centre stops this slide's own player.
   useEffect(() => {
     if (active) return;
     audioPanelRef.current?.querySelector("audio")?.pause();
@@ -276,8 +261,6 @@ function ViewerSlide({
 
   const width = replication?.width ?? 1600;
   const height = replication?.height ?? Math.round(width / (4 / 3));
-  // Audio never reaches the still stage: `url` is the clip, and the image
-  // layer would sit forever on bytes that never decode.
   const stillSource =
     !replication || isAudio
       ? null
@@ -295,7 +278,6 @@ function ViewerSlide({
       className={cn("absolute inset-0 overflow-hidden bg-black", !active && "pointer-events-none")}
       style={{ transform: `translate(${x * 100}%, ${y * 100}%)`, containerType: "size" }}
     >
-      {/* Non-verbal artworks: creator and rights context live in the viewer. */}
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         ref={attachVideo}
@@ -351,9 +333,6 @@ function ViewerSlide({
           className="absolute inset-0 flex items-center justify-center p-6"
         >
           <Surface variant="card" padding="md" radius="xl" className="w-full max-w-md">
-            {/* A stable bar pattern derived from the slug, never sampled from
-                the file. Without it the stage is a black rectangle with a
-                transport floating in it. */}
             <div
               aria-hidden
               className="mb-4 flex h-24 items-end justify-center gap-[3px]"
@@ -379,7 +358,6 @@ function ViewerSlide({
   );
 }
 
-/** Five fixed DOM slots follow the same gesture and commit path on both axes. */
 export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackProps>(
   function ViewerMediaTrack({
     previousItem,
@@ -452,8 +430,6 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
       onActiveVideoChange(activeIsMotion ? slotVideosRef.current[slotByPane[CENTER]] : null);
     }, [activeIsMotion, onActiveVideoChange, positionKey, slotByPane]);
 
-    // External navigation cancels pending work. A committed rotation and this
-    // reset land in one layout pass, so the incoming frame stays in place.
     useLayoutEffect(() => {
       committedPositionRef.current = null;
       commitRef.current?.cancel();
@@ -550,7 +526,6 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
     }, [releasePointer, snapBack]);
 
     return (
-      // The gesture floor proxies controls and keyboard paths, not semantics.
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
       <div
         ref={viewportRef}
@@ -599,8 +574,6 @@ export const ViewerMediaTrack = forwardRef<ViewerTrackHandle, ViewerMediaTrackPr
         }}
         onPointerCancel={cancelDrag}
         onLostPointerCapture={(event) => {
-          // Taking capture from a touched video emits a bubbling loss for that
-          // child. Only losing the viewport's own capture cancels the swipe.
           if (event.target === event.currentTarget) cancelDrag(event);
         }}
         onClickCapture={(event) => {

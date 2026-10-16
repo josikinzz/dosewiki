@@ -57,15 +57,8 @@ export type ArticleContextBridgeProps = {
   onDirtyChange?: (dirty: boolean) => void;
   draftGuardRef?: React.MutableRefObject<DraftNavigationGuard | null>;
   onOperationLockChange?: (locked: boolean) => void;
-  /**
-   * `bar` (default): the full-width editing bar over the article, for the
-   * public page and Review. `dock`: the Substances tool's pane, with a strip
-   * over the article and a save dock under it.
-   */
   chrome?: "bar" | "dock";
-  /** Dock chrome: the pane header, drawn inside the editing session. */
   header?: ReactNode;
-  /** Called after a draft save, discard, submission or publication lands, so a list can refresh its marks. */
   onWorkChange?: () => void;
 };
 
@@ -73,7 +66,6 @@ export default function ArticleContextBridge(props: ArticleContextBridgeProps) {
   const context = useContextualEditing();
   const email = props.workbenchEmail === undefined ? context.email : props.workbenchEmail;
   const owner = useRef(email);
-  // Retain unsaved work while signed out, but never carry it into another account.
   if (email) owner.current = email;
   return <ArticleEditingSession key={`${props.slug ?? ""}:${owner.current ?? ""}`} {...props} />;
 }
@@ -126,8 +118,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const router = useRouter();
   const role = workbench ? workbenchRole ?? null : context.role;
   const active = !!slug && canDraft(role) && (workbench || (context.enabled && context.mode === "edit"));
-  // In view mode an editor still learns whether a saved private draft waits
-  // here; the same snapshot then serves edit mode without a second load.
   const viewing = !!slug && canDraft(role) && !workbench && context.enabled && context.mode === "view";
   const lifecycle = useArticleLifecycle(slug ?? "", article, active || viewing);
   const [proposalBusy, setProposalBusy] = useState(false);
@@ -137,12 +127,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const operationLocked = requestLocked || !!lifecycle.recovery || lifecycle.baselineRefreshRequired;
   const [section, setSection] = useState<ArticleEditorSection | null>(null);
   const [review, setReview] = useState(false);
-  // Start correction (the feedback review) opens this page with the feedback
-  // id and a section. Read once: the proposal submitted here carries the id.
   const [correction] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionParams(window.location.search));
   const correctionSection = isArticleEditorSection(correction?.section) ? correction.section : null;
-  // The feedback task link that opened this correction (the queue, its filters
-  // and the item), kept past submit so the editor can go back to the same place.
   const [returnTo] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionReturn(window.location.search));
   const setFeedbackRef = lifecycle.setFeedbackRef;
   useEffect(() => { if (correction) setFeedbackRef(correction); }, [correction, setFeedbackRef]);
@@ -179,9 +165,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     form.resetForm(lifecycle.article);
   }, [formEpoch, form.resetForm, lifecycle.article]);
   const [summary, setSummary] = useState("");
-  // Blank is not agreement, and neither is an untouched prefill: this records
-  // whether the note on screen is the editor's sentence or the one the diff
-  // wrote, so the prefill keeps tracking the changes until a person types.
   const [summaryEdited, setSummaryEdited] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
@@ -227,8 +210,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The change was not confirmed. Your edits are kept."); }
   };
   const closePanel = () => { setSection(null); setReview(false); onSectionClose?.(); };
-  // The same dialog the launcher shows before leaving the page. The launcher's
-  // guard already holds the browser tab while this session is dirty.
   const leaveGuard = useUnsavedEditsGuard(formDirty || lifecycle.dirty || inlineDirty || proposalNotesDirty || operationLocked, {
     reason: proposalNotesDirty ? "Unposted discussion and rejection notes cannot be saved as an article draft." : undefined,
     onSave: operationLocked || proposalNotesDirty ? undefined : saveDraft,
@@ -276,21 +257,14 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const refreshControl = lifecycle.loaded ? <Button variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Load latest published version</Button> : null;
   const changes = useMemo(() => active ? articleFieldChanges(lifecycle.published, lifecycle.article) : [], [active, lifecycle.published, lifecycle.article]);
   const problems = useMemo(() => active ? articlePublicationErrors(lifecycle.article, lifecycle.published) : [], [active, lifecycle.article, lifecycle.published]);
-  // The note arrives written. It keeps following the changed fields while the
-  // editor has not touched it, because collecting an open field or a section
-  // form can add a change after the panel opens.
   useEffect(() => {
     if (!review || summaryEdited) return;
     setSummary(synthesizeChangeNote(changes));
   }, [review, summaryEdited, changes]);
-  // Publishing and submitting go through the shared sheet. An editor without
-  // publication rights, or a revision of a proposal, can only submit for review.
   const canPublish = role === "admin" && !lifecycle.revisionOf;
   const sheetActions: PublishAction[] = canPublish ? ["Publish", "Submit for review"] : ["Submit for review"];
   const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
   const submitted = () => {
-    // The page now shows the published article; open forms must not keep
-    // offering the submitted values as fresh edits.
     for (const draft of inlineDrafts.current.values()) draft.discard();
     inlineDrafts.current.clear(); setInlineDirty(false);
     setFormDirty(false); setFormEpoch((value) => value + 1);
@@ -301,18 +275,12 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     await lifecycle.act(publishing ? "publish" : "submit", summary);
     if (!publishing) submitted();
     onWorkChange?.();
-    // The change now carries the feedback; a reload must not attach it to another one.
     if (linkedFeedback) detachCorrection();
-    // The write answered with the published article and the lifecycle has
-    // already adopted it. Refreshing the route here would re-run the page
-    // and re-drain the editor library, which reads as a reload of work the
-    // editor just watched land.
     setSummary(""); setSummaryEdited(false); setReview(false);
   });
   const publicPath = `/${slug ?? ""}`;
   const receipt = usePublicationReceipt();
   const startReceipt = receipt.start;
-  // Every publish or restore answers with a fresh notice; track its delivery.
   useEffect(() => {
     if (lifecycle.publication && slug) startReceipt([{ kind: "article", slug }], lifecycle.publication.receipts);
   }, [lifecycle.publication, slug, startReceipt]);
@@ -320,27 +288,19 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
   }}>Retry unconfirmed change</Button> : null;
   const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
-  // Until the refreshed list names it, the proposal just submitted is pending;
-  // once review decides it, the chip gives way to the list's own status.
   const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
   const pendingChipId = lifecycle.submittedProposalId && (!submittedStatus || submittedStatus === "submitted") ? lifecycle.submittedProposalId : null;
   const pendingLabel = pendingProposals === 1 ? "1 proposal pending on this article" : `${pendingProposals} proposals pending on this article`;
   const proposalPending = !!pendingChipId || pendingProposals > 0;
-  // The launcher badges this page while a proposal on it waits for review.
   const setPending = context.setPending;
   useEffect(() => {
     setPending?.(guardKey, proposalPending);
     return () => setPending?.(guardKey, false);
   }, [setPending, guardKey, proposalPending]);
-  // The same validation the review sheet lists, read per field so an applied
-  // edit shows its problem beside the value instead of at review time.
   const fieldIssue = useCallback((path: string) => fieldIssueMessage(problems, path), [problems]);
-  // Dock chrome: the result the editor dismissed, so the same result does not come back.
   const [dismissedResult, setDismissedResult] = useState<string | null>(null);
   const saveDraftRef = useRef<() => void>(() => {});
   saveDraftRef.current = () => { if (lifecycle.ready && !operationLocked && !proposalNotesDirty) void attempt(saveDraft); };
-  // Cmd/Ctrl+S saves the private draft. It publishes nothing, so it needs no confirm; a dialog
-  // (a section form, the review sheet) handles its own keys.
   useEffect(() => {
     if (!dock || !active) return;
     const onKey = (event: KeyboardEvent) => {
@@ -389,13 +349,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       <Button variant="accent" size="sm" disabled={operationLocked} onClick={() => { void attempt(preview); }}>Apply to preview</Button>
       <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>Review</Button>
       <Button variant="outline" size="sm" disabled={operationLocked} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(saveDraft); }}>Save draft<ButtonKeyCap label={saveKeyLabel} /></Button>
-      {/* Cancel takes the same path as Escape: it asks while anything is unsaved. */}
       <Button variant="ghost" size="sm" disabled={operationLocked} onClick={() => leaveGuard.guard(closePanel)}>Cancel</Button>
     </EditorToolbar>
     <p className="theme-text-faint text-xs max-sm:hidden">Apply to preview shows the change in the article here. Nothing leaves this browser until you save a draft{canPublish ? ", submit or publish" : " or submit"}.</p>
   </div>;
 
-  // The one result the dock shows, most urgent first.
   const result: { key: string; tone: "danger" | "warning" | "success" | "info"; title?: string; message: ReactNode; actions?: ReactNode; testId?: string; dismiss?: () => void } | null = lifecycle.uncertain
     ? { key: "uncertain", tone: "danger", title: "Your last change was not confirmed", message: "No answer came back, so it may or may not have landed. Retry sends the same change again; editing waits until then.", actions: retryControl }
     : lifecycle.failure
@@ -417,7 +375,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             ? { key: `notice:${lifecycle.notice}`, tone: "success", message: lifecycle.notice, actions: pendingChipId && lifecycle.notice.startsWith("Submitted") ? <SessionLink href={`/dev/queue/${encodeURIComponent(pendingChipId)}`}>Open in Change Review</SessionLink> : undefined }
             : null;
   const shownResult = result && result.key !== dismissedResult ? result : null;
-  // Inside the review sheet a refusal lands under Publish, where it was pressed.
   const sheetResult = result && (result.tone === "danger" || result.tone === "warning")
     ? <Notice tone={result.tone} title={result.title} message={result.message} actions={result.actions} className="text-sm" />
     : null;
@@ -479,7 +436,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           </>}
           {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
           {lifecycle.ready && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} />History and proposals</DropdownMenuItem>}
-          {/* Phones keep Discard edits here so the dock stays one row of buttons. */}
           {lifecycle.ready && <DropdownMenuItem className="min-h-11 sm:hidden" disabled={operationLocked || !localDirty} onSelect={requestDiscardLocal}><Icon icon="lucide:undo-2" size={16} />Discard edits</DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
@@ -487,7 +443,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     state={<DraftStatePhrase text={draftState.text} unsaved={draftState.unsaved} />}
     saveLine={<SaveLine model="record" destination={canPublish ? "live" : "proposal"} />}
   />;
-  // The strip names the proposal just submitted on its own line; this line counts the rest.
   const otherPending = lifecycle.proposals.filter((proposal) => proposal.status === "submitted" && proposal._id !== pendingChipId).length;
   const dockStrip = <SessionStrip>
     {lifecycle.hasDraft ? <SessionLine key="draft" icon="lucide:file-pen-line" tone="accent">
@@ -540,7 +495,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {dock ? <StickyArticleEditorLayout actions={null} className="rounded-[inherit] [overflow-x:clip]">
       {header}
       {dockStrip}
-      {/* A draft the renderer cannot draw must not drop the editor: the dock and the draft stay. */}
       <ErrorBoundary
         name="substances-article-preview"
         resetKeys={[lifecycle.article]}
@@ -600,7 +554,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         {receipt.receipt && <PublicationReceiptChips receipt={receipt.receipt} />}
       </div>}
       {lifecycle.uncertain && <p className="theme-text-primary px-1 py-2 text-sm">{status}</p>}
-      {/* A refused publish or save (the freeze, a conflict) stays in the bar once the review sheet closes, with its way forward. */}
       {lifecycle.failure && !review && !section ? <div className="px-1 py-2"><Notice
         tone={lifecycle.failure.kind === "refused" ? "danger" : "warning"}
         message={<span className="whitespace-pre-wrap">{describeLifecycleFailure(lifecycle.failure)}</span>}
@@ -609,10 +562,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
         className="text-sm"
       /></div> : null}
       {retryControl && <div className="px-1 py-2">{retryControl}</div>}
-      {/* A classified refusal already speaks above in its own words; the raw server sentence stays for anything else. */}
       {(localError || lifecycle.error) && !(lifecycle.failure && !localError) && <p className="theme-text-primary whitespace-pre-wrap px-1 py-2 text-sm" role="alert">{localError || lifecycle.error}</p>}
     </>}>
-    {/* The bar chrome keeps the same net as the dock: a draft the renderer cannot draw keeps the bar and the draft. */}
     <ErrorBoundary
       name="article-editor-preview"
       resetKeys={[lifecycle.article]}
@@ -632,7 +583,6 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     }}
     description={dock ? `${articleName}. Changes stay private until you ${canPublish ? "publish them or submit them" : "submit them"} for review.` : undefined}
     onKeyDown={(event) => {
-      // The save key saves a private draft from inside a section too.
       if (!section || !(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s" || event.altKey || event.shiftKey) return;
       event.preventDefault();
       if (!operationLocked && !proposalNotesDirty) void attempt(saveDraft);

@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   },
 };
 
-/** Direct route for inspecting the retained holding surface. */
 export default function UnderConstructionPage() {
   return <ConstructionLanding />;
 }

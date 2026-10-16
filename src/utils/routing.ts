@@ -58,16 +58,6 @@ export function viewToPath(view: AppView): string {
   }
 }
 
-/**
- * Whether a `usePathname()` value addresses the homepage.
- *
- * Next prerenders the root page under its internal `/index` name, and on Vercel an
- * ISR regeneration of the root renders with that name too, so server-rendered client
- * components see `/index` while the hydrated router reports `/`. Chrome that keys off
- * a bare `=== "/"` therefore renders the non-home shell into the HTML and drops it
- * on hydration: a footer and a desktop nav flashing on the homepage. Every homepage
- * check goes through this predicate so both spellings agree before first paint.
- */
 export function isHomePathname(pathname: string): boolean {
   return pathname === "/" || pathname === "/index";
 }
@@ -80,9 +70,7 @@ export function parsePath(
   const resolveDefault = () => defaultView;
   try {
     const source = typeof pathValue === "string" ? pathValue : typeof window !== "undefined" ? window.location.pathname : "";
-    
-    // Handle hash-only paths (same-page anchor navigation)
-    // Return the default view to indicate no route change needed
+
     if (source.startsWith("#")) {
       return resolveDefault();
     }
@@ -102,12 +90,6 @@ export function parsePath(
 
     const [root, slug] = segments;
 
-    // Next.js prerenders the root page under its internal `/index` name and the 404
-    // page under `/_not-found`, and `usePathname()` replays those canonical names on
-    // the first load of a statically prerendered page. Neither is an address a reader
-    // can type (Next normalizes `/index` away and reserves the `_` prefix), so without
-    // this guard the `default:` arm below would read them as substance slugs and light
-    // the Substances nav item on the homepage and on 404s.
     if ((root === "index" && segments.length === 1) || root.startsWith("_")) {
       return resolveDefault();
     }
@@ -119,9 +101,6 @@ export function parsePath(
         return { type: "substances" };
       case "mantras":
         return { type: "mantras" };
-      // The landing page, the audio page and the tutorials page all belong to one
-      // navigation group, so every /replications/* path collapses to the section view.
-      // Without this case the `default:` arm below would read them as substance slugs.
       case "replications":
         return { type: "replications" };
       case "reports":
@@ -136,11 +115,9 @@ export function parsePath(
         }
         return { type: "reports" };
       case "interactions":
-        // Legacy route - redirect to substances
         return { type: "substances" };
       case "about":
       case "data":
-        // /data redirects to /about (download section is now on about page)
         return { type: "about" };
       case "category":
         if (slug) {
@@ -148,7 +125,6 @@ export function parsePath(
         }
         return { type: "substances" };
       case "effect":
-        // Legacy /effect/{slug} route - redirect to /effects/{slug}
         if (slug) {
           return { type: "effect", effectSlug: slug };
         }
@@ -158,11 +134,9 @@ export function parsePath(
           return { type: "effects" };
         }
         if (slug === "category" && segments[2]) {
-          // /effects/category/{categorySlug}
           return { type: "effect-category", categorySlug: segments[2] };
         }
         if (slug) {
-          // /effects/{effectSlug}
           return { type: "effect", effectSlug: slug };
         }
         return { type: "effects" };
@@ -223,7 +197,6 @@ export function parsePath(
       case "dev":
         return devRouting.parse(slug, segments[2], Object.fromEntries(searchParams), segments[3]) ?? resolveDefault();
       default:
-        // Treat any unrecognized path as a substance slug (e.g., /lsd -> substance lsd)
         return { type: "substance", slug: root };
     }
   } catch (error) {

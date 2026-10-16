@@ -3,37 +3,16 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 
 export interface EditorSectionProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
-  /** Heading icon — pass an `IconName` for the standard accent glyph, or a node for custom adornment. */
   icon?: IconName | ReactNode;
-  /** Section heading text. Omit to render a header-less free-floating block. */
   title?: ReactNode;
-  /** Optional supporting line shown beneath the heading. */
   description?: ReactNode;
-  /** Trailing controls (pills, buttons) aligned to the end of the heading row, after the hairline. */
   actions?: ReactNode;
-  /** Entrance-animation stagger in seconds (mirrors the article section rhythm). */
   delay?: number;
-  /** Disable the fade-and-rise entrance animation. */
   animate?: boolean;
-  /**
-   * Heading tag for the section title. Defaults to `h2` (top-level dev/public
-   * sections); drop to `h3`/`h4`/`h5` when the section is nested inside an
-   * already-headed region so the document outline stays ordered.
-   */
   headingLevel?: "h2" | "h3" | "h4" | "h5";
   headerClassName?: string;
 }
 
-/**
- * Free-floating dev-tools section. Mirrors the public `ArticleSection` /
- * `SectionHeader` DNA — an accent icon + heading followed by a gradient
- * hairline — but tuned for the denser editor surface (compact heading,
- * optional description, optional trailing actions).
- *
- * Cards are the exception, not the rule: reach for a `Surface`/`ContentCard`
- * only for genuinely distinct sub-panels (scroll wells, selectable rows,
- * danger callouts, previews), never as a default wrapper around a section.
- */
 export function EditorSection({
   icon,
   title,
@@ -62,11 +41,6 @@ export function EditorSection({
     >
       {hasHeader ? (
         <div className={cn("space-y-1.5", headerClassName)}>
-          {/* flex-wrap + min-w-0 let long titles and wide actions drop to a new
-              line on narrow viewports instead of overflowing the page; on
-              desktop everything still fits one row with the hairline filling
-              the middle. The hairline keeps a small min-width so a stub stays
-              visible beside the title even when the actions wrap. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {title ? (
               <Heading className="theme-accent-heading flex min-w-0 items-center gap-2.5 text-lg font-semibold">
@@ -83,7 +57,6 @@ export function EditorSection({
               <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>
             ) : null}
           </div>
-          {/* A readable measure: a one-line description never runs the full width of a wide frame. */}
           {description ? <p className="theme-text-faint max-w-[75ch] text-sm">{description}</p> : null}
         </div>
       ) : null}

@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { doseRangeSchema, referenceIdArraySchema } from "./shared";
 
-/** All dose tiers for a route */
 export const doseRangesSchema = z.object({
   threshold: doseRangeSchema,
   light: doseRangeSchema,
@@ -11,7 +10,6 @@ export const doseRangesSchema = z.object({
   heavy: doseRangeSchema,
 });
 
-/** Single dosage route */
 export const dosageRouteSchema = z.object({
   route: z.string(),
   bioavailability: z.string(),
@@ -21,7 +19,6 @@ export const dosageRouteSchema = z.object({
   reference_ids: referenceIdArraySchema.optional(),
 });
 
-/** DXM-specific plateau dose */
 const plateauDoseSchema = z.object({
   min: z.number().nullable(),
   max: z.number().nullable(),
@@ -29,7 +26,6 @@ const plateauDoseSchema = z.object({
   effects: z.string(),
 })
 
-/** DXM-specific plateau dosing */
 const plateauDosingSchema = z.object({
   first_plateau: plateauDoseSchema,
   second_plateau: plateauDoseSchema,
@@ -39,7 +35,6 @@ const plateauDosingSchema = z.object({
   notes: z.string().nullable(),
 })
 
-/** Dosage section */
 export const dosageSchema = z.object({
   routes: z.array(dosageRouteSchema),
   plateau_dosing: plateauDosingSchema.nullable(),

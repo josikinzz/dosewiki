@@ -67,39 +67,16 @@ import {
   type ViewerSession,
 } from "./viewerSession";
 
-/**
- * The viewer's full-screen dialog surface. The `!` trio is load-bearing:
- * light mode paints `.theme-overlay-surface` with a frosted 1px border,
- * background, and inset-highlight shadow (`!important`, higher specificity),
- * and unlayered theme CSS beats layered utilities — only layered important
- * utilities keep this surface borderless, shadowless, pure black in every
- * theme. `--theme-elevation-none` is the audited flat-shadow token.
- * Full-viewport surfaces must not inherit the centered dialog's slide/zoom:
- * those keyframes displace and shrink the entire viewer during startup.
- */
 const VIEWER_DIALOG_CLASS =
   "theme-media-tile-title fixed inset-0 z-[70] h-dvh w-full max-h-none max-w-none translate-x-0 translate-y-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-0 overflow-hidden !border-0 !bg-black p-0 !shadow-[var(--theme-elevation-none)] !animate-none sm:rounded-none";
-/**
- * The side the incoming work enters from after a non-swipe navigation
- * (group jumps, rail taps, editor activation). Horizontal work changes ride
- * the track's own slide animation instead.
- */
 
 const ENTRY_MOTION_CLASS: Record<EntryMotion, string> = {
   fade: "motion-safe:animate-in motion-safe:fade-in motion-safe:duration-200",
 };
 
-/**
- * Every entry-motion utility class, for clearing before a replay.
- * Duplicates across entries are harmless: classList.remove ignores them.
- */
 const ENTRY_MOTION_ALL_CLASSES = Object.values(ENTRY_MOTION_CLASS).flatMap(
   (value) => value.split(" "),
 );
-/**
- * Whole sentences per grouping unit: the mirror cannot derive "artists" or
- * "Previous artist" from a translated "Artist" by lowercasing or suffixing.
- */
 const GROUP_UNIT_COPY = {
   artist: {
     label: ARTIST_LABEL,
@@ -162,19 +139,10 @@ export interface ReplicationViewerOverlayProps {
   initialSlug: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** The host is still resolving authoritative collection membership. */
   collectionPending?: boolean;
-  /** A host-owned history boundary, such as an exact-origin embedded viewer. */
   historyAdapter?: ViewerHistoryAdapter;
-  /** Re-apply a host selection even when its slug equals the original launch. */
   selectionRevision?: number;
-  /** Public embedded documents never mount editorial launchers or gates. */
   editorEnabled?: boolean;
-  /**
-   * Regroup the walked collection around the work the reader is looking at.
-   * Provided only by hosts whose collection supports both groupings (the
-   * Gallery); named collections have exactly one order and no menu.
-   */
   onRegroup?: (grouping: "artist" | "effect", currentSlug: string) => void;
 }
 
@@ -198,21 +166,12 @@ export function ReplicationViewerOverlay({
   const [volume, setVolume] = useState(1);
   const [infoOpen, setInfoOpen] = useState(false);
   const [details, setDetails] = useState<PublicReplicationDetails | null>(null);
-  /**
-   * Counts fullscreen refusals so a repeat press restarts the notice chip's
-   * dwell instead of riding out the first timer. Zero means no chip.
-   */
   const [fullscreenNotice, setFullscreenNotice] = useState(0);
-  /** Spoken on work changes so non-visual readers don't navigate blind. */
   const [workAnnouncement, setWorkAnnouncement] = useState("");
   const announcedSlugRef = useRef<string | null>(null);
-  /** Mirrors the stage transport so header, rail, and byline fade in step. */
   const [chromeVisible, setChromeVisible] = useState(true);
-  /** Gesture-safe playback verbs registered by the transport chrome. */
   const transportHandleRef = useRef<ViewerTransportHandle | null>(null);
-  /** The track's two-axis navigation verbs, shared by keys and controls. */
   const trackRef = useRef<ViewerTrackHandle>(null);
-  /** The pooled element on the active pane; null while a still is up. */
   const [activeVideo, setActiveVideo] = useState<HTMLVideoElement | null>(
     null,
   );
@@ -231,11 +190,7 @@ export function ReplicationViewerOverlay({
   const [editorRailHost, setEditorRailHost] = useState<HTMLElement | null>(
     null,
   );
-  // Rotate mode is the reader's sticky choice for this session; the fit
-  // hook derives whether the active work actually turns, so the overlay's
-  // own iconography (settings, thumbnails) can lean with it.
   const [rotateMode, setRotateMode] = useState(false);
-  /** The persistent wrapper the entry animation replays on. */
   const trackPaneRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const pausedBackgroundVideosRef = useRef<HTMLVideoElement[]>([]);
@@ -330,18 +285,11 @@ export function ReplicationViewerOverlay({
       height: active?.replication.height,
     });
 
-  // The track pool is deliberately not keyed by work: a remount would
-  // destroy pooled <video> elements mid-flight — leaking their media
-  // pipelines until GC (browsers cap live media players per page and then
-  // silently refuse new loads) and discarding iOS Safari's per-element
-  // unmuted playback blessing. Entry motion replays imperatively instead:
-  // drop the animation classes, force a reflow, re-add them.
   useLayoutEffect(() => {
     const pane = trackPaneRef.current;
     if (!pane) return;
     pane.classList.remove(...ENTRY_MOTION_ALL_CLASSES);
     if (!entryMotion) return;
-    // The reflow between remove and add is what restarts the animation.
     void pane.offsetWidth;
     pane.classList.add(...ENTRY_MOTION_CLASS[entryMotion].split(" "));
   }, [entryMotion, activeSlug]);
@@ -368,9 +316,6 @@ export function ReplicationViewerOverlay({
     session.syncFromUrl(initialSlug);
   }, [initialSlug, selectionRevision]);
 
-  // Sound and rotate mode are session preferences, the way the phone feeds
-  // treat them: each open starts from the stored choices instead of
-  // hard-resetting to the defaults.
   useEffect(() => {
     if (!open) {
       setVolume(1);
@@ -387,7 +332,6 @@ export function ReplicationViewerOverlay({
       storedSound = window.sessionStorage.getItem(VIEWER_SOUND_STORAGE_KEY);
       storedRotate = window.sessionStorage.getItem(VIEWER_ROTATE_STORAGE_KEY);
     } catch {
-      // Storage denied: fall back to the muted, upright defaults.
     }
     setMuted(resolveViewerMuted(storedSound));
     setRotateMode(resolveViewerRotateMode(storedRotate));
@@ -401,7 +345,6 @@ export function ReplicationViewerOverlay({
         nextMuted ? "off" : "on",
       );
     } catch {
-      // Best effort: a blocked write only means the choice lasts one open.
     }
   }, []);
 
@@ -413,7 +356,6 @@ export function ReplicationViewerOverlay({
         nextRotateMode ? "on" : "off",
       );
     } catch {
-      // Best effort: a blocked write only means the choice lasts one open.
     }
   }, []);
 
@@ -490,9 +432,6 @@ export function ReplicationViewerOverlay({
     [collection, session],
   );
 
-  // Announce arrival at a work after the reader moves (swipe, arrows, rail,
-  // group jump). The initial work is skipped: the dialog title already
-  // introduces it when focus lands on open.
   useEffect(() => {
     if (!open) {
       announcedSlugRef.current = null;
@@ -582,9 +521,6 @@ export function ReplicationViewerOverlay({
     !collectionPending && position
       ? moveViewerWork(collection, position, 1)
       : null;
-  // A regroup rebuilds the session before its collection reaches render state.
-  // Keep previews on the rendered snapshot until that handoff, then resume
-  // the session's remembered work within each neighboring group.
   const previousGroup = collectionPending
     ? null
     : collection === sourceCollection
@@ -600,7 +536,6 @@ export function ReplicationViewerOverlay({
         ? moveViewerGroup(collection, position, 1)
         : null;
 
-  /** A completed track commit: the pool already rotated; land the position. */
   const commitWork = useCallback(
     (direction: 1 | -1) => {
       session.commitWork(direction);
@@ -619,14 +554,6 @@ export function ReplicationViewerOverlay({
     [session],
   );
 
-  /**
-   * One work over, with the track's slide animation when it can run it.
-   * The track owns busy/endpoint decisions; while it is mounted there is
-   * deliberately no direct-navigate fallback, so a second command during the
-   * ~200ms commit window is dropped instead of double-stepping. Only a stage
-   * that failed to render (no track at all) lands the move directly, so the
-   * reader can still leave a broken work.
-   */
   const slideWork = useCallback(
     (direction: 1 | -1) => {
       const track = trackRef.current;
@@ -713,8 +640,6 @@ export function ReplicationViewerOverlay({
     });
   }, []);
 
-  // The refusal chip clears itself: one glance's worth of explanation, then
-  // the stage goes back to being all artwork.
   useEffect(() => {
     if (!fullscreenNotice) return;
     const timer = window.setTimeout(() => setFullscreenNotice(0), 2400);
@@ -727,8 +652,6 @@ export function ReplicationViewerOverlay({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
         return;
-      // Keydown targets the focused element or body — but never assume:
-      // a non-element target (window in tests) simply has no guard to hit.
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target && (editorPanelHost?.contains(target) || editorRailHost?.contains(target))) return;
       if (
@@ -737,10 +660,6 @@ export function ReplicationViewerOverlay({
       ) {
         return;
       }
-      // Playback shortcuts, the video-player lingua franca: Space/K toggle
-      // playback, M toggles sound, F enters fullscreen, H hides the chrome.
-      // Space keeps its native meaning on focused controls; the letters act
-      // from anywhere outside a text field (guarded above).
       const key = event.key.toLowerCase();
       if (
         key === " " ||
@@ -804,8 +723,6 @@ export function ReplicationViewerOverlay({
     slideWork,
   ]);
 
-  // First-open gesture onboarding: coarse-pointer readers learn the swipe
-  // grammar once, then the chip never returns on this device.
   useEffect(() => {
     if (!open || typeof window.matchMedia !== "function") return;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
@@ -813,20 +730,18 @@ export function ReplicationViewerOverlay({
     try {
       stored = window.localStorage.getItem(GESTURE_HINT_STORAGE_KEY);
     } catch {
-      return; // Storage denied: skip rather than nag on every open.
+      return;
     }
     if (!shouldShowGestureHint(stored, coarse)) return;
     try {
       window.localStorage.setItem(GESTURE_HINT_STORAGE_KEY, "seen");
     } catch {
-      // Best effort: a blocked write only means the hint may show again.
     }
     setGestureHint(true);
     const timer = window.setTimeout(() => setGestureHint(false), 9000);
     return () => window.clearTimeout(timer);
   }, [open]);
 
-  // Panels pin the interface; otherwise the reader's explicit choice wins.
   const chromeHidden =
     !chromeVisible && !settingsOpen && !infoOpen && !editorOpen && !reorderMode;
   useLayoutEffect(() => {
@@ -847,8 +762,6 @@ export function ReplicationViewerOverlay({
   const knownArtist = hasKnownCreator(active.replication.artist)
     ? active.replication.artist.trim()
     : null;
-  // viewerModel already stores the msg("Unattributed") marker for showcase
-  // works with no creator; it reaches the reader through the same key.
   const artistLabel =
     knownArtist && knownArtist !== "Unattributed" ? knownArtist : t("Unattributed");
   const artistProfileHref = hasKnownCreator(active.replication.artist)
@@ -930,7 +843,6 @@ export function ReplicationViewerOverlay({
             closeInfo();
             return;
           }
-          // Exit native fullscreen first without dismissing the collection.
           if (document.fullscreenElement) {
             event.preventDefault();
             void document.exitFullscreen();
@@ -961,7 +873,6 @@ export function ReplicationViewerOverlay({
           heading.focus({ preventScroll: true });
         }}
         onPointerDownCapture={() => {
-          // Any gesture retires the onboarding chip.
           setGestureHint(false);
         }}
         tabIndex={-1}

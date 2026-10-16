@@ -1,7 +1,3 @@
-/**
- * Country name to ISO 3166-1 alpha-2 code mapping for flags.
- * Used by both LegalitySection (article display) and legality form (dev tools).
- */
 import { msg } from "@/i18n/messages";
 
 const COUNTRY_CODES: Record<string, string> = {
@@ -96,25 +92,12 @@ const COUNTRY_CODES: Record<string, string> = {
   [msg("Zambia")]: "zm",
 }
 
-/**
- * Get the ISO country code for a country name.
- * Handles special cases like US states and Australian territories.
- */
 export function getCountryCode(name: string): string | null {
-  // Direct lookup
   if (COUNTRY_CODES[name]) return COUNTRY_CODES[name];
 
-  // Handle US states (e.g., "United States - Arizona")
   if (name.startsWith("United States - ")) return "us";
 
-  // Handle Tasmania
   if (name.includes("Tasmania")) return "au";
 
   return null;
 }
-
-/**
- * Get all country names sorted alphabetically.
- * Useful for autocomplete/dropdown.
- */
-

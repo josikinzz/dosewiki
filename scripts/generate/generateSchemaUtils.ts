@@ -1,12 +1,3 @@
-/**
- * Schema generation script for Phase 3.
- * Generates:
- * - defaults.generated.ts (createEmptyArticle function)
- * - fieldRegistry.generated.ts (base field entries)
- *
- * Run with: npm run generate:schema
- */
-
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,9 +16,6 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = path.join(__dirname, "../../src/data/schema");
 
-/**
- * Generate the createEmptyArticle function as TypeScript code
- */
 function generateDefaultsFile(): string {
   const defaults = generateArticleDefaults(substanceArticleSchema);
   const json = JSON.stringify(defaults, null, 2);
@@ -48,10 +36,6 @@ export function createEmptyArticle(): SubstanceArticle {
 }
 `;
 }
-
-// ============================================================================
-// Field Registry Generation
-// ============================================================================
 
 function formatGeneratedFieldEntry(field: GeneratedFieldMeta): string {
   const defaultStr =
@@ -86,9 +70,6 @@ ${entries}
 `;
 }
 
-/**
- * Generate the field registry file as TypeScript code
- */
 function generateFieldRegistryFile(): string {
   const fields = extractFieldPaths(substanceArticleSchema);
   const sectionImports = FIELD_REGISTRY_SECTION_ORDER.filter((section) =>
@@ -131,20 +112,14 @@ export type FieldPath = (typeof FIELD_PATHS)[number];
 `;
 }
 
-// ============================================================================
-// Main
-// ============================================================================
-
 function main() {
   console.log("Generating schema utilities...\n");
 
-  // Generate defaults file
   const defaultsContent = generateDefaultsFile();
   const defaultsPath = path.join(OUTPUT_DIR, "defaults.generated.ts");
   fs.writeFileSync(defaultsPath, defaultsContent, "utf-8");
   console.log(`✓ Generated: ${path.relative(process.cwd(), defaultsPath)}`);
 
-  // Generate field registry file
   const fields = extractFieldPaths(substanceArticleSchema);
   const registryShardDir = path.join(OUTPUT_DIR, "fieldRegistry.generated");
   fs.rmSync(registryShardDir, { recursive: true, force: true });
@@ -167,7 +142,6 @@ function main() {
   console.log(`✓ Generated: ${path.relative(process.cwd(), registryPath)}`);
   console.log(`✓ Generated shards: ${path.relative(process.cwd(), registryShardDir)}`);
 
-  // Count fields
   console.log(`\n📊 Generated ${fields.length} field entries`);
 
   console.log("\nDone! Now update fieldRegistry.ts to use generated + overrides.");

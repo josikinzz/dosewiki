@@ -15,21 +15,6 @@ export const revalidate = 3600;
 const CACHE_CONTROL =
   "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400";
 
-/**
- * Internal, cacheable long tail for the article Replication Showcases.
- *
- * Articles serialize only the compact strip (`SHOWCASE_WORK_CAP` works); the
- * expanded viewer fetches the complete ordered collection here on first
- * intent. The response is the same `ShowcaseWork` projection as the initial
- * RSC props, produced by the same shared helpers, so the strip is always a
- * prefix of what this returns. An unknown slug is an empty collection, not an
- * error: the client degrades identically either way and the answer stays
- * cacheable.
- *
- * `?locale=<code>` names a live locale mirror: the same collection with the
- * effect names the mirror's strip already shows. The URL is the cache key, so
- * each locale holds its own CDN entry.
- */
 export async function GET(request: Request) {
   const rateLimited = await enforceRateLimit(request, "publicContentApiRead");
   if (rateLimited) {

@@ -49,10 +49,6 @@ import type {
 } from "./DevModeToolTypes";
 import { useDevRailBadgeReadings, useDevRailBadges } from "./useDevRailBadges";
 
-/**
- * Rail groups in display order, each holding its descriptors in registry
- * order. Role projection remains in the chrome because it is access policy.
- */
 const TOOL_GROUPS: readonly { id: DevToolGroup; label: string; tabs: readonly DevTabDescriptor[] }[] = (
   [
     { id: "entry", label: "Start" },
@@ -62,26 +58,10 @@ const TOOL_GROUPS: readonly { id: DevToolGroup; label: string; tabs: readonly De
   ] as const
 ).map((group) => ({ ...group, tabs: DEV_TAB_REGISTRY.filter((tab) => tab.group === group.id) }));
 
-
-/**
- * The editor's own page title. The visible headings belong to the tools
- * themselves; this one exists so the landmark structure and the document
- * outline always have a level-one anchor, and so screen-reader users hear
- * where they are before the rail. "Editor" is the one user-facing name for
- * the surface ("Leave editor", "Everywhere in the editor").
- */
 function DevSurfaceTitle() {
   return <h1 className="sr-only">Editor</h1>;
 }
 
-
-/**
- * The waiting card, rendered *inside* the shell rather than instead of it.
- * The tab rail stays interactive so a tool that needs nothing from the corpus
- * is one click away while the drain finishes; it doubles as the fallback for
- * the lazily-loaded tool bundles. The stalled hint only appears once the wait
- * has gone on long enough to need one.
- */
 export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string }) {
   return (
     <StateCard
@@ -98,17 +78,6 @@ export function DevToolLoadingPanel({ label = "Loading tool" }: { label?: string
   );
 }
 
-
-/**
- * Splits every group's tabs by the signed-in role. External launchers (Review)
- * follow the same floor: the destination enforces its own gate too, but the
- * rail never offers a link the role would bounce off.
- *
- * While the session is still resolving, `pendingReason` keeps every tab in
- * `enabled` and marks it pending instead. The rail then holds its final shape
- * (inline head plus group menus) through the wait, rather than collapsing to
- * "everything is locked" for a beat and snapping back once the role lands.
- */
 function splitGroupsByRole(
   groups: readonly { id: DevToolGroup; label: string; tabs: readonly ToolTabItem[] }[],
   role: AppRole | null,
@@ -133,18 +102,6 @@ function splitGroupsByRole(
   });
 }
 
-
-/**
- * One slim toolbar, desktop-app style: a wrench mark, the Content group as
- * inline pills, Intake and Site as dropdown menus with rolled-up badges, a
- * Locked overflow for tools above the signed-in role, then a trailing cluster
- * with the secondary destinations (Change log, the Cmd+K palette, utilities), Leave editor, and
- * the session controls. The rail is always one row: the strip scrolls
- * sideways inside its own box and keeps the active tab (or the menu holding
- * it) in view, while the trailing cluster stays put. Under `md` the whole
- * rail gives way to a single 44px bar whose tool button opens a bottom sheet
- * with every group.
- */
 export function DevModePageChrome({
   activePrimaryTab,
   activeTab,
@@ -161,9 +118,6 @@ export function DevModePageChrome({
   onSignIn,
   onLeave: requestLeave,
 }: DevModePageChromeProps) {
-  // Every way out of the open tool asks the unsaved-work registry first: a
-  // rail switch drops the tool's own drafts, Leave, sign-out and a link out of
-  // the shell drop the shared draft too.
   const unsavedWork = useUnsavedWorkRegistry();
   const { confirmExit } = unsavedWork;
   const onTabChange = useCallback(
@@ -187,16 +141,10 @@ export function DevModePageChrome({
     [activePrimaryTab, confirmExit, requestPrimaryTabChange],
   );
   const onLeave = useCallback(() => confirmExit(requestLeave, "leave"), [confirmExit, requestLeave]);
-  // Review and the utilities are routes of their own: a plain click leaves the
-  // shell only once the registry agrees, the way Leave does.
   const onOpenHref = useCallback(
     (href: string) => confirmExit(() => window.location.assign(href), "leave"),
     [confirmExit],
   );
-  // Signing out also clears this browser's draft recovery copies: the next
-  // person at this machine must not be offered them. With unsaved work the
-  // registry's own dialog asks; with none, a short confirm does, because the
-  // recovery copies go too and there is no undo.
   const { confirm, dialog: confirmDialog } = useConfirm();
   const hasUnsaved = unsavedWork.dirtyEntries.length > 0;
   const onSignOut = useCallback(() => {
@@ -216,9 +164,6 @@ export function DevModePageChrome({
     });
   }, [confirm, confirmExit, hasUnsaved]);
 
-  // Cmd+K and `?`. What the palette opens goes through the same registry
-  // question as a rail click: a tool or a record elsewhere drops the open
-  // tool's drafts, and a record in the open tool remounts it.
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const toolShortcuts = useDevShortcutList();
@@ -234,7 +179,6 @@ export function DevModePageChrome({
   }, [onOpenHref, onTabChange]);
   const openRecord = useCallback((record: PaletteRecord) => {
     setPaletteOpen(false);
-    // A saved view can open outside the shell (Review), like its tool does.
     if (!record.href.startsWith("/dev")) {
       onOpenHref(record.href);
       return;
@@ -252,7 +196,6 @@ export function DevModePageChrome({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing) return;
       if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "k") {
-        // Cmd+K works from a text field too, but never over another dialog.
         if (!paletteOpen && isDialogOpen()) return;
         event.preventDefault();
         setPaletteOpen((current) => !current);
@@ -270,12 +213,7 @@ export function DevModePageChrome({
   const userLabel = userName ?? userEmail ?? "Editor";
   const isToolsSection = activePrimaryTab === "tools";
   const mayDraft = canDraft(role);
-  // Each badge is only asked for by a role that may open its tab.
   const badgeCounts = useDevRailBadges(role, userEmail);
-  // A count whose latest refresh failed keeps its number but reads as stale.
-  // The Inbox sums every source: a stale source makes it stale, and a source
-  // that never loaded makes its sum a floor, which Home says as "At least 13"
-  // and the rail draws as "13+" (`sumHomeCounts` reads the same readings).
   const readings = useDevRailBadgeReadings();
   const staleBadges = new Set<string>();
   let inboxFloor = false;
@@ -303,8 +241,6 @@ export function DevModePageChrome({
       unsaved: unsavedWork.isDirty(id) || undefined,
     })),
   }));
-  // Until the session answers, the role is unknown rather than absent: hold the
-  // rail's shape and let the tabs wait instead of filing them all under Locked.
   const pendingReason = sessionStatus === "loading" ? "Checking your account" : null;
   const roleGroups = splitGroupsByRole(toolGroups, role, pendingReason);
   const changeLogDescriptor = findDevTab("change-log");
@@ -312,8 +248,6 @@ export function DevModePageChrome({
     ? getRoleFloorLockReason(role, changeLogDescriptor.role)
     : null;
   const changeLogLockReason = pendingReason ?? changeLogRoleReason;
-  // A Change log the role cannot open joins the Locked list, where its reason
-  // is text, instead of sitting in the cluster as a dead button.
   const lockedTools: LockedToolItem[] = [
     ...roleGroups.flatMap((group) => group.locked),
     ...(changeLogRoleReason === null
@@ -333,16 +267,12 @@ export function DevModePageChrome({
     ? "Change log"
     : activeDescriptor.labelFor?.(role) ?? activeDescriptor.label;
   const activeIcon = activePrimaryTab === "change-log" ? changeLogDescriptor.icon : activeDescriptor.icon;
-  // What this role may do, said in the account menu. A translator's work is
-  // the glossary, not a contributor record.
   const ability = mayDraft
     ? "You can edit articles."
     : role === "translator"
       ? "You can review and approve glossary renderings in your languages."
       : "You can edit your own contributor record from the Contributors tab.";
 
-  // The phone bar has room for one count: the Inbox's when the role has it
-  // (it already sums every queue), else every visible count summed.
   const enabledItems = roleGroups.flatMap((group) => group.enabled);
   const inboxItem = enabledItems.find((item) => item.rollsUpIntake);
   const attentionItems = inboxItem ? [inboxItem] : enabledItems;
@@ -351,7 +281,6 @@ export function DevModePageChrome({
   const attentionAtLeast = attentionItems.some((item) => item.atLeast && item.badge) || undefined;
   const unsavedAnywhere = hasUnsaved || undefined;
 
-  // The palette lists tools with the same glyphs, counts and marks as the rail.
   const paletteToolState: Partial<Record<DevModeTab, PaletteToolState>> = {};
   for (const group of roleGroups) {
     for (const item of group.enabled) {
@@ -360,12 +289,6 @@ export function DevModePageChrome({
   }
   paletteToolState[changeLogDescriptor.id] = { icon: changeLogDescriptor.icon, group: "More" };
 
-  // The strip only scrolls as far as it must: an active tab already in view
-  // leaves the scroll position alone, one past an edge is brought in with a
-  // little of its neighbour, so the row never jumps on every tab change. The
-  // reveal re-runs whenever badge counts arrive (they widen pills) and once
-  // more after fonts settle, so a deep-linked tool can never be stranded past
-  // the edge.
   const stripRef = useRef<HTMLElement | null>(null);
   const revealActive = useCallback(() => {
     const strip = stripRef.current;
@@ -394,8 +317,6 @@ export function DevModePageChrome({
     };
   }, [revealActive, activeTab, isToolsSection, badgeCounts]);
 
-  // Which edges hide more tabs. Drives the fades and the paging buttons, so a
-  // mouse without a horizontal wheel can still reach every group.
   const [edges, setEdges] = useState({ start: false, end: false });
   const syncEdges = useCallback(() => {
     const strip = stripRef.current;
@@ -423,8 +344,6 @@ export function DevModePageChrome({
     }
     const observer = new ResizeObserver(() => {
       syncEdges();
-      // Any width change (badges arriving, window resize) can strand the
-      // active pill past an edge; re-check it here so the rail self-heals.
       revealActive();
     });
     observer.observe(strip);
@@ -436,9 +355,6 @@ export function DevModePageChrome({
       strip.scrollLeft += direction * strip.clientWidth * RAIL_SCROLL_PAGE_RATIO;
     }
   };
-  // The pagers take room only while the strip overflows; a rail that fits
-  // starts its first tab at the edge. While it overflows both keep their slot,
-  // so the strip never shifts as one of them appears.
   const overflowing = edges.start || edges.end;
 
   const accountMenu = isSignedIn && sessionStatus !== "loading" ? (
@@ -475,8 +391,6 @@ export function DevModePageChrome({
     </Button>
   );
 
-  // The phone sheet's pinned footer: who is signed in, and the way out of the
-  // session, as one labeled row instead of an unlabeled glyph.
   const sheetSession =
     sessionStatus === "loading" ? (
       <span className="theme-text-muted flex min-h-11 items-center gap-2 text-sm">
@@ -501,16 +415,9 @@ export function DevModePageChrome({
       signInButton
     );
 
-  // A rail group renders inline when it is the Start or Content head, or when
-  // the role leaves so few tools that the whole rail fits flat; larger groups
-  // become menus. Empty groups (every tool locked) disappear into Locked.
   const railGroups = roleGroups.filter((group) => group.enabled.length > 0);
   const enabledTotal = railGroups.reduce((sum, group) => sum + group.enabled.length, 0);
   const keepFlat = enabledTotal <= INLINE_RAIL_TOTAL_LIMIT;
-  // When the role has the Inbox, its one count already covers every intake
-  // queue, so the group menus stop rolling up the same items a second time.
-  // The tools inside each menu keep their own counts. Home shares the Start
-  // group with it but counts nothing, so it does not stop the roll-up.
   const entryShown = railGroups.some((group) => group.enabled.some((tab) => tab.rollsUpIntake));
 
   const leaveButton = (compact: boolean) => (
@@ -562,7 +469,6 @@ export function DevModePageChrome({
       />
       {confirmDialog}
 
-      {/* Phone: one bar, tools behind a sheet. */}
       <div className="theme-dev-rail flex min-h-12 w-full items-center gap-1 rounded-card border p-1 md:hidden">
         <DevToolSheet
           groups={roleGroups}
@@ -598,7 +504,6 @@ export function DevModePageChrome({
         {leaveButton(true)}
       </div>
 
-      {/* Tablet and up: the one-row rail. */}
       <div className={RAIL_CLASS}>
         {overflowing ? (
           <button

@@ -10,16 +10,10 @@ import { publicHref } from "@/utils/publicHref";
 
 type AboutPreviewSectionProps = {
   resolvedPreviewMarkdown: string;
-  /** The subtitle with live counts filled in, shown under the page heading. */
   resolvedSubtitle?: string;
   selectedFounders: NormalizedUserProfile[];
 };
 
-/**
- * Renders editable About sections with the public page's Markdown renderer,
- * headings, and contributor cards, in public page order. The hero image and
- * the sections that live in Copy are omitted.
- */
 export function AboutPreviewSection({
   resolvedPreviewMarkdown,
   resolvedSubtitle,

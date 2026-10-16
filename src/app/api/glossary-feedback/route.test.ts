@@ -79,8 +79,6 @@ beforeAll(async () => {
     await database.exec(
       readFileSync(`lib/postgres/migrations/${filename}`, "utf8"),
     );
-  // Adapt the pg transport only. The route, callable registry, transactions, SQL,
-  // authorization, service allowlist, and persistence are production code.
   const connection = {
     query: async (sql: string, params?: unknown[]) => {
       if (!params?.length && sql.includes(";")) {
@@ -171,7 +169,6 @@ describe("public glossary intake through isolated Postgres", () => {
     const visible = publicGlossaryRendering(
       query.rows[0] as Record<string, unknown>,
     );
-    // A proposed change never replaces or downgrades the live word readers see.
     expect(visible).toMatchObject({
       target: "Rust",
       status: "approved",

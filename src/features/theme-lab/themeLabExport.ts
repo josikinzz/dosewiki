@@ -7,30 +7,8 @@ import {
 import { lookKey, parseLookKey, type LabLook } from "./themeLabLook";
 import type { ThemeDefaults } from "./presetBaselines";
 
-/**
- * The lab's portable palette payload: what "copy colors" produces and what the
- * JSON box accepts back.
- *
- * Two properties matter:
- *
- * 1. **Stamped.** The payload records the look it was measured against — the
- *    visual style, as a `lookKey` string — so a paste can say where its numbers
- *    came from instead of arriving anonymous.
- * 2. **Idempotent.** Values are stored as the *diff* against what the target
- *    actually renders, so export → import of an untouched look yields zero edits
- *    rather than several hundred redundant ones.
- *
- * The stamp is a record, not an instruction: importing applies the payload to the
- * look the visitor is wearing. Navigating them somewhere else on paste would move
- * the appearance controls under them, and the literal colours in a payload paint
- * the same wherever they land. A pre-hue stamp (`style|accent|surface`) parses
- * through the same legacy mapping every stored key does.
- */
-
 type ThemeExportPayload = {
-  /** Format stamp — same number the stored envelope carries. */
   themeLab: number;
-  /** The look these values were measured against, as `lookKey` writes it. */
   look: string;
   overrides: PaletteOverrides;
 }
@@ -44,18 +22,10 @@ export function serializeThemeExport(look: LabLook, effective: PaletteOverrides)
 }
 
 export type ParsedThemeImport = {
-  /** The look the payload names, when it carried a stamp this build understands.
-   *  `null` means "unstamped or unrecognised" — the values are taken at face
-   *  value either way. */
   look: LabLook | null;
-  /** Only the schemes the payload actually described; an omitted scheme keeps
-   *  whatever the visitor already had. */
   overrides: Partial<PaletteOverrides>;
 };
 
-/** One shape rather than a discriminated union, chosen while the repo compiled
- *  without strict null checks, where union narrowing on a boolean tag was not
- *  reliable. A parse either yields a payload or an explanation. */
 export type ThemeImportResult = { value: ParsedThemeImport | null; error: string | null };
 
 function readThemeMap(value: unknown): ThemeOverrides | undefined {
@@ -67,10 +37,6 @@ function readThemeMap(value: unknown): ThemeOverrides | undefined {
   return result;
 }
 
-/**
- * Accepts a stamped payload or a bare `{dark, light}` blob (what every export
- * before this looked like, and what a hand-written paste tends to be).
- */
 export function parseThemeImport(text: string): ThemeImportResult {
   let parsed: unknown;
   try {
@@ -88,7 +54,6 @@ export function parseThemeImport(text: string): ThemeImportResult {
   const dark = readThemeMap(maps?.dark);
   const light = readThemeMap(maps?.light);
 
-  // Refuse rather than wipe both schemes to empty when neither key is usable.
   if (!dark && !light) {
     return { value: null, error: 'Needs a "dark" and/or "light" color object.' };
   }
@@ -100,7 +65,6 @@ export function parseThemeImport(text: string): ThemeImportResult {
   return { value: { look: stamped ? parseLookKey(record.look) : null, overrides }, error: null };
 }
 
-/** Keep only the tokens that actually differ from what the target renders. */
 function diffThemeMap(
   payload: ThemeOverrides,
   baseValue: (id: string) => string | undefined,
@@ -115,20 +79,10 @@ function diffThemeMap(
 }
 
 export type ImportTarget = {
-  /** Sampled values for the look being worn. There is no JS-side base layer to
-   *  diff against any more — the accent, surface, style and scheme stylesheets
-   *  decide what a token resolves to, and this is that reading. */
   baselines: ThemeDefaults | null;
-  /** Edits already stored on the look being worn. */
   currentEdits: PaletteOverrides;
 };
 
-/**
- * Turn a parsed payload into the edit map to store on the look being worn.
- *
- * A scheme the payload omits keeps its existing edits: a paste that only
- * describes dark must not silently reset light.
- */
 export function editsFromImport(
   parsed: ParsedThemeImport,
   target: ImportTarget,

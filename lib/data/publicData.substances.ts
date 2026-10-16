@@ -28,7 +28,6 @@ export const getRawSubstances = cache(async (): Promise<PublicSubstanceLibraryRe
   return await getPublicDataReadAdapter().getRawSubstances();
 });
 
-/** Bounded persisted leaf pages; never normalize the full library for effect membership. */
 export const getPublicEffectMembershipInput = cache(async () =>
   getPublicDataReadAdapter().getPublicEffectMembershipInput(),
 );
@@ -43,20 +42,10 @@ export const getPublicAboutPreviewSubstances = cache(
     getPublicDataReadAdapter().getPublicAboutPreviewSubstances(),
 );
 
-/**
- * Compact coverage rows assembled from bounded, persistently cached native
- * pages. The row policy itself runs in the native handler from the shared
- * coverage model; this composition remains request-deduped only.
- */
 export const getPublicCoverageSubstances = cache(async (): Promise<CoverageRow[]> => {
   return await getPublicDataReadAdapter().getPublicCoverageSubstances();
 });
 
-/**
- * The complete substance corpus in the archival `SubstanceIndex.json` record
- * shape, for the public open-data download. The composition is request-deduped;
- * its bounded adapter pages persist across requests and process restarts.
- */
 export const getPublicFullSubstanceDocuments = cache(
   async (): Promise<PublicFullSubstanceDocument[]> =>
     getPublicDataReadAdapter().getPublicFullSubstanceDocuments(),
@@ -104,13 +93,6 @@ export const getPublicSubstanceSearchSummaries = cache(publicDataCache(async () 
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.substances, PUBLIC_SUBSTANCE_CONTENT_TAG],
 }));
 
-/**
- * Every public substance slug, sorted, for deciding which wiki links resolve.
- * Deliberately separate from `getPublicSubstances`: article routes need only
- * the slug set, and draining the preview pages for it cost 19 sequential
- * Postgres round trips on every cold cache. Wrapped at the top level so
- * `unstable_cache` actually caches it (Next bypasses a nested entry).
- */
 export const getPublicSubstanceSlugs = cache(publicDataCache(async (): Promise<string[]> => {
   return await getPublicDataReadAdapter().getPublicSubstanceSlugs();
 }, ["data-public-substance-slugs"], {
@@ -133,12 +115,6 @@ export const getFeaturedSubstances = cache(async (limit = 8) => {
   return (await getPublicSubstances()).slice(0, limit);
 });
 
-/**
- * Every substance article one contributor expert-reviewed, alphabetically.
- * Keyed by profile key only: the reviewer-email matching (membershipEmail plus
- * legacy alias handles) happens inside the Postgres deployment, so no reviewer
- * email ever reaches this process, let alone the client payload.
- */
 export const getReviewedArticlesByContributor = cache(publicDataCache(async (
   profileKey: string,
 ): Promise<ContributorReviewedArticle[]> => {
@@ -149,13 +125,6 @@ export const getReviewedArticlesByContributor = cache(publicDataCache(async (
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.substances, PUBLIC_SUBSTANCE_LISTS_TAG, PUBLIC_DATA_CACHE_TAGS.contributors],
 }));
 
-/**
- * Every completed expert review as a public-safe (slug, profileKey) credit,
- * for the About roster's page-reference counts. Like the per-contributor read
- * above, the reviewer-email matching happens inside the Postgres deployment; no
- * email reaches this process. Sorted by slug then key so identical corpora
- * produce identical payloads between builds.
- */
 export const getReviewedArticleCredits = cache(publicDataCache(async (): Promise<ReviewedArticleCredit[]> => {
   const credits = await getPublicDataReadAdapter().getPublicReviewedArticleCredits();
   return [...credits].sort((left, right) =>

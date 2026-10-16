@@ -1,10 +1,3 @@
-/**
- * GET /api/dev/translation-glossary/export?locale=zh-Hans: every row for the
- * locale as `term,target,kind,status,gloss` CSV; the first four columns are
- * the shape /import takes back, the gloss rides along for reviewers.
- * Translator and up. The byte-order mark is for spreadsheets, which otherwise
- * guess the encoding and mangle the renderings.
- */
 import { NextResponse } from "next/server";
 
 import { glossaryToCsv } from "@/features/dev/tools/glossary/glossaryModel";

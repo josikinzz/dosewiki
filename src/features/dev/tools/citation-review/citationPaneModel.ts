@@ -1,8 +1,3 @@
-/**
- * Pure helpers for the Citations workspace: the words the list, the pane and
- * the dock say, and the checks that keep a decision honest (a row changed by
- * someone else since it was shown is never decided blind).
- */
 import {
   CITATION_QUEUE_FILTER_LABEL,
   formatCitationCount,
@@ -12,7 +7,6 @@ import {
   type CitationReviewQueueSummary,
 } from "./citationReviewModels";
 
-/** What one article's rows add up to, counted from the rows on screen. */
 export type CitationTally = {
   total: number;
   ready: number;
@@ -45,12 +39,10 @@ export function tallyRows(rows: readonly CitationEvidenceRow[]): CitationTally {
   return { total: rows.length, ready, blockingGaps, otherGaps, accepted, rejected, diagnostics };
 }
 
-/** Unresolved blocking rows in a queue summary (needs source, needs review, rejected). */
 export function summaryBlockingGaps(entry: CitationReviewQueueSummary): number {
   return entry.blockingNeedsSourceCount + entry.blockingNeedsReviewCount + entry.blockingRejectedCount;
 }
 
-/** The queue in one sentence under the tool heading. */
 export function describeQueueTotals(
   queue: readonly CitationReviewQueueSummary[],
   filter: CitationReviewQueueFilter,
@@ -81,18 +73,15 @@ const FILTER_EMPTY: Record<CitationReviewQueueFilter, string> = {
   all: "No article has citation evidence yet.",
 };
 
-/** Why a filter shows nothing, in the reviewer's words. */
 export function describeEmptyFilter(filter: CitationReviewQueueFilter): string {
   return FILTER_EMPTY[filter];
 }
 
-/** The count beside the list heading. */
 export function describeListCount(shown: number, total: number, searching: boolean): string {
   if (searching) return `${shown} of ${total} shown`;
   return formatCitationCount(total, "article");
 }
 
-/** One article's rows in a sentence: "10 rows: 4 ready to approve, 4 blocking gaps, 1 accepted". */
 export function describeTally(tally: CitationTally): string {
   const parts: string[] = [];
   if (tally.ready > 0) parts.push(`${tally.ready} ready to approve`);
@@ -104,16 +93,10 @@ export function describeTally(tally: CitationTally): string {
   return parts.length > 0 ? `${head}: ${parts.join(", ")}` : head;
 }
 
-/** A row as the reviewer saw it; a decision is refused when any of these moved. */
 function rowFingerprint(row: CitationEvidenceRow): string {
   return `${row.status}\u0000${row.statusReason ?? ""}\u0000${row.updatedAt}`;
 }
 
-/**
- * Claim keys, among `claimKeys`, whose row changed (or vanished) between the
- * copy on screen and a fresh read. The status route has no revision check, so
- * the tool reads first and refuses to decide rows someone else just changed.
- */
 export function rowsChangedSince(
   shown: readonly CitationEvidenceRow[],
   fresh: readonly CitationEvidenceRow[],
@@ -124,10 +107,6 @@ export function rowsChangedSince(
   return claimKeys.filter((key) => !after.has(key) || before.get(key) !== after.get(key));
 }
 
-/**
- * Claim keys an undo would overwrite because they no longer hold the status
- * the decision wrote (someone decided them again since).
- */
 export function rowsMovedSinceDecision(
   decision: CitationReviewDecisionRecord,
   fresh: readonly CitationEvidenceRow[],
@@ -138,10 +117,8 @@ export function rowsMovedSinceDecision(
     .filter((key) => now.get(key) !== decision.status);
 }
 
-/** What a refused write says while the server's write freeze holds. */
 export const CITATION_FREEZE_COPY = "Writes are paused, so that was not saved. Try again once they resume.";
 
-/** A conflict in the reviewer's words. */
 export function describeConflict(count: number, undo = false): string {
   const rows = count === 1 ? "one of these rows" : `${count} of these rows`;
   return undo

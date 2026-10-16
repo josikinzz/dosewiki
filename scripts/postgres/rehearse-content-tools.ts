@@ -1,23 +1,3 @@
-/**
- * Rehearsal: the layout, copy, warning, quote, site config,
- * molecule and reagent tools run unchanged on Postgres.
- *
- * Every call goes through `PostgresClient` with the same `api.*`
- * references the app uses, so the registered native handlers, their auth
- * floors, their optimistic-concurrency checks and their journal rows are all
- * exercised as the app would. Public molecule and reagent reads go through
- * `PublicDataReadAdapter` with `DATA_BACKEND=postgres`, which is the exact
- * switch the Next server boundaries take.
- *
- * Scratch rows carry a `t14-`/`t15-` prefix and are removed in `finally`.
- * The singleton tables (`indexLayouts` by type, `categoryLayout`) resolve
- * their row with `.first()`, so the rehearsal seeds scratch rows with an
- * `_creationTime` older than any fixture row: the handlers then read and
- * write the scratch row and the fixture stays untouched.
- *
- *   bun scripts/postgres/rehearse-content-tools.ts --target postgres://localhost:5432/dosewiki
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,7 +24,6 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
   console.log(`${pass ? "ok  " : "FAIL"} ${scenario}: ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-/** The thrown error, or null when the call succeeded. */
 async function failure(run: () => Promise<unknown>): Promise<unknown> {
   try {
     await run();
@@ -54,7 +33,6 @@ async function failure(run: () => Promise<unknown>): Promise<unknown> {
   }
 }
 
-/** One property of an untyped jsonb payload, or undefined when the value is not an object. */
 function field(value: unknown, key: string): unknown {
   return value && typeof value === "object" ? Object.getOwnPropertyDescriptor(value, key)?.value : undefined;
 }
@@ -81,8 +59,6 @@ async function main() {
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
 
-  // The app's backend switch reads process env at call time: point it at the rehearsal target
-  // before anything asks for a client, and never let `.env.local`'s PlanetScale URL leak in.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
@@ -104,14 +80,12 @@ async function main() {
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-content-tools`);
   const started = performance.now();
 
-  // Scratch rows seeded outside the runtime; `insertDocument` registers their `documentIds` entry so `ctx.db.patch(id)` finds them.
   const seeded: Array<{ table: Parameters<typeof insertDocument>[1]; id: string }> = [];
   async function seed(table: Parameters<typeof insertDocument>[1], document: Record<string, unknown>): Promise<string> {
     const id = await insertDocument(pool, table, document);
     seeded.push({ table, id });
     return id;
   }
-  /** Rows the handlers created under a scratch key: remove them and their id registrations. */
   const purges: Array<{ table: string; where: string; params: unknown[] }> = [];
   const purge = (table: string, where: string, ...params: unknown[]) => purges.push({ table, where, params });
 
@@ -119,12 +93,10 @@ async function main() {
   let createdBannerDisplayRow = false;
 
   try {
-    // Scratch actors. An API-key call without actorEmail is an admin; a delegated actorEmail is looked up in memberships.
     const now = new Date().toISOString();
     await seed("memberships", { email: editorEmail, role: "editor", createdAt: now, updatedAt: now });
     await seed("memberships", { email: adminActor.actorEmail, role: "admin", createdAt: now, updatedAt: now });
 
-    // ------------------------------------------------------------------ index layouts
     {
       const S = "indexLayouts";
       const section = (key: string, drugs: string[]) => ({ key, label: key.toUpperCase(), drugs, notes: `notes ${key}`, link: { type: "chemicalClass" as const, value: `class-${key}` } });
@@ -179,7 +151,6 @@ async function main() {
       expect(S, "invalid API key is refused", isAuthRefusal(badKeySave), errorMessage(badKeySave));
       expect(S, "unauthorized saves left the layout unchanged", (await client.query(api.indexLayouts.getByType, { type: "psychoactive" }))?.version === 2);
 
-      // categoryLayout's own script-only save and clear act on the same `.first()` row.
       const S2 = "categoryLayout";
       const direct = await client.mutation(api.categoryLayout.save, { ...adminActor, version: 7, categories: [{ key: "solo", label: "Solo", iconKey: "icon", sections: [], drugs: ["x"] }] });
       expect(S2, "direct save replaces the singleton row", direct.updated === true && direct.id === mirrorId && (await client.query(api.categoryLayout.get, {}))?.version === 7, direct);
@@ -189,7 +160,6 @@ async function main() {
       seeded.splice(seeded.findIndex((row) => row.id === mirrorId), 1);
     }
 
-    // ------------------------------------------------------------------ site config
     {
       const S = "siteConfig";
       const aboutBefore = await client.query(api.siteConfig.getAbout, {});
@@ -231,7 +201,6 @@ async function main() {
       }
     }
 
-    // ------------------------------------------------------------------ copy blocks
     {
       const S = "copyBlocks";
       const key = `${T14}-block`;
@@ -267,7 +236,6 @@ async function main() {
       expect(S, "remove deletes the block and journals a remove row", removed.removed === true && removed.revision === 3 && (await client.query(api.copyBlocks.getByKey, { key })) === null && removal?.action === "remove" && removal.after === null, removed);
     }
 
-    // ------------------------------------------------------------------ warning banners
     {
       const S = "warningBanners";
       const key = `${T14}-banner`;
@@ -310,7 +278,6 @@ async function main() {
       expect(S, "removePreset deletes the preset and journals a remove", removed.removed === true && !(await client.query(api.warningBanners.listPresets, {})).some((row) => row.key === key) && (await count(pool, '"warningBannerRevisions" WHERE "key" = $1 AND "operation" = $2', [key, "remove"])) === 1, removed);
     }
 
-    // ------------------------------------------------------------------ quotes
     {
       const S = "quotes";
       const slug = `${T14}-quote-substance`;
@@ -333,7 +300,6 @@ async function main() {
       expect(S, "deleteBySlugAndSection removes one section only", deleted.deleted === true && (await client.query(api.quotes.getBySlug, { slug })).length === 1);
     }
 
-    // ------------------------------------------------------------------ molecule overrides
     {
       const S = "moleculeOverrides";
       const slug = `${T15}-molecule`;
@@ -376,7 +342,6 @@ async function main() {
       expect(S, "admin remove deletes the row and the public read returns null", removed.deleted === true && (await adapter.getPublicMoleculeBySlug(slug)) === null && !(await adapter.getPublicMoleculeOverrideSummaries()).some((entry) => entry.slug === slug), removed);
     }
 
-    // ------------------------------------------------------------------ molecule class templates
     {
       const S = "moleculeClassTemplates";
       const classKey = `${T15}-class`;
@@ -395,7 +360,6 @@ async function main() {
       expect(S, "invalid class key is refused", /Invalid chemical class key/.test(errorMessage(badClassKey)), errorMessage(badClassKey));
     }
 
-    // ------------------------------------------------------------------ reagent tests
     {
       const S = "reagentTests";
       const slug = `${T15}-reagent`;

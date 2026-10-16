@@ -1,25 +1,5 @@
 "use client";
 
-/**
- * Editor-surface reads over the `/api/editor/*` routes.
- *
- * Registered queries run through the server read client behind an editor-session
- * check. Components receive the native result shape with an "`undefined` means
- * loading" contract. Browser bundles never connect directly to the database.
- *
- * Freshness uses refetching rather than push. Every read refetches when the
- * window regains focus, and polls at 15 s
- * for lists and 5 s for the one document an editor has open. A caller's own
- * write invalidates the affected keys immediately (`useInvalidateEditorReads`)
- * so the editor never waits a poll for its own change. TanStack's structural
- * sharing keeps `data` referentially stable across equal refetches, which is
- * what lets components keep using object identity to tell a real change from
- * a redelivery.
- *
- * Query failures surface through render only while there is no data yet;
- * a background refetch that fails keeps the last good data on screen.
- */
-
 import { useCallback, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,10 +9,8 @@ import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 const EDITOR_LIST_REFETCH_MS = 15_000;
 const EDITOR_DOCUMENT_REFETCH_MS = 5_000;
 
-/** `list` for collections and rails; `document` for the record the editor is working on. */
 export type EditorReadFreshness = "list" | "document";
 
-/** Function name -> registered query, so args and results keep the generated Postgres types. */
 type EditorReadCatalog = {
   "indexLayouts:getAll": typeof api.indexLayouts.getAll;
   "categoryLayout:get": typeof api.categoryLayout.get;
@@ -60,7 +38,6 @@ export type EditorPaginatedReadItem<N extends EditorPaginatedReadName> = EditorP
 
 const slugQuery = (slug: string) => `slug=${encodeURIComponent(slug)}`;
 
-/** Where each query is served. The route runs exactly the named function. */
 const EDITOR_READ_ROUTES: { [N in EditorReadName]: (args: EditorReadArgs<N>) => string } = {
   "indexLayouts:getAll": () => "/api/editor/index-layouts",
   "categoryLayout:get": () => "/api/editor/category-layout",
@@ -79,7 +56,6 @@ const EDITOR_PAGE_ROUTES: { [N in EditorPaginatedReadName]: string } = {
   "substanceIndex:getSearchInputPage": "/api/editor/substances?page=search-input",
 };
 
-/** The `["editor", name, args]` key every editor read is stored under. */
 function editorReadKey(name: EditorReadName | EditorPaginatedReadName, args?: Record<string, unknown>) {
   return args === undefined ? (["editor", name] as const) : (["editor", name, args] as const);
 }
@@ -109,11 +85,6 @@ export type EditorIndexLayoutRows = Array<ManualIndexConfig & {
   revision: number;
 }>;
 
-/**
- * The one authenticated, revision-bearing layout read used by every editor
- * consumer. The actor identity is part of the private cache key, while the
- * disabled/signed-out path never exposes a previous actor's cached value.
- */
 export function useEditorIndexLayouts(enabled: boolean) {
   const session = useSession();
   const owner = session.status === "authenticated" ? session.data?.user?.email ?? "" : "";
@@ -144,15 +115,10 @@ export function useEditorIndexLayouts(enabled: boolean) {
   };
 }
 
-/** Throw into render only when nothing has loaded yet; a failed background refetch keeps the last data. */
 function throwWhenEmpty(_error: Error, query: { state: { data: unknown } }) {
   return query.state.data === undefined;
 }
 
-/**
- * One registered query, `undefined` until its first answer, `"skip"` to hold
- * it off exactly as the Postgres hook did.
- */
 export function useEditorRead<N extends EditorReadName>(
   name: N,
   args: EditorReadArgs<N> | "skip",
@@ -169,23 +135,13 @@ export function useEditorRead<N extends EditorReadName>(
   return query.data;
 }
 
-/** A registered read that reports its own failure instead of throwing into render. */
 export type EditorReadState<N extends EditorReadName> = {
-  /** The last good answer; `undefined` until the first one lands (or while a new `args` key loads). */
   data: EditorReadResult<N> | undefined;
-  /** The failure of the current key, when it has no data to fall back on; null otherwise. */
   error: string | null;
-  /** A retry (or any refetch) is in flight. */
   fetching: boolean;
   retry: () => void;
 };
 
-/**
- * `useEditorRead` for a tool that draws its own load failure: the same key,
- * route and freshness, but a read that fails before any data lands comes back
- * as `error` (with `retry`) rather than throwing to the route error boundary,
- * so one failed read cannot take the editor shell down with it.
- */
 export function useEditorReadState<N extends EditorReadName>(
   name: N,
   args: EditorReadArgs<N> | "skip",
@@ -213,14 +169,6 @@ export function useEditorReadState<N extends EditorReadName>(
 
 export type EditorPaginatedStatus ="LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
 
-/**
- * A cursor-paginated query drained the way Postgres's `usePaginatedQuery`
- * accumulated pages: `results` grows in stable table order as `loadMore`
- * threads each `continueCursor` back, and `status` reports where the drain
- * stands. A background refetch replays the cursor chain while the accumulated
- * results stay on screen, so a caller that waits for `Exhausted` never sees a
- * partial list.
- */
 function useEditorPaginatedRead<N extends EditorPaginatedReadName>(
   name: N,
   args: Record<string, never> | "skip",
@@ -264,11 +212,6 @@ function useEditorPaginatedRead<N extends EditorPaginatedReadName>(
   return { results, status, loadMore };
 }
 
-/**
- * Drain a paginated read to the end. Returns the whole list once every page
- * has landed and `undefined` until then, which is the all-or-loading contract
- * the substance pickers rely on.
- */
 export function useEditorDrainedRead<N extends EditorPaginatedReadName>(
   name: N,
   args: Record<string, never> | "skip",
@@ -283,7 +226,6 @@ export function useEditorDrainedRead<N extends EditorPaginatedReadName>(
   return { results: args !== "skip" && status === "Exhausted" ? results : undefined, status };
 }
 
-/** Invalidate editor reads after the caller's own write so the change shows without waiting for a poll. */
 export function useInvalidateEditorReads() {
   const queryClient = useQueryClient();
   return useCallback(

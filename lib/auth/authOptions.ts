@@ -17,16 +17,6 @@ type AuthorizedMember = {
   passwordUpdatedAt?: string;
 };
 
-/**
- * Username + password against the Postgres memberships table. Returns the
- * member for the session, or null for every failure: unknown username,
- * banned member, no password set, wrong password. Auth.js maps null to a
- * generic CredentialsSignin error, so the reason never reaches the browser.
- *
- * Every non-blank attempt pays for one scrypt derivation, against the stored
- * hash when there is one and against `UNMATCHABLE_PASSWORD_HASH` otherwise,
- * so response time does not say whether the username exists.
- */
 export async function authorizeCredentials(
   credentials: Partial<Record<"username" | "password", unknown>> | undefined,
 ): Promise<AuthorizedMember | null> {
@@ -81,11 +71,6 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // Re-read the stored role on every JWT refresh so a role change or a
-      // ban takes effect on the next request instead of at the next sign-in.
-      // A failed read fails closed: the token keeps its identity but carries
-      // no privilege until Postgres answers again, so a just-banned or demoted
-      // member cannot ride out an outage on their old role.
       try {
         const membership = await getMembershipByEmail(email);
         token.role = membership?.bannedAt || membership?.passwordUpdatedAt !== token.passwordUpdatedAt

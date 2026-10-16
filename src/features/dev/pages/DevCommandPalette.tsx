@@ -20,10 +20,8 @@ import { ToolGlyph, ToolLabel, ToolMarks } from "./DevModeToolRail";
 import type { DevModeTab } from "./devTabRegistry";
 import type { DevUtility } from "./devUtilities";
 
-/** How the rail shows a tool, so the palette lists it the same way. */
 export type PaletteToolState = {
   icon: string;
-  /** The rail group it lives in ("Content", "Intake"). */
   group: string;
   badge?: number;
   stale?: boolean;
@@ -35,36 +33,24 @@ type DevCommandPaletteProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   role: AppRole | null;
-  /** The session's glossary grant, so the Glossary offers only its languages. */
   glossaryLocales?: readonly string[];
-  /** The tool on screen, marked "Current" in the list. */
   currentTab?: DevModeTab;
-  /** Glyph, group, count and unsaved mark per tool, as the rail shows them. */
   toolState?: Partial<Record<DevModeTab, PaletteToolState>>;
-  /** Utility routes this role may open (UI kit, Theme lab). */
   utilities?: readonly DevUtility[];
   onOpenTool: (tool: PaletteTool) => void;
   onOpenRecord: (record: PaletteRecord) => void;
-  /** Opens a utility route through the shell's guarded exit. */
   onOpenHref?: (href: string) => void;
   onShowShortcuts?: () => void;
   onLeave?: () => void;
-  /** Absent for a signed-out session. */
   onSignOut?: () => void;
 };
 
 type RecordsState = { records: PaletteRecord[]; loading: boolean; failed: string[]; loadedKey: string | null };
 
-/** The palette's key, the way this machine writes it. */
 export function usePaletteKeyLabel(): string {
   return useModifierKeyLabel("K");
 }
 
-/**
- * A Cmd/Ctrl chord as this platform writes it: `⌘S` on Apple, `Ctrl S`
- * elsewhere. Server render and first paint say `Ctrl`, then the effect
- * settles it, so hydration never disagrees.
- */
 export function useModifierKeyLabel(key: string): string {
   const [label, setLabel] = useState(`Ctrl ${key}`);
   useEffect(() => {
@@ -100,19 +86,9 @@ function rememberRecent(entry: RecentEntry) {
     const next = [entry, ...readRecents().filter((existing) => recentKey(existing) !== recentKey(entry))].slice(0, RECENTS_LIMIT);
     window.localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
   } catch {
-    // Private mode or a full store: recents are a convenience, never required.
   }
 }
 
-/**
- * Cmd+K: every tool the role may open, the saved views over its queues, the
- * records each tool offers (`devRecordSources`), the editor's own commands
- * (the keys sheet, the utilities, Leave, Sign out) and what this browser
- * opened last. Tools wear the rail's glyph, group, count and unsaved mark.
- * Record reads start when the palette first opens and are kept for the
- * session; Retry reads them again. What the palette opens goes through the
- * chrome's guarded navigation, the same path as a rail click.
- */
 export function DevCommandPalette({
   open,
   onOpenChange,
@@ -134,7 +110,6 @@ export function DevCommandPalette({
   const [attempt, setAttempt] = useState(0);
   const [recents, setRecents] = useState<RecentEntry[]>([]);
   const localesKey = (glossaryLocales ?? []).join(",");
-  // The records belong to this role and grant; a new one reads them again.
   const sourceKey = `${role ?? ""}|${localesKey}|${attempt}`;
 
   useEffect(() => {
@@ -171,8 +146,6 @@ export function DevCommandPalette({
   const labelOf = useMemo(() => new Map(tools.map((tool) => [tool.tab, tool.label])), [tools]);
   const toolByTab = useMemo(() => new Map(tools.map((tool) => [tool.tab, tool])), [tools]);
 
-  // Every open starts from an empty query, however the last one closed, and
-  // reads this browser's recents afresh.
   useEffect(() => {
     if (!open) setQuery("");
     else setRecents(readRecents());
@@ -189,7 +162,6 @@ export function DevCommandPalette({
   }, [onOpenRecord]);
 
   const trimmed = query.trim().toLowerCase();
-  // Recents show on an empty query, only for what the role can still open.
   type RecentRow = { key: string; tool: PaletteTool | null; record: PaletteRecord | null };
   const recentRows: RecentRow[] = trimmed === ""
     ? recents.flatMap((entry): RecentRow[] => {
@@ -201,7 +173,6 @@ export function DevCommandPalette({
       })
     : [];
 
-  // The editor's own commands, matched by their words.
   const commands = [
     onShowShortcuts ? { key: "shortcuts", label: "Keyboard shortcuts", icon: "lucide:keyboard", terms: "keyboard shortcuts keys help", run: onShowShortcuts } : null,
     ...utilities.map((utility) => ({

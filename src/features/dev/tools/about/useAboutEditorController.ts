@@ -41,16 +41,10 @@ type AboutConfigSource = {
   translationCredits?: unknown;
   revision?: number;
   aggregates?: AboutAggregateSource;
-  /** When and by whom the stored document was last written (the row's audit fields). */
   updatedAt?: string | null;
   updatedBy?: string | null;
 } | null | undefined;
 
-/**
- * Why the last publication or submission did not land, when the route said:
- * someone published after the draft was opened, or the write freeze refused
- * it. Anything else is `other`.
- */
 export type AboutSaveFailure = "conflict" | "frozen" | "other";
 
 type AboutDocument = {
@@ -62,7 +56,6 @@ type AboutDocument = {
   revision: number;
 }
 
-/** The stored credits as the editor edits them: known locales only, empty lists dropped. */
 function storedTranslationCredits(stored: unknown): TranslationCredits {
   const credits: TranslationCredits = {};
   for (const locale of TRANSLATION_CREDIT_LOCALES) {
@@ -72,7 +65,6 @@ function storedTranslationCredits(stored: unknown): TranslationCredits {
   return credits;
 }
 
-/** Drop a locale whose list emptied, so removing the last credit reads as clean. */
 function withLocaleCredits(credits: TranslationCredits, locale: string, list: TranslationCredits[string]): TranslationCredits {
   const { [locale]: _previous, ...rest } = credits;
   return list.length ? { ...rest, [locale]: list } : rest;
@@ -90,7 +82,6 @@ function toAboutDocument(aboutConfig: AboutConfigSource): AboutDocument {
 }
 
 export interface AboutEditorController {
-  /** False until the Postgres About document has arrived. */
   publicationUncertain: boolean;
   isLoaded: boolean;
   loadError: string | null;
@@ -118,38 +109,20 @@ export interface AboutEditorController {
   resetTranslationCredits: () => void;
   copyMarkdown: () => void;
   copySubtitle: () => void;
-  /** Admin: writes the document. Editor: submits it as a change proposal and keeps the draft pending. */
   save: () => Promise<void>;
-  /** Why the last save did not land, or null. */
   saveFailure: AboutSaveFailure | null;
   dismissNotice: () => void;
-  /** Drops every edit and returns the draft to what was loaded. */
   discard: () => void;
-  /** Reads the stored document again and replaces the draft with it (edits are dropped). */
   loadLatest: () => void;
-  /** A load of the latest version is in flight. */
   loadingLatest: boolean;
-  /** When the stored document was last written, and by whom, as the read says. */
   lastWrite: { at: string | null; by: string | null };
 }
 
 export interface AboutEditorControllerOptions {
-  /** Admin: Save writes About; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
   placeholderValues?: Record<string, string>;
 }
 
-/**
- * The About editor's own session over the Postgres `siteConfig` About document.
- *
- * About is the pinned first entry of the Writing tab and saves the way its
- * siblings do: one immediate `POST /api/dev/about` carrying the whole
- * document, after which the draft becomes the new baseline. It stages nothing
- * into the shell's commit panel and contributes nothing to the dataset
- * changelog. Without `canApprove` the same document is posted to
- * `/api/dev/proposals` instead and the draft stays pending until an admin
- * approves it, since production has not changed yet.
- */
 export function useAboutEditorController({ canApprove, placeholderValues = {} }: AboutEditorControllerOptions): AboutEditorController {
   const source = useCopyIndexSource<AboutConfigSource>(API_PATH);
   const aboutConfig = source.data;
@@ -168,8 +141,6 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
   const [notice, setNotice] = useState<NoticeMessage | null>(null);
   const [copyNotice, setCopyNotice] = useState<AboutCopyNotice | null>(null);
   const [saveFailure, setSaveFailure] = useState<AboutSaveFailure | null>(null);
-  // "Load the latest version": the next document the read delivers replaces
-  // the draft, rather than waiting behind it as a refresh conflict.
   const replaceOnNext = useRef<AboutConfigSource | null | false>(false);
   const [loadingLatest, setLoadingLatest] = useState(false);
 
@@ -184,8 +155,6 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     [draft.subtitle, original.subtitle],
   );
 
-
-  // The copy result shows in a Notice: a success clears itself, a failure stays until dismissed.
   const showCopyNotice = setCopyNotice;
   const dismissCopyNotice = useCallback(() => setCopyNotice(null), []);
 
@@ -347,9 +316,6 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
         error?: string;
       };
       acknowledge(response, payload);
-      // Advance only the baseline: `draft` here is the snapshot that was sent,
-      // and anything typed while the request was in flight must stay pending.
-      // The route echoes normalized credits; if it echoes none, the sent ones stood.
       const saved = payload.about
         ? toAboutDocument({ translationCredits: snapshot.draft.translationCredits, ...payload.about })
         : snapshot.draft;
@@ -390,9 +356,6 @@ export function useAboutEditorController({ canApprove, placeholderValues = {} }:
     setLoadingLatest(true);
     source.reload();
   }, [aboutConfig, publicationUncertain, source]);
-  // The read answered after "Load the latest version": the stored document
-  // becomes both the draft and the baseline, so the next publication is
-  // checked against the version the editor now sees.
   useEffect(() => {
     if (replaceOnNext.current === false) return;
     if (source.error) {

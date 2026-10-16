@@ -1,34 +1,3 @@
-/**
- * Write endpoint for one Writing/Blog row (the /dev Writing and Blog tabs).
- * The GET reads are editor floor; POST saves an unpublished draft or performs
- * a reviewed publication and is admin-only.
- *
- *   POST /api/dev/writing-article  { slug, originalSlug?, kind, status, title?, teaser?, … }
- *
- * Same shape as `/api/dev/copy-block`: the browser holds no admin intent token,
- * so the write is delegated here, which checks the editor session and then calls
- * `effectIndexArticles.upsertArticle` with the server's own token plus the
- * actor's email for the audit trail.
- *
- * Two things this route owns that the mutation deliberately does not:
- *
- * 1. **`publication_status`.** The public normalizer
- *    (`normalizePublicEffectIndexArticle`) drops any row whose
- *    `publication_status` is not a string, so a row saved with `status` alone
- *    would be invisible everywhere. The save path derives the legacy field from
- *    `status` and sends both, which is what makes a published row actually
- *    appear.
- * 2. **Cache publication.** An explicit publication publishes the `writing-articles`
- *    identity through the shared seam, which expires
- *    `PUBLIC_DATA_CACHE_TAGS.articles` here and delivers the same identity
- *    to the public deployments, so a publish shows up on `/articles`, `/blog`
- *    and the route plan in seconds rather than at the end of the 15-minute
- *    public-data window. The tag covers both families: dose.wiki blog posts
- *    are `effectIndexArticles` rows and ride the article tag, not the
- *    archive's `blog` tag. An article save also publishes its keyed `library`
- *    identity, which expires the locale mirrors of the article and the index,
- *    and enqueues the `library/<slug>` translation job the refresh cron works.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { LIVE_LOCALE_CODES } from "@server/next/localeHostPolicy";
@@ -41,16 +10,6 @@ import { parseWritingArticleBody, type ParsedWritingArticle, type WritingArticle
 
 export const runtime = "nodejs";
 
-/**
- * The editor's read side.
- *
- *   GET /api/dev/writing-article            → the slim listing, drafts included
- *   GET /api/dev/writing-article?slug=…     → one whole row, draft body included
- *
- * Both are editor-gated Postgres queries, which the browser cannot call directly:
- * the dev shell's Postgres client carries no identity, so every editor-only read
- * in this repo is delegated through an `/api/dev` route exactly like this one.
- */
 export const GET = protectedRouteOperation<undefined, undefined>({
   auth: "editor",
   rateLimit: "editorSmallWrite",
@@ -114,7 +73,6 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       title: body.title,
       kind: body.kind,
       status: body.status,
-      // Kept in step with `status` on purpose; see the file header.
       publication_status: body.status === "published" ? "published" : "draft",
       bodyFormat: body.bodyFormat,
       body_raw: body.body,
@@ -130,8 +88,6 @@ export const POST = protectedRouteOperation<WritingArticleBody, ParsedWritingArt
       const targets: PublicationTarget[] = [{ kind: "writing-articles" }];
       if (body.kind === "article") {
         targets.push({ kind: "library", slug: result.slug });
-        // The locale mirror follows by cron, not inline; a failed enqueue is
-        // logged and the next save of the article retries it.
         try {
           await enqueueTranslationJobs(LIVE_LOCALE_CODES, [`library/${result.slug}`]);
         } catch (error) {

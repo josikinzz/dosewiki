@@ -1,12 +1,3 @@
-/**
- * POST /api/reset-password  { token, password }
- *
- * Public: the person resetting has no session, so the token from the link an
- * admin issued (`/api/dev/members/reset`) is the whole credential. Guessing a
- * token is a password-guessing attempt, so the route shares the sign-in
- * brake (`authCredentialAttempt`). The token is hashed here and Postgres
- * matches on the hash, so the plaintext is never stored anywhere.
- */
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { consumePasswordReset } from "@server/auth/memberships";
@@ -55,8 +46,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    // An unknown or expired token is a deliberate Postgres rejection with a
-    // sentence meant for the reader; everything else is an outage.
     const rejection = dataRejectionResponse(error);
     if (rejection) {
       return rejection;

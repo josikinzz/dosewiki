@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * The works on an open playlist and the way to add more: the ordered list
- * (drag by the handle, the arrows, or the row menu; each change announced and
- * focus kept on the moved row) and "Add works" (a thumbnail search, with a
- * pasted slug folded behind "Paste a slug instead").
- *
- * The Playlists tab's pane renders this; the public viewer's contextual editor
- * keeps `PlaylistEditor`.
- */
-
 import { useCallback, useEffect, useId, useRef, useState, type RefObject } from "react";
 import {
   DndContext,
@@ -52,20 +42,14 @@ import { countNoun } from "../home/homeModel";
 import { CANDIDATE_QUERY_MAX, CANDIDATE_SEARCH_LIMIT, fetchCandidateSearch, type PlaylistCandidate } from "./playlistCandidates";
 import type { WorkCards } from "./useWorkCards";
 
-/**
- * Rows shown before the list folds behind "Show all". A long playlist then
- * stays about one screen tall instead of pushing the rest of the pane away.
- */
 export const COLLAPSED_ROWS = 20;
 
-/** Pause after the last keystroke before the search read goes out. */
 const SEARCH_DEBOUNCE_MS = 250;
 
 const ICON_BUTTON = `h-8 w-8 ${TOUCH_ICON}`;
 
 type Move = "up" | "down" | "top" | "bottom";
 
-/** Where a move lands, or `null` when it would not move. */
 function targetIndex(index: number, count: number, move: Move): number | null {
   const to = move === "up" ? index - 1 : move === "down" ? index + 1 : move === "top" ? 0 : count - 1;
   return to === index || to < 0 || to >= count ? null : to;
@@ -74,18 +58,15 @@ function targetIndex(index: number, count: number, move: Move): number | null {
 export type PlaylistWorksProps = {
   slugs: readonly string[];
   workCards: WorkCards;
-  /** Read only: the list shows, nothing moves, and Add works is left out. */
   readOnly: boolean;
   busy: boolean;
   onChange: (slugs: string[]) => void;
-  /** The work search, so `/` can focus it. */
   searchRef: RefObject<HTMLInputElement | null>;
 };
 
 export function PlaylistWorks({ slugs, workCards, readOnly, busy, onChange, searchRef }: PlaylistWorksProps) {
   const [showAll, setShowAll] = useState(false);
   const [announcement, setAnnouncement] = useState("");
-  /** The row (and which of its controls) that takes focus once the list re-renders. */
   const [pendingFocus, setPendingFocus] = useState<{ slug: string; control: "handle" | Move | "menu" } | null>(null);
   const listId = useId();
   const headingId = useId();
@@ -106,7 +87,6 @@ export function PlaylistWorks({ slugs, workCards, readOnly, busy, onChange, sear
     setPendingFocus(null);
   }, [pendingFocus, slugs]);
 
-  /** Applies a list change; a row that lands in the folded tail unfolds it so the edit stays visible. */
   const apply = (next: string[], touchedIndex: number) => {
     if (!showAll && touchedIndex >= COLLAPSED_ROWS) setShowAll(true);
     onChange(next);
@@ -118,8 +98,6 @@ export function PlaylistWorks({ slugs, workCards, readOnly, busy, onChange, sear
     if (disabled || index < 0 || to === null) return;
     apply(arrayMove([...slugs], index, to), to);
     setAnnouncement(`Moved ${labelOf(slug)} to position ${to + 1} of ${slugs.length}.`);
-    // Arrow presses keep focus on the same arrow so a run of moves needs no hunting;
-    // at an edge the arrow disables, so the handle takes it instead.
     setPendingFocus({ slug, control: how === "up" || how === "down" ? how : "handle" });
   };
 
@@ -366,7 +344,6 @@ function WorkRow({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-[12rem]">
-              {/* Up, down and remove sit on the row from sm up; on a phone they live here. */}
               <DropdownMenuItem className="sm:hidden" disabled={first} onSelect={() => onMove("up")}>
                 <Icon icon="lucide:arrow-up" size={14} className="mr-2" />
                 Move up
@@ -396,13 +373,6 @@ function WorkRow({
   );
 }
 
-/**
- * Finds works by title, artist or slug and adds one with a tap. The read is
- * bounded on the server, so this shows at most one page of matches and asks
- * for more words rather than paging through the corpus. A pasted slug is the
- * fallback, folded until asked for, and is checked against the published
- * corpus the moment it is added.
- */
 function AddWorks({
   busy,
   onList,
@@ -468,7 +438,6 @@ function AddWorks({
   const listed = new Set(onList);
   const offered = results?.filter((card) => !listed.has(card.slug)) ?? [];
 
-  /** Adding a result removes its card, so focus moves to the next card's Add, or back to the search. */
   const addCard = (card: PlaylistCandidate, index: number) => {
     onAdd(card.slug, card.title);
     requestAnimationFrame(() => {

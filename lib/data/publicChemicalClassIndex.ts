@@ -43,17 +43,8 @@ const MANUAL_CLASSES = chemicalIndexManual.classes as ManualChemicalClass[];
 const MANUAL_CLASS_BY_KEY = new Map(MANUAL_CLASSES.map((cls) => [cls.key, cls]));
 const CHEMICAL_CLASS_TREE = buildChemicalClassTree(MANUAL_CLASSES);
 
-/**
- * Psychoactive labels that are umbrellas (they co-occur with the more specific
- * class and would otherwise duplicate every panel) — they never seed a panel.
- */
 const PSYCHOACTIVE_PANEL_DROP = new Set(["hallucinogen", "entheogen", "not-psychoactive"]);
 
-/**
- * Fold the noisy psychoactive-class labels (dose-qualified variants, the whole
- * GABAergic/sedative depressant cluster) into the substance-index panel
- * taxonomy so each chemical class shows clean, distinct panels.
- */
 const PSYCHOACTIVE_PANEL_CANON: Record<string, { key: string; label: string }> = {
   psychedelic: { key: "psychedelic", label: "Psychedelic" },
   "atypical-hallucinogen": { key: "hallucinogen", label: "Atypical Hallucinogen" },
@@ -98,10 +89,9 @@ const panelRank = (key: string): number => {
   const index = PSYCHOACTIVE_PANEL_ORDER.indexOf(key);
   if (index !== -1) return index;
   if (key === "other") return PSYCHOACTIVE_PANEL_ORDER.length + 1;
-  return PSYCHOACTIVE_PANEL_ORDER.length; // unknowns before the "other" catch-all
+  return PSYCHOACTIVE_PANEL_ORDER.length;
 };
 
-/** Resolve a substance's psychoactive labels into unique canonical panel buckets. */
 function resolvePanelBuckets(record: SubstanceRecord): Array<{ key: string; label: string }> {
   const seen = new Map<string, { key: string; label: string }>();
   for (const raw of record.psychoactiveClasses ?? []) {
@@ -112,8 +102,6 @@ function resolvePanelBuckets(record: SubstanceRecord): Array<{ key: string; labe
     const canon = PSYCHOACTIVE_PANEL_CANON[baseKey] ?? { key: baseKey, label: base };
     if (!seen.has(canon.key)) seen.set(canon.key, canon);
   }
-  // Opioids are CNS depressants too; keep the more specific Opioid panel and
-  // drop the generic Depressant one so the same drugs don't list twice.
   if (seen.has("opioid")) seen.delete("depressant");
   if (seen.size === 0) seen.set("other", { key: "other", label: "Other" });
   return Array.from(seen.values());
@@ -158,8 +146,6 @@ function buildPanels(records: SubstanceRecord[]): DosageCategoryGroup[] {
 }
 
 function buildMolecules(records: SubstanceRecord[], moleculeOverrides: Map<string, string>) {
-  // Every class member with a published Postgres depiction; the structure panels
-  // join these to substance rows by slug, so no sampling or ordering matters here.
   const molecules: Array<{ slug: string; name: string; url: string }> = [];
   for (const record of records) {
     const updatedAt = moleculeOverrides.get(record.slug);
@@ -202,21 +188,15 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
   );
   const aliasToClassKey = buildAliasToClassKey();
 
-  // classKey -> records (deduped by slug)
   const classRecords = new Map<string, Map<string, SubstanceRecord>>();
   for (const record of library.allSubstanceRecords) {
     if (record.isHidden || record.isDirectUrlOnly) continue;
-    // Chemical-class index membership must be a subset of the homepage substance index.
     if (homepageSubstanceSlugs.size > 0 && !homepageSubstanceSlugs.has(record.slug)) continue;
     const matched = new Set<string>();
     for (const rawClass of record.chemicalClasses ?? []) {
       const classKey = aliasToClassKey.get(normalizeTaxonomyKey(rawClass));
       if (classKey) matched.add(classKey);
     }
-    // Most-specific placement: legacy articles carry both a broad family tag
-    // and the specific subclass tag (2C-B: "Phenethylamine" + "2C-x"). Listing
-    // it under both would flood ancestor pages with subclass compounds, so a
-    // match is dropped when a strictly more specific match exists below it.
     for (const classKey of matched) {
       const descendants = CHEMICAL_CLASS_TREE.descendantsOf(classKey);
       if (descendants.some((descendant) => matched.has(descendant))) continue;
@@ -230,8 +210,6 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     recordsByClassKey.set(cls.key, Array.from(classRecords.get(cls.key)?.values() ?? []));
   }
 
-  // classKey -> every visible record in the class's subtree (self + descendants,
-  // deduped by slug, direct members first).
   const rolledRecordsByClassKey = new Map<string, SubstanceRecord[]>();
   const rolledSlugsByClassKey = new Map<string, Set<string>>();
   for (const cls of MANUAL_CLASSES) {
@@ -248,8 +226,6 @@ const getChemicalClassComputation = cache(async (): Promise<ChemicalClassComputa
     rolledSlugsByClassKey.set(cls.key, seen);
   }
 
-  // Children ordered by rolled substance count (stable sort, so manual order
-  // breaks ties) — the most-populated branches lead in tree and detail views.
   const byProminence = (keys: string[]) =>
     [...keys].sort(
       (a, b) => (rolledSlugsByClassKey.get(b)?.size ?? 0) - (rolledSlugsByClassKey.get(a)?.size ?? 0),
@@ -300,8 +276,6 @@ export const getPublicChemicalClassDetailPayload = cache(
     const parents = CHEMICAL_CLASS_TREE.parentsOf(classKey);
     const overrideUpdatedAt = moleculeOverrides.get(`class:${classKey}`);
 
-    // Curated bioisosteres only (amphetamine <-> thiopropamine, 2C-x <-> scaline,
-    // ...) — the sole lateral link; plain siblings are reached by walking up.
     const bioisosteres = (cls.bioisosteres ?? [])
       .filter((key) => MANUAL_CLASS_BY_KEY.has(key))
       .map((key) => toTreeSummary(key, treePayload.nodes))

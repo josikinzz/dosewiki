@@ -3,7 +3,6 @@ import type { AuthorizedActor } from "./auth";
 import { contentHash } from "../../lib/proposals/contentHash";
 import { PostgresError } from "../../lib/postgres/runtime/values"
 
-/** Receipt identity prevents A→B→A edits from recreating an earlier baseline. */
 export function narrativeRevision(document: Record<string, unknown> | null, operationId: string | null = null): string {
   return document === null ? contentHash(null) : contentHash({ document, operationId });
 }
@@ -14,7 +13,6 @@ export async function currentNarrativeRevision(ctx: MutationCtx | QueryCtx, kind
   return narrativeRevision(document, latest?.operationId ?? null);
 }
 
-/** Maintenance writes advance the same identity even though they are not editor requests. */
 export async function recordNarrativeMaintenance(ctx: MutationCtx, input: {
   kind: "effect" | "writing"; key: string;
   actor: Pick<AuthorizedActor, "email" | "role">;
@@ -26,7 +24,6 @@ export async function recordNarrativeMaintenance(ctx: MutationCtx, input: {
   return recordNarrativeRevision(ctx, { ...input, baseRevision, requestHash, operationId: contentHash({ baseRevision, requestHash }) });
 }
 
-/** Narrative history stores changed source fields, not duplicate derived ASTs. */
 export async function recordNarrativeRevision(ctx: MutationCtx, input: {
   kind: "effect" | "writing"; key: string; operationId: string; requestHash: string; baseRevision: string;
   actor: Pick<AuthorizedActor, "email" | "role">;

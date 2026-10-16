@@ -1,13 +1,3 @@
-/**
- * The bulk wave: state shared by the translation jobs of one worker run.
- *
- * A job hands the wave its work units and gets back a claim: the units it
- * must translate itself, and the fates of the units another job in the wave
- * already owns. Shared work is identified by locale, content hash, and prompt
- * version, so a job loaded after a glossary approval never waits on a segment
- * translated under the older prompt. Every segment write goes through one
- * serial writer that coalesces whatever queued behind the running transaction.
- */
 import "server-only";
 
 import type { WorkUnit } from "../../scripts/translation/engine.mjs";
@@ -15,37 +5,22 @@ import { writeTranslations, type TranslationSegmentRow } from "./segmentStore";
 
 export type SegmentRejection = { hash: string; defects: string[] };
 
-/** What the units of a claim came to, whichever job translated them. */
 export type ClaimOutcome = { stored: number; rejected: SegmentRejection[] };
 
 export type WaveClaim = {
-  /** The units this claim must translate; every other unit is owned by an earlier claim with the same identity. */
   readonly owned: readonly WorkUnit[];
-  /**
-   * Persist the accepted rows of some owned units and record the rest as
-   * rejected, then settle those segments for every claim sharing them. A
-   * failed write fails those segments and throws.
-   */
   settle(rows: readonly TranslationSegmentRow[], rejected: readonly SegmentRejection[]): Promise<void>;
-  /** Fail every owned segment not yet settled, so no sharer waits on work that stopped. */
   abandon(error: unknown): void;
-  /** The outcome of the units other claims own, once settled; throws the owner's failure. */
   shared(): Promise<ClaimOutcome>;
 };
 
 export type TranslationWave = {
-  /** Claim `units` synchronously, so a claim made later in the same tick sees them as owned. */
   claim(locale: string, promptVersion: string, units: readonly WorkUnit[]): WaveClaim;
 };
 
 type SegmentFate = { stored: boolean; defects: string[] };
 type Writer = (rows: readonly TranslationSegmentRow[]) => Promise<void>;
 
-/**
- * Rows per segment transaction. Each write locks the one localized
- * publication producer row until commit, so the wave writes serially and
- * coalesces whatever queued behind the running transaction.
- */
 const WAVE_WRITE_ROWS = 2000;
 
 const identity = (locale: string, promptVersion: string, hash: string) => `${locale}\u0000${promptVersion}\u0000${hash}`;
@@ -138,7 +113,6 @@ async function outcomeOf(shared: readonly { hash: string; fate: Promise<SegmentF
   return outcome;
 }
 
-/** A claim outside any wave: it owns every unit and writes on its own, as an incremental refresh does. */
 export function soloClaim(units: readonly WorkUnit[], write: Writer = writeTranslations): WaveClaim {
   return {
     owned: units,

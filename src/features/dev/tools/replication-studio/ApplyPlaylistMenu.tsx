@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Apply a saved playlist to the substance whose gallery is open.
- *
- * Playlist membership is a direct editorial placement, not an effect-match
- * claim. The resulting draft still has to pass through the gallery's explicit
- * Save action before it reaches the article.
- */
-
 import { useState } from "react";
 
 import { Icon } from "@/components/common/Icon";

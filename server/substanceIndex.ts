@@ -66,19 +66,11 @@ import {
 
 export { clampScriptCorpusPageSize, rejectRetiredRandomSample, rejectWholeCorpusProjection } from "./lib/substanceCorpusPages";
 
-/**
- * Refuse the retired whole-corpus wire operation. Callers must drain
- * `getFullDocumentPage` or a smaller bounded projection.
- */
 export const getAll = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/**
- * Bounded full-document page for trusted offline/admin scripts.
- * Drain this endpoint instead of loading the corpus in one execution.
- */
 export const getFullDocumentPage = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -89,11 +81,6 @@ export const getFullDocumentPage = query({
   },
 });
 
-/**
- * Minimal citation/provenance planning projection. Marker identity is carried
- * by each reference id; article and reference titles plus stable identifiers
- * are retained for exact identity comparisons without returning article prose.
- */
 export const getReferenceMetadataPage = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -118,10 +105,6 @@ export const getByTitle = query({
   handler: getSubstanceByTitleHandler,
 });
 
-/**
- * Query to get a single substance by slug.
- * This is the primary lookup for per-article loading.
- */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
@@ -133,10 +116,6 @@ export const getBySlug = query({
   },
 });
 
-/**
- * Refuse whole-corpus editor reads. Callers drain `getEditorLibraryPage`
- * and hydrate rows with `getEditorBySlug`.
- */
 export const getEditorAll = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
@@ -175,11 +154,6 @@ export const getEditorLibraryPage = query({
   },
 });
 
-/**
- * Tag-registry projection for the dev tag editor. Same auth and page shape as
- * the editor library list, but each row carries only what `buildTagRegistry`
- * reads, so the tag editor never has to drain whole articles.
- */
 export const getTagRegistryPage = query({
   args: {
     paginationOpts: paginationOptsValidator,
@@ -201,7 +175,6 @@ export const getTagRegistryPage = query({
   },
 });
 
-/** Authenticated whole-article hydration for the editor library. */
 export const getEditorBySlug = query({
   args: {
     slug: v.string(),
@@ -212,18 +185,11 @@ export const getEditorBySlug = query({
   handler: getEditorSubstanceBySlugHandler,
 });
 
-/**
- * Refuse whole-corpus lookup reads. Editor callers must drain `getLookupPage`.
- */
 export const getLookup = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/**
- * Bounded editor lookup projection. Clients drain this endpoint so picker
- * metadata stays complete without loading full articles or provenance.
- */
 export const getLookupPage = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -238,52 +204,41 @@ export const getLookupPage = query({
   },
 });
 
-/** @deprecated Callers must drain `getPublicLookupPage`. */
 export const getPublicLookup = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getPublicPreviewsPage`. */
 export const getPublicPreviews = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getPublicLibraryInputPage`. */
 export const getLibraryInput = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getPublicLibraryInputPage`. */
 export const getPublicLibraryInput = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getPublicCoverageInputPage`. */
 export const getPublicCoverageInput = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getSearchInputPage`. */
 export const getSearchInput = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/** @deprecated Callers must drain `getPublicMechanismRouteInputPage`. */
 export const getPublicMechanismRouteInput = query({
   args: {},
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-/**
- * Bounded native projections avoid loading complete article documents for
- * public lookup, preview, and slug consumers.
- */
 export const getPublicLookupPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
@@ -308,11 +263,6 @@ export const getPublicPreviewsPage = query({
   },
 });
 
-/**
- * The same bounded preview page with the raw stored summary preserved, the
- * exact leaf localized search hashes. Full article bodies never cross the
- * read edge here either.
- */
 export const getPublicSearchSummariesPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
@@ -325,21 +275,6 @@ export const getPublicSearchSummariesPage = query({
   },
 });
 
-/**
- * Every public substance slug, in `by_slug` order, in far fewer round trips
- * than draining `getPublicPreviewsPage`: article routes only need the slug set
- * to decide which wiki links resolve, and the previews page ships title,
- * summary and categories for 32 articles per call.
- *
- * Public visibility follows the same rule as `getPublicPreviewsPage` and
- * `getPublicBySlug`: every stored article is public, and the slug is resolved
- * through `resolveSubstanceSlug` so a row without a stored slug still reports
- * the address the article renders under.
- *
- * `cursor` is the last stored slug of the previous page (rows without a stored
- * slug sort first in the index and are only ever consumed by the first page,
- * which never stops inside that run).
- */
 export const getPublicSlugsPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
@@ -396,7 +331,6 @@ export const getPublicLibraryInputPage = query({
   },
 });
 
-/** Full public text is required by glossary usage, not by coverage counts. */
 export const getPublicArticleTextInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
@@ -412,7 +346,6 @@ export const getPublicArticleTextInputPage = query({
   },
 });
 
-/** Translation audits drain public article text in bounded batches, avoiding per-slug reads. */
 export const getPublicTranslationTextInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
@@ -506,10 +439,6 @@ export const getPublicReviewedArticleCreditsPage = query({
     }),
 });
 
-/**
- * Refuse the retired random-sample wire operation; its unbounded corpus reads
- * are not an allowed fallback for bounded preview queries.
- */
 export const getRandomSample = query({
   args: {
     count: v.optional(v.number()),
@@ -553,26 +482,22 @@ export const setEditorialReview = mutation({
       v.literal("in_progress"),
       v.literal("completed"),
     ),
-    /** The published revision the reviewer read; recorded on `completed`. */
     revision: v.optional(v.string()),
   },
   handler: setEditorialReviewHandler,
 });
 
-/** An editor recommends an article as reviewed, bound to the current revision. */
 export const recommendEditorialReview = mutation({
   args: {
     apiKey: v.optional(v.string()),
     actorEmail: v.optional(v.string()),
     slug: v.string(),
-    /** The published revision the editor read; refused when no longer current. */
     revision: v.optional(v.string()),
     note: v.string(),
   },
   handler: recommendEditorialReviewHandler,
 });
 
-/** An admin approves recommendations, each at the revision it covered. */
 export const approveReviewRecommendations = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -582,7 +507,6 @@ export const approveReviewRecommendations = mutation({
   handler: approveReviewRecommendationsHandler,
 });
 
-/** Every pending review recommendation, with whether it is stale. */
 export const listReviewRecommendations = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -591,7 +515,6 @@ export const listReviewRecommendations = query({
   handler: listReviewRecommendationsHandler,
 });
 
-/** Each article's current published revision, for deriving stale sign-offs. */
 export const getPublishedRevisions = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -600,7 +523,6 @@ export const getPublishedRevisions = query({
   handler: getPublishedRevisionsHandler,
 });
 
-/** The article at a signed revision and as published now, for the review diff. */
 export const getReviewChanges = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -683,10 +605,6 @@ const editableFieldValueValidator = v.union(
   }),
 );
 
-/**
- * Admin-only, revision-bound field edits, including exact append-only reviewed
- * names. The retired HTTP inline route is not a caller.
- */
 export const setArticleField = mutation({
   args: {
     apiKey: v.optional(v.string()),

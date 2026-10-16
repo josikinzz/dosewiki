@@ -56,12 +56,6 @@ function localizeParagraphHtml(value: string): string {
   );
 }
 
-/**
- * Single effect with its long summary rendered inline.
- *
- * The effect title links to the full article. Uses long_summary for VCode
- * content; falls back to plain summary text - never the full description.
- */
 function EffectLongSummary({
   effect,
   artistCreditLinks,
@@ -108,10 +102,6 @@ function EffectLongSummary({
   );
 }
 
-/**
- * Full-summary section rendered as free-floating article prose,
- * matching the formatting of individual effect articles.
- */
 function EffectSection({
   section,
   effects,
@@ -146,10 +136,6 @@ function EffectSection({
   );
 }
 
-/**
- * Compact panel for a link-preview section: definition at the top,
- * effect links below, rendered in the same panel style as the indexes.
- */
 function EffectSectionPanel({
   section,
   effects,
@@ -186,10 +172,6 @@ function EffectSectionPanel({
   );
 }
 
-/**
- * Drug class article for hallucinogen categories.
- * Free-floating prose for the core sections, index-style panels for the rest.
- */
 function DrugClassArticleSection({
   content,
   sections,
@@ -204,7 +186,6 @@ function DrugClassArticleSection({
 
   return (
     <>
-      {/* Intro: free-floating prose, no card */}
       <section
         id={CATEGORY_OVERVIEW_ANCHOR_ID}
         className="scroll-mt-24 space-y-4"
@@ -281,8 +262,6 @@ export function CategoryPage({
         ? `${t("Substances")} (${detail.total})`
         : t(item.label),
   }));
-  // A lone "Substances" entry is navigation without a destination, so plain
-  // categories keep the single-column layout instead of gaining an empty rail.
   const hasTableOfContents = tocItems.length > 1;
   const substanceGroups: DosageCategoryGroup[] = detail.groups.map((group) => ({
     key: slugify(group.name),
@@ -308,13 +287,6 @@ export function CategoryPage({
         contentClassName="gap-10 text-left"
         className={hasTableOfContents ? "theme-toc-strip-scope" : undefined}
       >
-        {/* Subsections give the page a contents rail, which turns it into an
-            article rather than a landing page. A centred title beside that rail
-            shares an edge with nothing; left-aligned it lines up with the rail
-            and with every heading below it. */}
-        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         {hasTableOfContents && <PublicTocStrip items={tocItems} />}
 
         <PageHeader
@@ -323,7 +295,6 @@ export function CategoryPage({
           align={hasTableOfContents ? "left" : "center"}
         />
 
-        {/* Drug class article for hallucinogen categories */}
         {drugClassContent && (
           <DrugClassArticleSection
             content={drugClassContent}
@@ -332,7 +303,6 @@ export function CategoryPage({
           />
         )}
 
-        {/* Substance list by group, in the same panel grid as the index */}
         <section
           id={CATEGORY_SUBSTANCES_ANCHOR_ID}
           className="scroll-mt-24 space-y-8 pt-6"

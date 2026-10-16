@@ -53,10 +53,6 @@ export const replicationEditorialSnapshot = v.object({
   effect_slug: v.union(v.string(), v.null()),
   credit_line: v.union(v.string(), v.null()),
   effect_tags: v.array(v.string()),
-  /**
-   * Provenance the studio inspector edits. Optional so a caller that never
-   * reads them (the in-page viewer editor) neither guards nor writes them.
-   */
   rights_status: v.optional(v.union(replicationRightsStatus, v.null())),
   source_url: v.optional(v.union(v.string(), v.null())),
 });
@@ -77,7 +73,6 @@ export const authorizeMediaUploadArgs = v.object({
   actorEmail: v.optional(v.string()),
 });
 
-/** Full public detail row after media locators have been resolved. */
 export const resolvedReplication = v.object({
   _id: v.id("replications"),
   _creationTime: v.number(),
@@ -193,7 +188,6 @@ export const insertMediaAssetArgs = v.object({
   rightsholder: v.optional(v.string()),
   permission_notes: v.optional(v.string()),
   removal_contact: v.optional(v.string()),
-  /** Studio uploads insert `unpublished` and publish once provenance is complete. */
   publication_state: v.optional(replicationPublicationState),
 });
 
@@ -332,12 +326,6 @@ export const updateMediaRenditionsArgs = v.object({
   })),
 });
 
-/**
- * Compare-and-swap batch for the R2 media migration. Every entry names the
- * row's current `storage_id`; a variant key may only be set alongside the
- * matching expected variant storage ID, so a repoint that raced this batch
- * fails the whole mutation instead of pinning stale bytes.
- */
 export const updateR2KeysArgs = v.object({
   apiKey: v.optional(v.string()),
   actorEmail: v.optional(v.string()),
@@ -416,35 +404,18 @@ export const updateEditorialFieldsArgs = v.object({
 export const bulkUpdateEditorialFieldsArgs = v.object({
   apiKey: v.optional(v.string()),
   actorEmail: v.optional(v.string()),
-  /**
-   * The rows an editorial change targets, each with the snapshot the studio
-   * loaded. A row that no longer matches its snapshot is reported as a
-   * conflict and left unwritten.
-   */
   items: v.optional(
     v.array(v.object({ id: v.id("replications"), expected: replicationEditorialSnapshot })),
   ),
-  /** Rows named by id alone; accepted only for the showcase toggle below. */
   ids: v.optional(v.array(v.id("replications"))),
   effect_slug: v.optional(v.string()),
   artist: v.optional(v.string()),
   role: v.optional(replicationRole),
   addEffectTags: v.optional(v.array(v.string())),
-  /** Provenance for every item; each row still checks its expected snapshot. */
   rights_status: v.optional(replicationRightsStatus),
   source_url: v.optional(v.string()),
   credit_line: v.optional(v.string()),
-  /**
-   * Publish every unpublished item whose provenance is complete (a known
-   * rights status and a source, after this patch). Incomplete items come back
-   * as conflicts and stay unpublished.
-   */
   publish: v.optional(v.literal(true)),
-  /**
-   * Corpus-wide showcase suppression. A toggle rather than an editorial field,
-   * so it rides the bulk path for one row or two hundred and never touches the
-   * single-edit snapshot's optimistic-concurrency check.
-   */
   showcase_excluded: v.optional(v.boolean()),
 });
 

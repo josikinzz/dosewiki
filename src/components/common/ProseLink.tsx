@@ -2,33 +2,11 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-/**
- * Shared treatment for links inside long-form prose. Under Tailwind Preflight a
- * bare <a> inherits body color with no underline, so prose links must opt in to
- * an accent treatment: accent-emphasis text, a dotted underline that solidifies
- * on hover, and a visible focus ring. Centralizing it here keeps cross-linked
- * prose pages (e.g. the /docs/* set) reading identically.
- *
- * Use `proseLinkClassName` when you already have an <a> (or a Next <Link>) with
- * its own href/target/rel and only need the styling; use the `ProseLink`
- * component for a plain inline anchor. The :hover is a Tailwind utility, so it
- * is auto-guarded under @media (hover: hover).
- *
- * `proseLinkUnderlineClassName` is the underline alone, for links that keep
- * their own ink (the beta disclaimer's shimmer) but share the prose rhythm.
- */
 export const proseLinkUnderlineClassName =
   "underline decoration-dotted underline-offset-[0.18em] hover:decoration-solid";
 
 export const proseLinkClassName = `theme-accent-emphasis theme-accent-underline font-medium ${proseLinkUnderlineClassName} transition-colors theme-focus-ring`;
 
-/**
- * Links inside a quiet meta caption: the roadmap note under a section heading,
- * the guide line beside a substance's effects. The caption is faint by design,
- * so an accent-emphasis prose link inside it would outshout the sentence it
- * sits in. This treatment keeps the link at secondary text weight with a
- * hairline underline that takes the accent on hover.
- */
 export const quietLinkClassName =
   "theme-text-secondary underline decoration-dose-divider decoration-1 underline-offset-[0.18em] transition hover:text-dose-accent hover:decoration-dose-accent";
 

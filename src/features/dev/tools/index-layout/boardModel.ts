@@ -1,10 +1,3 @@
-/**
- * The board is the public Substance Index with editing handles, so its view
- * model is built by the same rules the page uses: a category's top-level
- * substances become a leading "General" section when named sections also
- * exist, sections render in convention order (Common first, Other last), and
- * substances the page would drop are kept here with the reason attached.
- */
 import type { IconName } from "@/components/common/Icon";
 import type { SubstanceRecord } from "@/data/builders/contentBuilder";
 import { orderIndexSections, sectionConventionRank } from "@/data/builders/indexSectionOrder";
@@ -18,28 +11,18 @@ export type BoardItem = {
   slug: string;
   name: string;
   issues: SlugIssue[];
-  /** The public page drops missing and direct-URL-only substances. */
   hiddenOnSite: boolean;
 };
 
-/**
- * The tray of substances the layout does not place. It is not a slot in the
- * manual, so drag gestures read it as "leaving the index" and "entering the
- * index" rather than as a move between two lists.
- */
 export const UNPLACED_SLOT: LayoutSlot = { categoryKey: "__unplaced", sectionKey: null };
 
 export type BoardSection = {
   slot: LayoutSlot;
   id: string;
-  /** Section heading; undefined for a category that lists substances without sections. */
   label?: string;
-  /** Set for the top-level list shown beside named sections; it cannot be renamed or removed. */
   isGeneral: boolean;
-  /** Convention rank: 0 leads, 2 closes, 1 keeps authored order. */
   rank: number;
   items: BoardItem[];
-  /** The page hides a section with nothing visible in it. */
   hiddenOnSite: boolean;
 };
 
@@ -49,19 +32,12 @@ export type BoardCategory = {
   iconKey: string;
   icon: IconName;
   sections: BoardSection[];
-  /** Distinct visible substances, matching the public count badge. */
   total: number;
-  /** The page drops a category with nothing visible in it. */
   hiddenOnSite: boolean;
 };
 
 export type BoardRecord = Pick<SubstanceRecord, "name" | "isHidden" | "isDirectUrlOnly">;
 
-/**
- * A slug listed under Common and again under its class, or in two categories,
- * is how this index reads, so repeats are never flagged; only substances the
- * page cannot show are.
- */
 function describeItem(slug: string, library: ReadonlyMap<string, BoardRecord>): BoardItem {
   const normalized = slugify(slug);
   const record = normalized ? library.get(normalized) : undefined;
@@ -76,7 +52,6 @@ export function buildBoard(
   manual: ManualIndexConfig,
   library: ReadonlyMap<string, BoardRecord>,
 ): BoardCategory[] {
-  // A stored layout may leave a list out; the board reads it as empty.
   return normalizeManual(manual).categories.map((category) => {
     const describe = (slug: string) => describeItem(slug, library);
     const topLevel = category.drugs.map(describe);
@@ -144,7 +119,6 @@ export function buildBoard(
   });
 }
 
-/** Every slot a substance can be moved to, labelled for a menu. */
 export type BoardDestination = { slot: LayoutSlot; categoryLabel: string; sectionLabel: string | null };
 
 export function listDestinations(board: readonly BoardCategory[]): BoardDestination[] {

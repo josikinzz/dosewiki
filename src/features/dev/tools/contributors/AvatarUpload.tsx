@@ -13,14 +13,11 @@ import { formatFileSize } from "./avatarUploadModel";
 import { MAX_AVATAR_BYTES } from "./contributorsModel";
 
 export type AvatarUploadProps = {
-  /** The name the initials fall back to, as the public page draws them. */
   name: string;
   avatarPreviewSource: string | null;
-  /** What the picture is right now, in words ("Current picture", "Removed when you save"). */
   avatarSelectionSummary: string | null;
   avatarFile: File | null;
   trimmedAvatarUrl: string;
-  /** A saved picture (an address or an upload) that Remove can clear. */
   canRemove?: boolean;
   onUploadClick: () => void;
   onClearSelection: () => void;
@@ -29,18 +26,12 @@ export type AvatarUploadProps = {
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   avatarUrl: string;
   onAvatarUrlChange: (value: string) => void;
-  /** A picked or refused file, said beside the picture. */
   notice?: NoticeMessage | null;
   onDismissNotice?: () => void;
   headingLevel?: "h3" | "h4" | "h5";
   headingClassName?: string;
 };
 
-/**
- * The profile picture: a preview drawn the way the public contributor page
- * draws it (a circle cropped to the centre, initials when there is none), the
- * upload beside it, and a hosted address folded away for the rarer case.
- */
 export function AvatarUpload({
   name,
   avatarPreviewSource,

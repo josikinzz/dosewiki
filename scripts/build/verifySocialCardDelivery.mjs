@@ -84,11 +84,6 @@ export function buildVerificationPlan(manifest, deliveryBase = DEFAULT_CDN_BASE,
         slug: entry.slug,
         pageUrl: `${host}/${routeFamily}/${encodeURIComponent(entry.slug)}`,
         canonicalUrl: `${host}/${routeFamily}/${encodeURIComponent(entry.slug)}`,
-        // A contributor profile that claims a displayed replication credit has
-        // one public surface: /contributors/<key> permanently forwards to its
-        // /replications/artist/<key> page. The followed response is therefore
-        // authoritative for the canonical URL, while profiles without a
-        // claimed artist collection remain canonical at /contributors/<key>.
         canonicalBehavior: entry.category === "contributors" ? "follow-profile-redirect" : "exact",
         expectedImageUrl: entry.url,
       });
@@ -126,9 +121,6 @@ export async function verifyObject(fetchImpl, object) {
     fetchImpl(`${object.url}${bust}`, { cache: "no-store", signal: AbortSignal.timeout(60_000) }),
   ]);
   if (head.status !== 200) throw new Error(`HEAD ${object.key}: HTTP ${head.status}`);
-  // Crawlers send no Range header, so 200 is the only conforming status. A
-  // whole-object 206 is exactly the defect that stripped card art from Twitter
-  // previews (RFC 9110 15.3.7), so this must fail on it rather than accept it.
   if (get.status !== 200) throw new Error(`GET ${object.key}: HTTP ${get.status}`);
   const bytes = Buffer.from(await get.arrayBuffer());
   const sha256 = createHash("sha256").update(bytes).digest("hex");
@@ -166,12 +158,6 @@ export function extractPageMetadata(html) {
   return { ogImage, twitterImage, canonical };
 }
 
-/**
- * Next.js emits a client-visible refresh marker when a permanentRedirect is
- * discovered after metadata has streamed. Production currently serves that
- * shell as HTTP 200, so fetch's response.url alone cannot reveal the intended
- * destination even with redirect: "follow".
- */
 export function extractNextPageRedirect(html) {
   for (const tag of html.match(/<meta\b[^>]*>/gi) ?? []) {
     const attributes = parseAttributes(tag);

@@ -1,16 +1,8 @@
 import { vi } from "vitest";
 
-// In-memory Postgres fixture for the change proposal submit and read tests.
 export type Row = Record<string, unknown> & { _id: string };
 type IndexFilter = { eq: (field: string, value: unknown) => IndexFilter };
 
-/**
- * In-memory tables with the `withIndex(...).eq(field, value)` shape every
- * handler under test uses: `memberships.by_email` for `requireRole`,
- * `substanceIndex.by_slug` and `by_article_id`, `indexLayouts.by_type`, and
- * the `changeProposals` indexes, plus the bare `query(table).order(...)` walk
- * the queue list takes.
- */
 export function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
   for (const [table, rows] of Object.entries(seed)) {

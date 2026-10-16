@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getPublicHistoryDiff } from "@server/data/publicData.changelog";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
-/** Recorded diffs are public; the CDN absorbs repeat reads of one entry. */
 const DIFF_CACHE_CONTROL = "public, max-age=0, s-maxage=300, stale-while-revalidate=3600";
 const REFUSAL_HEADERS = { "Cache-Control": "no-store" } as const;
 

@@ -37,20 +37,17 @@ import {
 } from "./useWritingWorkbenchController";
 
 const ABOUT_ENTRY_ID = "about";
-/** A list this long gets a filter box. */
 const FILTER_FROM = 8;
 
 const SEARCH_SHORTCUTS = [{ keys: "/", label: "Filter the Writing list" }] as const;
 const ROW_SHORTCUTS = [{ keys: "j / k", label: "Next or previous page in the Writing list" }] as const;
 
-/** Whether a key press belongs to a field or an open dialog rather than the list. */
 function typingOrDialog(event: KeyboardEvent): boolean {
   const target = event.target as HTMLElement | null;
   if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return true;
   return Boolean(document.querySelector('[role="dialog"], [role="alertdialog"]'));
 }
 
-/** The address of what is open: the pinned entry, a row, or a fresh draft under the kind filter. */
 function writingPath(selection: WritingSelection, kind: WritingKind): string {
   return viewToPath({
     type: "dev",
@@ -68,33 +65,11 @@ function writingPath(selection: WritingSelection, kind: WritingKind): string {
 interface WritingTabProps {
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading?: boolean;
-  /** `/dev/writing/<slug>`, `/dev/blog/<slug>`, or `about` from the retired `/dev/about` link. */
   initialSlug?: string;
-  /** The route's `?kind=` value, validated by the registry; anything else opens on articles. */
   initialKind?: string;
-  /** Admin: the pinned About entry and every writing row save directly; without it both are submitted for review as proposals. */
   canApprove: boolean;
 }
 
-/**
- * The Writing tab: the site's written pages in an editor workspace. The list
- * column holds the pinned About page, the kind filter (articles under
- * `/articles`, blog posts under `/blog`) and the pages of that kind, drafts
- * first; the open page docks on the right with its fields, a live preview and
- * a sticky save dock.
- *
- * The kind filter and the open record live in the URL (`/dev/writing?kind=blog`,
- * `/dev/writing/<slug>`, `/dev/writing/about`) so a reload keeps them and a
- * record can be linked. The address is written with
- * `replaceState(window.history.state, ...)`, which keeps Next's own state so
- * no navigation or scroll happens.
- *
- * About is here rather than in a tab of its own because it is one page of
- * writing among the others; it belongs to neither kind, so it stays pinned
- * whatever the filter says. It saves the way its siblings do, through one
- * immediate `POST /api/dev/about`, and owns its own document session; the
- * shell's commit panel never sees it.
- */
 export function WritingTab({
   contributorProfiles,
   profilesLoading = false,
@@ -123,9 +98,6 @@ export function WritingTab({
     selectRow,
   } = controller;
 
-  // The address the URL currently says. Only a change writes: the address the
-  // editor arrived on (`/dev/about`, `/dev/blog/<slug>`) is left alone, so the
-  // first run records what that address opened without rewriting it.
   const path = writingPath(selection, kind);
   const urlPathRef = useRef<string | null>(null);
   useEffect(() => {
@@ -138,8 +110,6 @@ export function WritingTab({
     window.history.replaceState(window.history.state, "", path);
   }, [path]);
 
-  // About keeps its own draft; leaving it drops that draft the way leaving a
-  // row drops the writing draft, so both feed the one discard guard.
   const [aboutDirty, setAboutDirty] = useState(false);
   const [aboutCanDiscard, setAboutCanDiscard] = useState(true);
   const pinned = selection.type === "pinned";
@@ -151,13 +121,6 @@ export function WritingTab({
     canDiscard: pinned ? aboutCanDiscard : !controller.uncertain && controller.saveState !== "saving",
     warnOnUnload: false,
   });
-  // The shell asks before a rail click, Leave or sign-out drops the open
-  // draft. Its Save is the editor's own save, offered only when that button
-  // would be enabled. For an admin that is only an unpublished save: a record
-  // that is or would become live (publishing, or unpublishing a live page) is
-  // published from the editor. For an editor it is Submit for review, which
-  // never goes live on its own. About keeps its own save, so the shell only
-  // discards it (unmounting drops that draft).
   const { canSave, saveUnpublished, submitForReview, discard: discardDraft } = controller;
   const shellCanSave = !pinned && canSave && isDirty && (canApprove || !controller.loadedRow || draft.slug.trim() === controller.loadedRow.slug);
   useUnsavedWork({
@@ -188,8 +151,6 @@ export function WritingTab({
   const [query, setQuery] = useState("");
   const selectionKey = selection.type === "row" ? `row:${selection.slug}` : selection.type;
   useScrollToDetail(paneRef, selectionKey);
-  // A pick names the open page for keyboard and screen reader users once it
-  // is in the page; an effect, so a click into a field right after keeps focus.
   const focusPaneOnOpen = useRef(false);
   const titleReady = selection.type !== "row" || !controller.isLoadingRow;
   useEffect(() => {
@@ -197,9 +158,6 @@ export function WritingTab({
     focusPaneOnOpen.current = false;
     paneTitleRef.current?.focus({ preventScroll: true });
   }, [selectionKey, titleReady]);
-  // A deep link (`/dev/writing/<slug>`, `/dev/about`) on a phone lands on the
-  // list, far above the pane: once the page it names is loaded, scroll the pane
-  // in and name it, once.
   const deepLinkPending = useRef(Boolean(initialSlug));
   useEffect(() => {
     if (!deepLinkPending.current || !titleReady) return;
@@ -231,7 +189,6 @@ export function WritingTab({
     return () => window.removeEventListener("keydown", onKey);
   }, [showFilter]);
 
-  // j / k walk the list's rows by focus; Enter opens the focused one.
   useDevShortcuts(ROW_SHORTCUTS);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -317,8 +274,6 @@ export function WritingTab({
                       const next = value as WritingKind;
                       if (next === kind) return;
                       setQuery("");
-                      // Only an open row is dropped by the filter; a new draft and
-                      // About both stay put, so neither needs to ask.
                       if (selection.type === "row") guard(() => selectKind(next));
                       else selectKind(next);
                     }}
@@ -428,7 +383,6 @@ export function WritingTab({
               />
             ) : (
               <WritingPane
-                // One pane per record, so view and dialog state never carry to another page.
                 key={selection.type === "row" ? `row:${selection.slug}` : "new"}
                 controller={controller}
                 contributorProfiles={contributorProfiles}

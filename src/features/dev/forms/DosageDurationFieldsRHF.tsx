@@ -1,14 +1,3 @@
-/**
- * RHF-based Dosage and Duration fields component.
- * Uses useFieldArray for route management.
- *
- * Doses are safety-critical, so each route says, while it is being typed:
- * which unit its tiers use (and which tier broke the one-unit rule), a tier
- * out of order, a stage longer than the whole experience, and beside every
- * changed value what readers see now ("Live: 50-150 ug"). Removing a route
- * asks first, naming what goes with it.
- */
-
 import { useCallback, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
@@ -39,7 +28,6 @@ import {
 } from "./doseRouteChecks";
 import type { SubstanceArticle } from "@/schema";
 
-/** Placeholders read like the public table, one per stage. */
 const DURATION_PLACEHOLDERS: Record<(typeof DURATION_STAGES)[number][0], string> = {
   onset: "e.g., 15-30 minutes",
   come_up: "e.g., 30-60 minutes",
@@ -60,10 +48,6 @@ function routeNameOf(value: unknown, index: number): string {
   return typeof value === "string" && value.trim() ? value.trim() : `Route ${index + 1}`;
 }
 
-/**
- * Card titles follow the route name the editor typed, because the card order is
- * the public tab order and a positional label makes reordering unreadable.
- */
 function RouteCardTitle({ index }: { index: number }) {
   const routeName = useWatch<SubstanceArticle>({
     name: `dosage.routes.${index}.route`,
@@ -71,7 +55,6 @@ function RouteCardTitle({ index }: { index: number }) {
   return <>{routeNameOf(routeName, index)}</>;
 }
 
-/** The published route this card edits, matched by name (the order may have moved), or null for a new route. */
 function usePublishedRoute(index: number) {
   const published = usePublishedArticle();
   const routeName = useWatch<SubstanceArticle>({ name: `dosage.routes.${index}.route` });
@@ -91,7 +74,6 @@ function asRange(range: RangeValue) {
   return { min: range?.min ?? null, max: range?.max ?? null, unit: range?.unit ?? "" };
 }
 
-/** "Live: 50-150 ug" under a value that differs from what readers see, or "Not live yet" on a new route. */
 function LiveValue({ index, name, current, published, isThreshold = false }: {
   index: number; name: string; current: RangeValue; published: RangeValue | undefined | null; isThreshold?: boolean;
 }) {
@@ -145,7 +127,6 @@ function DurationStageField({ index, routeKey, stage, label }: { index: number; 
   );
 }
 
-/** Warnings and blockers under a group, read from the committed values (fields commit on blur). */
 function RouteChecks({ checks }: { checks: RouteCheck[] }) {
   return (
     <div role="status" aria-live="polite">

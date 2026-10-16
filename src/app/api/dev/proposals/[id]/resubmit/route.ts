@@ -1,13 +1,3 @@
-/**
- * Resubmit a returned proposal as a new revision.
- *
- *   POST /api/dev/proposals/<id>/resubmit  same body as POST /api/dev/proposals
- *
- * The body is the commit panel's staged save; the `<id>` segment becomes its
- * `revisionOf`. Everything else (parsing, floor, the Postgres call) is the
- * proposals route's, so the two entry points can never accept different
- * payloads: this one only pins the revision link before handing over.
- */
 import { NextResponse } from "next/server";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { proposalIdOf } from "../../proposalRouteId";
@@ -31,8 +21,6 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  // The forwarded request carries the caller's headers (rate limiting keys off
-  // them) but a body of its own, so the original length no longer applies.
   const headers = new Headers(request.headers);
   headers.delete("content-length");
   headers.set("content-type", "application/json");

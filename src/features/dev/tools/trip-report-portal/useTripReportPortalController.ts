@@ -49,12 +49,6 @@ type DetailState =
   | { status: "loading" }
   | { status: "error"; message: string };
 
-/**
- * The result of the last write on the open record, shown in its pane's dock.
- * `kind` says what the dock offers with it: Undo after a decision, Load the
- * latest version after a conflict, the attribution choices after the byline
- * guard refused, the member assignment after a publish.
- */
 export type PortalNotice = {
   tone: "success" | "danger" | "info" | "warning";
   message: string;
@@ -63,7 +57,6 @@ export type PortalNotice = {
 };
 type Feedback = PortalNotice;
 
-/** Every write the tool can start; the control that started it names its pending state. */
 export type PortalPendingAction =
   | TripReportSubmissionStatus
   | "claim"
@@ -77,7 +70,6 @@ export type PortalPendingAction =
   | "delete"
   | "latest";
 
-/** A notice at the list: what happened to something no longer open, or a link that found nothing. */
 export type ListNotice = { tone: "success" | "danger" | "warning"; message: string };
 
 const DISCARD_COPY = {
@@ -92,7 +84,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   const [query, setQuery] = useState("");
   const [facets, setFacets] = useState<PortalFacets>(EMPTY_PORTAL_FACETS);
   const [groupBy, setGroupBy] = useState<PortalGroupBy>("none");
-  /** Null until the editor picks one: each bucket then opens in its own order. */
   const [sortChoice, setSortChoice] = useState<PortalSort | null>(null);
   const sort = sortChoice ?? defaultSortFor(bucket);
   const setSort = useCallback((next: PortalSort) => setSortChoice(next), []);
@@ -107,31 +98,21 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [promotionPayload, setPromotionPayload] = useState<DataTripReportImportPayload | null>(null);
   const [submissionDetail, setSubmissionDetail] = useState<TripReportSubmissionRow | null>(null);
-  /** A report just published whose contact email matches a member; the notice offers to assign it. */
   const [assignable, setAssignable] = useState<{ slug: string; email: string } | null>(null);
-  /** The last single status change, so `u` and the Undo button can take it back. */
   const [lastDecision, setLastDecision] = useState<{
     id: string;
     title: string;
     from: TripReportSubmissionStatus;
     to: TripReportSubmissionStatus;
   } | null>(null);
-  /** Submissions ticked for a bulk decision; separate from the open row. */
   const [checkedIds, setCheckedIds] = useState<ReadonlySet<string>>(() => new Set());
-  /** The bulk bar's own notice, shown above the list rather than in one review. */
   const [bulkFeedback, setBulkFeedback] = useState<Feedback | null>(null);
-  /** A notice about something no longer open (a deleted report, a link that named nothing). */
   const [listNotice, setListNotice] = useState<ListNotice | null>(null);
-  /** Bumped when a report's latest version replaces the draft, so the pane can say so and reset its choices. */
   const [reloadToken, setReloadToken] = useState(0);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const openReportRef = useRef<string | null>(null);
 
-  /**
-   * Fetch one published report's body, and seed the draft from it. Late
-   * responses are dropped: only the row still open may write state.
-   */
   const loadReportBody = useCallback(async (id: string) => {
     openReportRef.current = id;
     setDetailState({ status: "loading" });
@@ -245,7 +226,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
   );
   const editorOpen = selected !== null;
 
-  /** The rows in the order the list paints them: grouped, then sorted. */
   const orderedRows = useMemo(() => groups.flatMap((group) => group.rows), [groups]);
   const queuePosition = useMemo(
     () => ({
@@ -255,8 +235,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     [orderedRows, selectedId],
   );
 
-  // Only a published report holds a draft; a submission review has nothing to drop.
-  /** An attribution choice the pane holds apart from the draft; it counts as unsaved work too. */
   const [attributionDirty, setAttributionDirty] = useState(false);
   const dirty =
     selected?.origin === "published" &&
@@ -264,9 +242,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     detail !== null &&
     detail.id === selected.id &&
     (JSON.stringify(draft) !== JSON.stringify(detail.fields) || attributionDirty);
-  // The in-tool guard keeps row clicks, Prev/Next and Close; the shell owns
-  // rail clicks, Leave and unload. A report save replaces the live page, so
-  // the shell only discards.
   const openTitle = selected?.title?.trim() || "this report";
   const { guard, dialog: discardDialog } = useDirtyGuard(dirty, {
     ...DISCARD_COPY,
@@ -305,12 +280,8 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     [loadReportBody, loadSubmissionDetail],
   );
 
-  /** Open a row from the list, asking first when that would drop unsaved edits. */
   const selectRow = useCallback((row: PortalRow) => guard(() => openRow(row)), [guard, openRow]);
 
-  // A deep link (`/dev/trip-report-submissions/<id>`, as the Inbox opens a
-  // submission) selects that row once it has loaded, from whichever bucket
-  // holds it. Once both reads are in and it is nowhere, the list says so.
   const initialOpenedRef = useRef(false);
   const [linkedBucket, setLinkedBucket] = useState<PortalBucket | null>(null);
   useEffect(() => {
@@ -337,8 +308,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     openRow(row);
   }, [initialSubmissionId, rows, openRow, load.corpus.status, load.submissions.status]);
 
-  // The address follows the open record, so a reload or a shared link lands on it.
-  // `replaceState` keeps Next's history state so the router does not treat it as a navigation.
   const addressRef = useRef<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -354,11 +323,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     window.history.replaceState(window.history.state, "", `${next}${window.location.search}`);
   }, [selectedId]);
 
-  /**
-   * Step to the neighbouring row in list order. A row that has just left the
-   * list (accepted out of the Needs review bucket) has no neighbours, so Next
-   * opens the head of the list and Previous its tail.
-   */
   const selectAdjacent = useCallback(
     (direction: -1 | 1) => {
       const { index } = queuePosition;
@@ -375,7 +339,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     [orderedRows, queuePosition, selectRow],
   );
 
-  /** Close without asking; for paths where the record is already gone. */
   const dropEditor = useCallback(() => {
     openReportRef.current = null;
     setLinkedBucket(null);
@@ -389,12 +352,10 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     setSubmissionDetail(null);
   }, []);
 
-  /** Close the open record, asking first when that would drop unsaved edits. */
   const closeEditor = useCallback(() => guard(dropEditor), [guard, dropEditor]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      // A dialog or field that handled the key keeps it.
       if (event.defaultPrevented) {
         return;
       }
@@ -410,7 +371,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
       }
 
       if (event.key === "Escape") {
-        // Escape that dismisses a dialog (confirm, discard) closes only that dialog.
         if (document.querySelector('[role="dialog"], [role="alertdialog"]')) {
           return;
         }
@@ -501,7 +461,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     }
   }
 
-  /** Replace the draft with the report as it is live now; the pane asks before this drops edits. */
   async function loadLatest() {
     if (!selected || selected.origin !== "published") return;
     const id = selected.id;
@@ -598,7 +557,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
 
   const undoTo = lastDecision ? submissionUndoTarget(lastDecision) : null;
 
-  /** Take the last single decision back; the decision log records both moves. */
   async function undoLastDecision() {
     if (!lastDecision || !undoTo || busy) {
       return;
@@ -635,10 +593,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     });
   }
 
-  /**
-   * One decision on every ticked submission, one request each so each item's
-   * decision log records its own entry. Returns what happened for the notice.
-   */
   async function runBulkDecision(status: Extract<TripReportSubmissionStatus, "rejected" | "spam">, targets: PortalRow[]) {
     setBusy(status);
     setFeedback(null);
@@ -671,11 +625,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     void loadSubmissionIndex();
   }
 
-  /**
-   * Preview (writes nothing public) or publish. `quiet` builds the preview the
-   * publish confirm shows without a notice. Returns the payload the preview
-   * describes, or null when the route refused.
-   */
   async function runPromotion(
     publish: boolean,
     attribution: PromotionAttribution,
@@ -721,7 +670,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
         setFeedback({ tone: "danger", message: "The promotion response was incomplete." });
         return null;
       }
-      // A preview changes nothing, so only a publish replaces the submission.
       if (publish) patchSubmission(updated);
       setPromotionPayload(payload.payload ?? null);
       const suggestedOwner =
@@ -753,7 +701,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
     }
   }
 
-  /** Grant the just-published report to the matching member, through the same owner route My reports uses. */
   async function assignToSuggestedOwner() {
     if (!assignable || busy) {
       return;
@@ -840,7 +787,6 @@ export function useTripReportPortalController(initialSubmissionId?: string) {
 
 type StatusResult = { ok: true; submission: TripReportSubmissionRow } | { ok: false; refusal: WriteRefusal };
 
-/** One status write through the guarded route; the route resolves the actor and appends the log entry. */
 async function postSubmissionStatus(
   id: string,
   status: TripReportSubmissionStatus,
@@ -870,14 +816,12 @@ async function postSubmissionStatus(
   }
 }
 
-/** A refused decision in the dock: the freeze in its own words, anything else as the route said it. */
 function decisionRefusalNotice(refusal: WriteRefusal): PortalNotice {
   return refusal.kind === "frozen"
     ? { tone: "danger", kind: "frozen", message: FREEZE_DECISION_COPY }
     : { tone: "danger", message: refusal.message };
 }
 
-/** A refused report save, with the way forward each refusal has. */
 function saveRefusalNotice(refusal: WriteRefusal): PortalNotice {
   switch (refusal.kind) {
     case "frozen":
@@ -901,11 +845,6 @@ function saveRefusalNotice(refusal: WriteRefusal): PortalNotice {
   }
 }
 
-/**
- * Where undo takes a decided submission: back where it was when the
- * transitions allow it, else to Reviewing, which every decided status except
- * Published can reopen to. A published submission cannot be undone here.
- */
 export function submissionUndoTarget(decision: {
   from: TripReportSubmissionStatus;
   to: TripReportSubmissionStatus;
@@ -914,7 +853,6 @@ export function submissionUndoTarget(decision: {
   return canTransitionTripReportSubmission(decision.to, "reviewing") ? "reviewing" : null;
 }
 
-/** A submission a bulk decision can move to `status`. */
 export function canBulkDecide(row: PortalRow, status: "rejected" | "spam"): boolean {
   return (
     row.origin === "submission" &&

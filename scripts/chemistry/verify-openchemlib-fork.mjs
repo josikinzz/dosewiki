@@ -130,9 +130,6 @@ const currentManifest = {
   },
   verification: {
     artifactCheck: "npm run openchemlib:verify",
-    // Runs the package's Vitest suite against the committed distributables
-    // (the local fork tests live under tests/dosewiki). Needs only the
-    // package-local dev dependencies, never a JDK or GWT.
     testLane: "npm run openchemlib:test",
     forkTests: "tests/dosewiki",
   },

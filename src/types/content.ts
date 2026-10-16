@@ -106,11 +106,6 @@ export interface SubstanceContent {
   routeOrder: RouteKey[];
   addictionSummary: string;
   subjectiveEffects: string[];
-  /**
-   * Canonical effect slug per entry in `subjectiveEffects`, positionally aligned,
-   * or null where the name resolves to no single effect. Drives the effect ->
-   * substances join so it agrees with the substance -> effect link.
-   */
   subjectiveEffectSlugs?: (string | null)[];
   interactions: InteractionGroup[];
   tolerance: ToleranceEntry[];

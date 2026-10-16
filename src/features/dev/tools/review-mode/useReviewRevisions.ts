@@ -4,12 +4,6 @@ import { useEffect, useState } from "react";
 
 import type { PublishedRevisions } from "./reviewQueue";
 
-/**
- * Each article's current published revision, read once when the workbench
- * mounts. Null until it lands, and null again if the read fails: without it
- * no sign-off can be called stale, and a failed read must not paint every
- * sign-off as changed.
- */
 export function usePublishedRevisions(): PublishedRevisions | null {
   const [revisions, setRevisions] = useState<PublishedRevisions | null>(null);
 

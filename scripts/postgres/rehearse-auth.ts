@@ -1,26 +1,3 @@
-/**
- * Rehearsal: sign-in and account controls on Postgres.
- *
- * Runs the real `auth.ts` credentials provider and JWT callback, the real
- * `lib/auth/memberships.ts` adapter, and the real route write client
- * with `DATA_BACKEND=postgres`, so every membership, invite, and reset-token
- * handler executes unchanged on `PostgresClient`. Proves:
- *
- *   a. a scratch admin created with the app's scrypt hash signs in through
- *      `authorizeCredentials` without a reset, and touches `lastSeenAt`;
- *   b. a banned member and a member whose role refresh fails (unreachable
- *      database, missing server key) never resolve above `viewer`;
- *   c. two concurrent redemptions of one invite code and of one reset token
- *      succeed exactly once, with a single consumption stored;
- *   d. role floors, roster ownership refusals, the actor requirement of the
- *      server write client, and the same-origin gate hold.
- *
- * Every row it creates carries the `t05-<run>` prefix and is deleted in
- * `finally` unless `--keep` is passed.
- *
- *   bun scripts/postgres/rehearse-auth.ts --target postgres://localhost:5432/dosewiki
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { createHash, randomBytes } from "node:crypto";
@@ -32,8 +9,6 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 const argv = process.argv.slice(2);
 const target = resolveTarget(argv);
 guardTarget(target, argv.includes("--allow-remote"));
-// The backend switch and pool URL are read lazily by `lib/postgres/runtime/backend.ts`,
-// so setting them before the first call is what puts the adapters on Postgres.
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 
@@ -67,7 +42,6 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
   console.log(`${pass ? "ok  " : "FAIL"} ${scenario}: ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-// Both members carry both keys so the non-strict scripts tsconfig (no strictNullChecks) still type-checks `outcome.error`.
 type Outcome<T> = { ok: true; value: T; error?: undefined } | { ok: false; value?: undefined; error: unknown };
 
 async function attempt<T>(run: () => Promise<T>): Promise<Outcome<T>> {
@@ -83,15 +57,12 @@ const rejectionCode = (outcome: Outcome<unknown>) => (outcome.ok ? null : classi
 const outcomeDetail = (outcome: Outcome<unknown>) => (outcome.ok ? outcome.value : errorMessage(outcome.error));
 const sha256 = (value: string) => createHash("sha256").update(value, "utf8").digest("hex");
 
-/** The JWT refresh as Auth.js runs it on every request for an existing session. */
 async function refreshedRole(email: string): Promise<unknown> {
-  // Only `token.email` is read by the callback; the rest of Auth.js's parameter shape is irrelevant here.
   const refresh = { token: { email }, user: undefined, account: null } as never;
   const token = await authOptions.callbacks!.jwt!(refresh);
   return token.role;
 }
 
-/** Runs `fn` with `console.error` muted; the fail-closed path logs on purpose. */
 async function quietly<T>(fn: () => Promise<T>): Promise<T> {
   const original = console.error;
   console.error = () => undefined;
@@ -108,7 +79,6 @@ async function main() {
   const pool = new Pool({ connectionString: target, max: 2 });
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-auth`);
   const started = performance.now();
-  // A stray rejection from the runtime is a defect, not a crash: record it and let `finally` clean up.
   process.on("unhandledRejection", (reason) => expect("runtime", "no unhandled rejection escaped a handler", false, errorMessage(reason)));
 
   const admin = { username: `${run}-admin`, email: `${run}-admin@rehearsal.invalid`, password: `${run} admin passphrase` };
@@ -120,13 +90,11 @@ async function main() {
   const membershipsFor = (where: string, params: unknown[]) => selectDocuments(pool, "memberships", { where, params });
 
   try {
-    // Routes reach the backend through the write capability; on Postgres it wraps the runtime client.
     const capability = getServerDataWriteCapabilityOrThrow();
     const write = capability.client;
     const adminKey = capability.adminKey;
     const editorToken = capability.getAdminIntentToken("editorArticleWrite") ?? adminKey;
 
-    // (a) seed path: the same mutation `scripts/auth/seed-admin-accounts.mjs` calls, with the app's hash.
     const adminHash = await hashPassword(admin.password);
     const seeded = await getPostgresClient().mutation(api.memberships.setAdminAccount, {
       apiKey: adminKey,
@@ -150,7 +118,6 @@ async function main() {
     expect("sign-in", "unknown username is refused", (await authorizeCredentials({ username: `${run}-nobody`, password: admin.password })) === null);
     expect("sign-in", "JWT refresh resolves the admin role", (await refreshedRole(admin.email)) === "admin");
 
-    // (c) invite race: one single-use code, two concurrent redemptions.
     const minted = await write.mutation(api.inviteCodes.mint, { apiKey: adminKey, actorEmail: admin.email, role: "editor", codeHash: inviteHash, maxUses: 1 });
     expect("invite", "single-use invite minted as the scratch admin", minted.status === "active" && minted.maxUses === 1 && minted.createdBy === admin.email, minted);
     const editorHash = await hashPassword(`${run} editor passphrase`);
@@ -175,7 +142,6 @@ async function main() {
     expect("invite", "the new editor signs in with the invite password", (await authorizeCredentials({ username: editorUsername, password: `${run} editor passphrase` }))?.email === editor.email);
     expect("invite", "JWT refresh resolves the editor role", (await refreshedRole(editor.email)) === "editor");
 
-    // (c) reset race: one token, two concurrent consumptions with different passwords.
     const token = randomBytes(32).toString("hex");
     await write.mutation(api.memberships.issuePasswordReset, { apiKey: adminKey, actorEmail: admin.email, email: editor.email, tokenHash: sha256(token) });
     const resetPasswords = [`${run} reset one`, `${run} reset two`];
@@ -192,7 +158,6 @@ async function main() {
     expect("reset", "replaying the token is refused", rejectionCode(await attempt(() => consumePasswordReset(sha256(token), resetHashes[0]))) === "RESET_TOKEN_INVALID");
     expect("reset", "an unknown token is refused", rejectionCode(await attempt(() => consumePasswordReset(sha256(`${token}x`), resetHashes[0]))) === "RESET_TOKEN_INVALID");
 
-    // (d) role floor: changelog:addEntry requires editor; called as viewer, editor, admin.
     const now = new Date().toISOString();
     await insertDocument(pool, "memberships", { email: viewerEmail, role: "viewer", createdAt: now, updatedAt: now });
     const entry = (actorEmail: string, suffix: string) => write.mutation(api.changelog.addEntry, {
@@ -210,7 +175,6 @@ async function main() {
     const unknownActor = await attempt(() => entry(`${run}-ghost@rehearsal.invalid`, "ghost"));
     expect("floor", "an actor with no membership is refused", !unknownActor.ok && errorMessage(unknownActor.error).includes("Editor access required"));
 
-    // (d) admin floor and roster ownership: setRole as editor, as admin on self, on an admin, on the editor.
     const roleAsEditor = await attempt(() => write.mutation(api.memberships.setRole, { apiKey: adminKey, actorEmail: editor.email, email: viewerEmail, role: "contributor" }));
     expect("ownership", "editor is refused at the admin floor", !roleAsEditor.ok && errorMessage(roleAsEditor.error).includes("Admin access required"));
     const selfTarget = await attempt(() => write.mutation(api.memberships.setRole, { apiKey: adminKey, actorEmail: admin.email, email: admin.email, role: "contributor" }));
@@ -224,13 +188,10 @@ async function main() {
     expect("floor", "JWT refresh follows the demotion", (await refreshedRole(editor.email)) === "contributor");
     await write.mutation(api.memberships.setRole, { apiKey: adminKey, actorEmail: admin.email, email: editor.email, role: "editor" });
 
-    // (d) the write client refuses an actorless mutation before any backend call.
-    // The type system already demands `actorEmail`; the cast reproduces a caller that omitted it.
     const actorlessArgs = { apiKey: adminKey, email: editor.email, role: "editor" } as never;
     const actorless = await attempt(() => new ServerDataWriteClient(getPostgresClient()).mutation(api.memberships.setRole, actorlessArgs));
     expect("ownership", "ServerDataWriteClient refuses a mutation without actorEmail", !actorless.ok);
 
-    // (d) same-origin gate in src/lib/http/protectedRouteOperation.ts: runs before rate limiting, session, and backend.
     let operationRan = false;
     const guarded = protectedRouteOperation({
       auth: "editor",
@@ -246,7 +207,6 @@ async function main() {
     expect("same-origin", "foreign Origin is refused with 403 ORIGIN_REQUIRED before the operation runs", foreign.status === 403 && (await foreign.json()).code === "ORIGIN_REQUIRED" && !operationRan);
     expect("same-origin", "cross-site Sec-Fetch-Site is refused with 403 before the operation runs", crossSite.status === 403 && (await crossSite.json()).code === "ORIGIN_REQUIRED" && !operationRan);
 
-    // (b) ban: sign-in refused, JWT refresh degrades to viewer, reset link refused.
     await write.mutation(api.memberships.ban, { apiKey: adminKey, actorEmail: admin.email, email: editor.email });
     const bannedCredentials = await getCredentialsByUsername(editorUsername);
     expect("ban", "getCredentialsByUsername still returns the row, marked banned", typeof bannedCredentials?.bannedAt === "string");
@@ -259,7 +219,6 @@ async function main() {
     await write.mutation(api.memberships.unban, { apiKey: adminKey, actorEmail: admin.email, email: editor.email });
     expect("ban", "unban restores the editor role on refresh", (await refreshedRole(editor.email)) === "editor");
 
-    // (b) refresh failure: the backend is unreachable, then the server key is missing. Both fail closed.
     await getPostgresClient().end();
     process.env.POSTGRES_POOLED_URL = "postgres://localhost:1/dosewiki";
     process.env.POSTGRES_DIRECT_URL = process.env.POSTGRES_POOLED_URL;
@@ -283,7 +242,6 @@ async function main() {
     if (!keep) {
       await pool.query('DELETE FROM "changelog" WHERE "entryId" LIKE $1', [`${run}-%`]);
       await pool.query('DELETE FROM "inviteCodes" WHERE "codeHash" = $1', [inviteHash]);
-      // Invite-created rows default to `<username>@members.dose.wiki`, so match the username prefix too.
       await pool.query('DELETE FROM "memberships" WHERE "email" LIKE $1 OR "username" LIKE $2', [`${run}-%`, `${run}-%`]);
     }
     const passed = checks.filter((c) => c.pass).length;

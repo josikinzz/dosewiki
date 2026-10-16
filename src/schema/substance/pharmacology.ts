@@ -1,12 +1,10 @@
 import { z } from "zod";
 
-/** Drug comparison entry */
 export const drugComparisonSchema = z.object({
   drug: z.string(),
   comparison: z.string(),
 });
 
-/** Single pharmacological target or binding-site interaction entry. */
 const bindingSiteEntrySchema = z.object({
   target: z.string(),
   tag: z.string().optional(),
@@ -14,7 +12,6 @@ const bindingSiteEntrySchema = z.object({
   efficacy: z.string().optional(),
 });
 
-/** Pharmacology section */
 export const pharmacologySchema = z.object({
   pharmacodynamics: z.string().optional().default(""),
   summary: z.string().optional(),

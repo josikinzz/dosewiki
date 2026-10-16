@@ -1,28 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed the `copyBlocks` table from the checked-in copy defaults.
- *
- * The defaults in `content/copy-blocks/copyBlocks.json` are the strings the public
- * pages hardcoded before the copy CMS existed. Seeding copies them into Postgres
- * so the /dev Copy Studio has something to edit; the same JSON stays the
- * fallback the server read helper uses when a key has no row, so a deployment
- * that is never seeded renders identically.
- *
- * Dry run by default. Nothing is written without `--write` plus the standard
- * production-write confirmations.
- *
- * Usage:
- *   node scripts/seed/seed-copy-blocks.mjs
- *   node scripts/seed/seed-copy-blocks.mjs --key=home-hero-tagline
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *     node scripts/seed/seed-copy-blocks.mjs --write \
- *       --confirm-write=seed-copy-blocks \
- *       --expected-deployment=<deployment>
- *
- * `--overwrite` is required to touch keys that already hold a row; without it
- * an existing block is left alone, so re-running the seed never clobbers copy
- * an editor changed in the Copy Studio.
- */
 
 import fs from "fs";
 import path from "path";

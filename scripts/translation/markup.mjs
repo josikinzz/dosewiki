@@ -1,42 +1,12 @@
-/**
- * VCode-aware segmentation.
- *
- * Effect and article bodies are stored as VCode markup in a `*_raw` string. A
- * JSON leaf walker would hand the whole document to a translation model and
- * hope the markup came back intact. This module instead cuts the document at
- * block boundaries, so a model receives one paragraph of prose with its inline
- * emphasis and links still attached, and every block tag, attribute, link
- * target and citation key stays exactly where the source put it.
- *
- * Spans carry absolute offsets into the source string. Splicing translated text
- * back at those offsets is byte-exact for anything the scanner did not select,
- * which is what makes an untranslated round trip reproduce the source.
- *
- * The tag vocabulary is imported from the renderer's own parser rather than
- * restated here, because a tag this module does not know is a tag it would
- * silently hand to a model as prose.
- */
-
 import { VCODE_TAG_NAMES, HASH_DIRECTIVE_ALIASES } from "../../src/features/effects/vcode/normalize.ts";
 
 const TAG_PATTERN = /\[(\/?)([a-z][\w-]*)([^\]]*)\]/gi;
 const VOID_TAGS = new Set(["br", "hr", "ref", "toc"]);
 
-/**
- * Tags that live inside a sentence. They travel with the prose that surrounds
- * them, because translating "An " and "abnormal heartbeat" and " is any of"
- * as three segments produces three fragments no Chinese sentence can be built
- * from. Everything else in the vocabulary opens a new segment.
- */
 export const INLINE_TAGS = Object.freeze(
   new Set(["b", "i", "u", "s", "sup", "int-link", "ext-link", "ref", "br"]),
 );
 
-/**
- * Attribute values a reader sees. Every other attribute is a target, an
- * identifier, a colour, or a credit: `to`, `src`, `icon`, `id`, `artist`,
- * `author`, `profile`, `resource`, `no`, and the two textbox backgrounds.
- */
 export const PROSE_ATTRIBUTES = Object.freeze({
   "headered-textbox": ["label", "header"],
   "separated-textbox": ["leftHeader", "rightHeader", "a", "b"],
@@ -55,17 +25,11 @@ function hasClosingTag(raw, name, fromIndex) {
   return new RegExp(`\\[/${name}\\s*\\]`, "i").test(raw.slice(fromIndex));
 }
 
-/**
- * Mirrors the parser: prose such as `[Alan Watts]` is literal text, not a node.
- * A bracket only opens a tag when the name is known, the tag self-closes, or a
- * matching closing tag follows.
- */
 function isTagOpening(raw, name, rawAttributes, afterTagIndex) {
   if (VCODE_TAG_NAMES.has(name) || VOID_TAGS.has(name)) return true;
   return rawAttributes.trim().endsWith("/") || hasClosingTag(raw, name, afterTagIndex);
 }
 
-/** Offsets of one attribute's value inside a tag's attribute text. */
 function attributeValueSpans(rawAttributes, offset, wanted) {
   const spans = [];
   const pattern = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s/]+))/g;
@@ -81,7 +45,6 @@ function attributeValueSpans(rawAttributes, offset, wanted) {
   return spans;
 }
 
-/** A text run, with its surrounding whitespace held back from the model. */
 function pushTextSpan(spans, raw, start, end, container) {
   if (end <= start) return;
   const slice = raw.slice(start, end);
@@ -93,11 +56,6 @@ function pushTextSpan(spans, raw, start, end, container) {
   spans.push({ kind: "text", start: coreStart, end: coreEnd, text: raw.slice(coreStart, coreEnd), container });
 }
 
-/**
- * Hash-dialect directives (`##quotation|author="Josie Kins"{...}`) appear
- * inside the bracket dialect's text runs. The header and its braces are
- * structure; the braced body is prose that may itself contain bracket tags.
- */
 function scanHashRun(raw, start, end, container, spans) {
   let cursor = start;
   let textStart = start;
@@ -174,10 +132,6 @@ function scanHashRun(raw, start, end, container, spans) {
   pushTextSpan(spans, raw, textStart, end, container);
 }
 
-/**
- * Walks one region of bracket-dialect markup, emitting a span per text run
- * between block tags. Inline tags stay inside the run they interrupt.
- */
 function scanBracketRun(raw, start, end, container, spans) {
   const pattern = new RegExp(TAG_PATTERN.source, "gi");
   pattern.lastIndex = start;
@@ -217,12 +171,6 @@ function scanBracketRun(raw, start, end, container, spans) {
   scanHashRun(raw, runStart, end, container, spans);
 }
 
-/**
- * Every translatable span in a VCode body, in document order.
- *
- * @param {string} raw
- * @returns {Array<{kind: "text"|"attr", start: number, end: number, text: string, container?: string, attribute?: string}>}
- */
 export function scanVCode(raw) {
   if (typeof raw !== "string" || raw.length === 0) return [];
   const spans = [];
@@ -230,14 +178,6 @@ export function scanVCode(raw) {
   return spans.sort((a, b) => a.start - b.start);
 }
 
-/**
- * Rebuilds a body with translated spans in place. A span with no replacement
- * keeps its source text, so a partially translated body is still a valid one.
- *
- * @param {string} raw
- * @param {Array} spans - spans from scanVCode, in document order
- * @param {(span: object, index: number) => string|null|undefined} replacementFor
- */
 export function spliceVCode(raw, spans, replacementFor) {
   let out = "";
   let cursor = 0;
@@ -250,22 +190,12 @@ export function spliceVCode(raw, spans, replacementFor) {
   return out + raw.slice(cursor);
 }
 
-/**
- * The prose left when the markup is taken away. A span that is only a citation
- * marker or a line break is structure wearing a text run's clothes, and paying
- * a model to look at it invites it to rewrite one.
- */
 export function stripMarkup(text) {
   return text.replace(MARKUP_TOKEN, " ");
 }
 
 const MARKUP_TOKEN = /\[\/?[a-z][\w-]*[^\]]*\]/gi;
 
-/**
- * Inline markup a translated segment must carry through unchanged. Compares
- * the tag tokens, not their order: Chinese word order moves an emphasis span,
- * and moving one is fine while losing one is not.
- */
 export function markupTokens(text) {
   return (text.match(MARKUP_TOKEN) ?? []).map((token) => token.replace(/\s+/g, " ")).sort();
 }

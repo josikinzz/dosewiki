@@ -8,20 +8,12 @@ const themeTokenInterface = JSON.parse(
   fs.readFileSync(path.join(__dirname, "src/theme/theme-token-interface.json"), "utf8"),
 );
 
-/** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        // `font-display` reads the *token*, not the raw next/font variable it is
-        // built from. Both expand to the same list today — base.css defines
-        // `--font-family-display: var(--font-display), Inter, …` — so this
-        // changes nothing about what either flavor renders. What it buys is that
-        // the ~40 `font-display` call sites (the wordmark, every page h1) follow
-        // the same one variable the Theme Lab's display-face control writes,
-        // instead of being the one family on the site a theme cannot reach.
         display: ['var(--font-family-display)'],
       },
       colors: {
@@ -55,7 +47,6 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        // Corner roles; values per visual style live in src/styles/base.css and pro-theme.css.
         control: "var(--radius-control)",
         chip: "var(--radius-chip)",
         card: "var(--radius-card)",

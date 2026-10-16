@@ -1,27 +1,4 @@
 #!/usr/bin/env node
-/**
- * Apply an explicit licence to every replication by one artist.
- *
- * The corpus ships with no `license_name` anywhere: every row is either
- * `creator-retained` or `unknown`, which means "ask before reuse". Recording a
- * real licence is therefore a deliberate, per-artist act — it grants the public
- * permissions that cannot be taken back from anyone who has already relied on
- * them. Only run this for an artist who has agreed to the licence.
- *
- * Modified derivatives matter for share-alike licences in particular: CC BY-SA
- * requires that changes be indicated. Rows whose provenance shows an upscaling
- * or retouching pass get a modification note appended to their credit line.
- *
- * Dry run (default):
- *   node scripts/replications/apply-artist-license.mjs \
- *     --artist="Chelsea Morgan" --license=cc-by-sa-4.0
- *
- * Apply:
- *   node scripts/replications/apply-artist-license.mjs \
- *     --artist="Chelsea Morgan" --license=cc-by-sa-4.0 --write \
- *     --confirm-write=apply-replication-license \
- *     --expected-deployment=<fingerprint>
- */
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
@@ -33,7 +10,6 @@ import {
 
 const OPERATION = "apply-replication-license";
 
-/** Licences this script is allowed to set, so a typo cannot invent one. */
 export const LICENSES = {
   "cc-by-sa-4.0": {
     name: "CC BY-SA 4.0",
@@ -52,10 +28,6 @@ export const LICENSES = {
   },
 };
 
-/**
- * Evidence that the hosted file is not the artist's original: the import
- * pipeline recorded its upscaler in the slug.
- */
 const MODIFICATION_MARKERS = [/upscayl/i, /realesrgan/i, /_x\d+\b/i, /photos_v\d+/i];
 
 export function isModifiedDerivative(replication) {
@@ -77,8 +49,6 @@ export function planLicenseUpdates(replications, { artist, license }) {
         `${replication.title} by ${replication.artist}`;
 
       const NOTE = "Modified from the original (upscaled).";
-      // Credit lines are rendered verbatim, so the sentence has to close before
-      // the notice is appended or it reads as one run-on phrase.
       const punctuated = /[.!?]$/.test(baseCredit) ? baseCredit : `${baseCredit}.`;
       const creditLine =
         modified && !baseCredit.includes(NOTE) ? `${punctuated} ${NOTE}` : baseCredit;
@@ -159,9 +129,6 @@ async function main() {
   }
 
   assertProductionWriteAllowed(command);
-  // The intent name, not the operation name — it selects the scoped admin token
-  // the mutation's requireAuth checks. `.token` is the string the arg validator
-  // wants; the resolver returns provenance alongside it.
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

@@ -13,7 +13,6 @@ import {
   type PublicTranslationCredit,
 } from "../../src/data/content/translationCredits";
 
-/** The About config document, a leaf read persisted at the top level. */
 const getPublicAboutConfig = cache(publicDataCache(async () => {
   return await getPublicDataReadAdapter().getPublicAboutConfig();
 }, ["data-public-about-config-v1"], {
@@ -21,11 +20,6 @@ const getPublicAboutConfig = cache(publicDataCache(async () => {
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.about],
 }));
 
-/**
- * Composed under React `cache()` from two top-level persisted reads. Not an
- * `unstable_cache` of its own: Next bypasses an `unstable_cache` called from
- * inside another, which made the contributor profile read miss here.
- */
 export const getPublicAboutData = cache(async (): Promise<PublicAboutData> => {
   const about = await getPublicAboutConfig();
   const keys = about?.founderProfileKeys ?? [];
@@ -43,12 +37,6 @@ export const getPublicAboutData = cache(async (): Promise<PublicAboutData> => {
   };
 });
 
-/**
- * One translation locale's credits, each resolved through the contributor's
- * public profile and projected to public fields only (key, display name,
- * avatar, link, contribution). A credit whose profile is gone is dropped.
- * Rides the About config read, so an About save refreshes it.
- */
 export const getPublicTranslationCredits = cache(async (locale: string): Promise<PublicTranslationCredit[]> => {
   const about = await getPublicAboutConfig();
   const credits = translationCreditsFor(about?.translationCredits, locale);

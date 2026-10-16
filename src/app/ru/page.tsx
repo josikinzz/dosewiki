@@ -1,11 +1,4 @@
 import { readPublicLanguageDirectory } from "@server/translation/publicGlossary";
-/**
- * The Russian mirror of `/`, reached only through the middleware
- * rewrite from `ru.dose.wiki/`. Same homepage component; the mirror carries
- * `noindex` and a canonical link back to the English homepage, and every
- * translatable string it renders (nav tile labels, hero tagline) goes through
- * `t`, falling back to English wherever the catalog lacks the key.
- */
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale, t } from "@/i18n/server";
@@ -29,7 +22,6 @@ export async function generateMetadata() {
   const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
   const description = t(flavoredCopyText(copy, "home-hero-tagline", SITE_FLAVOR_CONFIG.description));
   const socialImage = pageSocialCardImage("home", "dose.wiki home");
-  // The English homepage is the canonical address of this content; the mirror is unlisted.
   const englishUrl = buildSiteUrl("/");
 
   return {

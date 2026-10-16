@@ -61,13 +61,6 @@ function stereoText(summary: ReturnType<typeof describeInchi>): string {
     : String(summary.stereocentres);
 }
 
-/**
- * Before and after identity of a structure whose chemistry changed, read from
- * the guard's comparison. Substances compare by InChI, whose layers give the
- * formula and stereocentres; classes and templates compare by canonical
- * SMILES, which has no layers to break out. When `publishName` is set, the
- * chemist types it to unlock Publish.
- */
 export function ChemistryChangePanel({
   guard,
   mode,
@@ -187,10 +180,6 @@ export function MoleculePreview({
   );
 }
 
-/**
- * What a publish replaces, side by side: the stored image readers see now and
- * the one the canvas would publish. Rendered in the publish confirm.
- */
 export function MoleculePublishReview({
   before,
   after,
@@ -225,7 +214,6 @@ function PublishFigure({ label, svg, empty }: { label: string; svg: string | nul
         {svg ? (
           <div
             className="h-full w-full [&>svg]:h-full [&>svg]:w-full"
-            // The editor's own renderer output, or the stored image it published.
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : (

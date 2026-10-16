@@ -1,14 +1,8 @@
-/**
- * Request-body validation for one copy block, shared by the direct save
- * (`POST /api/dev/copy-block`) and the proposal route, so an editor's proposal
- * is held to exactly what the admin's save is held to.
- */
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 const COPY_BLOCK_KINDS = ["markdown", "plain", "list"] as const;
 
-/** Matches the Postgres-side ceilings in `server/copyBlocks.ts`. */
 const BODY_MAX_LENGTH = 20_000;
 const ITEM_MAX_LENGTH = 2_000;
 const MAX_ITEMS = 64;
@@ -110,10 +104,6 @@ export function parseCopyBlockBody(raw: CopyBlockBody): ParsedCopyBlock {
   return parsed;
 }
 
-/**
- * The `copyBlocks` entries of a proposal payload. Each is parsed exactly as the
- * direct save parses one block; anything that is not an array is no blocks.
- */
 export function parseCopyBlockPayloads(raw: unknown): ParsedCopyBlock[] {
   if (raw === undefined || raw === null) {
     return [];

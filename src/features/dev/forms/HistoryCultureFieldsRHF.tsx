@@ -1,9 +1,3 @@
-/**
- * RHF-based History & Culture fields component.
- * Supports freeform sections with custom headings chosen by the author/LLM,
- * and nested subsections for sections like "Notable Individuals".
- */
-
 import { useCallback, useRef } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
@@ -24,7 +18,6 @@ export type HistoryCultureFieldsRHFProps = {
   embedded?: boolean;
 };
 
-/** Nested subsections field array component for a single section */
 function SubsectionsFieldArray({
   sectionIndex,
   idPrefix,
@@ -117,7 +110,6 @@ function SubsectionsFieldArray({
                   inputSize="sm"
                 />
               </FormEditorField>
-              {/* Date range inputs for subsections */}
               <EditorFieldRow layout="twoColumn">
                 <FormEditorField
                   name={`history_culture.sections.${sectionIndex}.subsections.${subIndex}.date_range.start`}
@@ -202,10 +194,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
     append({ heading: "", content: "", date_range: { start: "", end: "" }, subsections: [] });
   }, [append]);
 
-  /**
-   * Removing a section also drops every subsection nested under it, and there
-   * is no undo — so the click asks first and says how much it takes.
-   */
   const handleRemoveSection = useCallback((index: number) => {
     const section = getValues(`history_culture.sections.${index}`);
     const heading = section?.heading?.trim() || `Section ${index + 1}`;
@@ -247,7 +235,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
 
   return (
     <section className="space-y-6">
-      {/* Main freeform content */}
       <FormEditorField
         htmlFor={`${idPrefix}-history-content`}
         label={embedded ? "Overview (optional)" : "Content"}
@@ -263,7 +250,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
         <CharacterCount value={contentValue} />
       </FormEditorField>
 
-      {/* Dynamic sections */}
       <div className="space-y-4">
         {fields.map((field, index) => (
           <Surface
@@ -274,7 +260,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
             className="space-y-3"
           >
             <div className={embedded ? "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3" : "flex items-start gap-3"}>
-              {/* Section order controls */}
               <div className={embedded ? "flex flex-wrap items-center gap-1" : "flex flex-col gap-1 pt-1"}>
                 {embedded && <span className="theme-text-muted mr-2 text-sm">Section {index + 1}</span>}
                 <Button
@@ -301,7 +286,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
                 </Button>
               </div>
 
-              {/* Section content */}
               <div className={embedded ? "col-span-2 row-start-2 min-w-0 space-y-3" : "min-w-0 flex-1 space-y-3"}>
                 <FormEditorField
                   name={`history_culture.sections.${index}.heading`}
@@ -315,7 +299,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
                   />
                 </FormEditorField>
 
-                {/* Date range inputs for sections */}
                 <EditorFieldRow layout="twoColumn">
                   <FormEditorField
                     name={`history_culture.sections.${index}.date_range.start`}
@@ -356,11 +339,9 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
                   />
                 </FormEditorField>
 
-                {/* Nested subsections */}
                 <SubsectionsFieldArray sectionIndex={index} idPrefix={idPrefix} embedded={embedded} confirm={confirm} />
               </div>
 
-              {/* Delete button */}
               <Button
                 type="button"
                 variant="ghostDestructive"
@@ -376,7 +357,6 @@ export function HistoryCultureFieldsRHF({ idPrefix, embedded = false }: HistoryC
           </Surface>
         ))}
 
-        {/* Add section button */}
         <Button
           ref={addSectionRef}
           type="button"

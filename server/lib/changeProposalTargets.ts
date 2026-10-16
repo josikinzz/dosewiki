@@ -8,10 +8,8 @@ import { projectEditorArticle } from "../../src/data/projections/substanceReadPr
 
 export type ProposalTargetKind = Doc<"changeProposals">["targets"][number]["kind"];
 
-/** A target derived from the proposed writes, never accepted as an apply instruction. */
 export type ProposalTargetRef = { kind: ProposalTargetKind; key: string };
 
-/** The proposal body as far as target derivation reads it. */
 export type ProposalPayloadShape = {
   articles?: Array<{ id?: number | null; title: string; slug?: string }>;
   indexLayouts?: Array<{ type: "psychoactive" | "chemical" | "mechanism" }>;
@@ -20,14 +18,6 @@ export type ProposalPayloadShape = {
   writing?: { slug: string };
 };
 
-/**
- * The slug an article target is keyed by. `ingestSubstanceArticle` patches
- * the row found by article id before the row found by slug, so a payload
- * article that carries an id is pinned to that row's current slug: when the
- * payload names a different slug the proposal is refused here, since the
- * hash of the new slug (absent) would say nothing about the row the apply
- * would actually rewrite. Slug renames go through the admin save.
- */
 async function resolveArticleTargetKey(
   ctx: QueryCtx | MutationCtx,
   article: { id?: number | null; title: string; slug?: string },
@@ -50,14 +40,6 @@ async function resolveArticleTargetKey(
   return slug;
 }
 
-/**
- * The targets a payload implies: one per article slug, one per layout type,
- * one per copy block key, the single About row, and one Writing row keyed by
- * its slug. Copy block keys are
- * trimmed the way `copyBlocks.upsert` trims them, so the hash pins the row the
- * write will touch. Submit derives these itself; a caller never names a target
- * the payload does not write.
- */
 export async function deriveProposalTargets(
   ctx: QueryCtx | MutationCtx,
   payload: ProposalPayloadShape,
@@ -81,7 +63,6 @@ export async function deriveProposalTargets(
   return targets;
 }
 
-/** A row without runtime system fields: what a target's content hash covers. */
 function contentOf(row: Record<string, unknown> | null): unknown {
   if (!row) {
     return null;
@@ -90,18 +71,11 @@ function contentOf(row: Record<string, unknown> | null): unknown {
   return content;
 }
 
-/** Keep existing proposal CAS identities while snapshots retain unprojected storage content. */
 export function proposalHashDocument(kind: ProposalTargetKind, document: unknown): unknown {
   if (kind !== "article" || document === null) return document;
   return contentOf(projectEditorArticle(document as Doc<"substanceIndex">) as Record<string, unknown>);
 }
 
-/**
- * The production document a target names. The default editor view preserves
- * the CAS identity of existing proposals and loaded editor baselines. Stored
- * views retain exact article data for diffs, journals, and guarded restoration.
- * A missing row reads as null.
- */
 export async function readProposalTarget(
   ctx: QueryCtx | MutationCtx,
   target: ProposalTargetRef,
@@ -167,10 +141,6 @@ export async function readProposalTarget(
   }
 }
 
-/**
- * Hash of `readProposalTarget`. Submit records it as `baseHash`; apply
- * recomputes it and refuses when it no longer matches.
- */
 export async function hashProposalTarget(
   ctx: QueryCtx | MutationCtx,
   target: ProposalTargetRef,

@@ -4,11 +4,6 @@ import { requireRole } from "./lib/auth";
 
 const LIST_LIMIT = 100;
 
-/**
- * Prior versions of one profile, playlist, or trip report, newest first.
- * Admin floor: the journal holds whole documents, including fields a
- * contributor may have removed on purpose.
- */
 export const listForKey = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -36,7 +31,6 @@ export const listForKey = query({
   },
 });
 
-/** The newest revisions across every table. Admin floor. */
 export const listRecent = query({
   args: {
     apiKey: v.optional(v.string()),

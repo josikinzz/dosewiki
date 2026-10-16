@@ -10,9 +10,6 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // The gallery and sitemap stay build-time rendered, but detail routes scale
-  // with reader demand rather than archive size. A real slug is generated on
-  // first request and then enters the hourly ISR cache.
   return [];
 }
 
@@ -49,8 +46,6 @@ export default async function ReplicationPage({ params }: ReplicationPageProps) 
   const { slug } = await params;
   const result = await loadReplicationRoute(slug);
 
-  // A renamed slug is permanently gone: 301 so shared links and search results
-  // settle on the new URL rather than being re-crawled forever.
   if (result.kind === "redirect") {
     permanentRedirect(result.target);
   }

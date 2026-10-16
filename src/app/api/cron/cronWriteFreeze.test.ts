@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { assertDataWritesNotFrozen } from "@server/runtime/dataWriteFreeze";
 
-// Each seam refuses the way the real writer does: the Postgres client and the
-// translation segment store both call `assertDataWritesNotFrozen` before any
-// statement, and nothing on the way back to the route catches that refusal.
 vi.mock("@server/postgres/runtime/backend", () => ({ getDataBackend: () => "postgres" }));
 vi.mock("@server/data/serverWriteCapability", () => ({
   getServerDataWriteCapability: () => ({
@@ -54,7 +51,6 @@ describe("writer crons under a write freeze", () => {
   beforeEach(() => {
     vi.stubEnv("CRON_SECRET", "cron-fixture");
     vi.stubEnv("OPENROUTER_API_KEY", "synthetic-fixture");
-    // CI runs with the freeze on; the frozen cases set it themselves.
     vi.stubEnv("DATA_WRITES_FROZEN", "0");
   });
   afterEach(() => {

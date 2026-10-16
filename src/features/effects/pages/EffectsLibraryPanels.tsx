@@ -6,17 +6,6 @@ import { PublicContentSection } from "@/components/layout/PublicContentPrimitive
 import { useT } from "@/i18n/client";
 import { LIBRARY_PANELS, type LibraryPanel } from "./libraryConfig";
 
-/**
- * One Library panel as an open section of hairline rows, the same material the
- * articles index uses, so the tab reads as a table of contents for the archive
- * rather than another grid of category cards. Heading, blurb, rows, and the
- * "See also" run share one left edge; the row's hover fill overhangs it by the
- * same 12px the divider is inset, so the aligned content stays put while the
- * tint bleeds outward. Descriptions take their own line under the title instead
- * of fighting it for width, so nothing is ever clipped to an ellipsis. Every
- * label is a `msg()` key from `libraryConfig`, translated here so the mirror
- * reads the archive in its own language.
- */
 function LibraryPanelSection({ panel }: { panel: LibraryPanel }) {
   const t = useT();
   return (

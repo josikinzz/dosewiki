@@ -12,23 +12,6 @@ import {
 
 type TripReportRecord = TripReportPreviewRecord;
 
-/**
- * Drop contributor rows that exist only as an alias of a *different* profile, keeping the
- * profile that claims the alias.
- *
- * The ownership check is the whole point. A key-shaped alias is a deliberate part of the write
- * model — `renameProfile` in `server/lib/contributorProfiles` records the old key (lowercased)
- * as an alias so a renamed profile keeps resolving under its previous identity, and the Effect
- * Index identity import writes the lowercased key alongside the real handles. Comparing a
- * profile's key against *every* alias in the table, its own included, therefore made every such
- * row delete itself: the live public table collapsed from 13 rows to the single row that had no
- * self-alias, which silently emptied dose.wiki's founder cards and stripped every author link
- * off the report pages. A row cannot be a duplicate of itself.
- *
- * Two profiles that name each other still both drop out. That is a contradictory pair rather
- * than a canonical/alias pair, and no read can pick a winner; it is left as-is because the fix
- * belongs in the data.
- */
 export const collapseContributorProfiles = (
   profiles: readonly NormalizedUserProfile[],
 ): NormalizedUserProfile[] => {
@@ -52,18 +35,6 @@ export const resolveReportContributorProfile = (
   authorName: string,
 ) => findProfileByAuthorNameInList(profiles, authorName);
 
-/**
- * Resolve the contributor a report is attributed to.
- *
- * Byline matching is only trustworthy where the byline itself is: the imported
- * corpus was written by editors, so a report with no `attribution_review` marker
- * resolves by name exactly as it always has. A marker means the report came in
- * through the public submission form, where the byline is a string an anonymous
- * person typed — so it grants nothing, and attribution is only the key an editor
- * assigned at promotion (`server/tripReportSubmissions.ts`). Without this split,
- * stripping the submitted `profile_key` would not have helped: typing a real
- * contributor's name would have re-acquired their identity at read time.
- */
 const resolveAttributedProfile = (
   report: Pick<TripReportRecord, "subject"> & { attribution_review?: unknown; attribution_locked?: boolean },
   profiles: readonly NormalizedUserProfile[],

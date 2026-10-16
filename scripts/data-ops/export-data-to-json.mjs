@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * Export articles from Postgres to SubstanceIndex.json
- *
- * This script fetches all articles from the Postgres database and writes them
- * to src/data/SubstanceIndex.json. Run this before building for production to ensure
- * the static file has the latest data from Postgres.
- *
- * Usage:
- *   npm run data:export
- *
- * After running:
- *   git add . && git commit -m "Sync articles from Postgres" && git push
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
@@ -47,7 +34,6 @@ async function main() {
 
   const client = createDataClient({ target: dataUrl }).client;
 
-  // Fetch all articles from Postgres
   console.log("Fetching articles from Postgres...");
   const articles = await getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage);
 
@@ -60,10 +46,8 @@ async function main() {
 
   console.log(`Found ${articles.length} articles in Postgres\n`);
 
-  // Remove Postgres internal fields (_id, _creationTime)
   const cleanedArticles = articles.map(({ _id, _creationTime, ...article }) => article);
 
-  // Sort by id for consistent ordering
   cleanedArticles.sort((a, b) => {
     if (a.id === null && b.id === null) return 0;
     if (a.id === null) return 1;
@@ -71,7 +55,6 @@ async function main() {
     return a.id - b.id;
   });
 
-  // Write to SubstanceIndex.json
   const outputPath = resolve(process.cwd(), "src/data/SubstanceIndex.json");
   writeFileSync(outputPath, JSON.stringify(cleanedArticles, null, 2) + "\n");
   const lineage = tryWriteArtifactLineageSidecar({

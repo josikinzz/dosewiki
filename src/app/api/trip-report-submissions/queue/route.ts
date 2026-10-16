@@ -1,15 +1,3 @@
-/**
- * Editor read of the private submission queue.
- *
- *   GET /api/trip-report-submissions/queue?status=&limit=   newest first, capped at 250
- *   GET /api/trip-report-submissions/queue?scope=needs-review
- *   GET /api/trip-report-submissions/queue?scope=portal
- *   GET /api/trip-report-submissions/queue?id=…
- *
- * The portal scope is a compact, non-overlapping projection: uncapped needs
- * review plus non-needs rows from the existing newest-250 history window. Full
- * private submission detail is read only when the editor selects a row.
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

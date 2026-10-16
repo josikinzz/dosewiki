@@ -1,57 +1,4 @@
 #!/usr/bin/env node
-/**
- * DW-19 — Upgrade low-resolution article embeds to their high-resolution
- * on-site replication masters.
- *
- * Substance/effect article VCode `[captioned-image src="..."]` embeds hardcode
- * storage URLs. Some of those point at tiny thumbnails while the same
- * work exists as a full-resolution replication master on the same deployment
- * (e.g. prod After Images: 142×80 embed vs 2048×1151 replication master).
- * Canonical decision: each deployment's embed should serve the replication
- * master that deployment already serves — no cross-deployment uploads.
- *
- * Matching guards (ALL must pass before an auto-swap is proposed):
- *   1. normalized title + artist equality between embed and replication row,
- *      and the match must be unique;
- *   2. ≥1.5× dimension gain on BOTH axes (probed with sharp, never assumed);
- *   3. pixel confirmation: RMSE between downsampled embed and master, with
- *      an aspect-ratio guard; a `strong` entry in the article media curation
- *      dossier (`--curation=<path>`, optional) for the same work counts as an
- *      independent attestation and is recorded. The dossier is an editor
- *      review record kept outside the repository; without it, only the pixel
- *      check confirms a match.
- * Anything ambiguous (multiple candidates, failed pixel match) goes to the
- * review report and is NEVER auto-swapped. Low-res embeds with no on-site
- * counterpart are flagged for the deferred external re-sourcing ticket.
- *
- * Dry run (default; read-only — queries only, zero writes):
- *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target postgresql://<host>/<database> \
- *     [--curation=/path/to/article-media-curation.json]
- *
- * Prod dry run (read-only):
- *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target postgresql://<host>/<database>
- *
- * Real run against dev:
- *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target postgresql://<host>/<database> \
- *     --write --confirm-write=upgrade-embed-resolutions \
- *     --expected-deployment=enchanted-echidna-791
- *
- * Real run against prod (DO NOT run before the DW-25 gate review):
- *   node scripts/effects/upgrade-embed-resolutions.mjs \
- *     --target postgresql://<host>/<database> \
- *     --write --confirm-write=upgrade-embed-resolutions \
- *     --expected-deployment=<host>/<database>
- *
- * Writes go through `subjectiveEffects.repairLegacyMedia`, which patches raw
- * and AST fields atomically behind exact-expected-value preconditions. After
- * writing, every swapped URL is re-fetched and its dimensions re-asserted.
- *
- * Report: tmp/upgrade-embed-resolutions-<deployment>.json (override with --report-dir)
- * (override with --report-dir).
- */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
@@ -75,17 +22,9 @@ const reportDir = getFlagValue(args, "--report-dir") ??
   join(command.repoRoot, "tmp");
 const deployment = command.deploymentFingerprint;
 
-// Guards. MIN_GAIN per PRD W10a; RMSE threshold sits well above the attested
-// true matches (0.007–0.023 in the 2026-08-11 curation dossier) and well below
-// what unrelated images produce on a 32×32 grayscale grid (>0.2).
 const MIN_GAIN = 1.5;
 const MAX_RMSE = 0.1;
 const MAX_ASPECT_DELTA = 0.05;
-// "Low-res" gates BOTH the auto-swap and the flagged report: only embeds that
-// are themselves thumbnail-grade are in scope. The 2026-08-11 audit called
-// everything from 468px up "healthy" (even where a larger master exists —
-// swapping a healthy 1280px embed to a 5120px master just quadruples page
-// weight), while every true thumbnail sits at or under 300×300.
 const LOW_RES_LONG_EDGE = 400;
 
 const mediaFields = [
@@ -104,7 +43,6 @@ function normalizeName(value) {
     : "";
 }
 
-/** Collect captioned-image embeds (raw tags and AST nodes) from a field value. */
 function collectEmbeds(value, out = []) {
   if (typeof value === "string") {
     for (const match of value.matchAll(captionedImagePattern)) {
@@ -150,7 +88,6 @@ function replaceUrl(value, from, to) {
 }
 
 const probeCache = new Map();
-/** Fetch an image once and probe dimensions + a 32×32 grayscale fingerprint. */
 async function probeImage(url) {
   if (probeCache.has(url)) return probeCache.get(url);
   const probe = await (async () => {
@@ -190,10 +127,6 @@ function rmse(a, b) {
   return Math.sqrt(sum / a.length);
 }
 
-// ---------------------------------------------------------------------------
-// Scan
-// ---------------------------------------------------------------------------
-
 const curationPath = getFlagValue(args, "--curation");
 const curation = curationPath
   ? JSON.parse(readFileSync(curationPath, "utf8"))
@@ -203,15 +136,10 @@ const client = createDataClient({ target: command.targetUrl }).client;
 const effects = await client.query(api.subjectiveEffects.getAll, {});
 const replications = await client.query(api.replications.getAll, {});
 const imageReplications = replications.filter((row) => row.type === "image");
-// Resolved URLs come from the same public read the site renders from: since the
-// R2 migration a row's primary locator may be `r2_key` with no legacy storage
-// object at all, so `storage_id` alone no longer identifies the master.
 const galleryRows = await client.query(api.replications.getPublicReplications, {});
 const urlBySlug = new Map(
   galleryRows.flatMap((row) => (row.url ? [[row.slug, row.url]] : [])),
 );
-// Rows outside the public gallery keep resolving through legacy storage.
-// `placeholder-*` ids mark externally hosted media and never resolve.
 const legacy = imageReplications.filter((row) =>
   !urlBySlug.has(row.slug)
   && typeof row.storage_id === "string"
@@ -228,8 +156,6 @@ const replicationUrl = new Map(imageReplications.map((row) => [
 ]));
 const servedUrlSet = new Set([...replicationUrl.values()].filter(Boolean));
 
-// One entry per (article, src); the same src may appear in several fields
-// (raw + AST), and raw/AST occasionally disagree — each src is its own entry.
 const embeds = new Map();
 for (const effect of effects) {
   for (const field of mediaFields) {
@@ -255,10 +181,6 @@ for (const effect of effects) {
 console.log(`Articles scanned: ${effects.length}`);
 console.log(`Storage-URL embeds (article × src): ${embeds.size}`);
 
-// ---------------------------------------------------------------------------
-// Match
-// ---------------------------------------------------------------------------
-
 const curationBySignature = new Map();
 for (const asset of curation.assets) {
   if (asset.confidence !== "strong") continue;
@@ -277,12 +199,6 @@ const flaggedImages = [];
 let aligned = 0;
 let healthy = 0;
 
-/**
- * Flag one unique image. The same work can embed in several articles and can
- * even sit behind several storage ids (raw vs AST divergence, re-encodes), so
- * dedupe on pixel identity: same-size images whose fingerprints agree within
- * the pixel-match threshold are one work. Undecodable embeds dedupe by src.
- */
 function flag(embed, probe, extra) {
   const existing = flaggedImages.find((item) => {
     if (item.srcs.includes(embed.src)) return true;
@@ -414,10 +330,6 @@ for (const embed of [...embeds.values()]) {
   }));
 }
 
-// ---------------------------------------------------------------------------
-// Report + dry-run diff
-// ---------------------------------------------------------------------------
-
 const flagged = flaggedImages.map((item) => {
   const reportItem = { ...item };
   delete reportItem.fingerprint;
@@ -486,10 +398,6 @@ if (command.dryRun) {
   process.exit(0);
 }
 
-// ---------------------------------------------------------------------------
-// Apply
-// ---------------------------------------------------------------------------
-
 assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 
@@ -523,8 +431,6 @@ for (const [slug, swaps] of swapsByArticle) {
 }
 console.log(`Repaired articles: ${repaired}`);
 
-// Post-write verification: the old URL must be gone, the new URL present, and
-// the served replacement must still decode at the promised dimensions.
 let verificationFailures = 0;
 for (const [slug, swaps] of swapsByArticle) {
   const effect = await client.query(api.subjectiveEffects.getBySlug, { slug });

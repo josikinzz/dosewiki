@@ -20,11 +20,6 @@ import { withChangeNote } from "./commitScope";
 import { resolveEditorArticleSlug, EMPTY_INDEX_CONFIG } from "../context/devModeUtils";
 import type { ProposalBaseline } from "../../../../lib/proposals/proposalBaseline";
 
-/**
- * Who a save is attributed to. The Auth.js session cookie is the credential;
- * the save route authorizes from it server-side. `key` is the contributor
- * key the client shows while the save runs.
- */
 export type DevSaveCredentials = {
   key: string;
 };
@@ -48,7 +43,6 @@ export type DevSaveDraft = {
   changelog: {
     dataset: DatasetChangelogResult;
   };
-  /** The change note typed in the commit sheet; it leads the changelog entry. */
   note?: string;
 };
 
@@ -62,7 +56,6 @@ export type DevSaveDraftInput = {
 };
 
 export type DevSaveCommandResult = {
-  /** Where the save went: written to production, or held as a proposal. */
   destination: DevCommitDestination;
   savedItems: string[];
   warnings: string[];
@@ -72,7 +65,6 @@ export type DevSaveCommandResult = {
   articleReceipts?: Array<{ slug: string; baseHash: string }>;
   revalidatedPaths?: string[];
   requestId?: string;
-  /** Follow-up link shown beside the success notice (e.g. the review queue). */
   actionHref?: string;
   actionLabel?: string;
 };
@@ -215,13 +207,8 @@ export function createDataSaveAdapter({
   };
 }
 
-/** Short id shown in the notice: the tail of a Postgres id is what differs between rows. */
 const PROPOSAL_ID_DISPLAY_LENGTH = 6;
 
-/**
- * One-line summary of a proposal for the queue: the changed article titles and
- * layout types, in payload order, so an admin can tell rows apart at a glance.
- */
 export function buildProposalSummary(draft: DevSaveDraft, payload: SaveArticlePayload): string {
   const articleTitles = (payload.articles ?? []).map((article) => {
     const record = article && typeof article === "object" ? (article as { title?: unknown }) : {};
@@ -238,12 +225,6 @@ export function buildProposalSummary(draft: DevSaveDraft, payload: SaveArticlePa
   return items.length > 3 ? `Update ${shown} and ${items.length - 3} more` : `Update ${shown}`;
 }
 
-/**
- * The editor-side adapter: the same payload the Postgres adapter would save is
- * posted to /api/dev/proposals with the original documents the editor loaded.
- * The server refuses stale baselines and derives its own diff. With `revisionOf`
- * the submission revises that returned proposal, which the server supersedes.
- */
 export function createProposalSaveAdapter({
   submitProposal,
   revisionOf = null,

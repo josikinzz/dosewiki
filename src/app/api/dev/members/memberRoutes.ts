@@ -1,7 +1,3 @@
-/**
- * Shared pieces of the `/api/dev/members/*` routes: the body every action
- * takes (a target email) and the rows the roster returns.
- */
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import type { AppRole } from "@/lib/auth/roles";
 
@@ -19,7 +15,6 @@ export function parseMemberEmail(raw: MemberActionBody): { email: string } {
   return { email };
 }
 
-/** One roster row as the Members tab sees it. Mirrors `memberships.listRoster`. */
 type MemberRosterRow = {
   email: string;
   username?: string;
@@ -34,7 +29,6 @@ type MemberRosterRow = {
 
 export type MemberRosterResponse = {
   ok: true;
-  /** The signed-in admin, so the tab can disable actions on their own row. */
   self: string;
   members: MemberRosterRow[];
 };

@@ -1,4 +1,3 @@
-// Pure contributor-work eligibility and candidate ranking.
 import featuredReplications from "@data/effects/effectIndexFeaturedReplications.json";
 import {
   profileMatchesName,
@@ -41,16 +40,9 @@ export type AvatarCandidate = {
   slug: string;
   type: "image" | "video";
   featured: boolean;
-  /** `min(width, height)`: the largest square this source can yield. */
   squareSide: number;
 };
 
-/* ----------------------------------------------------------------- selection */
-
-/**
- * The eligible works of one contributor: publishable replications whose credit
- * line resolves to them through the shared matcher.
- */
 export function worksForProfile(
   profile: { displayName: string; aliases: readonly string[] },
   replications: readonly ReplicationRow[],
@@ -60,12 +52,6 @@ export function worksForProfile(
     .filter((row) => profileMatchesName(profile, row.artist));
 }
 
-/**
- * Narrow a contributor's works to the tier the avatar must come from, before any
- * pixel is fetched: curated works if there are any, then stills if the surviving
- * set has any. Steps 1 and 2 of the ordering, and the only steps that can be
- * decided from stored metadata alone.
- */
 export function preferredTier<Row extends { slug: string; type: string }>(works: readonly Row[]): Row[] {
   const curated = works.filter((row) => isFeaturedReplication(row.slug));
   const tier = curated.length > 0 ? curated : works;
@@ -73,10 +59,6 @@ export function preferredTier<Row extends { slug: string; type: string }>(works:
   return stills.length > 0 ? stills : tier.filter((row) => row.type === "video");
 }
 
-/**
- * Steps 3 and 4, applied to a tier whose sources have been measured. Separated
- * from `preferredTier` because it is the half that costs a network round trip.
- */
 export function rankMeasuredCandidates(candidates: readonly AvatarCandidate[]): AvatarCandidate[] {
   return [...candidates].sort(
     (left, right) => right.squareSide - left.squareSide || left.slug.localeCompare(right.slug),

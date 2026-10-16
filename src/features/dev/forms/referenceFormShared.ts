@@ -1,10 +1,5 @@
 import type { Reference } from "@/schema";
 
-/**
- * Re-exported from the shared intake module, which is where the blank-reference
- * shape now lives so a server route can build the same object without importing
- * an editor-form module. Form code keeps importing it from here.
- */
 export { createEmptyReference } from "@/lib/citations/referenceIntake";
 
 export const REFERENCE_TYPE_OPTIONS = [

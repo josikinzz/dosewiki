@@ -37,11 +37,6 @@ export const STATIC_PUBLIC_PATHS = [
   getPublicRoutePath({ family: "glossary" }),
 ] as const;
 
-/**
- * Slugs reserved under `/replications` stay out of the route plan and sitemap
- * rather than silently losing to a static segment at request time. "artist" hosts
- * focused galleries; "effect" and "substance" remain permanent redirect paths.
- */
 const RESERVED_REPLICATION_SLUGS = new Set([
   "audio",
   "tutorials",
@@ -51,7 +46,6 @@ const RESERVED_REPLICATION_SLUGS = new Set([
   "substance",
 ])
 
-/** Static index routes under dynamic article/report namespaces. */
 export const RESERVED_EFFECT_SLUGS: Record<string, true> = {
   category: true,
   group: true,
@@ -109,12 +103,6 @@ interface PublicRoutePlanInput {
   categories: readonly { key: string }[];
   effects: readonly { slug: string }[];
   replications: readonly { slug: string; url?: string | null }[];
-  /**
-   * The exclusion-filtered gallery feed (getPublicGalleryReplications), from
-   * which the focused-view URL space derives. Kept separate from
-   * `replications` — permalinks stay unfiltered — so an artist who opted out
-   * of the gallery never lands in the sitemap as a focus URL that 404s.
-   */
   galleryReplications: readonly {
     url?: string | null;
     artist?: string | null;
@@ -126,12 +114,6 @@ interface PublicRoutePlanInput {
     kind?: "article" | "blog";
   }[];
   reports: readonly { slug: string }[];
-  /**
-   * The public contributor directory (key, display name, aliases): the
-   * contributors family derives its keys from it, and profiles that claim a
-   * displayable credit line — whose /contributors page permanently forwards
-   * to the Artist Page (T-4) — are kept out of the sitemap.
-   */
   contributorDirectory: readonly {
     key: string;
     displayName: string;
@@ -192,11 +174,6 @@ function articleEntriesFromRecords(
 
   for (const article of articles) {
     if (!article.slug) continue;
-    // Blog posts share the `effectIndexArticles` table with articles but not
-    // the `/articles/<slug>` route family; they are served from `/blog/<slug>`
-    // and must never be prerendered here. Drafts are already gone upstream —
-    // the Postgres query and `normalizePublicEffectIndexArticle` both drop them —
-    // so nothing with `status: "draft"` can reach this input at all.
     if (article.kind === "blog") continue;
 
     const includeInSitemap =
@@ -274,9 +251,6 @@ export function buildPublicRoutePlan(
         (effectSlug) =>
           getPublicRoutePath({ family: "effect", params: { effectSlug } }),
       ),
-      // Only rows with a resolved asset get a page — an unrenderable replication
-      // would be a permalink to a broken image. Reserved slugs are dropped so they
-      // never shadow /replications/audio or /replications/tutorials.
       replications: entriesFromSlugs(
         input.replications
           .filter(({ url }) => Boolean(url))
@@ -286,11 +260,6 @@ export function buildPublicRoutePlan(
         (slug) =>
           getPublicRoutePath({ family: "replication", params: { slug } }),
       ),
-      // Focused artist galleries derive from the exclusion-filtered works the
-      // gallery actually shows. Effects now use their article pages as the
-      // source collection, so the former replicationEffects family is gone.
-      // An artist holding only withheld works has no focused page and is not
-      // advertised here.
       replicationArtists: (() => {
         const displayable = input.galleryReplications.filter(
           (row) => Boolean(row.url) && !isWithheldFromArtistViews(row),
@@ -331,10 +300,6 @@ export function buildPublicRoutePlan(
         "slug",
         (slug) => getPublicRoutePath({ family: "report", params: { slug } }),
       ),
-      // Profiles render on demand (a forwarded profile serves its 301 on
-      // first request). This family exists for the sitemap, which stops
-      // naming a profile that claims a credited artist — its Artist Page is
-      // already advertised by the replicationArtists family above.
       contributors: (() => {
         const forwardedProfileKeys = mapArtistPageKeysByProfile(
           input.galleryReplications,
@@ -384,7 +349,6 @@ export function getPublicRouteSitemapPaths(plan: PublicRoutePlan) {
   return unique([...plan.staticPaths, ...dynamicPaths]);
 }
 
-// Request-only composition: an outer persistent entry bypasses corpus page caches.
 export const getPublicRoutePlan = cache(
   async () => {
     const [

@@ -4,13 +4,6 @@ import type { EditorTarget } from "./context";
 
 export type EditorLauncherAction = { label: string; href: string };
 
-/**
- * Whether the page's editable record is one this role can change in place,
- * mirroring each contextual editor's own gate: articles and writing need the
- * editor role, effect articles need admin, and a replication viewer opens to
- * contributors. A page with no declared record keeps the member floor, since
- * its in-page editors (copy blocks, artist profiles) gate themselves.
- */
 export function canEditTarget(target: EditorTarget | undefined, role: AppRole | null | undefined): boolean {
   switch (target?.kind) {
     case "substance":
@@ -25,7 +18,6 @@ export function canEditTarget(target: EditorTarget | undefined, role: AppRole | 
   }
 }
 
-/** Only links to existing tools; their server-side authorization remains authoritative. */
 export function getEditorLauncherActions(
   target: EditorTarget | undefined,
   role: AppRole | null | undefined,

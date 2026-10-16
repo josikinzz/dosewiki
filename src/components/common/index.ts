@@ -1,4 +1,3 @@
-// Shared utility components
 export { AppImage } from "./AppImage";
 export * from "./ArticleCitationList";
 export * from "./ArticleExpandable";

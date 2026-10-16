@@ -1,17 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Emit the accent axis into the global stylesheet.
- *
- * The accent definitions stay the single source of truth; this only serializes them, so the
- * browser can paint a saved accent from CSS it already has rather than waiting for a runtime
- * to hydrate and inject it.
- *
- *   npm run generate:accent-css            write the stylesheet
- *   npm run generate:accent-css -- --check  fail if it is stale
- *
- * `accents.axis.test.ts` runs the same comparison, so an accent edit without a regenerate fails
- * the test suite rather than shipping a stale palette.
- */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { argv, cwd, exit, stderr, stdout } from "node:process";

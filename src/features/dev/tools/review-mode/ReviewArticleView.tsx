@@ -17,11 +17,6 @@ import type { ReviewViewMode } from "./reviewSettings";
 import type { AppRole } from "@/lib/auth/roles";
 import type { DraftNavigationGuard } from "@/features/contextual-editing/context";
 
-/**
- * The public layout mounts here without a route loader, so it has no resolved
- * banner list (`ArticleLayoutProps.warningBanners`). Say so where the banners
- * would sit, rather than let the reviewer read their absence as a data error.
- */
 const BANNERS_HIDDEN_NOTICE = (
   <Notice
     tone="neutral" icon="lucide:eye-off" message="Warning banners are hidden in review."
@@ -33,16 +28,11 @@ interface ReviewArticleViewProps {
   total: number;
   showAll: () => void;
   current: ReviewQueueEntry | null;
-  /** The working-set article with this session's direct writes overlaid. */
   articleForView: SubstanceArticle | null;
-  /** The current article's body is still being fetched; the article area waits inline. */
   articleHydrating: boolean;
-  /** The current article's most recent fetch landed nothing; the area offers a retry. */
   articleFailed: boolean;
   retryArticle: () => void;
-  /** Moves to the next article, when there is one; offered where an article cannot be read. */
   goNext?: () => void;
-  /** Called with true when the article could not be drawn, and false once it draws again. */
   onDrawFailedChange?: (failed: boolean) => void;
   moleculeOverrideUrl: string | null;
   moleculePanelOpen: boolean;
@@ -61,7 +51,6 @@ interface ReviewArticleViewProps {
   onOperationLockChange: (locked: boolean) => void;
 }
 
-/** Reports a render failure to the workbench while it shows, so the tick stays off. */
 function DrawFailure({ name, slug, reset, onChange, goNext }: { name: string; slug: string; reset: () => void; onChange?: (failed: boolean) => void; goNext?: () => void }) {
   useEffect(() => {
     onChange?.(true);
@@ -89,7 +78,6 @@ function DrawFailure({ name, slug, reset, onChange, goNext }: { name: string; sl
   );
 }
 
-/** Article-shaped placeholder while one body loads, so the page does not jump when it lands. */
 function ArticleSkeleton({ name }: { name: string }) {
   return (
     <div aria-busy="true" data-testid="review-article-loading" className="mx-auto max-w-5xl space-y-6 py-4">
@@ -105,7 +93,6 @@ function ArticleSkeleton({ name }: { name: string }) {
   );
 }
 
-/** Everything under the bar: the finished state, the molecule panel, then the article in either view. */
 export function ReviewArticleView({
   allReviewed,
   total,
@@ -129,8 +116,6 @@ export function ReviewArticleView({
   inlineEdit,
   workbenchRole, workbenchEmail, onDirtyChange, draftGuardRef, onOperationLockChange,
 }: ReviewArticleViewProps) {
-  // M opens the panel above the article; bring it to the reader rather than
-  // leave it off screen above the passage they were reading.
   const moleculeRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!moleculePanelOpen) return;
@@ -157,17 +142,12 @@ export function ReviewArticleView({
         </div>
       ) : null}
 
-      {/* `theme-review-article-scope` re-times the article's own sticky and
-          anchor offsets against the live bar height; see the rule pair in
-          utilities-theme.css. */}
       <div
         className="theme-review-article-scope mx-auto w-full max-w-[1500px] px-4 pb-10 pt-6 sm:px-6"
         onClickCapture={
           viewMode === "webpage" && !articleLinks ? blockArticleLinks : undefined
         }
       >
-        {/* Shown in both views: the form has nothing to seed from either, and
-            the retry is the only way forward short of moving on. */}
         {articleFailed && current ? (
           <div className="mx-auto mb-4 max-w-3xl" data-testid="review-article-failed">
             <LoadErrorState
@@ -179,10 +159,6 @@ export function ReviewArticleView({
           </div>
         ) : null}
 
-        {/* The working set stops taking live updates while it holds unapplied
-            changes, so the page can be rendering, and sending as the write's
-            `expected` baseline, a copy the database has already moved past.
-            Shown in both views: it is about the data on screen. */}
         {articlesRefreshConflict ? (
           <div className="mb-4">
             <Notice
@@ -222,10 +198,6 @@ export function ReviewArticleView({
   );
 }
 
-/**
- * The peak-end moment: the last article of the pass deserves better than a
- * warning notice.
- */
 function FinishedState({
   total,
   showAll,

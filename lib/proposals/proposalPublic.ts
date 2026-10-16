@@ -2,7 +2,6 @@ import type { ProposalStatus } from "./proposalStatus";
 import { readArticlePatches } from "./articlePatch";
 import { readFeedbackRef } from "../../src/features/intake/feedbackCorrection";
 
-/** Display identity is explicitly chosen public profile text, never an email-derived name. */
 export function safeProposalName(value: unknown, fallback: "Contributor" | "Reviewer"): string {
   const name = typeof value === "string" ? value.trim() : "";
   return name && !/[@\p{Cc}]/u.test(name) ? name : fallback;
@@ -29,9 +28,7 @@ type SummarySource = {
   commentCount?: number;
   appliedAt?: string;
   conflictReason?: string;
-  /** The stored proposal body; only its `feedbackRef` is read here. */
   payload?: unknown;
-  /** An already projected feedback reference (the route re-projects Postgres results). */
   feedbackRef?: unknown;
 };
 
@@ -39,7 +36,6 @@ export function projectProposalComment(comment: CommentSource) {
   return { authorName: safeProposalName(comment.authorName, "Contributor"), at: comment.at, text: comment.text };
 }
 
-/** Also accepts the old Postgres result during rollout. Raw ownership is consumed only on the server. */
 export function projectProposalSummary(row: SummarySource, actorEmail: string) {
   return {
     _id: row._id,
@@ -58,8 +54,6 @@ export function projectProposalSummary(row: SummarySource, actorEmail: string) {
     commentCount: row.comments?.length ?? row.commentCount ?? 0,
     appliedAt: row.appliedAt,
     conflictReason: row.conflictReason,
-    // The reader feedback this proposal answers: its id and section only, never
-    // the reader's contact details or words.
     ...optionalFeedbackRef(row),
   };
 }
@@ -70,8 +64,6 @@ function optionalFeedbackRef(row: SummarySource) {
   return feedbackRef ? { feedbackRef } : {};
 }
 
-
-/** Only document-envelope audit/contact metadata is private. Article prose and reference content stay intact. */
 export function proposalPublicDocument(value: unknown): unknown {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return value;
   const {
@@ -91,8 +83,6 @@ type PayloadSource = {
   writing?: unknown;
 };
 
-// Client-supplied changelog markdown and attribution are not needed to seed
-// the editor. The verified server diff is the sole comparison transport.
 function projectProposalPayload(payload: unknown) {
   if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return {};
   const value = payload as PayloadSource;
@@ -105,15 +95,12 @@ function projectProposalPayload(payload: unknown) {
   };
 }
 
-/** Historical generated diffs can contain audit-field sections from before the projection existed. */
 export function proposalPublicDiff(markdown: string): string {
   let incomplete = false;
   const diff = markdown.split(/(?=^# )/mu).map((section) => {
     if (/^# (?:article|indexLayout|copyBlock|about|writing): [^\n]+ \/ (?:submittedBy|proposedBy|reviewedBy|updatedBy|createdBy|actorEmail|email|contactEmail|membershipEmail|contact)(?:[.\s[]|$)/u.test(section)) {
       return "";
     }
-    // A newly created/deleted document is serialized as a whole JSON object,
-    // rather than one section per field. Scrub only its envelope, not prose.
     if (!/^# (?:article|indexLayout|copyBlock|about|writing): [^\n]+\n/u.test(section) ||
         section.slice(0, section.indexOf("\n")).includes(" / ") ||
         !/^[+-] {2}"(?:submittedBy|proposedBy|reviewedBy|updatedBy|createdBy|actorEmail|email|contactEmail|membershipEmail|contact)":/mu.test(section)) {
@@ -129,8 +116,6 @@ export function proposalPublicDiff(markdown: string): string {
         body.push(...JSON.stringify(proposalPublicDocument(document), null, 2).split("\n").map((line) => `${prefix}${line}`));
       }
     } catch {
-      // Do not permit approval based on a partial historical comparison when
-      // a truncated object cannot be separated from its private metadata.
       incomplete = true;
       return "";
     }
@@ -139,7 +124,6 @@ export function proposalPublicDiff(markdown: string): string {
   return incomplete ? "" : diff;
 }
 
-/** No storage snapshots or audit fields cross the review transport, even from legacy functions. */
 export function projectProposalDetail(row: SummarySource & {
   payload?: unknown;
   diff: string;
@@ -152,7 +136,6 @@ export function projectProposalDetail(row: SummarySource & {
 }, actorEmail: string, options: { includePayload?: boolean } = {}) {
   const diff = proposalPublicDiff(row.diff);
   const privateComparison = row.diff.trim().length > 0 && diff.trim().length === 0;
-  // Field changes are read only when the comparison they came from is shown.
   const articlePatches = privateComparison || row.comparisonMode === "unavailable" ? null : readArticlePatches(row.articlePatches);
   return {
     ...projectProposalSummary(row, actorEmail),

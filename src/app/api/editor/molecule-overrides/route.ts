@@ -1,10 +1,3 @@
-/**
- * Canonical molecule depictions, as the molecule editor and review workbench read them.
- *
- *   GET /api/editor/molecule-overrides                          -> moleculeOverrides.listSlugs
- *   GET /api/editor/molecule-overrides?slug=lsd                 -> moleculeOverrides.getBySlug (null when none)
- *   GET /api/editor/molecule-overrides?slug=lsd&scope=metadata  -> moleculeOverrides.getMetadataBySlug
- */
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { editorReadRoute, requireParam } from "../editorReadRoute";

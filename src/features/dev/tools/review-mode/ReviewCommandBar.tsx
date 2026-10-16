@@ -51,27 +51,14 @@ interface ReviewCommandBarProps {
   toggleMoleculePanel: () => void;
   toggleCitationPanel: () => void;
   toggleInlineEdit: () => void;
-  /** Editor floor: inline edits update only the private local article preview. */
   canEditArticle: boolean;
   helpOpen: boolean;
   setHelpOpen: Dispatch<SetStateAction<boolean>>;
-  /** The article list, controlled so `/` can open it. */
   pickerOpen?: boolean;
   setPickerOpen?: (open: boolean) => void;
-  /** Leaving goes through the unsaved-edit guard; a modified click still opens a tab. */
   onLeave: (event: MouseEvent<HTMLAnchorElement>) => void;
 }
 
-/**
- * The sticky bar over the article: where the reviewer is and how to move
- * (leave, previous, the article picker, next, the position in the queue), then
- * the workbench's tools (view, molecule, citations, inline editing, open in,
- * queue settings, trophies, help). The decisions about the article (hold,
- * notes, the tick) live in the review dock at the bottom of the screen.
- *
- * One row at every width. Below `lg` the tools fold into the More sheet, so a
- * phone's bar is previous, the picker, next and More; nothing is lost.
- */
 export function ReviewCommandBar({
   settings: settingsState,
   queue: queueState,
@@ -125,11 +112,6 @@ export function ReviewCommandBar({
   } = queueState;
   const { celebration } = status;
 
-  /**
-   * Publish the bar's live height so the article's sticky contents and anchor
-   * offsets sit under it (see `theme-review-article-scope`). A callback ref:
-   * the bar mounts after the queue resolves.
-   */
   const [barNode, setBarNode] = useState<HTMLElement | null>(null);
   useEffect(() => {
     if (!barNode || typeof ResizeObserver === "undefined") return;
@@ -148,13 +130,9 @@ export function ReviewCommandBar({
     };
   }, [barNode]);
 
-  // One highlight pass over the progress fill for a finished subsection, two
-  // for a finished category, keyed by the celebration so repeats re-run.
   const progressFlourish = celebration
     ? { id: celebration.id, kind: celebration.level === "group" ? ("lap" as const) : ("sweep" as const) }
     : null;
-  // A settings surface that holds persistent, cross-session modes admits when
-  // it is holding one.
   const settingsChanged =
     order !== REVIEW_SETTINGS_DEFAULTS.order ||
     unreviewedOnly !== REVIEW_SETTINGS_DEFAULTS.unreviewedOnly ||
@@ -206,11 +184,6 @@ export function ReviewCommandBar({
     />
   );
 
-  /**
-   * `onAfterChange` dismisses the More sheet: switching views replaces the
-   * whole page under it. `labelsFrom` keeps the bar's tabs icon-only until
-   * `xl` (sr-only keeps the names); the sheet always shows labels.
-   */
   const renderViewTabs = (onAfterChange?: () => void, { compact = false }: { compact?: boolean } = {}) => (
     <PublicSegmentedTabs<ReviewViewMode>
       ariaLabel="Review view"
@@ -236,8 +209,6 @@ export function ReviewCommandBar({
   );
 
   const openElsewhereItems = <OpenElsewhereItems slug={current?.slug} />;
-  // Filters change what the arrows walk, so they show as removable chips
-  // under the bar rather than hide behind the settings dot.
   const activeFilters: Array<{ key: string; label: string; removeLabel: string; remove: () => void }> = [
     ...(unreviewedOnly ? [{ key: "unreviewed", label: "Unreviewed only", removeLabel: "Show reviewed articles again", remove: () => updateSettings({ unreviewedOnly: false }) }] : []),
     ...(changedSinceReview ? [{ key: "changed", label: "Changed since review", removeLabel: "Stop filtering to changed articles", remove: () => updateSettings({ changedSinceReview: false }) }] : []),
@@ -256,8 +227,6 @@ export function ReviewCommandBar({
       aria-label="Review controls"
       className="theme-review-command-bar sticky top-0 z-40 border-b"
     >
-      {/* The help popover's root spans the row so `?` can open it at any width;
-          it anchors to the end of the row, which every width shows. */}
       <Popover open={helpOpen} onOpenChange={setHelpOpen}>
         <div className="mx-auto flex max-w-[1500px] flex-nowrap items-center gap-x-2 px-3 py-2 sm:gap-x-3 sm:px-5">
           <Button
@@ -495,7 +464,6 @@ export function ReviewCommandBar({
         </p>
       ) : null}
 
-      {/* The full-width track welded to the bar's bottom edge. */}
       <ProgressStrip reviewed={reviewedCount} total={queue.length} variant="hairline" flourish={progressFlourish} />
     </header>
   );

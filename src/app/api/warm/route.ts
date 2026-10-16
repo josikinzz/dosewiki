@@ -13,17 +13,6 @@ import {
   warmRotationForTick,
 } from "./warmPolicy";
 
-/**
- * Cron-driven warmer for substance articles.
- *
- * Scheduled runs warm at most 40 high-priority article URLs on the canonical
- * public origin. Priority is an existing editorial signal, not inferred traffic.
- * Low-tier pages stay demand-driven instead of being swept every 15 minutes.
- *
- * Authenticated deployment warming may explicitly request includeLow=1 and
- * rotate through at most 120 URLs per bounded run. The workstation CLI remains
- * available for deliberate sitemap warming after a deployment.
- */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -70,6 +59,5 @@ export const GET = cronRoute(async function GET(request: Request) {
     { headers: { "cache-control": "no-store" } },
   );
 }, {
-  // Keep unauthenticated attempts bounded as well as the authorized workload.
   rateLimit: (request) => enforceRateLimit(request, "diagnosticRead"),
 });

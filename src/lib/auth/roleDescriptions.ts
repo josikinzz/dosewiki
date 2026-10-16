@@ -1,12 +1,5 @@
 import type { AppRole } from "./roles";
 
-/**
- * The plain-language contract for each role. Rendered wherever an admin picks
- * a role (Members tab, invite minting) and on the invite page, so a person
- * reads the same words whether they are granting the role or receiving it.
- * The enforcement lives in `server/lib/auth.ts` (`requireRole` floors); if a
- * floor moves, move the sentence here too.
- */
 export type RoleDescription = {
   role: AppRole;
   summary: string;
@@ -90,7 +83,6 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, RoleDescription> = {
   },
 };
 
-/** The roles an invite can grant, in the order the pickers list them. */
 export const INVITABLE_ROLE_DESCRIPTIONS: readonly RoleDescription[] = [
   ROLE_DESCRIPTIONS.editor,
   ROLE_DESCRIPTIONS.translator,

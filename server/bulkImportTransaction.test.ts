@@ -8,17 +8,9 @@ vi.mock("./lib/auth", () => ({ requireRole: vi.fn(async () => ({})) }));
 
 type BulkTable = "tripReports" | "replications" | "substanceIndex";
 
-// Internal mutations are absent from some generated API typings; operator
-// scripts call them by name.
 const tripReportsBulkImport = makeFunctionReference<"mutation">("tripReports:bulkImport");
 const replicationsBulkImport = makeFunctionReference<"mutation">("replications:bulkImport");
 
-/**
- * A pg client that keeps Postgres's transaction semantics for the statements
- * the bulk handlers send. After a failed statement the transaction is aborted:
- * every later statement fails with 25P02, and COMMIT quietly ends in ROLLBACK,
- * so only rows staged in a transaction that commits cleanly persist.
- */
 function fakePostgres({ failInsertNumber }: { failInsertNumber?: number } = {}) {
   const persisted: BulkTable[] = [];
   let staged: BulkTable[] = [];
@@ -97,7 +89,6 @@ const cases = [
     table: "tripReports" as const,
     run: (client: PostgresClient, slugs: string[]) =>
       client.mutation(tripReportsBulkImport, { reports: slugs.map(report) } as never),
-    // A slug repeated within one batch is rejected before any SQL.
     runInvalid: (client: PostgresClient) =>
       client.mutation(tripReportsBulkImport, { reports: ["first", "second", "first"].map(report) } as never),
     invalidError: /Report first: slug appears more than once/,
@@ -116,21 +107,17 @@ const cases = [
     table: "substanceIndex" as const,
     run: (client: PostgresClient, slugs: string[]) =>
       saveSubstances(client, slugs.map((slug, index) => substance(index + 101, slug))),
-    // The second article fails the structural contract.
     runInvalid: (client: PostgresClient) =>
       saveSubstances(client, [substance(101, "first"), { ...substance(102, "second"), dosage: "not a dosage object" }, substance(103, "third")]),
     invalidError: /Article Substance second: Invalid structure/,
   },
 ];
 
-// Loading the function registry imports every server module; do it once,
-// outside the per-test timeout.
 beforeAll(async () => {
   await resolveFunction(tripReportsBulkImport);
 }, 60_000);
 
 describe.each(cases)("$name", ({ table, run }) => {
-  // CI runs with the freeze on; these cases exercise the open-write path.
   beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
   afterEach(() => { vi.unstubAllEnvs(); });
   it("commits every row when no statement fails", async () => {

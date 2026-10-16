@@ -1,49 +1,10 @@
-/**
- * The review workbench's records for browser journeys and screenshots of
- * `/review`: each article's human review record (`editorial_review`), its
- * current published revision, the content behind a stale sign-off, source
- * stats for the queue order, the category layout the workbench groups by, and
- * the review writes (the tick, a recommendation, Review Flags).
- *
- * Seeded so every review state has a whole article to show it on, and so a
- * bare `/review` lands on one (MDMA, the first article in home-page order that
- * is not reviewed):
- * - LSD was signed off by another admin at an older revision, so it reads
- *   "Changed since review", and its diff shows a summary and a dose change.
- *   Every other psychedelic is reviewed, so signing LSD off again finishes the
- *   Psychedelic class; `setStatus("2c-b", "needed")` first makes that tick
- *   finish only the Lysergamides section.
- * - MDMA is not reviewed and carries two flags; it is the only article in the
- *   Entactogen class, so signing it off finishes a class (the celebration).
- * - Ketamine is reviewed: an editor recommended it and another admin approved.
- * - Alcohol is on hold with a flag saying why.
- * - Heroin carries an editor's pending recommendation (the one Change Review
- *   lists), Fentanyl a stale one, Morphine and Caffeine are reviewed, so the
- *   Opioid class is one tick from done and Stimulant has a finished section.
- *
- * The route rules are the real route's: the editor floor for every write,
- * the admin floor for marking an article reviewed (403 "Admin access
- * required."), a sign-off records the revision the reviewer read or the one
- * published now, one to three words in a flag label, and the write freeze
- * (through the fixture's `toolWrite`). The route takes no revision check, so
- * `conflicted` changes nothing here; the article's own publish conflict comes
- * from the Substances lifecycle routes.
- *
- * Pure module: no Playwright and no Node imports.
- */
-
 const HOUR = 3_600_000;
 
-/** Each article's published revision; LSD and Fentanyl moved on after their review records. */
 export function publishedRevisionFor(slug) {
   const key = slug.replace(/[^a-z0-9]/g, "");
   return `rev${key}${slug === "lsd" || slug === "fentanyl" ? 2 : 1}`;
 }
 
-/**
- * The review record per slug, built against a fixed clock. Every slug not
- * named here is not reviewed and carries no flags.
- */
 export function seedReviewRecords({ epoch, otherAdmin }) {
   const at = (hours) => new Date(epoch - hours * HOUR).toISOString();
   const signed = (slug, by, hours, extra = {}) => ({
@@ -108,11 +69,6 @@ export function seedReviewRecords({ epoch, otherAdmin }) {
   };
 }
 
-/**
- * The review routes over the library rows (`rows()` is the fixture's slug to
- * row map, whose rows carry `editorial_review`), plus `wholeArticle` to build
- * the article a stale sign-off covered.
- */
 export function createReviewRoutes({ fixture, json, toolRead, toolWrite, epoch, rows, layouts, wholeArticle }) {
   let clock = epoch;
   const tick = () => new Date((clock += 60_000)).toISOString();
@@ -121,7 +77,6 @@ export function createReviewRoutes({ fixture, json, toolRead, toolWrite, epoch, 
     return row.editorial_review;
   };
 
-  /** The content an older sign-off covered: LSD's summary and oral moderate dose as they were. */
   function signedArticle(row) {
     const article = wholeArticle(row) ?? structuredClone(row);
     if (row.slug === "lsd") {
@@ -197,7 +152,6 @@ export function createReviewRoutes({ fixture, json, toolRead, toolWrite, epoch, 
   }
 
   return {
-    /** One article's stored status, for a scenario that needs another starting point. */
     setStatus(slug, status) {
       const row = rows().get(slug);
       if (!row) throw new Error(`No review record for ${slug}.`);
@@ -205,13 +159,11 @@ export function createReviewRoutes({ fixture, json, toolRead, toolWrite, epoch, 
       record.status = status;
       if (status === "completed") Object.assign(record, { reviewed_by: fixture.session.user.email, reviewed_at: tick(), reviewed_revision: publishedRevisionFor(slug) });
     },
-    /** Every article reviewed, for the finished state. */
     completeAll() {
       for (const row of rows().values()) {
         Object.assign(recordOf(row), { status: "completed", reviewed_by: fixture.session.user.email, reviewed_at: tick(), reviewed_revision: publishedRevisionFor(row.slug) });
       }
     },
-    /** Every article reviewed but `slug`, so one tick finishes the corpus. */
     completeAllBut(slug) {
       for (const row of rows().values()) {
         if (row.slug === slug) continue;
@@ -219,7 +171,6 @@ export function createReviewRoutes({ fixture, json, toolRead, toolWrite, epoch, 
       }
     },
     route({ upper, pathname, params, body }) {
-      // The layout the workbench groups by answers in every state, like the index layouts.
       if (pathname === "/api/editor/category-layout" && upper === "GET") {
         const psychoactive = layouts().find((layout) => layout.type === "psychoactive");
         return json(200, psychoactive ? { version: psychoactive.version, categories: structuredClone(psychoactive.categories) } : null);

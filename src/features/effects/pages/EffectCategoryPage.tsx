@@ -22,9 +22,6 @@ import { publicHref } from "@/utils/publicHref";
 import { buildEffectCategoryGroups } from "./effectCategoryGroups";
 import { resolveEffectCategoryIcon } from "./effectsIndexConfig";
 
-/**
- * Minimal effect type for category display.
- */
 interface EffectSummary {
   slug: string;
   name: string;
@@ -37,7 +34,6 @@ interface EffectCategoryPageProps {
   effects: EffectSummary[];
   effectHrefPrefix?: string;
   backHref?: string;
-  /** Editable category descriptions by slug, resolved from the copy blocks. */
   descriptions?: Record<string, string>;
 }
 
@@ -60,13 +56,6 @@ function toParagraphs(description: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * Effect category page.
- *
- * Top-level categories present their subcategories as columned panels, each
- * linking to that subcategory's own page. Subcategories and other leaf
- * categories open with their definition and then list their effects.
- */
 export function EffectCategoryPage({
   categorySlug,
   effects,
@@ -78,8 +67,6 @@ export function EffectCategoryPage({
   const title = t(definition?.name ?? titleFromSlug(categorySlug));
   const icon: IconName =
     resolveEffectCategoryIcon(categorySlug) ?? definition?.icon ?? "lucide:tag";
-  // Editable copy wins; the checked-in definition is the fallback, and the copy
-  // defaults hold that same prose, so an un-seeded read is a no-op.
   const paragraphs = toParagraphs(t(
     descriptions?.[categorySlug] ??
       definition?.description ??
@@ -123,9 +110,6 @@ export function EffectCategoryPage({
         contentClassName="gap-8"
         className={tocItems.length > 0 ? "theme-toc-strip-scope" : undefined}
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         {tocItems.length > 0 ? <PublicTocStrip items={tocItems} /> : null}
 
         <div>
@@ -152,9 +136,6 @@ export function EffectCategoryPage({
               <p key={paragraph}>{paragraph}</p>
             ))}
           </div>
-          {/* The disconnective family is what the dissociative intensity scale
-              grades, so the category page offers the scale beside its own
-              definition rather than leaving the reader to find it. */}
           {categorySlug === "disconnective-effects" ? (
             <GuideLinkLine scale={ARTICLE_GUIDES_BY_CLASS.dissociative.scale} />
           ) : null}
@@ -215,11 +196,6 @@ export function EffectCategoryPage({
             ))}
           </div>
         ) : (
-          /* A leaf category is one list. It carried a card whose header
-             repeated the page's own icon, title, and effect count directly
-             under the header that had just said all three; with that removed
-             the card was an empty box around a chip cloud, so both are gone
-             and the chips sit in the page. */
           <section
             id={FLAT_SECTION_ID}
             className="flex flex-wrap gap-2.5 scroll-mt-24"

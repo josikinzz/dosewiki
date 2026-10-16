@@ -68,7 +68,6 @@ export const publicGalleryPageResult = v.object({
 
 export const publicGalleryMembershipResult = v.array(publicGalleryPreviewValidator);
 
-/** Bound each public gallery page and its per-row media lookups. */
 export function clampPublicGalleryPageSize(requested: number): number {
   const normalized = Number.isFinite(requested)
     ? Math.floor(requested)
@@ -76,11 +75,6 @@ export function clampPublicGalleryPageSize(requested: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_GALLERY_PAGE_SIZE);
 }
 
-/**
- * Stored-row publication guard, aligned with `isPublishableReplication`.
- * Keep both guards in sync: this one decides whether a row reaches
- * `publicGalleryPreviewValidator` at all.
- */
 function isPublishableGalleryRow(row: Doc<"replications">): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
@@ -102,16 +96,11 @@ async function resolvePrimaryUrl(urls: StorageUrlReader, row: Doc<"replications"
       const resolved = await urls.storage.getUrl(row.storage_id!);
       if (resolved) return resolved;
     } catch {
-      // Invalid native storage references retain the direct URL fallback.
     }
   }
   return row.url || null;
 }
 
-/**
- * Complete compact gallery membership in original storage order. Full media
- * rows remain reserved for the bounded hydration read after rail selection.
- */
 export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
   const db = ctx.db as typeof ctx.db & {
     getPublicGalleryMembershipRows: () => Promise<Doc<"replications">[]>;
@@ -239,12 +228,6 @@ async function projectGalleryRow(
         }
       : {}),
     ...(() => {
-      // One curated position per depicted effect, because the same work holds a
-      // different rank in each effect's `gallery_order` — position 0 of
-      // `colour-enhancement` can be position 55 of its owning
-      // `chromatic-aberration`. A single scalar could only ever carry the
-      // owning effect's rank, which is meaningless in any other effect's
-      // playlist.
       const positions: Record<string, number> = {};
       for (const effectSlug of depictedEffects(row)) {
         const position = orderByEffect.get(effectSlug)?.get(row.slug);
@@ -257,13 +240,6 @@ async function projectGalleryRow(
   };
 }
 
-/**
- * One storage-ordered page of the public gallery projection.
- *
- * Unfiltered callers retain the native runtime cursor. Effect-scoped callers use
- * a SQL membership predicate and a scope-bound keyset cursor, so unrelated works
- * never enter the page. Publication and storage gates can still make it sparse.
- */
 export async function getPublicGalleryPageHandler(
   ctx: QueryCtx,
   args: { cursor?: string; limit: number; effectSlug?: string },
@@ -293,8 +269,6 @@ export async function getPublicGalleryPageHandler(
   const rows = result.page.filter(isPublishableGalleryRow);
   const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
 
-  // Preserve every depicted effect's curated rank without one full-document
-  // query per effect. No metadata lookup is needed for an untagged page.
   const effectSlugs = [...new Set(rows.flatMap(depictedEffects))];
   const effects = effectSlugs.length ? await db.getPublicEffectGalleryOrders(effectSlugs) : [];
   for (const effect of effects) {

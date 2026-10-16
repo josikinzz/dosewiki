@@ -20,9 +20,6 @@ import {
 import { PUBLIC_SITE, buildSiteAssetUrl, buildSiteUrl } from "@server/next/publicSite";
 import { pageSocialCardImage } from "@/data/mappings/pageSocialCardUrl";
 
-// The homepage keeps its bare title suffix rather than the public metadata builder's
-// `<page> - <suffix>` convention. Its tailored dose.wiki card is overlaid here so other
-// routes without their own card continue to inherit the publication-wide root asset.
 export async function generateMetadata(): Promise<Metadata> {
   const copy = await getCopyByKeys([flavoredCopyKey("home-hero-tagline")]);
   const description = flavoredCopyText(
@@ -65,13 +62,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const quickLinks = buildHomeQuickLinks();
 
-/**
- * The Effect Index homepage's editable prose.
- *
- * These keys are Effect Index's own — the slots exist on no other flavor — so they are read
- * directly rather than through `flavoredCopyKey`, and each falls back to the string the
- * component shipped with when neither Postgres nor the checked-in defaults hold a row.
- */
 function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
   const paragraph = (
     key: (typeof EFFECT_INDEX_HOME_INTRO_COPY_KEYS)[keyof typeof EFFECT_INDEX_HOME_INTRO_COPY_KEYS],
@@ -97,14 +87,6 @@ function resolveEffectIndexHomeCopy(copy: CopyResolver): EffectIndexHomeCopy {
   };
 }
 
-/**
- * The two publications do not share a homepage.
- *
- * dose.wiki's is the centred wordmark over the app-tile grid (`HomeExperience`). Effect
- * Index's is the original effectindex.com front page: an intro block over two columns of
- * content panels. The flavor is a build-time constant, so only one of these two branches is
- * ever reachable in a given build — the dose.wiki path below is byte-for-byte what it was.
- */
 export default async function HomePage() {
   if (isEffectIndex()) {
     const [copy, homeData] = await Promise.all([

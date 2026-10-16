@@ -1,44 +1,4 @@
 #!/usr/bin/env node
-/**
- * Upload reviewed archive renditions to native R2 and associate their verified
- * keys with Postgres replication rows. Historical storage IDs and URL fields
- * remain recovery data; native R2 keys control delivery.
- *
- * Video uploads use the transcoded rendition plus a separate thumbnail.
- * Images use the archived master unchanged, sharing its key with the thumbnail
- * when both previously resolved to the same object.
- *
- * Every reviewed source is guarded by both its original R2 key and historical
- * storage ID. The association uses the complete live media snapshot as CAS and
- * updates delivered file size atomically. Public resolver readback must show
- * the new delivery URL without removing a working thumbnail.
- *
- * Dry run (default — plans and prints the exact per-row verification, uploads
- * nothing, writes nothing):
- *   node scripts/replications/repoint-renditions.mjs \
- *     --manifest=/vol/replication-web/archive-manifest.json \
- *     --renditions-dir=/vol/replication-web
- *
- * Apply, one small batch at a time:
- *   node scripts/replications/repoint-renditions.mjs \
- *     --manifest=/vol/replication-web/archive-manifest.json \
- *     --renditions-dir=/vol/replication-web \
- *     --batch-size=5 \
- *     --write --confirm-write=repoint-replication-renditions \
- *     --confirm-repoint \
- *     --expected-deployment=<host>/<database> \
- *     --target=postgresql://<host>/<database>
- *
- * Images (uploads come from the archive, so no --renditions-dir):
- *   node scripts/replications/repoint-renditions.mjs \
- *     --media-type=image \
- *     --manifest="/Volumes/DeepSeek/dosewiki-replication-masters/image-archive-manifest.json" \
- *     --batch-size=10 \
- *     --write --confirm-write=repoint-replication-renditions \
- *     --confirm-repoint \
- *     --expected-deployment=<host>/<database> \
- *     --target=postgresql://<host>/<database>
- */
 import fs from "node:fs";
 import path from "node:path";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
@@ -56,27 +16,10 @@ import { uploadReplicationFile, uploadReplicationBytes, updateReplicationMedia }
 
 const OPERATION = "repoint-replication-renditions";
 
-/**
- * The native media field that takes precedence over historical recovery URLs.
- */
 export function fieldThatWins() {
   return "r2_key";
 }
 
-/**
- * The MIME type a file must be stored under for the browser to display it.
- *
- * Postgres serves back whatever `Content-Type` the upload declared, so getting
- * this wrong does not corrupt the file — it makes the browser download the image
- * instead of rendering it, which looks exactly like a broken page. The source
- * deployment's own response header is the authority and is recorded by the
- * archive run; the row's `format` is the fallback for a resumed run, where the
- * file was already on disk and no response was ever read. Measured across all
- * 105 endangered image rows on 2026-08-11, the two agree in every case.
- *
- * An unrecognised type throws rather than defaulting. `application/octet-stream`
- * is the failure mode this exists to prevent, so guessing it would be perverse.
- */
 const FORMAT_CONTENT_TYPES = Object.freeze({
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -86,15 +29,6 @@ const FORMAT_CONTENT_TYPES = Object.freeze({
   avif: "image/avif",
 });
 
-/**
- * What the file's first bytes say it is, which outranks every label around it.
- *
- * Not paranoia — measured. `shadow-people-figure-in-a-doorway` carries
- * `format: "jpg"` on a thumbnail whose stored object is a WebP, so the row, and
- * therefore the archived filename derived from it, both name the wrong type. A
- * resumed run has no HTTP response left to consult and would have uploaded that
- * WebP as `image/jpeg`. The container's own signature has no such gap.
- */
 export function sniffImageContentType(head) {
   if (!head || head.length < 12) return null;
   if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return "image/jpeg";
@@ -124,12 +58,6 @@ export function imageContentTypeFor({ sniffed, declared, format } = {}) {
   );
 }
 
-/**
- * What has to happen to each row, given what the archive run produced.
- *
- * A row without a usable upload source is `skip`, never a partial write —
- * repointing a row at nothing is precisely how a page gets deleted.
- */
 export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, mediaType = "video" } = {}) {
   const actions = [];
   const skipped = [];
@@ -145,22 +73,12 @@ export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, med
       skipped.push({ slug: row.slug, reason: "upload source is empty" });
       continue;
     }
-    // A row is not the unit of risk — its media and its thumbnail are separate
-    // stored objects and can sit on different deployments. Skipping on the media
-    // alone left `shadow-people-figure-in-a-doorway` behind: its image already
-    // resolved from production while its thumbnail still resolved from
-    // `warmhearted-mosquito-204`, so the row looked rescued and was still
-    // handing an orphan host's URL to the gallery and the public API.
     const thumbnailAtRisk = Boolean(row.thumbnail_url) && !isProductionUrl(row.thumbnail_url);
     if (isProductionUrl(row.url) && row.storageOnProduction && !thumbnailAtRisk && !source.force) {
       skipped.push({ slug: row.slug, reason: "already served from production storage" });
       continue;
     }
 
-    // An image row whose thumbnail resolves to the same object as its media is
-    // one file wearing two field names. Uploading it twice would double the
-    // bytes on production and leave two ids that can drift apart; pointing both
-    // fields at the one upload cannot.
     const thumbnailMirrorsSource =
       mediaType === "image" && Boolean(row.thumbnail_url) && row.thumbnail_url === row.url;
     const mirrorThumbnail = includeThumbnails && thumbnailMirrorsSource;
@@ -169,8 +87,6 @@ export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, med
     actions.push({
       rowId: row._id,
       slug: row.slug,
-      // Compare-and-swap expectation. The plan is reviewed before it is applied,
-      // so the row must still look the way it did when the plan was made.
       expectedStorageId: row.storage_id,
       expectedR2Key: row.r2_key ?? null,
       expectedThumbnailR2Key: row.thumbnail_r2_key ?? null,
@@ -184,9 +100,6 @@ export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, med
       posterPath,
       posterContentType: source.posterContentType ?? "image/jpeg",
       mirrorThumbnail,
-      // If this run sets a thumbnail id at all, it has to prove the thumbnail
-      // moved — otherwise a rescue that fixed only the media reports success
-      // while the row still points a second asset at a deployment nobody owns.
       writesThumbnail: mirrorThumbnail || Boolean(posterPath),
       field: fieldThatWins(),
     });
@@ -195,12 +108,6 @@ export function planRepoint(rows, sourcesBySlug, { includeThumbnails = true, med
   return { actions, skipped };
 }
 
-/**
- * Decide whether a repoint actually took effect, from the resolver's own output.
- *
- * This is the whole safety mechanism. Every clause corresponds to a way the
- * migration has been shown able to fail quietly.
- */
 export function verifyRepoint({
   before,
   after,
@@ -211,12 +118,9 @@ export function verifyRepoint({
   const reasons = [];
 
   if (!after || typeof after.url !== "string" || after.url.length === 0) {
-    // Worst case, and the reason this is a hard stop: the page disappears.
     return { ok: false, reasons: ["resolved URL is null — this row's page would be removed"] };
   }
 
-  // Content-addressed media may keep its URL when only its thumbnail is rescued.
-  // In that case the native key readback, not URL churn, proves the association.
   if (expectedR2Key !== null && after.r2_key !== expectedR2Key) {
     reasons.push("Native media identity did not persist.");
   } else if (before?.url && after.url === before.url && expectedR2Key === null) {
@@ -227,15 +131,10 @@ export function verifyRepoint({
     reasons.push(`resolved URL still points at ${hostOf(after.url) ?? "an unknown host"}, outside the configured R2 media namespace`);
   }
 
-  // Never trade a working poster for a missing one.
   if (before?.thumbnail_url && !after.thumbnail_url) {
     reasons.push("thumbnail regressed from present to null");
   }
 
-  // Only asked when this run claimed to move the thumbnail too. A repoint that
-  // fixed `url` and quietly left `thumbnail_url` on an orphan host would report
-  // success while still handing that host's URL to the gallery and the public
-  // API — the rescue would be half-done and look complete.
   if (expectThumbnailProduction && after.thumbnail_url && !isProductionUrl(after.thumbnail_url)) {
     reasons.push(
       `resolved thumbnail still points at ${hostOf(after.thumbnail_url) ?? "an unknown host"}, outside the configured R2 media namespace`,
@@ -245,7 +144,6 @@ export function verifyRepoint({
   return { ok: reasons.length === 0, reasons };
 }
 
-/** Everything needed to put one row back exactly as it was. */
 export function buildRollbackEntry(action, applied) {
   return {
     rowId: action.rowId,
@@ -274,7 +172,6 @@ export function chunk(items, size) {
   return batches;
 }
 
-/** The operation-specific confirmation, on top of the shared deployment ceremony. */
 export function assertRepointAllowed(command, argv) {
   assertProductionWriteAllowed(command);
   if (!hasFlag(argv, "--confirm-repoint")) {
@@ -282,26 +179,11 @@ export function assertRepointAllowed(command, argv) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Runtime
-// ---------------------------------------------------------------------------
-
-/**
- * The archived file's own extension, which is what its bytes actually are.
- *
- * Deliberately not the row's `format`: a video row's poster is a JPEG on a row
- * whose format is `mp4`, so trusting the row there would ask for the content
- * type of the wrong file. The archive names every file from its source URL's
- * extension, falling back to the row format only for the primary asset, so the
- * name on disk is the closest thing to ground truth available without reopening
- * the file.
- */
 function archivedFormatOf(entry) {
   const ext = path.extname(String(entry.archivePath ?? "")).toLowerCase();
   return ext ? ext.slice(1) : (entry.format ?? "");
 }
 
-/** Read only the container signature, never the whole file. */
 function sniffFile(filePath) {
   const handle = fs.openSync(filePath, "r");
   try {
@@ -313,7 +195,6 @@ function sniffFile(filePath) {
   }
 }
 
-/** The type an archived image must be uploaded under, most trustworthy source first. */
 function archivedImageContentType(entry) {
   return imageContentTypeFor({
     sniffed: sniffFile(entry.archivePath),
@@ -322,14 +203,6 @@ function archivedImageContentType(entry) {
   });
 }
 
-/**
- * Where each row's uploadable bytes are on disk, read from the archive manifest.
- *
- * The two media types disagree only about which file that is: a video uploads
- * the transcoded rendition and archives the master, an image uploads the
- * archived master itself because there is no rendition and deliberately never
- * will be.
- */
 function readUploadSources(manifestPath, { renditionsDir, mediaType }) {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const bySlug = new Map();
@@ -373,9 +246,7 @@ async function main() {
   const batchSize = Number(getFlagValue(argv, "--batch-size") ?? 5);
   const includeThumbnails = !hasFlag(argv, "--skip-thumbnails");
 
-  if (!manifestPath) throw new Error("Pass --manifest=<archive-manifest.json from the archive run>.");
-  // Image uploads come out of the archive named in the manifest, so there is no
-  // renditions directory to point at and asking for one would be a lie.
+  if (!manifestPath) throw new Error("Pass --manifest=<archive-manifest.json from the archive run>.\nUsage: bun scripts/replications/repoint-renditions.mjs --manifest=<archive-manifest.json> [--renditions-dir=<renditions>] [--media-type=video|image] [--batch-size=5]\nDefault plans without uploads or database writes. Video requires --renditions-dir; images use the archived master. Apply requires --write --confirm-write=repoint-replication-renditions --confirm-repoint plus --expected-deployment=<host>/<database>, an explicit --target, and the full remote-host and credential ceremony in docs/operations/data-credentials.md.");
   if (mediaType === "video" && !renditionsDir) {
     throw new Error("Pass --renditions-dir=<directory of web renditions>.");
   }
@@ -442,8 +313,6 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
-  // The ledger belongs next to whatever the run was reading: the renditions for
-  // a video run, the manifest itself when there are no renditions.
   const ledgerDir = renditionsDir ? path.resolve(renditionsDir) : path.dirname(path.resolve(manifestPath));
   const rollbackPath = path.join(ledgerDir, `repoint-${mediaType}-rollback-${Date.now()}.json`);
   const rollback = [];
@@ -456,7 +325,6 @@ async function main() {
     console.log(`\n--- Batch ${batchIndex + 1}/${batches.length} ---`);
 
     for (const action of batch) {
-      // Compare and swap: the row must still be what the reviewed plan described.
       const live = await writeClient.query(api.replications.getResolvedById, { apiKey, id: action.rowId });
       if (!live) throw new Error(`${action.slug}: row no longer exists. Stopping.`);
       if ((live.storage_id ?? null) !== (action.expectedStorageId ?? null) ||
@@ -469,16 +337,11 @@ async function main() {
       const before = { url: live.url, thumbnail_url: live.thumbnail_url };
 
       const r2Key = await uploadReplicationFile(writeClient, apiKey, action.sourcePath, action.contentType);
-      // Three cases, in order of specificity: a thumbnail that is the same
-      // stored object as the media (point both fields at the one upload), a
-      // genuinely separate poster file (upload it), or no thumbnail at all.
       let thumbnailR2Key = action.mirrorThumbnail
         ? r2Key
         : action.posterPath
           ? await uploadReplicationFile(writeClient, apiKey, action.posterPath, action.posterContentType)
           : undefined;
-      // Keeping a reviewed poster requires an explicit native association:
-      // main replacement clears every unsupplied stale derivative.
       if (!thumbnailR2Key && live.thumbnail_r2_key) {
         thumbnailR2Key = live.thumbnail_r2_key;
       } else if (!thumbnailR2Key && live.thumbnail_url) {

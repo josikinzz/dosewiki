@@ -29,25 +29,11 @@ type VCodeRendererContext = {
   subarticles: Array<{ id: string; title: string }>;
   renderChildren: (children: (string | VCodeNode)[] | undefined) => ReactNode;
   renderNode: (node: string | VCodeNode, index: number) => ReactNode;
-  /**
-   * Supplied only where headings are anchor targets (pages with a contents
-   * rail). Must be the same order-dependent assigner the table of contents
-   * used, so ids agree on repeated titles.
-   */
   assignHeadingId?: (text: string) => string | undefined;
   headeredTextboxPresentation?: HeaderedTextboxPresentation;
   headeredTextboxHeadingLevel?: 2 | 3;
-  /**
-   * Credit-line destinations for embedded replication images. Supplied only
-   * by surfaces that load the gallery corpus; absent leaves bylines plain.
-   */
   artistCreditLinks?: ArtistCreditLinks;
   renderArtistCredit?: (artist: string) => ReactNode;
-  /**
-   * The drug class this surface speaks for ("deliriant", "psychedelic"). Set
-   * only by per-class summary pages; it selects an embed's `imageRoutes`
-   * variant where one exists.
-   */
   mediaVariantKey?: string;
 }
 
@@ -63,7 +49,6 @@ function createHeading(
   children: ReactNode,
   id?: string,
 ) {
-  // Anchored headings clear the sticky site header when jumped to.
   const anchorClassName = id ? "scroll-mt-24" : undefined;
 
   if (level === "h1") {
@@ -196,7 +181,6 @@ function renderMarkdownBlock(
   return createHeading("h4", index, headingText, id);
 }
 
-/** Nodes that render something without carrying children. */
 const VOID_NODE_NAMES = new Set([
   "audio-player",
   "captioned-image",
@@ -225,7 +209,6 @@ function isBlockNode(node: string | VCodeNode): node is VCodeNode {
   return typeof node !== "string" && BLOCK_NODE_NAMES.has(node.name);
 }
 
-/** Whether a node would put anything on the page. */
 function hasRenderableContent(node: string | VCodeNode): boolean {
   if (node == null) {
     return false;
@@ -239,8 +222,6 @@ function hasRenderableContent(node: string | VCodeNode): boolean {
     return (node.properties?.text ?? "").trim().length > 0;
   }
 
-  // A void element is content in its own right; everything else is only as
-  // substantial as what it wraps.
   if (VOID_NODE_NAMES.has(node.name)) {
     return true;
   }
@@ -312,8 +293,6 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </sup>
   ),
   "headered-textbox": (node, index, context) => {
-    // Claimed before the body renders, so ids stay in the document order the
-    // table of contents walked.
     const id = context.assignHeadingId?.(
       formatHeaderedTextboxTitle(node.properties.label, node.properties.header),
     );
@@ -343,16 +322,11 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </SeparatedTextbox>
   ),
   panel: (node, index, context) => {
-    // Claimed before anything inside the panel, because `extractVCodeHeadings`
-    // visits a titled block's own title first and the assigner is order-bound.
     const id = context.assignHeadingId?.(node.properties.title ?? "");
     const title = node.properties.title?.trim();
     const sections = title ? extractVCodePanelSections(node.children) : null;
 
     if (title && sections) {
-      // Section headings would have claimed their ids as `h3` nodes, so they
-      // still claim them here — in the same document order — even though they
-      // now render as section labels rather than headings.
       const sectionIds = sections.map((section) =>
         section.title ? context.assignHeadingId?.(section.title) : undefined,
       );
@@ -388,9 +362,6 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
   },
   markdown: (node, index, context) => renderMarkdownText(node.properties.text ?? "", index, context),
   "captioned-image": (node, index, context) => {
-    // A summary page for one drug class draws that class's variant of the
-    // embed when the article carries one; every other surface keeps the
-    // embed's own media.
     const variant = selectImageRoute(
       node.properties.imageRoutes,
       context.mediaVariantKey,
@@ -434,9 +405,6 @@ export const vcodeRenderers: Record<string, VCodeNodeRenderer> = {
     </ExtLink>
   ),
   columns: (node, index, context) => {
-    // Effect Index pads every group out to three columns and leaves the spare
-    // ones empty. Rendered as-is those become blank cards sitting beside the
-    // real ones, so they never reach the layout.
     const columns = (node.children ?? []).filter(hasRenderableContent);
 
     if (columns.length === 0) {

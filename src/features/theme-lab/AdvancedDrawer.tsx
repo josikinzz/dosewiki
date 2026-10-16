@@ -5,15 +5,6 @@ import { Icon } from "@/components/common/Icon";
 import { PanelButton, PanelDisclosure, PanelIconButton, PanelTextarea } from "./panelKit";
 import styles from "./ThemeLab.module.css";
 
-/**
- * The panel's foot: the always-visible copy action, the disclosure, and the
- * technical drawer behind it (JSON console, apply/revert, danger zone).
- *
- * Lifted out of `ThemeLab.tsx` when its controls moved onto the shared kit —
- * the panel component sits against its LOC budget, and this block is a
- * self-contained slab of markup with no state of its own.
- */
-
 interface AdvancedDrawerProps {
   theme: ColorScheme;
   open: boolean;
@@ -47,8 +38,6 @@ export function AdvancedDrawer({
 }: AdvancedDrawerProps) {
   return (
     <div className={styles.jsonArea}>
-      {/* Always-visible bar: a plain "copy" primary, and the toggle that reveals
-          the technical drawer (closed by default). */}
       <div className={styles.jsonBar}>
         <div className={styles.jsonBarTop}>
           <PanelButton
@@ -57,8 +46,6 @@ export function AdvancedDrawer({
             onClick={onCopy}
           >
             <Icon icon={copied ? "lucide:check" : "lucide:copy"} size={14} />
-            {/* The flip to "Copied" is the only success feedback, so say it
-                aloud too — a live region, because focus never moves. */}
             <span aria-live="polite">{copied ? "Copied" : "Copy colors"}</span>
           </PanelButton>
         </div>

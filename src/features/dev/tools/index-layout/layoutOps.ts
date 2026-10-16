@@ -1,12 +1,3 @@
-/**
- * Pure edits over a manual index layout. Every board gesture (drag, bump,
- * move to, add, remove, rename) resolves to one of these; the board never
- * mutates the manual itself.
- *
- * A slot is where a substance lives: a category's top-level `drugs` list
- * (`sectionKey: null`) or one of its sections. Slugs are compared as written;
- * the layout stores them already slugified.
- */
 import { slugify } from "@/utils/slug";
 import type { ManualCategoryDefinition, ManualCategorySection, ManualIndexConfig } from "./types";
 import { generateUniqueKey } from "./utils";
@@ -57,7 +48,6 @@ function moveWithin<T>(list: readonly T[], from: number, to: number): T[] {
   return next;
 }
 
-/** Bump one slug a step within its slot; a no-op at either end. */
 export function bumpSlug(
   manual: ManualIndexConfig,
   slot: LayoutSlot,
@@ -72,11 +62,6 @@ export function bumpSlug(
   return writeSlot(manual, slot, moveWithin(drugs, index, target));
 }
 
-/**
- * Move a slug to `to`, landing at `index` (end when omitted). Within one slot
- * this is a reorder; across slots the slug leaves its origin, and a copy the
- * destination already holds is not duplicated.
- */
 export function moveSlug(
   manual: ManualIndexConfig,
   from: LayoutSlot,
@@ -110,7 +95,6 @@ export function removeSlug(manual: ManualIndexConfig, slot: LayoutSlot, slug: st
   return writeSlot(manual, slot, drugs.filter((entry) => entry !== slug));
 }
 
-/** Append a slug to a slot; a slug the slot already holds is left alone. */
 export function addSlug(manual: ManualIndexConfig, slot: LayoutSlot, slug: string): ManualIndexConfig {
   const normalized = slugify(slug);
   const drugs = readSlot(manual, slot);
@@ -145,7 +129,6 @@ function updateCategory(
   return changed ? { ...manual, categories } : manual;
 }
 
-/** Sort every list a category owns, its top-level entries and each section. */
 export function sortCategory(
   manual: ManualIndexConfig,
   categoryKey: string,
@@ -164,13 +147,6 @@ export function sortCategory(
   });
 }
 
-
-/**
- * Place a section directly before or after another section of the same
- * category. The board shows sections in the site's convention order (Common
- * first, Other last, authored order between), so a bump names the displayed
- * neighbour rather than trusting authored adjacency.
- */
 export function placeSection(
   manual: ManualIndexConfig,
   categoryKey: string,
@@ -207,7 +183,6 @@ export function renameSection(
   }));
 }
 
-/** Add an empty section; returns the manual and the key the section received. */
 export function addSection(
   manual: ManualIndexConfig,
   categoryKey: string,
@@ -224,10 +199,6 @@ export function addSection(
   return { manual: next, sectionKey };
 }
 
-/**
- * Remove a section. Its substances fall back to the category's top-level list
- * when `keepDrugs` is set, so a section can be dissolved without losing entries.
- */
 export function removeSection(
   manual: ManualIndexConfig,
   categoryKey: string,
@@ -281,7 +252,6 @@ export function removeCategory(manual: ManualIndexConfig, categoryKey: string): 
   return { ...manual, categories: manual.categories.filter((category) => category.key !== categoryKey) };
 }
 
-/** Every slug the layout places, slugified, for the "not yet in this index" filter. */
 export function collectPlacedSlugs(manual: ManualIndexConfig): ReadonlySet<string> {
   const placed = new Set<string>();
   for (const category of manual.categories) {

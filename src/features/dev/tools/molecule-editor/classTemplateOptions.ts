@@ -25,7 +25,6 @@ interface ClassMembershipArticle {
   classification?: unknown;
 }
 
-/** Canonical class-key vocabulary for template authoring. */
 const MANUAL_CLASSES = chemicalIndexManual.classes as ManualChemicalClass[];
 const CLASS_TREE = buildChemicalClassTree(MANUAL_CLASSES);
 
@@ -44,11 +43,6 @@ function extractChemicalClasses(classification: unknown): string[] {
     : [];
 }
 
-/**
- * Rolled visible class members, following the public class tree's
- * most-specific placement rule. Pass `molblockSlugs` when the caller needs to
- * restrict the result to members that can seed an editable template.
- */
 export function buildClassTemplateMemberOptions(
   classKey: string,
   articles: ClassMembershipArticle[],

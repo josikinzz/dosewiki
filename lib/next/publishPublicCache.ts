@@ -1,17 +1,3 @@
-/**
- * The one place an editorial write turns into public freshness.
- *
- * It expires the caches of the deployment that ran the write, then delivers
- * the same content identities to the public deployments, which expire their
- * own caches through the shared contract. Callers get one receipt per target
- * so a partial delivery is visible at the call site instead of surfacing later
- * as an unexplained stale page.
- *
- * A caller that cannot name its identities keeps the previous escape hatch:
- * `unknownPaths` expires this deployment's global public tag locally and is
- * deliberately not transmitted, because the receiver refuses identities it
- * cannot map.
- */
 import { revalidatePath, revalidateTag } from "next/cache";
 import { invalidatePublicDerivedDataCache } from "../data/publicLibrary";
 import { PUBLIC_DATA_CACHE_TAGS } from "../data/publicData.cacheTags";
@@ -23,11 +9,9 @@ export type PublicCachePublication = {
   targets: readonly PublicationTarget[];
   source: PublicationSource;
   savedRevisions?: readonly SavedArticleRevision[];
-  /** Paths with no known content identity, expired locally through the global tag. */
   unknownPaths?: readonly string[];
 };
 
-/** Expire this deployment's own caches for the given identities. */
 export function applyPublicCacheLocally(publication: PublicCachePublication): void {
   const effect = resolvePublicationEffects(publication.targets);
   for (const entry of effect.paths) {
@@ -47,10 +31,6 @@ export function applyPublicCacheLocally(publication: PublicCachePublication): vo
   for (const tag of tags) revalidateTag(tag, { expire: 0 });
 }
 
-/**
- * Apply locally, then deliver. Delivery failures are returned, never thrown:
- * the write they describe has already committed.
- */
 export async function publishPublicCache(
   publication: PublicCachePublication,
 ): Promise<PublicationReceipt[]> {

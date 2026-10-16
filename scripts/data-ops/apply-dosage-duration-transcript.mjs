@@ -1,41 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * Merge transcribed dose and duration figures into the dosage and duration
- * sections, filling gaps only.
- *
- * Input is a transcript produced upstream, in which every figure carries the
- * verbatim source span it was taken from and that span has already been checked
- * against the source text. This script does not re-derive figures; it decides
- * where they are allowed to land.
- *
- * The merge is fill-only. An attested dose range or duration stage on the target
- * is never replaced by a transcribed one, because the target may hold a figure a
- * human reconciled or a source that is no longer in the excerpt set — the same
- * reasoning that makes `sync-dosage-duration-to-prod.mjs` refuse articles where
- * production is richer. Replacing a specific figure requires naming it:
- *
- *   --overwrite=<slug>:<route>:doses.<tier>
- *   --overwrite=<slug>:<route>:duration.<stage>
- *
- * There is deliberately no run-wide overwrite flag. Correcting a handful of
- * figures is a reviewed act; corrupting every dose ladder in a run should not be
- * one flag away.
- *
- * Run directory shape:
- *
- *   <run-dir>/dd/verified.json  ->  { "<slug>": { routes: [ { route, doses, duration, bioavailability, notes } ] } }
- *
- * where each dose tier / duration stage is either null or {min, max, unit}.
- *
- * Usage:
- *   bun scripts/data-ops/apply-dosage-duration-transcript.mjs --run-dir=<dir> --dry-run
- *   bun scripts/data-ops/apply-dosage-duration-transcript.mjs --run-dir=<dir> --write \
- *     --confirm-dosage-duration-merge \
- *     --confirm-write=apply-dosage-duration-transcript \
- *     --expected-deployment=<deployment-name>
- */
-
 import { readFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import { resolve } from "node:path";
@@ -217,8 +181,6 @@ async function main() {
   if (!context.argv.includes("--confirm-dosage-duration-merge")) {
     throw new Error(`${OPERATION} requires --confirm-dosage-duration-merge to write.`);
   }
-  // Checked before the empty-work exit so a misaimed or under-flagged invocation
-  // fails loudly rather than looking like a clean no-op run.
   assertDataOpsWriteAllowed(context);
   const adminKey = requireAdminIntentToken(INTENT).token;
   if (work.length === 0) {
@@ -241,8 +203,6 @@ async function main() {
 
   for (const item of work) {
     try {
-      // Recomputed against a fresh read: saveSubstance replaces the whole
-      // document, and a figure filled since planning must stay filled.
       const fresh = await client.query(api.substanceIndex.getBySlug, { slug: item.slug });
       if (!fresh) {
         failures.push({ slug: item.slug, error: "disappeared before write" });

@@ -1,26 +1,5 @@
 #!/usr/bin/env node
 
-// Conservative sentence-level recovery for markers a rebase dropped.
-//
-// A rebase drops a whole field's markers when the field's live text no longer
-// matches the draft's marked text byte-for-byte. Often only some sentences in
-// that field actually changed. This script looks for individual marked
-// sentences from the ORIGINAL draft whose exact text still appears, unchanged,
-// in the current live field — and only recovers those. It refuses anything
-// that could silently corrupt an article:
-//
-//   - the host sentence must be a real sentence (>= MIN_HOST_LENGTH chars,
-//     ending in terminal punctuation), never a bare fragment
-//   - the host sentence must occur exactly once in the current live text
-//     (an ambiguous match could insert a marker at the wrong occurrence)
-//   - a `supported` evidence row referencing the marker id(s) must still
-//     exist in the original draft
-//
-// Default mode is report-only. --write applies recovered markers to the
-// workbench's citation-draft.rebased.json (creating the section/field if the
-// whole-field/section was dropped) and restores the evidence/reference/source
-// rows those markers need — nothing else in the draft is touched.
-
 import { join, resolve } from "node:path";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
@@ -83,10 +62,6 @@ export function findRecoverableSentences({ originalText, currentText, fieldPath,
       candidates.push({ host, ids, status: "rejected", reason: occurrences === 0 ? "not_found_in_live_text" : "ambiguous_multiple_occurrences" });
       continue;
     }
-    // An evidence row counts as covering this sentence only when its own
-    // claim text is actually contained in the sentence we are about to mark —
-    // matching by field path and reference id alone would also match rows for
-    // sibling claims in the same field whose sentences were not recovered.
     const normalizedFieldPath = normalizeFieldPath(fieldPath);
     const hasEvidence = ids.every((id) =>
       (evidence ?? []).some((row) => {
@@ -259,10 +234,6 @@ async function main() {
   const recoveredIds = new Set(
     results.flatMap((r) => (r.skipped ? [] : r.sentences.filter((s) => s.status === "recoverable").flatMap((s) => s.ids))),
   );
-  // Restore only evidence rows whose claim text is actually contained in a
-  // recovered host sentence for the same field path — matching by field path
-  // alone would also restore rows for sentences we deliberately rejected
-  // (same field, different claim, changed or unmatched text).
   const recoveredHostsByFieldPath = new Map();
   for (const result of results) {
     if (result.skipped) continue;

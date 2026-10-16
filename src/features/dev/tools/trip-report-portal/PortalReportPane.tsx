@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * A published trip report open for editing in Trip reports: the editor
- * workspace pane (My reports' `OwnedReportPane`, with everything an admin may
- * change). The header names the report by its saved title with its live
- * link; the body holds the title, byline and attribution, the trip's details,
- * tags, substances and the report body, then removal folded shut; the save
- * dock at the bottom holds the result of the last save, Save with its key,
- * Discard edits, the state and the save line.
- */
-
 import { useId, useMemo, useState, type ReactNode, type RefObject } from "react";
 
 import { ExpandIndicator } from "@/components/common/ExpandButton";
@@ -36,7 +26,6 @@ import type { PortalContributorOption, PortalRow } from "./tripReportPortalModel
 import type { PortalNotice, PortalPendingAction } from "./useTripReportPortalController";
 
 export type ReportAttribution = {
-  /** Null leaves the stored attribution alone; "" clears it; a key assigns it. */
   profileKey: string | null;
   confirmAuthorNameClaim: boolean;
 };
@@ -68,7 +57,6 @@ export function PortalReportPane({
   saveLine,
 }: {
   row: PortalRow;
-  /** The report as it was opened (or last saved). */
   saved: TripReportEditableFields;
   draft: TripReportEditableFields;
   attribution: ReportAttribution;
@@ -77,7 +65,6 @@ export function PortalReportPane({
   dirty: boolean;
   pending: PortalPendingAction | null;
   busy: boolean;
-  /** The save key as this platform writes it ("⌘S", "Ctrl S"); shown on fine pointers only. */
   saveKeyLabel: string;
   notice: PortalNotice | null;
   onDismissNotice: () => void;
@@ -92,7 +79,6 @@ export function PortalReportPane({
   position: { index: number; total: number } | null;
   onMove: (direction: -1 | 1) => void;
   hiddenByList: ReactNode;
-  /** The shell's save sentence, drawn in the dock beside Save (`saveLine: "in-tool"`). */
   saveLine: ReactNode;
 }) {
   const headingId = useId();
@@ -377,11 +363,6 @@ export function PortalReportPane({
   );
 }
 
-/**
- * Removal, folded shut at the end of the pane and keyed on the report, so a
- * typed address never carries to another one. The address is typed back with
- * no placeholder (a placeholder would show the answer).
- */
 function DeleteReport({
   slug,
   title,

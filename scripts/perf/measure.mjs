@@ -1,35 +1,4 @@
 #!/usr/bin/env node
-/**
- * scripts/perf/measure.mjs: reproducible cold-load page metrics for the perf loop.
- *
- * Drives system Google Chrome over a raw Chrome DevTools Protocol WebSocket.
- * No third-party automation dependency is required.
- *
- * What it measures, per run, with the HTTP cache disabled (cold load):
- *   - ttfb            finalResponseHeadersStart (Navigation Timing)
- *   - fcp             first-contentful-paint
- *   - lcp             largest-contentful-paint (buffered)
- *   - dcl             domContentLoadedEventEnd
- *   - load            loadEventEnd
- *   - ttiProxy        max(load, last long-task end), a main-thread settle proxy;
- *                     the JS download+parse+execute+hydration cost proxy
- *   - longTasks       count / total blocking-ish duration of >50ms long tasks
- *   - transferKB      sum of encoded bytes over the wire
- *   - requests        number of network requests
- *   - failedResources request URL and reason, retaining canceled prefetches separately
- *                     from unavailable assets instead of treating every abort as a bug
- *
- * Runs N times (default 7), retains every sample, and reports their median.
- * Synthetic measurements are not field percentiles. Cache state is observed,
- * never manufactured with public cache invalidation.
- * Client navigation: pass --from=<same-origin URL> and --link=<anchor selector>.
- * It measures incremental work after the source settles, retaining application
- * prefetch behavior. Native navigation FCP/LCP/TTFB are unavailable for this mode;
- * clientNavigation.commitMs is a diagnostic route-commit proxy, not a field metric.
- *
- * Usage:
- *   node scripts/perf/measure.mjs --url=http://localhost:3000/ --runs=7 --revision=BUILD_ID --family=home
- */
 
 import { spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, existsSync } from "node:fs";
@@ -47,7 +16,7 @@ function arg(name, fallback) {
 
 const URL = arg("url", "http://localhost:3000/");
 const RUNS = Number(arg("runs", "7"));
-const SETTLE_MS = 600; // main-thread quiet window before declaring "settled"
+const SETTLE_MS = 600;
 const REVISION = arg("revision", null);
 const FAMILY = arg("family", null);
 const SURFACE = arg("surface", "public");
@@ -65,7 +34,6 @@ const NAV_TIMEOUT_MS = 30000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// --- Minimal CDP client over a single WebSocket (flat session mode) ----------
 class CDP {
   constructor(ws) {
     this.ws = ws;
@@ -114,7 +82,6 @@ function openWs(url) {
   });
 }
 
-// Init script: capture long tasks + LCP from the very first document.
 const INIT_SCRIPT = `
   window.__perf = { longtasks: [], lcp: 0 };
   try {
@@ -178,7 +145,6 @@ async function waitForMainThreadQuiet(cdp, sessionId) {
 }
 
 async function runOnce(cdp) {
-  // Fresh page target per run for isolation.
   const { targetId } = await cdp.send("Target.createTarget", {
     url: "about:blank",
   });
@@ -197,7 +163,6 @@ async function runOnce(cdp) {
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU_RATE }, sessionId);
   await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: INIT_SCRIPT }, sessionId);
 
-  // Track network transfer.
   let transferBytes = 0;
   let requests = 0;
   const resources = new Map();
@@ -265,7 +230,6 @@ async function runOnce(cdp) {
     if (resource) resource.decoded += event.dataLength;
   }, sessionId);
 
-  // Navigate + await load.
   const loadFired = new Promise((resolve) => {
     cdp.on("Page.loadEventFired", () => resolve(), sessionId);
   });
@@ -285,7 +249,6 @@ async function runOnce(cdp) {
     clearTimeout(loadTimer);
   }
 
-  // Wait for the main thread to go quiet (settle) — JS/hydration cost proxy.
   await waitForMainThreadQuiet(cdp, sessionId);
   if (FROM) {
     measuring = true;
@@ -441,7 +404,6 @@ async function main() {
 
   let cdp;
   try {
-    // Discover the chosen debugging port.
     const portFile = join(userDataDir, "DevToolsActivePort");
     let port;
     for (let i = 0; i < 100; i++) {

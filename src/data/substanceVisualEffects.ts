@@ -2,7 +2,6 @@ import { z } from "zod";
 import { resolveEffectNameAlias, type EffectLocation } from "./effectNameAliases";
 import { slugify } from "../utils/slug";
 
-/** The alias-lookup location of every chip in the article's visual group. */
 const VISUAL_EFFECT_LOCATION: EffectLocation = "sensory.visual";
 const EFFECT_HREF_PREFIX = "/effects/";
 const EFFECT_CATEGORY_HREF_PREFIX = "/effects/category/";
@@ -19,10 +18,6 @@ const visualEffectNamesSource = z.object({
   }),
 });
 
-/**
- * The visual-effect display names of one substance article, in document order,
- * deduplicated by slugified name. Malformed article data contributes no names.
- */
 export function visualEffectNamesOf(subjectiveEffects: unknown): string[] {
   const parsed = visualEffectNamesSource.safeParse(subjectiveEffects);
   if (!parsed.success) return [];
@@ -49,7 +44,6 @@ export type VisualEffectSlugResolution = {
   unlinkableNames: string[];
 };
 
-/** Resolve article visual-effect labels exactly as the public effect chips do. */
 export function resolveVisualEffectSlugs(
   names: readonly string[],
 ): VisualEffectSlugResolution {

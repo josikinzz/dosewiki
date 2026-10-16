@@ -7,7 +7,6 @@ import { ExpandButton } from "@/components/common/ExpandButton";
 import { Button } from "@/components/ui/button";
 import { When } from "./workbenchParts";
 
-/** A refused translation request, keeping the route's error code and body for callers that can recover. */
 export class TranslationRequestError extends Error {
   constructor(message: string, readonly code: string | undefined, readonly payload: Record<string, unknown>) { super(message); }
 }
@@ -19,7 +18,6 @@ export async function translationRequest<T>(url: string, body?: Record<string, u
   return payload as T;
 }
 
-/** One side of a history entry; the After side drops the English and context when they did not change. */
 function HistorySnapshot({ state, title, other }: { state: ReviewState; title: string; other?: ReviewState }) {
   const snapshot = state.draft ?? state.approved;
   const was = other ? other.draft ?? other.approved : null;

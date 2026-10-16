@@ -1,29 +1,3 @@
-/**
- * Per-record editing contract for published trip reports.
- *
- * The Trip Report Portal edits a stored `tripReports` row field by field, which
- * the corpus had no write path for: reports only ever arrived through
- * `bulkImport` (whole-row overwrite from a migration file) or through submission
- * promotion. This module owns the narrow slice of a report an editor may edit
- * and the normalization both sides of that edit agree on.
- *
- * Three fields are deliberately outside the editable set:
- *
- * - `slug`, because it is the report's public URL. Renaming is a redirect
- *   question, not a field edit.
- * - `subject.profile_key`, because assigning a contributor is an attribution
- *   decision that `tripReports.update` adjudicates explicitly rather than
- *   accepting as free-form text from the form.
- * - `subject.avatar_url` / `subject.pdf_url`, which are editor-set links this
- *   tool does not surface; an update preserves whatever the row already had.
- *
- * The normalization here is what makes optimistic concurrency honest: the read
- * endpoint hands the client `editableSnapshotOf(row)`, the client sends that
- * same snapshot back as `expected`, and the mutation re-derives it from storage
- * to compare. Without one shared normalizer, incidental whitespace in the stored
- * corpus would read as a concurrent edit and block every save.
- */
-
 export type TripReportEditableTimelineEntry = {
   time?: string;
   description: string;
@@ -88,14 +62,6 @@ function trimmed(value: string | null | undefined): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-/**
- * Collapse a blank optional string to an absent key.
- *
- * Storage distinguishes an absent optional from an empty string, and
- * the public detail page renders an empty `introduction` as an empty section.
- * Normalizing to absence keeps "the editor cleared this field" and "this field
- * was never filled in" the same state.
- */
 function optionalText(value: string | null | undefined): string | undefined {
   const text = trimmed(value);
   return text.length > 0 ? text : undefined;
@@ -123,11 +89,6 @@ export function normalizeEditableSubject(subject: {
   return normalized;
 }
 
-/**
- * Drop substances with no name. The form's "+ substance" affordance appends a
- * blank row, so an editor who adds one and changes their mind would otherwise
- * publish a nameless substance onto the report's dose table.
- */
 export function normalizeEditableSubstances(
   substances: readonly { name?: string | null; dose?: string | null; roa?: string | null }[],
 ): TripReportEditableSubstance[] {
@@ -148,11 +109,6 @@ export function normalizeEditableSubstances(
   return normalized;
 }
 
-/**
- * Drop timeline entries with no description. A timestamp on its own renders as
- * a marker with nothing hanging off it, so an empty entry is a half-finished
- * edit rather than content.
- */
 export function normalizeEditableTimeline(
   entries: readonly { time?: string | null; description?: string | null }[],
 ): TripReportEditableTimelineEntry[] {
@@ -172,7 +128,6 @@ export function normalizeEditableTimeline(
   return normalized;
 }
 
-/** Trim, drop blanks, and de-duplicate case-insensitively, keeping first casing. */
 export function normalizeEditableTags(tags: readonly (string | null | undefined)[]): string[] {
   const seen = new Set<string>();
   const normalized: string[] = [];
@@ -222,21 +177,10 @@ export function normalizeEditableFields(fields: {
   return normalized;
 }
 
-/** The editable slice of a stored row, normalized the same way an edit is. */
 export function editableSnapshotOf(row: SourceRow): TripReportEditableFields {
   return normalizeEditableFields(row);
 }
 
-/**
- * Structural equality over the editable slice.
- *
- * This is the concurrency guard, mirroring `editorialSnapshotsAgree` in
- * `server/replications.ts`: `tripReports` carries no `updatedAt` or version
- * column, so "did this change under me" can only be answered by comparing the
- * content the editor was shown against the content in storage. Field order is
- * irrelevant; array order is not, because reordering timeline entries is itself
- * an edit.
- */
 export function editableSnapshotsAgree(
   a: TripReportEditableFields,
   b: TripReportEditableFields,
@@ -262,10 +206,6 @@ function stableSubject(subject: TripReportEditableSubject): unknown[] {
   return [subject.name, ...EDITABLE_SUBJECT_TEXT_FIELDS.map((field) => subject[field] ?? null)];
 }
 
-/**
- * Everything that would make a report unpublishable, reported at once rather
- * than one throw at a time, so the editor fixes the whole form in one pass.
- */
 export function validateEditableFields(fields: TripReportEditableFields): string[] {
   const problems: string[] = [];
 

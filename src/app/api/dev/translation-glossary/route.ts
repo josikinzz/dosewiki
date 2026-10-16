@@ -1,14 +1,3 @@
-/**
- * GET /api/dev/translation-glossary?locale=zh-Hans: every glossary row for one
- * locale plus the locale picker (live mirrors and any locale with rows), the
- * prompt digest the approved set and approved style guide produce, and the locale-independent glosses.
- * Translator and up.
- *
- * `?progress=1&promptVersion=<digest>` is the workbench's 5s poll during a
- * run: only the job and segment counts, measured against the digest the
- * caller already holds, so the poll never rereads the glossary or recomputes
- * the prompt context. A full load (Refresh) picks up a changed digest.
- */
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";

@@ -1,9 +1,4 @@
 "use client";
-/**
- * Small pieces the workbench views share: the search field with its `/` cap,
- * a grid of view choices (label over count) in the segmented capsule, a key
- * cap for buttons, and the result line a dock or list heading shows.
- */
 import { forwardRef, type ReactNode } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -24,7 +19,6 @@ type SearchFieldProps = {
   className?: string;
 };
 
-/** A search box with a glyph, the `/` cap while empty (fine pointers), and Escape to clear. */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField({ label, value, onChange, placeholder, description, className }, ref) {
   return (
     <div className={cn("relative", className)}>
@@ -56,14 +50,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   );
 });
 
-/** `short` is the label a phone shows when the full one would not fit its cell. */
 export type Choice<T extends string> = { value: T; label: string; short?: string; count?: number | null };
 
-/**
- * Filter views that must all fit a narrow column: a grid of pressed-state
- * buttons, label over count, in the segmented capsule. A count that is not
- * known yet drops out and says so to a screen reader.
- */
 export function ChoiceGrid<T extends string>({ label, choices, value, onChange, columns = 2, disabled = false }: {
   label: string;
   choices: readonly Choice<T>[];
@@ -112,7 +100,6 @@ export function ChoiceGrid<T extends string>({ label, choices, value, onChange, 
   );
 }
 
-/** A single key on a button, fine pointers only; the key itself goes in the button's `aria-keyshortcuts`. */
 export function KeyCap({ children }: { children: ReactNode }) {
   return (
     <span aria-hidden className="[@media(pointer:coarse)]:hidden">
@@ -121,7 +108,6 @@ export function KeyCap({ children }: { children: ReactNode }) {
   );
 }
 
-/** Back to list and nothing else: the phone path from a pane to the list it came from. */
 export function BackToList({ onBack, children }: { onBack: () => void; children?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2 lg:hidden">
@@ -134,7 +120,6 @@ export function BackToList({ onBack, children }: { onBack: () => void; children?
   );
 }
 
-/** The sticky footer of a pane: the decision dock recipe. */
 export function PaneDock({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
     <footer
@@ -146,12 +131,10 @@ export function PaneDock({ label, children, className }: { label: string; childr
   );
 }
 
-/** A write result in a dock or a list heading: the kit notice, dismissable. */
 export function ResultNotice({ notice, onDismiss }: { notice: NoticeMessage | null; onDismiss: () => void }) {
   return notice ? <Notice {...notice} placement="inline" dismiss={onDismiss} /> : null;
 }
 
-/** Skeleton rows while a list loads, with the word a screen reader hears. */
 export function RowSkeletons({ rows = 5, label }: { rows?: number; label: string }) {
   return (
     <div role="status" aria-busy="true" className="space-y-2">
@@ -166,10 +149,6 @@ export function RowSkeletons({ rows = 5, label }: { rows?: number; label: string
   );
 }
 
-/**
- * A moment as relative words ("2 days ago", "today, 4:00 AM") in a `<time>`
- * whose title is the full moment. Accepts milliseconds or an ISO string.
- */
 export function When({ at, withTime = false }: { at: number | string; withTime?: boolean }) {
   const iso = typeof at === "number" ? new Date(at).toISOString() : at;
   const day = describeDay(iso);

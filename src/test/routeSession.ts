@@ -4,14 +4,6 @@ type SessionUser = { email: string; name?: string | null; glossaryLocales?: stri
 
 const DEFAULT_USER: SessionUser = { email: "editor@example.com", name: "Editor" };
 
-/**
- * Floor-aware stand-in for `requireRoleSession` in route tests. Mock the
- * module and hand this to `mockImplementation`: the fake resolves exactly like
- * the real gate for the signed-in role, so a test proves which floor a route
- * asked for rather than just that it asked.
- *
- *   authMocks.requireRoleSession.mockImplementation(roleSessionFor("editor"));
- */
 export function roleSessionFor(role: AppRole | null, user: SessionUser = DEFAULT_USER) {
   return async (floor: RoleFloor) => {
     if (!role) {

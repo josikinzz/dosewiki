@@ -10,21 +10,11 @@ import { icons } from "@/utils/iconNames";
 import type { DosageCategoryGroup } from "@/data/builders/library";
 import type { ChemicalClassMolecule } from "../types";
 
-/**
- * Substance panels with the skeletal structure embedded in every row, so a
- * class page reads like a visual comparison table: names on the left, aligned
- * structures on the right. Free-floating sections grouped by psychoactive
- * class; hairline dividers instead of table chrome.
- */
-
-/** Rows shown per panel before the "Show all" control takes over. */
 const ROW_CAP = 8;
-/** Don't bother collapsing for a rounding error's worth of extra rows. */
 const CAP_SLACK = 2;
 
 interface StructurePanelsProps {
   panels: DosageCategoryGroup[];
-  /** Every structure SVG in the class, used to join url by substance slug. */
   molecules: ChemicalClassMolecule[];
 }
 
@@ -118,17 +108,10 @@ function StructurePanel({
   );
 }
 
-/** Approximate visible height of a panel, in row units, for column balancing. */
 function panelWeight(panel: DosageCategoryGroup) {
-  return Math.min(panel.drugs.length, ROW_CAP) + 2; // header + expand control
+  return Math.min(panel.drugs.length, ROW_CAP) + 2;
 }
 
-/**
- * Split the rank-ordered panels into two column stacks at the index that best
- * balances their visible heights. Order is preserved (read down the left
- * column, then the right), and expanding a panel only grows its own column, so
- * nothing jumps across the fold mid-interaction.
- */
 function splitPanels(panels: DosageCategoryGroup[]): [DosageCategoryGroup[], DosageCategoryGroup[]] {
   const total = panels.reduce((sum, panel) => sum + panelWeight(panel), 0);
   let best = panels.length;

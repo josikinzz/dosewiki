@@ -1,9 +1,3 @@
-/**
- * The Russian mirror of `/reports`, reached only through the
- * middleware rewrite from `ru.dose.wiki/reports`. Same index component over
- * the localized report previews; the mirror carries `noindex` with a
- * canonical link back to the English index.
- */
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";

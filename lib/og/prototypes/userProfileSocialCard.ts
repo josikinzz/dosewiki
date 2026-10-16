@@ -14,13 +14,6 @@ import {
 } from "../socialCardPrimitives";
 export const USER_PROFILE_SOCIAL_CARD_RENDERER_VERSION = "2026-08-25.1";
 
-/**
- * A profile-as-portrait social card: identity owns the upper field, while one
- * artwork sits below as evidence rather than competing hero content. The
- * composition inherits dose.wiki's Fun/dark social-card world—pure black,
- * Blinker, orchid accents, upper-left lighting, and the compact brand lockup.
- */
-
 type UserProfileSocialCardMedia = {
   filePath: string;
 }

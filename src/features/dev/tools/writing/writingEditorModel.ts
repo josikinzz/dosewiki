@@ -6,7 +6,6 @@ import type { NarrativeHistoryEntry } from "@/features/effects/editing/Narrative
 export type WritingKind = "article" | "blog";
 type WritingStatus = "draft" | "published";
 
-/** One row of `effectIndexArticles.listForEditor`. */
 export interface WritingListEntry {
   slug: string;
   title: string;
@@ -18,7 +17,6 @@ export interface WritingListEntry {
   tags?: string[];
 }
 
-/** The whole row, as `effectIndexArticles.getForEditor` returns it. */
 export interface WritingArticleRow {
   slug: string;
   title: string;
@@ -51,7 +49,6 @@ export interface WritingDraft {
   publicationDate: string;
 }
 
-/** Today as `YYYY-MM-DD`, the shape the public date formatter reads. */
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -86,7 +83,6 @@ export function draftFromRow(row: WritingArticleRow): WritingDraft {
   };
 }
 
-/** Whether two drafts would post the same row; the dirty check behind the discard guard. */
 export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
   return (
     a.slug === b.slug &&
@@ -104,27 +100,18 @@ export function isSameDraft(a: WritingDraft, b: WritingDraft): boolean {
   );
 }
 
-/**
- * Why a publication date cannot be saved, or `null` when it can. Empty is
- * allowed: the page then shows no date.
- */
 export function publicationDateError(value: string): string | null {
   const date = value.trim();
   if (!date || isValidPublicationDate(date)) return null;
   return `“${date}” is not a real date. Pick a day, or clear the field.`;
 }
 
-/**
- * Why a cover image address cannot be saved, or `null` when it can. The
- * Writing upsert accepts an http(s) address or a site path, nothing else.
- */
 export function coverImageUrlError(value: string): string | null {
   const url = value.trim();
   if (!url || /^(https?:\/\/|\/(?!\/))/.test(url)) return null;
   return "Use a full https:// address or a site path starting with /.";
 }
 
-/** The existing tags across every entry, most used first, for the tag picker. */
 export function writingTagOptions(entries: readonly WritingListEntry[]): Array<{ value: string; label: string; count: number }> {
   const counts = new Map<string, number>();
   for (const entry of entries) {
@@ -145,12 +132,6 @@ export type SlugAvailability =
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/**
- * Whether a slug can be saved to, checked against the editor listing rather than
- * against a dedicated query: the listing already carries every slug in the table,
- * both kinds, drafts included, so a separate round trip would only tell the
- * editor what the tab already knows.
- */
 export function checkSlugAvailability(
   slug: string,
   entries: readonly WritingListEntry[],
@@ -185,14 +166,12 @@ export function checkSlugAvailability(
   return { state: "free" };
 }
 
-/** Suggests a slug from a title, only while the editor has not typed their own. */
 export function suggestSlug(title: string): string {
   return slugify(title);
 }
 
 export function sortWritingEntries(entries: readonly WritingListEntry[]): WritingListEntry[] {
   return [...entries].sort((a, b) => {
-    // Drafts first (they are the ones with work outstanding), then newest.
     if (a.status !== b.status) {
       return a.status === "draft" ? -1 : 1;
     }
@@ -208,46 +187,36 @@ export function sortWritingEntries(entries: readonly WritingListEntry[]): Writin
   });
 }
 
-/** What each draft field is called in sentences, confirms and merge reviews. */
 export const WRITING_FIELD_LABELS: Record<keyof WritingDraft, string> = {
   title: "Title", slug: "Address", teaser: "Teaser", coverImageUrl: "Cover image",
   body: "Body", bodyFormat: "Body format", tags: "Tags", authorProfileKeys: "Byline",
   status: "Publication state", publicationDate: "Publication date",
 };
 
-/** The public address a row of this kind lives at. */
 export function writingAddress(kind: WritingKind, slug: string): string {
   return `${kind === "blog" ? "/blog" : "/articles"}/${slug || "<address>"}`;
 }
 
-/** "article" or "blog post", for sentences. */
 export function writingKindNoun(kind: WritingKind): string {
   return kind === "blog" ? "blog post" : "article";
 }
 
-/** The fields a draft changed against what it was loaded from, in form order. */
 export function changedWritingFields(baseline: WritingDraft, draft: WritingDraft): Array<keyof WritingDraft> {
   return (Object.keys(WRITING_FIELD_LABELS) as Array<keyof WritingDraft>).filter(
     (key) => JSON.stringify(draft[key]) !== JSON.stringify(baseline[key]),
   );
 }
 
-/** A list in words: "the title, the body and the tags". */
 export function joinWords(parts: readonly string[]): string {
   if (parts.length <= 1) return parts[0] ?? "";
   return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
 }
 
-/** "You changed the title and the body." for a publish confirm; empty when nothing changed. */
 export function describeWritingChanges(keys: readonly (keyof WritingDraft)[]): string {
   if (keys.length === 0) return "";
   return `You changed ${joinWords(keys.map((key) => `the ${WRITING_FIELD_LABELS[key].toLowerCase()}`))}.`;
 }
 
-/**
- * What an admin's save does, from where the page is going and where it was:
- * the dock button, the confirm's title and its consequence sentence.
- */
 export function writingSaveAction({
   status,
   wasPublished,
@@ -278,7 +247,6 @@ export function writingSaveAction({
   };
 }
 
-/** The one reason the open page cannot be saved right now, or null when it can. */
 export function writingSaveBlocker({
   draft,
   slugAvailability,
@@ -302,13 +270,11 @@ export function writingSaveBlocker({
   return null;
 }
 
-/** Entries split for the list: drafts (work outstanding) first, then the live ones. */
 export function groupWritingEntries(entries: readonly WritingListEntry[]): { drafts: WritingListEntry[]; live: WritingListEntry[] } {
   const sorted = sortWritingEntries(entries);
   return { drafts: sorted.filter((entry) => entry.status === "draft"), live: sorted.filter((entry) => entry.status !== "draft") };
 }
 
-/** Whether an entry matches the list filter: title, address, teaser or tags. */
 export function writingEntryMatches(entry: WritingListEntry, query: string): boolean {
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
@@ -316,7 +282,6 @@ export function writingEntryMatches(entry: WritingListEntry, query: string): boo
   return words.every((word) => haystack.includes(word));
 }
 
-/** A stored publication date written out ("2 Nov 2025"), read in UTC; null when there is none. */
 export function formatPublicationDate(value: string | undefined): string | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec((value ?? "").trim());
   if (!match) return null;

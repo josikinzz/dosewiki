@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-/**
- * Reshape a published trip report that arrived as one flat body into the
- * corpus's standard `introduction` / onset / peak / offset / `conclusion` record.
- *
- * The reshaping is pure text movement, and this command refuses to write unless
- * it can prove that: the record is rebuilt back into a single body with
- * `reconstructBody`, and the result must equal the stored body character for
- * character. The same proof runs again against what Postgres actually stored, so a
- * successful run ends with evidence rather than an assumption. The phase
- * boundaries come from a small plan file, because deciding where the peak begins
- * is editorial judgement and does not belong in a parser.
- *
- * Usage:
- *   node scripts/reports/format-flat-trip-report.mjs --slug=ego-rebirth --dry-run
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *     node scripts/reports/format-flat-trip-report.mjs --slug=ego-rebirth --write \
- *     --confirm-write=format-flat-trip-report --expected-deployment=localhost/dosewiki
- */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -56,7 +38,6 @@ function loadPlan(repoRoot, slug, planFlag) {
   return { planPath, plan };
 }
 
-/** One-line preview of an entry, so a dry run is reviewable without a diff tool. */
 function previewEntry(entry) {
   const firstLine = entry.description.split("\n", 1)[0];
   const text = firstLine.length > 96 ? `${firstLine.slice(0, 96)}…` : firstLine;
@@ -132,9 +113,6 @@ async function main() {
   assertDataOpsWriteAllowed(runContext);
   const apiKey = requireAdminIntentToken("editorArticleWrite").token;
 
-  // Snapshot the pre-write row before anything is sent. The post-write proof
-  // below can only tell the operator that storage stopped matching the author's
-  // text; this file is what they restore it from.
   const snapshotPath = path.join(
     runContext.repoRoot,
     "outputs/trip-report-reshape",
@@ -144,9 +122,6 @@ async function main() {
   writeFileSync(snapshotPath, `${JSON.stringify(stored, null, 2)}\n`);
   console.log(`\nOriginal saved to ${path.relative(runContext.repoRoot, snapshotPath)}`);
 
-  // The portal record is the snapshot the mutation re-derives for its
-  // optimistic-concurrency check, so `expected` is byte-identical by
-  // construction rather than by a second local normalizer.
   const portal = await client.query(api.tripReports.getPortalRecord, { apiKey, slug });
   const expected = portal.fields;
 
@@ -164,8 +139,6 @@ async function main() {
 
   await client.mutation(api.tripReports.update, { apiKey, id: portal.id, expected, expectedRevision: portal.revision, updates, operationId: crypto.randomUUID() });
 
-  // Re-read and re-prove. A write that succeeded is not yet evidence that
-  // storage still spells the author's text.
   const written = await client.query(api.tripReports.getBySlug, { slug });
   const rebuilt = reconstructBody(written);
   if (rebuilt !== body) {

@@ -1,4 +1,3 @@
-/** Evaluate observed rendered evidence, never infer deployment from local files. */
 export function evaluateReleaseEvidence({ expectedDigest, observedDigest, checks, status }) {
   const failures = [];
   if (status !== 200) failures.push(`HTTP ${status}`);

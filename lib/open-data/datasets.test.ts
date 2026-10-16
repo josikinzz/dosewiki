@@ -47,7 +47,6 @@ type Row = Record<string, unknown>;
 
 async function itemsOf(name: OpenDataDatasetName): Promise<Row[]> {
   const { json } = await buildOpenDataDocument(OPEN_DATA_DATASETS[name]);
-  // The builder emits the envelope it documents; the test reads it back as untyped JSON.
   const payload: { items: Row[] } = JSON.parse(json);
   return payload.items;
 }

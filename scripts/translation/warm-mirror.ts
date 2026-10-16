@@ -1,42 +1,3 @@
-/**
- * Post-deploy warmer for a locale mirror: request every public path on the
- * mirror host so the long tail is rendered and edge-cached before a reader
- * arrives.
- *
- * The mirror prerenders no substance articles (lib/next/prerenderPolicy.ts
- * returns an empty tier list for every locale but English) and only the
- * reports under `src/app/zh/reports/[slug]`; everything else renders on first
- * request and starts cold again after every deploy because the ISR page
- * cache does not survive one. This walks the English sitemap exactly as `mirror-coverage.ts
- * render` does (the mirror publishes no sitemap of its own), fetches each path
- * on the mirror with bounded concurrency through the shared warm helpers, and
- * prints status counts, cache hit/miss counts, and latency percentiles.
- *
- * No database access: sitemap in, HTTP out.
- *
- * Usage:
- *   bun scripts/translation/warm-mirror.ts --skip=/replications/                 # every page but the gallery tail, a few minutes
- *   bun scripts/translation/warm-mirror.ts                                       # the whole sitemap, gallery permalinks included (about an hour cold)
- *   bun scripts/translation/warm-mirror.ts --paths=/,/substances,/2c-b
- *   bun scripts/translation/warm-mirror.ts --base=http://localhost:3100 --paths=/reports   # local next start, Host: zh.dose.wiki
- *
- * Options:
- *   --host=<h>        Mirror host (default zh.dose.wiki); sent as the Host header.
- *   --base=<url>      Origin to fetch from (default https://<host>).
- *   --sitemap=<url>   English origin whose sitemap lists the paths (default https://dose.wiki).
- *   --paths=<a,b>     Warm these paths instead of the sitemap.
- *   --skip=<a,b>      Drop sitemap paths starting with any of these prefixes (the gallery is 90% of the sitemap).
- *   --limit=<n>       Warm at most this many paths, in sitemap order.
- *   --concurrency=<n> In-flight requests (default 8).
- *   --timeout=<ms>    Per-request timeout (default 20000).
- *   --slowest=<n>     How many slow paths to print (default 10).
- *
- * Progress is printed every 100 responses so a long run is never silent.
- *
- * Exit status is 1 when any request failed (network error, timeout, or 5xx
- * after one retry); a 404 counts as served, since a sitemap path the mirror
- * does not carry is a coverage finding, not a warm failure.
- */
 import { parseArgs } from "node:util";
 
 import {
@@ -69,7 +30,6 @@ const limit = values.limit ? Number(values.limit) : Infinity;
 const skipPrefixes = values.skip ? values.skip.split(",").map((entry) => entry.trim()).filter(Boolean) : [];
 const PROGRESS_EVERY = 100;
 
-/** Nearest-rank percentile of a sorted ascending list. */
 function percentile(sorted: readonly number[], p: number): number {
   if (sorted.length === 0) return 0;
   const rank = Math.ceil((p / 100) * sorted.length);

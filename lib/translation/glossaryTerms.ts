@@ -33,12 +33,6 @@ import {
 } from "../../src/schema/substance/sectionCatalog";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
 
-/**
- * The five terms the intensity scales label every effect with. They appear as
- * `[sup](common)[/sup]` inside scale rosters and as an ordered list in the
- * frequency article, so one rendering has to serve both or the two surfaces
- * stop agreeing.
- */
 const FREQUENCY_TERMS = [
   "Rare",
   "Uncommon",
@@ -47,7 +41,6 @@ const FREQUENCY_TERMS = [
   "Near universal",
 ];
 
-/** The harm-reduction register: the words a reader meets on every page, small enough to hand-hold. */
 const REGISTER_TERMS = [
   "come-up",
   "comedown",
@@ -66,12 +59,6 @@ const REGISTER_TERMS = [
   "withdrawal",
 ];
 
-/**
- * The names the site and its lineage go by. A rendering equal to the term is
- * how a reviewer says "keep as-is": the drafter asks for a rendering like any
- * other term, and an approved row whose target is its own term pins the name
- * in Latin script across every segment that mentions it.
- */
 const SITE_NAMES = [
   "dose.wiki",
   "Effect Index",
@@ -82,13 +69,6 @@ const SITE_NAMES = [
   "TripSit",
 ];
 
-/**
- * The closed sets. A legal status, a dose tier, a duration stage, a harm level,
- * an evidence level and an interaction tier each have exactly one right
- * rendering, and each one appears both as a registry label and inside
- * substance prose. Left unfrozen they drift between the two: the layout
- * registry saying one thing and the article saying another about the same badge.
- */
 const ENUM_LABELS: Record<string, readonly string[]> = {
   "legal-status": CANONICAL_LEGAL_STATUSES.map(
     (value) => CANONICAL_STATUS_LABELS[value],
@@ -107,14 +87,6 @@ const ENUM_LABELS: Record<string, readonly string[]> = {
 
 export type GlossaryTerm = { term: string; kind: string };
 
-/**
- * Every term the site publishes, deduped case-insensitively (first kind wins), sorted.
- *
- * Insertion order is kind precedence: a term two groups claim keeps the kind
- * of the earlier one ("Common" is a frequency before it is an index group,
- * "Psychedelic" a register word before a class). New groups go after the
- * existing ones so no historical row changes kind.
- */
 export async function collectGlossaryTerms(
   reads: PublicDataReadAdapter,
 ): Promise<GlossaryTerm[]> {

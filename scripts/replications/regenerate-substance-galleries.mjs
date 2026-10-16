@@ -20,7 +20,6 @@ registerHooks({
       try {
         return nextResolve(`${specifier}.ts`, context);
       } catch {
-        // Not a TypeScript module; use the native resolver's diagnostic.
       }
     }
     return nextResolve(specifier, context);
@@ -79,7 +78,6 @@ function existingOrder(slugs) {
   return new Map(slugs.map((slug, index) => [slug, index]));
 }
 
-/** Existing priority first within a media tier; newly inferred rows keep corpus order. */
 function priorityOrder(matches, currentCurated) {
   const current = existingOrder(currentCurated);
   return [...matches].sort((left, right) => {
@@ -96,13 +94,6 @@ function namedRow(row) {
   return { slug: row.slug, title: row.title, type: row.type, artist: row.artist };
 }
 
-/**
- * Build one clean-cutover plan. Stored priorities become the complete reviewed
- * exact-drug tier (videos, then images) plus the two audited Salvia direct
- * associations. General class and Visual Disconnection fallback rows remain
- * automatic and are therefore never frozen into a stored list. Existing
- * per-article exclusions survive only while their row remains eligible.
- */
 export function planGalleryRegeneration({ replications, substances, galleriesBySubstance }) {
   const rowBySlug = new Map(replications.map((row) => [row.slug, row]));
   const duplicateArticleSlugs = substances

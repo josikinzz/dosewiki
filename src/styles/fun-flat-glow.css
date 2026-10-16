@@ -1,40 +1,11 @@
-/*
-  Fun, off the homepage: no bloom.
-  ---------------------------------------------------------------------------
-  Fun's identity carries two kinds of coloured light: ambient washes (blurred
-  radial blobs behind headers and panels) and bloom (accent-tinted box-shadow
-  casts under CTAs, selected pills, tiles and focused fields). The washes are
-  gone from the markup entirely; this sheet kills the bloom, and only where the
-  homepage is not what is being painted.
 
-  Scope. The homepage is the one surface that keeps its glow, and it is the one
-  surface that renders `.theme-home-shell`, so `body:not(:has(.theme-home-shell))`
-  is the whole route test — no pathname plumbed into the root layout, no
-  per-route class threaded through every page.
-
-  Why the tokens are re-seated on `body` rather than on `html`: the authored,
-  Pro, surface and accent sheets all declare these tokens on `html` at up to
-  (0,4,0), and the Theme Lab's injected layer reaches (0,4,1). Cascade only
-  compares declarations on the same element, so a `body` declaration wins for
-  body and everything under it without an arms race — at the cost that the Lab
-  cannot re-tint these eight bloom recipes off the homepage, which is the point
-  of the sheet.
-
-  Most overrides keep the hairline ring and inset highlight while dropping the
-  coloured cast. Selected controls instead keep only a diffuse inset sheen.
-  Neutral casts stay neutral (--theme-shadow-*), so a lifted surface still
-  reads as lifted rather than flat.
-
-  Unlayered on purpose, and imported last: see `src/app/_styles/dosewiki.ts`.
-*/
 
 html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
-  /* Selected controls (route tabs, dosage-mode pills, view switchers). */
+
   --theme-selected-control-shadow:
     inset 0 3px 10px -5px var(--theme-status-badge-inset);
   --theme-selected-control-glow: none;
 
-  /* Accent- and violet-tinted lifts become their neutral-depth equivalents. */
   --theme-elevation-accent-lift: 0 22px 45px -28px var(--theme-shadow-strong);
   --theme-elevation-control-active: 0 10px 30px -12px var(--theme-shadow-soft);
   --theme-elevation-control-primary: 0 18px 40px -24px var(--theme-shadow-strong);
@@ -42,7 +13,6 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
   --theme-elevation-inner-accent: inset 0 2px 4px 0 var(--theme-shadow-soft);
   --theme-scroll-thumb-glow: transparent;
 
-  /* Frosted control hovers: ring plus inset, no brand cast. */
   --theme-frosted-control-hover-shadow:
     0 0 0 1px var(--theme-frosted-control-hover-border),
     inset 0 1px 0 var(--theme-status-badge-inset);
@@ -51,10 +21,6 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) {
     inset 0 1px 0 var(--theme-status-badge-inset);
 }
 
-/* Route pills keep glass edges in both color schemes: top light, bottom
-   shade, contact shadow, no accent bloom and no drawn ring. The icon recess
-   follows the canvas and sits under that glass as a dimple, not a cutout.
-   Important declarations supersede the legacy light-mode control remaps. */
 html:not([data-visual-style="pro"]) .theme-route-tabs-list .theme-selected-control[data-state="active"] {
   border-color: transparent !important;
   box-shadow: var(--theme-route-tab-shadow) !important;
@@ -67,9 +33,6 @@ html:not([data-visual-style="pro"]) .theme-route-tabs-list .theme-selected-contr
   --tw-ring-color: transparent !important;
 }
 
-/* The bloom these carry is written at the call site rather than in a token, so
-   each rule has to be restated. Specificity beats the layered originals in
-   `utilities-theme.css` without !important: these are unlayered. */
 html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-cta-accent {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
@@ -82,13 +45,10 @@ html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-cta
   }
 }
 
-/* Header search keeps its inset depth without adding an outside focus ring. */
 html:not([data-visual-style="pro"]) body:not(:has(.theme-home-shell)) .theme-global-search-input:focus {
   box-shadow: var(--theme-elevation-field-inset);
 }
 
-
-/* Mobile index tile: the same glass edges as the desktop pill. */
 html:not([data-visual-style="pro"])
   body:not(:has(.theme-home-shell))
   .theme-index-mobile-tab[data-state="active"]

@@ -37,12 +37,6 @@ interface ParentCategoryCardProps {
   toggleLabel?: string;
 }
 
-/**
- * Hierarchical category card containing subcategory sections.
- *
- * Used for the "All" tab to display parent categories (Visual Effects,
- * Cognitive Effects, Physical Effects) with nested subcategory sections.
- */
 export const ParentCategoryCard = memo(function ParentCategoryCard({
   title,
   icon,
@@ -62,7 +56,6 @@ export const ParentCategoryCard = memo(function ParentCategoryCard({
   if (subcategories.length === 0) {
     return null;
   }
-  // Check if we have multiple titled subcategories (need visual separation)
   const titledSubcategories = subcategories.filter((sub) => sub.title);
   const hasMultipleTitledSections = titledSubcategories.length > 1;
 

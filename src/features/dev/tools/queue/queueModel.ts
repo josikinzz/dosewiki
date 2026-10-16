@@ -1,8 +1,3 @@
-/**
- * Pure helpers for the Queue tab (`/dev/queue`): the shapes the proposal
- * routes answer with, how the rail groups them, and drift detection.
- */
-
 import type { EditorStatusPillTone } from "@/features/dev/components";
 import type { DevProposalSeed } from "@/features/dev/context/devModeTypes";
 import type { ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
@@ -17,7 +12,6 @@ type ProposalTarget = { kind: ProposalTargetKind; key: string; baseHash: string 
 
 export type ProposalComment = { authorName: string; at: string; text: string };
 
-/** One row of `GET /api/dev/proposals`: everything but payload, diff, and snapshot. */
 export type ProposalSummary = {
   _id: string;
   proposerName: string;
@@ -34,11 +28,9 @@ export type ProposalSummary = {
   commentCount: number;
   appliedAt?: string;
   conflictReason?: string;
-  /** The reader feedback this proposal answers (id and article section only). */
   feedbackRef?: FeedbackRef;
 };
 
-/** `GET /api/dev/proposals/<id>`: the full row plus the live hash of each target. */
 export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   diff: string;
   comparisonMode?: "applied" | "submitted" | "verified_live" | "unavailable";
@@ -46,24 +38,12 @@ export type ProposalDetail = Omit<ProposalSummary, "commentCount"> & {
   comments: ProposalComment[];
   revertedAt?: string;
   liveHashes: Array<{ kind: ProposalTargetKind; key: string; hash: string }>;
-  /**
-   * The field changes of each article this proposal updates: stored at submit,
-   * or computed from a trusted before and after for an older proposal. Absent
-   * when no field-by-field reading is available; the text diff then stands.
-   */
   articlePatches?: ArticlePatch[];
-  /** Present only for the fresh, explicitly requested Load into editor seed read. */
   payload?: DevProposalSeed["payload"];
 };
 
-/** What `POST /api/dev/proposals/<id>/approve` answers. */
 export type ApproveOutcome = { status: "applied" | "changes_requested"; conflictReason?: string };
 
-/**
- * One row of `GET /api/dev/review-recommendations`: an editor's
- * "Recommended reviewed" awaiting an admin. `stale` means the article was
- * published again after it, so it cannot be approved without re-review.
- */
 export type ReviewRecommendationRow = {
   slug: string;
   title: string;
@@ -75,7 +55,6 @@ export type ReviewRecommendationRow = {
   stale: boolean;
 };
 
-/** What `POST /api/dev/review-recommendations` answers, by slug. */
 export type RecommendationApproval = { approved: string[]; stale: string[]; missing: string[] };
 
 type QueueGroupId ="submitted" | "changes_requested" | "applied" | "closed"
@@ -86,7 +65,6 @@ type QueueGroup = {
   statuses: readonly ProposalStatus[];
 }
 
-/** Rail order: what an admin has to act on first, closed proposals last. */
 export const QUEUE_GROUPS: readonly QueueGroup[] = [
   { id: "submitted", label: "Awaiting review", statuses: ["submitted"] },
   { id: "changes_requested", label: "Needs revision", statuses: ["changes_requested"] },
@@ -114,7 +92,6 @@ export const STATUS_PILL_TONE: Record<ProposalStatus, EditorStatusPillTone> = {
 
 export type GroupedProposals = Array<QueueGroup & { rows: ProposalSummary[] }>;
 
-/** Every group in rail order, each holding its rows in the order the list came (newest first). */
 export function groupProposals(rows: readonly ProposalSummary[]): GroupedProposals {
   return QUEUE_GROUPS.map((group) => ({
     ...group,
@@ -123,15 +100,9 @@ export function groupProposals(rows: readonly ProposalSummary[]): GroupedProposa
 }
 
 export type TargetDrift = ProposalTarget & {
-  /** True when production no longer matches the hash the proposal pinned; approve would refuse. */
   drifted: boolean;
 };
 
-/**
- * Each target with whether production moved under it. A target the live
- * hashes do not mention counts as drifted: the reviewer should not read a
- * missing answer as "still fine".
- */
 export function targetDrift(detail: Pick<ProposalDetail, "targets" | "liveHashes">): TargetDrift[] {
   return detail.targets.map((target) => {
     const live = detail.liveHashes.find((hash) => hash.kind === target.kind && hash.key === target.key);
@@ -139,11 +110,6 @@ export function targetDrift(detail: Pick<ProposalDetail, "targets" | "liveHashes
   });
 }
 
-/**
- * The text diff without the sections of articles already shown field by field,
- * so a mixed proposal lists each change once. Sections are split on the
- * `# <kind>: <key>` headings the server writes.
- */
 export function diffWithoutArticles(markdown: string, slugs: readonly string[]): string {
   if (slugs.length === 0) return markdown;
   const shown = new Set(slugs);
@@ -153,7 +119,6 @@ export function diffWithoutArticles(markdown: string, slugs: readonly string[]):
   }).join("");
 }
 
-/** Admin actions the proposal's status still allows; the buttons render from this. */
 export function reviewActionsFor(status: ProposalStatus): { approve: boolean; reject: boolean; revert: boolean } {
   return {
     approve: status === "submitted",
@@ -162,14 +127,6 @@ export function reviewActionsFor(status: ProposalStatus): { approve: boolean; re
   };
 }
 
-/**
- * Whether the viewer may rebase this proposal: it is still open to its
- * proposer (waiting, or returned with changes requested), the viewer is that
- * proposer or an admin, and everything it changes is something the substances
- * editor can hold (articles and index layouts; copy blocks, About and
- * Writing have their own editors). Mirrors what `changeProposals.submit` accepts as
- * `revisionOf`.
- */
 export function canLoadIntoEditor(
   proposal: Pick<ProposalSummary, "status" | "isAuthor" | "targets">,
   viewer: { canApprove: boolean },
@@ -179,7 +136,6 @@ export function canLoadIntoEditor(
   return open && seedable && (viewer.canApprove || proposal.isAuthor);
 }
 
-/** The seed the dev context takes: the row's identity, why it came back, and its staged save. */
 export function proposalSeedOf(proposal: ProposalDetail): DevProposalSeed {
   if (!proposal.payload) {
     throw new Error("The proposal seed was not returned. Refresh and try loading it again.");
@@ -213,7 +169,6 @@ export const TARGET_KIND_LABELS: Record<ProposalTargetKind, string> = {
 
 const plural = (count: number, one: string, many = `${one}s`) => `${count} ${count === 1 ? one : many}`;
 
-/** What a row says it changes: the one item by name, or the first and how many more. */
 export function describeTargets(targets: readonly Pick<ProposalTarget, "kind" | "key">[]): string {
   if (targets.length === 0) return "No items";
   const [first] = targets;
@@ -221,12 +176,10 @@ export function describeTargets(targets: readonly Pick<ProposalTarget, "kind" | 
   return targets.length === 1 ? name : `${name} and ${targets.length - 1} more`;
 }
 
-/** Whether a proposal still waits on someone: an admin's review, or the proposer's revision. */
 export function isOpenProposal(status: ProposalStatus): boolean {
   return status === "submitted" || status === "changes_requested";
 }
 
-/** The list's count line: waiting work first, then history. */
 export function describeQueueCount(rows: readonly Pick<ProposalSummary, "status">[]): string {
   const open = rows.filter((row) => isOpenProposal(row.status)).length;
   const history = rows.length - open;
@@ -234,7 +187,6 @@ export function describeQueueCount(rows: readonly Pick<ProposalSummary, "status"
   return `${open} open, ${history} in history`;
 }
 
-/** Words a search matches: the summary, the proposer, and every target's kind and key. */
 export function proposalMatches(row: Pick<ProposalSummary, "summary" | "proposerName" | "targets">, query: string): boolean {
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
@@ -246,10 +198,6 @@ export function proposalMatches(row: Pick<ProposalSummary, "summary" | "proposer
   return words.every((word) => haystack.includes(word));
 }
 
-/**
- * Where the proposal stands and what happens next, by status and by who is
- * reading: an admin reviewing, an admin reading their own, or the proposer.
- */
 export function nextStepFor(
   status: ProposalStatus,
   viewer: { canApprove: boolean; isAuthor: boolean },
@@ -273,23 +221,13 @@ export function nextStepFor(
   }[status];
 }
 
-/**
- * Why Approve is off, in one sentence, or null when it can be pressed. The
- * server makes the same refusals; this only says them before the click.
- */
 export function approveBlocker(proposal: Pick<ProposalDetail, "isAuthor" | "diff" | "comparisonMode">): string | null {
   if (proposal.isAuthor) return "You cannot approve your own proposal. Another admin must.";
-  // An older proposal with no verifiable comparison cannot be read in full, so
-  // it is not approved blind; the proposer prepares a new submission instead.
   if (proposal.comparisonMode === "unavailable") return "There is no verifiable comparison, so it cannot be approved here.";
   if (!proposal.diff.trim()) return "There is no text comparison to review, so it cannot be approved here.";
   return null;
 }
 
-/**
- * What approving would do given the live content: publish, or come back as
- * changes requested because a target moved. Null when nothing has moved.
- */
 export function describeDrift(targets: readonly TargetDrift[]): string | null {
   const moved = targets.filter((target) => target.drifted).length;
   if (moved === 0) return null;
@@ -297,7 +235,6 @@ export function describeDrift(targets: readonly TargetDrift[]): string | null {
   return `${share} changed since submission. Approving will return it for revision instead of publishing, unless the live content matches again.`;
 }
 
-/** Who holds a waiting proposal in the Inbox's claim table. */
 export type ProposalHold =
   | { kind: "open" }
   | { kind: "mine"; at: string | null }
@@ -306,7 +243,6 @@ export type ProposalHold =
 
 export type ProposalClaim = { claimed_by: string; claimed_at?: string | null; expired?: boolean };
 
-/** A claim that has lapsed reads as open, as the Inbox shows it. */
 export function proposalHoldOf(
   claim: ProposalClaim | null | undefined,
   actorEmail: string | null,
@@ -319,5 +255,4 @@ export function proposalHoldOf(
   return { kind: "other", by: claim.claimed_by, at };
 }
 
-/** The history groups a list folds after this many rows. */
 export const QUEUE_HISTORY_CAP = 5;

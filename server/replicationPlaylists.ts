@@ -8,27 +8,6 @@ import { requireRole, roleMeetsFloor, type AuthorizedActor } from "./lib/auth";
 import { recordRevision } from "./lib/contentRevisions";
 import { isShowcaseEligible } from "../src/data/substanceReplicationGallery";
 
-/**
- * Reusable replication playlists for the /dev curation portal.
- *
- * A playlist is a named, ordered set of replication slugs and nothing more. It
- * publishes nothing on its own: applying one edits a substance gallery's
- * *draft*, and `substanceGalleries` remains the single publish gate. This
- * exists because the same opener is right for a whole family of substances, and
- * rebuilding that order by hand per article is most of the curation work.
- *
- * Membership is pruned to showcase-eligible corpus rows on write, the same way
- * `substanceGalleries:upsert` prunes a curation, so a playlist can never carry
- * a slug that no longer exists or has been retired corpus-wide.
- *
- * Ownership: a playlist may carry `owner_email`. Its owner edits and deletes
- * it directly at the contributor floor; an admin may edit anything; every
- * other member (an editor included) reads it and nothing more. A playlist
- * with no owner is admin-only. Refusals throw `PostgresError({ code: "NOT_OWNER" })`
- * so the route can answer 403 with a sentence the member can act on.
- */
-
-/** Enough for several articles' worth of ordering, small enough to stay one document. */
 const MAX_PLAYLIST_SLUGS = 250;
 
 const KEBAB_CASE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -37,7 +16,6 @@ type ActorArgs = { apiKey?: string; actorEmail?: string };
 
 type PlaylistRow = Doc<"replicationPlaylists">;
 
-/** The one ownership rule: admins bypass, otherwise the row's owner and nobody else. */
 export function canEditPlaylist(
   actor: Pick<AuthorizedActor, "role" | "email">,
   row: Pick<PlaylistRow, "owner_email">,
@@ -55,7 +33,6 @@ function requireOwnership(actor: AuthorizedActor, row: PlaylistRow): void {
   });
 }
 
-/** The normalized email of an existing member, or a rejection naming the address. */
 async function requireMemberEmail(ctx: QueryCtx | MutationCtx, email: string): Promise<string> {
   const normalized = email.trim().toLowerCase();
   const membership = await ctx.db
@@ -68,7 +45,6 @@ async function requireMemberEmail(ctx: QueryCtx | MutationCtx, email: string): P
   return normalized;
 }
 
-/** Compact playlist metadata returned by list queries. */
 export type PlaylistSummaryProjection = {
   key: string;
   title: string;
@@ -79,7 +55,6 @@ export type PlaylistSummaryProjection = {
   editable: boolean;
 };
 
-/** Complete playlist data returned by keyed reads and mutations. */
 export type PlaylistProjection = {
   key: string;
   title: string;
@@ -102,7 +77,6 @@ function projectPlaylist(row: PlaylistRow, actor: AuthorizedActor): PlaylistProj
   };
 }
 
-/** The row under `key` whether or not it is archived. */
 async function findPlaylistRow(ctx: QueryCtx | MutationCtx, key: string) {
   return await ctx.db
     .query("replicationPlaylists")
@@ -110,7 +84,6 @@ async function findPlaylistRow(ctx: QueryCtx | MutationCtx, key: string) {
     .first();
 }
 
-/** The live row under `key`; an archived playlist reads as absent. */
 async function findPlaylist(ctx: QueryCtx | MutationCtx, key: string) {
   const row = await findPlaylistRow(ctx, key);
   return row && !row.archived_at ? row : null;
@@ -143,7 +116,6 @@ export async function listHandler(ctx: QueryCtx, args: ActorArgs) {
   return rows.map((row) => projectPlaylistSummary(row, actor)).sort(byTitle);
 }
 
-/** Every playlist, each flagged with whether the actor may change it. Editor floor. */
 export const list = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: listHandler,
@@ -162,7 +134,6 @@ export async function listOwnedHandler(ctx: QueryCtx, args: ActorArgs) {
   return rows.map((row) => projectPlaylistSummary(row, actor)).sort(byTitle);
 }
 
-/** The actor's own playlists; an admin sees all of them. Contributor floor. */
 export const listOwned = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: listOwnedHandler,
@@ -176,14 +147,10 @@ export async function getHandler(ctx: QueryCtx, args: ActorArgs & { key: string 
   );
   const row = await findPlaylist(ctx, args.key);
   if (!row) return null;
-  // A contributor sees only the playlists they own; a playlist they do not
-  // own is indistinguishable from one that does not exist. Editors and admins
-  // read every playlist, matching `list`.
   if (!roleMeetsFloor(actor.role, "editor") && !canEditPlaylist(actor, row)) return null;
   return projectPlaylist(row, actor);
 }
 
-/** One playlist by key. Contributor floor with ownership; editors and admins read any. */
 export const get = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()), key: v.string() },
   handler: getHandler,
@@ -230,9 +197,6 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
     requireOwnership(actor, existing);
   }
 
-  // Who the new row belongs to. A member creating a playlist owns it, or they
-  // could never touch it again; an admin may hand it to a member up front or
-  // leave it unowned (admin-only), which is what every pre-ownership row is.
   let owner_email: string | undefined;
   if (!existing) {
     if (actor.role !== "admin") {
@@ -265,9 +229,6 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
     };
   }
 
-  // Prune to rows that still exist and still propose themselves anywhere, and
-  // echo what was dropped: a playlist naming a deleted or retired work would
-  // silently apply nothing at the far end.
   const rows = await ctx.db.query("replications").collect();
   const eligible = new Set(rows.filter(isShowcaseEligible).map((row) => row.slug));
   const slugs: string[] = [];
@@ -318,16 +279,6 @@ export async function upsertHandler(ctx: MutationCtx, args: UpsertArgs) {
   };
 }
 
-/**
- * Create or replace one playlist. Contributor floor: a new row is owned by
- * its creator, an existing row is only replaced by its owner or an admin.
- *
- * `expectedUpdatedAt` carries the same optimistic-concurrency contract as a
- * gallery save: omit it to write unconditionally, pass `null` to assert the
- * playlist did not exist, or pass the loaded `updated_at`. A failed check
- * writes nothing and returns `{ status: "conflict", server }` so the caller can
- * show both sides rather than clobbering a colleague.
- */
 export const upsert = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -337,7 +288,6 @@ export const upsert = mutation({
     replication_slugs: v.array(v.string()),
     updatedBy: v.optional(v.string()),
     expectedUpdatedAt: v.optional(v.union(v.string(), v.null())),
-    /** Admin only: the member who will own the playlist. */
     owner_email: v.optional(v.string()),
   },
   handler: upsertHandler,
@@ -390,7 +340,6 @@ export async function setMembershipHandler(ctx: MutationCtx, args: SetMembership
   };
 }
 
-/** Idempotently add or remove one replication without replacing the playlist. Owner or admin. */
 export const setMembership = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -418,11 +367,6 @@ export async function removeHandler(ctx: MutationCtx, args: ActorArgs & { key: s
   return { status: "ok" as const, key: args.key };
 }
 
-/**
- * Remove one playlist from every list and picker: its owner may, an admin
- * may, and an unowned row is admin-only. The row stays on the server with
- * `archived_at` set; `restore` brings it back, and nothing here deletes.
- */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -454,7 +398,6 @@ export async function restoreHandler(ctx: MutationCtx, args: ActorArgs & { key: 
   return { status: "ok" as const, key: args.key };
 }
 
-/** Bring an archived playlist back exactly as it was removed. Admin floor. */
 export const restore = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -464,7 +407,6 @@ export const restore = mutation({
   handler: restoreHandler,
 });
 
-/** Archived playlists, newest removal first. Admin floor. */
 export const listArchived = query({
   args: { apiKey: v.optional(v.string()), actorEmail: v.optional(v.string()) },
   handler: async (ctx, args) => {
@@ -510,10 +452,6 @@ export async function assignOwnerHandler(ctx: MutationCtx, args: AssignOwnerArgs
   };
 }
 
-/**
- * Hand a playlist to a member, or (`ownerEmail: null`) take it back to the
- * unowned, admin-only state. Admin floor; the member must exist.
- */
 export const assignOwner = mutation({
   args: {
     apiKey: v.optional(v.string()),

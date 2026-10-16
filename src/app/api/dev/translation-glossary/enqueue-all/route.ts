@@ -1,13 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/enqueue-all  { locale }
- *
- * Admin only. The main translation for a locale whose glossary is fully
- * reviewed: enqueues every public record of every kind, like
- * `live-mirror.ts enqueue --all` per kind, and the five-minute cron backfills
- * the store from there. Refused while the locale still has draft rows, since
- * a term approved afterwards would need a scoped retranslation of everything
- * that mentions it.
- */
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 

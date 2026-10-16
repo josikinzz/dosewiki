@@ -15,8 +15,6 @@ export const metadata = buildNoIndexPageMetadata({
   pathname: STATUS_PAGE_PATHS.dev,
 });
 
-// The Effect Index build never reaches this page: middleware answers the whole `/dev`
-// prefix with a real 404 there (`dev` in `FlavorGatedRoute`), so only the role gate is left.
 export default async function DevThemesPage() {
   const { session } = await getDevShellSession();
   const decision = getDevRouteDecision({

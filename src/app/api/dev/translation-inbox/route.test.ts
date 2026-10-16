@@ -39,7 +39,6 @@ let db: PGlite;
 beforeAll(async () => {
   db = new PGlite();
   for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  // Adapt the transport only. The routes, access checks, stores, and SQL are production code.
   transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
   transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
 }, 60_000);
@@ -66,7 +65,6 @@ async function seedLegacy(term: string, target: string) {
     [LOCALE, term, target],
   );
 }
-/** A human approval recorded against English the label no longer has. */
 async function seedStaleUiApproval(id: string, oldSource: string, target: string) {
   const { context } = UI_MESSAGE_INVENTORY[id];
   await db.query(
@@ -106,7 +104,6 @@ describe("the review inbox read route over isolated Postgres", () => {
     await seedStaleUiApproval("appearance.light", "Light mode", "浅色模式");
     const [ui, glossary] = (await read()).items;
 
-    // Another reviewer changes both after this inbox page was read.
     expect((await editPost(post("/api/dev/translation-glossary/edit", { locale: LOCALE, term: "Euphoria", target: "愉悦", expectedRevision: glossary.revision }))).status).toBe(200);
     await writeUiTranslation({ locale: LOCALE, id: "appearance.light", action: "save", target: "亮色", expectedRevision: 2, actor: "other@example.test", reason: "Other draft" });
     const before = await historyCount();

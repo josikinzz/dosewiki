@@ -1,22 +1,4 @@
 #!/usr/bin/env node
-/**
- * Pre-populate articles with identification data from oldosewiki-article.json
- *
- * Fields extracted:
- * - IUPAC_name → identification.iupac_name
- * - smiles → identification.smiles
- * - substitutive_name → identification.substitutive_name
- * - alternative_name → identification.alternative_names (split by "; ")
- * - botanical_name → identification.botanical_name
- *
- * Usage:
- *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json> --dry-run
- *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json>
- *   node scripts/prepopulate/prepopulate-from-old-articles.mjs --input <local-substance-export.json> --verbose
- *
- * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
- * it is never the tracked public/SubstanceIndex.json archive.
- */
 
 import fs from "fs";
 import path from "path";
@@ -32,7 +14,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(__dirname, "..", "..");
 
-// Parse CLI args
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
@@ -41,7 +22,6 @@ if (inputIndex < 0 || !args[inputIndex + 1]) {
   throw new Error("Pass --input <path> naming the local substance export to prepopulate.");
 }
 
-// Load data files
 const articlesPath = path.resolve(args[inputIndex + 1]);
 const oldArticlesPath = path.join(ROOT, "oldosewiki-article.json");
 
@@ -55,7 +35,6 @@ const runContext = createDataOpsRunContext({
   localArtifacts: [path.relative(repoRoot, articlesPath), "oldosewiki-article.json"],
 });
 
-// Build lookup map from old articles by title (case-insensitive)
 const oldByTitle = new Map();
 for (const art of oldArticles) {
   if (art.title) {
@@ -63,7 +42,6 @@ for (const art of oldArticles) {
   }
 }
 
-// Stats tracking
 const stats = {
   articlesProcessed: 0,
   articlesModified: 0,
@@ -81,7 +59,6 @@ const stats = {
   unmatched: [],
 };
 
-// Helper: check if field is empty
 function isEmpty(value) {
   if (value === undefined || value === null) return true;
   if (typeof value === "string") return value.trim() === "";
@@ -89,7 +66,6 @@ function isEmpty(value) {
   return false;
 }
 
-// Helper: split alternative names by semicolon
 function splitAlternativeNames(str) {
   if (!str || typeof str !== "string") return [];
   return str
@@ -98,7 +74,6 @@ function splitAlternativeNames(str) {
     .filter((s) => s.length > 0);
 }
 
-// Process each article
 const modifiedArticles = articles.map((article) => {
   const title = article.title?.toLowerCase().trim();
   const oldArt = oldByTitle.get(title);
@@ -115,12 +90,10 @@ const modifiedArticles = articles.map((article) => {
   let modified = false;
   const changes = [];
 
-  // Ensure identification object exists
   if (!updated.identification) {
     updated.identification = {};
   }
 
-  // === IUPAC Name ===
   if (typeof info.IUPAC_name === "string" && info.IUPAC_name.trim()) {
     if (isEmpty(updated.identification.iupac_name)) {
       updated.identification.iupac_name = info.IUPAC_name.trim();
@@ -132,7 +105,6 @@ const modifiedArticles = articles.map((article) => {
     }
   }
 
-  // === SMILES ===
   if (typeof info.smiles === "string" && info.smiles.trim()) {
     if (isEmpty(updated.identification.smiles)) {
       updated.identification.smiles = info.smiles.trim();
@@ -144,7 +116,6 @@ const modifiedArticles = articles.map((article) => {
     }
   }
 
-  // === Substitutive Name ===
   if (typeof info.substitutive_name === "string" && info.substitutive_name.trim()) {
     if (isEmpty(updated.identification.substitutive_name)) {
       updated.identification.substitutive_name = info.substitutive_name.trim();
@@ -156,7 +127,6 @@ const modifiedArticles = articles.map((article) => {
     }
   }
 
-  // === Alternative Names (split by semicolon) ===
   if (typeof info.alternative_name === "string" && info.alternative_name.trim()) {
     if (isEmpty(updated.identification.alternative_names)) {
       const altNames = splitAlternativeNames(info.alternative_name);
@@ -171,7 +141,6 @@ const modifiedArticles = articles.map((article) => {
     }
   }
 
-  // === Botanical Name ===
   if (typeof info.botanical_name === "string" && info.botanical_name.trim()) {
     if (isEmpty(updated.identification.botanical_name)) {
       updated.identification.botanical_name = info.botanical_name.trim();
@@ -194,7 +163,6 @@ const modifiedArticles = articles.map((article) => {
   return updated;
 });
 
-// Output summary
 console.log("\n" + "=".repeat(60));
 console.log("PRE-POPULATION FROM OLD ARTICLES SUMMARY");
 console.log("=".repeat(60));
@@ -220,7 +188,6 @@ if (stats.unmatched.length > 0 && verbose) {
   stats.unmatched.forEach((t) => console.log(`  - ${t}`));
 }
 
-// Write if not dry run
 if (!dryRun) {
   assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");

@@ -1,13 +1,3 @@
-/**
- * The mirror host's 404. The middleware rewrites every mirror-host path
- * outside the public corpus here with a 404 status, so the page renders the
- * not-found chrome in the mirror's language as ordinary server output. It is
- * a page rather than a `not-found.tsx` boundary because a nested boundary
- * only renders on the client (the server ships an empty error shell), and
- * the root boundary cannot read the request: Next renders it inside every
- * static route's tree, so a `headers()` call there flips ISR articles dynamic
- * at runtime and crashes them.
- */
 import { getCopyByKeys } from "@server/next/copyBlocks";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { getStatusRecoveryLink } from "@server/next/statusRecoveryLinks";

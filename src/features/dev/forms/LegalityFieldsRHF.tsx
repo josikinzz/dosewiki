@@ -1,9 +1,3 @@
-/**
- * RHF-based Legality fields component.
- * Handles international treaties and country-specific legal status.
- * Layout mirrors the public article display with International and By Country subsections.
- */
-
 import { Icon } from "@/components/common/Icon";
 import { CollapsibleEditorCard } from "./CollapsibleEditorCard";
 import { ControlledTagMultiSelect, TextListInput, CountryLegalityCardEditor } from "./rhf";
@@ -16,7 +10,6 @@ export type LegalityFieldsRHFProps = {
 export function LegalityFieldsRHF({ idPrefix: _idPrefix, embedded = false }: LegalityFieldsRHFProps) {
   return (
     <section className="space-y-4">
-      {/* International Status */}
       <CollapsibleEditorCard
         title="International"
         icon={<Icon icon="lucide:globe" size={20} />}
@@ -41,7 +34,6 @@ export function LegalityFieldsRHF({ idPrefix: _idPrefix, embedded = false }: Leg
         />}
       </CollapsibleEditorCard>
 
-      {/* Country-Specific Status */}
       <CollapsibleEditorCard
         title="By Country"
         icon={<Icon icon="lucide:map-pin" size={20} />}

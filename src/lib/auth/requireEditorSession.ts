@@ -25,13 +25,7 @@ type SessionGuardResult =
       response: NextResponse;
     };
 
-/**
- * Session gate for protected routes. `floor` is the lowest role admitted:
- * `admin` for destructive and publishing routes, `editor` for drafting and
- * review metadata, `contributor` for routes that then check ownership.
- */
 export async function requireRoleSession(floor: RoleFloor): Promise<SessionGuardResult> {
-  // Legacy protected endpoints outside /api/dev must obey the same publication boundary.
   if (process.env.NEXT_PUBLIC_EDITOR_BUILD === "false") {
     return {
       ok: false,

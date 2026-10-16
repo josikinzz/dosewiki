@@ -21,21 +21,9 @@ type CorpusPayload = {
 type DatasetState = { status: "loading" | "ready" } | { status: "error"; message: string };
 type LoadState = { corpus: DatasetState; submissions: DatasetState };
 
-/**
- * Last corpus this tab saw, kept outside React so leaving and re-entering the
- * tab paints the previous rows immediately instead of replaying the loading
- * state. The refetch still runs on every mount; it just happens behind the
- * already-rendered list.
- */
 let cachedPublished: Pick<CorpusPayload, "reports" | "contributors"> | null = null;
 let cachedSubmissions: TripReportSubmissionPortalSummary[] | null = null;
 
-/**
- * The portal's two datasets, published reports and the submission queue,
- * each loaded independently so one failing endpoint still paints the other.
- * Every local write goes through `updateReports` or `replaceSubmission`, which
- * keep the module cache in step with what the list shows.
- */
 export function useTripReportPortalCorpus() {
   const [corpus, setCorpus] = useState<CorpusPayload>(() => ({
     reports: cachedPublished?.reports ?? [],

@@ -3,22 +3,12 @@
 import { EditorStatusPill, type EditorStatusPillTone } from "./EditorToolbar";
 import { useWriteFreeze } from "./writeFreeze";
 
-/** How a tool's primary action writes; the tab registry declares one per tool. */
 export type SaveModel = "record" | "batch" | "instant";
 
-/**
- * Where the signed-in member's save goes: to the live site, to an admin as a
- * proposal, or nowhere because only an admin can save here.
- */
 export type SaveDestination = "live" | "proposal" | "read-only";
 
 export type SaveLineCopy = { label: string; detail: string; icon: string; tone: EditorStatusPillTone };
 
-/**
- * The save model, said once per tool beside its primary action. Only a write
- * that reaches the live site the moment it happens takes the warning tone; a
- * draft or a working set still waits on a deliberate Publish or Commit.
- */
 export const SAVE_LINE_COPY: Record<SaveModel, SaveLineCopy> = {
   record: {
     label: "Save draft stays private. Publish goes live.",
@@ -54,10 +44,6 @@ const READ_ONLY_COPY: SaveLineCopy = {
   tone: "neutral",
 };
 
-/**
- * What every save line says once a write has come back refused by the write
- * freeze: whatever the tool's model, nothing lands until writes resume.
- */
 export const WRITE_FREEZE_COPY: SaveLineCopy = {
   label: "Writes are paused.",
   detail: "The last save was refused because the site is not accepting changes right now. Keep this tab open or copy your work out; it will save once writes resume.",
@@ -77,16 +63,9 @@ export function SaveLine({
 }: {
   model: SaveModel;
   destination?: SaveDestination;
-  /**
-   * The tool's own sentence, for a tool whose save the three models misdescribe
-   * (Playlists: a save stores the playlist and publishes nothing). The write
-   * freeze still replaces it.
-   */
   copy?: SaveLineCopy;
   className?: string;
 }) {
-  // A tool that draws its own line beside its primary action must not keep
-  // promising a live write while the freeze refuses every one.
   const frozen = useWriteFreeze().frozen;
   const copy = frozen ? WRITE_FREEZE_COPY : (override ?? saveLineCopy(model, destination));
   return (

@@ -60,7 +60,6 @@ function selectMembership(index: GalleryBrowseIndex, browse: GalleryBrowseState,
 
 export class StaleGalleryCursorError extends Error {}
 
-/** Artist browsing pages rail previews, while focused/search grids page every work. */
 export async function getGalleryBrowsePage(index: GalleryBrowseIndex, locale: UiLocale, browse: GalleryBrowseState,
   focus: GalleryFocus | null = null, cursor: string | null = null, viewerSlug: string | null = null): Promise<GalleryPagePayload> {
   const queryIdentity = galleryQueryIdentity(locale, browse, focus);
@@ -85,7 +84,6 @@ export async function getGalleryBrowsePage(index: GalleryBrowseIndex, locale: Ui
   const page = [...new Map(members.map((item) => [item._id, item])).values()];
   const linked = viewerSlug ? membership.ordered.find((item) => item.slug === viewerSlug) : undefined;
   if (linked && !page.some((item) => item._id === linked._id)) page.push(linked);
-  // Keep each selected-slug read bounded, without serializing independent batches.
   const pages: Array<Promise<PublicGalleryReplicationPreview[]>> = [];
   for (let start = 0; start < page.length; start += WORK_PAGE_SIZE) {
     pages.push(hydrateGalleryPage(page.slice(start, start + WORK_PAGE_SIZE), locale));

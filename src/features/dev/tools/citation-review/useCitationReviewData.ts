@@ -77,7 +77,6 @@ async function readRows(slug: string): Promise<CitationEvidenceRow[]> {
 
 const CLAIMS_PATH = "/api/dev/inbox/claims";
 
-/** Who holds each citation article in the Inbox's claim table, keyed by slug. Advisory. */
 async function readClaims(): Promise<Map<string, ProposalClaim>> {
   const payload = await readJson<{ claims?: unknown }>(CLAIMS_PATH);
   if (!Array.isArray(payload.claims)) {
@@ -95,16 +94,10 @@ async function readClaims(): Promise<Map<string, ProposalClaim>> {
   return claims;
 }
 
-/**
- * Why the last write did not land: the server refused it (`failed`), the
- * write freeze held it (`frozen`), or someone else changed the rows since
- * they were shown (`conflict`, nothing was written). Scoped to the article.
- */
 export type CitationActionFailure = {
   kind: "failed" | "frozen" | "conflict";
   message: string;
   slug: string;
-  /** Rows involved in a conflict. */
   count?: number;
   undo?: boolean;
 };
@@ -121,19 +114,12 @@ export function useCitationReviewData(initialSlug?: string) {
   const [queue, setQueue] = useState<CitationReviewQueueSummary[]>([]);
   const [queueFilter, setQueueFilter] = useState<CitationReviewQueueFilter>("open");
   const [queueError, setQueueError] = useState<CitationReviewQueueLoadFailure | null>(null);
-  // The first load shows skeletons; later refreshes keep the queue and the
-  // evidence rows mounted, so expanded rows, half-typed reject reasons and
-  // the scroll position survive a decision.
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const hasLoadedQueueRef = useRef(false);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialSlug ?? null);
-  // A deep link the first read did not list: said at the list, and opened
-  // when a later filter lists it.
   const [missingSlug, setMissingSlug] = useState<string | null>(null);
   const wantedSlugRef = useRef<string | null>(initialSlug ?? null);
-  // Rows remember the article they were fetched for, so a slow reply for one
-  // article can never render or be decided under another.
   const [detail, setDetail] = useState<{ slug: string; rows: CitationEvidenceRow[] } | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const detailRequestRef = useRef(0);
@@ -142,21 +128,16 @@ export function useCitationReviewData(initialSlug?: string) {
     () => (detail && detail.slug === selectedSlug ? detail.rows : NO_ROWS),
     [detail, selectedSlug],
   );
-  // Loading means no rows have landed for this article yet; a refresh of the
-  // same article keeps its rows on screen.
   const isDetailLoading = selectedSlug !== null && rowsSlug !== selectedSlug && detailError === null;
   const [actionFailure, setActionFailure] = useState<CitationActionFailure | null>(null);
   const [pendingClaimKeys, setPendingClaimKeys] = useState<string[]>([]);
   const [pendingStatus, setPendingStatus] = useState<CitationReviewDecisionStatus | null>(null);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [isUndoing, setIsUndoing] = useState(false);
-  // The last write that landed, offered for undo until the next decision
-  // replaces it. No timer: the reviewer may read on before deciding to undo.
   const [undoableDecision, setUndoableDecision] = useState<CitationReviewDecisionRecord | null>(null);
   const clearUndo = useCallback(() => {
     setUndoableDecision(null);
   }, []);
-  /** Claims from the Inbox's claim table; null until read, and after a failed read. */
   const [claims, setClaims] = useState<Map<string, ProposalClaim> | null>(null);
 
   const refreshQueue = useCallback(async (options: { keepSelection?: boolean } = {}) => {
@@ -186,8 +167,6 @@ export function useCitationReviewData(initialSlug?: string) {
       }
       if (wanted && firstLoad) setMissingSlug(wanted);
       setSelectedSlug((current) => {
-        // After a decision the article stays open even when it left this
-        // filter, so its result and undo stay with it.
         if (options.keepSelection && current) return current;
         if (current && current !== wanted && nextQueue.some((entry) => entry.slug === current)) {
           return current;
@@ -196,8 +175,6 @@ export function useCitationReviewData(initialSlug?: string) {
       });
     } catch (error) {
       setQueueError(loadFailure(error, "Unable to load citation review queue."));
-      // A failed refresh keeps the rows already on screen; only a queue that
-      // never loaded is replaced by the error state.
       if (!hasLoadedQueueRef.current) {
         setQueue([]);
       }
@@ -207,8 +184,6 @@ export function useCitationReviewData(initialSlug?: string) {
     }
   }, [queueFilter]);
 
-  // Every detail request takes a token; only the latest one may land, so
-  // clicking A then B shows B even when A's reply arrives last.
   const refreshDetail = useCallback(async (slug: string) => {
     const requestId = ++detailRequestRef.current;
     setDetailError(null);
@@ -223,7 +198,6 @@ export function useCitationReviewData(initialSlug?: string) {
       if (requestId !== detailRequestRef.current) {
         return;
       }
-      // A failed refresh keeps the rows already on screen for this article.
       setDetail((current) => (current?.slug === slug ? current : null));
       setDetailError(loadFailure(error, "Unable to load citation evidence.").error);
     }
@@ -258,7 +232,6 @@ export function useCitationReviewData(initialSlug?: string) {
 
   const updateStatuses = useCallback(
     async (claimKeys: string[], status: CitationReviewDecisionStatus, statusReason?: string) => {
-      // Decide only rows that are on screen for the selected article.
       if (!selectedSlug || rowsSlug !== selectedSlug || claimKeys.length === 0) {
         return;
       }
@@ -281,8 +254,6 @@ export function useCitationReviewData(initialSlug?: string) {
       setIsBulkUpdating(decidedKeys.length > 1);
 
       try {
-        // The status route writes without a revision check, so read first and
-        // refuse to decide rows someone else changed since they were shown.
         const fresh = await readRows(slug);
         const changed = rowsChangedSince(shown, fresh, decidedKeys);
         if (changed.length > 0) {
@@ -293,7 +264,6 @@ export function useCitationReviewData(initialSlug?: string) {
           return;
         }
         await postStatus({ slug, claimKeys: decidedKeys, status, statusReason });
-        // A decision can drain an article out of the open count the rail shows.
         invalidateDevRailBadge("citations");
         await Promise.all([refreshQueue({ keepSelection: true }), refreshDetail(slug)]);
         setUndoableDecision({ status, slug, prior });
@@ -322,7 +292,6 @@ export function useCitationReviewData(initialSlug?: string) {
     setIsUndoing(true);
 
     try {
-      // Undo never overwrites a row someone decided again since.
       const fresh = await readRows(decision.slug);
       const moved = rowsMovedSinceDecision(decision, fresh);
       if (moved.length > 0) {
@@ -338,7 +307,6 @@ export function useCitationReviewData(initialSlug?: string) {
       }
       invalidateDevRailBadge("citations");
       await refreshQueue({ keepSelection: true });
-      // Undo brings the restored article back into view.
       if (selectedSlug === decision.slug) {
         await refreshDetail(decision.slug);
       } else {
@@ -353,7 +321,6 @@ export function useCitationReviewData(initialSlug?: string) {
     }
   }, [clearUndo, refreshDetail, refreshQueue, selectedSlug, undoableDecision]);
 
-  /** Claims or releases the open article in the Inbox's claim table. */
   const writeClaim = useCallback(async (slug: string, action: "claim" | "release") => {
     const payload = await readJson<{ claim?: Record<string, unknown> }>(CLAIMS_PATH, {
       method: "POST",

@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/category/[categoryKey]`, reached only
- * through the middleware rewrite from `zh.dose.wiki/category/<key>`. It reuses
- * the English route loader with localized effect records and keeps the English
- * route as its canonical URL.
- */
 import { notFound, redirect } from "next/navigation";
 
 import { CategoryPage as CategoryDetailPage } from "@/components/pages/CategoryPage";

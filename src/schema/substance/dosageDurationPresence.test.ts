@@ -11,7 +11,6 @@ import {
 const NULL_RANGE: { min: number | null; max: number | null; unit: string } = { min: null, max: null, unit: "mg" };
 const NULL_STAGE: { min: number | null; max: number | null; unit: string } = { min: null, max: null, unit: "hours" };
 
-/** The shape generators scaffold when a source merely mentions a route. */
 function hollowDosageRoute(route = "oral") {
   return {
     route,
@@ -52,7 +51,6 @@ describe("routeHasDosageContent", () => {
   });
 
   it("accepts a prose-only route", () => {
-    // Salvia's routes carry no dose ladder but explain why one cannot exist.
     const route = hollowDosageRoute("smoked");
     route.notes = "Dose per inhalation is unpredictable with unstandardized extracts.";
     expect(routeHasDosageContent(route)).toBe(true);

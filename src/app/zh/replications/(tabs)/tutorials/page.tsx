@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications/tutorials`, reached only
- * through the middleware rewrite from `zh.dose.wiki/replications/tutorials`.
- * Same tab with its sentences read from the catalog; `noindex` with a
- * canonical link to the English tab.
- */
 import {
   getReplicationTutorialsMetadata,
   ReplicationTutorialsRoute,

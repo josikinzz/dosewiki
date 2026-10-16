@@ -7,9 +7,6 @@ import {
 } from "./harmPotentialLabels";
 import { useT } from "@/i18n/client";
 
-/**
- * Severity level badge component
- */
 export function RiskLevelBadge({ level }: { level: RiskLevel | null | undefined }) {
   const t = useT();
   if (!level) return null;
@@ -22,9 +19,6 @@ export function RiskLevelBadge({ level }: { level: RiskLevel | null | undefined 
   );
 }
 
-/**
- * Carcinogenicity level badge component
- */
 export function CarcinogenicityLevelBadge({ level }: { level: CarcinogenicityLevel | null | undefined }) {
   const t = useT();
   if (!level) return null;
@@ -37,9 +31,6 @@ export function CarcinogenicityLevelBadge({ level }: { level: CarcinogenicityLev
   );
 }
 
-/**
- * Evidence level indicator
- */
 export function EvidenceLevelIndicator({ level, label }: { level: EvidenceLevel | null | undefined; label: string }) {
   const t = useT();
   if (!level) return null;

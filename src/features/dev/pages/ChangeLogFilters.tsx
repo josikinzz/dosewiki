@@ -24,17 +24,10 @@ const DATE_OPTIONS: { value: DatePreset; label: string }[] = [
 type ChangeLogFiltersProps = {
   controller: ChangeLogController;
   searchRef: RefObject<HTMLInputElement | null>;
-  /** Display name for a submitter stamp. */
   nameFor: (key: string) => string;
-  /** Show the `/` key cap in the search field (the tab binds it). */
   searchKey: boolean;
 };
 
-/**
- * Search, article, date and submitter filters. Search always shows; below
- * `lg` the rest folds behind a Filters button that carries the active count,
- * so a phone opens on saves rather than a screen of fields.
- */
 export function ChangeLogFilters({ controller, searchRef, nameFor, searchKey }: ChangeLogFiltersProps) {
   const {
     filters,
@@ -51,12 +44,10 @@ export function ChangeLogFilters({ controller, searchRef, nameFor, searchKey }: 
     clearFilters,
   } = controller;
   const [moreOpen, setMoreOpen] = useState(false);
-  // "Custom" with no dates yet still shows the two date fields.
   const [customPicked, setCustomPicked] = useState(false);
 
   const preset = customPicked ? "custom" : datePresetFor(filters.startDate, filters.endDate);
   const reversed = Boolean(filters.startDate && filters.endDate && filters.startDate > filters.endDate);
-  // The search counts in the Filters badge only when it is not the field beside it.
   const foldedCount = activeFilterCount - (filters.searchQuery.trim() ? 1 : 0);
 
   const saveCounts = useMemo(
@@ -93,7 +84,6 @@ export function ChangeLogFilters({ controller, searchRef, nameFor, searchKey }: 
 
   return (
     <div className="space-y-4">
-      {/* On phones the heading only earns its row when there is something to clear. */}
       <div className={cn("items-center justify-between gap-3", activeFilterCount > 0 ? "flex" : "hidden lg:flex")}>
         <h2 className="type-meta-label theme-text-muted">Filters</h2>
         {activeFilterCount > 0 ? (
@@ -184,7 +174,6 @@ export function ChangeLogFilters({ controller, searchRef, nameFor, searchKey }: 
 
         <fieldset className="space-y-2">
           <legend className="theme-text-secondary mb-2 text-sm font-medium">Date</legend>
-          {/* Four choices in two rows: the 17rem column cannot hold one strip without hiding some. */}
           <div
             role="group"
             aria-label="Date range"

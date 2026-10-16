@@ -103,7 +103,6 @@ function effectNoteContent({
   );
 }
 
-/** Server-compatible projection boundary around the interactive effect controls. */
 export const SubjectiveEffectsSection = memo(function SubjectiveEffectsSection({
   article,
   onSelectEffect,

@@ -1,4 +1,3 @@
-/** Text-list authoring for article notes and longer entries. */
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Controller, useFormContext, type FieldPath } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
@@ -23,7 +22,6 @@ export type TextListInputProps = {
   helperText?: string;
   placeholder?: string;
   addButtonLabel?: string;
-  /** Inline correction and feedback for embedded article editing. */
   embedded?: boolean;
   icon?: React.ReactNode;
 };

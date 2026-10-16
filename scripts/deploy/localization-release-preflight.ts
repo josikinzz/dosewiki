@@ -1,29 +1,3 @@
-/**
- * Localization release preflight. Read-only checks that a runtime Postgres
- * credential and a staged build environment match what the release needs.
- *
- *   DOSEWIKI_BUILD_SURFACE=editor|public npm run deploy:localization-preflight -- \
- *     --target <runtime-postgres-url> [--allow-remote]
- *
- * The target is the runtime credential under review and must be named with
- * `--target` or TARGET_POSTGRES_URL; the package entry loads no env file, so
- * the app URLs never select it. Non-loopback hosts need `--allow-remote` and
- * POSTGRES_IMPORT_CONFIRM=<hostname>. Every statement runs inside one
- * READ ONLY transaction that is rolled back; nothing is written.
- *
- * Checks, each derived from its owner rather than restated here:
- *   environment  `lib/postgres/runtime/deploymentEnv.ts` (required, writer, and
- *                intent token variables per surface)
- *   migrations   the migration journal: every journal entry is applied with
- *                its SQL hash when the ledger is readable, and every table and
- *                column of the latest snapshot exists
- *   privileges   the runtime schema (`schema.generated.ts` + `schema.runtime.ts`):
- *                the editor holds a reviewed grant on every table; the public
- *                reader holds its create-only intake grants
- *
- * Output is one JSON line per check; connection errors are reduced to a
- * label and SQLSTATE so no credential or host reaches the log.
- */
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -47,7 +21,6 @@ type Env = Record<string, string | undefined>;
 const TABLE_PRIVILEGES = ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"] as const;
 const FULL_DML: Privilege[] = ["SELECT", "INSERT", "UPDATE", "DELETE"];
 
-/** Every table the application runtime reads or writes. */
 export function runtimeTableNames(): string[] {
   const names = new Set<string>();
   for (const value of [...Object.values(generatedSchema), ...Object.values(runtimeSchema)]) {
@@ -56,17 +29,11 @@ export function runtimeTableNames(): string[] {
   return [...names].sort();
 }
 
-/**
- * Editor grants narrower than full DML. Everything else in the runtime schema
- * gets SELECT, INSERT, UPDATE, and DELETE. The editor matrix is exact: an
- * unexpected grant fails, which keeps the append-only tables append-only.
- */
 const EDITOR_EXCEPTIONS: Record<string, Privilege[]> = {
   translationGlossary: ["SELECT", "INSERT", "UPDATE"],
   translationGlossaryTerms: ["SELECT", "INSERT", "UPDATE"],
   translationSegments: ["SELECT", "INSERT", "UPDATE"],
   translationJobs: ["SELECT", "INSERT", "UPDATE"],
-  // Review and segment history are append-only; feedback is triaged, never deleted.
   translationReviewEntries: ["SELECT", "INSERT", "UPDATE"],
   translationReviewHistory: ["SELECT", "INSERT"],
   translationSegmentHistory: ["SELECT", "INSERT"],
@@ -74,11 +41,9 @@ const EDITOR_EXCEPTIONS: Record<string, Privilege[]> = {
   glossaryReactionEvents: ["SELECT", "INSERT"],
   localizedPublicationIndexState: ["SELECT", "UPDATE"],
   publicCachePublications: ["SELECT", "INSERT", "UPDATE"],
-  // Document deletion also removes its ID mapping; mappings never change.
   documentIds: ["SELECT", "INSERT", "DELETE"],
 };
 
-/** Public reader grants required for create-only intake, glossary reads and glossary feedback; other grants are not checked. */
 const PUBLIC_GRANTS: Record<string, Privilege[]> = {
   articleFeedback: ["SELECT", "INSERT"],
   siteFeedback: ["SELECT", "INSERT"],
@@ -104,7 +69,6 @@ function journalEntries(): JournalEntry[] {
   return (JSON.parse(fs.readFileSync(path.join(MIGRATIONS, "meta", "_journal.json"), "utf8")) as { entries: JournalEntry[] }).entries;
 }
 
-/** What drizzle-kit records per applied migration: the SQL file's SHA-256 and the journal timestamp. */
 export function migrationLedger(): Array<{ tag: string; when: number; hash: string }> {
   return journalEntries().map(({ tag, when }) => ({
     tag,
@@ -113,7 +77,6 @@ export function migrationLedger(): Array<{ tag: string; when: number; hash: stri
   }));
 }
 
-/** Tables and columns of the latest migration snapshot, keyed by table name. */
 export function snapshotColumns(): Record<string, string[]> {
   const latest = journalEntries().reduce((last, entry) => (entry.idx > last.idx ? entry : last));
   const snapshot = JSON.parse(
@@ -126,7 +89,6 @@ export function snapshotColumns(): Record<string, string[]> {
   );
 }
 
-/** Deployment env contract failures for one surface. Values are never echoed. */
 export function environmentFailures(surface: Surface, env: Env): string[] {
   const failures: string[] = [];
   if (env.DATA_BACKEND !== "postgres") failures.push("DATA_BACKEND must be postgres");
@@ -137,8 +99,6 @@ export function environmentFailures(surface: Surface, env: Env): string[] {
     failures.push(`Missing editor writer variables: ${contract.missingWrite.join(", ")}`);
   }
   if (surface === "public") {
-    // Public DoseWiki may hold only the create-only intake token. Unregistered
-    // scoped token names are refused too, so a new intent cannot slip through.
     const intake = getAdminIntentEnvVar("publicIntakeCreate");
     const scoped = Object.keys(env).filter((name) => name.startsWith("DATA_ADMIN_TOKEN_"));
     const forbidden = new Set(["DATA_ADMIN_KEY", ...adminIntentEnvVars(), ...scoped]);
@@ -161,7 +121,6 @@ const report = (value: unknown) => console.log(JSON.stringify(value));
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
-  // Target first: the explicit-target refusal names its missing input.
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
   const surface = surfaceFrom(argv, process.env);
@@ -182,7 +141,6 @@ async function main(): Promise<void> {
     const schema = (await client.query("SELECT has_schema_privilege(current_user, 'public', 'USAGE') AS usage, has_schema_privilege(current_user, 'public', 'CREATE') AS create")).rows[0];
     if (!schema.usage || schema.create) failures.push("Runtime schema privilege mismatch");
 
-    // Migrations: the latest snapshot's structure, then the applied ledger when this credential can read it.
     const structure: Array<{ table: string; missing: string[] }> = [];
     for (const [table, expected] of Object.entries(snapshotColumns())) {
       const actual = new Set((await client.query(
@@ -249,8 +207,6 @@ async function main(): Promise<void> {
 
 if (import.meta.main) {
   main().catch((error: unknown) => {
-    // Connection and provider error messages can contain credentials or hosts;
-    // only this script's own refusals are printed in full.
     const message = error instanceof Error ? error.message : "";
     const own = /^(?:PREFLIGHT_[A-Z_]+|Postgres target is required|--target requires|Refusing non-local target|POSTGRES_IMPORT_CONFIRM must equal)/.test(message);
     const code = (error as { code?: unknown } | null)?.code;

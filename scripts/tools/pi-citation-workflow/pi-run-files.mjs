@@ -1,8 +1,3 @@
-/**
- * Run-local JSON, digest, path, and manifest helpers for the Pi run manifest
- * controller. Paths stay inside the citation run and its workbench.
- */
-
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, relative, resolve } from "node:path";

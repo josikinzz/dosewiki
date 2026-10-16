@@ -1,16 +1,3 @@
-// Citation-verdict campaign (citation-pi) shared pure helpers.
-//
-// Pure library shared by scripts/citations/verdict-audit.mjs and
-// scripts/citations/verdict-export.mjs (and importable by the validate/apply
-// stages). No Postgres or filesystem access, so tests can exercise the whole
-// claim-pair pipeline on fixture articles.
-//
-// Marker grammar comes from citation-only-validator (ADR-0001); the campaign
-// section list derives from the canonical citable article surface
-// (formal-citations-section-config via citation-marker-workflow) minus
-// `legality`: legality citations of every kind are owned and reviewed by the
-// legality-pi campaign and are excluded from this campaign entirely.
-
 import { createHash } from "node:crypto";
 
 import { CITABLE_ARTICLE_SECTIONS } from "./citation-marker-workflow.mjs";
@@ -46,12 +33,10 @@ function sha256Hex(input) {
   return createHash("sha256").update(input).digest("hex");
 }
 
-/** sha256 of the stable JSON of a section's exact stored field value. */
 export function contentHash(value) {
   return sha256Hex(stableJson(value ?? null));
 }
 
-/** First 12 hex of sha256(claimText) — the pairId's claim component. */
 export function claimHash(claimText) {
   return sha256Hex(claimText).slice(0, 12);
 }
@@ -62,11 +47,6 @@ export function buildPairId({ slug, section, markerId, claimText }) {
 
 function sectionFieldValue(article, section) { return article?.[section] ?? null; }
 
-/**
- * Every prose string in a citable section, with its dotted field path
- * (`harm_potential.addiction.psychological.description`). Object keys are
- * walked sorted so reruns are deterministic.
- */
 export function collectSectionProseFields(article, section) {
   const fields = [];
   const walk = (node, path) => {
@@ -88,10 +68,6 @@ export function collectSectionProseFields(article, section) {
   return fields;
 }
 
-/**
- * Consume a run of `[cite:<id>]` / `[citation-needed]` tokens (optionally
- * space-separated) starting at `index`. Returns the index just past the run.
- */
 function consumeTrailingMarkerRun(text, index) {
   let cursor = index;
   const tokenAt = /^[ \t]*(?:\[cite:[^\]\s]+\]|\[citation-needed\])/;
@@ -102,12 +78,6 @@ function consumeTrailingMarkerRun(text, index) {
   }
 }
 
-/**
- * Sentence-level claim segmentation per the campaign contract: a sentence ends
- * at `.`, `!`, or `?` — after any marker tokens bound to it — when followed by
- * whitespace plus a capital letter or the end of the string. Offsets are
- * [start, end) within the field string, marker tokens included.
- */
 export function segmentClaims(text) {
   const claims = [];
   const length = text.length;
@@ -136,18 +106,6 @@ export function segmentClaims(text) {
   return claims;
 }
 
-/**
- * Every `[cite:<id>]` marker in a field string paired with the clause it
- * cites. Claims are clause-scoped per the campaign contract: within a
- * sentence, a marker run's claim spans from the end of the previous token run
- * (or the sentence start) through the run itself. `[citation-needed]` runs are
- * clause boundaries too — they close the preceding uncited claim without
- * emitting a pair. The sentence's last run absorbs the sentence end only when
- * nothing but closing punctuation follows, so a trailing marker keeps its full
- * sentence while a mid-sentence marker never claims uncited text after it.
- * Markers sharing a run share a claim; a repeated id within one run yields one
- * pair.
- */
 export function extractClaimPairs(text) {
   const markers = collectCitationMarkersFromText(text);
   if (markers.length === 0) return [];
@@ -160,7 +118,6 @@ export function extractClaimPairs(text) {
         .map((match) => ({ index: sentence.start + match.index })),
     ].sort((a, b) => a.index - b.index);
     if (tokens.length === 0) continue;
-    // Group adjacent tokens (whitespace-separated) into runs.
     const runs = [];
     for (const token of tokens) {
       const last = runs.at(-1);
@@ -199,11 +156,6 @@ export function extractClaimPairs(text) {
   return pairs;
 }
 
-/**
- * Safety-sensitive claim classes per the citation verdict contract in
- * docs/workflows/citations.md: case-insensitive stems; any harm_potential
- * claim is sensitive by default.
- */
 const SAFETY_SENSITIVE_PATTERNS = Object.freeze([
   /overdose/i,
   /death/i,
@@ -241,12 +193,6 @@ for (const reference of references ?? []) {
 }
 return index; }
 
-/**
- * One audit row per claim–citation pair across the article's citable sections.
- * `existingVerdict` stays null here; attachExistingVerdicts fills it when
- * evidence rows are readable. Duplicate pairIds (the same marker on the same
- * claim twice) collapse to one row.
- */
 export function buildAuditRowsForArticle({ slug, article }) {
   const referenceIndex = buildReferenceIndex(article?.references);
   const rows = [];
@@ -293,19 +239,6 @@ function summarizeEvidenceRow(row) {
   };
 }
 
-/**
- * Attach existing verdict records from citationEvidence rows. A pair matches a
- * row whose claimKey equals its pairId, or (fallback) a verdict-carrying row
- * (`statusReason` starting `verdict:`) in the same slug+section citing the
- * same marker with the identical claim text. Non-verdict workbench evidence
- * rows never deactivate a pair. `actionable` becomes false exactly when a
- * verdict record exists.
- *
- * With `campaign` set, only rows recorded under that campaign
- * (`provenance.campaign`) participate: verdicts from earlier campaigns stay
- * historical records and never deactivate a pair, so a new campaign re-judges
- * every pair from scratch.
- */
 export function attachExistingVerdicts(rows, evidenceRows, { campaign = null } = {}) {
   const byClaimKey = new Map();
   const fallback = [];
@@ -351,7 +284,6 @@ export function buildAuditTotals(rows) {
   };
 }
 
-/** Named refusal for a live section that no longer matches the audit. */
 export class ContentHashDriftError extends Error {
   constructor(message, details = {}) {
     super(message);
@@ -360,11 +292,6 @@ export class ContentHashDriftError extends Error {
   }
 }
 
-/**
- * Freeze one slug+section packet from audit rows plus the live article.
- * Refuses with ContentHashDriftError when the live section hash no longer
- * matches the audit rows' hash.
- */
 export function buildVerdictPacket({
   slug,
   section,
@@ -408,12 +335,6 @@ export function buildVerdictPacket({
   };
 }
 
-/**
- * Post-write visibility checks for stripped markers, from an apply plan and
- * the exact article document the write sent. A stripped pair's reference can
- * only be asserted gone from the public page when no other field still cites
- * it; those pairs are reported, not asserted.
- */
 export function buildStrippedMarkerChecks({ operations, articleForWrite }) {
   const written = JSON.stringify(articleForWrite ?? {});
   return (operations ?? [])
@@ -425,13 +346,6 @@ export function buildStrippedMarkerChecks({ operations, articleForWrite }) {
     }));
 }
 
-/**
- * Pure verdict over rendered public HTML: a stripped marker is verified gone
- * when the page carries neither its superscript link (`href="#ref-<id>"`,
- * `data-reference-id="<id>"`) nor a leaked raw `[cite:<id>]` token. The
- * needles are quote/bracket-delimited so one reference id never matches
- * another id it prefixes.
- */
 export function verifyStrippedMarkersInHtml({ html, checks }) {
   const markers = (checks ?? []).map((check) => {
     if (check.stillCitedElsewhere) {

@@ -1,13 +1,3 @@
-/**
- * Document-shaped access to Postgres tables.
- *
- * Reads go through `losslessSelectList` / `rowToDocument` so a document read
- * back from SQL preserves the persisted document encoding; writes go through
- * `documentToRow` so every column is encoded exactly once. New rows mint an
- * `_id` of 32 lowercase alphanumeric characters and `_creationTime` in
- * milliseconds, keeping imported and Postgres-born rows in one id namespace.
- */
-
 import { randomBytes } from "node:crypto";
 import { Pool, type PoolClient } from "pg";
 import { documentToRow, encodeField, losslessSelectList, rowToDocument, type DataDocument } from "./documentCodec";
@@ -38,12 +28,10 @@ function placeholder(table: TableName, column: string, index: number): string {
 }
 
 export type SelectOptions = {
-  /** SQL after WHERE, using $1.. for `params`. */
   where?: string;
   params?: unknown[];
   orderBy?: string;
   limit?: number;
-  /** Row-level lock for a read-then-write critical section. */
   forUpdate?: boolean;
 };
 
@@ -65,7 +53,6 @@ export async function selectDocumentById(client: SqlClient, table: TableName, id
   return document ?? null;
 }
 
-/** Insert a document, minting `_id` and `_creationTime` unless supplied. Returns the id. */
 export async function insertDocument(client: SqlClient, table: TableName, value: DataDocument): Promise<string> {
   const document = { _id: mintDocumentId(), _creationTime: Date.now(), ...value };
   const encoded = documentToRow(table, document);
@@ -84,11 +71,6 @@ export async function insertDocument(client: SqlClient, table: TableName, value:
   return document._id as string;
 }
 
-/**
- * Patch top-level fields of one document: only the named fields change,
- * `undefined` clears an optional field, and everything else is untouched.
- * Returns false when the id does not exist.
- */
 export async function patchDocument(client: SqlClient, table: TableName, id: string, patch: DataDocument): Promise<boolean> {
   const fields = Object.keys(patch);
   if (fields.length === 0) return (await selectDocumentById(client, table, id)) !== null;
@@ -122,7 +104,6 @@ export async function deleteDocument(client: SqlClient, table: TableName, id: st
   return (result.rowCount ?? 0) === 1;
 }
 
-/** Run `fn` in one transaction; any throw rolls back and is rethrown. */
 export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {

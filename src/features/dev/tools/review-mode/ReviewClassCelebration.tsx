@@ -5,18 +5,9 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { getCategoryIcon } from "@/data/config/categoryIcons";
 
-/** The burst's whole lifetime; the canvas unmounts itself when it elapses. */
 const CONFETTI_MS = 2200;
-/** Pieces per cannon; two cannons fire, one from each bottom corner. */
 const PIECES_PER_CANNON = 70;
 
-/**
- * The palette, as raw channel tokens resolved at fire time. Emerald-weighted
- * because green is the motivating colour here, cut with amber and white so the
- * burst reads as celebration rather than monochrome. Reading tokens (instead
- * of hard-coding literals) keeps the canvas inside the theme system and the
- * token audit.
- */
 const CONFETTI_TOKENS = [
   "--c-emerald",
   "--c-emerald",
@@ -30,7 +21,6 @@ const CONFETTI_TOKENS = [
 interface ConfettiPiece {
   x: number;
   y: number;
-  /** Velocity in px/s; gravity and drag reshape it every frame. */
   vx: number;
   vy: number;
   rotation: number;
@@ -49,7 +39,6 @@ function spawnPieces(width: number, height: number, colors: string[]): ConfettiP
   for (const cannon of cannons) {
     for (let index = 0; index < PIECES_PER_CANNON; index += 1) {
       const speed = 750 + Math.random() * 750;
-      // Up and inward, fanned ±35° around a 65° launch.
       const angle =
         (-65 + (Math.random() * 70 - 35)) * (Math.PI / 180) * cannon.direction;
       pieces.push({
@@ -68,12 +57,6 @@ function spawnPieces(width: number, height: number, colors: string[]): ConfettiP
   return pieces;
 }
 
-/**
- * A one-shot, self-cleaning canvas burst. Mounted only for the moment itself:
- * the canvas is created on trigger, animates on its own compositing layer at
- * `pointer-events-none`, and removes itself when the run ends. Reduced motion
- * skips the whole thing — the medallion card and toast carry the news.
- */
 function ConfettiBurst() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [done, setDone] = useState(false);
@@ -128,7 +111,6 @@ function ConfettiBurst() {
         return;
       }
 
-      // Fade the whole run out over its last 30%.
       const fade = Math.min(1, (1 - elapsed / CONFETTI_MS) / 0.3);
       context.globalAlpha = Math.max(0, fade);
 
@@ -142,7 +124,6 @@ function ConfettiBurst() {
         context.save();
         context.translate(piece.x, piece.y);
         context.rotate(piece.rotation);
-        // A cheap 3D tumble: the strip's height breathes with its rotation.
         context.scale(1, 0.45 + Math.abs(Math.sin(piece.rotation * 1.6)) * 0.55);
         context.fillStyle = piece.color;
         context.fillRect(
@@ -172,13 +153,6 @@ function ConfettiBurst() {
   );
 }
 
-/**
- * The class-complete moment: confetti over a centred medallion card carrying
- * the finished category's own icon. The card never blocks the flow — it is
- * `pointer-events-none`, auto-dismissed by the caller's timer, and any key or
- * pointer press clears it early (without swallowing the press: the review
- * shortcuts underneath still run).
- */
 export function ReviewClassCelebration({
   label,
   total,
@@ -189,10 +163,6 @@ export function ReviewClassCelebration({
   label: string;
   total: number;
   iconKey?: string;
-  /**
-   * Off when the same tick finished the whole corpus — FinishedState is the
-   * headline then, and two stacked "all done" cards would dilute both.
-   */
   showCard: boolean;
   onDismiss: () => void;
 }) {

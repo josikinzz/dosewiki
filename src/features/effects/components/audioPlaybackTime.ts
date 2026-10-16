@@ -1,4 +1,3 @@
-/** Shown whenever a clip's position or duration is not yet known. */
 export const UNKNOWN_PLAYBACK_TIME = "--:--";
 
 function pad(value: number) {
@@ -9,11 +8,6 @@ function isUsableSeconds(seconds: number | null | undefined): seconds is number 
   return typeof seconds === "number" && Number.isFinite(seconds) && seconds >= 0;
 }
 
-/**
- * Formats a media position as `m:ss` (or `h:mm:ss` past an hour). Unknown or
- * unusable values render as {@link UNKNOWN_PLAYBACK_TIME} so a clip whose
- * metadata never arrives cannot masquerade as a zero-length one.
- */
 export function formatPlaybackTime(seconds: number | null | undefined): string {
   if (!isUsableSeconds(seconds)) {
     return UNKNOWN_PLAYBACK_TIME;
@@ -29,7 +23,6 @@ export function formatPlaybackTime(seconds: number | null | undefined): string {
     : `${minutes}:${pad(remainder)}`;
 }
 
-/** Elapsed fraction of a clip, clamped to 0–1; 0 while the duration is unknown. */
 export function getPlaybackProgressRatio(
   currentTime: number | null | undefined,
   duration: number | null | undefined,
@@ -41,7 +34,6 @@ export function getPlaybackProgressRatio(
   return Math.min(1, currentTime / duration);
 }
 
-/** Spoken position for the seek slider, e.g. "0:12 of 3:45". */
 export function describePlaybackPosition(
   currentTime: number | null | undefined,
   duration: number | null | undefined,

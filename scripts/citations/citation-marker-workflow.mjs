@@ -1,10 +1,3 @@
-// Marker-only citation workflow over the citable article surface.
-//
-// The citable/excluded section lists come from formal-citations-section-config
-// (the single owner of the citable article surface) and the citation-only edit
-// rule lives in citation-only-validator (ADR-0001). This module composes the
-// two into section/article packet building and validation.
-
 import {
   CITABLE_ARTICLE_SURFACE,
   EXCLUDED_CITATION_SURFACE,
@@ -18,8 +11,6 @@ import {
   validateCitationOnlyEdit,
 } from "./citation-only-validator.mjs";
 
-// Stable names for existing importers; the canonical definitions live in the
-// modules above.
 export const CITABLE_ARTICLE_SECTIONS = CITABLE_ARTICLE_SURFACE;
 export const EXCLUDED_CITATION_SECTIONS = EXCLUDED_CITATION_SURFACE;
 export {

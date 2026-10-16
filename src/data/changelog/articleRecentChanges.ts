@@ -9,70 +9,29 @@ import {
 import { getPublicTocSectionEntries } from "@/schema/substance/sectionManifest";
 import { ROUTE_LABELS } from "@/features/article/components/sections/routeLabels";
 
-/**
- * How many other articles of one bulk save the article surface names before
- * it falls back to "and N more". The row renderer and the article projection
- * that trims `articles` share this number.
- */
 export const NAMED_SIBLINGS = 3;
 
-/** One public history summary. Diff text is fetched only when expanded. */
 export type ArticleRecentChange = {
   id: string;
-  /** ISO timestamp of the save. */
   createdAt: string;
-  /**
-   * `prose`: one field edited in place, with a Before/After diff to show.
-   * `source`: a reference added or removed; the row text is the whole story.
-   * `bulk`: a Dev-editor save, described by its own message.
-   */
   kind: "prose" | "source" | "bulk";
-  /** What the edit did, in reader words: "Added a citation", "Reworded 3 words". */
   message: string;
-  /** For `source` rows, the reference title; for `bulk`, the save note. */
   detail: string | null;
-  /** The public section the edited field lives in, when it has an anchor. */
   section: { id: string; label: string } | null;
-  /**
-   * The field inside that section, one entry per path segment as words
-   * ("Psychosis", "Description"). An array index rides on its parent segment
-   * ("Routes" 1) so the label can be translated on its own and the number
-   * appended at render.
-   */
   field: ChangeFieldSegment[] | null;
   contributor: {
     name: string;
     href: string | null;
     avatarUrl: string | null;
   } | null;
-  /** Whether this entry has a permitted diff available on expansion. */
   hasDiff: boolean;
-  /**
-   * Every article the same save touched, in the order the save recorded them.
-   *
-   * The article surface names only the first few siblings, so its projection
-   * trims this to that subset and reports the real count in `siblingTotal`.
-   * A bulk save can touch every substance, and serializing all of them into
-   * one article document costs far more than the row renders.
-   */
   articles: ChangeLogArticleSummary[];
-  /**
-   * How many other articles the save touched, when `articles` carries only
-   * the named subset. Absent on the site-wide feed, which lists them all.
-   */
   siblingTotal?: number;
-  /** The article this row was read for; null on the site-wide feed. */
   subjectSlug: string | null;
 };
 
-/** The reader-facing description of a save, before contributor resolution. */
 export type ChangeFieldSegment = { label: string; index: number | null };
 
-/**
- * "Routes 1 › Dose ranges › Heavy": each label reads as words, the index stays
- * a number. Shared by the public ledger row (which translates each label) and
- * the dev change log, whose surface is English-only.
- */
 export function fieldWords(
   segments: ChangeFieldSegment[],
   label = (text: string) => text,
@@ -96,13 +55,6 @@ const INLINE_EDIT_MESSAGE = /^Inline edit \u2014 ([\w.[\]]+)$/;
 const SOURCE_MESSAGE = /^(Added|Removed) a source \u2014 (.+)$/;
 const BULK_MESSAGE = /^Dev editor update - (.+)$/;
 
-/**
- * Splits prose into diffable tokens. A citation marker (`[cite:doi-…]`,
- * `[citation-needed]`) is one token: a word diff inside it turns a swapped
- * source into struck and inserted fragments the reader cannot parse.
- * Everything else splits into words and the whitespace between them, so
- * unchanged spacing is preserved verbatim.
- */
 export const DIFF_TOKEN = /\[[^\]]*\]|\s+|[^\s[]+|\[/g;
 
 const isWhitespace = (token: string) => /^\s+$/.test(token);
@@ -124,16 +76,6 @@ function toWords(segment: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/**
- * Summarise the `-`/`+` pairs of an inline edit by what moved: citations
- * added or removed, a citation-needed flag cleared, and words changed.
- */
-/**
- * The single-clause sentences `describeProseDiff` can produce, listed so the
- * locale catalog carries them; the row renders `t(message)`. A compound
- * sentence ("Added a citation and reworded 2 words") stays English.
- */
-
 export function describeProseDiff(diff: string): string {
   const removed: string[] = [];
   const added: string[] = [];
@@ -149,8 +91,6 @@ export function describeProseDiff(diff: string): string {
   let citationsAdded = 0;
   let citationsRemoved = 0;
   let flagsCleared = 0;
-  // A word swapped for another is one change, not a removal plus an
-  // addition: count each side and take the larger.
   let wordsRemoved = 0;
   let wordsAdded = 0;
   for (const part of parts) {
@@ -206,25 +146,13 @@ export function describeProseDiff(diff: string): string {
   return sentence.charAt(0).toUpperCase() + sentence.slice(1);
 }
 
-/**
- * "dosage.routes[0].dose_ranges.heavy" as words: the public section the field
- * belongs to, and the field inside it. An array index rides on its parent
- * segment, so it reads as "Routes 1" rather than a bare number.
- *
- * Shared by the changelog row and the editor's prefilled change note, so a
- * field is named the same way wherever a person reads about it.
- */
 export function articleFieldPathWords(
   path: string,
 ): Pick<ChangeDescription, "section" | "field"> {
-  // A keyed identity may itself hold a dot ("routes[i.m.]"), so a dot inside
-  // brackets never splits the path.
   const parts = path.split(/\.(?![^[]*\])/).filter((segment) => segment.length > 0);
   const segments = parts.flatMap((segment): ChangeFieldSegment[] => {
     const indexed = /^(.*)\[(\d+)\]$/.exec(segment);
     if (indexed) return [{ label: toWords(indexed[1]), index: Number(indexed[2]) + 1 }];
-    // A keyed entry reads as its identity: a route as the name its table
-    // heading shows ("Oral"), any other entry as its key after its list.
     const keyed = /^([^[]*)\[([^\]]+)\]$/.exec(segment);
     if (keyed) {
       return keyed[1] === "routes"
@@ -240,14 +168,6 @@ export function articleFieldPathWords(
   return { section, field: fieldSegments.length > 0 ? fieldSegments : null };
 }
 
-/**
- * Turn a stored save message and its sliced diff into what a reader should
- * see: a verb phrase, the section it happened in (linked when the section has
- * a public anchor), and the field inside it as words.
- *
- * Direct edits stamp the raw field path ("Inline edit — harm_potential.psychosis.description");
- * the verb comes from the diff and the path becomes "Harm Potential" + "Psychosis › Description".
- */
 export function describeChange(
   message: string,
   diff: string,
@@ -277,9 +197,6 @@ export function describeChange(
     };
   }
 
-  // The Dev editor stamps "Dev editor update - <locale timestamp>" when the
-  // save has no message of its own; the row already shows the time, so the
-  // stamp adds nothing. A hand-written note is worth keeping.
   const bulk = BULK_MESSAGE.exec(trimmed);
   const note = bulk ? bulk[1].trim() : trimmed;
   const isTimestamp =
@@ -307,11 +224,6 @@ const CHURN_PARTNER: Record<string, { partner: string; merged: string }> = {
   },
 };
 
-/**
- * A source added and removed (in either order) by the same contributor within
- * an hour is one event, not churn: collapse the pair (newest first) into the
- * newer row so the ledger does not read as indecision.
- */
 export function mergeSourceChurn<
   T extends Pick<
     ArticleRecentChange,
@@ -348,15 +260,6 @@ export function mergeSourceChurn<
   return merged;
 }
 
-/**
- * Bulk Dev-editor saves store one diff for every article they touched, one
- * `# <Title> · #<id>` section per article (`formatArticleLabel`); direct edits
- * store a single `# <Title>` section. Return only this article's section body.
- *
- * A diff with no section headings is returned whole. A diff whose headings
- * never match falls back to its only section when it has exactly one, and to
- * nothing otherwise: showing another article's changes here would be wrong.
- */
 export function sliceArticleDiff(
   markdown: string,
   article: ChangeLogArticleSummary,

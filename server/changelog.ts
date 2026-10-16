@@ -9,11 +9,6 @@ import {
 } from "../lib/changelog/publicChangelogSummary";
 import { publicReadIndexReady } from "./lib/publicReadIndexes";
 
-/**
- * Query to get all changelog entries.
- * Returns entries sorted by createdAt descending (newest first).
- * Uses index for efficient ordering.
- */
 export const getAll = query({
   args: {},
   handler: async (ctx) => {
@@ -26,10 +21,6 @@ export const getAll = query({
   },
 });
 
-/**
- * Query to get recent changelog entries (limited).
- * Uses index for efficient ordering with take().
- */
 export const getRecent = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -43,7 +34,6 @@ export const getRecent = query({
   },
 });
 
-/** Compact public list rows; full markdown remains addressable through getByEntryId. */
 export const getRecentSummaries = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -57,7 +47,6 @@ export const getRecentSummaries = query({
   },
 });
 
-/** One addressable public history entry, with the same privacy projection as lists. */
 export const getByEntryId = query({
   args: { entryId: v.string() },
   handler: async (ctx, { entryId }) => {
@@ -67,15 +56,6 @@ export const getByEntryId = query({
   },
 });
 
-/**
- * Query changelog entries stamped by any of the given submitter keys.
- *
- * Powers the public contributor profile history: the caller passes the
- * profile key plus its legacy stamp aliases (a retired handle group) and gets
- * one merged, newest-first list back. Keys are matched exactly against the
- * stored `submittedBy` stamp via the `by_submitted_by` index, so callers
- * must pass normalized (uppercase) keys.
- */
 export const getBySubmitter = query({
   args: {
     submitters: v.array(v.string()),
@@ -83,9 +63,6 @@ export const getBySubmitter = query({
   },
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 20, 1), 100);
-    // A profile carries at most a handful of aliases (times two: callers send
-    // upper and lower case variants because the index match is exact); cap
-    // defensively.
     const submitters = [...new Set(args.submitters)].slice(0, 16);
 
     const perKey = await Promise.all(
@@ -113,12 +90,6 @@ export const getBySubmitter = query({
   },
 });
 
-/**
- * Newest-first changelog rows that touched one article, by slug.
- *
- * Ready reads walk the per-article relation and hydrate only the newest
- * winners. The temporary pre-backfill path remains complete, not scan-capped.
- */
 export const getByArticleSlug = query({
   args: {
     slug: v.string(),
@@ -147,7 +118,6 @@ export const getByArticleSlug = query({
   },
 });
 
-/** Compact article-scoped list rows using the authoritative history ordering. */
 export const getByArticleSlugSummaries = query({
   args: {
     slug: v.string(),
@@ -175,16 +145,6 @@ export const getByArticleSlugSummaries = query({
   },
 });
 
-/**
- * One-off idempotent migration normalizing legacy `submittedBy` stamps from a
- * retired handle to the profile key that absorbed it (DW-21). Invoke only
- * through a trusted native maintenance client with an explicitly guarded
- * Postgres target; this is not a public API. The runtime write-freeze guard
- * and transaction controls still apply.
- *
- * First inspect the default dry-run result. Apply with `dryRun: false` only
- * after approving the target, matching rows, and submitter alias handling.
- */
 export const normalizeSubmitterStamps = internalMutation({
   args: {
     from: v.string(),
@@ -221,12 +181,6 @@ export const normalizeSubmitterStamps = internalMutation({
   },
 });
 
-/**
- * Admin removal of changelog rows by entryId. The public API is upsert-only
- * (`addEntry`), so bad or test rows have no other exit. Invoke only through a
- * trusted native maintenance client after guarding the target and approving
- * the exact entry IDs. Runtime write-freeze and transaction guards still apply.
- */
 export const removeEntries = internalMutation({
   args: { entryIds: v.array(v.string()) },
   handler: async (ctx, args) => {
@@ -256,11 +210,6 @@ type ChangelogEntryArgs = {
   articles: Array<{ id: number; title: string; slug: string }>;
 };
 
-/**
- * The upsert behind `addEntry`, also what a change-proposal apply or revert
- * stamps its entry through. Keyed by `entryId`: a repeated id updates the
- * existing row instead of duplicating it.
- */
 export async function addEntryHandler(ctx: MutationCtx, args: ChangelogEntryArgs) {
   await requireRole(ctx, {
     apiKey: args.apiKey,
@@ -290,9 +239,6 @@ export async function addEntryHandler(ctx: MutationCtx, args: ChangelogEntryArgs
   return { created: true, id };
 }
 
-/**
- * Mutation to add a new changelog entry.
- */
 export const addEntry = mutation({
   args: {
     apiKey: v.optional(v.string()),

@@ -1,23 +1,5 @@
 "use client";
 
-/**
- * Error boundary for rendering the Studio and its live display settings.
- *
- * The `siteConfig:getBannerDisplay` editor read throws during render when the
- * server cannot answer (an outage, or a deployment where the function is not
- * present yet). Without a boundary that throw escapes to the `/dev` route's error UI and
- * the whole shell reads "Something went wrong", which loses the tab chrome, the
- * other tools, and any hint about what actually failed.
- *
- * Design brief §7 lists `error` as one of the eight states every control needs;
- * this is that state for the tab's own data. It degrades one tab rather than the
- * page, and it names the likely cause, because the first time an editor sees this
- * screen will be immediately after a deploy that has not reached Postgres yet.
- *
- * A class component because `componentDidCatch` has no hook equivalent, and the
- * repo has no existing boundary to reuse.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
@@ -44,8 +26,6 @@ export class WarningBannersBoundary extends Component<
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
-    // Editor-facing tool: the stack is the useful artifact, so log it rather
-    // than swallowing it into the rendered message.
     console.error("Banner Studio failed to load:", error, info.componentStack);
   }
 
@@ -55,8 +35,6 @@ export class WarningBannersBoundary extends Component<
       return this.props.children;
     }
 
-    // Try again clears the boundary, which re-renders the studio and so
-    // re-reads the display setting.
     return (
       <div>
         <DevToolSection tool="banners">

@@ -1,25 +1,5 @@
-/**
- * DevModeSaveOrchestrator - Plain TypeScript state machine for the dev editor save flow.
- *
- * Owns:
- * - Draft aggregation state
- * - hasPendingChanges (2 sources -> 1 computation)
- * - Save operation state (phase/credentials) for the one destination, Postgres
- * - The save notice
- *
- * Does NOT own (these stay as React hooks feeding events):
- * - Postgres reactivity
- * - Credential verification / Auth.js session
- * - Document session with conflict detection
- * - Notice auto-clear timers
- */
-
 import type { DatasetChangelogResult } from "@/utils/data/changelog";
 import type { DevSaveCommandResult, DevSaveCredentials } from "../pages/devSaveCommand";
-
-// -----------------------------------------------------------------------------
-// Changelog Source Types (the 2 derivation sources)
-// -----------------------------------------------------------------------------
 
 type MarkdownChange = {
   markdown: string;
@@ -27,17 +7,11 @@ type MarkdownChange = {
 };
 
 export type ChangelogSources = {
-  /** Source 1: Dataset/articles diff */
   datasetChangelog: DatasetChangelogResult;
-  /** Source 2: Index layouts (psychoactive/chemical/mechanism) */
   psychoactiveManualChangelog: MarkdownChange;
   chemicalManualChangelog: MarkdownChange;
   mechanismManualChangelog: MarkdownChange;
 };
-
-// -----------------------------------------------------------------------------
-// Notice Types
-// -----------------------------------------------------------------------------
 
 type SaveNoticeType = "pending" | "success" | "error";
 
@@ -47,10 +21,6 @@ type SaveNotice = {
   actionHref?: string;
   actionLabel?: string;
 };
-
-// -----------------------------------------------------------------------------
-// Save Operation Types
-// -----------------------------------------------------------------------------
 
 type SavePhase =
   | "idle"
@@ -63,74 +33,45 @@ type SaveOperationState = {
   error: string | null;
 }
 
-// -----------------------------------------------------------------------------
-// Orchestrator State
-// -----------------------------------------------------------------------------
-
 export type DevModeSaveOrchestratorState = {
-  /** Aggregated pending changes flag (computed from 2 sources) */
   hasPendingChanges: boolean;
 
-  /** Individual change flags for UI */
   hasArticleDatasetChanges: boolean;
   hasManualLayoutChanges: boolean;
 
-  /** Save operation state */
   saveOperation: SaveOperationState;
 
-  /** The save notice shown in the commit panel */
   notice: SaveNotice | null;
 
-  /** Last resolved submitter key from credentials */
   resolvedSubmitterKey: string | null;
 
-  /** Effect tracking for async operations */
   pendingEffect: SaveOrchestratorEffect | null;
   effectSequence: number;
 };
-
-// -----------------------------------------------------------------------------
-// Effects (async side-effects scheduled by reducer)
-// -----------------------------------------------------------------------------
 
 export type SaveOrchestratorEffect =
   | { kind: "save"; id: number }
   | { kind: "verifyCredentials"; id: number };
 
-// -----------------------------------------------------------------------------
-// Events
-// -----------------------------------------------------------------------------
-
 export type DevModeSaveOrchestratorEvent =
-  // Changelog source updates
   | { type: "changelogSourcesUpdated"; sources: ChangelogSources }
 
-  // Save initiation
   | { type: "saveRequested" }
 
-  // Validation results
   | { type: "validationFailed"; message: string }
   | { type: "validationPassed" }
 
-  // Credential verification
   | { type: "credentialsVerified"; credentials: DevSaveCredentials; message?: string }
   | { type: "credentialsFailed"; message: string }
 
-  // Save execution results
   | { type: "saveSucceeded"; result: DevSaveCommandResult }
   | { type: "saveFailed"; message: string }
 
-  // Notice management
   | { type: "setNotice"; notice: SaveNotice | null }
   | { type: "clearNotice" }
 
-  // Effect lifecycle
   | { type: "effectCompleted"; effectId: number }
   | { type: "effectFailed"; effectId: number; message: string };
-
-// -----------------------------------------------------------------------------
-// Initial State Factory
-// -----------------------------------------------------------------------------
 
 export function createInitialSaveOrchestratorState(): DevModeSaveOrchestratorState {
   return {
@@ -147,10 +88,6 @@ export function createInitialSaveOrchestratorState(): DevModeSaveOrchestratorSta
     effectSequence: 0,
   };
 }
-
-// -----------------------------------------------------------------------------
-// Pure Computation: hasPendingChanges from 2 sources
-// -----------------------------------------------------------------------------
 
 export function computeHasPendingChanges(sources: ChangelogSources): {
   hasPendingChanges: boolean;
@@ -173,10 +110,6 @@ export function computeHasPendingChanges(sources: ChangelogSources): {
   };
 }
 
-// -----------------------------------------------------------------------------
-// Helper: Schedule an effect
-// -----------------------------------------------------------------------------
-
 function nextEffect(
   state: DevModeSaveOrchestratorState,
   kind: SaveOrchestratorEffect["kind"],
@@ -189,7 +122,6 @@ function nextEffect(
   };
 }
 
-/** Ends the in-flight operation with an error notice. */
 function failOperation(
   state: DevModeSaveOrchestratorState,
   message: string,
@@ -201,10 +133,6 @@ function failOperation(
     notice: { type: "error", message },
   };
 }
-
-// -----------------------------------------------------------------------------
-// Reducer
-// -----------------------------------------------------------------------------
 
 export function saveOrchestratorReducer(
   state: DevModeSaveOrchestratorState,
@@ -351,10 +279,6 @@ export function saveOrchestratorReducer(
   }
 }
 
-// -----------------------------------------------------------------------------
-// Orchestrator Class (dispatch/getState/subscribe pattern)
-// -----------------------------------------------------------------------------
-
 export type SaveOrchestratorSubscriber = (state: DevModeSaveOrchestratorState) => void;
 
 export class DevModeSaveOrchestrator {
@@ -378,9 +302,6 @@ export class DevModeSaveOrchestrator {
       this.notifySubscribers();
     }
 
-    // Return the pending effect only when this dispatch scheduled it; ignored
-    // events must not leak the previous in-flight effect to the caller (which
-    // would re-execute it).
     return this.state.pendingEffect !== prevState.pendingEffect ? this.state.pendingEffect : null;
   }
 
@@ -396,10 +317,6 @@ export class DevModeSaveOrchestrator {
     this.subscribers.forEach((fn) => fn(currentState));
   }
 }
-
-// -----------------------------------------------------------------------------
-// Selector Helpers
-// -----------------------------------------------------------------------------
 
 export function selectIsSaving(state: DevModeSaveOrchestratorState): boolean {
   return state.saveOperation.phase !== "idle";

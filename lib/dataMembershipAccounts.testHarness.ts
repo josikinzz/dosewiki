@@ -18,11 +18,6 @@ export type Row = {
   lastSeenAt?: string;
 };
 
-/**
- * In-memory memberships table supporting the indexes the module uses
- * (`by_email`, `by_username`, `by_role`, `by_reset_token_hash`) plus an
- * unindexed `collect` for the roster. `requireRole` reads `by_email` too.
- */
 export function createCtx(seed: Row[]) {
   const rows = new Map(seed.map((row) => [row._id, { ...row }]));
   let nextId = seed.length + 1;
@@ -60,7 +55,7 @@ export function createCtx(seed: Row[]) {
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
-        normalizeId: () => null, // This fixture contains membership rows only.
+        normalizeId: () => null,
         query: vi.fn(query),
         patch: vi.fn(async (id: string, patch: Partial<Row>) => {
           const next = { ...rows.get(id)!, ...patch };

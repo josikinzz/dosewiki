@@ -67,7 +67,6 @@ import {
 const NO_BLOCKS: readonly CopyStudioBlock[] = [];
 const NO_ROWS: CopyBlockRow[] = [];
 
-/** From `lg` the list and the pane sit side by side; below it they stack and nothing opens until a pick. */
 const SIDE_BY_SIDE_QUERY = "(min-width: 1024px)";
 
 type SaveState = "idle" | "saving";
@@ -82,35 +81,10 @@ const FREEZE_PUBLISH = "Writes are paused, so your changes were not published. T
 const FREEZE_REMOVE = "Writes are paused, so the stored copy was not removed.";
 
 type CopyStudioTabProps = {
-  /** `/dev/copy-studio/<block key>`: the block to open on, wherever its group is. */
   initialKey?: string;
-  /** Admin: Publish writes the block; without it the same draft is submitted as a proposal. */
   canApprove: boolean;
 };
 
-/**
- * Copy (`/dev/copy-studio`) edits site copy that used to be hardcoded in page
- * components: page intros, footers, empty states, SEO text.
- *
- * It reads only `copyBlocks` and layers the compact catalogue over 452
- * checked-in defaults, never the substance corpus, so the list is there before
- * its own query answers (and stays usable when that read fails). Each block's
- * stored copy and revision load by key when it opens. An admin's Publish
- * writes the row (and Remove stored copy deletes it, so the public read falls
- * back to the default); an editor's Submit for review sends the same draft as
- * a change proposal instead, and only an approval writes the row.
- *
- * Layout is the editor workspace: sections, a group picker, search and the
- * block list on the left (sticky on desktop), the open block in a docked pane
- * on the right with its save dock at the bottom. A search, or "Edited only",
- * lists matches from every group while the pane stays on the open block. On a
- * phone the pane stacks under the list, nothing opens until a pick, opening
- * scrolls the pane in, and the pane carries Back to list.
- *
- * An editor's submission resets the draft to the published copy and marks the
- * block "Proposal pending" for the rest of the session, so the draft is clean
- * again and a second submission needs a new edit.
- */
 export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const catalogue = useEditorReadState("copyBlocks:getEditorCatalogue", {}, "list");
   const rows = (catalogue.data as CopyBlockRow[] | undefined) ?? NO_ROWS;
@@ -124,7 +98,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
 
   const [activeGroup, setActiveGroup] = useState<string>("");
   const [activeKey, setActiveKey] = useState<string>(initialKey ?? "");
-  /** Nothing open: the idle pane on desktop, the list alone on a phone. A deep link always opens. */
   const [closed, setClosed] = useState(!initialKey);
   const [searchQuery, setSearchQuery] = useState("");
   const [editedOnly, setEditedOnly] = useState(false);
@@ -137,7 +110,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(() => new Set());
   const { serialize: publicationBody, acknowledge, uncertain } = useCopyIndexOperation();
   const awaitingWrite = useRef<CopyStudioBlock | null>(null);
-  /** "Load the latest version": the next answer for this key replaces the draft even though it is dirty. */
   const replaceOnNext = useRef<{ key: string; stale: unknown } | null>(null);
   const freeze = useWriteFreeze();
   const proposals = useOpenCopyProposals(pendingKeys.size);
@@ -149,17 +121,12 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const searchRef = useRef<HTMLInputElement>(null);
   const focusPaneOnOpen = useRef(false);
 
-  // Wide screens open the group's first block at once, as before; a phone
-  // shows the list alone until a pick, so the editor never lands under it unasked.
   useEffect(() => {
     if (initialKey) return;
     if (typeof window.matchMedia !== "function" || window.matchMedia(SIDE_BY_SIDE_QUERY).matches) setClosed(false);
-    // Only the arrival decides this; later closes are the editor's own.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // The group follows the selected block until the editor picks a group
-  // themselves, so a deep link lands on the block's own group.
   const resolvedGroup = groups.some((entry) => entry.group === activeGroup)
     ? activeGroup
     : groups.find((entry) => entry.blocks.some((block) => block.key === activeKey))?.group ??
@@ -176,8 +143,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     return editedOnly ? base.filter((block) => block.source === "data") : base;
   }, [blocks, groupBlocks, isSearching, searchQuery, editedOnly]);
 
-  // The editor stays on the selected block while a search narrows the list, so
-  // typing a query never swaps the draft out from under the editor.
   const activeBlock: CopyStudioBlock | null = useMemo(
     () => (closed ? null : blocks.find((block) => block.key === activeKey) ?? (activeKey && !catalogueReady ? null : groupBlocks[0] ?? null)),
     [blocks, groupBlocks, activeKey, closed, catalogueReady],
@@ -185,8 +150,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const detailSource = useCopyIndexSource<{ document: CopyBlockRow | null; revision: number }>(activeBlock ? `/api/dev/copy-block?key=${encodeURIComponent(activeBlock.key)}` : null);
   const selectedSnapshot = detailSource.data;
 
-  // Live production updates must never replace an unsaved draft or its baseline,
-  // unless the editor asked for the latest version.
   useEffect(() => {
     if (!activeBlock || selectedSnapshot === undefined) return;
     const authoritative = buildCopyStudioBlocks(
@@ -218,9 +181,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setSaveState("idle");
   }, [activeBlock, loadedBlock, draft, selectedSnapshot]);
 
-  // The address names the open block so a reload or a shared link lands on it.
-  // Only a change writes: the address the editor arrived on is left alone.
-  // Next's own history state goes back in, or the router treats it as a navigation.
   const urlKeyRef = useRef(initialKey ?? "");
   const openKey = activeBlock?.key ?? "";
   useEffect(() => {
@@ -230,7 +190,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     window.history.replaceState(window.history.state, "", viewToPath({ type: "dev", tab: "copy-studio", slug: openKey || undefined }));
   }, [openKey, closed]);
 
-  // A deep link to a key no block has: say so at the list and drop it from the address.
   const unknownDeepLink = Boolean(initialKey) && activeKey === initialKey && catalogueReady && !blocks.some((block) => block.key === initialKey);
 
   const isDirty = loadedBlock && activeBlock && loadedBlock.key === activeBlock.key ? isDraftDirty(loadedBlock, draft) : false;
@@ -238,8 +197,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const saving = saveState === "saving";
   const ready = activeBlock !== null && selectedSnapshot !== undefined && loadedBlock?.key === activeBlock.key;
 
-  // The guard keeps in-tool switches (another block, group, section, Close);
-  // the shell owns rail clicks, Leave and unload.
   const { guard, dialog: dirtyGuardDialog } = useDirtyGuard(isDirty, {
     canDiscard: !uncertain && !saving,
     title: activeBlock ? `Discard changes to “${activeBlock.label}”?` : undefined,
@@ -267,7 +224,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     [activeBlock?.key, guard, openBlock],
   );
 
-  /** Picking a group clears the search and the Edited filter; picking the current one only clears them. */
   const selectGroup = useCallback(
     (group: string) => {
       if (group === resolvedGroup && !acrossGroups) {
@@ -297,27 +253,19 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     listRef.current?.querySelector<HTMLElement>('[role="listbox"]')?.focus({ preventScroll: true });
   };
 
-  // Below `lg` the pane stacks under the list: a pick scrolls it in. Keyed on the
-  // picked block, not `activeBlock`, so the first-block fallback does not move the page.
   useScrollToDetail(paneRef, closed ? null : activeKey || null);
-  // Name the block for keyboard and screen reader users once its pane is in
-  // the page; an effect, not a frame later, so a click into a field keeps its focus.
   useEffect(() => {
     if (!openKey || !focusPaneOnOpen.current) return;
     focusPaneOnOpen.current = false;
     paneTitleRef.current?.focus({ preventScroll: true });
   }, [openKey]);
 
-  // A deep link names one block: below `lg` the pane sits under the whole
-  // list, so bring it in once, and name it for keyboard and screen reader users.
   const deepLinkShown = useRef(false);
   useEffect(() => {
     if (!initialKey || deepLinkShown.current || openKey !== initialKey || !ready) return;
     deepLinkShown.current = true;
-    // Focus from the effect itself, never a frame later, or a click into a field loses its focus to the heading.
     paneTitleRef.current?.focus({ preventScroll: true });
     if (typeof window.matchMedia !== "function" || window.matchMedia(SIDE_BY_SIDE_QUERY).matches) return;
-    // Once the pane holds the block, so the page does not settle and scroll back under it.
     const timer = window.setTimeout(() => paneRef.current?.scrollIntoView?.({ block: "start" }), 150);
     return () => window.clearTimeout(timer);
   }, [initialKey, openKey, ready]);
@@ -357,7 +305,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     });
   }, [confirm, detailSource, invalidateEditorReads, selectedSnapshot]);
 
-  /** A refused write in the tool's words: a conflict offers the latest version, the freeze reads as the freeze. */
   const failureNotice = useCallback((error: unknown, title: string, fallback: string, frozenCopy: string, key: string): NoticeMessage => {
     if (error instanceof CopyIndexRefusal && error.conflict) {
       return {
@@ -377,7 +324,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     return { tone: "danger", title, message: error instanceof Error ? error.message : fallback };
   }, [askLoadLatest, freeze.frozen]);
 
-  /** Resolves true once the block is published or submitted; false when it was not. */
   const handleSave = useCallback(async (): Promise<boolean> => {
     if (!activeBlock || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
       return false;
@@ -404,8 +350,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
           summary: `Update copy "${activeBlock.label}"`,
           baselines: [{ kind: "copyBlock", key: activeBlock.key, document: baselineRow }],
         });
-        // The proposal holds the edit now; the draft returns to the published
-        // copy so the guard is quiet and a resubmit needs a new edit.
         setPendingKeys((current) => new Set(current).add(activeBlock.key));
         setDraft(draftFromBlock(loadedBlock));
         setSaveState("idle");
@@ -452,7 +396,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     }
   }, [activeBlock, baselineRow, baselineRevision, canApprove, draft, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
 
-  /** Publish asks first and names the block and its readers; a submission for review goes straight out. */
   const requestPublish = useCallback(() => {
     if (!activeBlock || !isDirty || saving || !ready) return;
     if (!canApprove) {
@@ -470,10 +413,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     });
   }, [activeBlock, isDirty, saving, ready, canApprove, confirm, diffText, handleSave]);
 
-  // The shell asks before a rail click, Leave or sign-out drops the open
-  // block's edits. Its Save submits for review, offered only when this tool's
-  // own button would be enabled; an admin's save publishes live, so the shell
-  // offers only Discard and the admin publishes from here.
   const shellCanSave = isDirty && !saving && ready;
   useUnsavedWork({
     id: "copy-studio",
@@ -498,7 +437,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     if (loadedBlock && !uncertain && !saving) setDraft(draftFromBlock(loadedBlock));
   };
 
-  /** Reset drops the draft back to the checked-in default without saving. */
   const handleResetDraft = useCallback(() => {
     if (!activeBlock?.fallback) {
       return;
@@ -512,7 +450,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     });
   }, [activeBlock, canApprove]);
 
-  /** Revert deletes the stored row, so the public read serves the default. */
   const handleRevertToDefault = useCallback(async () => {
     if (!activeBlock || activeBlock.source !== "data" || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
       return;
@@ -558,8 +495,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     });
   };
 
-  // Cmd+S or Ctrl+S does what the dock's button does (Publish asks first, and
-  // a key press never publishes past that confirm). `/` focuses the search.
   const paneOpen = activeBlock !== null;
   useDevShortcuts(paneOpen ? PANE_SHORTCUTS : LIST_SHORTCUTS);
   const publishRef = useRef(requestPublish);
@@ -817,7 +752,6 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   );
 }
 
-/** Six sections in two rows of three, so none hides behind a sideways scroll in the list column. */
 function SectionChoices({
   sections,
   value,
@@ -857,7 +791,6 @@ function SectionChoices({
   );
 }
 
-/** Two lines at one pitch: the label and its marks, then the key (and where it lives, across groups). */
 function CopyBlockRowView({
   block,
   active,
@@ -871,7 +804,6 @@ function CopyBlockRowView({
   active: boolean;
   dirty: boolean;
   pending: boolean;
-  /** The search, so the row marks what matched. */
   query: string;
   place: string | null;
   defaultMatch: boolean;
@@ -923,7 +855,6 @@ function CopyBlockRowView({
   );
 }
 
-/** What the pane says on desktop before a block is open. Hidden on phones, where the list is the whole view. */
 function IdlePane({ canApprove }: { canApprove: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6">
@@ -940,18 +871,11 @@ function IdlePane({ canApprove }: { canApprove: boolean }) {
   );
 }
 
-/** "Docs · Code" reads "Code" under the Docs section; the section already says Docs. */
 function groupLabel(group: string, section: string): string {
   const prefix = `${section} · `;
   return group.startsWith(prefix) ? group.slice(prefix.length) : group;
 }
 
-/**
- * The copy blocks with an open change proposal, read from the proposal list
- * the Change Review tab reads (an editor sees their own, an admin everyone's),
- * again after this session submits one. A failed read leaves the marks off;
- * the session's own submissions are marked regardless.
- */
 function useOpenCopyProposals(submitted: number): ReadonlyMap<string, OpenCopyProposal> {
   const [open, setOpen] = useState<ReadonlyMap<string, OpenCopyProposal>>(() => new Map());
   useEffect(() => {

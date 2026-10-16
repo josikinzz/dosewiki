@@ -98,10 +98,6 @@ export function validateAdminIntentToken(token: string, intent: AdminIntent): Ad
   };
 }
 
-/**
- * Performs constant-time string comparison to prevent timing attacks.
- * Returns true if strings are equal, false otherwise.
- */
 function timingSafeEqual(a: string, b: string): boolean {
   const maxLength = Math.max(a.length, b.length);
   const paddedA = a.padEnd(maxLength, "\0");

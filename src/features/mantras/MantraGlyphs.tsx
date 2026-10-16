@@ -1,10 +1,6 @@
 import type { CSSProperties } from "react";
 import { MANTRA_VISUAL_STRANDS } from "./mantraData";
 
-
-// The decorative spiral sheet is generated to a static file
-// (npm run generate:mantra-spiral) and served once, instead of being inlined twice
-// as a ~333KB data: URI in the prerendered HTML. Builder lives in spiralSheet.ts.
 const SPIRAL_SHEET_SRC = "/mantras/spiral-sheet.svg";
 
 

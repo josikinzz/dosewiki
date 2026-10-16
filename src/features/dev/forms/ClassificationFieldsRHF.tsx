@@ -1,9 +1,3 @@
-/**
- * RHF-based Classification fields component.
- * Displays psychoactive and chemical class fields to match
- * their prominent position in the public HeroSection.
- */
-
 import { Icon } from "@/components/common/Icon";
 
 import { ControlledTagMultiSelect } from "./rhf";

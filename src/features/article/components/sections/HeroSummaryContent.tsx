@@ -7,7 +7,6 @@ interface HeroSummaryContentProps {
   hasMolecule: boolean;
 }
 
-/** Server-compatible summary projection passed into the interactive hero. */
 export function HeroSummaryContent({
   article,
   hasMolecule,

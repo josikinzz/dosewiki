@@ -1,31 +1,9 @@
 #!/usr/bin/env node
-/**
- * Apply a validated gap-generation draft (tolerance / legality / harm_potential /
- * pharmacology / dosage_duration) to a single substance article in Postgres.
- *
- * Two write modes:
- *   --mode=replace   overwrite the whole top-level field(s) with the draft
- *                     (only used when the live field is empty — safe by construction)
- *   --mode=merge     fill-only merge: copy a draft value into a live field ONLY
- *                     when the live value is currently empty/null/missing; never
- *                     overwrite an existing attested value. Used for dosage_duration
- *                     (skinny tier tables) and pharmacology when only PK was empty.
- *
- * Usage:
- *   node scripts/data-ops/apply-gap-generation.mjs --section=tolerance --slug=lsd \
- *     --draft=path/to/draft.yaml --mode=replace --dry-run
- *   node scripts/data-ops/apply-gap-generation.mjs --section=dosage_duration --slug=lsd \
- *     --draft=path/to/draft.yaml --mode=merge --write \
- *     --confirm-write=apply-gap-generation --expected-deployment=localhost/dosewiki
- */
 import { readFileSync } from "node:fs";
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import yaml from "../../node_modules/yaml/dist/index.js";
 import { api } from "../../lib/postgres/runtime/api.ts";
 import { stripDataMetadata } from "../batch/summary/articles.mjs";
-// Canonical presence predicates. This is the single definition of "a route the
-// reader can actually see"; the cleanup tooling and the article renderer share it.
-// See src/schema/substance/dosageDurationPresence.ts.
 import {
   hasDosageDurationContent,
   routeHasDosageContent,
@@ -70,14 +48,6 @@ function routeKey(r) {
   return (r?.route ?? "").trim().toLowerCase();
 }
 
-/**
- * Why a brand-new route was withheld, or null when it may be added.
- *
- * Merging into an existing route has always been value-guarded, but a new route
- * used to be pushed wholesale — which is how hollow scaffolding (every tier and
- * stage `{min:null,max:null,unit:"mg"}`, empty prose) reached production and
- * rendered as empty tables. A route the reader cannot see is not data.
- */
 function newRouteRefusal(route, side) {
   if (routeKey(route) === "") {
     return "route name is blank (echoed template)";
@@ -93,13 +63,6 @@ function newRouteRefusal(route, side) {
   return null;
 }
 
-/**
- * Fill-only merge of dosage.routes / duration.routes; never modifies an existing
- * value, and never introduces a contentless new route.
- *
- * Returns `skipped` alongside `changes` so a campaign's audit log records what
- * was withheld instead of dropping it silently.
- */
 export function mergeDosageDuration(live, draft) {
   const changes = [];
   const skipped = [];
@@ -184,12 +147,6 @@ export function mergeDosageDuration(live, draft) {
   };
 }
 
-/**
- * Fill schema-required-but-generation-omitted string fields with "". The
- * dosage/duration prompts deliberately omit `bioavailability`/`notes` (owned by
- * pharmacology), but the Zod contract still requires those strings. This makes a
- * generated draft parse without inventing any content.
- */
 export function normalizeDraftDefaults(section, doc) {
   if (section !== "dosage_duration") return doc;
   const d = JSON.parse(JSON.stringify(doc));
@@ -205,7 +162,6 @@ export function normalizeDraftDefaults(section, doc) {
   return d;
 }
 
-/** Sum of trimmed string-leaf lengths — 0 means "no content anywhere". */
 export function deepChars(v) {
   if (v == null) return 0;
   if (typeof v === "string") return v.trim().length;
@@ -215,12 +171,6 @@ export function deepChars(v) {
   return 0;
 }
 
-/**
- * Generic conservative fill-only deep merge: strings fill only when live is
- * empty; arrays fill only when live is empty; records gain missing keys and
- * recurse into shared keys; scalars (numbers/enums/null) fill only when live
- * is null/undefined. Live content is never modified.
- */
 export function deepFillMerge(live, draft, path = "", changes = []) {
   if (draft === undefined || draft === null) return { merged: live, changes };
   if (live === undefined || live === null) {
@@ -252,7 +202,6 @@ export function deepFillMerge(live, draft, path = "", changes = []) {
   return { merged: live, changes };
 }
 
-/** Fill-only merge of PK-only fields into an existing pharmacology object. */
 export function mergePharmacologyPK(live, draft) {
   const changes = [];
   const merged = { ...live };
@@ -315,17 +264,10 @@ async function main() {
   let skipped = [];
 
   if (opts.section === "dosage_duration") {
-    // `deepChars` is deliberately NOT the emptiness guard here, and must not
-    // become one. It sums string leaves only, so it is wrong in both directions
-    // for this section: a perfectly good all-numeric dose table scores 0 (its
-    // content lives in `min`/`max` numbers), while an all-null scaffold scores
-    // > 0 purely from its `route` and `unit` strings. The correct instrument is
-    // the canonical presence predicate, which reads values rather than prose.
     if (!hasDosageDurationContent(doc)) {
       console.log(`${opts.slug}/dosage_duration: no-op (draft has no dosage or duration content)`);
       return;
     }
-    // Always the specialized route/tier fill-only merge — safe on empty and skinny alike.
     const result = mergeDosageDuration(article, doc);
     updatedFields = { dosage: result.dosage, duration: result.duration };
     changes = result.changes;
@@ -336,7 +278,6 @@ async function main() {
       updatedFields = { pharmacology: doc.pharmacology };
       changes = ["pharmacology: full replace (live section empty)"];
     } else {
-      // Live pharmacodynamics prose exists — only fill PK fields, never touch prose.
       const result = mergePharmacologyPK(article.pharmacology ?? {}, doc.pharmacology ?? {});
       updatedFields = { pharmacology: result.pharmacology };
       changes = result.changes;
@@ -362,8 +303,6 @@ async function main() {
     }
   }
 
-  // Withheld routes are logged whether or not anything was applied, so a
-  // campaign audit shows what the guard refused rather than losing it.
   if (skipped.length > 0) {
     console.log(`${opts.slug}/${opts.section}: ${skipped.length} contentless route(s) withheld`);
     for (const s of skipped) console.log(`  ! ${s}`);
@@ -385,9 +324,6 @@ async function main() {
   assertDataOpsWriteAllowed(runContext);
   const apiKey = requireAdminIntentToken("editorArticleWrite").token;
   const updatedArticle = { ...article, ...updatedFields };
-  // saveSubstance (singular) THROWS on failure (unlike the plural saveSubstances,
-  // which returns {errors:[...]} without throwing) — catch, don't inspect a
-  // non-existent errors field.
   let lastError;
   for (let attempt = 1; attempt <= 4; attempt++) {
     try {
@@ -400,7 +336,6 @@ async function main() {
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : String(error);
-      // Retry only on transient transport errors; schema/auth failures fail fast.
       if (attempt < 4 && /fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|network|503|502|429/i.test(message)) {
         await new Promise((r) => setTimeout(r, 1500 * attempt));
         continue;

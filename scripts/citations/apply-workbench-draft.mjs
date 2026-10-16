@@ -154,7 +154,6 @@ async function main() {
 
   assertDataOpsWriteAllowed(runContext);
 
-  // Write audit log before making any changes
   const { path: auditLogPath } = writeAuditLog({
     operation: "citation-workbench-apply",
     intent: "citationEvidenceWrite",
@@ -166,7 +165,6 @@ async function main() {
   });
   console.log(`Audit log: ${auditLogPath}`);
 
-  // Backup article before write
   const { path: backupPath, documentCount } = await backupBeforeWrite({
     sourceClient: client,
     queryGetAll: api.substanceIndex.getBySlug,
@@ -183,7 +181,6 @@ async function main() {
     plan: promotionPlan,
   });
 
-  // Update audit log with results
   updateAuditLog(auditLogPath, {
     result: {
       articleResult: writeResult.article,

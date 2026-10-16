@@ -1,28 +1,5 @@
 "use client";
 
-/**
- * Replication → drug association editor — `/dev` → Replications → one selected
- * replication → "Showing on N of M drug articles".
- *
- * Associations have two sources: effect/name matching proposes candidates, while
- * an editor may curate a showcase-eligible replication directly on one drug.
- * “Add to drugs” writes that per-gallery curation without changing the
- * replication's owning effect or tags. The checkbox list edits the same
- * gallery's `removed_slugs`: unticking affects that drug only, and can move a
- * directly curated work from its curated position into the retained exclusion
- * set.
- *
- * A tick is eligibility, not publication. Under the publish gate a drug shows
- * this replication only once it has been curated on that drug's board, so every
- * row reads out its own state — showing (with its position), eligible but not
- * curated, or excluded — and the header counts publications, not ticks.
- *
- * Unticking a drug that pinned this replication into its curated head is
- * allowed but never silent: the row warns inline and the save summary counts
- * the positions the save will drop, because `curated_slugs` and
- * `removed_slugs` may not overlap.
- */
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -66,10 +43,6 @@ const ASSOCIATIONS_API = "/api/dev/replications/associations";
 
 type Feedback = { tone: NoticeTone; message: string };
 
-/**
- * A string discriminant, not `ok: boolean`, chosen while the project compiled
- * without strict null checks, where boolean-literal narrowing did not hold.
- */
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
@@ -97,7 +70,6 @@ function plural(count: number, one: string, many: string): string {
   return count === 1 ? one : many;
 }
 
-/** Row-shaped placeholders, so the list's rhythm is established before its data. */
 function AssociationsSkeleton() {
   return (
     <div aria-hidden className="space-y-2">
@@ -124,7 +96,6 @@ const MATCH_LABEL: Record<ReplicationAssociation["matchedVia"], string> = {
   curated: "direct association",
 };
 
-/** What one row means on its drug article after the draft exclusion. */
 type RowState = "published" | "excluded";
 
 const ROW_STATE_TONE: Record<RowState, "success" | "danger"> = {
@@ -358,17 +329,11 @@ function DirectPlacementEditor({
   );
 }
 
-/**
- * The associated-drugs editor for one replication, mounted in the single-edit
- * drawer. Associations and direct placements are per replication, so a bulk
- * selection has no single answer.
- */
 export function ReplicationAssociationsPanel({
   row,
   onDirtyChange,
 }: {
   row: StudioRow;
-  /** Reports unsaved eligibility so the host can guard leaving it. */
   onDirtyChange?: (dirty: boolean) => void;
 }) {
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
@@ -392,8 +357,6 @@ export function ReplicationAssociationsPanel({
         const response = await fetch(`${ASSOCIATIONS_API}/${encodeURIComponent(slug)}`);
         if (response.ok) {
           const payload = (await response.json()) as { associations?: ReplicationAssociation[] };
-          // A 200 without the array is a broken route, not an empty result:
-          // rendering "appears nowhere" would be a lie about the data.
           next = Array.isArray(payload.associations)
             ? { status: "ready", rows: payload.associations }
             : {
@@ -464,8 +427,6 @@ export function ReplicationAssociationsPanel({
   }, [isDirty, onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
   const busy = saveState === "saving";
-  // Eligibility decides which live galleries may show the work, so the shell
-  // only discards.
   useUnsavedWork({
     kind: "discard-only",
     because: "This change would go live. Publish it from the tool; leaving here never publishes.",
@@ -518,9 +479,6 @@ export function ReplicationAssociationsPanel({
       const written = Array.isArray(echo.updated) ? echo.updated : [];
       const dropped = Array.isArray(echo.droppedCuratedPositions) ? echo.droppedCuratedPositions : [];
       const droppedSet = new Set(dropped.map((entry) => entry.substance_slug));
-      // The route echoes what it wrote rather than the rows; the desired set is
-      // authoritative for `excluded`, and a dropped position is a real
-      // un-curation, so the baseline has to forget it too.
       setLoad((current) =>
         current.status === "ready"
           ? {

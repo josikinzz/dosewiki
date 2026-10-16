@@ -1,26 +1,4 @@
-/* Shared theme utilities: the .theme-* recipes the component kit and more than
-   one feature read. Imported into the utilities cascade layer by
-   src/styles/utilities.css.
 
-   Ownership rule. A class used by one feature directory belongs beside that
-   feature, in a sheet the feature's route or entry imports and that declares
-   its rules inside `@layer utilities` so nothing changes in the cascade:
-     src/features/dev/dev-tools.css   (editor-only; loaded by the editor style entry)
-     src/app/china/china.css          (one route)
-     src/styles/mantras.css           (one route)
-   A class used by two features, or by anything under src/components, stays
-   here.
-
-   Scheme rule. Nothing here keys on data-theme. Every value that differs
-   between dark and light is a --theme-* token in site-colors.css with a value
-   per scheme; src/theme/lightSheet.test.ts enforces it. The only scheme
-   selectors left are the molecule colourway switch and the dark chrome
-   islands, which are structural rather than stylistic.
-
-   Families still authored here that a later pass may co-locate: article
-   sections (src/features/article), replications, effects, and reports. They
-   stay for now because moving them changes source order against the shared
-   recipes they sit beside, and that has to be verified per route. */
 
 .hyphenate {
   hyphens: auto;
@@ -50,8 +28,6 @@
   --tw-ring-color: var(--theme-dosage-mode-tabs-tw-ring-color) !important;
 }
 
-/* The frosted compact-control fill for Button and Badge variants that sit on
-   the canvas, with its hover lift as a separate opt-in. */
 .theme-frosted-control {
   background: var(--theme-frosted-control-bg);
 }
@@ -62,20 +38,14 @@
   }
 }
 
-/* Recessed field shadow, shared by Input, Textarea and the Select trigger. */
 .theme-field-inset {
   box-shadow: var(--theme-elevation-field-inset);
 }
 
-/* Modal scrim behind Dialog and CommandDialog: dims the page, never hides it. */
 .theme-scrim {
   background-color: var(--theme-scrim);
 }
 
-/* One row recipe for every floating list: DropdownMenu items, Select items and
-   Command items share a height, a corner, and an instant highlight (a fading
-   highlight lags arrow-key travel). The highlight is a lift over the overlay
-   panel in every appearance, never a darker well. */
 .theme-menu-row {
   min-height: 2.25rem;
   border-radius: var(--radius-control);
@@ -88,13 +58,12 @@
   background-color: var(--theme-menu-item-highlight-bg);
   color: var(--theme-text-primary);
 }
-/* cmdk writes data-disabled="false" on enabled items; Radix omits it. */
+
 .theme-menu-row[data-disabled]:not([data-disabled="false"]) {
   pointer-events: none;
   opacity: 0.5;
 }
 
-/* Group heading inside a floating list. */
 .theme-menu-label {
   font-size: var(--type-size-caption);
   font-weight: 600;
@@ -104,9 +73,6 @@
   color: var(--theme-text-faint);
 }
 
-/* The appearance popover's stem. Filled with the same surface variable as the
-   panel it hangs from so the two read as one shape; Pro re-seats that variable
-   itself, so one declaration dresses all four theme combinations. */
 .theme-popover-arrow {
   fill: var(--theme-surface-strong);
 }
@@ -121,8 +87,6 @@
     color var(--motion-base) var(--ease-out);
 }
 
-/* No will-change: the forwards fill would hold the compositing layer for the
-   life of the page after a one-shot entrance. */
 .theme-section-card-enter {
   opacity: 0;
   transform: translate3d(0, 12px, 0);
@@ -130,15 +94,11 @@
   animation-delay: var(--theme-section-card-delay, 0s);
 }
 
-/* A shorter version of the shared entrance for newly selected tab content.
-   No forwards fill or will-change: release the compositing layer on completion. */
 .theme-tab-panel-enter {
   --theme-section-card-distance: 4px;
   animation: theme-section-card-enter var(--motion-base) var(--ease-out);
 }
 
-/* Public interaction entrances share the section motion without retaining a
-   transform after completion. Keep positioner nodes and live players outside. */
 .theme-reveal-enter,
 .theme-overlay-enter {
   --theme-section-card-distance: 2px;
@@ -163,7 +123,6 @@
   to { opacity: 1; }
 }
 
-/* A destination cue, not a change to the content's semantic color or layout. */
 @keyframes theme-navigation-emphasis {
   from {
     background-color: color-mix(in srgb, var(--theme-text-secondary) 10%, transparent);
@@ -190,36 +149,12 @@
   }
 }
 
-/* Pending-navigation feedback (SmartLink + NavigationProgress).
-   The moment a click starts a navigation, the anchor gains data-nav-pending
-   and the route chrome mounts the .theme-nav-progress bar. Together they
-   answer "did my click register?" on the next paint, and keep answering for
-   as long as the route payload takes to arrive. */
-
 a[data-nav-pending="true"] {
   cursor: progress;
   opacity: 0.65;
   transition: opacity var(--motion-fast) var(--ease-out);
 }
 
-/* Index list links (IndexCard.tsx: Substance Index and Subjective Effect
-   Index entries) answer the click with a shimmer instead of a dim: the label
-   takes the progress bar's accent ink and a narrow brighter band sweeps
-   through it, the same recipe and intensity as .theme-beta-shimmer, looping
-   for as long as the navigation stays in flight. The eye resting on the
-   clicked entry sees motion in place, then finds the bar at the top. Only
-   the label span is clipped so the bullet, meta count, and the hover
-   background on the anchor keep painting normally.
-
-   Geometry, so the first frame is not a blank one: the image is twice the
-   label wide with the band (40%..60% of the image, so 0.4 label widths)
-   centred; background-position 120% parks the band just off the label's
-   left edge, -20% just off its right, so the loop point is invisible and
-   the band is on the label for the whole 1.4-width cycle. The negative
-   delay starts the first cycle one seventh in, where the band's centre sits
-   on the label's left edge: the glint is there on the click frame instead
-   of ramping in from nothing. On hover the label is already accent ink, so
-   this band is the only thing that changes, and it has to change at once. */
 .theme-index-card-link[data-nav-pending="true"] {
   opacity: 1;
 }
@@ -228,19 +163,6 @@ a[data-nav-pending="true"] {
   color: var(--theme-accent-strong);
 }
 
-/* Homepage tiles (HomeExperience.tsx) answer the click the same way the Index
-   entries do: the label takes the progress bar's accent ink and a narrow
-   brighter band sweeps through it, on the same 1.4s cycle and the same
-   negative delay, so a click anywhere in the app reads as one gesture. The
-   generic dim above would fight that, so it is overridden here.
-
-   No ring and no lift. A 2px outline at a 3px offset around a 5.75rem icon is
-   a wide flat band of accent that reads as a selection chrome rather than as
-   progress, and it lands on the loudest element on the page. The shimmer says
-   the same thing in the label's own ink.
-
-   The icon keeps a quiet accent border so the pressed tile is still
-   identifiable at a glance while its label carries the motion. */
 .theme-home-nav-link[data-nav-pending="true"] {
   opacity: 1;
   color: var(--theme-text-primary);
@@ -282,9 +204,6 @@ a[data-nav-pending="true"] {
   }
 }
 
-/* The beta disclaimer's own shimmer (article top slot, Substance Index
-   header) recedes while a navigation is pending so the progress bar and the
-   clicked link are the only things moving. */
 .theme-beta-disclaimer-shell {
   transition: opacity var(--motion-fast) var(--ease-out);
 }
@@ -297,7 +216,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   position: fixed;
   inset: 0 0 auto 0;
   height: 2px;
-  /* Above .app-header (z-index: 50); purely decorative, never interactive. */
+
   z-index: 60;
   pointer-events: none;
   transform-origin: 0 50%;
@@ -305,8 +224,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-nav-progress[data-phase="active"] {
-  /* Fast launch that asymptotes: ~60% of the track inside the first second,
-     then a slow crawl — the classic "still working" indeterminate shape. */
+
   animation: theme-nav-progress-advance 12s cubic-bezier(0.16, 1, 0.3, 1)
     forwards;
 }
@@ -384,8 +302,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-semantic-danger-badge-text);
 }
 
-/* Surface, ink and ring for these pills come from the frosted control groups
-   further down; only the box, the timing and the focus ring live here. */
 .theme-control-pill,
 .theme-control-pill-quiet {
   border-width: 1px;
@@ -403,13 +319,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   outline-offset: var(--theme-focus-offset);
 }
 
-/* The hue and saturation sliders in the appearance panel — one recipe for
-     both rails. The track's gradient is data, painted as an inline background
-     on the wrapper by AppearanceAxes: five stops of the axis's base colour at
-     levels 0..1 for a saturation rail, seven relative-colour rotations across
-     the hue circle for a hue rail. The recipe shapes the rail, authored-position
-     tick, thumb, and input hit area. Coarse pointers get a full 44px interaction
-     lane even though the visible rail stays compact. */
 .theme-chroma-track {
   --theme-chroma-thumb-size: 0.875rem;
   position: relative;
@@ -430,12 +339,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     color-mix(in srgb, var(--theme-text-primary) 14%, transparent);
 }
 
-/* The appearance panel's reading-type sliders are meters, not legends: the filled
-   portion wears the reader's accent — repainting the accent repaints the meters,
-   answering the colour tab — while the remainder stays a faint ink step. The
-   component carries only the fill position in --dw-type-fill; the gradient lives
-   here so the accent resolves through the token system. At accent saturation 0
-   the token greys out and the fill follows, the honest unmuted signal. */
 [data-appearance-type] .theme-chroma-track::before {
   background: linear-gradient(
     90deg,
@@ -444,10 +347,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   );
 }
 
-/* Where the authored colour sits: the authored saturation level as a
-      unitless 0..1 on a saturation rail, and 0 — the left edge — on a hue rail.
-      The inset follows half the responsive thumb size because a range thumb's
-      centre travels between those insets rather than from 0 to 100%. */
 .theme-chroma-tick {
   position: absolute;
   top: 1px;
@@ -526,10 +425,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Tertiary inline expander: a faint flat plum wash at rest (no gloss, no
-     lift) so it reads at body-copy altitude, then fills with the frosted
-     control treatment on hover/focus. Kept out of the frosted control sweep
-     above so the resting state stays quiet. */
 .theme-control-pill-faint {
   border: 1px solid color-mix(in srgb, var(--theme-accent) 16%, transparent);
   background-color: color-mix(
@@ -568,18 +463,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   outline-offset: var(--theme-focus-offset);
 }
 
-/* The floating control bar's own material. `--theme-frosted-control-bg` holds
-   two stacked gradients and `--theme-frosted-control-shadow` holds a ring plus
-   an inset highlight, so both have to travel through the `background` and
-   `box-shadow` shorthands. Tailwind's `bg-[var(...)]` compiles to
-   `background-color`, which drops a gradient on the floor: the bar was
-   rendering as a bare hairline with no fill at all.
-
-   The hairline is the shadow's first layer (`0 0 0 1px` in
-   `--theme-frosted-control-border`, in every theme that defines the token), so
-   this recipe deliberately has no `border`: a border here painted the same
-   line a second time at the same radius in the same colour, and charged 2px of
-   box for it. Call sites must not add one back. */
 .theme-frosted-control-bar {
   background: var(--theme-frosted-control-bg);
   box-shadow: var(--theme-frosted-control-shadow);
@@ -633,11 +516,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   outline-offset: var(--theme-focus-offset);
 }
 
-/* Citation-needed marker: free-floating superscript-register annotation.
-   No chip, no ring, no fill — the flag should read on inspection, not shout
-   mid-sentence. It sits in the same faint-ink register as meta labels, and
-   the brackets are presentational pseudo-elements so the sentinel text never
-   lands in copied prose. */
 .theme-citation-needed-marker {
   color: var(--theme-text-faint);
 }
@@ -698,9 +576,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   mask-size: contain;
 }
 
-/* Supporter credit: a two-row lockup, quiet by construction. The label is the smallest
-     thing in the footer and the mark is roughly twice its size, so the supporter's name
-     carries the credit and the words "Supported by" only introduce it. */
 .theme-site-supporter {
   color: var(--theme-text-faint);
   transition: color var(--motion-fast) var(--ease-out);
@@ -711,11 +586,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-muted);
 }
 
-/* Tracked uppercase at 11px. Uppercase and letter-spacing are what mark this as a
-     label rather than one more sentence of footer prose: it sits directly beneath the
-     licence line, which is sentence-case body copy at 12px, and the two must not read as
-     a single paragraph. `leading: 1` keeps the row tight so the flex gap sets the space
-     between label and mark rather than half-leading doing it invisibly. */
 .theme-site-supporter-label {
   font-size: 0.6875rem;
   font-weight: 500;
@@ -724,9 +594,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   text-transform: uppercase;
 }
 
-/* The mark is the asset's alpha silhouette painted with a background colour, so the one
-     monochrome file tracks the theme for free. It sits one tone above the label — the
-     supporter's name is the point of the credit, the lead-in is not. */
 .theme-site-supporter-mark {
   display: block;
   flex-shrink: 0;
@@ -936,8 +803,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     row-gap: clamp(0.85rem, 2.6svh, 1.25rem);
   }
 
-  /* Each row spaces its own tiles: a short last row is a tight centred pair,
-       never spread to echo the wider row above it. */
   .theme-home-nav-row {
     column-gap: clamp(0.75rem, 3.5vw, 1.25rem);
   }
@@ -953,13 +818,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     border-radius: 1.25rem;
   }
 
-  /* The glyph's ink is a fixed share of its tile, so the tile's viewport-height
-     scaling above (and the short-viewport override below) never changes the
-     glyph-to-tile proportion, the way an app icon keeps its symbol in scale.
-     Each collection pads its glyph differently inside the nominal box, so the
-     box is enlarged and recentred by the icon's measured ink
-     (`--theme-home-glyph-*`, set per tile from homeTileGlyphMetrics.generated.json)
-     rather than sized directly. */
   .theme-home-nav-svg {
     --theme-home-glyph-ink: 60%;
     width: calc(var(--theme-home-glyph-ink) * var(--theme-home-glyph-scale, 1));
@@ -1052,11 +910,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     }
   }
 
-  /* Corner widgets (supporter credit, mailing-list trigger) are fixed to the
-     shell's bottom corners. Below ~620px of viewport height the hero's minimum
-     content (header + lockup + intro + two tile rows at their clamped floors)
-     reaches into that bottom band, so the widgets would sit under the tiles.
-     They are supplementary, so they hide outright rather than overlap. */
   @media (max-height: 620px) {
     .theme-home-corner-widget {
       display: none;
@@ -1135,9 +988,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Fill, glyph tint, edge ring and hover/focus states come from the shared
-   index-tile glass recipe (see `.theme-index-mobile-tab-icon`). The tile's
-   own 1px border stays transparent so the recipe's ring is the only edge. */
 .theme-home-nav-icon {
   border-color: transparent;
   transform: translate3d(0, 0, 0) scale(1);
@@ -1147,8 +997,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   will-change: transform;
 }
 
-/* A short press on the homepage icon alone; index tiles press the whole tile
-   (`active:scale-[0.98]`) instead. */
 .theme-home-nav-link:active .theme-home-nav-icon {
   transform: translate3d(0, 0, 0) scale(0.96);
   transition-duration: var(--motion-press);
@@ -1210,7 +1058,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* The glyph inherits the tile's recipe tint; the tile alone carries press motion. */
 .theme-home-nav-svg {
   transform: translate3d(0, 0, 0) scale(1);
   transform-origin: center;
@@ -1244,12 +1091,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-field-on-chrome-border);
   background-color: var(--theme-field-on-chrome-surface);
   color: var(--theme-text-primary);
-  /* Hairline ring plus a top highlight: the field is a control lifted off the
-       chrome rail, so it carries no inner shadow. It used to end with
-       `inset 0 1px 2px var(--theme-shadow-soft)`, which darkened the top edge
-       against the very highlight above it — a recessed cue on a raised control,
-       and a hangover from when --theme-field-on-chrome-surface sat below the
-       rail. */
+
   box-shadow:
     0 0 0 1px
       color-mix(in srgb, var(--theme-field-on-chrome-border) 68%, transparent),
@@ -1283,12 +1125,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-primary);
   box-shadow: var(--theme-home-search-input-box-shadow);
 }
-
-/* The light search halo rings pull from the --c-plum-pink seed (exactly the
-     old rgba(159, 33, 128) literal) so palette presets reach them; the
-     desaturated rgba(84, 46, 112) drop shadow is neutral depth, not accent,
-     and stays literal like the other light-mode plum shadows. Placeholder ink
-     and opacity come from the global ::placeholder rule in base.css. */
 
 @media (hover: hover) {
   .theme-home-search-input:hover {
@@ -1339,10 +1175,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background-color: var(--theme-divider);
 }
 
-/* Search results page: the group cards drop to the dark chrome/inset tone
-     (same family as the header, footer, and TOC). The highlight marks and
-     suggestion icons, which normally use that inset tone, flip to the mid
-     plum chip so they still read against the darker card. */
 .theme-search-page-shell .theme-public-card {
   border-color: var(--theme-search-page-card-border-color);
   background: var(--theme-search-page-card-background);
@@ -1428,10 +1260,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   box-shadow: var(--theme-frosted-control-on-panel-shadow);
 }
 
-/* Active-search loading affordances (see SearchingIndicator.tsx). The looping
-     line-md glyph carries the primary "we're working" signal; the dot wave and
-     the icon-tile ring reinforce it. All motion is opt-in via the media query so
-     reduced-motion users get a calm, static card. */
 .theme-searching-dots {
   display: inline-flex;
   margin-left: 0.15em;
@@ -1544,24 +1372,11 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   outline-offset: var(--theme-focus-offset);
 }
 
-/*
-   * The stub banner sits inside the hero, where a frosted panel reads as a
-   * faint smudge against the card behind it. It borrows the solid name-chip
-   * surface so it separates from the hero the way the classification pills do,
-   * and follows the alternate palette rather than hardcoding black.
-   */
 .theme-article-stub-banner {
   border-color: var(--theme-name-chip-ring);
   background: var(--theme-name-chip-bg);
 }
 
-/*
-   * One empty slot inside a subsection that does have content. It carries no
-   * fill and no shadow on purpose: the frosted panel recipe would give a single
-   * missing fact the same visual weight as the section that contains it. A
-   * hairline on the panel border token is enough to read as a bounded marker in
-   * both themes, and keeps it a step quieter than the stub banner above it.
-   */
 .theme-article-gap-slot {
   border-color: var(--theme-frosted-panel-border);
   background: transparent;
@@ -1751,8 +1566,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Reduced motion drops the fade, not the wait: the hint still appears only
-   once loading has gone on long enough to need it. */
 @media (prefers-reduced-motion: reduce) {
   .theme-loading-stalled-label {
     animation-duration: 1ms;
@@ -1787,9 +1600,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   animation: theme-loading-bar 1.4s var(--ease-loop) infinite;
 }
 
-/* The bar is half the track wide, so -100% parks it just off the left edge
-     and 200% (twice its own width = the full track) exits it on the right:
-     one continuous left-to-right sweep, no ping-pong reversal. */
 @keyframes theme-loading-bar {
   from {
     transform: translateX(-100%);
@@ -1804,8 +1614,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     animation: none;
   }
 
-  /* Frozen mid-track: a static half-filled bar instead of an invisible
-       off-screen one. */
   .theme-loading-bar {
     animation: none;
     transform: translateX(50%);
@@ -1878,19 +1686,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-primary);
 }
 
-/* The current page is named by colour alone. The label joins the icon on the
-     accent, which is the one thing hover never does — hover lifts the label only
-     as far as --theme-text-primary — so the two states stay distinguishable
-     without a fill.
-
-     What used to be here: --theme-header-nav-active-bg, a matching border, and a
-     three-layer box-shadow (1px ring, accent glow, inset highlight). Together
-     they drew a pill solid and bright enough to read as a button, an affordance
-     a nav link does not have, on every page of the site.
-
-     --theme-accent-strong is legible on the rail in both schemes because the
-     .theme-chrome-dark island (site-colors.css:173) rebinds it to its dark value
-     while the page around it is light. */
 .theme-header-nav-link[data-active="true"] {
   color: var(--theme-accent-strong);
 }
@@ -1967,9 +1762,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   box-shadow: var(--theme-frosted-panel-shadow);
 }
 
-/* The hairline is a light-mode-only separator: a page-coloured footer needs it,
-     a dark chrome island does not, and adding one would be a seam the dark theme
-     never shows. `.theme-chrome-dark` footers are excluded for that reason. */
 .theme-footer-surface:not(.theme-chrome-dark) {
   border-top: var(--theme-footer-hairline-width) solid var(--theme-frosted-panel-border);
 }
@@ -1990,10 +1782,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-text-faint);
 }
 
-/* Quiet back link: muted at rest, accent-strong on hover. The gallery
-   explorer's focused view carries this pair inline (pre-token-audit
-   baseline); new call sites reach it through this class so component text
-   never names a theme variable directly. */
 .theme-back-link {
   color: var(--theme-text-muted);
 }
@@ -2004,16 +1792,10 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Decorative/divider step of the text ramp (3:1 non-text floor, not 4.5:1).
-     The class was missing while five call sites already passed it, so those
-     nodes silently inherited --theme-text-primary #ffffff instead of dimming. */
 .theme-text-ghost {
   color: var(--theme-text-ghost);
 }
 
-/* Accent roles: standalone headings follow --theme-section-heading (which
-     palettes and Pro pin separately), accented emphasis follows
-     --theme-accent-strong. */
 .theme-accent-heading {
   color: var(--theme-section-heading);
 }
@@ -2038,10 +1820,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-danger-border);
 }
 
-/* Article Status ladder (ContributorsSection). A done step's check takes the
-   success ink; a step not yet performed puts the vivid danger ink on its
-   shield-off marker and the danger surface on its badge and "Pending" chip.
-   Red sits only on the status cluster; label and description keep neutral ink. */
 .theme-status-step-done-mark {
   color: var(--theme-success-text);
 }
@@ -2076,10 +1854,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   color: var(--theme-report-featured-text);
 }
 
-/* Trip report timeline rail: a continuous vertical line through the
-     onset/peak/offset phases. Phase headings and entries hang dots on it via
-     .theme-report-rail-marker; the marker halo uses the page canvas color so
-     the line appears to pass behind each dot. */
 .theme-report-rail::before {
   content: "";
   position: absolute;
@@ -2097,9 +1871,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 .theme-report-rail-marker {
   box-shadow: 0 0 0 3px var(--theme-body-bg);
-  /* Hang the dot on the rail. The offset is derived from a single token so
-       the heading dot and the smaller entry dot (-sm) stay aligned on the
-       same line; -sm nudges right by the dot radius difference (0.13rem). */
+
   left: calc(var(--theme-report-rail-inset) * -1);
 }
 
@@ -2107,13 +1879,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   left: calc(var(--theme-report-rail-inset) * -1 + 0.13rem);
 }
 
-/* Accent CTA: the single solid-magenta action on a page (e.g. Submit
-     report). Uses the brand accent tokens so dark mode gets a luminous pink
-     pill with dark text and light mode a deep magenta pill with white text.
-     The label is painted with the page canvas: it already inverts with the
-     colour scheme exactly as ink on a filled accent must, and it resolves the
-     same palette seeds the fill does, so recolouring the accent can never
-     leave the label stranded on top of it. */
 .theme-cta-accent {
   color: var(--theme-body-bg);
   background:
@@ -2138,8 +1903,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     filter var(--motion-base) var(--ease-out);
 }
 
-/* Keyboard focus is the shared ring alone (theme-focus-ring at the call site):
-   a focused button that also lifts and brightens reads as hovered. */
 @media (hover: hover) {
   .theme-cta-accent:hover {
     transform: translateY(-1px);
@@ -2150,11 +1913,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* An accent action that cannot run steps down to the outline recipe: at half
-     opacity the magenta fill still reads as live on the light canvas. The
-     declarations are !important because the unlayered visual-style sheets
-     (pro-theme.css, fun-flat-glow.css) restate the fill and bloom, and an
-     important layered declaration is the one thing that outranks them. */
 .theme-cta-accent:disabled,
 .theme-cta-accent[aria-disabled="true"] {
   color: var(--theme-text-secondary) !important;
@@ -2178,12 +1936,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Index rows: open list rows on the canvas, separated by the site's gradient
-     hairline, with the search-suggestion hover tint instead of card chrome. The
-     divider is an inset element with breathing room so the rounded hover fill
-     never touches it. `theme-index-row` is the general name; the
-     `theme-report-index-*` aliases predate it and still name the same material
-     in the trip report explorer. */
 .theme-index-row + .theme-index-row::before,
 .theme-report-index-row + .theme-report-index-row::before {
   content: "";
@@ -2202,9 +1954,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     color var(--motion-fast) var(--ease-out);
 }
 
-/* Hover lifts the row into the shared frosted-control material (radial
-     upper-left highlight + inset top sheen) rather than a flat tint. Keyboard
-     focus adds the site ring on top so it never reads as a stray hover. */
 .theme-index-row-link:focus-visible,
 .theme-report-index-link:focus-visible {
   background: var(--theme-frosted-control-hover-bg);
@@ -2220,12 +1969,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Progressive stages (subjective-effects accordion): open rows on the canvas
-     separated by the site's gradient hairline. A collapsed row lifts into the
-     shared frosted-control material on hover/focus; an expanded row stays
-     lifted as one rounded block so the open stage reads as raised rather than
-     stained. The divider is an inset pseudo-element so the rounded fill never
-     touches it, and it fades around an expanded row so the block reads clean. */
 .theme-progressive-stage,
 .theme-progressive-stage-trigger {
   transition:
@@ -2274,9 +2017,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Trip report dossier: the single fact-sheet strip under the hero. Shares
-     the dark chrome/inset tone with the header, footer, and TOC so it reads
-     as quiet reference material next to the open narrative. */
 .theme-report-dossier,
 .theme-aside-panel {
   border: 1px solid var(--theme-border-subtle);
@@ -2284,8 +2024,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   box-shadow: var(--theme-report-dossier-box-shadow);
 }
 
-/* Theme-invariant media-well text, borders, controls, and elevation. These
-     roles cover both compact tiles and the expanded replication viewer. */
 .theme-media-tile-title {
   color: var(--theme-text-on-media);
 }
@@ -2302,12 +2040,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   );
 }
 
-/* .theme-media-progress-fill was removed 2026-08: the seek bar's playhead is
-   .theme-media-playback-fill (ReplicationMediaStage.tsx); no markup ever
-   rendered the -progress-fill spelling. */
-
-/* Buffered layer of the seek bar: the subdued neutral stretch between the
-     bare track and the accent playhead fill, read from video.buffered. */
 .theme-media-progress-buffered {
   background-color: color-mix(
     in srgb,
@@ -2324,9 +2056,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-text-on-media);
 }
 
-/* Raised media control: the viewer header's square buttons. A soft top-lit
-     gradient and hairline keep them legible on the black media chrome in
-     both visual styles without borrowing panel materials. */
 .theme-media-control-raised {
   background-image: linear-gradient(
     to bottom,
@@ -2339,9 +2068,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
     color-mix(in srgb, var(--theme-text-on-media) 12%, transparent);
 }
 
-/* The immersive viewer keeps its settings menu in the header's compositor
-   layer. A fully opaque surface and no transform animation prevent iOS Safari
-   from flashing the menu against a playing <video> layer. */
 .theme-media-settings-menu {
   background-color: var(--theme-surface-strong);
   border-color: var(--theme-border-subtle);
@@ -2352,23 +2078,18 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   background: var(--theme-frosted-control-on-panel-bg);
 }
 
-/* Accent playback meter: the hairline video progress fill at the bottom of
-     the expanded stage. The faint glow keeps it visible over bright frames. */
 .theme-media-playback-fill {
   background-color: var(--theme-accent-strong);
   box-shadow: 0 0 6px
     color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
 }
 
-/* The scrub thumb riding the playhead edge of the seek bar. */
 .theme-media-playback-thumb {
   background-color: var(--theme-accent-strong);
   box-shadow: 0 0 6px
     color-mix(in srgb, var(--theme-accent-strong) 55%, transparent);
 }
 
-/* Gesture Hint: the one-time swipe tutor on the immersive stage. The pointer
-     glyph sweeps the track like a finger; reduced motion parks it centered. */
 .theme-media-hint-track::before {
   content: "";
   position: absolute;
@@ -2453,10 +2174,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* The expanded viewer owns its playback affordances: suppress WebKit's giant
-     native start-playback glyph so a blocked video shows exactly one Play
-     control (iOS Safari paints it over autoplay-blocked video elements).
-     The pooled elements live in the track's panes. */
 [data-replication-media-track] video::-webkit-media-controls,
 [data-replication-media-track]
   video::-webkit-media-controls-start-playback-button {
@@ -2495,25 +2212,12 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   outline-offset: var(--theme-focus-offset);
 }
 
-/* The speech-bubble tail on .theme-aside-panel: a rotated square sharing the
-     panel's fill and border. Only the two outer edges are bordered, so the
-     opaque half that overlaps the panel notches its bottom border and the two
-     shapes read as one outline. Rotation, size and offset stay at the call
-     site — this carries only the themed fill and border. */
 .theme-aside-panel-tail {
   border-right: 1px solid var(--theme-border-subtle);
   border-bottom: 1px solid var(--theme-border-subtle);
   background: var(--theme-frosted-control-on-panel-bg);
 }
 
-/* Tail clip, shared by both speech-bubble tails (Personal Commentary and the
-     profile editor's note). The square's fill is the panel token resampled
-     into a 14px box, so the half overlapping the panel never quite matches
-     the panel behind it and reads as a faint triangle above the point. In
-     local (pre-rotation) coordinates the panel edge runs along the ↗
-     diagonal; keep only the bottom-right half plus a 3px inset band (≈2px
-     perpendicular) past it — enough to keep notching the panel's 1px bottom
-     border while the mismatched interior collapses to an invisible sliver. */
 .theme-aside-panel-tail,
 .theme-profile-markdown-quote-tail {
   clip-path: polygon(
@@ -2600,8 +2304,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-color: var(--theme-divider);
 }
 
-/* Border colour only, for an element that carries its own fill (the Command
-   search row). .theme-divider also paints the background. */
 .theme-divider-border {
   border-color: var(--theme-divider);
 }
@@ -2615,10 +2317,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   height: 1px;
   width: 100%;
 }
-
-/* Text-styled inline label inputs (index-layout taxonomy editors): border
-     is transparent at rest, surfaces on hover, and takes the accent on focus
-     (kept here after the hover rule so focus wins while hovered). */
 
 .theme-horizontal-divider-block {
   position: relative;
@@ -2705,9 +2403,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-radius: 9999px;
 }
 
-/* VCode article links (IntLink/ExtLink): the underline tint follows the
-     accent tokens so the hue slider and Pro's --theme-accent remap reach it
-     (was raw decoration-fuchsia-300/35 + hover:decoration-fuchsia-200/55). */
 .theme-accent-underline {
   text-decoration-color: color-mix(
     in srgb,
@@ -2746,7 +2441,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   border-radius: 9999px;
 }
 
-/* Surfaces and ink come from the frosted control groups further down. */
 .theme-icon-button:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
   outline-offset: var(--theme-focus-offset);
@@ -2888,9 +2582,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   pointer-events: none;
 }
 
-/* When the hero floats a molecule SVG on md+, stop the divider 2rem short of
-     the 16rem-wide float so the line never slices through the molecule when
-     there isn't enough text above the summary to push the divider below it. */
 @media (min-width: 768px) {
   .theme-article-hero-summary--has-molecule::before {
     right: 18rem;
@@ -2925,11 +2616,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   box-shadow: var(--theme-interaction-caution-box-shadow);
 }
 
-/* The severity chip in a card header is a quiet control sitting on a tinted
-     panel, not a second tone block: the on-panel group rule below paints its
-     frosted fill and hairline, and the tone survives as text and icon colour.
-     The retired `background: …-badge-bg` plus `0 0 0 1px …-badge-border` drew
-     a saturated pill that outshouted the heading beside it. */
 .theme-interaction-severity-badge-danger,
 .theme-interaction-severity-badge-unsafe,
 .theme-interaction-severity-badge-caution {
@@ -2958,18 +2644,13 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   --tw-saturate: saturate(1);
   --tw-contrast: contrast(1);
   --tw-hue-rotate: hue-rotate(0deg);
-  /* Explicit chain so authored drop-shadows still compose. The bytes carry
-       the final scheme-keyed element colours (the image routes serve the
-       pro-light/pro-dark colourway per scheme), so CSS never recolors a
-       molecule. */
+
   filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,)
     var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,)
     var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
   transition: filter var(--motion-fast) var(--ease-out);
 }
 
-/* The structure is visible by default. A completed image load gets one quiet
-   fade-in, with no reserved-space shift or hidden content if JS is late. */
 .theme-hero-molecule-arrive {
   animation: hero-molecule-arrive var(--motion-base) var(--ease-out) both;
 }
@@ -2989,10 +2670,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   }
 }
 
-/* Molecule bytes are scheme-keyed, so MoleculeImage renders both colourways and
-   the root's pre-painted data-theme picks one here. The first paint is right
-   for a reader on either scheme, with no src swap after hydration; the hidden
-   variant is lazy-loaded, and a display:none lazy image is never fetched. */
 html[data-theme="light"] [data-molecule-colorway="pro-dark"],
 html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   display: none;
@@ -3005,7 +2682,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   transition: filter var(--motion-fast) var(--ease-out);
 }
 
-/* Material comes from the grouped frosted rule below. */
 .theme-inline-expanded-card {
   border-width: 1px;
   border-style: solid;
@@ -3014,12 +2690,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     border-color var(--motion-fast) var(--ease-out);
 }
 
-/* Zebra rows in the pharmacology tables (receptor binding, metabolites) are
-     shallow wells cut into the card, dressed like the header search field:
-     depth comes from the sunk fill and inner shading, never a brighter
-     outline. The retired `0 0 0 1px var(--theme-field-on-chrome-border)` drew
-     a 36%-white rectangle around every other row — an on-chrome control rim
-     borrowed onto an inert data row, and the loudest edge in the section. */
 .theme-pharmacology-table-row-alt {
   font-variant-numeric: tabular-nums;
   background: var(--theme-field-on-panel-surface-alt);
@@ -3131,8 +2801,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --theme-status-badge-glow: var(--theme-semantic-neutral-badge-glow);
 }
 
-/* Text-only status tones (legality status lines): the badge tones' semantic
-   inks with no fill or ring, for status labels too long to render as pills. */
 .theme-status-text[data-badge-tone="red"] {
   color: var(--theme-semantic-danger-badge-text);
 }
@@ -3183,11 +2851,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-public-card-subtle-color);
 }
 
-/* Floating overlays (menus, selects, popovers, dialogs, the command palette)
-   cast one shadow, --theme-elevation-overlay. A surface repainted inside
-   another overlay (a sticky footer row, the command list inside its dialog)
-   and the feedback icon well are material, not a new floating layer, so they
-   keep the panel shadow. */
 .theme-overlay-surface {
   box-shadow: var(--theme-elevation-overlay);
 }
@@ -3206,8 +2869,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --tw-ring-color: var(--theme-article-neutral-panel-border);
 }
 
-/* The light scheme draws a hairline around these panels; dark keeps them
-   borderless, so the width is a token rather than a call-site utility. */
 .theme-dose-duration-panel,
 .theme-feedback-icon-well {
   border-width: var(--theme-panel-hairline-width);
@@ -3401,10 +3062,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-/* Tone colour only. The toggle is a `.theme-control-pill-quiet`, so its
-     surface comes from the on-panel group above and it reads like the collapse
-     pill in the pharmacology cards. Stated as a descendant pair so the tone
-     also survives the group's hover accent. */
 .theme-interaction-danger .theme-interaction-expanded-toggle-danger {
   color: var(--theme-semantic-danger-badge-text);
 }
@@ -3473,8 +3130,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-/* Desktop selection grows behind the glyph without moving the tab layout.
-   Mobile index tiles keep their filled, rounded-square app-icon treatment. */
 @media (min-width: 768px) {
   .theme-route-tabs-list .theme-selected-control-icon {
     position: relative;
@@ -3548,10 +3203,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-/* Shared index-tile glass recipe: the mobile category tiles on the index
-   pages and the homepage section tiles (`.theme-home-nav-icon`). The homepage
-   tiles are navigation, so they take only the resting, hover and focus states;
-   the filled selected state below stays exclusive to the filter tiles. */
 .theme-index-mobile-tab-icon,
 .theme-home-nav-icon {
   background:
@@ -3641,11 +3292,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   font-variant-numeric: tabular-nums;
 }
 
-/* Dose tier tints: dark-theme values for the tier scale; the light theme
-     overrides these per tier in theme-light-mode.css with the same selectors.
-     Both themes use the same construction: equal-lightness OKLCH hues that
-     fade through an explicit panel-tone stop (never straight to transparent,
-     which muddies sRGB interpolation). */
 .theme-dose-tier-row [data-dose-tier] {
   width: 82%;
   background-repeat: no-repeat;
@@ -3671,8 +3317,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background-image: var(--theme-dosage-row-heavy-image);
 }
 
-/* Plateau tier tints mirror the dose tier construction; Sigma carries
-     extra chroma/alpha as the danger tier. */
 .theme-plateau-tier-row [data-plateau-tier] {
   width: 82%;
   background-repeat: no-repeat;
@@ -3714,10 +3358,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --tw-ring-color: transparent;
 }
 
-/* The mobile table-of-contents bar: a full-bleed frosted rail attached to
-     the bottom edge of the sticky site header, closing the chrome frame
-     around the article. Border-bottom only — its sides meet the viewport and
-     its top meets the header. */
 .theme-toc-strip-shell {
   top: var(--public-toc-strip-top, var(--theme-header-height, 4.25rem));
 }
@@ -3742,11 +3382,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-warning-text);
 }
 
-/* The bar's chip scroller. The scrollbar is hidden because the strip
-     advertises its overflow itself: each edge fade appears only while chips
-     remain hidden beyond that edge (data attributes written by a scroll
-     listener in PublicTocStrip). The mask sits on the scroller, not the bar
-     around it, so the bottom border never dissolves. */
 .theme-toc-strip {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -3788,12 +3423,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background: var(--theme-duration-stage-row-even-background);
 }
 
-/* LD50 toxicity table — dress the real <table> in the same frosted
-     control-on-panel material as the dose/duration in-card tables: a frosted
-     surface with a soft shadow ring instead of a hard border, zebra rows
-     instead of hairline dividers, and a softly separated header. These are the
-     dark-theme defaults; the light theme overrides the same selectors in
-     theme-light-mode.css. */
 .theme-ld50-table-panel {
   border-color: transparent;
   background: var(--theme-frosted-control-on-panel-bg);
@@ -3873,9 +3502,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   }
 }
 
-/* Scrollspy: the entry for the section currently under the header lights up
-     with the same frosted fill as hover, so the reader always sees where they
-     are on the page. The icon picks up the accent tint hover gives it too. */
 .theme-article-toc-item[data-active="true"] {
   background: color-mix(
     in srgb,
@@ -3891,8 +3517,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-accent-strong);
 }
 
-/* A warning entry keeps its tone through hover and scrollspy: the shared
-   neutral states above come later than the tone rule, so they restate it. */
 .theme-article-toc-item[data-tone="warning"][data-active="true"] {
   border-color: var(--theme-warning-border-strong);
   background: var(--theme-warning-bg-strong);
@@ -3911,12 +3535,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background: var(--theme-dose-detail-expanded-background);
 }
 
-/* The expanded rationale is a well cut into the tone panel, dressed like the
-     pharmacology zebra rows: depth from the sunk fill and inner shading, never
-     an outline. The retired
-     `0 0 0 1px var(--theme-field-on-chrome-border)` drew a 36%-white rectangle
-     — an on-chrome control rim on an inert block — and the per-tone
-     `border-color` stacked a second, saturated edge outside it. */
 .theme-interaction-expanded-card {
   border-color: transparent;
   background: var(--theme-field-on-panel-surface-alt);
@@ -3954,9 +3572,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   background-color: var(--theme-index-card-bullet);
 }
 
-/* Dimmed index panel tone for deconstructed category views: the neutral
-     plum-grey panel recipe. The featured ("Common") panel keeps the default
-     purple index surface for contrast. Light values in theme-light-mode.css. */
 .theme-index-card-dim {
   border-color: var(--theme-index-card-dim-border-color);
   background: var(--theme-index-card-dim-background);
@@ -3964,8 +3579,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   box-shadow: var(--theme-article-neutral-panel-shadow);
 }
 
-/* Keyboard focus is the shared ring alone (theme-focus-ring at the call site);
-   the hover fill below is a pointer cue. */
 @media (hover: hover) {
   .theme-index-card-link:hover {
     background: var(--theme-frosted-control-on-panel-hover-bg) !important;
@@ -3993,11 +3606,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-accent-strong);
 }
 
-/* Count chips sit between the panel tone and the text tone: a mid plum
-     raised slightly above the card, not an inset darker than it. The bg and
-     shadow live in --theme-index-card-count-* tokens (accent role) so the
-     appearance hue/saturation axes rotate them with the rest of the accent
-     family; site-colors.css carries the light equivalents. */
 .theme-index-card-count {
   border-radius: var(--radius-chip);
   font-variant-numeric: tabular-nums;
@@ -4043,9 +3651,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   --tw-ring-offset-color: var(--theme-page-end);
 }
 
-/* Pro is excluded: this is a glass recipe (white sheen over a cool near-black)
-     and it is layered `!important`, so the flat Pro sheet cannot out-cascade it
-     from outside a layer. pro-theme.css paints the panel instead. */
 .theme-reagent-results-panel {
   border: 1px solid var(--theme-reagent-results-panel-border-color);
   background: var(--theme-reagent-results-panel-background);
@@ -4053,20 +3658,10 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-reagent-swatch {
-  
-  
-  
-  
-  
-  
-  
+
   box-shadow: var(--theme-reagent-swatch-box-shadow);
 }
 
-/* Seam between the darkened label surface and the bright spectrum bar. The
-     bar sits to the right of the reagent name and spans the full row height,
-     so the label's former right-edge highlight + drop shadow live as insets on
-     the bar's left edge. */
 .theme-reagent-swatch .reagent-spectrum-panel {
   box-shadow: var(--theme-reagent-swatch-spectrum-seam-shadow);
 }
@@ -4107,8 +3702,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   ) !important;
 }
 
-/* Only the in-bar "No reaction" label remains as description text. */
-
 .reagent-label-description-muted {
   color: var(--theme-text-muted) !important;
 }
@@ -4121,23 +3714,6 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   ) !important;
 }
 
-/* Dark chrome rails. The header and its panels are dark chrome in BOTH
-     themes — that is the dark-banner-over-light-page look, and it is why these
-     two are no longer gated on the theme. The footer still flips, so the page
-     reads as content framed between a permanent dark rail above and a
-     theme-following rail below.
-
-     The Pro visual style is excluded: it paints its own charcoal chrome, and
-     its sheet wants a floating drop shadow rather than the rail's hairline.
-     This rule is layered `!important`, which outranks unlayered `!important`,
-     so without the exclusion it would silently beat the mobile-panel rule in
-     pro-theme.css. The exclusion follows the STYLE, not the publication:
-     dose.wiki readers can now select Pro too.
-
-     `box-shadow` is stated here so the panels keep the header shadow in light
-     mode; the shared `.theme-overlay-surface` rules in theme-light-mode.css
-     would otherwise hand them the frosted-panel shadow. The value matches what
-     the base classes already resolve in dark mode, so dark is unchanged. */
 html:not([data-visual-style="pro"]) .theme-header-surface,
 html:not([data-visual-style="pro"])
   .theme-overlay-surface.theme-mobile-nav-panel {
@@ -4148,18 +3724,11 @@ html:not([data-visual-style="pro"])
   -webkit-backdrop-filter: none !important;
 }
 
-/* The settings popover is an extension of the permanent dark header, not a page card.
-   Its dark-chrome token island is supplied by `theme-chrome-dark` in Fun and by the
-   Pro block in pro-theme.css. The stronger overlay shadow separates it from either page
-   canvas without turning the lightweight popover into a modal. */
 .theme-appearance-popover {
   color: var(--theme-text-primary);
   border-color: var(--theme-frosted-panel-border) !important;
   background: var(--theme-chrome-rail-bg) !important;
-  /* The 1px inset rim sharpens the panel edge over the near-black article hero —
-     the same treatment the frosted controls and swatch dots get — layered inside
-     the elevation shadow rather than replacing it. Derived from the ink token, so
-     Pro's re-pointed on-dark values rim it too. */
+
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--theme-text-primary) 9%, transparent),
     var(--elev-4) !important;
@@ -4167,7 +3736,6 @@ html:not([data-visual-style="pro"])
   -webkit-backdrop-filter: none !important;
 }
 
-/* The field focus contract: the border takes the secondary ink, no outer ring. */
 .theme-appearance-popover [role="combobox"]:focus {
   border-color: var(--theme-text-secondary);
   box-shadow: var(--theme-elevation-inner);
@@ -4178,12 +3746,6 @@ html:not([data-visual-style="pro"])
   fill: var(--theme-chrome-rail-primary);
 }
 
-/* Second selector is the light-mode dark-chrome island. It has to be spelled
-     out rather than left to the token block alone: the rail background is only
-     handed to the footer by this rule, and the light-mode rule above would
-     otherwise paint it with the frosted panel. Pro is excluded for the
-     same reason as the header pair above — layered `!important` outranks the
-     unlayered `!important` its own footer block relies on. */
 html:not([data-theme="light"]) .theme-footer-surface,
 html[data-theme="light"]:not([data-visual-style="pro"])
   .theme-chrome-dark.theme-footer-surface {
@@ -4193,9 +3755,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   -webkit-backdrop-filter: none !important;
 }
 
-/* Header search fields should sit into the chrome rather than float above it.
-     Their quiet rim reuses the same panel hairline as the homepage icon tiles;
-     depth comes from the sunk fill and inner shading, not a brighter outline. */
 .theme-header-surface .theme-global-search-input {
   color: var(--theme-text-secondary);
   border-color: var(--theme-frosted-panel-border);
@@ -4239,28 +3798,21 @@ html[data-theme="light"]:not([data-visual-style="pro"])
     inset 0 -1px 0 color-mix(in srgb, var(--theme-text-primary) 4%, transparent);
 }
 
-/* Keyboard focus uses a quiet neutral hairline, never a thick accent rim.
-   Shared by focusRingClassName and the UI kit's focus utilities. */
 .theme-focus-ring:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
   outline-offset: var(--theme-focus-offset);
 }
 
-/* Sibling target for visually hidden range inputs such as the audio scrubber. */
 .peer:focus-visible ~ .theme-peer-focus-ring {
   outline: 1px solid var(--theme-text-secondary);
   outline-offset: 4px;
 }
 
-/* Inset variant for full-bleed list rows where an outset ring would be
-     clipped by the scroll container (equivalent to `-outline-offset-2`). */
 .theme-focus-ring-inset:focus-visible {
   outline: 1px solid var(--theme-text-secondary);
   outline-offset: -2px;
 }
 
-/* Text-entry controls use their existing border instead of an outside ring.
-   Low specificity lets semantic validation borders retain their meaning. */
 :where(.theme-field-focus):focus {
   border-color: var(--theme-text-secondary);
   outline: none;
@@ -4278,9 +3830,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* Audio replication scrubber. The filled run and thumb are positioned from the
-     `--audio-progress` custom property the player sets inline; only the colors
-     live here so the component keeps no raw theme variables. */
 .theme-audio-scrubber-track {
   background-color: var(--theme-border-subtle);
 }
@@ -4294,17 +3843,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   box-shadow: 0 2px 8px -2px var(--theme-shadow-soft);
 }
 
-/* The review workbench pins a command bar the public site does not have, so
-     the article's own offsets — sized for a page whose header does not stick —
-     are re-timed against the bar's live height. `--review-bar-height` is
-     published by a ResizeObserver in ReviewExperience; the fallback is the
-     collapsed single-row height for the frames before it lands.
-
-     Without the first rule every table-of-contents anchor lands underneath the
-     bar (article sections carry `scroll-mt-6`, i.e. 24px). Without the second,
-     StickyTocLayout's `top-24` is overtaken the moment the bar wraps to two
-     rows — the 1200–1300px window where the gutter TOC exists and the bar is
-     tall enough to cover it. */
 .theme-review-article-scope [id] {
   scroll-margin-top: calc(var(--review-bar-height, 3.25rem) + 1rem);
 }
@@ -4314,21 +3852,10 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   max-height: calc(100dvh - var(--review-bar-height, 3.25rem) - 2rem);
 }
 
-/* The workbench also replaces the mobile TOC strip's anchor: on the public
-     site the strip pins under the sticky site header, but the review portal
-     suppresses that header in favor of its command bar, so the strip re-times
-     against the bar's live height instead. */
 .theme-review-article-scope {
   --public-toc-strip-top: var(--review-bar-height, 3.25rem);
 }
 
-/* Pages that render the mobile TOC strip mark their layout root with this
-     scope. Below the 1200px gutter-rail breakpoint every anchor target must
-     scroll clear of two pinned layers — the site header (or, via the override
-     above, the review command bar) plus the strip itself (~3.25rem of chip
-     row inside its panel). Declared after the review [id] rule on purpose:
-     same specificity, later source order, so on a narrow review viewport the
-     strip-aware clearance wins. */
 @media (max-width: 1199.98px) {
   .theme-toc-strip-scope [id] {
     scroll-margin-top: calc(
@@ -4345,10 +3872,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* Article editing adds a full-width chrome row between the site header (or
-     review command bar) and the TOC. The editor layout measures all three
-     rows locally, including mobile wrapping and error notices. Its wrapper
-     spans the article so the action row stays pinned through the final section. */
 .theme-article-editor-scope {
   --article-editor-top: var(--review-bar-height, var(--theme-header-height, 4.25rem));
   --article-editor-bar-height: 3rem;
@@ -4379,25 +3902,10 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* Review delight, in three loudness tiers. Tier 1 (every tick): the badge
-     check pops and draws itself on the Reviewed button, and the progress
-     fill's leading edge blooms. Tier 2 (a chemical-class subsection
-     finished): one highlight sweep across the fill, plus the seal chip in the
-     picker. Tier 3 (a whole psychoactive category finished): the sweep runs
-     twice, and the confetti + medallion card components take the stage.
-     Everything animates transform/opacity only, one-shot, and the
-     reduced-motion block at the end zeroes all of it out. */
-
-/* ---------------------------------------------------------------------
-   About page · Partners & Community (AboutCommunitySection.tsx)
-   Logo artwork keeps a black backing except Nervewing's cream paper;
-   hover and focus borders retain their theme colors.
-   --------------------------------------------------------------------- */
 .theme-community-tile {
   background: rgb(var(--c-black));
 }
 
-/* Match the paper in Nervewing's antlion artwork, independent of theme. */
 .theme-community-node[href="https://nervewing.blogspot.com"] .theme-community-tile {
   background: rgb(236 240 218);
 }
@@ -4413,22 +3921,11 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   border-color: var(--theme-card-border-strong);
 }
 
-/* ---------------------------------------------------------------------
-   SEI roadmap notice (SEIRoadmapNotice.tsx): the mindstate.design favicon is
-   a white disc on transparent, so as an <img> it vanishes on the light
-   theme. Masking a bg-current span with it makes the glyph take the link's
-   ink and follow its hover accent like the text beside it.
-   --------------------------------------------------------------------- */
 .theme-mindstate-favicon {
   -webkit-mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
   mask: url("/favicons/mindstate-design.png") center / contain no-repeat;
 }
 
-/* The SEI page variant borrows the beta disclaimer's sweep, one brighter band
-   through background-clipped text, but in the notice's own faint ink rather
-   than danger red. The lab link inside sets its own colour, so it and its
-   bg-current favicon stay solid while the sentence around them shimmers.
-   Same three-run cap and reduced-motion/clip fallbacks as .theme-beta-shimmer. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (-webkit-background-clip: text) or (background-clip: text) {
     .theme-sei-notice-shimmer {
@@ -4447,26 +3944,10 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* ---------------------------------------------------------------------
-   Sitewide beta disclaimer (BetaDisclaimer.tsx: Substance Index header and
-   audited substance articles)
-   Danger-toned link whose text carries a very subtle shimmer: a narrow
-   brighter band sweeps left-to-right through background-clipped text. The
-   sweep runs three times after mount, then rests: an infinite iteration kept
-   the entire rendering pipeline (style → paint → commit) ticking at 60fps on
-   every page for the life of the tab — a standing tax on exactly the old,
-   slow hardware this site wants to run on. After the final sweep the
-   computed background-position snaps to its initial flat-vivid region, which
-   is visually identical to the resting frames of the loop.
-   Falls back to plain danger text when motion is reduced or clipping is
-   unsupported.
-   --------------------------------------------------------------------- */
 .theme-beta-shimmer {
   color: var(--theme-danger-text-vivid);
 }
 
-/* The flanking construction glyphs share the shimmer's resting ink. A class
-   rather than an inline var() so the token audit sees one owned recipe. */
 .theme-beta-disclaimer-icon {
   color: var(--theme-danger-text-vivid);
 }
@@ -4498,8 +3979,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* The inline docs link lives inside the clipped shimmer span, where
-   currentColor is transparent — the underline needs an explicit ink. */
 .theme-beta-disclaimer {
   text-decoration-color: var(--theme-danger-text-vivid);
 }
@@ -4516,35 +3995,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   border-radius: var(--radius-control);
 }
 
-/* ---------------------------------------------------------------------
-   Offscreen render deferral (ArticleSection.tsx: top-level article and
-   effect sections)
-   `content-visibility: auto` lets the engine skip style, layout and paint
-   for sections outside the viewport. A theme, style, or font flip restyles
-   the whole document at once; on a long article (~3000 nodes) deferring the
-   offscreen sections cut that restyle by ~60% in profiling, and the same
-   saving applies to every style-invalidating frame. The 500px estimate
-   approximates a typical section so the scrollbar stays honest before a
-   section is first rendered; `auto` then pins the real measured size.
-   Scrollspy safety: the spy reads the *section elements'* own boxes
-   (PublicTableOfContents.tsx), which containment never skips — only
-   descendant boxes go unmeasurable while a section is offscreen.
-   Engine gate: Gecko and WebKit both have paint bugs where a
-   content-visibility:auto subtree stays unpainted after scrolling or
-   fragment-navigating it into view (sections render as blank regions; only
-   sibling dividers show). The deferral was profiled in Chromium, so apply it
-   only there: `-moz-appearance` matches Gecko, `-webkit-hyphens` matches
-   WebKit, and Chromium matches neither.
-   Adornment safety: content-visibility implies paint containment, which
-   clips anything outside the section's border box. Trailing adornments
-   (articleSectionLayout.ts: source-credit pills, expand toggles) carry
-   `-mb-8` so they tuck into the next section's top padding, which places
-   their box 2rem below the section's edge, exactly where containment
-   erased them. The padding grows the border box to enclose that overhang
-   and the matching negative margin returns the flow position, so every
-   section lays out exactly as before and nothing hangs outside the clip.
-   Both values must equal the adornment's `-mb-8`.
-   --------------------------------------------------------------------- */
 @supports (not (-moz-appearance: none)) and (not (-webkit-hyphens: none)) {
   .theme-offscreen-defer {
     content-visibility: auto;
@@ -4554,24 +4004,16 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   }
 }
 
-/* Printing renders every section; deferral would truncate the document. */
 @media print {
   .theme-offscreen-defer {
     content-visibility: visible;
   }
 }
 
-/* Alpha-edge glow for transparent artwork (the /china banner). A drop-shadow
-   filter traces the painted silhouette rather than the image box; light mode
-   drops it because a pale halo on a pale page reads as a smudge. */
 .theme-cutout-glow {
   filter: var(--theme-cutout-glow-filter);
 }
 
-/* Editor-kit semantic classes. They live in the token layer so dev tool
-   components never name a theme variable directly. */
-/* Changed since review reads as information, never as the accent that
-   marks the current choice and the tick. */
 .theme-review-status-stale {
   background-color: var(--theme-semantic-info-badge-text);
 }
@@ -4592,7 +4034,6 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   background-color: var(--theme-danger-bg);
 }
 
-/* Thin progress track with a hairline inset edge (glossary coverage bars). */
 .theme-progress-track {
   background-color: var(--theme-field-surface);
   box-shadow: inset 0 0 0 1px var(--theme-border-subtle);

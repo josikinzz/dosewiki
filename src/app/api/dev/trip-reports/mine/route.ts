@@ -1,14 +1,3 @@
-/**
- * The signed-in member's own published trip reports, for My reports
- * (`/dev/my-reports`).
- *
- *   GET /api/dev/trip-reports/mine            → { reports }   (rows where owner_email is you)
- *   GET /api/dev/trip-reports/mine?scope=all  → { reports }   (admin: every report with an owner)
- *
- * Contributor floor. Rows carry identity and dates only; the body arrives from
- * `/api/dev/trip-reports/record?id=` when one is opened, the way the portal
- * splits its payload.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { canApprove } from "@/lib/auth/roles";

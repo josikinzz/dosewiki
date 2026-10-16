@@ -8,7 +8,6 @@ import { EditorStatusPill } from "@/features/dev/components";
 import { ReplicationThumb } from "./ReplicationThumb";
 import type { GalleryMatch } from "./substanceGalleryPortalModel";
 
-/** Short token labels; the sentence-length copy stays in the public credit block. */
 const RIGHTS_TOKEN_LABELS: Record<string, string> = {
   "creator-retained": "creator retained",
   "explicit-license": "licensed",
@@ -16,7 +15,6 @@ const RIGHTS_TOKEN_LABELS: Record<string, string> = {
   "public-domain": "public domain",
   unknown: "rights unknown",
 };
-/** Explain why the automatic policy or a direct edit placed this row here. */
 function ProvenanceChip({ match }: { match: GalleryMatch }) {
   const { provenance } = match;
   const specific = provenance.matchedVia === "specific_drug";
@@ -84,7 +82,6 @@ function RightsToken({ match }: { match: GalleryMatch }) {
   );
 }
 
-/** Thumb + title + artist + provenance + rights: the identity block of every row. */
 export function GalleryMatchIdentity({ match }: { match: GalleryMatch }) {
   const { replication } = match;
   return (

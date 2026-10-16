@@ -259,7 +259,6 @@ async function renderReplicationsCard(counts: GalleryCounts): Promise<Buffer> {
     ["Videos", counts.videos],
   ] as const;
   const statsMarkup = stats.map(([label, count], index) => {
-    // Round down so the abbreviated lower bound never overstates the archive.
     const value = count >= 1000
       ? `${Math.floor(count / 100) / 10}k+`
       : String(count);
@@ -383,7 +382,6 @@ export type PageSocialCardInputs = {
 
 const CHINA_PACK_MANIFEST_PATH = path.join(process.cwd(), "public/downloads/zh-Hans/manifest.json");
 
-/** Counts come from the published pack manifest so the card never drifts from the download page. */
 export async function readChinaDatasetCounts(
   manifestPath: string = CHINA_PACK_MANIFEST_PATH,
 ): Promise<ChinaDatasetCounts> {
@@ -409,7 +407,6 @@ export async function readChinaDatasetCounts(
   };
 }
 
-/** The /china gift page: the arm-wrestle banner free-floating on the black canvas, captioned in both languages. */
 async function renderChinaCard(counts: ChinaDatasetCounts): Promise<Buffer> {
   const banner = await sharp(
     path.join(process.cwd(), "public/images/downloads/dosewiki-freeodwiki-banner.webp"),

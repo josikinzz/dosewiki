@@ -3,7 +3,6 @@ import type { AppView } from "@/types/navigation";
 
 import type { StoryDef } from "../registry/types";
 
-// Inert mock navigation handlers keep catalog examples presentational.
 const noopNavigate = (_view: AppView) => {};
 const homeView: AppView = { type: "home" };
 

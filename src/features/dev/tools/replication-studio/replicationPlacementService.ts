@@ -46,11 +46,6 @@ function uniqueSlugs(slugs: readonly string[]): string[] {
   return [...new Set(slugs.filter((slug) => slug.length > 0))];
 }
 
-/**
- * Classify a requested one-time copy against the version that will be used for
- * compare-and-swap. Per-substance exclusions win: placement never silently
- * restores an editor's previous exclusion.
- */
 export function preflightReplicationPlacement(
   detail: GalleryDetail,
   replicationSlugs: readonly string[],
@@ -145,10 +140,6 @@ async function placeOnSubstance(
   };
 }
 
-/**
- * Copy requested works onto several drug galleries once. Every target is read
- * immediately before its own CAS write, and failures stay isolated per target.
- */
 export async function placeReplicationsOnSubstances(
   input: PlaceReplicationsInput,
   dependencies: PlacementDependencies = {},

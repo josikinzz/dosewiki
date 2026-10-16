@@ -36,7 +36,6 @@ const present = (value: unknown): boolean => {
   return value != null && value !== "" && value !== false;
 };
 
-/** `segment` is the stored-translation identity of a content node: its hash and readable English. */
 type IndexedNode = GlossaryUsageNode & { text: string; segment?: { hash: string; english: string } };
 export type GlossaryUsageIndex = {
   nodes: IndexedNode[];
@@ -44,7 +43,6 @@ export type GlossaryUsageIndex = {
   postings: Map<string, number[]>;
 };
 
-/** Exact labels stay distinct: an Approved replicator is not a Verified replicator. */
 function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsageNode, text: string, hash?: string) {
   if (seen.has(node.id) || !text.trim()) return;
   seen.add(node.id);
@@ -60,7 +58,6 @@ function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsa
   }
 }
 
-/** Only public adapter projections enter this index; raw documents and editorial reads do not. */
 export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Promise<GlossaryUsageIndex> {
   const index: GlossaryUsageIndex = { nodes: [], labels: new Map(), postings: new Map() };
   const seen = new Set<string>();
@@ -113,7 +110,6 @@ export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Pro
   for (const substance of substances) {
     const href = publicHref.substance(substance.slug);
     const title = substance.title;
-    // The public projection is schema-parsed. Restrict even that projection to published article fields.
     const source: Record<string, unknown> = { slug: substance.slug };
     for (const section of sections) {
       if (!section.public.visible && section.id !== "summary") continue;
@@ -182,7 +178,6 @@ function matchingNodes(index: GlossaryUsageIndex, term: string): IndexedNode[] {
   return [...matches].map((position) => index.nodes[position]).sort((a, b) => a.kind.localeCompare(b.kind) * -1 || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
 }
 
-/** Literal word-boundary matching. No stemming: plural and singular semantic labels remain independent. */
 export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offset = 0): GlossaryUsageResponse {
   const nodes = matchingNodes(index, term);
   return {
@@ -194,8 +189,6 @@ export function queryGlossaryUsage(index: GlossaryUsageIndex, term: string, offs
   };
 }
 
-// Like publicLibrary's derived index, this stays process-local, not a multi-megabyte Next cache entry.
-// Share cold reads across every expanded term, and drop rejected snapshots so retry is real.
 let snapshot: { target: string; reads: PublicDataReadAdapter; expiresAt: number; promise: Promise<GlossaryUsageIndex> } | undefined;
 async function getGlossaryUsageIndex(): Promise<GlossaryUsageIndex> {
   const reads = getPublicDataReadAdapter();
@@ -214,11 +207,6 @@ export async function getGlossaryUsage(term: string, offset = 0): Promise<Glossa
 
 export type GlossaryExampleCandidate = { hash: string; english: string; href: string };
 
-/**
- * Content usages on the term's first disclosure page, in disclosure order,
- * with the segment hash a stored translation is keyed by. Labels have no
- * stored segment and are skipped.
- */
 export function queryGlossaryExampleCandidates(index: GlossaryUsageIndex, term: string): GlossaryExampleCandidate[] {
   return matchingNodes(index, term).slice(0, PAGE_SIZE).flatMap((node) =>
     node.segment ? [{ hash: node.segment.hash, english: node.segment.english, href: node.href }] : []);
@@ -230,18 +218,12 @@ export async function getGlossaryExampleCandidates(terms: readonly string[]): Pr
   return Object.fromEntries([...new Set(terms)].map((term) => [term, queryGlossaryExampleCandidates(index, term)]));
 }
 
-/** Build the corpus index once, then project every disclosure before its page reaches the browser. */
 async function buildGlossaryUsages(terms: readonly string[]): Promise<GlossaryUsageMap> {
   if (terms.length === 0) return {};
   const index = await getGlossaryUsageIndex();
   return Object.fromEntries([...new Set(terms)].map((term) => [term, queryGlossaryUsage(index, term)]));
 }
 
-/**
- * Persist the bounded disclosure payload across server instances. Static public
- * glossary builds warm this cache, so the editor and reader pages do not pay a
- * corpus scan on first interaction after a serverless cold start.
- */
 export const getGlossaryUsages = publicDataCache(
   buildGlossaryUsages,
   ["glossary-usage-disclosures-v1"],

@@ -6,21 +6,8 @@ import {
   parseAttribution,
 } from "./article-media-evidence.mjs";
 
-/** Roles this migration knows how to file. `unclear` is nobody's decision to make here. */
 const MIGRATABLE_ROLES = new Set(["replication", "figure"]);
 
-/**
- * Which entries this run is even willing to consider.
- *
- * `strong` plus a filable role, widened by the owner's explicit rulings and
- * narrowed by the groups the owner has held back, dropped, or resolved in
- * favour of one variant. Everything else is reported under the reason it was
- * left alone.
- *
- * Every exclusion is tested before the promotion, because round two promotes
- * both halves of a variant pair: the losing half carries a ruling of its own and
- * must still be excluded by it.
- */
 export function selectCandidates(assets, decisions) {
   const rulings = decisions.ownerRulings ?? {};
   const promotedById = new Map((rulings.promoted ?? []).map((entry) => [entry.id, entry]));
@@ -54,8 +41,6 @@ export function selectCandidates(assets, decisions) {
       continue;
     }
 
-    // Two storage objects of one work, which the batch collapse cannot settle
-    // because the bytes genuinely differ. The owner picks the copy to publish.
     const variant = variantById.get(asset.id);
     if (variant && variant.chosen !== asset.id) {
       excluded.push({
@@ -111,16 +96,6 @@ export function selectCandidates(assets, decisions) {
   return { considered, excluded };
 }
 
-/**
- * Turn one considered entry into the exact `insertMediaAsset` arguments.
- *
- * `facts` is what production said about the asset — its resolved storage id,
- * content type, byte length, digest and pixel dimensions — never what the
- * inventory claimed. For a recovered asset there is no production object yet, so
- * the facts come from the local file's own bytes instead and `storage_id` is
- * left null for the write phase to fill in from the upload it performs.
- * Returns `{ row }` or `{ blocked }`.
- */
 export function planRow({ asset, promotion, facts, decisions }) {
   const rulings = decisions.ownerRulings ?? {};
   const marker = rulings.unknownArtistMarker ?? "Unknown";
@@ -154,10 +129,6 @@ export function planRow({ asset, promotion, facts, decisions }) {
     aliases: rulings.unknownArtistAliases ?? [],
   });
 
-  // A ruling that names the artist settles the credit, so the attribution prose
-  // it overrides must not follow it in through the back door. A023's text says
-  // "(rightsholder Oracle Emissary…)" — carrying that across would restore in a
-  // rights column exactly the credit the owner just ruled against.
   const attribution = promotion?.artist ? {} : parseAttribution(asset.attribution);
   if (promotion?.artist && isNamedCreator(artist, marker)) {
     attribution.rightsholder = artist;
@@ -165,10 +136,6 @@ export function planRow({ asset, promotion, facts, decisions }) {
   if (!promotion?.artist && correction) {
     attribution.rightsholder = isNamedCreator(artist, marker) ? artist : undefined;
   }
-  // Where the bytes were found. A recovered asset's attribution prose says only
-  // that the original host is gone, so without this the one link that still
-  // resolves — the archive or wiki copy the file actually came from — would be
-  // the one fact the migration threw away.
   if (promotion?.source_url) {
     attribution.source_url = promotion.source_url;
   }
@@ -180,9 +147,6 @@ export function planRow({ asset, promotion, facts, decisions }) {
     .filter(Boolean)
     .join(" ");
 
-  // A ruling may restate the role — the out-of-body stock composite is filed
-  // `unclear` by the curation pass and figure by the owner — but it may not
-  // invent one the table has no shelf for.
   const role = promotion?.role ?? asset.role;
   if (!MIGRATABLE_ROLES.has(role)) {
     return {
@@ -191,10 +155,6 @@ export function planRow({ asset, promotion, facts, decisions }) {
   }
 
   const row = {
-    // Several rulings collapse two or three embeds into one row, and the
-    // curation slugs carry the embed's position — `-description`, `-summary`,
-    // `-mislabelled` — which describes where the audit found it rather than what
-    // the work is. Where a ruling supplies a slug it is the public URL.
     slug: promotion?.slug ?? asset.slug,
     title: String(asset.title ?? "").trim(),
     artist,
@@ -236,16 +196,6 @@ export function planRow({ asset, promotion, facts, decisions }) {
   return { row };
 }
 
-/**
- * The whole plan: one outcome per considered entry, and nothing inserted twice.
- *
- * Order matters. A slug already in production means the row landed on an earlier
- * run and the entry is simply done. A duplicate of an existing work must lose to
- * nothing, so it is checked before anything cosmetic. An entry that duplicates
- * another entry *in this same batch* — the same object embedded into both a
- * description and a long summary — collapses to one row, unless the two sit on
- * different effects, in which case two gallery rows is the intended outcome.
- */
 export function planMigration({
   assets,
   decisions,
@@ -266,7 +216,6 @@ export function planMigration({
 
   const existingSlugs = new Set(existingRows.map((row) => row.slug));
 
-  // The slug a ruling gives an asset, which is the one that reaches production.
   const slugOverrides = new Map(
     (decisions.ownerRulings?.promoted ?? [])
       .filter((entry) => entry.slug)
@@ -274,15 +223,6 @@ export function planMigration({
   );
   const slugOf = (asset) => slugOverrides.get(asset.id) ?? asset.slug;
 
-  // Rows this migration itself created on an earlier batch. They are the batch,
-  // only already persisted, so they get the batch's rule rather than the rule
-  // for the 247 rows that predate it: one object under two effects is two
-  // intended gallery rows, and only a same-effect match is a duplicate. Without
-  // this, running in batches quietly drops the second of every such pair — the
-  // vasoconstriction/vasodilation diagram and the Wheeler circuit both split
-  // across batch boundaries. Overridden slugs belong in this set for the same
-  // reason: a row of ours whose slug the curation file does not spell would
-  // otherwise read as one of the 247 and take the stricter rule.
   const migrationSlugs = new Set(assets.flatMap((asset) => [asset.slug, slugOf(asset)]));
 
   const rowsByStorageId = new Map();
@@ -302,14 +242,6 @@ export function planMigration({
     }
   }
 
-  /**
-   * Which existing row, if any, makes this candidate a duplicate.
-   *
-   * A pre-existing row wins on the asset alone — `A008` is the same file as
-   * `blurred-english-terraces-josie-kins` and is a duplicate even though the two
-   * sit on different effects. A row this migration made only wins when it also
-   * shares the effect.
-   */
   const duplicateAgainst = (matches, effectSlug, allowedAgainst) => {
     const relevant = matches.filter((row) => row.slug !== allowedAgainst);
     const preExisting = relevant.find((row) => !migrationSlugs.has(row.slug));
@@ -349,9 +281,6 @@ export function planMigration({
       continue;
     }
 
-    // A recovered asset has no storage id to compare, but it does have bytes,
-    // and those bytes may already be in the table under some other row — so the
-    // digest check has to stand on its own rather than behind the storage one.
     if (assetFacts?.storageId || assetFacts?.digest) {
       const effectSlug = asset.effect_slug ?? null;
       const byStorage = assetFacts.storageId
@@ -410,8 +339,6 @@ export function planMigration({
       id: asset.id,
       row,
       promotion: promotion?.reason ?? null,
-      // Present only for a recovered asset: the bytes the write phase must push
-      // before this row has a `storage_id` to point at.
       upload: assetFacts.upload ?? null,
     });
   }
@@ -419,7 +346,6 @@ export function planMigration({
   return { insert, skipped };
 }
 
-/** Group the skips so a plan reads as reasons rather than as a list of ids. */
 export function groupSkips(skipped) {
   const groups = new Map();
   for (const entry of skipped) {

@@ -5,27 +5,15 @@ import type {
   FeedbackQueueStatus,
 } from "./FeedbackReviewQueue";
 
-/**
- * `oldest` puts the report that has waited longest first, the order for
- * clearing unresolved work. `importance` ranks critical first and, within a
- * level, oldest first; rows without a level sort last.
- */
 export type QueueSort = "oldest" | "newest" | "importance";
 
 export type StatusCounts = Record<FeedbackQueueStatus, number>;
 
-/**
- * Whether text looks like a reader's contact details: anything with an @ or
- * a run of seven or more digits. Such text never goes in an address: not in
- * a task link, and not in the queue's own search request, so the queue
- * cannot be searched by it at all.
- */
 export function looksLikeContactDetails(text: string): boolean {
   const trimmed = text.trim();
   return trimmed.includes("@") || /\d[\d\s().-]{5,}\d/.test(trimmed);
 }
 
-/** What one queue request asks for. `cursor` continues the same query; null starts it. */
 export type FeedbackPageQuery = {
   status: FeedbackQueueFilter;
   search: string;
@@ -33,10 +21,6 @@ export type FeedbackPageQuery = {
   cursor: string | null;
 };
 
-/**
- * One page of rows plus the per-status counts of every row the search
- * matches: the total is known apart from how many rows are loaded.
- */
 export type FeedbackPage<Item> = {
   rows: Item[];
   counts: StatusCounts;
@@ -49,15 +33,12 @@ export const QUEUE_STATUSES: FeedbackQueueStatus[] = ["new", "reviewing", "resol
 
 const IMPORTANCE_RANK: Record<FeedbackImportance, number> = { critical: 0, high: 1, normal: 2, low: 3 };
 
-/** The statuses the `unresolved` filter lists: every item still waiting on a decision. */
 export const UNRESOLVED_STATUSES: readonly FeedbackQueueStatus[] = ["new", "reviewing"];
 
-/** Unresolved rows open oldest first so nothing waits forever; resolved history opens newest first. */
 export function defaultSort(filter: FeedbackQueueFilter): QueueSort {
   return filter === "new" || filter === "reviewing" || filter === "unresolved" ? "oldest" : "newest";
 }
 
-/** Whether a row in `status` belongs in the list `filter` shows. */
 export function matchesFilter(status: FeedbackQueueStatus, filter: FeedbackQueueFilter): boolean {
   if (filter === "all") return true;
   if (filter === "unresolved") return UNRESOLVED_STATUSES.includes(status);
@@ -100,11 +81,6 @@ export function sortRows<Item extends FeedbackQueueItem>(
   return sorted.sort((a, b) => rank(a) - rank(b) || byAge(a, b));
 }
 
-/**
- * The server's paging contract over a list a source returns whole (glossary
- * feedback is per language and small): search, status, order and an offset
- * cursor applied in the browser.
- */
 export function pageLocally<Item extends FeedbackQueueItem>(
   all: readonly Item[],
   query: FeedbackPageQuery,
@@ -135,11 +111,6 @@ export function pageLocally<Item extends FeedbackQueueItem>(
   };
 }
 
-/**
- * A reply link for a reader who left a contact email: the admin's own mail
- * app opens with a subject and the reader's note quoted, ready to answer.
- * Nothing is sent from dose.wiki.
- */
 export function feedbackReplyHref(email: string, subject: string, note: string): string {
   const quoted = note
     .trim()

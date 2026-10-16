@@ -7,7 +7,6 @@ import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize
 
 export const LIBRARY_TRANSLATION_CORPUS = { ...CORPORA.articles, excludedKeys: [...CORPORA.articles.excludedKeys, "authors"] };
 
-/** Uses the detail overlay, including rejection of structurally changed VCode. */
 export function projectLocalizedPublicationIndex(article: PublicEffectIndexArticle, locale: string, translations: Map<string, string>) {
   const segments = extractSegments({ items: [article] }, LIBRARY_TRANSLATION_CORPUS).segments;
   const dependencyHashes = [...new Set<string>(segments.map((segment) => segment.hash))].sort();

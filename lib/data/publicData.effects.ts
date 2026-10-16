@@ -85,30 +85,9 @@ export const getEffectsByCategory = cache(publicDataCache(async (category: strin
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects],
 }));
 
-/**
- * Every effect article credited to one contributor, alphabetically.
- *
- * `subjectiveEffects.contributors[]` is the only contributor field the public
- * corpus has: substance articles carry none, and `effectIndexArticles.authors[]`
- * holds one opaque Mongo ObjectId repeated across every row, which names nobody
- * (see `src/data/contributorRoster` for the same exclusion). So effect articles
- * are the whole of a contributor's article credits.
- *
- * The compact credit projection carries names and destinations only, never
- * effect article narratives. Identity matching remains shared with reports.
- * `profileMatchesName` is the app's single definition of "this name is that
- * contributor", shared with the replication and trip-report joins, so a
- * profile's articles, works and reports can never disagree about which credits
- * are theirs. It is exact on normalized whole names, which is why `Josie` and
- * `josie` both land on JOSIE (alias `josie`) and `Kaylee` lands on KAYTWO
- * (alias `kaylee`), while a credit with no profile at all — `liv`, `Nicole`,
- * `Kat`, `chemi`, `Brack` — simply appears on no profile page.
- */
 export const getEffectArticlesByContributor = cache(async (
   profile: NormalizedUserProfile,
 ): Promise<ContributorEffectCredit[]> => {
-  // A profile with no matchable name can credit nothing, so it skips the corpus
-  // read entirely rather than filtering 233 articles down to none.
   if (contributorMatchNames(profile).length === 0) {
     return [];
   }
@@ -120,58 +99,9 @@ export const getEffectArticlesByContributor = cache(async (
       (effect.contributors ?? []).some((contributor) => profileMatchesName(profile, contributor)),
     )
     .map((effect) => ({ slug: effect.slug, name: effect.name }))
-    // Alphabetical, because the reader scans this list for a name rather than
-    // reading it in order; a 225-entry list sorted by anything else is a haystack.
     .sort((left, right) => left.name.localeCompare(right.name));
 });
 
-/**
- * WHERE THE FIGURE / UNRENDERABLE-MEDIA GATE LIVES, AND WHY IT IS HERE
- * --------------------------------------------------------------------
- * `isPublishableReplication` is applied to these two list reads and to
- * `getReplicationsByContributor` and `getPublicReplicationsForSubstance` in
- * `publicData.replications`. Between them those four are the whole of the
- * public replication call graph:
- *
- *   getPublicReplications        → the /effects gallery explorer (and its
- *                                  spotlight, rails, tiles and "N works ·
- *                                  N artists · N effects" counts), the Effect
- *                                  Index homepage panel, the public route plan
- *                                  (so `generateStaticParams` *and* the
- *                                  sitemap), `/api/v1/replications` and
- *                                  `/api/v1/replications/[slug]`, and the About
- *                                  page's contributor reference counts.
- *   getPublicReplicationsByEffect → the effect article's Replications section,
- *                                  `/api/v1/effects/[slug]/replications`, and
- *                                  the permalink's effect walk.
- *   getReplicationsByContributor → the contributor profile's works rail and the
- *                                  permalink's artist walk.
- *   getPublicReplicationsForSubstance → the substance article's Replication
- *                                  Showcase and the Replication Studio's
- *                                  substance curation portal (whose matcher
- *                                  applies the same gate inside Postgres; the
- *                                  filter here is the belt to that suspender).
- *
- * Filtering inside `server/replications.ts` instead would be one edit rather
- * than three, and it was rejected for two reasons. It would hide figures from
- * the maintenance scripts that read those same Postgres queries directly
- * (`scripts/replications/audit-provenance.mjs`, `archive-replication-masters`,
- * `repoint-renditions`) — a rights-tracked asset invisible to the rights audit
- * is the wrong failure — and it would only take effect on a Postgres deploy,
- * leaving the site publishing figures until that deploy happened, whereas this
- * ships with the build that introduces it.
- *
- * `getPublicReplicationBySlug` below is deliberately *not* filtered: it is a
- * plain single-row read, and its only caller — `loadReplicationRoute` — already
- * owns the "does this row have a page?" decision for `url` and now answers it
- * for `role` and `type` in the same place.
- */
-/**
- * Exact depicted-effect membership, shared with the gallery filter: owner OR
- * explicit additional tag, never ancestors or artist-display exclusions.
- * Keep this request-scoped: persisting the assembled collection would bypass
- * the bounded corpus-page and detail-batch caches below it.
- */
 export const getPublicReplicationsByEffect = cache(async (
   effectSlug: string,
 ): Promise<ReplicationWithUrl[]> => {
@@ -181,8 +111,6 @@ export const getPublicReplicationsByEffect = cache(async (
   }
   const details = await getPublicReplicationsBySlugs([...slugs]);
   const bySlug = new Map(details.map((row) => [row.slug, row]));
-  // Hydration can return a different order or newer taxonomy/publication state.
-  // Preserve corpus order while withholding stale associations and missing rows.
   const collection: ReplicationWithUrl[] = [];
   for (const slug of slugs) {
     const row = bySlug.get(slug);
@@ -191,20 +119,6 @@ export const getPublicReplicationsByEffect = cache(async (
   return collection;
 });
 
-/**
- * Cache bounded corpus pages, never the assembled replication corpus.
- *
- * The full public gallery is larger than Next's 2 MB data-cache entry limit.
- * Caching that aggregate made every build worker miss the cache and drain the
- * entire paginated Postgres feed again. Individual 64-row pages remain safely
- * cacheable and can be shared across workers; React's request cache then
- * deduplicates the cheap in-memory assembly for each render.
- *
- * The page cache only works because `getPublicReplications` below is React
- * `cache()` and not `unstable_cache`: Next bypasses an `unstable_cache` reached
- * from inside another `unstable_cache` callback, so any persisted wrapper above
- * this drain would turn every one of its misses into a full Postgres re-drain.
- */
 const getPublicReplicationCorpusPage = cache(publicDataCache(async (
   cursor?: string,
   effectSlug?: string,

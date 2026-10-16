@@ -1,11 +1,4 @@
 "use client";
-/**
- * Translator's notes in the article reader: under each section, a translator
- * adds a note for local readers, written in the locale only. Save draft,
- * Approve saved draft, and Restore as draft work like corrections. Readers
- * see approved notes in a labelled box; a note whose section left the English
- * is orphaned, hidden from readers, and listed in the Review Inbox.
- */
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Button } from "@/components/ui/button";
@@ -33,7 +26,6 @@ const MARKS: Record<Exclude<TranslatorNoteStatus, "empty">, { label: string; ton
 export type TranslatorNotesState = {
   locale: string;
   packet: TranslatorNotePacket | null;
-  /** The section a deep link asked to open, once. */
   requested: string | null;
   reload: () => Promise<void>;
 };
@@ -42,7 +34,6 @@ function isPacket(value: unknown): value is TranslatorNotePacket {
   return Boolean(value && typeof value === "object" && Array.isArray((value as TranslatorNotePacket).sections));
 }
 
-/** Loads the notes of the article open in the reader; reloads whenever the reader reloads its source. */
 export function useTranslatorNotes(locale: string, slug: string | null | undefined, sourceVersion?: string): TranslatorNotesState {
   const [packet, setPacket] = useState<TranslatorNotePacket | null>(null);
   const [requested, setRequested] = useState<string | null>(null);
@@ -51,7 +42,6 @@ export function useTranslatorNotes(locale: string, slug: string | null | undefin
     try {
       const response = await fetch(`${ENDPOINT}?${new URLSearchParams({ locale, kind: "article", slug })}`);
       const data: unknown = await response.json();
-      // A reader without the notes surface keeps working; the notes simply stay hidden.
       setPacket(response.ok && isPacket(data) ? data : null);
     } catch {
       setPacket(null);
@@ -142,7 +132,6 @@ function NoteSection({ state, row }: { state: TranslatorNotesState; row: Transla
   }, [state.requested, row.section, row.status]);
   const mark = row.status === "empty" ? null : MARKS[row.status];
   const hasNote = row.draft !== null || row.approved !== null;
-  // An empty section offers one quiet line, so the article keeps its rhythm; a note that exists reads as a note.
   if (!hasNote && row.status !== "orphaned" && !open) {
     return (
       <div role="group" aria-label={`Translator's note: ${row.label}`} className="md:pl-[calc(50%+0.75rem)]">
@@ -170,11 +159,6 @@ function NoteSection({ state, row }: { state: TranslatorNotesState; row: Transla
   );
 }
 
-/**
- * Note affordances for one place in the reader: `afterRowId` renders the
- * sections whose last paragraph is that row; `rest` renders sections without
- * a paragraph in the reader and orphaned notes.
- */
 export function TranslatorNoteSlot({ state, afterRowId, rest = false }: { state: TranslatorNotesState; afterRowId?: string; rest?: boolean }) {
   const rows = state.packet?.sections.filter((row) => rest ? row.afterSegmentId === null : row.afterSegmentId === afterRowId) ?? [];
   if (!rows.length) return null;

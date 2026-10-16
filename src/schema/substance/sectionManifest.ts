@@ -23,21 +23,10 @@ import {
 export const SUBSTANCE_SECTION_MANIFEST: readonly SubstanceSectionManifestEntry[] =
   getSubstanceSectionManifestEntries();
 
-/**
- * Section id → heading glyph. The table of contents reads its icons from the
- * same entries (`getPublicTocSectionEntries`), so a renderer that takes its
- * heading icon from here cannot drift out of sync with its own TOC row.
- */
 export const SUBSTANCE_SECTION_ICONS = Object.fromEntries(
   SUBSTANCE_SECTION_MANIFEST.map((entry) => [entry.id, entry.icon]),
 ) as Record<SubstanceSectionId, IconName>;
 
-/**
- * Sections that render a gap notice rather than disappearing when they have no
- * content, so they are always present in the table of contents. Keep in sync
- * with `ARTICLE_GAP_ORDER` in
- * `src/features/article/components/sections/articleGapCopy.ts`.
- */
 export const ALWAYS_RENDERED_PUBLIC_SECTION_IDS: readonly string[] = [
   "dosage-duration",
   "subjective-effects",

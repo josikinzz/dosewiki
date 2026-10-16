@@ -9,7 +9,6 @@ import { ReplicationThumb } from "./ReplicationThumb";
 import type { StudioMediaType } from "./replicationStudioModel";
 import type { GalleryConflict, GalleryCurationState } from "./substanceGalleryPortalModel";
 
-/** What a conflict row needs to draw one work. */
 export type ConflictWork = {
   slug: string;
   title: string;
@@ -26,7 +25,6 @@ function ConflictList({
 }: {
   label: string;
   slugs: readonly string[];
-  /** The other side's list: a work in a different place is marked as changed. */
   other: readonly string[];
   workOf: (slug: string) => ConflictWork | null;
 }) {
@@ -94,10 +92,6 @@ function ConflictSide({
   );
 }
 
-/**
- * A showcase save that lost a race: the stored board beside the unsaved one,
- * drawn as the works themselves so the editor can see what differs.
- */
 export function GalleryConflictView({
   conflict,
   mine,

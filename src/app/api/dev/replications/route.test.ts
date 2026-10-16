@@ -53,12 +53,6 @@ vi.mock("@server/data/serverWriteCapability", () => ({
 let mediaBytes: Buffer;
 let uploadToken: string;
 const mediaFetch = vi.fn();
-/**
- * `./route` is imported per test rather than statically: `vi.resetModules()` plus
- * per-test capability mocks mean the module must be evaluated *after* its mocks
- * are in place, which a static import cannot do. Same pattern as the
- * citation-evidence route tests.
- */
 beforeEach(async () => {
   vi.resetModules();
   vi.stubEnv("DATA_WRITES_FROZEN", "0");

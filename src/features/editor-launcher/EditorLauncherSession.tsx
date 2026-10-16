@@ -23,9 +23,7 @@ type Props = {
   contextualEnabled: boolean;
   mode: "view" | "edit";
   onModeChange: (mode: "view" | "edit") => void;
-  /** Something on this page holds edits not yet saved as a private draft. */
   unsaved?: boolean;
-  /** Something on this page waits for review, such as a submitted proposal. */
   pending?: boolean;
 };
 
@@ -46,13 +44,8 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
   const modeHintId = useId();
   const role = session.status === "authenticated" ? session.data.user?.role ?? null : null;
   const eligible = canAccessDev(role);
-  // The Edit toggle, and its E shortcut, only where this role can edit the page.
   const editable = contextualEnabled && canEditTarget(target, role);
 
-  // Signing out already resets the mode upstream; this covers a member whose
-  // page or role no longer allows editing while still signed in.
-  // Asked once per loss of edit rights, so a pending unsaved-work prompt is
-  // never re-opened on every render.
   const leftEditRef = useRef(false);
   useEffect(() => {
     if (editable) { leftEditRef.current = false; return; }
@@ -62,7 +55,6 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
     }
   }, [eligible, editable, mode, onModeChange]);
 
-  // Synchronize the homepage corner before paint, including logout and gate unmount.
   useLayoutEffect(() => {
     onIdentityChange(role, session.data?.user?.email ?? null);
     return () => onIdentityChange(null, null);
@@ -99,8 +91,6 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
         : "max(1rem, env(safe-area-inset-bottom))" }}
     >
       {unsaved || pending ? (
-        // Page state the launcher would otherwise hide until someone opened
-        // the page's editor: work that is not saved, and work waiting on review.
         <div role="status" aria-label="Page editing state" className="flex items-center gap-1 ps-1">
           {unsaved ? <Badge asChild variant="default"><span data-launcher-badge="unsaved">Unsaved</span></Badge> : null}
           {pending ? <Badge asChild variant="outline"><span data-launcher-badge="pending">Pending review</span></Badge> : null}
@@ -148,7 +138,6 @@ function Launcher({ pathname, target, outlet, onIdentityChange, contextualEnable
   return outlet ? createPortal(menu, outlet) : menu;
 }
 
-/** Loaded only after the editor-host and publication gates, never by a public reader. */
 export default function EditorLauncherSession(props: Props) {
   return <SessionProvider refetchInterval={60} refetchOnWindowFocus><Launcher {...props} /></SessionProvider>;
 }

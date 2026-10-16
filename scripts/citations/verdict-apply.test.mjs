@@ -128,7 +128,6 @@ test("plan applies the exact single-token replacement and nothing else", () => {
     plan.sectionPatches.summary,
     SUMMARY.replace("[cite:ref-b]", CITATION_NEEDED_TOKEN),
   );
-  // The keep and park markers survive untouched.
   assert.ok(plan.sectionPatches.summary.includes("[cite:ref-a]"));
   assert.ok(plan.sectionPatches.summary.includes("[cite:ref-c]"));
   assert.equal(stripVerdictTokens(plan.sectionPatches.summary), stripVerdictTokens(SUMMARY));
@@ -180,7 +179,6 @@ test("refuses any delta beyond the single token replacement", () => {
 });
 
 function cliEnv() {
-  // Strip database selectors so fixture runs cannot inherit a live target.
   const env = { ...process.env, DATA_BACKEND: "postgres" };
   for (const key of Object.keys(env)) {
     if (/POSTGRES/i.test(key)) delete env[key];
@@ -197,7 +195,6 @@ test("CLI write path can never run against fixtures and demands the guard stack"
   writeFileSync(articlePath, JSON.stringify(article, null, 2));
   writeFileSync(draftPath, JSON.stringify(makeDraft(article), null, 2));
 
-  // --write + --article-file is rejected outright.
   const fixtureWrite = spawnSync(process.execPath, [
     CLI,
     `--slug=${SLUG}`,
@@ -208,7 +205,6 @@ test("CLI write path can never run against fixtures and demands the guard stack"
   assert.equal(fixtureWrite.status, 1);
   assert.match(fixtureWrite.stderr, /never valid with --write/);
 
-  // --write without a target URL fails before any network or mutation.
   const bareWrite = spawnSync(process.execPath, [
     CLI,
     `--slug=${SLUG}`,

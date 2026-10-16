@@ -45,15 +45,9 @@ interface TripReportsExplorerProps {
   locale?: string;
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  /** Server-resolved URL state; must match the first rendered grouping. */
   initialView?: ReportsIndexView;
 }
 
-/**
- * The grouping axis names itself the way the rest of the site names it: a
- * report belongs to a substance, a title or an author, so the control reads
- * "By substance" rather than repeating the word the filter beside it owns.
- */
 const MODE_LABEL: Record<ReportViewMode, string> = {
   substance: msg("By substance"),
   title: msg("By title"),
@@ -123,8 +117,6 @@ export function TripReportsExplorer({
   useEffect(() => {
     const results = resultsRef.current;
     if (!results) return;
-    // Retain the committed archive's footprint while a replacement or retry
-    // is pending, without hiding or disabling its links.
     results.style.minHeight = loading ? `${results.offsetHeight}px` : "";
   }, [loading]);
 
@@ -136,8 +128,6 @@ export function TripReportsExplorer({
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reducedMotion.matches) return;
 
-    // Pagination retains report objects; replacements receive fresh objects.
-    // Animate only newly appended rows, never the already-readable archive.
     const current = new Set(visibleReports);
     const appended = previous.length > 0 && previous.every((report) => current.has(report));
     const previousSlugs = new Set(previous.map((report) => report.slug));
@@ -179,11 +169,6 @@ export function TripReportsExplorer({
 
   return (
     <>
-      {/* The control bar tracks the reader down the index: grouping, search,
-          filter and sort are all needed most while deep in the list, and a
-          static bar left them thousands of pixels behind. One row at every
-          width, because two rows of pinned chrome cost a phone reader a fifth
-          of the screen for the whole scroll. */}
       <div
         className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mx-auto mb-3 w-full max-w-4xl"
         data-nosnippet
@@ -239,14 +224,9 @@ export function TripReportsExplorer({
             <Input
               ref={searchInputRef}
               type="search"
-              // `sm` is 40px tall and `Input` carries no coarse-pointer floor,
-              // so the one control a phone reader uses most would miss 44px.
               inputSize="default"
               defaultValue=""
               onChange={(event) => handleQueryChange(event.target.value)}
-              // Names its own corpus: the site-wide field sits 330px above
-              // this one and leaves the page, and nothing else told a reader
-              // which of the two they were typing into.
               placeholder={t("Search reports…")}
               aria-label={t("Search these reports")}
               className="h-10 pl-9 pr-11 [@media(pointer:coarse)]:h-11 md:h-9"
@@ -284,9 +264,6 @@ export function TripReportsExplorer({
         </div>
       </div>
 
-      {/* What the reader just did, in its own line under the bar rather than
-          as a fifth control inside it. Rendered at every state so the region
-          exists to be announced when narrowing starts. */}
       <p
         role="status"
         className="theme-text-faint mx-auto mb-5 min-h-4 w-full max-w-4xl px-1 text-xs tabular-nums"
@@ -305,8 +282,6 @@ export function TripReportsExplorer({
             {t("Report highlights")}
           </h2>
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            {/* Two lists behind one band: what arrived, and what was chosen.
-                Roving tabindex, so the pair costs one tab stop. */}
             <div role="tablist" aria-label={t("Report highlights")} className="flex items-center gap-1">
               {bandTabs.map((tab) => {
                 const selected = tab.key === activeBand;
@@ -356,10 +331,6 @@ export function TripReportsExplorer({
               })}
             </p>
           </div>
-          {/* Compact density: the full card lays avatar, title and substance
-              chips out as one wide row, which collides with itself in a grid
-              cell. The band's job is to make a reader open something, so title,
-              byline and date carry it and the shelves carry the chemistry. */}
           <div
             key={activeBand}
             role="tabpanel"
@@ -373,10 +344,6 @@ export function TripReportsExplorer({
                 report={report}
                 href={reportHref(report.slug)}
                 density="compact"
-                // Every card in the featured list is featured and none in the
-                // added list was chosen, so the star discriminated nothing
-                // here while looking exactly like a bookmark toggle. It still
-                // marks the minority of rows down in the shelves.
                 showFeatured={false}
               />
             ))}

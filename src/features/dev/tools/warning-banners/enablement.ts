@@ -1,20 +1,13 @@
 import type { WarningBannerPreset, WarningBannerTarget } from "@/data/substanceWarningBanners";
 import type { ConfirmRequest } from "@/features/dev/components";
 
-/**
- * One enablement change, from a chip's X to `Enable on all 40 results`. Views
- * describe what the editor asked for; the controller decides how it is
- * confirmed, written and undone, so no view can write on its own.
- */
 export type EnablementChange = {
   action: "enable" | "disable";
   slugs: string[];
 };
 
 export type EnablementPlan = {
-  /** The list to submit once the editor confirms. */
   nextSlugs: string[];
-  /** The notice shown after the write, and what Undo reverses. */
   summary: string;
   request: Omit<ConfirmRequest, "onConfirm">;
 };
@@ -23,12 +16,6 @@ function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-/**
- * The dialog copy for an enablement write. Everything in it is what a reader
- * will or will not see once the write lands: a preset that is switched off, or
- * one that already reaches every article, changes nothing visible, and the
- * dialog says so rather than warning about a change that is not happening.
- */
 export function planEnablementChange(
   preset: WarningBannerPreset,
   change: EnablementChange,

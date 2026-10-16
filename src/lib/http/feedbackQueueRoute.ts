@@ -13,7 +13,6 @@ export type FeedbackQueueCounts = {
   spam: number;
 };
 
-/** New and Reviewing together: every item still waiting on a decision. */
 export const FEEDBACK_QUEUE_UNRESOLVED = "unresolved";
 
 export type FeedbackQueuePageFilters<Status extends string> = {
@@ -37,9 +36,7 @@ type FeedbackQueueStore<Status extends string> = {
 export type FeedbackQueueRouteOptions<Status extends string> = {
   isStatus: (value: unknown) => value is Status;
   getStore: () => Promise<FeedbackQueueStore<Status>>;
-  /** Thrown by the store factory when storage is unconfigured; mapped to 503. */
   StorageConfigurationError: abstract new (...args: never[]) => Error;
-  /** "article" or "site", for the 400 messages. */
   sourceLabel: string;
   unexpectedErrorLabel: string;
   unexpectedErrorMessage: string;
@@ -52,20 +49,6 @@ const MAX_CURSOR_LENGTH = 1024;
 
 class InvalidQueueRequestError extends Error {}
 
-/**
- * Editor read of one feedback queue page.
- *
- *   GET {base}/queue?status=&q=&order=&cursor=&limit=
- *     → { ok, feedback, nextCursor, counts, total }
- *
- * Status and search apply on the server, so a row is reachable however many
- * newer rows sit above it. `status=unresolved` lists New and Reviewing
- * together, the rows still waiting on a decision. `order` defaults to oldest first, the order for
- * clearing unresolved work. `counts` holds every status among the rows the
- * search matches; `total` is how many match the status too, which the queue
- * shows apart from how many it has loaded. `nextCursor` continues the same
- * query and order; it is null on the last page.
- */
 export function feedbackQueueRoute<Status extends string>(options: FeedbackQueueRouteOptions<Status>) {
   return protectedRouteOperation({
     auth: "editor",

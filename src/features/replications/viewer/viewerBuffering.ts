@@ -20,7 +20,6 @@ export interface ViewerBufferingController {
   dispose(): void;
 }
 
-/** One active source owns all deferred playback. Buffer checks never replace it. */
 export function createViewerBuffering({
   video,
   sound,
@@ -86,8 +85,6 @@ export function createViewerBuffering({
       lastState = { phase, wantsPlaying, blocked, error };
       onChange(lastState);
     }
-    // Releasing speculative downloads requires spare measured bandwidth, not
-    // merely enough buffered media to release the active playback gate.
     const spareBandwidth = fastGrowthSamples >= 2 &&
       growthRate !== null && growthRate > video.playbackRate * 1.5;
     const healthy = visible() && !phase && !seeking && !scrubbing && !error && !blocked &&
@@ -131,15 +128,11 @@ export function createViewerBuffering({
     if (!valid()) { dispose(); return; }
     if (!visible() || !wantsPlaying || error || blocked) return;
     if (!seeking && !scrubbing && remaining() === 0) {
-      // Let an actively playing native loop wrap; explicit end seeks still stop.
       if (video.loop && !holding && !video.paused) report();
       else stop();
       return;
     }
     if (holding && !seeking && !scrubbing) {
-      // Preload is only a hint: a paused browser can stop fetching below our
-      // preferred runway. Bound that wait and let native playback fetch data.
-      // Keep the bypass until a frame arrives so `waiting` cannot pause it again.
       if (phase !== null && performance.now() - waitStarted >= MAX_BUFFER_WAIT_MS) bypass = true;
       if (bypass || enough(phase === "rebuffer" ? Math.min(4, target + 1.5) : target)) startAttempt();
     }
@@ -178,8 +171,6 @@ export function createViewerBuffering({
     phase = presented ? "rebuffer" : "startup";
     if (gesture) {
       sound.repayIou(video);
-      // Prime this element during activation even when Safari ignores preload.
-      // A deferred unmuted replay may still be refused; custody retains its IOU.
       startAttempt();
     }
     if (!immediate && !enough(target)) wait(phase);
@@ -204,15 +195,12 @@ export function createViewerBuffering({
     else { blocked = false; report(); }
   };
   const onPause = () => {
-    // A queued internal pause may arrive after playback has already resumed.
     if (!valid() || !video.paused || !wantsPlaying || holding || seeking || scrubbing || !visible()) return;
     stop();
   };
   const onWaiting = () => {
     if (!valid() || !wantsPlaying || holding || seeking || scrubbing || !visible() || video.ended || video.error) return;
-    // Let a gesture or timeout start fetch its first frame before rearming the gate.
     if (bypass && phase !== null) return;
-    // Healthy buffered media waiting on decode/compositing is not a network stall.
     if (enough(target)) return;
     target = Math.min(2.5, target + 0.2);
     bypass = false;

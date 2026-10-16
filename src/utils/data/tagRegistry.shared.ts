@@ -8,13 +8,6 @@ import {
 
 type ArticleRecord = SubstanceArticle;
 
-/**
- * The minimum a row must carry for `buildTagRegistry` to index it: identity
- * for slug derivation and article refs, plus the four tag fields (the
- * mechanism tag list is read out of `binding_sites`). Whole
- * `SubstanceArticle` rows satisfy it, and so does the bounded tag-registry
- * projection the tag editor drains instead of the corpus.
- */
 export type TagRegistryInput = {
   id?: SubstanceArticle["id"];
   title: SubstanceArticle["title"];

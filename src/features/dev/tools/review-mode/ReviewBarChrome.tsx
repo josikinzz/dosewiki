@@ -9,18 +9,10 @@ import { TOUCH_PILL } from "@/components/ui/touchTargets";
 import { cn } from "@/lib/utils";
 import type { DevShortcut } from "../../components/devShortcuts";
 
-/** Ties the bar toggle's `aria-controls` to the inline molecule panel region. */
 export const MOLECULE_PANEL_ID = "review-molecule-panel";
 
-/** Same contract for the citation palette. */
 export const CITATION_PANEL_ID = "review-citation-panel";
 
-/**
- * Keycap drawn inside the button that owns the key, on fine pointers only:
- * a touch screen has no key to press. The cap is `aria-hidden`; the button
- * carries the key in `aria-keyshortcuts`. The media class sits on a wrapper
- * because `theme-dev-kbd` sets its own display.
- */
 export function Kbd({ children, className }: { children: string; className?: string }) {
   return (
     <span aria-hidden className={cn("[@media(pointer:coarse)]:hidden", className)}>
@@ -29,18 +21,11 @@ export function Kbd({ children, className }: { children: string; className?: str
   );
 }
 
-/**
- * A one-shot progress-bar flourish, keyed so a repeat re-runs the animation.
- * "sweep" is one highlight pass (a subsection finished); "lap" runs the same
- * pass twice (a whole category finished). Purely decorative: `aria-hidden`,
- * and the reduced-motion block in dev-tools.css zeroes it out.
- */
 export interface ProgressFlourish {
   id: number;
   kind: "sweep" | "lap";
 }
 
-/** One truth for progress: reviewed over the whole public corpus, monotonic. */
 export function ProgressStrip({
   reviewed,
   total,
@@ -49,17 +34,10 @@ export function ProgressStrip({
 }: {
   reviewed: number;
   total: number;
-  /**
-   * "hairline" is the bar treatment at every width: the same track,
-   * unlabelled, welded to the bar's bottom edge. "full" is the labelled strip
-   * in the More sheet.
-   */
   variant?: "full" | "hairline";
   flourish?: ProgressFlourish | null;
 }) {
   const percent = total === 0 ? 0 : Math.round((reviewed / total) * 100);
-  // A tick makes the fill's leading edge bloom once. Local per instance: an
-  // undo (a decrease) stays silent.
   const previousReviewedRef = useRef(reviewed);
   const [bloom, setBloom] = useState(0);
   useEffect(() => {
@@ -127,12 +105,6 @@ export function ProgressStrip({
   );
 }
 
-/**
- * The lucide `badge-check` glyph, inlined so the tick's check stroke can draw
- * itself in. Rendered only for the tick that just happened; every other
- * reviewed state keeps the static icon, so revisiting a reviewed article stays
- * quiet. Both one-shot animations stop under reduced motion.
- */
 function TickedBadgeCheck() {
   return (
     <svg
@@ -153,7 +125,6 @@ function TickedBadgeCheck() {
   );
 }
 
-/** The "Open this article in" menu body, shared by the bar and the More sheet. */
 export function OpenElsewhereItems({ slug, label = false }: { slug: string | undefined; label?: boolean }) {
   return (
     <>
@@ -183,13 +154,6 @@ export function OpenElsewhereItems({ slug, label = false }: { slug: string | und
   );
 }
 
-/**
- * The verdict, the dock's one accent. Labelled at every width: it is the
- * decision this whole surface exists for, so it never shrinks to a glyph.
- * The accessible names are the tested ones ("Mark as reviewed",
- * "Reviewed: undo", "Recommend as reviewed", "Recommended reviewed: awaiting
- * an admin"), and each visible label starts them.
- */
 export function MarkReviewedControl({
   isCurrentReviewed,
   justTicked,
@@ -200,21 +164,12 @@ export function MarkReviewedControl({
   confirm = false,
   toggleReviewed,
 }: {
-  /** A changed article whose changes are open: the press now signs it off, so it says Confirm reviewed. */
   confirm?: boolean;
   isCurrentReviewed: boolean;
-  /** The tick that just happened is this article's, so the check draws in. */
   justTicked: boolean;
-  /** An article is selected, its body has loaded and it drew. */
   hasCurrent: boolean;
   isTicking: boolean;
-  /** False for roles the route refuses; the dock says why in visible text. */
   canSignOff: boolean;
-  /**
-   * Set for editors, who recommend instead of signing off: `none` offers
-   * Recommend as reviewed, `pending` shows a recommendation awaiting an
-   * admin, and `stale` offers to recommend the newer version again.
-   */
   recommendation?: "none" | "pending" | "stale" | null;
   toggleReviewed: () => void;
 }) {
@@ -302,10 +257,6 @@ const REVIEW_CRITERIA = [
   "Tone and formatting match the site; no generation artifacts left behind.",
 ];
 
-/**
- * The workbench's keys, in the shell registry's `{ keys, label }` shape.
- * /review runs outside the /dev shell, so this panel is its one `?` sheet.
- */
 export const REVIEW_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "← / →", label: "Previous or next article" },
   { keys: "k / j", label: "Previous or next article" },
@@ -322,9 +273,7 @@ export const REVIEW_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "Esc", label: "Close notes, a menu or this panel" },
 ];
 
-/** "What counts as reviewed" plus the keyboard map. Shared with the More sheet. */
 export function ReviewHelpPanel({ recommend = false }: { recommend?: boolean } = {}) {
-  // The R line says what R does for the viewer's own role.
   const shortcuts = REVIEW_SHORTCUTS.map((shortcut) =>
     shortcut.keys === "R"
       ? { ...shortcut, label: recommend ? "Recommend as reviewed, for an admin to approve" : "Mark reviewed, or mark not reviewed" }

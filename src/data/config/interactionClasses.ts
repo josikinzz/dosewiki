@@ -1,8 +1,3 @@
-/**
- * Describes canonical interaction class keywords used when normalizing interaction targets.
- * Each entry provides a unique key, a display label, and a set of matcher strings that will be
- * slugified before comparison against interaction entries.
- */
 export interface InteractionClassDefinition {
   key: string;
   label: string;

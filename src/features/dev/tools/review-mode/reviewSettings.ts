@@ -1,10 +1,8 @@
 import type { ReviewQueueOrder } from "./reviewQueue";
 import type { ReviewFlagSeverity } from "@/schema/substance/editorial";
 
-/** Milestone counts worth a moment of celebration during the 274-article pass. */
 const REVIEW_MILESTONES = [50, 100, 150, 200, 250] as const
 
-/** The milestone crossed by moving from `previous` to `next` reviewed, if any. */
 export function crossedMilestone(previous: number, next: number): number | null {
   return REVIEW_MILESTONES.find((mark) => previous < mark && next >= mark) ?? null;
 }
@@ -13,36 +11,11 @@ export type ReviewViewMode = "webpage" | "editor";
 
 export interface ReviewSettings {
   order: ReviewQueueOrder;
-  /**
-   * Restrict ←/→ flipping to still-unreviewed articles. Off by default since
-   * v3: the skip read as the arrows "not working" — flipping toward an article
-   * visible in the picker and landing somewhere else — so traversing
-   * everything is the behaviour, and the skip is the opt-in.
-   */
   unreviewedOnly: boolean;
-  /**
-   * Narrow the queue and the picker to articles published after their
-   * sign-off ("Changed since review"), so re-review is one list.
-   */
   changedSinceReview: boolean;
   viewMode: ReviewViewMode;
-  /**
-   * Click-to-edit on the rendered article. Off until asked for: reading is the
-   * common case, and a page whose text turns into inputs under the cursor is a
-   * hazard for a reviewer who only meant to scroll.
-   */
   inlineEdit: boolean;
-  /**
-   * Present the jump-to picker as the home page's category tree — psychoactive
-   * classes holding their chemical-class subsections — rather than one flat
-   * list. On by default: 274 articles in a single scroll is a haystack.
-   */
   groupByCategory: boolean;
-  /**
-   * Let links inside the rendered article navigate. Off by default: articles
-   * are dense with cross-links, and a stray tap mid-review yanks the reviewer
-   * to another page. Same-page TOC anchors always work regardless.
-   */
   articleLinks: boolean;
   flagLabels: string[];
   flagSeverity: ReviewFlagSeverity | null;
@@ -64,17 +37,6 @@ export const REVIEW_SETTINGS_DEFAULTS: ReviewSettings = {
 
 const STORAGE_KEY = "dosewiki:review-workbench:v3";
 
-/**
- * Older payloads still load, minus the preference each bump exists to reset.
- * Honouring the stored value would pin every reviewer who ever opened the old
- * workbench to the old default — the one case where silently resetting a
- * preference is the point rather than a bug. Everything else carries over.
- *
- * v2 moved the default order from "most source material" to home-page order,
- * so a v1 `order` is dropped. v3 turned off `unreviewedOnly` — the skip made
- * ←/→ appear broken, and nearly every stored `true` was the old default
- * persisted incidentally, not a choice — so v1/v2 `unreviewedOnly` is dropped.
- */
 const LEGACY_KEYS: Array<{ key: string; keepOrder: boolean }> = [
   { key: "dosewiki:review-workbench:v2", keepOrder: true },
   { key: "dosewiki:review-workbench:v1", keepOrder: false },
@@ -122,10 +84,6 @@ function parseSettings(
   };
 }
 
-/**
- * Restore the reviewer's session preferences. A refresh mid-project must not
- * silently reset her chosen ordering or filter.
- */
 export function loadReviewSettings(): ReviewSettings {
   if (typeof window === "undefined") {
     return REVIEW_SETTINGS_DEFAULTS;
@@ -153,6 +111,5 @@ export function saveReviewSettings(settings: ReviewSettings): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
-    // Private-mode storage failures just lose persistence, never the session.
   }
 }

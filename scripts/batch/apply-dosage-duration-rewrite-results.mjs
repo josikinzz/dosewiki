@@ -1,24 +1,4 @@
 #!/usr/bin/env node
-/**
- * Apply reviewed dosage/duration note rewrites to the local article artifact
- * and sync the changed articles to Postgres.
- *
- * Inputs:
- * - Rewrite results NDJSON from run-dosage-duration-rewrite-openrouter.mjs
- * - src/data/SubstanceIndex.json
- *
- * Outputs:
- * - Updated src/data/SubstanceIndex.json
- * - Review summary JSON + Markdown in notes-and-plans/exports/openrouter/results/
- * - Optional Postgres sync for changed articles only
- *
- * Usage:
- *   export DATA_ADMIN_KEY="..."
- *   export POSTGRES_POOLED_URL="postgresql://localhost/dosewiki"
- *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs
- *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs --dry-run
- *   node scripts/batch/apply-dosage-duration-rewrite-results.mjs --article=2c-b
- */
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";

@@ -1,7 +1,3 @@
-// Command-line parsing for scripts/deploy/warm-public-routes.mjs, kept apart
-// from the warming logic in warm-public-routes.lib.mjs, which re-exports it.
-
-/** Split one `--base-url` value (or env value) on commas, trimmed, blanks dropped. */
 function splitBaseUrls(value) {
   return String(value ?? "")
     .split(",")
@@ -9,7 +5,6 @@ function splitBaseUrls(value) {
     .filter(Boolean);
 }
 
-/** Parse `--flag=value`, `--flag value`, and boolean `--flag` CLI arguments. */
 export function parseWarmArgs(argv, env = {}) {
   const options = {
     baseUrls: splitBaseUrls(env.WARM_BASE_URL || env.PUBLIC_SITE_URL || ""),
@@ -34,8 +29,6 @@ export function parseWarmArgs(argv, env = {}) {
     };
     switch (name) {
       case "base-url":
-        // Repeatable and comma-separable: one run covers every public host.
-        // The first flag replaces the env fallback rather than adding to it.
         if (!explicitBaseUrls) {
           options.baseUrls = [];
           explicitBaseUrls = true;

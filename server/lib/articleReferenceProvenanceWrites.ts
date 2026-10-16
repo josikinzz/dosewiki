@@ -131,11 +131,6 @@ function proposedRetainsExpected(
   return expected.every((entry) => proposedEntries.has(stableJson(entry)));
 }
 
-/**
- * Apply one provenance-only reference repair with an exact CAS snapshot.
- * Identity, authors, and existing provenance must remain unchanged; only the
- * selected reference's metadataProvenance field can be added or extended.
- */
 export function applyReferenceProvenanceRepair(
   document: Record<string, unknown>,
   input: {

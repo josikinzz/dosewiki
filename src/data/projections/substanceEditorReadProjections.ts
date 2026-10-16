@@ -11,10 +11,6 @@ import {
   type SubstanceArticleRecord,
 } from "./substanceProjectionCore";
 
-/**
- * The bounded editor-library row. Whole articles are hydrated on demand; this
- * family retains only picker, taxonomy, mechanism, effect-name, and review data.
- */
 export type SubstanceEditorLibraryEntryProjection = {
   id: SubstanceArticleRecord["id"];
   slug: string;
@@ -31,10 +27,6 @@ export type SubstanceEditorLibraryEntryProjection = {
   };
   subjective_effects: SubstanceArticle["subjective_effects"];
   editorial_review: SubstanceArticle["editorial_review"];
-  /**
-   * Bibliography size, projected so list consumers (the review queue) never
-   * need the reference arrays themselves.
-   */
   reference_count: number;
 };
 

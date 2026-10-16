@@ -2,14 +2,8 @@ import { useEffect, useSyncExternalStore } from "react";
 
 import { WRITE_FREEZE_CODE, isWriteFreezeRefusal } from "./writeFreezeRefusal";
 
-// The refusal itself is React-free (`writeFreezeRefusal.ts`) so server modules can read it.
 export { WRITE_FREEZE_CODE, isWriteFreezeRefusal };
 
-/**
- * What the editor shell knows about the write freeze. The browser has no
- * read of the flag itself, so it learns from the first refused write and
- * forgets on the next write that lands. `null` until a write has answered.
- */
 type WriteFreezeState = { frozen: boolean; since: number | null };
 
 let state: WriteFreezeState = { frozen: false, since: null };
@@ -21,12 +15,10 @@ function set(next: WriteFreezeState) {
   for (const listener of listeners) listener();
 }
 
-/** A write came back refused by the freeze. */
 export function reportWriteFreeze(now = Date.now()) {
   set({ frozen: true, since: now });
 }
 
-/** A write landed, so the freeze (if one was seen) is over. */
 export function clearWriteFreeze() {
   set({ frozen: false, since: null });
 }
@@ -36,7 +28,6 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-/** Whether the last write this browser made was refused by the freeze. */
 export function useWriteFreeze(): WriteFreezeState {
   return useSyncExternalStore(subscribe, () => state, () => state);
 }
@@ -56,15 +47,6 @@ function requestUrl(input: RequestInfo | URL): URL | null {
   }
 }
 
-/**
- * Watches this tab's own API writes for the freeze refusal, so the shell can
- * say "writes are paused" before an editor loses more work to it. Every tool
- * writes through `fetch`, most of them directly, so the one place that sees
- * all of them is `fetch` itself. The wrapper only reads: it passes every
- * request through unchanged, clones a 503 body to look for the code, and puts
- * the original `fetch` back when the shell unmounts. Mount it once, at the
- * shell root.
- */
 export function useWriteFreezeObserver() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.fetch !== "function") return;
@@ -85,7 +67,6 @@ export function useWriteFreezeObserver() {
           }
         }
       } catch {
-        // Observation must never change what the caller receives.
       }
       return response;
     };

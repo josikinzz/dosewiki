@@ -5,10 +5,6 @@ import { deleteTripReportSubstanceRows, syncTripReportSubstanceRows } from "./tr
 import { withReplicationEditJournal } from "./replicationEditJournal";
 import { withPublicationOutbox } from "./publicationOutbox";
 
-/** Preserve the complete DatabaseWriter API. Derived writes use the original
- * context in the same transaction, so they cannot recurse. Both overloads of
- * patch/replace/delete (with and without an explicit table) are supported.
- */
 export function withPublicReadIndexes(ctx: MutationCtx, onIndexFailure?: (error: unknown) => void): MutationCtx {
   const db = new Proxy(ctx.db, {
     get(target, property, receiver) {
@@ -40,8 +36,6 @@ export function withPublicReadIndexes(ctx: MutationCtx, onIndexFailure?: (error:
         const articleId = !inserted && !replicationId && !historyId && (table === null || table === "substanceIndex") ? target.normalizeId("substanceIndex", id!) : null;
         const reportId = !inserted && !replicationId && !historyId && !articleId && (table === null || table === "tripReports") ? target.normalizeId("tripReports", id!) : null;
         const result = await Reflect.apply(method, target, args);
-        // URL/evidence-only changes and article citation repairs cannot change
-        // membership. Avoid rehydrating a heavy source for unrelated patches.
         if (property === "patch") {
           const patch = args[hasTable ? 2 : 1] as Record<string, unknown>;
           const fields = replicationId
@@ -68,7 +62,6 @@ export function withPublicReadIndexes(ctx: MutationCtx, onIndexFailure?: (error:
             else await deleteTripReportSubstanceRows(ctx, sourceId);
           }
         } catch (error) {
-          // Row-level catches in bulk imports must not commit half a relation.
           onIndexFailure?.(error);
           throw error;
         }
@@ -79,9 +72,6 @@ export function withPublicReadIndexes(ctx: MutationCtx, onIndexFailure?: (error:
   return { ...ctx, db };
 }
 
-/** Preserve owned builder validators/types and existing handler role gates.
- * Imported handlers inherit this context; runMutation enters its own boundary.
- */
 function indexedBuilder<T extends typeof baseMutation | typeof baseInternalMutation>(builder: T): T {
   return new Proxy(builder, {
     apply(target, thisArg, [definition]) {

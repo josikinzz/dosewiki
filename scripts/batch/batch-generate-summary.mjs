@@ -1,19 +1,5 @@
 #!/usr/bin/env node
 import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
-/**
- * Batch Summary Section Generation Script
- *
- * Generates top-level article summaries using the live Postgres prompt.
- *
- * Defaults:
- * - Reads prompt/content from SOURCE_POSTGRES_URL or the selected Postgres target first
- * - Writes generated summaries to TARGET_POSTGRES_URL or the same deployment by default
- *
- * Usage:
- *   node scripts/batch/batch-generate-summary.mjs --dry-run
- *   node scripts/batch/batch-generate-summary.mjs --all --concurrency=2
- *   TARGET_POSTGRES_URL=postgresql://localhost/dev-or-prod node scripts/batch/batch-generate-summary.mjs --substance=lsd
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"

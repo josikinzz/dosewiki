@@ -3,7 +3,6 @@ import type {
   TemplateApplicationMember,
 } from "./templateApplicationPlan";
 
-/** Shared client/server ceiling for one preview or apply request. */
 export const TEMPLATE_APPLY_MEMBER_LIMIT = 50;
 
 export interface ClassTemplateMemberOption {
@@ -15,7 +14,6 @@ export interface CurrentTemplateDepiction {
   slug: string;
   molblock: string;
   source: MoleculeDepictionSource;
-  /** Bond indices drawn bold — carried so preview thumbnails stay faithful. */
   boldBonds?: number[];
 }
 
@@ -32,7 +30,6 @@ export interface TemplateApplyPreviewRow {
   reason?: string;
   alignedMolblock?: string;
   afterSvg?: string;
-  /** true when only the relaxed (bond-order-blind) template pass matched. */
   relaxedBonds?: boolean;
 }
 
@@ -56,10 +53,6 @@ export function chunkTemplateApplyMembers<T>(
   return chunks;
 }
 
-/**
- * Join rolled membership to the guarded depiction read without changing order.
- * Missing rows stay explicit so the preview can report every targeted member.
- */
 export function mapMembersToTemplatePlanInput(
   members: readonly ClassTemplateMemberOption[],
   depictions: readonly CurrentTemplateDepiction[],
@@ -87,7 +80,6 @@ export function mapMembersToTemplatePlanInput(
   return { planMembers, missingMembers };
 }
 
-/** Build the confirmed batch while preserving plan-produced MOL blocks exactly. */
 export function buildTemplateApplyPayload(
   classKey: string,
   rows: readonly TemplateApplyPreviewRow[],

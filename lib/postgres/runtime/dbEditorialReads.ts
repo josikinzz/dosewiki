@@ -1,5 +1,3 @@
-/** Targeted editor, studio, glossary, feedback, and citation projections. */
-
 import { PUBLIC_GLOSSARY_RENDERING_SELECT, publicGlossaryRendering } from "../../translation/publicGlossaryRendering";
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
@@ -21,12 +19,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return Number(result.rows[0]?.totalCount ?? 0);
   }
 
-  /**
-   * Each article's current revision, the value a review sign-off compares
-   * against. It is derived from the stored article and its molecule chemistry
-   * (`articleReviewRevision`), so every article body is read; the revision
-   * journal is not, since writes that bypass it must still count.
-   */
   async getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>> {
     const [articles, molecules] = await Promise.all([
       this.client.query(`SELECT ${losslessSelectList("substanceIndex")} FROM "substanceIndex"`),
@@ -36,7 +28,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
          ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
       ),
     ]);
-    // The first override per slug, as the by_slug lookup reads it.
     const chemistry = new Map<string, Doc>();
     for (const row of molecules.rows) {
       const molecule = fromRow("moleculeOverrides", row);
@@ -50,11 +41,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     });
   }
 
-  /**
-   * Every article carrying an editor's review recommendation, for the admin's
-   * Review recommendations lane. Only the slug, title and the small review
-   * fields are read, never the article body.
-   */
   async getReviewRecommendationRows(): Promise<Array<{
     slug: string;
     title: string;
@@ -188,7 +174,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return fromRow("moleculeOverrides", result.rows[0]);
   }
 
-  /** Snapshot reads share the mutation transaction, so concurrent glossary edits conflict. */
   async getGlossaryRendering(locale: string, term: string) {
     const result = await this.client.query(
       `${PUBLIC_GLOSSARY_RENDERING_SELECT} WHERE g."locale" = $1 AND g."term" = $2`, [locale, term],
@@ -197,7 +182,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return row ? publicGlossaryRendering(row) : null;
   }
 
-  /** A term with an English definition or a rendering in any language; public feedback may name no other. */
   async isKnownGlossaryTerm(term: string) {
     const result = await this.client.query(
       `SELECT 1 FROM "translationGlossaryTerms" WHERE "term" = $1
@@ -217,7 +201,6 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     return result.rows as Array<{ term: string; target: string; version: string; right: number; improve: number }>;
   }
 
-  /** One keyset page of a feedback queue, filtered and ordered in SQL. */
   async getFeedbackQueuePage(table: FeedbackQueueTable, options: FeedbackQueuePageOptions) {
     return readFeedbackQueuePage(this.client, table, options);
   }

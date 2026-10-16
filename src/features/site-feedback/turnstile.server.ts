@@ -1,11 +1,5 @@
 import "server-only";
 
-/**
- * Cloudflare Turnstile server-side verification for the public site feedback
- * form. Env-gated per the W6 contract: when TURNSTILE_SECRET_KEY is unset the
- * check is skipped entirely, so local/dev environments work without keys.
- */
-
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 export class TurnstileVerificationError extends Error {
@@ -41,7 +35,6 @@ export async function verifyTurnstileToken(
     }
     outcome = (await response.json()) as { success?: boolean };
   } catch (error) {
-    // Fail closed: an unreachable verifier must not disable the captcha.
     console.error("Turnstile siteverify request failed:", error);
     throw new TurnstileVerificationError();
   }

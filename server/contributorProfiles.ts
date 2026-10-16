@@ -107,7 +107,6 @@ export const getByKey = query({
   handler: getContributorProfileByKeyHandler,
 });
 
-// Import-only raw profile read; deliberately bypasses public materialization.
 export const getForBulkImport = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -134,11 +133,6 @@ export const getOwnedProfile = query({
   handler: getOwnedContributorProfileHandler,
 });
 
-/**
- * The account-to-profile links the People tab pairs on: every live profile
- * whose membership email names a sign-in. Admin only, like the roster it is
- * paired with; membership emails never reach the public projection.
- */
 export const listMembershipLinks = query({
   args: {
     apiKey: v.string(),
@@ -157,12 +151,6 @@ export const listMembershipLinks = query({
   },
 });
 
-/**
- * Minimal ownership lookup for route shells that need only the canonical
- * profile key. This deliberately mirrors getOwnedProfile's membership-email
- * precedence and guarded email-derived fallback without materializing avatar,
- * bio, links, or ordering data.
- */
 export const getOwnedProfileKey = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -247,9 +235,6 @@ export const bulkImport = mutation({
           displayName: data.displayName,
           aliases: data.aliases,
           avatarStorageId: data.avatarStorageId,
-          // Legacy bulk import is a full replacement and cannot introduce an
-          // unverified R2 key. Clear any older R2 avatar so a Storage/URL
-          // replacement is not shadowed by R2 read precedence.
           avatarR2Key: undefined,
           avatarUrl: data.avatarUrl,
           bio: data.bio,
@@ -269,14 +254,12 @@ export const bulkImport = mutation({
   },
 });
 
-/** Guarded, idempotent intake for reviewed Replication Index profile outcomes. */
 export const importReviewedProfilePlan = mutation({
   args: reviewedProfileImportArgs.fields,
   returns: reviewedProfileImportResult,
   handler: importReviewedProfilePlanHandler,
 });
 
-/** Guarded, exact rollback for reviewed Replication Index profile outcomes. */
 export const rollbackReviewedProfilePlan = mutation({
   args: reviewedProfileRollbackArgs.fields,
   returns: reviewedProfileRollbackResult,

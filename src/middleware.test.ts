@@ -12,8 +12,6 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next-auth/jwt", () => ({
   getToken: mocks.getToken,
 }));
-// This file owns dose.wiki host and editor-origin policy. Keep that publication
-// explicit when the whole suite is launched with another ambient flavor.
 vi.stubEnv("NEXT_PUBLIC_SITE_FLAVOR", "dosewiki");
 
 describe("middleware role policy adapter", () => {
@@ -38,7 +36,6 @@ describe("middleware role policy adapter", () => {
 
   it("lets only the exact revalidation POST reach its route-level token gate without a session", async () => {
     mocks.getToken.mockResolvedValue(null);
-    // Load through the same resettable module boundary as the flavor-policy cases below.
     const { middleware } = await import("./middleware");
     makeRequest("/");
     const host = "dev.dose.wiki";
@@ -90,7 +87,6 @@ describe("middleware role policy adapter", () => {
 
   it("does not expose article revalidation on public builds or unlisted editor hosts", async () => {
     mocks.getToken.mockResolvedValue(null);
-    // Load through the same resettable module boundary as the flavor-policy cases below.
     const { middleware } = await import("./middleware");
     makePublicRequest("/");
     const publicResponse = await middleware(new NextRequest(
@@ -171,7 +167,6 @@ describe("middleware role policy adapter", () => {
     const response = await middleware(makeRequest("/dev"));
     const csp = response.headers.get("content-security-policy") ?? "";
 
-    // Match the middleware's resettable flavor-module boundary after its env setup.
     const { buildThemeBootstrapScript } = await import("@/theme");
     const { SITE_FLAVOR_CONFIGS } = await import("@/config/siteFlavor");
     const scriptHash = (script: string) =>
@@ -203,7 +198,6 @@ describe("middleware role policy adapter", () => {
     }
   });
 
-  // The shell, not the middleware, disables tabs above the member's role.
   it.each(["/dev/profile", "/dev/banners"])(
     "allows authenticated contributors into %s",
     async (path) => {
@@ -220,7 +214,6 @@ describe("middleware role policy adapter", () => {
     },
   );
 
-  // `viewer` is a legacy stored value, not a member role: it opens nothing, not even the profile.
   it.each([
     ["/dev", "%2Fdev"],
     ["/dev/profile", "%2Fdev%2Fprofile"],

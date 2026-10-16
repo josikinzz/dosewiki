@@ -65,11 +65,6 @@ const formatDate = (iso: string) =>
     day: "numeric",
   });
 
-/**
- * What a code created now would grant, in one sentence ("Creates a single-use
- * Editor invite that closes Jan 22, 2026."), or null for a value the route
- * refuses.
- */
 export function describeInviteTerms(
   role: InviteCodeRole,
   glossaryLocales: readonly string[],
@@ -100,27 +95,16 @@ const mergeUniqueInvites = (
   return merged;
 };
 
-/** A refused write under the freeze reads as the freeze, not as the route's own words. */
 const FROZEN_WRITE = "Writes are paused, so that was not saved.";
 const isFrozenMessage = (message: string) => /frozen|writes are paused/i.test(message);
 
 export type InviteCodesPanelProps = {
-  /** A note to start the form with (People's "Invite them instead"); a new token refills it. */
   prefillNote?: { text: string; token: number } | null;
-  /** Opens the member an address belongs to; returns false when there is none. */
   onOpenMember?: (email: string) => boolean;
-  /** A member's name for an address ("river", "you"); addresses show as they are without it. */
   nameOf?: (email: string) => string;
-  /** How many codes are open, once the first page loads (null while unknown). */
   onActiveCountChange?: (count: number | null) => void;
 };
 
-/**
- * People's Invites view: create a code on the left, see its plaintext exactly
- * once with a ready-to-paste message, and manage the codes already issued on
- * the right. History loads one page at a time on request. Self-contained: it
- * loads its own data from `/api/dev/invites`, so it mounts without props.
- */
 export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillNote, onOpenMember }: InviteCodesPanelProps = {}) {
   const [invites, setInvites] = useState<InviteCodeSummary[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -128,7 +112,6 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
   const [continuationCursor, setContinuationCursor] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const loadGeneration = useRef(0);
-  // Contributor until the admin ticks a role: an invite never grants more than was chosen.
   const [role, setRole] = useState<InviteCodeRole>("contributor");
   const [glossaryLocales, setGlossaryLocales] = useState<string[]>([]);
   const [note, setNote] = useState("");
@@ -152,7 +135,6 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
   const formHeadingId = useId();
   const nameFor = (email: string) => (nameOf ? nameOf(email) : email);
 
-  /** Loads the next page of history; the admin asks for each one. */
   const loadContinuation = useCallback(async function loadContinuation(
     cursor: string,
     generation: number,
@@ -217,13 +199,10 @@ export default function InviteCodesPanel({ nameOf, onActiveCountChange, prefillN
     noteRef.current?.focus({ preventScroll: true });
   }, [prefillNote]);
 
-  // The plaintext is shown once: bring it into view (phones stack the list under the form) and put focus on it.
   useEffect(() => {
     if (minted) revealRef.current?.focus({ preventScroll: false });
   }, [minted]);
 
-  // A Contributor code is the smallest grant and creates at once; anything
-  // above it asks first and names exactly what the code will create.
   const handleMint = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (role === "contributor") {

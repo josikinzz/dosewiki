@@ -7,30 +7,12 @@ import {
 import { ContentCard } from "@/components/ui/surface";
 import { icons } from "@/utils/iconNames";
 
-/**
- * Effect Index's documentation house style, transcribed from the old site's
- * `pages/documentation-style-guide.vue`. The homepage's intro copy links here as the
- * "consistent writing style" the Subjective Effect Index is written in.
- *
- * The old page was one flat run of `h3` + `ul`, and the transcription is verbatim —
- * including two things a reader may take for mistakes, because they are the original's:
- *
- *  - the last two bullets of "Rules of Thumb" are repeated word for word as the last two
- *    bullets of "Write about facts, note speculation"; and
- *  - "XYZ can creating the feeling that" is the original's own wording.
- *
- * Both are the site's own house style document describing its own rules, so silently
- * rewriting either would change what Effect Index says its rules are. They are left for the
- * site owner to edit as content.
- */
-
 type StyleGuideListItem =
   | string
   | { text: string; children: readonly string[] };
 
 type StyleGuideBody =
   | { kind: "list"; items: readonly StyleGuideListItem[] }
-  /** A sentence template the original presented in quotation marks. */
   | { kind: "template"; text: string }
   | {
       kind: "preferences";

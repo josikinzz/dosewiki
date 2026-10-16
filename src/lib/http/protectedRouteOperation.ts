@@ -22,10 +22,6 @@ type ProtectedRouteOperationContext = {
 };
 
 type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
-  /**
-   * Lowest role admitted. `contributor` is the floor for self-service routes
-   * that then check ownership; a banned account (role `viewer`) never passes.
-   */
   auth: RoleFloor;
   rateLimit: RateLimitPolicyName;
   body?: {
@@ -115,15 +111,8 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         return mapped;
       }
 
-      // A `PostgresError` is the write layer refusing on purpose, with text meant
-      // for whoever triggered the write: a stale value, a slug that is not
-      // there, a field nobody may edit. Collapsing those into the generic
-      // message leaves an editor unable to tell a mistake from an outage. Every
-      // other throw keeps falling through below.
       const rejection = dataRejectionResponse(error);
       if (rejection) {
-        // Still logged: an actionable rejection is also how a deployment drift
-        // or a client bug shows up, and the client only sees the sentence.
         console.warn(options.unexpectedErrorLabel, error);
         return rejection;
       }

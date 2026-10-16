@@ -615,7 +615,6 @@ export function buildWorkbenchPromotionPlan({
   });
 }
 
-/** The draft a workbench run directory holds for one slug, under DOSEWIKI_CITATION_WORKBENCH. */
 export function workbenchDraftPath(slug) {
   return resolve(resolveCitationWorkbenchRoot(), "runs", slug, "citation-draft.json");
 }

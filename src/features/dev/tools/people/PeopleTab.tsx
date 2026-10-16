@@ -1,24 +1,5 @@
 "use client";
 
-/**
- * People: `/dev/people` (and the retired `/dev/members`). Each account beside
- * its public contributor profile, so a person is managed in one place, plus
- * the invite codes that create accounts and the guide to what each role can
- * do. Three views under one heading: Members (a list and the open person's
- * pane), Invites, and Roles. All three stay mounted, so switching views never
- * drops a staged permission change or a half-filled invite.
- *
- * The list pairs accounts with the profiles whose membership email is theirs
- * and flags what does not pair: an account with no profile, a profile nobody
- * signs in to, a link to an email with no account. Every account write and
- * every link change confirms first. Picking another person replaces the
- * loaded profile and any staged permissions, so it asks the shell's
- * unsaved-work dialog first, the same one the rail uses.
- *
- * Contributors keeps the profile directory for editors and each member's own
- * profile; this tab is admin-only because accounts are.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -84,16 +65,12 @@ const SHORTCUTS = [
 const FROZEN_LINK = "Writes are paused, so the link did not change.";
 
 export type PeopleTabProps = {
-  /** The shared contributor directory, fetched by the dev shell. */
   profiles: readonly NormalizedUserProfile[];
   isDirectoryLoading: boolean;
-  /** The signed-in admin's own contributor key. */
   sessionProfileKey: string;
-  /** `/dev/people/<email or profile key>`: the person the tab opens on. */
   initialPerson?: string;
 };
 
-/** `#invites` and `#roles` open those views; anything else opens Members. */
 function sectionFromHash(): PeopleSection {
   if (typeof window === "undefined") return "members";
   const hash = window.location.hash.replace(/^#/, "");
@@ -131,7 +108,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
     void load();
   }, [load]);
 
-  // The view in the address: `#invites` from Home lands on the codes.
   useEffect(() => {
     setSection(sectionFromHash());
     const onHash = () => setSection(sectionFromHash());
@@ -151,24 +127,18 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
   const counts = useMemo(() => countPeople(people), [people]);
   const known = data !== null && directoryReady && !loadError;
 
-  // The first person lands once, on the first list that holds them: the
-  // linked one for `/dev/people/<slug>`, otherwise the first account.
   const landedRef = useRef(false);
   useEffect(() => {
     if (landedRef.current || !data || !directoryReady) return;
     landedRef.current = true;
     const linked = initialPerson ? findPersonBySlug(people, initialPerson) : undefined;
     if (linked && !linked.account) setView("all");
-    // Phones show the list as the whole view until a person is picked; a wide
-    // screen opens the first account that has something to manage.
     const wide = typeof window.matchMedia !== "function" || window.matchMedia("(min-width: 1024px)").matches;
     const first = people.find((person) => person.account && !memberRowLock(person.account, data.self)) ?? people[0];
     setSelectedId((linked ?? (wide ? first : undefined))?.id ?? null);
-    // A deep link on a phone scrolls the person in, as a tap would.
     if (linked) setTappedId(linked.id);
   }, [data, directoryReady, initialPerson, people]);
 
-  // The address follows the open person, so a reload or a pasted link opens them again.
   useEffect(() => {
     if (!landedRef.current) return;
     const slug = selected ? (selected.account?.email ?? selected.profileKey ?? "") : "";
@@ -229,7 +199,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
     listRef.current?.querySelector<HTMLElement>('[role="listbox"]')?.focus({ preventScroll: true });
   };
 
-  // `j` and `k` walk the list, `/` goes to the search; never while typing or with a dialog open.
   useDevShortcuts(SHORTCUTS, section === "members" && known);
   const moveRef = useRef(move);
   moveRef.current = move;
@@ -274,8 +243,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
       try {
         await setProfileAccount(key, email);
         await load();
-        // Linking moves the profile under its account; unlinking leaves the
-        // account where it was, or the profile on its own.
         setSelectedId(email ? accountPersonId(email) : person.account ? person.id : profilePersonId(key));
         retryDetail();
         setLinkNotice({
@@ -309,7 +276,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
     );
   };
 
-  // Counts ride on the tabs as numbers; the sr-only words say what they count.
   const tabOptions = [
     {
       value: "members",
@@ -440,7 +406,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
             >
               {selected && data ? (
                 <PersonPane
-                  // A new person starts with a clean picker and permission draft.
                   key={selected.id}
                   person={selected}
                   people={people}
@@ -487,7 +452,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
                   const person = people.find((entry) => entry.account?.email === email.trim().toLowerCase());
                   if (!person) return false;
                   changeSection("members");
-                  // A person the current view or search hides comes back into the list with them.
                   if (!visible.some((entry) => entry.id === person.id)) {
                     setSearch("");
                     setView("all");
@@ -523,10 +487,6 @@ export function PeopleTab({ profiles, isDirectoryLoading, sessionProfileKey, ini
   );
 }
 
-/**
- * Two lines at one pitch for the windowed list: the name (and "you") with the
- * role, then what the person needs, or where their profile or sign-in is.
- */
 function PersonRow({ person, active, self, dirty }: { person: Person; active: boolean; self: string; dirty: boolean }) {
   const isSelf = person.account !== null && person.account.email === self.trim().toLowerCase();
   return (
@@ -571,11 +531,6 @@ function PersonRow({ person, active, self, dirty }: { person: Person; active: bo
   );
 }
 
-/**
- * Accounts, Needs a link, Everyone: three pressed-state choices in one
- * capsule that always fits the list column, each with its count (omitted while
- * unknown, never shown as zero).
- */
 function ViewChoices({
   value,
   onChange,
@@ -617,7 +572,6 @@ function ViewChoices({
   );
 }
 
-/** What the pane says on desktop before anyone is open (or while the list loads). Hidden on phones. */
 function IdlePane({ loading }: { loading: boolean }) {
   return (
     <EditorPanel variant="subtle" className="space-y-3 px-5 py-6" aria-busy={loading || undefined}>

@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * Admin only: hand a published report to a member by its address. The one
- * place the owner route has a form; the portal's editor stays untouched.
- * Handing over edit rights to a live page asks first, and the result shows
- * under the button that caused it.
- */
-
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";

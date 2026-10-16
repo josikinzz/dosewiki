@@ -43,16 +43,8 @@ export const get = query({
   },
 });
 
-/**
- * The signed-in member's own saved article drafts and open proposals, for the
- * `/dev` Home. Scoped to the resolved actor's membership email, never to a
- * caller-supplied address, and to that actor even for an admin: this is "my
- * work", not the review queue. A discarded draft keeps its row for the version
- * counter but holds no article, so it is not listed.
- */
 export async function mineHandler(ctx: QueryCtx, args: { apiKey?: string; actorEmail?: string }) {
   if (!args.actorEmail?.trim()) {
-    // A server-key call that names nobody acts as the system, which drafts nothing.
     throw new PostgresError({ code: "ACTOR_REQUIRED", message: "A signed-in member is required to list their drafts and proposals." });
   }
   const actor = await requireRole(ctx, { ...args, adminIntent: "editorArticleWrite" }, "editor");
@@ -79,7 +71,6 @@ const writeArgs = {
   ...authArgs, action: actionValidator, slug: v.string(), baseHash: v.string(), changeId: v.string(),
   article: v.optional(substanceArticleLightValidator), summary: v.optional(v.string()),
   revisionId: v.optional(v.id("articleRevisions")), revisionOf: v.optional(v.id("changeProposals")), draftVersion: v.optional(v.number()),
-  // The reader feedback a submitted correction answers: its id and section, nothing more.
   feedbackRef: v.optional(v.object({ id: v.string(), section: v.optional(v.string()) })),
 };
 type WriteArgs = {
@@ -89,11 +80,6 @@ type WriteArgs = {
   feedbackRef?: FeedbackRef;
 };
 
-/**
- * The feedback reference a submission carries, checked against the article:
- * the feedback must exist and report on this slug, and the section must be one
- * the in-page editor names. Only the id and section travel on.
- */
 async function checkedFeedbackRef(ctx: MutationCtx, ref: FeedbackRef | undefined, slug: string): Promise<FeedbackRef | undefined> {
   if (!ref) return undefined;
   const feedback = await ctx.db.query("articleFeedback").withIndex("by_public_id", (q) => q.eq("id", ref.id)).first();
@@ -136,8 +122,6 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     result = { discarded: true, draft: null, draftVersion, baseHash, changeId: args.changeId };
   } else if (args.action === "saveDraft") {
     checkDraftVersion();
-    // A stale public baseline may still be saved privately; it cannot be submitted
-    // or published until explicitly reconciled. Saving never rebases it silently.
     const article = validateArticleChange(before, args.article, false);
     const version = (draft?.version ?? 0) + 1;
     const document = { slug: args.slug, ownerEmail: actor.email, article, baseHash: args.baseHash, version, updatedAt: new Date().toISOString(), ...(args.revisionOf ? { revisionOf: args.revisionOf } : {}) };
@@ -157,7 +141,6 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     }
     const article = validateArticleChange(before, proposed, true, args.action === "restore");
     if (contentHash(article) === contentHash(before)) throw new PostgresError({ code: "ARTICLE_UNCHANGED", message: "No article content changed." });
-    // A restore undoes history; it never answers reader feedback.
     const feedbackRef = args.action === "restore" ? undefined : await checkedFeedbackRef(ctx, args.feedbackRef, args.slug);
     if (args.action === "submit") {
       const proposal = await submitHandler(ctx, {
@@ -166,24 +149,19 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
         ...(args.revisionOf ? { revisionOf: args.revisionOf } : {}),
         ...(feedbackRef ? { feedbackRef } : {}),
       });
-      // The feedback records the proposal it led to; its status and triage stay the admin's.
       if (feedbackRef) {
         await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "proposal", id: proposal.proposalId } });
       }
       result = { ...proposal, status: "submitted", changeId: args.changeId, baseHash };
     } else {
-      // Changed units replace exactly; unrelated sections never enter the patch.
-      // Reference metadata is not merged over the correction or guarded inverse.
       result = await commitArticleChange(ctx, {
         row, before, after: article, actor, changeId: args.changeId, baseHash, summary,
         ...(args.action === "restore" ? { restoredFrom: args.revisionId } : {}),
       });
-      // An admin who publishes the correction directly links the revision it made.
       if (feedbackRef) {
         await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "revision", id: String(result.revisionId) } });
       }
     }
-    // Never erase a newer draft saved by a concurrent tab.
     let draftVersion = draft?.version ?? 0;
     if (draft?.article && args.draftVersion === draft.version) {
       draftVersion += 1;
@@ -197,9 +175,6 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
 }
 export const write = mutation({ args: writeArgs, handler: writeHandler });
 
-/** Deployment-owned, cursor-bounded producer for pre-contextual proposals.
- * Never called by reader/editor page requests; run explicitly during rollout.
- */
 export const backfillArticleProposalTargets = internalMutation({
   args: { cursor: v.optional(v.union(v.string(), v.null())) },
   handler: async (ctx, args) => {

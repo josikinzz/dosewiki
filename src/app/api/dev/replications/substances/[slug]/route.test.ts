@@ -41,7 +41,6 @@ function saveRequest(body: unknown, slug = "lsd") {
 }
 
 beforeEach(() => {
-  // The publish spy lives outside the route harness and accumulates across cases.
   vi.clearAllMocks();
   resetRouteMocks("admin", { email: "admin@example.com", name: "Admin" });
   vi.spyOn(console, "warn").mockImplementation(() => {});

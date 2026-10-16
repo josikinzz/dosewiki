@@ -40,9 +40,6 @@ export type ArticleCitationModel = {
   readonly numberedReferencesById: ReadonlyMap<string, Readonly<NumberedReference>>;
 };
 
-// Article objects are immutable revision snapshots, including editor previews.
-// Weak ownership keeps server requests and discarded previews collectible, while
-// every fragment in the same render environment shares the complete numbering.
 const articleCitationModels = new WeakMap<SubstanceArticle, ArticleCitationModel>();
 
 export function getArticleCitationModel(article: SubstanceArticle): ArticleCitationModel {

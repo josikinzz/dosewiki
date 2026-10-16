@@ -38,7 +38,6 @@ export const proseLinkStory: StoryDef = {
       label: "Token on an existing anchor",
       note: "Use proseLinkClassName when the <a>/<Link> already exists.",
       render: () => (
-        // The story demonstrates the class on a plain anchor, so it keeps one on purpose.
         // eslint-disable-next-line @next/next/no-html-link-for-pages
         <a href="/docs/code" target="_top" className={proseLinkClassName}>
           Read the architecture overview

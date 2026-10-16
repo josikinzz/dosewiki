@@ -5,19 +5,8 @@ import {
   type CopyBlockKind,
 } from "@/data/content/copyBlocks";
 
-/**
- * Pure state for the Copy Studio: how a stored row, a local default, and the
- * editor's draft are reconciled into one editable block.
- *
- * Kept free of React so the reconciliation (which decides what "changed",
- * what "reset" means, and which placeholders a draft carries) is testable
- * without rendering the tab.
- */
-
-/** Mirrors the About editor's placeholder syntax: `{{ someKey }}`. */
 const PLACEHOLDER_PATTERN = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
 
-/** A stored `copyBlocks` row, as the Postgres query returns it. */
 export type CopyBlockRow = {
   key: string;
   flavor?: string;
@@ -31,18 +20,14 @@ export type CopyBlockRow = {
   revision?: number;
 };
 
-/** One block as the studio presents it: default, stored row, and draft in one. */
 export type CopyStudioBlock = {
   key: string;
   flavor?: string;
   kind: CopyBlockKind;
   label: string;
   group: string;
-  /** The published value: the stored row when there is one, else the default. */
   current: { body: string; items: string[] };
-  /** The checked-in fallback, and the target of "reset to default". */
   fallback: { body: string; items: string[] } | null;
-  /** Where `current` came from. A "default" block has never been saved. */
   source: "data" | "default";
   updatedAt?: string;
   updatedBy?: string;
@@ -76,13 +61,6 @@ function fromDefinition(definition: CopyBlockDefinition): CopyStudioBlock {
   };
 }
 
-/**
- * Layers the stored rows over the checked-in defaults.
- *
- * A key present in both is one block whose `current` is the stored value and
- * whose `fallback` is the default. A stored key with no default still appears,
- * since a block added straight in Postgres is editable, but has no reset target.
- */
 export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudioBlock[] {
   const byKey = new Map<string, CopyStudioBlock>(
     COPY_BLOCK_DEFAULTS.map((definition) => [definition.key, fromDefinition(definition)]),
@@ -93,9 +71,6 @@ export function buildCopyStudioBlocks(rows: readonly CopyBlockRow[]): CopyStudio
     byKey.set(row.key, {
       key: row.key,
       flavor: row.flavor ?? definition?.flavor,
-      // The checked-in definition owns the renderer contract. A stored row
-      // contributes content, but cannot pin a block to an obsolete kind after
-      // code migrates it from plain text to Markdown.
       kind: definition?.kind ?? row.kind,
       label: row.label,
       group: row.group,
@@ -114,12 +89,6 @@ export type CopyStudioGroup = { group: string; blocks: CopyStudioBlock[] };
 
 export type CopyStudioSection = { section: string; groups: CopyStudioGroup[] };
 
-/**
- * Rail groups in default order, with the blocks belonging to each. A flavored
- * block (`footer-tagline-effect-index`) is listed straight after the block it
- * rewords (`footer-tagline`) when both sit in the group, so the two wordings
- * read as a pair instead of landing rows apart.
- */
 export function groupCopyStudioBlocks(blocks: readonly CopyStudioBlock[]): CopyStudioGroup[] {
   const groups: CopyStudioGroup[] = [];
 
@@ -135,7 +104,6 @@ export function groupCopyStudioBlocks(blocks: readonly CopyStudioBlock[]): CopyS
   return groups.map((entry) => ({ group: entry.group, blocks: pairFlavoredBlocks(entry.blocks) }));
 }
 
-/** The key a flavored block rewords: `footer-tagline-effect-index` rewords `footer-tagline`. */
 export function copyBlockBaseKey(block: Pick<CopyStudioBlock, "key" | "flavor">): string | null {
   if (!block.flavor) return null;
   const suffix = `-${block.flavor}`;
@@ -153,10 +121,6 @@ function pairFlavoredBlocks(blocks: readonly CopyStudioBlock[]): CopyStudioBlock
   return blocks.flatMap((block) => (paired.has(block.key) ? [] : [block, ...(twins.get(block.key) ?? [])]));
 }
 
-/**
- * The other wording of the same words: the Effect Index twin of a dose.wiki
- * block, or the dose.wiki block a flavored one rewords. Null when there is none.
- */
 export function copyBlockTwin(
   block: Pick<CopyStudioBlock, "key" | "flavor">,
   blocks: readonly CopyStudioBlock[],
@@ -166,11 +130,6 @@ export function copyBlockTwin(
   return blocks.find((entry) => entry.flavor && copyBlockBaseKey(entry) === block.key) ?? null;
 }
 
-/**
- * The tier above the rail groups, so the group chips never wrap: an editor
- * picks the part of the site first and then one of that part's few groups.
- * A group no section claims is listed under "Other" rather than dropped.
- */
 const COPY_STUDIO_SECTIONS: readonly { section: string; groups: readonly string[] }[] = [
   {
     section: "Site",
@@ -193,7 +152,6 @@ const COPY_STUDIO_SECTIONS: readonly { section: string; groups: readonly string[
   { section: "SEO", groups: ["SEO"] },
 ];
 
-/** Sections in display order, each holding only the groups that have blocks. */
 export function sectionCopyStudioGroups(groups: readonly CopyStudioGroup[]): CopyStudioSection[] {
   const claimed = new Set<string>();
   const sections: CopyStudioSection[] = [];
@@ -216,13 +174,6 @@ export function sectionCopyStudioGroups(groups: readonly CopyStudioGroup[]): Cop
   return sections;
 }
 
-/**
- * The blocks whose key, label or published text contains `query`,
- * case-insensitively, so an editor can find a typo by the words they saw on
- * the page. Key and label matches come first, then text matches, each in
- * catalogue order. A blank query matches nothing: the rail shows the active
- * group instead, so the search never has to enumerate all 400-odd blocks.
- */
 export function filterCopyStudioBlocks(
   blocks: readonly CopyStudioBlock[],
   query: string,
@@ -241,11 +192,6 @@ export function filterCopyStudioBlocks(
   return [...byName, ...byText];
 }
 
-/**
- * Where `query` matched a block: its key or label, the words it shows, or,
- * for a stored block the compact catalogue lists without its text, the
- * checked-in default it started from. Null when it does not match.
- */
 export type CopySearchMatch = "name" | "text" | "default";
 
 export function copySearchMatch(block: CopyStudioBlock, query: string): CopySearchMatch | null {
@@ -261,18 +207,6 @@ export function copySearchMatch(block: CopyStudioBlock, query: string): CopySear
   return null;
 }
 
-/**
- * Publication label for a flavored block.
- *
- * A flavor row is just a key: `footer-tagline-effect-index` sits in the same
- * "Footer" group as dose.wiki's `footer-tagline`, which is what makes the pair
- * comparable, so the studio has to say out loud which publication a row is
- * rendered on. Only the flavored rows carry a label; an unflavored row is the
- * default publication's and needs no badge.
- *
- * The keys match `copyBlocks.json`'s `flavor` field, which is the key suffix
- * (`effect-index`), not the `SiteFlavor` id (`effectindex`).
- */
 const COPY_FLAVOR_LABELS: Record<string, string> = {
   "effect-index": "Effect Index",
 };
@@ -288,7 +222,6 @@ export function draftFromBlock(block: CopyStudioBlock): CopyStudioDraft {
   return { body: block.current.body, items: [...block.current.items] };
 }
 
-/** List drafts drop blank trailing rows so an empty editor row is not a change. */
 function normalizeItems(items: readonly string[]): string[] {
   return items.map((item) => item.trim()).filter((item) => item.length > 0);
 }
@@ -303,7 +236,6 @@ export function isDraftDirty(block: CopyStudioBlock, draft: CopyStudioDraft): bo
   return draft.body !== block.current.body;
 }
 
-/** True when the block has a checked-in default that differs from the draft. */
 export function canResetToDefault(block: CopyStudioBlock, draft: CopyStudioDraft): boolean {
   if (!block.fallback) {
     return false;
@@ -318,7 +250,6 @@ export function canResetToDefault(block: CopyStudioBlock, draft: CopyStudioDraft
   return draft.body !== block.fallback.body;
 }
 
-/** Text used for the diff well and the markdown preview. */
 export function draftToText(kind: CopyBlockKind, draft: CopyStudioDraft): string {
   return kind === "list"
     ? draft.items.map((item) => `- ${item}`).join("\n")
@@ -331,11 +262,6 @@ export function blockCurrentText(block: CopyStudioBlock): string {
 
 export type PlaceholderCount = { name: string; count: number };
 
-/**
- * The placeholders a draft carries, with how many times each appears. Shown
- * live while typing so an editor can see at a glance that they have not dropped
- * (or doubled) an interpolated value the page supplies.
- */
 export function countPlaceholders(value: string): PlaceholderCount[] {
   const counts = new Map<string, number>();
 
@@ -349,11 +275,6 @@ export function countPlaceholders(value: string): PlaceholderCount[] {
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
-/**
- * Substitutes placeholder values for the preview only. Mirrors
- * `resolveAboutPlaceholders`: an unknown placeholder is left visible rather
- * than blanked, so a typo in a placeholder name shows up in the preview.
- */
 export function resolveCopyPlaceholders(
   value: string,
   placeholderValues: Record<string, string>,
@@ -367,12 +288,6 @@ export function resolveCopyPlaceholders(
   });
 }
 
-/**
- * Stand-in values for the preview. These are illustrative only (the real
- * numbers are supplied by whichever page reads the block), but a preview that
- * renders "{{effectCount}} effect descriptions" reads as broken prose, so the
- * studio shows a plausible figure instead.
- */
 export const COPY_PREVIEW_PLACEHOLDER_VALUES: Record<string, string> = {
   effectCount: "244",
   substanceCount: "312",
@@ -384,11 +299,6 @@ export const COPY_PREVIEW_PLACEHOLDER_VALUES: Record<string, string> = {
   discordInvite: "https://discord.gg/example",
 };
 
-/**
- * What a draft does to the placeholders the published text relies on: names
- * the draft dropped (the page will stop filling them in) and names it added
- * that the published text never used (the page may print them as typed).
- */
 export function placeholderChanges(published: string, draft: string): { removed: string[]; added: string[] } {
   const before = new Set(countPlaceholders(published).map((entry) => entry.name));
   const after = new Set(countPlaceholders(draft).map((entry) => entry.name));
@@ -398,19 +308,16 @@ export function placeholderChanges(published: string, draft: string): { removed:
   };
 }
 
-/** The sections a block list is split into, with how many blocks each holds. */
 export function countSectionBlocks(section: CopyStudioSection): number {
   return section.groups.reduce((total, group) => total + group.blocks.length, 0);
 }
 
-/** One line on what is stored for a block, for the pane header and the default wording block. */
 export function describeCopySource(block: Pick<CopyStudioBlock, "source" | "fallback">): string {
   if (block.source === "default") return "Shows its checked-in default. Nothing is stored for it.";
   if (!block.fallback) return "Stored copy with no checked-in default, so there is nothing to go back to.";
   return "Shows stored copy. Its checked-in default is kept to go back to.";
 }
 
-/** The part of a `GET /api/dev/proposals` row Copy reads. */
 export type CopyProposalRow = {
   _id: string;
   proposerName?: string;
@@ -422,11 +329,6 @@ export type CopyProposalRow = {
 
 export type OpenCopyProposal = { id: string; mine: boolean; by: string };
 
-/**
- * The copy blocks an open proposal (submitted, or sent back for changes)
- * would change, keyed by block, newest proposal first. An editor's list holds
- * only their own proposals; an admin's holds everyone's.
- */
 export function openCopyProposals(rows: readonly CopyProposalRow[]): Map<string, OpenCopyProposal> {
   const open = new Map<string, OpenCopyProposal>();
   [...rows]
@@ -441,7 +343,6 @@ export function openCopyProposals(rows: readonly CopyProposalRow[]): Map<string,
   return open;
 }
 
-/** Text a search result or a browser tab cuts short: SEO titles and descriptions. */
 export function copyLengthGuide(block: Pick<CopyStudioBlock, "key" | "group" | "kind">): { target: number; where: string } | undefined {
   if (block.group !== "SEO" || block.kind === "list") return undefined;
   return /title/.test(block.key)

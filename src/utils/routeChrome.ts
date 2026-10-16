@@ -10,7 +10,6 @@ import type {
 } from "@/types/navigation";
 import { parsePath, viewToPath } from "./routing";
 
-/** English pass-through for callers with no locale in hand (tests, the footer's default model). */
 const IDENTITY_TRANSLATE: Translate = (text, values) => formatMessage(text, values);
 
 const DEFAULT_VIEW: AppView = { type: "home" };
@@ -104,13 +103,6 @@ function getRouteChromeActiveGroup(view: AppView): RouteChromeNavGroup {
   }
 }
 
-/**
- * Every navigation destination either flavor can offer, keyed by the id the Site Flavor
- * Config orders. The config owns *which* items appear, in *what order*, what this flavor
- * calls them and what hangs underneath them (`navMenus`); this registry owns what each one
- * is. `about` is looked up by its literal id in the header, so that id is load-bearing
- * beyond the ordered lists.
- */
 const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">> = {
   substances: {
     id: "substances",
@@ -155,7 +147,6 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
   },
 };
 
-/** Stable, readable child key, e.g. `project-github`. Used as the React key and in tests. */
 function navChildId(parentId: SiteNavId, label: string): string {
   const slug = label
     .toLowerCase()
@@ -165,17 +156,6 @@ function navChildId(parentId: SiteNavId, label: string): string {
   return `${parentId}-${slug}`;
 }
 
-/**
- * The dropdown for one item, or `undefined` when there is nothing worth opening. Returning
- * `undefined` rather than `[]` keeps a flat flavor's items shaped exactly as they were
- * before submenus existed, so the header renders the same plain link it always did.
- *
- * A submenu whose only child leads to the item's own destination is dropped too. Effect
- * Index's `reports` menu is exactly that — the original site's data gave Trip Reports a
- * single self-referential child — and offering a disclosure control that reveals one link
- * back to where the label already goes is a control that does nothing. The flavor keeps
- * declaring the child, faithful to the original; this is where it stops being a menu.
- */
 function buildSubmenu(
   id: SiteNavId,
   href: string,
@@ -212,8 +192,6 @@ function navItem(
 
   return {
     ...item,
-    // A rename applies to both surfaces: the mobile sheet must not keep calling Effect
-    // Index's Project umbrella "About".
     label: menu?.label ?? item.label,
     mobileLabel: menu?.label ?? item.mobileLabel,
     active: item.group === activeGroup,

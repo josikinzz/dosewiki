@@ -5,20 +5,6 @@ import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { quietLinkClassName } from "@/components/common/ProseLink";
 
-/**
- * The quiet roadmap note that the Subjective Effect Index is being replaced.
- *
- * One copy of the markup for its two homes: under the title on the Subjective
- * Effect Index page and at the top of every substance article's Subjective
- * Effects section. Deliberately not the red `BetaDisclaimer` register: that
- * colour says "may be wrong", this says "will be rebuilt", and on an article it
- * sits next to the amber stub panel, so a third loud tone would stack warnings.
- *
- * Only the lab name links out, to mindstate.design; the sentence carries the
- * whole message on its own.
- */
-// The caption link treatment, shared with the guide line beside a substance's
-// effects so the two quiet captions never drift apart.
 const linkClassName = cn(quietLinkClassName, "whitespace-nowrap");
 
 export function SEIRoadmapNotice({
@@ -26,12 +12,9 @@ export function SEIRoadmapNotice({
   shimmer = false,
 }: {
   className?: string;
-  /** The Substance Index-style sweep. On for the SEI page, off on articles. */
   shimmer?: boolean;
 }) {
   const t = useT();
-  // One sentence, one key: the lab name is a link, so the translated sentence
-  // is split around its placeholder rather than assembled from fragments.
   const [beforeLab, afterLab] = t(
     "Legacy content. A statistically backed ontology from {{lab}} is coming soon.",
   ).split("{{lab}}");

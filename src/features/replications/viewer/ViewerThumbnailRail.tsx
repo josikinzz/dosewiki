@@ -17,13 +17,6 @@ import { useT } from "@/i18n/client";
 import { RotatingIcon } from "./RotatingIcon";
 import { type ReplicationViewerMediaItem } from "./viewerModel";
 
-/**
- * The rail renders a window, not the corpus: a 300-work group would otherwise
- * mount 300 optimized images into a 19,000px strip nobody scrolls end to end.
- * Slot geometry is deterministic (fixed thumb + fixed gap per breakpoint), so
- * skipped runs collapse into exact-width spacers and the scrollbar, snap
- * offsets, and scrollIntoView targets stay truthful to the full strip.
- */
 const OVERSCAN = 8;
 const GAP_PX = 8;
 const THUMB_PX = { base: 48, sm: 56 } as const;
@@ -43,11 +36,6 @@ interface Span {
   end: number;
 }
 
-/**
- * Clamps candidate index spans to the corpus and merges overlapping or
- * adjacent ones into sorted disjoint runs — each run renders contiguously,
- * each gap between runs becomes one spacer.
- */
 function mergeSpans(spans: Span[], lastIndex: number): Span[] {
   const clamped = spans
     .map((span) => ({
@@ -80,9 +68,6 @@ export function ViewerThumbnailRail({
   const t = useT();
   const listRef = useRef<HTMLUListElement | null>(null);
 
-  // Slot width is breakpoint-dependent (size-12 sm:size-14), read once from
-  // the same media query Tailwind's `sm:` compiles to rather than measured
-  // per item.
   const [smUp, setSmUp] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -113,7 +98,6 @@ export function ViewerThumbnailRail({
     measure();
   }, [measure, smUp, items.length]);
 
-  // Scroll storms are collapsed to one measurement per frame.
   const scrollFrame = useRef<number | null>(null);
   const handleScroll = useCallback(() => {
     if (scrollFrame.current !== null) return;
@@ -130,9 +114,6 @@ export function ViewerThumbnailRail({
     [],
   );
 
-  // A thumb the user tabbed onto must survive the window sliding away from
-  // it, or focus silently falls to <body> mid-traversal: the focused index
-  // joins the union below for as long as focus stays inside the list.
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const handleFocus = useCallback((event: FocusEvent<HTMLUListElement>) => {
     const indexed = (event.target as HTMLElement).closest<HTMLElement>(
@@ -147,8 +128,6 @@ export function ViewerThumbnailRail({
     setFocusedIndex(null);
   }, []);
 
-  // Keep the active work visible in the rail as navigation moves. The span
-  // union already guarantees the selected thumb is mounted this render.
   useEffect(() => {
     const selected = listRef.current?.querySelector<HTMLElement>(
       '[aria-current="true"]',
@@ -189,7 +168,6 @@ export function ViewerThumbnailRail({
         aria-hidden
         data-rail-spacer=""
         className="shrink-0"
-        // N skipped slots minus the one flex gap the spacer itself absorbs.
         style={{ width: skipped * slotWidth - GAP_PX }}
       />,
     );
@@ -200,7 +178,6 @@ export function ViewerThumbnailRail({
       const item = items[itemIndex];
       const selected = itemIndex === selectedIndex;
       const gifLike = item.replication.format.toLowerCase() === "gif";
-      // A clip is not a picture: its own URL in an <img> is a broken tile.
       const isAudio = item.replication.type === "audio";
       const thumb = isAudio
         ? null
@@ -282,16 +259,10 @@ export function ViewerThumbnailRail({
       inert={chromeHidden || undefined}
       aria-hidden={chromeHidden || undefined}
       className={cn(
-        // Landscape phones surrender too much height to a browse strip the
-        // swipe grammar already covers: the rail stands down and the work
-        // keeps the screen.
         "theme-media-thumbnail-border absolute inset-x-0 bottom-0 z-10 bg-black/75 px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] transition-opacity duration-200 motion-reduce:transition-none sm:px-5 sm:py-2 [@media(max-height:500px)]:hidden",
         chromeHidden && "opacity-0",
       )}
     >
-      {/* Focus/blur bubble up from the thumb buttons; the list itself is
-          never interactive — the listeners only track which thumb owns
-          focus so the render window can keep it mounted. */}
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <ul
         ref={listRef}

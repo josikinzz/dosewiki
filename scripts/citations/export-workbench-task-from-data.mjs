@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Export a live Postgres article into the external citation workbench task shape.
-// The citable article surface is marker-stripped so Claude can cite from a clean
-// draft while the apply path can still prove the underlying live prose matches.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -225,9 +222,6 @@ function buildTask(article, slug, options) {
       exportedAt: new Date().toISOString(),
       researchPass: sectionScope?.researchBrief ? "second" : "initial",
     },
-    // Top-level live-research permission read by the Pi run manifest; mirrors
-    // instructions.allowLiveWebResearch so scoped rollout workers may inspect
-    // non-wiki sources behind discovery candidates.
     allowLiveWebResearch: true,
     ...(sectionScope
       ? {

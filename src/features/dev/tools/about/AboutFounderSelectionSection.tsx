@@ -13,7 +13,6 @@ import { AboutPaneSection, ChangedMark } from "./AboutPaneSection";
 
 type AboutFounderSelectionSectionProps = {
   availableProfiles: NormalizedUserProfile[];
-  /** The founders as they currently stand, in display order. */
   selectedFounders: NormalizedUserProfile[];
   onToggleFounderKey: (key: string) => void;
   onResetFounderKeys: () => void;
@@ -24,12 +23,6 @@ type AboutFounderSelectionSectionProps = {
   isLoadingProfiles?: boolean;
 };
 
-/**
- * The founders shown on the public About page: the chosen profiles, each
- * drawn with the avatar readers see and its own Remove, and one type-ahead
- * picker to add another. The contributor directory runs to thousands of
- * profiles, so nothing here lists it; the picker searches it.
- */
 export function AboutFounderSelectionSection({
   availableProfiles,
   selectedFounders,

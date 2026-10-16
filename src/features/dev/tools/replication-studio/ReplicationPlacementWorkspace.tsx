@@ -12,12 +12,6 @@ import { ReplicationAssociationsPanel } from "./ReplicationAssociationsPanel";
 import { ReplicationThumb } from "./ReplicationThumb";
 import type { StudioRow } from "./replicationStudioModel";
 
-/**
- * Showcases, read from the other side: one replication and every drug
- * article it can appear on. Direct placement and per-article eligibility
- * live here rather than in the Library inspector, so the Library stays a
- * metadata tool with one Save.
- */
 export function ReplicationPlacementWorkspace({
   row,
   rows,

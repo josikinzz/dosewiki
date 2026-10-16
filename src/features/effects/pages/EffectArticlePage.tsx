@@ -36,9 +36,7 @@ interface EffectArticlePageProps {
   linkableSubstanceSlugs: readonly string[];
   linkableEffectSlugs: readonly string[];
   contributorDirectory?: ContributorDirectory;
-  /** Credit-line destinations for replication images embedded in the body. */
   artistCreditLinks?: ArtistCreditLinks;
-  /** Reuse article content inside an editor without a full-page shell or TOC. */
   embedded?: boolean;
   t?: Translate;
   sectionOverrides?: Partial<Record<EffectArticleModel["sections"][number]["kind"], ReactNode>>;
@@ -122,11 +120,6 @@ export function EffectCommentaryAttribution({
   );
 }
 
-/**
- * Full effect article page.
- *
- * Displays a subjective effect article with all sections from EffectIndex.
- */
 export function EffectArticlePage({
   article,
   replicationsSection,
@@ -157,21 +150,12 @@ export function EffectArticlePage({
     tocItems.length > 1 ? <PublicTableOfContents items={tocItems} variant="bare" /> : null
   );
 
-  /**
-   * One id assigner for the whole article, so subsection headings are
-   * deep-linkable (`#style-variations-2`-safe) across every section's own
-   * renderer instance. Section wrapper ids are reserved up front: a body
-   * heading titled like its section gets a suffix instead of a duplicate id.
-   */
   const assignHeadingId = createVCodeHeadingIdAssigner(
     article.sections.map((section) => section.id),
   );
 
   const content = (
     <>
-        {/* Mobile/tablet TOC: sticky chip strip above the title, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         {!embedded && tocNode ? (tocStrip ?? <PublicTocStrip items={tocItems} />) : null}
 
         <div className="flex items-center gap-3">
@@ -201,8 +185,6 @@ export function EffectArticlePage({
                       assignHeadingId={assignHeadingId}
                     />
                   </div>
-                  {/* The scale grades this whole family of effects. A guide to
-                      one substance belongs on that substance's page, not here. */}
                   {article.hero.guideClass ? (
                     <GuideLinkLine
                       className="mt-5"
@@ -235,10 +217,6 @@ export function EffectArticlePage({
                   heading={t(section.title)}
                   spacing="effect"
                 >
-                  {/* The streamed server section normally replaces this whole
-                      branch. Without it the section keeps its heading and
-                      spacing but stages nothing — the same footprint the
-                      empty client gallery used to leave. */}
                   <div className="mt-6" />
                 </ArticleSection>
               );
@@ -270,9 +248,6 @@ export function EffectArticlePage({
                   spacing="effect"
                 >
 
-                  {/* Speech bubble: quiet chrome aside, not a content card.
-                      Top-level quote chrome is unwrapped at the model level,
-                      so the bubble is the only surface. */}
                   <div className="mt-6">
                     <CommentaryBubble>
                       <div

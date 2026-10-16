@@ -8,16 +8,9 @@ import { localeForPathname } from "@/i18n/messages";
 import { getInitialAppearance } from "@/theme";
 import { RouteErrorPage } from "./RouteErrorPage";
 
-// The Chinese catalog stays out of the English reader's bundle, as in `DocumentRuntime`.
 const ChineseMessagesProvider = dynamic(() => import("@/i18n/ChineseMessagesProvider"));
 const initialAppearance = getInitialAppearance();
 
-/**
- * The document `global-error.tsx` renders in place of the failed root layout,
- * so it owns `<html>`, `<body>`, and the message context. The segments the
- * locale hook normally reads belong to the layout that failed, so the pathname
- * decides the locale here.
- */
 export function GlobalErrorDocument({
   error,
   reset,

@@ -1,31 +1,3 @@
-/**
- * The public exports are backend-independent.
- *
- *   bun scripts/postgres/rehearse-exports.ts --target postgres://localhost:5432/dosewiki [--allow-remote]
- *
- * Drives the two export paths against Postgres and proves what the routes
- * cannot prove for themselves outside `next start`:
- *
- *   1. static: every open-data and /api/v1 route, and lib/open-data/datasets.ts,
- *      reads through the public read layer (`@server/data/publicData*`), never
- *      through a browser database client or a backend env var;
- *   2. script export (scripts/data-ops/export-data-to-json.mjs): draining
- *      `substanceIndex:getFullDocumentPage` through scripts/lib/data-pagination.mjs
- *      terminates on opaque runtime cursors, strips `_id` / `_creationTime`,
- *      and sorts by numeric id; two runs order the shared rows identically;
- *   3. open-data documents (SubstanceIndex, EffectIndex, TripReports): built
- *      by the real `buildOpenDataDocument` from an uncached adapter
- *      (`createDataPublicDataReadAdapter(queryData)`; the cached adapter
- *      needs Next's `unstable_cache`), the items carry the license envelope,
- *      no document bookkeeping, none of the private table fields, and two
- *      builds order the shared rows identically.
- *
- * Reads only; nothing is written to the database. Sibling rehearsals may add
- * or delete scratch rows between the two runs, so determinism is judged on
- * the rows present in both runs. Report:
- * runs/postgres-import/<timestamp>-exports/report.json.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,13 +24,6 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
   console.log(`${pass ? "ok  " : "FAIL"} ${scenario}: ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-/**
- * Field names from the privacy classes in inventory/tables.md: private-personal
- * (contact_email, ip_hash, user_agent, subscriber email, owner_email,
- * ownerEmail), credential (passwordHash, resetTokenHash, codeHash), and the
- * staff stamps the datasets strip on purpose (editorial_review, section_gaps,
- * attribution_review, membershipEmail, staffNote, reviewer_email, actorEmail).
- */
 const PRIVATE_FIELD_PATTERN = /^(?:contact_email|ip_hash|user_agent|owner_email|ownerEmail|email|passwordHash|resetTokenHash|codeHash|editorial_review|section_gaps|attribution_review|membershipEmail|staffNote|reviewer_email|actorEmail|_id|_creationTime)$/;
 
 function findPrivateFields(value: unknown, pathPrefix = "", found: string[] = []): string[] {
@@ -84,7 +49,6 @@ function walk(dir: string, out: string[] = []): string[] {
 
 const PUBLIC_READ_LAYER = /@server\/data\/publicData|@server\/open-data\/datasets|@server\/reagentData/;
 const DIRECT_BACKEND_ACCESS = /process\.env\.[A-Z_]*POSTGRES[A-Z_]*|DATA_BACKEND/;
-/** Routes that serve static API metadata and read no data at all. */
 const METADATA_ROUTES = ["src/app/api/v1/meta/route.ts", "src/app/api/v1/openapi.json/route.ts"];
 
 function resolveServerImport(specifier: string): string | null {
@@ -101,8 +65,6 @@ function staticBoundary(): void {
     .filter(({ source }) => DIRECT_BACKEND_ACCESS.test(source))
     .map(({ file }) => file);
   expect("static", `${routes.length} export routes and the dataset module never touch a backend client or env var`, routes.length > 0 && offenders.length === 0, offenders);
-  // A route reads through the public read layer directly, or through one
-  // `@server/*` helper (lib/public-api/*) that does. Anything else is unclassified.
   const unclassified = routes
     .map((file) => path.relative(ROOT, file))
     .filter((file) => !METADATA_ROUTES.includes(file))
@@ -130,7 +92,6 @@ async function scriptExport(client: DataClient): Promise<Record<string, unknown>
   expect("script-export", "drain terminated on isDone after several opaque cursors", pages.length >= 2 && pages[pages.length - 1].isDone && pages.slice(0, -1).every((page) => typeof page.continueCursor === "string" && page.continueCursor.length > 0), { pages: pages.length });
   expect("script-export", "every cursor is distinct (no stall)", new Set(pages.slice(0, -1).map((page) => page.continueCursor)).size === pages.length - 1);
   expect("script-export", "page sizes respect the 32 clamp", pages.every((page) => page.page.length <= 32));
-  // Exactly what scripts/data-ops/export-data-to-json.mjs does before writing.
   const cleaned = articles.map(({ _id, _creationTime, ...article }) => article);
   cleaned.sort((a, b) => {
     const idA = typeof a.id === "number" ? a.id : null;
@@ -175,8 +136,6 @@ async function main() {
   const started = performance.now();
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-exports`);
   const created = createDataClient({ env: { ...process.env, DATA_BACKEND: "postgres" }, argv });
-  // The public read layer resolves its backend from the process env, so pin
-  // the same target the factory chose: the app reads POSTGRES_POOLED_URL.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = created.target;
   expect("setup", "factory selected the Postgres backend", created.backend === "postgres", created.fingerprint);
@@ -193,8 +152,6 @@ async function main() {
 
     const adapter = createDataPublicDataReadAdapter(queryData);
     const loaders: Record<OpenDataDataset["name"], () => Promise<readonly unknown[]>> = {
-      // The synthetic fixture mints +/-Infinity ids, which JSON renders as null;
-      // production ids are finite, so drop that fixture noise before the ordering check.
       SubstanceIndex: async () =>
         (await adapter.getPublicFullSubstanceDocuments()).filter((document) =>
           document.priority !== "low" && document.priority !== "hide_for_now" && (document.id == null || Number.isFinite(document.id))),

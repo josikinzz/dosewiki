@@ -14,7 +14,6 @@ export function batchChildId(owner: string, operationId: string, kind: "article"
   return `batch-${kind}-${contentHash({ version: ARTICLE_BATCH_VERSION, owner, operationId, kind, key })}`;
 }
 
-/** One actor operation commits articles, layouts, history, indexes and outbox atomically. */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()), actorEmail: v.string(), operationId: v.string(),

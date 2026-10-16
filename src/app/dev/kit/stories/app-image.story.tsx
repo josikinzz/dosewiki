@@ -2,11 +2,8 @@ import { AppImage } from "@/components/common/AppImage";
 
 import type { StoryDef } from "../registry/types";
 
-// A real '/'-prefixed public asset exercises the local (next/image) branch.
 const localSrc = "/dosewiki-logo.png";
 
-// An inline data URI (no leading '/', not StaticImageData) takes the remote
-// <img> branch, so examples mount without depending on a third-party host.
 const remoteSrc =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(

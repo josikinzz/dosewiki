@@ -12,7 +12,6 @@ interface HeroSectionProps {
   chemistryPresentation?: ArticleChemistryPresentation;
   moleculeAsset?: MoleculeAsset;
   moleculeAssets?: MoleculeAsset[];
-  /** Pre-rendered summary content for server article routes. */
   summaryContent?: ReactNode;
   onSelectCategory?: (categoryKey: string) => void;
   onSelectClassification?: (
@@ -21,11 +20,9 @@ interface HeroSectionProps {
   ) => void;
   linkableCategoryKeys?: readonly string[];
   showPreviewBadge?: boolean;
-  /** Forwarded to `HeroSectionView`. */
   nameRowAction?: ReactNode;
 }
 
-/** Server-compatible projection boundary around the interactive hero layout. */
 export const HeroSection = memo(function HeroSection({
   article,
   chemistryPresentation: providedChemistryPresentation,

@@ -1,13 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/gloss  { term, gloss }
- *
- * Editor and up: a gloss is English taxonomy content, so translators read
- * it and editors write it. One definition per term, shared by every locale.
- * The term's kind (and stored spelling) comes from its existing gloss row,
- * else from the known-term set (the site's term universe plus every term a
- * locale's glossary already holds); anything else is refused, since a gloss
- * for a term no prompt injects would never be read.
- */
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";

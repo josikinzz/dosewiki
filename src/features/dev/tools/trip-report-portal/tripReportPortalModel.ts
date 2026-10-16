@@ -1,16 +1,3 @@
-/**
- * View model for the Trip Report Portal (`/dev` → Trip reports).
- *
- * The tool it replaces indexed only the intake queue, which made the published
- * corpus invisible from the editor surface that is supposed to own it. This
- * module is the "one corpus, two origins" decision in code: a published
- * `tripReports` row and a `tripReportSubmissions` row become the same
- * `PortalRow`, differing in status and in what may be done to them, so browsing,
- * faceting, and grouping never have to ask which table a report came from.
- *
- * Everything here is pure. The tab owns fetching and React state; this owns what
- * the editor sees.
- */
 import {
   INTAKE_STATUS_LABEL,
   TRIP_REPORT_INTAKE_STATUS,
@@ -31,24 +18,14 @@ type TripReportSubmissionStatus =
   | "spam"
   | "exported";
 
-/**
- * Submission states that are waiting on an admin. The badge on the dev tab and
- * the "Needs review" bucket are the same question, so they read the same list.
- * Accepted counts: it is not live until an admin publishes it.
- */
 export const NEEDS_REVIEW_SUBMISSION_STATUSES = ["submitted", "reviewing", "accepted"] as const;
 
-/** A name the byline picker can offer, and the key that attributes it. */
 export type PortalContributorOption = { key: string; displayName: string };
 
 export type PortalBucket = "needs" | "published" | "all";
 
 export type PortalStatusKind = "needs" | "published" | "accepted" | "rejected";
 
-/**
- * `waiting` puts the row that entered the system first on top (the queue's
- * fair order); `newest` and `oldest` read the trip date when there is one.
- */
 export type PortalSort = "waiting" | "newest" | "oldest" | "title";
 
 export const PORTAL_SORT_LABELS: Record<PortalSort, string> = {
@@ -77,7 +54,6 @@ export const PORTAL_FACET_LABELS: Record<PortalFacetKind, string> = {
   tag: "Tags",
 };
 
-/** The order a bucket opens in: the queue waits longest first, the corpus newest first. */
 export function defaultSortFor(bucket: PortalBucket): PortalSort {
   return bucket === "needs" ? "waiting" : "newest";
 }
@@ -90,20 +66,11 @@ export type PortalFacets = Record<PortalFacetKind, string[]>;
 
 export const EMPTY_PORTAL_FACETS: PortalFacets = { substance: [], author: [], tag: [] };
 
-/**
- * The byline facts an index row carries.
- *
- * A published row's index projection and a queued submission both stop here: the
- * rest of a subject (age, setting, medications…) belongs to the editor form,
- * which reads it from the report body fetched on selection.
- */
 type PortalSubjectSummary = { name: string; trip_date?: string };
 
 export type PortalRow = {
-  /** Postgres document id for a published report, public submission id otherwise. */
   id: string;
   origin: "published" | "submission";
-  /** Stable key for grouping; a submission has no public URL of its own. */
   slug: string;
   publicSlug: string | null;
   title: string;
@@ -112,25 +79,16 @@ export type PortalRow = {
   substances: TripReportEditableSubstance[];
   tags: string[];
   status: TripReportSubmissionStatus | "published";
-  /** Which bucket logic the row follows (Needs review, Published, other). */
   statusKind: PortalStatusKind;
-  /** The status word the list shows, shared with every intake queue. */
   intakeStatus: IntakeStatus;
-  /** Trip date when known, else the date the row entered the system. */
   sortDate: string;
-  /** When the row entered the system: received for a submission, published for a report (ISO). */
   receivedAt: string;
-  /**
-   * Editable slice. Null on a submission, and null on a published row until the
-   * body has been fetched for the open editor — the index never carries it.
-   */
   fields: TripReportEditableFields | null;
   profileKey: string | null;
   license: string | null;
   attributionReviewed: boolean;
 };
 
-/** The row's status in the shared intake words (docs/glossary.md, Intake Status). */
 export function portalStatusLabel(row: Pick<PortalRow, "intakeStatus">): string {
   return INTAKE_STATUS_LABEL[row.intakeStatus];
 }
@@ -144,7 +102,6 @@ function statusKindOf(status: PortalRow["status"]): PortalStatusKind {
     return "published";
   }
 
-  // Accepted waits in Needs review too, but reads as its own step: publish, not decide.
   if (status === "accepted") {
     return "accepted";
   }
@@ -152,11 +109,6 @@ function statusKindOf(status: PortalRow["status"]): PortalStatusKind {
   return isNeedsReviewStatus(status) ? "needs" : "rejected";
 }
 
-/**
- * The index projection `getPortalRows` returns: everything the list, the search,
- * the facets and the stats read, and nothing else. The report body is fetched
- * separately when a row is opened.
- */
 export type PublishedReportPayload = {
   id: string;
   slug: string;
@@ -211,8 +163,6 @@ export function toPortalRowFromSubmission(submission: SubmissionRowPayload): Por
   return {
     id: submission.id,
     origin: "submission",
-    // Namespaced so a submission can never collide with a published slug in a
-    // selection key or a group bucket.
     slug: `submission:${submission.id}`,
     publicSlug: null,
     title: submission.title,
@@ -242,15 +192,6 @@ function isoDate(timestamp: number): string {
   return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }
 
-/**
- * Buckets, not a status dropdown.
- *
- * Editors think in "what needs me" / "what's live" / "everything". The six
- * submission states still exist underneath: an accepted-but-unpublished row
- * still needs an admin to publish it, so it sits in Needs review; a rejected
- * or spam row falls outside the first two buckets and is only reachable from
- * "All", which is the honest place for it.
- */
 export function bucketOf(row: PortalRow): PortalBucket | "other" {
   if (row.statusKind === "needs" || row.statusKind === "accepted") {
     return "needs";
@@ -304,10 +245,6 @@ export function activeFacetCount(facets: PortalFacets): number {
 
 export type PortalFacetEntry = { value: string; count: number };
 
-/**
- * Facet counts are computed over the corpus, not over the filtered list, so
- * ticking one substance does not make every other substance read as empty.
- */
 export function countFacet(rows: readonly PortalRow[], kind: PortalFacetKind): PortalFacetEntry[] {
   const counts = new Map<string, number>();
 
@@ -383,13 +320,6 @@ const GROUP_BY_TO_VIEW_MODE: Partial<Record<PortalGroupBy, ReportViewMode>> = {
   author: "author",
 };
 
-/**
- * Grouping defers to `groupTripReports`, the engine the public reports index
- * already uses, so the portal buckets combinations and orders substance groups
- * the same way the public surface does. Only the ordering *inside* each group is
- * overridden: that engine sorts by title, and the portal has its own sort
- * control the editor expects to be obeyed.
- */
 export function groupPortalRows(
   rows: readonly PortalRow[],
   groupBy: PortalGroupBy,
@@ -444,10 +374,6 @@ export function portalStats(rows: readonly PortalRow[]): PortalStats {
   return { reports: rows.length, authors: authors.size, substances: substances.size };
 }
 
-/**
- * How many rows each bucket would show for this search and these facets, so
- * an empty list can say where the matches are ("Found under Published (2)").
- */
 export function bucketMatchCounts(
   rows: readonly PortalRow[],
   request: Omit<PortalQuery, "bucket" | "sort">,
@@ -460,7 +386,6 @@ export function bucketMatchCounts(
   };
 }
 
-/** Why a bucket is empty and what to offer: a search or filter elsewhere, or a truly clear queue. */
 export type PortalEmpty =
   | { kind: "filtered"; message: string; found: { bucket: PortalBucket; count: number }[] }
   | { kind: "bucket"; message: string; elsewhere: number }

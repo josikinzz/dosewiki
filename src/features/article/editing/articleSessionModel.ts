@@ -1,19 +1,8 @@
-/**
- * Words the article editor's save dock and review confirm say about a
- * session: which sections changed, which of those changes touch dosage,
- * duration or interactions (read before anything goes out), how a refused
- * write reads, and the one phrase for where the draft stands.
- */
 import type { ArticleFieldChange } from "../../../../lib/proposals/articlePatch";
 import { sectionLabel } from "./changeNote";
 
 export type LifecycleAction = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
 
-/**
- * Why a lifecycle write did not land, when the client can tell: the write
- * freeze (503 `DATA_WRITES_FROZEN`), a revision or draft version conflict
- * (409 `ARTICLE_CONFLICT`), a refusal with its own words, or a lost answer.
- */
 export type LifecycleFailureKind = "frozen" | "conflict" | "refused" | "unconfirmed";
 export type LifecycleFailure = { kind: LifecycleFailureKind; action: LifecycleAction; message: string };
 
@@ -32,7 +21,6 @@ const ACTION_OUTCOME: Record<LifecycleAction, string> = {
   restore: "the revision was not restored",
 };
 
-/** The sentence a refused write shows in the dock. */
 export function describeLifecycleFailure(failure: LifecycleFailure): string {
   if (failure.kind === "frozen") {
     return `Writes are paused, so ${ACTION_OUTCOME[failure.action]}. Your edits stay here.`;
@@ -46,7 +34,6 @@ export function describeLifecycleFailure(failure: LifecycleFailure): string {
   return failure.message;
 }
 
-/** The sections a set of field changes touches, in the order they first appear. */
 export function changedSections(changes: readonly ArticleFieldChange[]): string[] {
   const labels: string[] = [];
   for (const change of changes) {
@@ -61,27 +48,22 @@ function joinWords(words: readonly string[]): string {
   return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
 }
 
-/** "You changed Dosage and duration and Interactions." */
 export function describeChangedSections(changes: readonly ArticleFieldChange[]): string {
   const sections = changedSections(changes);
   if (sections.length === 0) return "Nothing changed.";
   return `You changed ${joinWords(sections)}.`;
 }
 
-/** Heads whose values a reader doses by or combines by. */
 const SAFETY_HEADS = new Set(["dosage", "duration", "interactions"]);
 
-/** The changes to doses, durations and interactions, which the confirm shows before and after. */
 export function safetyChanges(changes: readonly ArticleFieldChange[]): ArticleFieldChange[] {
   return changes.filter((change) => SAFETY_HEADS.has(change.path.split(/[.[ ]/, 1)[0]));
 }
 
-/** "3 changes", "1 change". */
 export function countChanges(count: number): string {
   return count === 1 ? "1 change" : `${count} changes`;
 }
 
-/** The one phrase beside the dock's buttons. */
 export function describeDraftState({ busy, localDirty, hasDraft, changeCount }: {
   busy: string | null; localDirty: boolean; hasDraft: boolean; changeCount: number;
 }): { text: string; unsaved: boolean } {
@@ -91,7 +73,6 @@ export function describeDraftState({ busy, localDirty, hasDraft, changeCount }: 
   return { text: changeCount > 0 ? `${countChanges(changeCount)} not live yet` : "No changes yet", unsaved: false };
 }
 
-/** The pending line while a write runs. */
 export const PENDING_WORDS: Record<LifecycleAction, string> = {
   saveDraft: "Saving your draft",
   discardDraft: "Discarding your saved draft",

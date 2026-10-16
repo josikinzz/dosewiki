@@ -23,7 +23,6 @@ interface ReagentSectionProps {
   externalReagentData?: NormalizedReagentData | null;
 }
 
-/** Server-compatible projection boundary around the expand/fallback controllers. */
 export const ReagentSection = memo(function ReagentSection({
   article,
   chemistryPresentation: providedChemistryPresentation,

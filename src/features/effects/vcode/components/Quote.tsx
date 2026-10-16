@@ -5,11 +5,6 @@ interface QuoteProps {
   source?: string;
 }
 
-/**
- * Block quote with author attribution.
- * 
- * Used for personal commentary and external quotes.
- */
 export function Quote({ 
   author, 
   source, 

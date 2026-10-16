@@ -1,44 +1,4 @@
 #!/usr/bin/env node
-/**
- * Apply a reviewed set of Contributor Profile patches, and nothing else.
- *
- * The patches are human decisions (an approval, an alias fold, a display-name
- * correction), so this script never derives them: a reviewed plan file lists
- * each profile key with the patch to send and the live values the plan was
- * built against. Writes go through `contributorProfiles.saveProfileAsEditor`,
- * whose patch leaves every omitted field exactly as stored, unlike
- * `bulkImport`, which clears whatever the caller does not carry forward.
- *
- * The whole plan is checked before anything is written: a profile whose
- * `expected` fields moved since review fails the run closed, so a plan is
- * either applied against the state it was reviewed on or not at all. A
- * profile whose patch already matches the live row is reported as settled and
- * skipped.
- *
- * Plan file shape (`runs/contributor-profile-patches/<date>-<name>.json`):
- *   {
- *     "patches": [
- *       {
- *         "key": "LOKA",
- *         "why": "...",
- *         "expected": { "displayName": "Loka", "aliases": [...], "links": [...], "approved_replicator": false },
- *         "patch": { "aliases": [...], "links": [...], "approved_replicator": true }
- *       }
- *     ]
- *   }
- * `expected` may name any of displayName, aliases, links, approved_replicator,
- * exclude_from_gallery, archival; `patch` is the editor patch body.
- *
- * Dry run (default) prints every profile's current and proposed values:
- *   node scripts/contributors/apply-profile-patches.mjs \
- *     --plan=runs/contributor-profile-patches/2026-09-02-approved-replicators.json
- *
- * Apply:
- *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   bun scripts/contributors/apply-profile-patches.mjs --plan=<file> --write \
- *     --confirm-write=apply-contributor-profile-patches \
- *     --expected-deployment=localhost/dosewiki
- */
 import fs from "node:fs";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -62,7 +22,6 @@ const EXPECTABLE_FIELDS = new Set([
   "archival",
 ]);
 
-/** The public projection's view of one field, shaped so plans can compare it. */
 function liveField(profile, field) {
   switch (field) {
     case "aliases":
@@ -72,8 +31,6 @@ function liveField(profile, field) {
     case "approved_replicator":
     case "exclude_from_gallery":
     case "archival":
-      // A deployment predating the flag reads back no key at all; that is the
-      // "false" default, not drift.
       return profile[field] === true;
     default:
       return profile[field];
@@ -88,12 +45,6 @@ function same(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-/**
- * Whether the live row already reads as the patch asks. Aliases are a
- * superset check: the editor patch folds the key and display name back into
- * whatever list it is sent, so the stored list can legitimately be wider than
- * the plan's.
- */
 function satisfied(profile, field, value) {
   if (!EXPECTABLE_FIELDS.has(field)) return false;
   if (field === "aliases") {
@@ -126,11 +77,6 @@ export function loadPlan(filePath) {
   return plan.patches.map((entry) => ({ ...entry, key: entry.key.trim().toUpperCase() }));
 }
 
-/**
- * Each entry's disposition against the live profiles: `missing` (no such
- * profile), `drifted` (an expected field moved, with the pair that differs),
- * `settled` (every patched field already reads back as planned), or `update`.
- */
 export function planProfilePatches(entries, profilesByKey) {
   return entries.map((entry) => {
     const profile = profilesByKey.get(entry.key) ?? null;
@@ -218,9 +164,6 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const { client: writeClient, fingerprint } = createDataClient({ target: command.targetUrl });
 
-  // The plan was checked against `readUrl`; check it once more against the
-  // write target, immediately before writing, so a profile edited in between
-  // still fails closed.
   const liveProfiles = new Map(await Promise.all(entries.map(async (entry) => [
     entry.key,
     await writeClient.query(api.contributorProfiles.getEditorProfile, { apiKey, key: entry.key }),

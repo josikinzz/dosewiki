@@ -10,14 +10,9 @@ type ExpandButtonVariant =
   | "count"
   | "chip"
   | "card"
-  /** Faint resting tint that fills with the frosted control on hover/focus.
-   *  For tertiary inline expanders that should not out-shout body copy. */
   | "faint"
-  /** @deprecated Use floating. */
   | "pill"
-  /** @deprecated Use inline for badge/value-row affordances or card for contained card controls. */
   | "compact"
-  /** @deprecated Use chip. */
   | "badge";
 
 interface ExpandButtonProps {
@@ -26,7 +21,6 @@ interface ExpandButtonProps {
   className?: string;
   variant?: ExpandButtonVariant;
   count?: number;
-  /** When provided, shows a descriptive label instead of the ellipsis icon */
   label?: string;
   children?: ReactNode;
   ariaLabel?: string;
@@ -35,8 +29,6 @@ interface ExpandButtonProps {
 
 type CanonicalExpandButtonVariant = Exclude<ExpandButtonVariant, "pill" | "compact" | "badge">;
 
-// The chip variant shares PublicNameChip's 28px chip geometry, so an expander
-// sitting in a row of name chips lines up with them.
 const CANONICAL_VARIANT_CLASSES = {
   floating:
     "theme-control-pill inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs",
@@ -59,8 +51,6 @@ const BUTTON_VARIANT_CLASSES = {
   badge: CANONICAL_VARIANT_CLASSES.chip,
 } as const satisfies Record<ExpandButtonVariant, string>;
 
-// Pill-shaped controls carry 14px glyphs; the chip and the in-row inline
-// indicator carry 12px ones, sized against their text-xs label.
 const CANONICAL_ICON_SIZES = {
   floating: 14,
   inline: 12,
@@ -86,7 +76,6 @@ export function ExpandIndicator({
   isExpanded: boolean;
   className?: string;
   variant?: Extract<ExpandButtonVariant, "floating" | "inline" | "card" | "pill" | "compact">;
-  /** Glyph size in px; defaults to the variant's size. */
   iconSize?: number;
 }) {
   return (
@@ -123,8 +112,6 @@ export function ExpandButton({
   ariaLabel,
   ariaControls,
 }: ExpandButtonProps) {
-  // Always under a client boundary: `onToggle` is a function prop, which only
-  // a client component can supply, so the hook is safe without a directive.
   const t = useT();
   const iconSize = ICON_SIZES[variant];
 
@@ -137,9 +124,6 @@ export function ExpandButton({
       aria-label={ariaLabel ?? (isExpanded ? t("Collapse section") : t("Expand section"))}
       className={cn(
         "theme-focus-ring",
-        // The 44px touch floor lives in the invisible halo, never in the
-        // rendered box: a drawn 44px control turns a 24px chip into a lozenge
-        // and inflates any chip it nests inside.
         TOUCH_HALO,
         BUTTON_VARIANT_CLASSES[variant],
         className

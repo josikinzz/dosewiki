@@ -1,15 +1,3 @@
-/**
- * Inbox review notes kept in this browser until the decision they travel with.
- * A note is only written to the decision log when the reviewer resolves,
- * rejects or marks the item as spam, so a draft has nowhere on the server to
- * live. Keeping it here means switching tools, reloading or closing the tab
- * loses nothing, and the shell has no unsaved work to ask about.
- *
- * Keyed by the signed-in reviewer so a shared browser never shows one admin's
- * drafts to another. Storage failures (private mode, quota) fall back to
- * in-memory notes, which the shell then guards as unsaved work; they never
- * block a decision.
- */
 const STORAGE_PREFIX = "dosewiki:inbox-notes:v1:";
 
 export type InboxNotes = Record<string, string>;
@@ -32,7 +20,6 @@ export function readInboxNotes(actor: string | null): InboxNotes {
   }
 }
 
-/** Whether the notes are now kept. `false` means they live only in memory. */
 export function writeInboxNotes(actor: string | null, notes: InboxNotes): boolean {
   const key = storageKey(actor);
   if (!key || typeof window === "undefined") return false;

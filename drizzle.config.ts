@@ -1,8 +1,5 @@
 import { defineConfig } from "drizzle-kit";
 
-// Versioned SQL migrations are the only schema release path (dossier W2:
-// PlanetScale Postgres branches never merge schema automatically).
-// `generate` needs no database; `migrate` reads the direct (non-pooled) URL.
 export default defineConfig({
   dialect: "postgresql",
   schema: ["./lib/postgres/schema.generated.ts", "./lib/postgres/schema.runtime.ts"],

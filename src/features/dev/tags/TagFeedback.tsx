@@ -4,10 +4,6 @@ import { Notice } from "@/features/dev/components";
 
 import type { TagNoticeState, TagUndo } from "./types";
 
-/**
- * A tool notice. A success that can still be reversed carries its own Undo,
- * so the record of what changed and the way back sit together.
- */
 export function TagFeedback({
   notice,
   undo = null,

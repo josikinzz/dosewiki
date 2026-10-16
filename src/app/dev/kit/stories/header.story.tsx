@@ -7,9 +7,6 @@ import type {
 
 import type { StoryDef } from "../registry/types";
 
-// Inert navigation handler. The public route shell wires these to the App Router;
-// on the isolated dev page the header still mounts because its embedded GlobalSearch
-// is loaded via next/dynamic (ssr:false) and stays idle until focused with a query.
 const noopNavigate = (_view: AppView) => {};
 const homeView: AppView = { type: "home" };
 
@@ -24,7 +21,6 @@ function navItem(
   return { id, label, href, icon, group, active };
 }
 
-// Minimal mock of the chrome model the public layout normally derives server-side.
 function mockModel(activeId: string): RouteChromeModel {
   return {
     currentView: homeView,

@@ -1,8 +1,3 @@
-/**
- * Parser compatibility facade.
- * Re-exports the explicit contract, registry, and aggregation helpers.
- */
-
 export * from "./types";
 export * from "./contracts";
 export * from "./source-identity";

@@ -33,8 +33,6 @@ const rules = [
   [
     "CREDENTIAL_BEARING_URI",
     /(?:mongodb(?:\+srv)?|postgres(?:ql)?|mysql|redis):\/\/[^\s/:]+:([^\s/@]+)@([^\s/:?#]+)/i,
-    // Test fixtures point at RFC 2606 reserved names or the loopback host;
-    // nothing routable lives there, so such a URI carries no usable secret.
     (match) =>
       isRealCredentialCandidate(match[1]) &&
       !/^(?:localhost|127\.0\.0\.1|\[::1\]|example|(?:[^\s]*\.)?(?:example|test|invalid|localhost))$/i.test(match[2]),

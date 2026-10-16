@@ -8,12 +8,9 @@ import {
 
 type DevModeCommitPanelProps = {
   notice: DevCommitNotice | null;
-  /** Where the primary action sends the draft; the card's title and copy follow it. */
   destination: DevCommitDestination;
   actionSlot?: ReactNode;
-  /** Tab-specific panel copy; falls back to the neutral DevCommitCard default. */
   description?: ReactNode;
-  /** The returned proposal the draft revises, when the working set was seeded from one. */
   rebase?: DevCommitRebase | null;
   onDismissNotice?: () => void;
 };

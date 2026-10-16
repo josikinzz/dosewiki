@@ -30,7 +30,6 @@ export type SectionFormHandle = { collect: () => Promise<SubstanceArticle> };
 
 export function ArticleSectionForm({ section, article, slug, form, handleRef, published = null }: {
   section: ArticleEditorSection; article: SubstanceArticle; slug: string;
-  /** The live article, so fields can say what readers see now. */
   published?: SubstanceArticle | null;
   form: UseArticleFormReturn;
   handleRef: React.RefObject<SectionFormHandle | null>;
@@ -43,8 +42,6 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef, pu
   const formElement = useRef<HTMLFormElement>(null);
   useEffect(() => {
     handleRef.current = { collect: async () => {
-      // Range editors retain unparseable text outside the normalized article.
-      // Commit the active field's blur before checking its native validity.
       const activeField = document.activeElement;
       if (activeField instanceof HTMLElement && formElement.current?.contains(activeField)) activeField.blur();
       const invalidField = formElement.current?.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input:invalid, textarea:invalid, select:invalid");
@@ -54,14 +51,11 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef, pu
         throw new Error(invalidField.validationMessage);
       }
       const values = methods.getValues();
-      // Only actual form changes become a patch; default fillers in unrelated
-      // sections never hitchhike on a one-section correction.
       const next = { ...article };
       const referencesChanged = JSON.stringify(values.references) !== JSON.stringify(initial.current.references);
       for (const key of Object.keys(values) as (keyof SubstanceArticle)[]) {
         if (key.startsWith("_") || key === "editorial_review") continue;
         const allowed = key === section || key === "references" || (section === "dosage" && key === "duration") || (section === "identification" && key === "title");
-        // Reference removal can clean markers across prose as one coherent edit.
         const citationCleanup = referencesChanged && JSON.stringify(values[key])?.replace(CITE_TOKEN_PATTERN, "") === JSON.stringify(initial.current[key])?.replace(CITE_TOKEN_PATTERN, "");
         if ((allowed || section === "references" || citationCleanup) && JSON.stringify(values[key]) !== JSON.stringify(initial.current[key])) {
           Object.assign(next, { [key]: values[key] });
@@ -74,7 +68,6 @@ export function ArticleSectionForm({ section, article, slug, form, handleRef, pu
       if (issues.length) throw new Error(issues.map(describeValidationIssue).join("\n"));
       return next;
     } };
-    // The account-bound parent owns the form, including while its UI is concealed.
   }, [article, section, methods, handleRef]);
   const prefix = `context-${section}`;
   const citationGuidanceId = `${prefix}-citation-guidance`;

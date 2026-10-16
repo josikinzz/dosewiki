@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed index layouts to Postgres.
- *
- * Reads the JSON files from data/substances/ and uploads them to the
- * indexLayouts table in Postgres.
- *
- * Usage:
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki node scripts/seed/seed-index-layouts.mjs --type psychoactive --dry-run
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
@@ -53,7 +44,6 @@ async function seedIndexLayouts() {
 
     const content = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-    // Transform to Postgres format (remove $schema, add type)
     const layout = {
       type,
       version: content.version || 1,

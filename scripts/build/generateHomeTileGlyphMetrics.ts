@@ -1,27 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Emit the ink framing for every homepage tile glyph.
- *
- * The tiles size their glyph as a share of the tile, but each icon collection
- * pads its glyph differently inside the nominal 24-unit box: Lucide strokes stay
- * two units in from the edge, Material Symbols leave more, Streamline's bold set
- * runs edge to edge. Sized by their boxes, the quick-link glyphs read at visibly
- * different weights. This script rasterises each one with resvg, scans the alpha
- * channel for the ink's bounding box, and records the correction the stylesheet
- * applies through custom properties on the tile (`homeTileGlyph.ts`):
- *
- *   scale  the SVG box enlargement that makes the ink's larger side, rather than
- *          the box, span the share `.theme-home-nav-svg` sets
- *   dx/dy  the translation, as a fraction of the SVG box, that centres the ink in
- *          the tile when a glyph sits off-centre in its own box
- *
- * Inputs are the quick-link icons every flavor declares (`buildHomeQuickLinks`),
- * resolved against the same `@iconify-json/*` packages the offline icon bundle
- * draws from, so the measurement sees exactly the markup the browser paints.
- *
- *   npm run generate:home-tile-glyphs            write the metrics
- *   npm run generate:home-tile-glyphs -- --check  fail if they are stale
- */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -35,9 +12,7 @@ import { SITE_FLAVOR_CONFIGS } from "../../src/config/siteFlavor";
 export const HOME_TILE_GLYPH_METRICS_PATH =
   "src/app/_components/homeTileGlyphMetrics.generated.json";
 
-/** Raster width in pixels; the ink box is read to within one of these. */
 const RASTER_WIDTH = 1024;
-/** Alpha below this is anti-aliasing fringe, not ink. */
 const INK_ALPHA = 8;
 const DECIMALS = 3;
 
@@ -61,8 +36,6 @@ function measure(name: string): GlyphMetrics {
     throw new Error(`${name} is not in @iconify-json/${prefix}; the home tiles must be bundled icons.`);
   }
 
-  // `iconToSVG` applies the icon's own rotation and flips, so the body and viewBox
-  // here are the ones `@iconify/react` renders.
   const { attributes, body } = iconToSVG(icon);
   const [vbLeft, vbTop, vbWidth, vbHeight] = attributes.viewBox.split(" ").map(Number);
   const width = RASTER_WIDTH;
@@ -88,8 +61,6 @@ function measure(name: string): GlyphMetrics {
     throw new Error(`${name} rendered no ink; its markup is not what this script expects.`);
   }
 
-  // Back to viewBox units. The browser fits the viewBox's longer side to the square
-  // SVG box, so that side is the unit every fraction below is expressed in.
   const unit = vbWidth / width;
   const inkLeft = vbLeft + minX * unit;
   const inkTop = vbTop + minY * unit;
@@ -106,8 +77,6 @@ function measure(name: string): GlyphMetrics {
   return { scale: round(1 / fill), dx: round(-offsetX), dy: round(-offsetY) };
 }
 
-// ---- Measure ---------------------------------------------------------------
-
 const names = [
   ...new Set(
     Object.values(SITE_FLAVOR_CONFIGS).flatMap((config) =>
@@ -121,8 +90,6 @@ for (const name of names) {
   metrics[name] = measure(name);
 }
 const output = `${JSON.stringify(metrics, null, 2)}\n`;
-
-// ---- Write / check ---------------------------------------------------------
 
 const checkOnly = argv.includes("--check");
 let current: string | null = null;

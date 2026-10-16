@@ -1,16 +1,9 @@
-/**
- * The reads the `/dev` Home makes beyond the rail's badge counts: the
- * member's own drafts and proposals, the review inbox total per language, and
- * the member's own profile. Each throws on failure so the card can say the
- * count is unknown instead of showing zero.
- */
 import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 
 export type MyDraft = { slug: string; title: string; updatedAt: string };
 
 export type MyWork = { drafts: MyDraft[]; proposals: ProposalSummary[] };
 
-/** The profile fields the checklist reads. */
 export type HomeProfile = {
   displayName: string;
   bio: string;
@@ -48,7 +41,6 @@ export async function fetchMyWork(): Promise<MyWork> {
   return { drafts: payload.drafts as MyDraft[], proposals: payload.proposals as ProposalSummary[] };
 }
 
-/** Everything in one language's review inbox, across every page. */
 export async function fetchLocaleInboxTotal(locale: string): Promise<number> {
   const payload = await requestRecord(
     `/api/dev/translation-inbox?locale=${encodeURIComponent(locale)}`,

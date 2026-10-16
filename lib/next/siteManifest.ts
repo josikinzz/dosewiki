@@ -1,10 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_FLAVOR_CONFIG, type SiteFlavorConfig } from "../../src/config/siteFlavor";
 
-/**
- * Flavor-aware web app manifest. Served by `src/app/manifest.ts` at the same
- * `/manifest.webmanifest` path the former static `public/` file used.
- */
 export function buildSiteManifest(
   config: SiteFlavorConfig = SITE_FLAVOR_CONFIG,
 ): MetadataRoute.Manifest {

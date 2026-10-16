@@ -6,25 +6,15 @@ import { cn } from "@/lib/utils";
 export type HeaderedTextboxPresentation = "card" | "section";
 
 interface HeaderedTextboxProps {
-  /** Anchor id when the box is a table-of-contents destination. */
   id?: string;
   label?: string;
   header?: string;
   labelBackground?: string;
   headerBackground?: string;
-  /** Narrative articles opt out of the intensity-card surface. */
   presentation?: HeaderedTextboxPresentation;
-  /** Section rank in the surrounding article; card presentation is unchanged. */
   headingLevel?: 2 | 3;
 }
 
-/**
- * Intensity level boxes for effect descriptions.
- * Used to describe different intensity levels (Mild, Distinct, Strong, etc.)
- *
- * Adapts EffectIndex's headered-textbox to DoseWiki's visual style.
- * Uses neutral card surface with color-coded accent dot + label.
- */
 export function HeaderedTextbox({
   id,
   label,
@@ -33,7 +23,6 @@ export function HeaderedTextbox({
   headingLevel = 3,
   children,
 }: PropsWithChildren<HeaderedTextboxProps>) {
-  // Map intensity levels to accent colors (dot + label text only)
   const getIntensityClasses = (level?: string): { text: string; dot: string } => {
     const normalized = level?.toLowerCase() || "";
 

@@ -1,8 +1,3 @@
-/**
- * Shared parser aggregation and output shaping utilities.
- * Keeps parser registry concerns separate from merge behavior.
- */
-
 import type { ParsedSubstanceData } from "./types";
 import type { ParsedOutputShape, ParsedSourceRecord } from "./contracts";
 import {

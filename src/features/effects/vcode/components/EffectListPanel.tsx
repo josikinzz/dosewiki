@@ -10,16 +10,6 @@ import { resolveEffectCategoryIcon } from "../../pages/effectsIndexConfig";
 import { countVCodePanelRows, type VCodePanelSection } from "../panelModel";
 import { resolveInternalHref } from "./IntLink";
 
-/**
- * The effect roundups inside Effect Index's intensity-scale articles, rendered
- * as the same index panel the Effect and Substance indexes use: icon tile,
- * title with a count, and one clickable row per effect.
- *
- * Sections exist because the DMT article groups each panel by how often the
- * effects in it occur, and each group's heading links to the frequency scale.
- */
-
-// Legacy panels used source filenames rather than category identifiers.
 const PANEL_CATEGORIES_BY_SOURCE_FILE: Record<string, string> = {
   "eye.svg": "visual",
   "user.svg": "cognitive",
@@ -46,12 +36,10 @@ export function resolveEffectListPanelIcon(title: string, sourceIcon?: string): 
 }
 
 interface EffectListPanelProps {
-  /** Anchor id when the panel title is a table-of-contents destination. */
   id?: string;
   title: string;
   sourceIcon?: string;
   sections: VCodePanelSection[];
-  /** Anchor id per section, in the same order, when its heading claimed one. */
   sectionIds?: (string | undefined)[];
 }
 
@@ -62,13 +50,9 @@ export function EffectListPanel({
   sections,
   sectionIds,
 }: EffectListPanelProps) {
-  // An unsectioned panel is one untitled section, so it needs no section chrome.
   const isSectioned = sections.some((section) => Boolean(section.title));
 
   return (
-    // `not-prose` because this renders inside an article's `prose` container,
-    // where Typography's own list and link rules would put markers and
-    // underlines back on rows the card styles itself.
     <div id={id} className={cn("not-prose", id && "scroll-mt-24")}>
       <IndexCard
         title={title}

@@ -1,34 +1,3 @@
-/**
- * Rehearsal: drive the Next route handlers and the publication cron
- * against Postgres.
- *
- *   bun scripts/postgres/rehearse-http-surface.ts --target <isolated-local-url>
- *
- * Imports `src/app/api/subscribe/route.ts` and
- * `src/app/api/cron/publication-delivery/route.ts` with DATA_BACKEND=postgres
- * and POSTGRES_POOLED_URL pointing at the target, invokes them as Next would,
- * and asserts on the rows they leave behind. Scratch rows carry the prefix
- * `t16-<random>` and are deleted in `finally`. The delivery cron claims every
- * due outbox row by design; rows it touched that this run did not create are
- * restored from a snapshot taken just before the call. No outbound delivery
- * happens: PUBLIC_CACHE_PUBLISH_TARGETS and _SECRET are cleared in this
- * process, so every receipt is "unconfigured". The report lands in
- * runs/postgres-import/<timestamp>-http-surface/report.json.
- *
- * Scenarios:
- *   1. subscribe: the four list identities land as four rows, each with the
- *      HMAC ip hash and never the raw IP.
- *   2. generic: duplicate and spam-shaped inputs answer the same 200 as a
- *      fresh subscribe; invalid input answers 400.
- *   3. origin: missing or unlisted origins are refused with 403; preflight
- *      from an allowed origin answers 204.
- *   4. cron: refuses missing authorization and retired backend configuration;
- *      Postgres claims the scratch outbox row and records its receipt.
- *   5. limiter: the per-IP bucket refuses after its burst, the global window
- *      refuses once spent and again inside the window, and the same limiter
- *      admits again once the window rolls over.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -82,7 +51,6 @@ function subscriberRows(pool: Pool, prefix: string): Promise<DataDocument[]> {
   return selectDocuments(pool, "mailingListSubscribers", { where: '"email" LIKE $1', params: [`${prefix}%`], orderBy: '"_creationTime"' });
 }
 
-/** The rows `publicationRecovery:claimDue` will take: the `by_due` index order, first 24. */
 function dueRows(pool: Pool, now: number): Promise<DataDocument[]> {
   return selectDocuments(pool, "publicCachePublications", {
     where: '"pending" = true AND "nextAttemptAt" <= $1',
@@ -95,16 +63,14 @@ function dueRows(pool: Pool, now: number): Promise<DataDocument[]> {
 async function main() {
   const argv = process.argv.slice(2);
   const target = resolveTarget(argv);
-  // Shared budgets cannot be reset or borrowed on a live target.
   guardTarget(target, false);
 
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   process.env.REPLICATION_MEDIA_BASE_URL = "https://media.rehearsal.invalid";
-  process.env.VERCEL = "1"; // The local Request fixture models Vercel's trusted ingress.
+  process.env.VERCEL = "1";
   delete process.env.MAILING_LIST_FORWARD_URL;
   process.env.MAILING_LIST_IP_HASH_SECRET ||= `t16-ip-secret-${mintDocumentId()}`;
-  // Isolated credentials exercise the same intent checks as a configured deployment.
   process.env.DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE = "t16-intake-token";
   process.env.DATA_ADMIN_KEY = "t16-admin-key";
   const cronSecret = `t16-cron-${mintDocumentId()}`;
@@ -126,14 +92,12 @@ async function main() {
     await pool.end();
     throw new Error("HTTP rehearsal requires an isolated database with no signup limiter state");
   }
-  // Pin the real database window away from rollover during the route scenarios.
   await pool.query(
     `INSERT INTO "subscribeRateLimitBuckets" ("name", "key", "value", "ts", "expires_at")
      SELECT 'subscribeGlobal', '', $1, floor(extract(epoch FROM clock_timestamp()) * 1000),
        floor(extract(epoch FROM clock_timestamp()) * 1000) + $2`,
     [SUBSCRIBE_RATE_LIMITS.subscribeGlobal.rate, SUBSCRIBE_RATE_LIMITS.subscribeGlobal.period],
   );
-  // Requests that reach the limiter (parse and origin passed) spend the global window.
   let globalSpent = 0;
   const limited = async (call: SubscribeCall) => {
     globalSpent += 1;
@@ -141,7 +105,6 @@ async function main() {
   };
 
   try {
-    // 1. subscribe: four list identities, four rows.
     const listIps: Record<string, string> = {};
     for (const list of LISTS) {
       const ip = freshIp();
@@ -156,7 +119,6 @@ async function main() {
     expect("subscribe", "ip_hash is the keyed sha256 of the client IP", rows.every((row) => row.ip_hash === hashClientIp(listIps[row.list as string], ipSecret) && String(row.ip_hash).startsWith("sha256:")));
     expect("subscribe", "no stored column contains the raw IP", rows.every((row) => !JSON.stringify(row).includes(listIps[row.list as string])));
 
-    // 2. generic: duplicate and spam-shaped inputs are indistinguishable from a fresh subscribe.
     const duplicate = await limited({ body: { email: `${prefix}-dosewiki@rehearsal.invalid`, list: "dosewiki", website: "" }, ip: freshIp() });
     expect("generic", "duplicate answers the same 200", duplicate.status === 200 && duplicate.text === '{"ok":true}', duplicate);
     expect("generic", "duplicate stores nothing", (await subscriberRows(pool, prefix)).length === 4);
@@ -174,7 +136,6 @@ async function main() {
     expect("generic", "malformed JSON answers 400", malformed.status === 400 && malformed.text === '{"ok":false}', malformed);
     expect("generic", "invalid inputs stored nothing", (await subscriberRows(pool, prefix)).length === 5);
 
-    // 3. origin: only explicitly allowed browser origins can submit.
     const noOrigin = await subscribe({ body: { email: `${prefix}-o@rehearsal.invalid`, list: "dosewiki", website: "" }, origin: null, ip: freshIp() });
     expect("origin", "missing Origin is refused with 403", noOrigin.status === 403 && noOrigin.text === "", noOrigin);
     const badOrigin = await subscribe({ body: { email: `${prefix}-o@rehearsal.invalid`, list: "dosewiki", website: "" }, origin: "https://evil.invalid", ip: freshIp() });
@@ -188,7 +149,6 @@ async function main() {
     const badPreflight = await subscribeOptions(new Request("https://dose.wiki/api/subscribe", { method: "OPTIONS", headers: { origin: "https://evil.invalid" } }));
     expect("origin", "preflight from an unlisted origin is refused with 403", badPreflight.status === 403);
 
-    // 4. cron: authorization and fail-closed backend selection.
     const unauthorized = await cron(null);
     expect("cron", "no bearer token answers 401", unauthorized.status === 401, await unauthorized.text());
     const wrongToken = await cron("Bearer nope");
@@ -215,7 +175,6 @@ async function main() {
       generation: 1,
       pending: true,
       committedAt: now,
-      // Sorts ahead of every fixture row except the synthetic -Infinity ones.
       nextAttemptAt: -1e15,
       attempts: 0,
       receipts: [],
@@ -230,7 +189,6 @@ async function main() {
     expect("cron", "scratch row attempts incremented by claimDue", after?.attempts === 1, after);
     expect("cron", "scratch row stays pending with an unconfigured receipt and a backoff", after?.pending === true && typeof after.nextAttemptAt === "number" && after.nextAttemptAt > now && receipts?.length === 1 && receipts[0]?.status === "unconfigured", after);
 
-    // Fixture rows the cron leased are put back exactly as they were.
     let restored = 0;
     for (const before of snapshot) {
       const [current] = await selectDocuments(pool, "publicCachePublications", { where: '"_id" = $1', params: [before._id] });
@@ -242,21 +200,19 @@ async function main() {
     }
     expect("cron", "leased fixture rows restored", restored <= snapshot.length, { restored, snapshotted: snapshot.length });
 
-    // 5. limiter: per-IP token bucket, then the global fixed window. Last, because it spends the window.
     const burstIp = freshIp();
     const burst: number[] = [];
     for (let index = 0; index < 4; index += 1) {
       burst.push((await limited({ body: { email: `${prefix}-burst-${index}@rehearsal.invalid`, list: "josiekins", website: "" }, ip: burstIp })).status);
     }
     expect("limiter", "per-IP bucket admits its burst of 3 and refuses the 4th with 429", burst.join(",") === "200,200,200,429", burst);
-    globalSpent -= 1; // the refused request consumed nothing
+    globalSpent -= 1;
     expect("limiter", "refused request stored nothing", (await subscriberRows(pool, prefix)).length === 8);
 
     const remaining = SUBSCRIBE_RATE_LIMITS.subscribeGlobal.rate - globalSpent;
     let admitted = 0;
     let firstRefusal: number | null = null;
     for (let index = 0; index < remaining + 1; index += 1) {
-      // A well-formed but invalid address reaches the limiter and stores nothing.
       const response = await subscribe({ body: { email: `${prefix}-window-${index}`, list: "mindstate", website: "" }, ip: index % 3 === 0 ? freshIp() : `10.16.${Math.floor((nextIp - 1) / 250)}.${((nextIp - 1) % 250) + 1}` });
       if (response.status === 429) {
         firstRefusal = index;
@@ -269,8 +225,6 @@ async function main() {
     expect("limiter", "a fresh IP inside the spent window is still refused with 429", again.status === 429 && again.text === '{"ok":false}', again);
     expect("limiter", "window refusals stored nothing", (await subscriberRows(pool, prefix)).length === 8);
 
-    // Independent application connections share a burst, then reconnect without
-    // resetting it. Use isolated names so the already-spent route budget stays intact.
     const limits = {
       [limiterNames[0]]: SUBSCRIBE_RATE_LIMITS.subscribePerIp,
       [limiterNames[1]]: { ...SUBSCRIBE_RATE_LIMITS.subscribeGlobal, start: Date.now() - 1000 },

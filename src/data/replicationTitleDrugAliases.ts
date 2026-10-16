@@ -7,11 +7,6 @@ export type ReplicationTitleDrugRule = readonly [
   pattern: RegExp,
 ];
 
-/**
- * Reviewed dissociative names shared by taxonomy extraction and live gallery
- * routing. Avoid single-letter slang: title matching must fail closed rather
- * than turn unrelated words or creator names into drug associations.
- */
 export const DISSOCIATIVE_TITLE_DRUG_RULES: readonly ReplicationTitleDrugRule[] = [
   ["3-meo-pcp", "3-MeO-PCP", "dissociatives", /\b3[- ]?meo[- ]?pcp\b/giu],
   [

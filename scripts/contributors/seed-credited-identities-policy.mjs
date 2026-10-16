@@ -1,4 +1,3 @@
-// Pure identity normalization and URL publication policy.
 import {
   ABSENCE_MARKERS,
   EXPLICIT_PROFILE_KEYS,
@@ -6,8 +5,6 @@ import {
   HTTPS_VERIFIED_HOSTS,
   MAX_PROFILE_LINKS,
 } from "./seed-credited-identities-decisions.mjs";
-
-/* ------------------------------------------------------------------------ identity */
 
 export function normalizeName(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -21,13 +18,6 @@ export function isAbsenceMarker(displayName) {
   return ABSENCE_MARKERS.some((marker) => normalizeName(marker) === normalizeName(displayName));
 }
 
-/**
- * The stored key for a display name. Explicit first, then the same derivation
- * the live keys use — keep `[A-Za-z0-9-]`, uppercase.
- *
- * Returns the loss alongside the key rather than swallowing it, so a name that
- * cannot survive the derivation is reported instead of quietly mangled.
- */
 export function deriveProfileKey(displayName) {
   const explicit = EXPLICIT_PROFILE_KEYS[normalizeName(displayName)];
   if (explicit) {
@@ -44,11 +34,6 @@ export function deriveProfileKey(displayName) {
   };
 }
 
-/**
- * Every name the corpus credits, with where it was credited and what URLs
- * travelled with it. Insertion order is not relied on anywhere; the result is
- * sorted, so repeated runs produce an identical plan.
- */
 export function collectCreditedIdentities({ replications = [], reports = [] } = {}) {
   const identities = new Map();
 
@@ -101,7 +86,6 @@ export function collectCreditedIdentities({ replications = [], reports = [] } = 
   return Array.from(identities.values())
     .map((identity) => ({
       ...identity,
-      // The most-used spelling wins the display name; ties break lexically.
       spellings: Array.from(identity.spellings).sort((left, right) => left.localeCompare(right)),
       urls: Array.from(identity.urlCounts.entries())
         .map(([url, count]) => ({ url, count }))
@@ -115,17 +99,8 @@ export function collectCreditedIdentities({ replications = [], reports = [] } = 
     );
 }
 
-/* ----------------------------------------------------------------- corrections index */
-
-/** Only `strong` is actionable. Everything else is recorded and printed. */
 export const APPLIED_STRENGTH = "strong";
 
-/**
- * Compare two URLs the way a reader would: scheme and a trailing slash are not
- * what makes a link a different link. Query strings are kept, because
- * `?hl=en` is part of the stored value and matching it loosely would let a
- * removal silently catch more than it names.
- */
 export function linkIdentity(url) {
   return String(url ?? "")
     .trim()
@@ -174,14 +149,6 @@ export function buildCorrectionIndex(corrections = {}) {
   };
 }
 
-/**
- * Why a URL must never be published, or null if it may be.
- *
- * A trap is the failure this whole pass exists to prevent: `benridgway.com`
- * answers 200 and is a lapsed-domain parking page, `neilusher.com` answers 200
- * and is an estate agent in Ottawa. Neither is caught by any status check, so
- * they are caught by name.
- */
 export function blockedReason(url, index) {
   const byUrl = index.blockedUrls.get(linkIdentity(url));
   if (byUrl) {
@@ -202,8 +169,6 @@ export function blockedReason(url, index) {
   );
 }
 
-/* --------------------------------------------------------------------------- links */
-
 function dedupeKeyFor(href) {
   return href.replace(/\/+$/, "");
 }
@@ -212,14 +177,6 @@ function labelFor(hostname) {
   return hostname.replace(/^www\./, "");
 }
 
-/**
- * Turn an artist's `artist_url` values into profile links, and account for
- * every value that does not make it.
- *
- * `sanitizeContributorLinks` accepts HTTPS only and keeps three, so anything
- * this function does not resolve would be dropped by the mutation without a
- * word. Dropping it here instead means the run can say what was lost and why.
- */
 export function planProfileLinks(urls = [], { correction = null } = {}) {
   const links = [];
   const upgraded = [];
@@ -245,9 +202,6 @@ export function planProfileLinks(urls = [], { correction = null } = {}) {
     return true;
   };
 
-  // Curated links go first. They were chosen as the artist's own home, so when
-  // the three-link cap bites it should bite the per-work URLs the corpus
-  // happened to store, not the page a reader actually wants.
   for (const entry of correction?.add ?? []) {
     let parsed = null;
     try {
@@ -275,10 +229,6 @@ export function planProfileLinks(urls = [], { correction = null } = {}) {
   );
 
   for (const { url, count } of urls) {
-    // Checked before parsing: a removed URL should be reported with the reason
-    // the review recorded, not with whatever the parser would have said about
-    // it. "NXDOMAIN" is true of zensages.com and much less useful than knowing
-    // it was the artist's own site until 2021 and is now gone for good.
     const removalReason = removals.get(linkIdentity(url));
     if (removalReason) {
       removed.push({ url, count, reason: removalReason });
@@ -293,9 +243,6 @@ export function planProfileLinks(urls = [], { correction = null } = {}) {
     }
 
     if (!parsed) {
-      // A bare `host/path` is a URL missing its scheme, which is a repair, not a
-      // parse. Suggest it and let a human approve it; guessing the scheme for
-      // the reader is how a wrong link becomes a durable one.
       const looksSchemeless = /^[a-z0-9.-]+\.[a-z]{2,}(?:[/?#]|$)/i.test(url);
       dropped.push({
         url,

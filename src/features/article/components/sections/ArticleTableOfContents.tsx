@@ -21,7 +21,6 @@ interface ArticleTableOfContentsProps {
   hasTripReports?: boolean;
 }
 
-/** Reactive adapter retained for editor previews that mutate the whole article. */
 export const ArticleTableOfContents = memo(function ArticleTableOfContents({
   article,
   variant,

@@ -1,10 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications`, reached only through the
- * middleware rewrite from `zh.dose.wiki/replications`. Same gallery page over
- * the localized corpus, so the prerendered rails carry each work's stored
- * title; the mirror carries `noindex` and a canonical link back to the
- * English index.
- */
 import {
   getReplicationsGalleryMetadata,
   ReplicationsGalleryRoute,

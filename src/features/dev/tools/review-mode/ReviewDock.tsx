@@ -8,14 +8,6 @@ import type { ReviewState } from "@/schema/substance/editorial";
 import { cn } from "@/lib/utils";
 import { describeProgress, REVIEW_FREEZE_COPY, REVIEW_STATE_TONE, reviewStateLabel } from "./reviewDockModel";
 
-/**
- * The review dock: the decision dock recipe for a read-and-tick workbench,
- * pinned to the bottom of the screen (the phone thumb zone) under the article
- * the reviewer is reading. Rows, top to bottom: the notes drawer when it is
- * open, the result of the last review write (with Undo), the freeze line, and
- * one row holding where this article's review stands (state, who signed it
- * off or what this role may do, progress) beside the decisions.
- */
 export function ReviewDock({
   state,
   credit,

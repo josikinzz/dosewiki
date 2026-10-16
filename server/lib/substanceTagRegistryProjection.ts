@@ -5,14 +5,6 @@ import {
   type SubstanceArticleRecord,
 } from "../../src/data/projections/substanceProjectionCore";
 
-/**
- * The tag-registry row: exactly what `buildTagRegistry` reads, and nothing
- * else. Identity (`id`, `title`, `identification`) feeds slug derivation and
- * the detail panel's article refs; `index_categories`, `classification`, and
- * the full `binding_sites` list (affinity included) are the tag fields the
- * registry indexes. No prose, references, or review state cross the wire, so
- * the tag editor no longer has to drain whole articles to list tags.
- */
 export type TagRegistryEntry = {
   id: SubstanceArticleRecord["id"];
   slug: string;
@@ -26,8 +18,6 @@ export type TagRegistryEntry = {
 };
 
 export function projectTagRegistryEntry(article: SubstanceArticleRecord): TagRegistryEntry {
-  // Normalize like the sibling projections so legacy mechanism fields surface
-  // as binding-site tags exactly the way the editor's client-side read does.
   const pharmacology = normalizePharmacologySection(article.pharmacology);
   return {
     id: article.id,

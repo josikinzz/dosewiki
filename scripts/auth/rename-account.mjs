@@ -1,23 +1,4 @@
 #!/usr/bin/env node
-/**
- * Rename an account in the Postgres `memberships` table, keeping its password.
- *
- * Calls `memberships:renameAccount` with `DATA_ADMIN_KEY`: the username, email
- * and display name change, the password hash stays, and the person signs in
- * under the new username with the password they already use. A row already
- * holding the new username or email is removed only if it never signed in.
- * Their article drafts follow them; history stamped with the old email stays
- * as it is and is attributed through `LEGACY_CONTRIBUTOR_HANDLE_GROUPS`, so set
- * `NEW,OLD` there before running this.
- *
- * Usage (the shared production-write boundary: every flag is required):
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   node scripts/auth/rename-account.mjs --from=witchy --to=lyrea \
- *     --email=lyrea@local.dose.wiki --name=Lyrea --write \
- *     --confirm-write=rename-account --expected-deployment=<fingerprint>
- *
- * Without `--write` the script prints the target and the plan and exits.
- */
 
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts";

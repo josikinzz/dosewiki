@@ -1,4 +1,3 @@
-// Avatar output paths, collision checks, file writes, and provenance manifests.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +8,6 @@ import type { Dimensions, PlanEntry } from "./generate-avatar-candidates";
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const AVATAR_ROOT = path.join(ROOT, "public/profile-avatars");
 export const MANIFEST_PATH = path.join(ROOT, "data/contributors/contributorAvatarSources.json");
-/* ---------------------------------------------------------------------- plan */
 
 export function avatarUrlForKey(key: string): string {
   return `/profile-avatars/${normalizeProfileKey(key).toLowerCase()}/avatar.webp`;

@@ -5,26 +5,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchCandidatesBySlug, type PlaylistCandidate } from "./playlistCandidates";
 
 export type WorkCards = {
-  /** The card for a slug; `null` when the lookup found no such work, `undefined` while unknown. */
   get: (slug: string) => PlaylistCandidate | null | undefined;
-  /** Keeps cards a search already returned, so adding one needs no second read. */
   remember: (candidates: readonly PlaylistCandidate[]) => void;
-  /** Looks one slug up now; resolves to `null` when no work a playlist can hold has it. */
   resolve: (slug: string) => Promise<PlaylistCandidate | null>;
-  /** Slugs the lookup could not find. */
   unavailable: ReadonlySet<string>;
-  /** The last lookup failure, if any; entries then stay unknown rather than missing. */
   error: string | null;
-  /** Asks again for every entry still unknown after a failed lookup. */
   retry: () => void;
 };
 
-/**
- * Thumbnail cards for a playlist's entries, read through the bounded
- * candidates route. Every slug on the list is looked up once; a slug the read
- * does not return is recorded as missing, which is how the editor can say
- * which entries a save would leave out before anyone presses Save.
- */
 export function useWorkCards(slugs: readonly string[], enabled: boolean): WorkCards {
   const [known, setKnown] = useState<ReadonlyMap<string, PlaylistCandidate | null>>(() => new Map());
   const [error, setError] = useState<string | null>(null);

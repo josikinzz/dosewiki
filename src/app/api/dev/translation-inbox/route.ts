@@ -1,12 +1,3 @@
-/**
- * GET /api/dev/translation-inbox?locale=zh-Hans&offset=0&reason=glossary-disagreement
- *
- * Translator and up, for an assigned locale only. One page (50 items) of the
- * Review Inbox, its total, and the count per reason; `reason` narrows the list
- * to one reason. Read-only: each item's Accept calls an existing workbench or
- * feedback mutation with the revision this response shows, and "Fine here" is
- * the sibling exception route.
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -37,11 +28,6 @@ function parseReason(raw: string | null): InboxReason | null {
   return raw as InboxReason;
 }
 
-/**
- * Reader suggestions through the existing glossary feedback query, which checks
- * the actor's role and locale again. Null when the server has no data
- * capability, so the inbox does not claim it checked them.
- */
 async function readSuggestions(locale: string, actorEmail: string): Promise<ReaderSuggestionRow[] | null> {
   const result = getServerDataWriteCapability();
   if (!result.ok) return null;

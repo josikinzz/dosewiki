@@ -1,40 +1,3 @@
-/**
- * Rehearsal: the editor article lifecycle on Postgres, driven through
- * `PostgresClient` with the same `api.*` calls the app makes.
- *
- *   bun scripts/postgres/rehearse-article-lifecycle.ts [--target <url>] [--allow-remote] [--keep]
- *
- * Creates two scratch articles (`t06-<random>-a`, `t06-<random>-b`) and one
- * scratch editor membership, runs every scenario, and deletes every row it or
- * the handlers created unless `--keep`. Nothing outside the scratch prefix is
- * written, except the global `{"kind":"changelog"}` outbox row, which every
- * public changelog insert bumps by design. The report lands in
- * runs/postgres-import/<timestamp>-article-lifecycle/report.json.
- *
- * Scenarios (letters are the ticket's acceptance criteria):
- *   a. lifecycle: saveDraft, discardDraft, publish, submit (+ approve), restore
- *      each succeed and the expected rows appear in articleDrafts,
- *      articleDraftReceipts, articleRevisions, substanceIndex, changelog,
- *      articleHistory, and the publicCachePublications outbox. Replay of a
- *      publish returns the committed revision without writing; the same
- *      change ID with different content is refused.
- *   b. proposal rollback: a two-article proposal whose second target fails
- *      mid-apply (ARTICLE_EVIDENCE_LIMIT) leaves both articles, all receipt
- *      and revision counts, and the proposal row unchanged; a proposal whose
- *      target drifted (stale baseHash) is parked as changes_requested with no
- *      article writes; the repaired proposal then applies both targets.
- *   c. restore: an optional field absent before the edit is absent after the
- *      restore (not null), and the revision's before-image equals the
- *      pre-edit runtime document byte-for-byte in canonical JSON.
- *   d. atomicity: a failure injected after the changelog insert (a trigger
- *      scoped to one changeId raises at the receipt insert, the last write)
- *      leaves zero new rows in substanceIndex, articleRevisions, changelog,
- *      articleHistory, receipts, and the outbox; a stale-hash publish is
- *      refused with the same zero-row result.
- *   e. concurrency: two publishes of one article from the same baseHash;
- *      exactly one commits and the other fails with ARTICLE_CONFLICT.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,7 +16,6 @@ import { guardTarget, resolveTarget } from "./targetGuard";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
-/** The article shape `articleLifecycle.write` accepts: what the editor sends and what `get` returns. */
 type Article = NonNullable<FunctionArgs<typeof api.articleLifecycle.write>["article"]>;
 
 const checks: Check[] = [];
@@ -64,7 +26,6 @@ function expect(scenario: string, check: string, pass: boolean, detail?: unknown
   console.log(`${pass ? "ok  " : "FAIL"} ${scenario}: ${check}${detail === undefined || pass ? "" : ` ${JSON.stringify(detail)}`}`);
 }
 
-/** Sorted keys at every depth; `null` survives and `undefined` drops, so absent and null differ. */
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
   if (value !== null && typeof value === "object") {
@@ -126,7 +87,6 @@ async function cleanup(pool: Pool, prefix: string): Promise<Record<string, numbe
   return removed;
 }
 
-/** Row counts and content hashes that a rejected or rolled-back write must leave untouched. */
 async function snapshot(pool: Pool, slugs: string[], prefix: string) {
   const articles: Record<string, string | null> = {};
   for (const slug of slugs) {
@@ -148,11 +108,8 @@ async function snapshot(pool: Pool, slugs: string[], prefix: string) {
 
 function seedArticle(slug: string, id: number): Article {
   const seed: Record<string, unknown> = { ...structuredClone(minimalArticle), id, slug, title: `Rehearsal ${slug}`, summary: "seed summary" };
-  // The absent-field criterion (c): this optional section must not exist before the first edit.
   delete seed.history_culture;
-  // Not part of `substanceArticleLightValidator`; the editor never sends it, so the seed does not carry it.
   delete seed.section_gaps;
-  // The fixture satisfies the light validator once the storage-only keys above are dropped.
   return seed as Article;
 }
 
@@ -197,7 +154,6 @@ async function main() {
       await insertDocument(tx, "memberships", { email: proposerEmail, role: "admin", createdAt: now, updatedAt: now });
     });
 
-    // ---------------------------------------------------------------- a. lifecycle
     const initial = await client.query(api.articleLifecycle.get, { ...admin, slug: slugA });
     const article0 = initial.article as Article;
     const article0Json = canonicalJson(article0);
@@ -253,7 +209,6 @@ async function main() {
     expect("a", "same changeId with different content is refused", await failure(() => client.mutation(api.articleLifecycle.write, { ...publishArgs, summary: "different" })) === "ARTICLE_CHANGE_REUSED");
     expect("a", "editor role cannot publish", await failure(() => client.mutation(api.articleLifecycle.write, { ...editor, action: "publish", slug: slugA, baseHash: afterPublish.baseHash, changeId: changeId(), article: { ...afterPublish.article, summary: "editor publish" }, summary: "x" })) === "Error:Admin access required");
 
-    // ---------------------------------------------------------------- c. restore
     const beforeRestore = await snapshot(pool, [slugA], prefix);
     const restored = await client.mutation(api.articleLifecycle.write, { ...admin, action: "restore", slug: slugA, baseHash: afterPublish.baseHash, changeId: changeId(), revisionId: published.revisionId, summary: "Rehearsal restore" });
     const afterRestore = await snapshot(pool, [slugA], prefix);
@@ -268,7 +223,6 @@ async function main() {
     expect("a", "restore added one revision, one changelog entry, one history row, one receipt", afterRestore.revisions === beforeRestore.revisions + 1 && afterRestore.changelog === beforeRestore.changelog + 1 && afterRestore.history === beforeRestore.history + 1 && afterRestore.receipts === beforeRestore.receipts + 1, { beforeRestore, afterRestore });
     expect("c", "restoring a revision that is no longer the latest is refused", await failure(() => client.mutation(api.articleLifecycle.write, { ...admin, action: "restore", slug: slugA, baseHash: restoredGet.baseHash, changeId: changeId(), revisionId: published.revisionId, summary: "stale restore" })) === "ARTICLE_CONFLICT");
 
-    // ---------------------------------------------------------------- a. submit (+ approve)
     const submitted = await client.mutation(api.articleLifecycle.write, { ...editor, action: "submit", slug: slugA, baseHash: restoredGet.baseHash, changeId: changeId(), article: { ...restoredArticle, summary: "submitted summary" }, summary: "Rehearsal submit" });
     const proposalId = String(submitted.proposalId);
     const [proposalRow] = await selectDocuments(pool, "changeProposals", { where: '"_id" = $1', params: [proposalId] });
@@ -286,7 +240,6 @@ async function main() {
     expect("a", "the proposal's revision carries the proposal change id and adds no article-keyed changelog row", (await count(pool, "articleRevisions", '"slug" = $1 AND "changeId" = $2', [slugA, `proposal-${proposalId}:${slugA}`])) === 1 && (await count(pool, "changelog", '"entryId" LIKE $1 AND "articles"::text LIKE $2', ["article-%", `%${prefix}%`])) === 2);
     expect("a", "re-approving an applied proposal replays without writing", (await client.mutation(api.changeProposalReview.approveAndApply, { ...admin, proposalId: submitted.proposalId })).status === "applied" && canonicalJson(await snapshot(pool, [slugA], prefix)) === canonicalJson(afterApprove));
 
-    // ---------------------------------------------------------------- b. proposal rollback
     const getA = await client.query(api.articleLifecycle.get, { ...admin, slug: slugA });
     const getB = await client.query(api.articleLifecycle.get, { ...admin, slug: slugB });
     const proposalPayload = { articles: [{ ...(getA.article as Article), summary: "proposal A" }, { ...(getB.article as Article), summary: "proposal B" }] };
@@ -298,7 +251,6 @@ async function main() {
     const twoTargetId = String(twoTarget.proposalId);
     expect("b", "two-target proposal submitted by the scratch admin", (await count(pool, "articleProposalTargets", '"proposalId" = $1', [twoTargetId])) === 2);
     expect("b", "the proposer cannot approve their own proposal", await failure(() => client.mutation(api.changeProposalReview.approveAndApply, { ...proposer, proposalId: twoTarget.proposalId })) === "PROPOSAL_SELF_APPROVAL");
-    // Make the second target fail mid-apply: more evidence rows than one atomic edit may decertify.
     await withTransaction(pool, async (tx) => {
       const values: string[] = [];
       const params: unknown[] = [];
@@ -323,7 +275,6 @@ async function main() {
     expect("b", "proposal row stays submitted and evidence rows are untouched", parkedRow?.status === "submitted" && !("appliedAt" in parkedRow) && (await count(pool, "citationEvidence", '"slug" = $1 AND "status" = $2', [slugB, "supported"])) === evidenceBefore, parkedRow?.status);
     expect("b", "A's runtime document is unchanged after the rolled-back apply", canonicalJson((await client.query(api.articleLifecycle.get, { ...admin, slug: slugA })).article) === canonicalJson(getA.article));
 
-    // Stale baseHash: drift under a proposal is parked, not applied.
     const staleProposal = await client.mutation(api.changeProposals.submit, { ...proposer, payload: { articles: [{ ...(getA.article as Article), summary: "stale proposal A" }] }, summary: "Rehearsal stale", baselines: [baselines[0]] });
     await client.mutation(api.articleLifecycle.write, { ...admin, action: "publish", slug: slugA, baseHash: getA.baseHash, changeId: changeId(), article: { ...(getA.article as Article), summary: "drifted under the proposal" }, summary: "Rehearsal drift" });
     const beforeStale = await snapshot(pool, [slugA, slugB], prefix);
@@ -333,7 +284,6 @@ async function main() {
     observedCodes.add(`approveAndApply:${staleResult.status}`);
     expect("b", "stale baseHash proposal is parked as changes_requested with no article writes", staleResult.status === "changes_requested" && staleRow?.status === "changes_requested" && typeof staleRow.conflictReason === "string" && canonicalJson(afterStale) === canonicalJson(beforeStale), { status: staleResult.status, reason: staleRow?.conflictReason });
 
-    // Repair and apply the two-target proposal: it must now also be stale (A drifted), so resubmit it.
     await withTransaction(pool, (tx) => purge(tx, "citationEvidence", '"slug" = $1', [slugB]));
     const getA2 = await client.query(api.articleLifecycle.get, { ...admin, slug: slugA });
     const repaired = await client.mutation(api.changeProposals.submit, { ...proposer, payload: { articles: [{ ...(getA2.article as Article), summary: "proposal A" }, proposalPayload.articles[1]] }, summary: "Rehearsal two targets", baselines: [{ kind: "article", key: slugA, document: baselineFor(getA2.article as Article) }, baselines[1]] });
@@ -345,16 +295,12 @@ async function main() {
     expect("b", "the repaired two-target proposal applies both articles atomically", twoApplied.status === "applied" && appliedA.article.summary === "proposal A" && appliedB.article.summary === "proposal B" && afterApply.revisions === beforeApply.revisions + 2 && afterApply.changelog === beforeApply.changelog + 1 && afterApply.history === beforeApply.history + 2, { twoApplied, beforeApply, afterApply });
     expect("b", "the two-target changelog entry names both articles", ((await selectDocuments(pool, "changelog", { where: '"entryId" = $1', params: [`proposal-${String(repaired.proposalId)}`] }))[0]?.articles as Array<{ slug: string }>)?.map((row) => row.slug).sort().join(",") === [slugA, slugB].sort().join(","));
 
-    // ---------------------------------------------------------------- d. atomicity
     const getD = await client.query(api.articleLifecycle.get, { ...admin, slug: slugA });
     const stale = await snapshot(pool, [slugA, slugB], prefix);
     const staleCode = await failure(() => client.mutation(api.articleLifecycle.write, { ...admin, action: "publish", slug: slugA, baseHash: initial.baseHash, changeId: changeId(), article: { ...(getD.article as Article), summary: "stale publish" }, summary: "stale" }));
     expect("d", "stale-hash publish is refused with ARTICLE_CONFLICT", staleCode === "ARTICLE_CONFLICT", staleCode);
     expect("d", "rejected publish leaves zero new rows in substanceIndex, articleRevisions, changelog (and history, receipts, outbox)", canonicalJson(await snapshot(pool, [slugA, slugB], prefix)) === canonicalJson(stale));
 
-    // Injected failure after the changelog insert: the receipt insert is the handler's last write, after
-    // the draft patch. A trigger scoped to this one changeId raises there, so content, revision, changelog,
-    // history, and the draft patch are all written before the transaction fails.
     const injectedDraft = await client.mutation(api.articleLifecycle.write, { ...admin, action: "saveDraft", slug: slugA, baseHash: getD.baseHash, changeId: changeId(), article: { ...(getD.article as Article), summary: "injected" }, draftVersion: getD.draftVersion });
     const injectedChangeId = changeId();
     const beforeInjected = await snapshot(pool, [slugA, slugB], prefix);
@@ -376,7 +322,6 @@ async function main() {
     const afterRetry = await snapshot(pool, [slugA, slugB], prefix);
     expect("d", "the same request commits once the fault is removed, in one transaction", typeof retried.revisionId === "string" && afterRetry.revisions === beforeInjected.revisions + 1 && afterRetry.changelog === beforeInjected.changelog + 1 && afterRetry.history === beforeInjected.history + 1 && afterRetry.receipts === beforeInjected.receipts + 1 && afterRetry.articles[slugA] !== beforeInjected.articles[slugA]);
 
-    // ---------------------------------------------------------------- e. concurrency
     const getE = await client.query(api.articleLifecycle.get, { ...admin, slug: slugA });
     const beforeRace = await snapshot(pool, [slugA, slugB], prefix);
     const racers = ["left", "right"].map((name) => client.mutation(api.articleLifecycle.write, { ...admin, action: "publish", slug: slugA, baseHash: getE.baseHash, changeId: changeId(), article: { ...(getE.article as Article), summary: `race ${name}` }, summary: `Rehearsal race ${name}` }));

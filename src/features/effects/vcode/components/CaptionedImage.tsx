@@ -9,9 +9,7 @@ interface CaptionedImageProps {
   src?: string;
   width?: string;
   artist?: string;
-  /** Where the credit links; plain text when absent. */
   artistHref?: string;
-  /** True when `artistHref` leaves the site (the artist's own page). */
   artistHrefExternal?: boolean;
   artistCredit?: ReactNode;
   title?: string;
@@ -21,27 +19,20 @@ interface CaptionedImageProps {
   top?: boolean;
 }
 
-// R2 CDN base URL for EffectIndex assets
 const R2_CDN_BASE = "https://pub-879bfd45a9774f1c80a8b77aca1f0aee.r2.dev";
 
-/**
- * Rewrite old /img/gallery/ URLs to R2 CDN URLs.
- */
 function rewriteImageUrl(url: string): string {
   if (!url) return url;
 
-  // Already a full URL - return as-is
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url;
   }
 
-  // Rewrite /img/gallery/ paths to R2 CDN
   if (url.startsWith("/img/gallery/")) {
     const filename = url.replace("/img/gallery/", "");
     return `${R2_CDN_BASE}/${encodeURIComponent(filename)}`;
   }
 
-  // Rewrite /img/ paths (without gallery)
   if (url.startsWith("/img/")) {
     const filename = url.replace("/img/", "");
     return `${R2_CDN_BASE}/${encodeURIComponent(filename)}`;
@@ -50,13 +41,6 @@ function rewriteImageUrl(url: string): string {
   return url;
 }
 
-/**
- * Image with caption and artist attribution.
- *
- * Adapts EffectIndex's captioned-image to DoseWiki's visual style.
- * Supports Wikipedia-style floating when align is "left" or "right".
- * Image, caption, and artist are contained within a unified card.
- */
 export function CaptionedImage({
   src,
   width,
@@ -69,22 +53,16 @@ export function CaptionedImage({
   align = "center",
   border = false,
 }: CaptionedImageProps) {
-  // Rewrite old URLs to R2 CDN
   const imageSrc = rewriteImageUrl(src || "");
 
   if (!imageSrc) return null;
 
-  // Wikipedia-style floats from `sm` up. Below that the figure sits in normal
-  // flow, centered — a float beside a phone-width column strands one word per
-  // line next to the image.
   const containerClass = {
     left: "clear-both mx-auto my-4 flex w-fit max-w-full flex-col sm:float-left sm:ml-0 sm:mr-8 sm:mt-1 sm:mb-6 sm:max-w-[var(--vcode-float-max)]",
     right: "clear-both mx-auto my-4 flex w-fit max-w-full flex-col sm:float-right sm:mr-0 sm:ml-8 sm:mt-1 sm:mb-6 sm:max-w-[var(--vcode-float-max)]",
     center: "mx-auto my-4 clear-both flex w-fit max-w-full flex-col items-center",
   }[align];
 
-  // Centered article images need a desktop cap; otherwise they expand to the
-  // full prose width and visually read as left-aligned even when centered.
   const maxWidth = width
     ? `${width}px`
     : align === "center" ? "min(100%, 48rem)" : "min(350px, 40%)";
@@ -95,12 +73,9 @@ export function CaptionedImage({
         marginLeft: "auto",
         marginRight: "auto",
       }
-    : // The float cap only binds from `sm` up (via the class above); the base
-      // `max-w-full` governs the collapsed mobile layout.
+    :
       ({ "--vcode-float-max": maxWidth } as CSSProperties);
 
-  // Motion replications are served as ordinary media URLs, so the extension is
-  // the only signal that this embed is a clip rather than a still.
   const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(imageSrc);
   const hasCaptionContent = caption || artist;
 
@@ -119,9 +94,6 @@ export function CaptionedImage({
         )}
       >
         {isVideo ? (
-          // Effect Index's animated embeds were gfycat loops: silent, looping,
-          // autoplaying motion is the content, so a play button would hide it.
-          // `poster` stays unset — the first frame is the poster.
           <video
             src={imageSrc}
             className="w-full h-auto"

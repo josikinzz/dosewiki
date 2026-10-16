@@ -14,40 +14,24 @@ export interface EditorListProps<T> {
   selectedKey?: string | null;
   onSelect?: (key: string) => void;
   search?: { placeholder: string; matches: (item: T, query: string) => boolean };
-  /** CSS length for the scroll box; defaults to `min(60vh, 640px)`. */
   maxHeight?: string;
-  /** Pixel estimate used to size the window before rows are measured. */
   estimateRowHeight?: number;
   emptyText: string;
-  /** Accessible name of the listbox. */
   label: string;
   className?: string;
-  /**
-   * False for items that only divide the list (group headings). They take a
-   * row's height, are hidden from assistive tech, and the keys skip them.
-   */
   isOption?: (item: T) => boolean;
-  /**
-   * A tick box on each row for bulk actions, separate from the one selected
-   * row. Space on the list ticks the selected row; the box itself answers the
-   * pointer only, and the option reports its state through aria-checked.
-   */
   multiSelect?: EditorListMultiSelect<T>;
 }
 
 export interface EditorListMultiSelect<T> {
   checkedKeys: ReadonlySet<string>;
   onToggle: (key: string) => void;
-  /** Tooltip of a row's tick box, such as "Select Mescaline". */
   checkLabel: (item: T) => string;
-  /** Rows that cannot take the bulk actions get no checkbox. */
   canCheck?: (item: T) => boolean;
 }
 
-/** How many times a pending reveal may correct itself as rows get measured. */
 const MAX_REVEAL_CORRECTIONS = 4;
 
-/** The first index whose row ends below `top` (binary search over prefix offsets). */
 function rowAt(offsets: Float64Array, count: number, top: number): number {
   let low = 0;
   let high = count;
@@ -59,15 +43,6 @@ function rowAt(offsets: Float64Array, count: number, top: number): number {
   return low;
 }
 
-/**
- * Windowed list state: which slice of `keys` is visible in a scroll box of
- * `viewport` pixels. Each row's height is measured once it mounts and kept by
- * key; rows not measured yet count at the first measured option's height (or
- * `estimate`), and rows that divide the list (`fixed`) keep that pitch. The
- * range carries `OVERSCAN_ROWS` on each side. Rows of different heights are
- * fine: offsets are prefix sums, so no single measurement sets every row's
- * position (the old shared pitch flipped between rows and looped).
- */
 function useWindow(
   keys: readonly string[],
   fixed: (index: number) => boolean,
@@ -103,8 +78,6 @@ function useWindow(
     setMeasured((version) => version + 1);
   }, [estimate]);
 
-  // Later size changes (a font landing, a pill appearing) arrive on their own
-  // task through one observer, never inside React's commit.
   useEffect(() => {
     if (typeof ResizeObserver === "undefined") return;
     const rows = new ResizeObserver((entries) => {
@@ -134,7 +107,6 @@ function useWindow(
       next[index + 1] = next[index] + height;
     }
     return next;
-    // `measured` versions the height cache, which lives in a ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keys, count, fixed, baseline, measured]);
   const total = offsets[count];
@@ -144,9 +116,6 @@ function useWindow(
     if (box) setScrollTop(box.scrollTop);
   }, [scrollRef]);
 
-  // Programmatic scrolls update the window in the same commit instead of
-  // waiting for the scroll event, so the target row is mounted immediately.
-  // The clamp mirrors the browser's so state and element agree.
   const scrollTo = useCallback(
     (top: number) => {
       const box = scrollRef.current;
@@ -158,8 +127,6 @@ function useWindow(
     [scrollRef, total, viewport],
   );
 
-  // With no measured viewport yet (first paint, or jsdom) fall back to a
-  // window sized like the default box so the initial render is still bounded.
   const span = viewport || 640;
   const first = count === 0 ? 0 : rowAt(offsets, count, scrollTop);
   const last = count === 0 ? 0 : rowAt(offsets, count, scrollTop + span);
@@ -169,29 +136,6 @@ function useWindow(
   return { start, end, offsets, viewport, layoutVersion: `${measured}:${baseline}`, onScroll, scrollTo, measureRow };
 }
 
-/**
- * Bounded, self-scrolling list for corpus-sized rails (contributors,
- * replications, substances, copy rows, playlist works, tags). Only the rows
- * inside the scroll box are mounted so the document never grows with the
- * corpus. Renders `role="listbox"` with `role="option"` rows, moves the
- * selection with the arrow keys, Home and End, and keeps the selected row in
- * view whenever `selectedKey` changes.
- *
- * Focus model: the listbox is the only tab stop. It keeps the current row in
- * `aria-activedescendant`, and options carry no tab index, so `renderItem`
- * must render a presentational row (`EditorListRow` with `active={selected}`)
- * and no buttons, links or inputs. The option wrapper owns the click and calls
- * `onSelect(key)`. The selected option stays mounted even when the pointer
- * scrolls it out of the window, so the active descendant always resolves, and
- * each option carries aria-posinset and aria-setsize against the whole list.
- *
- * Rows may differ in height: each is measured as it mounts and kept by key,
- * and positions are prefix sums. `isOption` lets group headings sit in the
- * list at the first option's pitch without becoming options, and `multiSelect` adds a tick box
- * per row for bulk actions. The ticks are aria-checked on the option, apart
- * from aria-selected, which marks the one current row. The intake queues pair
- * this list with `useTriageShortcuts`.
- */
 export function EditorList<T>({
   items,
   getKey,
@@ -233,11 +177,6 @@ export function EditorList<T>({
     [keys, selectedKey],
   );
 
-  // Keep the selected row inside the box when the selection changes from
-  // outside (URL restore, keyboard step, another pane picking a record) or the
-  // box resizes. Measuring the rows around it can move it a little, so the
-  // reveal corrects itself a bounded number of times, and a scroll by the
-  // reader ends it.
   const reveal = useRef<{ index: number; corrections: number } | null>(null);
   const revealSelected = () => {
     const box = scrollRef.current;
@@ -256,7 +195,6 @@ export function EditorList<T>({
     pending.corrections += 1;
   };
 
-  // Only a new selection or a new box size starts a reveal; measurements continue it.
   useEffect(() => {
     reveal.current = selectedIndex >= 0 ? { index: selectedIndex, corrections: 0 } : null;
     revealSelected();
@@ -271,7 +209,6 @@ export function EditorList<T>({
   const handleScroll = () => {
     const box = scrollRef.current;
     const pending = reveal.current;
-    // A scroll that did not come from the reveal (the reader's wheel or finger) ends it.
     if (box && pending && pending.corrections > 0) {
       const top = offsets[pending.index];
       const bottom = offsets[pending.index + 1];
@@ -282,8 +219,6 @@ export function EditorList<T>({
     onScroll();
   };
 
-  // 1-based position of each option among the options (headings excluded),
-  // so windowed rows can report aria-posinset and aria-setsize.
   const { positions, optionCount } = useMemo(() => {
     const next = new Array<number>(visible.length);
     let count = 0;
@@ -294,7 +229,6 @@ export function EditorList<T>({
     return { positions: next, optionCount: count };
   }, [optionAt, visible.length]);
 
-  /** The nearest option from `from` stepping by `step`, or -1 past either end. */
   const seekOption = useCallback(
     (from: number, step: 1 | -1) => {
       for (let index = from; index >= 0 && index < visible.length; index += step) {
@@ -337,8 +271,6 @@ export function EditorList<T>({
 
   const rows = visible.slice(start, end);
   const activeId = selectedIndex >= 0 ? `${id}-option-${selectedIndex}` : undefined;
-  // A pointer scroll can carry the selected row out of the window. It stays
-  // mounted at its own offset so aria-activedescendant never dangles.
   const selectedOutside = selectedIndex >= 0 && (selectedIndex < start || selectedIndex >= end);
 
   const renderOption = (item: T, index: number) => {
@@ -346,8 +278,6 @@ export function EditorList<T>({
     const selected = index === selectedIndex;
     const checkable = multiSelect !== undefined && (!multiSelect.canCheck || multiSelect.canCheck(item));
     return (
-      // Keyboard selection lives on the listbox (aria-activedescendant); options only take the pointer
-      // and must not be focusable, or the list would grow a tab stop per row.
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
       <div
         id={`${id}-option-${index}`}
@@ -364,7 +294,6 @@ export function EditorList<T>({
       >
         {multiSelect ? (
           <>
-            {/* A 44px column under a coarse pointer, so the tick is a finger-sized target of its own. */}
             <span className="flex w-5 shrink-0 justify-center [@media(pointer:coarse)]:w-11">
               {checkable ? <TickBox item={item} itemKey={key} multiSelect={multiSelect} /> : null}
             </span>
@@ -436,11 +365,6 @@ export function EditorList<T>({
   );
 }
 
-/**
- * The bulk tick for one row. It answers the pointer only: the listbox keeps
- * the single tab stop, Space ticks the current row, and the option reports the
- * state through aria-checked, so the box is hidden from assistive tech.
- */
 function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; multiSelect: EditorListMultiSelect<T> }) {
   const checked = multiSelect.checkedKeys.has(itemKey);
   return (
@@ -454,7 +378,6 @@ function TickBox<T>({ item, itemKey, multiSelect }: { item: T; itemKey: string; 
       }}
       className="flex h-5 w-5 cursor-pointer items-center justify-center [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
     >
-      {/* Drawn, not a native input, so nothing inside the listbox can take focus. */}
       <span
         className={cn(
           "flex size-4 items-center justify-center rounded border transition",

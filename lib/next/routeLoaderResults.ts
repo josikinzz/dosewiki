@@ -24,10 +24,6 @@ export type RedirectRouteResult = {
   canonicalRoute: PublicRouteIdentity;
 };
 
-/**
- * Metadata descriptions must never ship citation tokens, regardless of which
- * upstream surface produced the text, so stripping is applied unconditionally.
- */
 export function toRouteMetadata(metadata: PublicPageMetadataSource): RouteMetadataSource {
   return {
     title: metadata.title,

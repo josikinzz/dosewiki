@@ -1,33 +1,5 @@
-/**
- * Effect-name aliases for substance-article subjective-effect chips.
- *
- * A substance article stores each effect as `{name, description}` with no stored
- * href — the chip's URL is derived from the display name via `slugify`. Years of
- * terminology drift between PsychonautWiki's names and the Effect Index's names
- * therefore produce dead links rather than wrong data: 1,437 of 5,329 chip
- * occurrences (27%) resolved to a 404 before this table existed.
- *
- * Fixing resolution here rather than rewriting article content is deliberate:
- *  - it changes where a chip points without changing what it displays;
- *  - `saveSubstance` patches a whole-article snapshot, so a 577-article name pass
- *    would risk clobbering concurrent editor writes;
- *  - authored content and its attribution stay untouched.
- *
- * Every destination in this file was verified against the live 233-effect
- * inventory when the table was built, and `effectNameAliases.test.ts` re-asserts
- * that no alias source shadows a real effect slug. See the 2026-07-29 link audit
- * for the census and the per-name adjudication.
- */
-
-/** Where a chip sits in a substance article's subjective-effects tree. */
 export type EffectLocation = "cognitive" | "physical" | `sensory.${string}`;
 
-/**
- * Names whose correct target depends on where the chip sits. "Euphoria" is the
- * single most common broken chip on the site (150 occurrences) and resolves to
- * cognitive or physical euphoria purely by position; the auditory entries are
- * PsychonautWiki subsection headings ingested as effect entries.
- */
 const LOCATION_SCOPED_ALIASES: Record<string, Record<string, string>> = {
   cognitive: {
     euphoria: "cognitive-euphoria",
@@ -52,13 +24,6 @@ const LOCATION_SCOPED_ALIASES: Record<string, Record<string, string>> = {
   },
 };
 
-/**
- * Location-independent aliases. Keyed by `slugify(name)`.
- *
- * The first six also exist as `effectIndexLegacyRedirects` entries, which stay in
- * place for inbound links from the old site. Aliasing them here as well resolves
- * the chip in-page instead of spending an HTTP redirect on every click.
- */
 const EFFECT_NAME_ALIASES: Record<string, string> = {
   "acuity-suppression": "visual-acuity-suppression",
   "autonomous-entities": "autonomous-entity",
@@ -187,12 +152,6 @@ const EFFECT_NAME_ALIASES: Record<string, string> = {
   "visual-sliding": "optical-sliding",
 };
 
-/**
- * Names with no destination: effects the index never documented, effects since
- * removed (Environmental Orbism), and editor shorthand naming two effects at once
- * ("Stimulation and sedation"), where linking either half silently drops the other.
- * These render as plain chips rather than links.
- */
 const UNLINKED_EFFECT_NAMES: ReadonlySet<string> = new Set([
   "3-dimensional-textures",
   "anxiety-and-anxiety-suppression",
@@ -225,16 +184,6 @@ export const effectNameAliasTables = {
   unlinked: UNLINKED_EFFECT_NAMES,
 } as const;
 
-/**
- * Resolves a chip's alias target, or null when the name is deliberately unlinked.
- * Returns undefined when the name is not in any table, meaning the caller should
- * fall back to its normal `/effects/${slug}` derivation.
- *
- * A `category:` destination is an umbrella term — "Dissociation" names a family
- * rather than one effect — and resolves to the category index. Both category
- * targets in use were checked for non-emptiness; an empty category page is a
- * worse destination than no link at all.
- */
 export function resolveEffectNameAlias(
   nameSlug: string,
   location?: EffectLocation,
@@ -252,9 +201,6 @@ export function resolveEffectNameAlias(
       : `/effects/${target}`;
   }
 
-  // A name that is location-scoped elsewhere ("Hallucinations" under a sense we
-  // have not mapped) has no safe fallback: deriving `/effects/hallucinations`
-  // from it produces exactly the 404 this table exists to prevent.
   return isLocationScopedName(nameSlug) ? null : undefined;
 }
 

@@ -10,23 +10,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-/** Rows shown in full before the list collapses into "and N more". */
 const AFFECTED_PREVIEW_LIMIT = 8;
 
 export interface ConfirmRequest {
   title: string;
   description: ReactNode;
-  /** Extra content under the description, such as per-row actions. */
   body?: ReactNode;
-  /** Omitted when the body carries the actions; the dialog then offers only Cancel. */
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
-  /** Rows a bulk write touches; the first eight are listed, the rest counted. */
   affected?: string[];
-  /** The heading over `affected` ("Shows on 5 articles"); defaults to "Affects N rows". */
   affectedLabel?: string;
-  /** Widens the dialog for a body that carries diffs. */
   wide?: boolean;
   onConfirm: () => void | Promise<void>;
 }
@@ -34,26 +28,14 @@ export interface ConfirmRequest {
 export interface ConfirmDialogProps {
   request: ConfirmRequest | null;
   onClose: () => void;
-  /**
-   * Where focus lands when the dialog closes. Defaults to whatever held focus
-   * when it opened; pass a ref when that control may be gone or disabled by then.
-   */
   returnFocus?: RefObject<HTMLElement | null>;
 }
 
-/**
- * The one confirmation pattern for one-click production writes. Rendering is
- * driven by a {@link ConfirmRequest}; closing (overlay click, Escape, Cancel,
- * or a completed confirm) clears the request through `onClose`. While an async
- * `onConfirm` is settling both buttons lock so a double tap cannot fire twice.
- */
 export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget }: ConfirmDialogProps) {
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<{ request: ConfirmRequest; message: string } | null>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
 
-  // A refused confirm keeps the dialog open with the reason inside it, so the
-  // editor can try again or cancel instead of watching nothing happen.
   const handleConfirm = async () => {
     if (!request || busy) return;
     setBusy(true);
@@ -145,10 +127,6 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
   );
 }
 
-/**
- * Owns the pending request so a tab can raise a confirmation from any handler
- * with `confirm({...})` and render `dialog` once near its root.
- */
 export function useConfirm(): { confirm: (request: ConfirmRequest) => void; dialog: ReactNode } {
   const [request, setRequest] = useState<ConfirmRequest | null>(null);
   const close = useCallback(() => setRequest(null), []);

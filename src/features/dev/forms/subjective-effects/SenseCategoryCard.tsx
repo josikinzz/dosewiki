@@ -1,8 +1,3 @@
-/**
- * SenseCategoryCard - Card for editing a sensory category (visual, auditory, etc.).
- * Each sense has a fixed name with a note and dynamic subcategories.
- */
-
 import { useCallback } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Icon, type IconName } from "@/components/common/Icon";
@@ -19,13 +14,9 @@ import type { SubstanceArticle, EffectEntry } from "@/schema";
 export type SenseType = "visual" | "auditory" | "tactile" | "olfactory" | "gustatory" | "multisensory";
 
 export interface SenseCategoryCardProps {
-  /** Which sense this card is for */
   sense: SenseType;
-  /** Display label */
   label: string;
-  /** Optional icon name for iconify */
   icon?: IconName;
-  /** Prefix for input IDs */
   idPrefix: string;
   pairedIndicator?: boolean;
 }
@@ -39,12 +30,10 @@ export function SenseCategoryCard({
 }: SenseCategoryCardProps) {
   const { register } = useFormContext<SubstanceArticle>();
 
-  // Sense note field path
   const noteFieldPath = `subjective_effects.sensory.${sense}.note` as const;
   const { ref: registerNoteRef, ...noteRegistration } = register(noteFieldPath);
   const noteField = useGrowToContent();
 
-  // Use the sensory subcategories hook
   const { fields, append, remove, updateKey, move } = useSensorySubcategories(sense);
 
   return (
@@ -56,7 +45,6 @@ export function SenseCategoryCard({
       pairedIndicator={pairedIndicator}
     >
       <div className="space-y-4">
-        {/* Sense-level note */}
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-${sense}-note`} className="text-xs theme-text-muted">
             {label} Note
@@ -75,7 +63,6 @@ export function SenseCategoryCard({
           />
         </div>
 
-        {/* Subcategories */}
         {fields.length > 0 ? (
           <div className="space-y-3">
             {fields.map((field, index) => (
@@ -118,9 +105,6 @@ export function SenseCategoryCard({
   );
 }
 
-/**
- * Wrapper component that connects SubcategoryEditor to the sensory form state.
- */
 interface SensorySubcategoryEditorWrapperProps {
   sense: SenseType;
   subcategoryKey: string;
@@ -146,8 +130,7 @@ function SensorySubcategoryEditorWrapper({
 }: SensorySubcategoryEditorWrapperProps) {
   const { setValue, getValues } = useFormContext<SubstanceArticle>();
   const fieldPath = `subjective_effects.sensory.${sense}.subcategories` as const;
-  
-  // Watch the subcategories
+
   const subcategories = useWatch({ name: fieldPath }) as Record<string, { note: string; effects: EffectEntry[] }> | undefined;
   const subcategoryData = subcategories?.[subcategoryKey] ?? { note: "", effects: [] };
 

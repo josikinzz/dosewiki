@@ -30,7 +30,6 @@ export type IncomingFile = {
   file: File;
   name: string;
   type: StudioMediaType;
-  /** Object URL for the local preview; audio gets the waveform placeholder instead. */
   previewUrl: string | null;
   title: string;
   artist: string;
@@ -38,9 +37,7 @@ export type IncomingFile = {
   rightsStatus: StudioRightsStatus;
   sourceUrl: string;
   creditLine: string;
-  /** Hex SHA-256 of the bytes: undefined while hashing, null when it failed. */
   sha256?: string | null;
-  /** Pixel size, once the image preview has loaded. */
   size?: { width: number; height: number };
   status: "draft" | "uploading" | "error";
   error?: string;
@@ -48,9 +45,7 @@ export type IncomingFile = {
 
 export type IncomingTrayProps = {
   items: readonly IncomingFile[];
-  /** Library slugs holding the same bytes as a tray item, keyed by item id. */
   duplicates: ReadonlyMap<string, readonly string[]>;
-  /** This session's uploads that still wait unpublished. */
   waiting: readonly StudioRow[];
   effects: readonly StudioEffectOption[];
   artists: readonly string[];
@@ -58,13 +53,9 @@ export type IncomingTrayProps = {
   onPatch: (id: string, patch: Partial<IncomingFile>) => void;
   onDiscard: (id: string) => void;
   onClear: () => void;
-  /** Uploads one item as an unpublished row. */
   onAdd: (item: IncomingFile) => void;
-  /** Uploads every item whose required fields are filled. */
   onAddAll: () => void;
-  /** Publishes the waiting uploads whose rights status and source are set. */
   onPublish: (rows: readonly StudioRow[]) => void;
-  /** Stops listing the waiting uploads here; they stay in the library. */
   onDismissWaiting: () => void;
 };
 
@@ -74,7 +65,6 @@ function sourceError(value: string): string | undefined {
     : undefined;
 }
 
-/** An item can upload once it has the fields a findable row needs. */
 export function incomingReady(item: IncomingFile): boolean {
   return (
     item.status !== "uploading"
@@ -96,16 +86,6 @@ function gapText(row: StudioRow): string {
     .join(" and ");
 }
 
-/**
- * Files wait here between the drop and the row, then their rows wait here
- * until they publish.
- *
- * Nothing uploads on drop: an asset with no title, artist, or effect is a row
- * somebody has to find again later, so the tray asks for those, and for the
- * source and credit, first. Uploading inserts the row unpublished, so no
- * public page shows it. Publishing is a second step, open once the rights
- * status is known and the source is set.
- */
 export function IncomingTray({
   items,
   duplicates,

@@ -1,4 +1,3 @@
-/** Meaning-specific UI messages. IDs survive English wording changes. */
 export type UiMessageDefinition = {
   source: string;
   context: string;
@@ -132,7 +131,6 @@ export function getUiMessageDefinition(id: string): UiMessageDefinition | undefi
     : undefined;
 }
 
-/** Only unambiguous legacy labels can safely share the contextual entry. */
 export const UI_MESSAGE_ALIASES: Readonly<Record<string, UiMessageId>> = {
   Replications: "gallery.replications",
   Replication: "gallery.replication",
@@ -148,6 +146,5 @@ export function resolveUiMessage(
 ): string {
   const id = uiMessageId(text);
   const definition = getUiMessageDefinition(id);
-  // Never fall back from a contextual ID to an ambiguous literal catalog entry.
   return catalog?.[id] ?? (id !== text ? catalog?.[text] : undefined) ?? definition?.source ?? text;
 }

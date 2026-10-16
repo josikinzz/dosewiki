@@ -18,12 +18,7 @@ type RateLimitOptions = {
 };
 
 type RateLimitKeyOptions = {
-  /** Separates the bucket of a named policy from other policies on the same path. */
   keySuffix?: string;
-  /**
-   * The caller's address when the route resolved it from a trusted source
-   * (a platform header) rather than the default forwarding headers.
-   */
   clientIp?: string;
 };
 

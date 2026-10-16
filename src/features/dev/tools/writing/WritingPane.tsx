@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The open article or blog post in the Writing workspace: a docked pane with
- * one header (the saved title, kind and state, its public address, Back to
- * list below `lg`), any recovery choice, the fields beside a live preview
- * drawn the way the public page draws it, the versions this page went
- * through, and a sticky save dock holding the result of the last save beside
- * the save itself.
- */
-
 import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
 
 import { ExpandIndicator } from "@/components/common/ExpandButton";
@@ -56,7 +47,6 @@ import {
 } from "./writingEditorModel";
 import { WritingRecoveryPanels } from "./WritingRecoveryPanels";
 
-/** How the pane lays out the fields and the preview. */
 export type WritingView = "write" | "preview" | "both";
 
 const VIEW_OPTIONS = [
@@ -65,7 +55,6 @@ const VIEW_OPTIONS = [
   { value: "both", label: "Both", icon: "lucide:columns-2" },
 ];
 
-/** The dock's own sentence for an admin: a draft stays private, publishing goes live at once. */
 export const WRITING_ADMIN_SAVE_COPY: SaveLineCopy = {
   label: "Drafts stay private. Publishing goes live at once.",
   detail: "Save draft keeps the page off the public site. Publish writes it to its public address as soon as it saves.",
@@ -77,7 +66,6 @@ export const FREEZE_REFUSAL = "Writes are paused, so your changes were not publi
 
 const SAVE_SHORTCUTS = [{ keys: "Cmd+S", label: "Save the open page (asks first)" }] as const;
 
-/** Whether this screen can hold the fields and the preview side by side. */
 function wideScreen(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return true;
   return window.matchMedia("(min-width: 1280px)").matches;
@@ -120,7 +108,6 @@ export function WritingPane({
   });
   const action = writingSaveAction({ status: draft.status, wasPublished, isNew, title: draft.title, address });
   const saving = saveState === "saving";
-  // An editor's proposal never renames a saved page.
   const renameRefused = !canApprove && loadedRow !== null && draft.slug.trim() !== loadedRow.slug;
   const canPress = controller.canSave && isDirty && !uncertain && !renameRefused;
   const primaryLabel = canApprove ? action.label : "Submit for review";
@@ -138,7 +125,6 @@ export function WritingPane({
       body: <WritingChangesReview keys={changed} baseline={baseline} draft={draft} />,
       confirmLabel: action.label,
       wide: true,
-      // The dialog closes at once; the result lands in the dock beside Save.
       onConfirm: () => {
         void controller.saveReviewed(command);
       },
@@ -158,7 +144,6 @@ export function WritingPane({
     });
   };
 
-  // Cmd+S or Ctrl+S: the same as pressing the dock's button, confirm included.
   const askSaveRef = useRef(askSave);
   askSaveRef.current = askSave;
   useDevShortcuts(SAVE_SHORTCUTS);
@@ -172,7 +157,6 @@ export function WritingPane({
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // The row the header describes has arrived (not the one a new pick is replacing).
   const rowReady = isNew || (loadedRow !== null && selection.type === "row" && loadedRow.slug === selection.slug);
   const heading = isNew
     ? baseline.title || draft.title.trim() || `New ${noun}`
@@ -337,11 +321,6 @@ function SavedAt({ at }: { at: number }) {
   );
 }
 
-/**
- * The page as readers will see it: the article page or the blog post, drawn
- * by the public components in their embedded form so the preview column
- * lays out on its own width rather than the viewport's.
- */
 function WritingPreview({
   controller,
   contributorProfiles,
@@ -383,7 +362,6 @@ function WritingPreview({
   );
 }
 
-/** Loading a newer saved version, and the recorded changes to this page. */
 function Versions({ controller, history }: { controller: WritingWorkbenchController; history: NarrativeHistoryEntry[] }) {
   const id = useId();
   return (
@@ -409,7 +387,6 @@ function Versions({ controller, history }: { controller: WritingWorkbenchControl
   );
 }
 
-/** The five latest recorded changes, each opening in place (the accordion pattern). */
 function HistoryList({ entries }: { entries: NarrativeHistoryEntry[] }) {
   const [open, setOpen] = useState<string | null>(null);
   if (entries.length === 0) {
@@ -457,7 +434,6 @@ function HistoryList({ entries }: { entries: NarrativeHistoryEntry[] }) {
   );
 }
 
-/** What each changed field was and is, for the publish confirm. The body shows as a diff. */
 export function WritingChangesReview({ keys, baseline, draft }: { keys: readonly (keyof WritingDraft)[]; baseline: WritingDraft; draft: WritingDraft }) {
   if (keys.length === 0) return null;
   return (
@@ -492,11 +468,9 @@ function fieldText(value: unknown): string {
   return typeof value === "string" ? value || "Empty" : JSON.stringify(value);
 }
 
-/** The result of the last save, in the dock: success, conflict with its way forward, the freeze, or the route's words. */
 function DockNotice({ controller, frozen }: { controller: WritingWorkbenchController; frozen: boolean }) {
   const { notice, saveFailure, isDirty } = controller;
   if (!notice) return null;
-  // A success says what happened until the next edit makes it stale.
   if (isDirty && notice.tone === "success") return null;
   let shown: NoticeMessage = notice;
   if (saveFailure === "conflict") {
@@ -524,7 +498,6 @@ function DockNotice({ controller, frozen }: { controller: WritingWorkbenchContro
   return <Notice {...shown} dismiss={controller.dismissNotice} className="text-sm" />;
 }
 
-/** The one reason the dock cannot do the obvious thing right now, when there is one. */
 function DockBlocker({
   uncertain,
   canApprove,
@@ -565,7 +538,6 @@ function DockBlocker({
   );
 }
 
-/** One quiet line beside the actions: what the draft holds right now, and where it is kept. */
 function SaveState({ controller, canApprove }: { controller: WritingWorkbenchController; canApprove: boolean }) {
   const { isDirty, saveState, checkpointSavedAt, baseline, selection } = controller;
   let content: ReactNode;

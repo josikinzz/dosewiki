@@ -9,13 +9,6 @@ import type { ShowcaseWork } from "../components/showcaseWork";
 import { hasKnownCreator } from "@/features/effects/components/replicationCredit";
 import { msg } from "@/i18n/messages";
 
-/**
- * Canonical collection model shared by gallery, article, and artist sources.
- * A collection preserves the source page and its visible grouping so the
- * overlay can navigate without inventing a second route-level playlist.
- */
-
-/** Which body of work the viewer is walking. */
 type ReplicationViewerScope = "artist" | "effect" | "substance"
 
 export interface ReplicationViewerItem {
@@ -23,15 +16,7 @@ export interface ReplicationViewerItem {
   effectName: string | null;
   effectSlug: string | null;
   effectCategories: EffectCategoryLink[];
-  /**
-   * The credited artist's Artist Page (their contributor profile only for a
-   * work withheld from artist views), null when the credit names nobody.
-   */
   artistProfileHref: string | null;
-  /**
-   * The claiming Contributor Profile's avatar, rendered beside the compact
-   * byline; null when no profile claims the credit or the profile has none.
-   */
   avatarUrl: string | null;
 }
 
@@ -48,7 +33,6 @@ motion_poster_url?: string;
 width?: number;
 height?: number;
 duration?: number;
-/** True = audible signal; false = no signal; absent = unprobed. */
 has_audio?: boolean; }
 
 export interface ReplicationViewerMediaItem extends Omit<
@@ -65,25 +49,18 @@ type ReplicationViewerGrouping = "none" | "artist" | "effect" | "year"
 interface ReplicationViewerEditableTarget { kind: ReplicationViewerScope;
 key: string;
 label: string;
-/** Substance rows use this version for optimistic concurrency. */
 updatedAt?: string | null; }
 
 interface ReplicationViewerGroup { key: string;
 label: string;
 items: ReplicationViewerMediaItem[]; }
 
-/**
- * The reconstructable collection behind the expanded overlay. Named
- * substance/effect/artist collections have one group; Gallery collections
- * preserve their active artist/effect grouping.
- */
 export interface ReplicationViewerCollection {
   sourcePath: string;
   label: string;
   kind: ReplicationViewerCollectionKind;
   grouping: ReplicationViewerGrouping;
   groups: ReplicationViewerGroup[];
-  /** Present only when the visible collection is safe to reorder in full. */
   editorTarget?: ReplicationViewerEditableTarget;
 }
 
@@ -94,7 +71,6 @@ export interface ReplicationViewerPosition {
 
 export type ReplicationViewerDirection = -1 | 1;
 
-/** One projection for every canonical showcase host, including embeds. */
 export function viewerItemFromShowcaseWork(work: ShowcaseWork): ReplicationViewerMediaItem {
   return {
     replication: {
@@ -124,15 +100,6 @@ export function viewerItemFromShowcaseWork(work: ShowcaseWork): ReplicationViewe
   };
 }
 
-/**
- * Locate a work in a normalized collection.
- *
- * A work depicting several effects sits in each of their groups, and the
- * address carries only its slug. The owning effect's group wins so the
- * overlay's heading and vertical navigation match the work's own effect
- * rather than whichever depicting group happens to sort first; any group is
- * still better than none.
- */
 export function findViewerPosition(
   collection: ReplicationViewerCollection,
   slug: string,
@@ -160,7 +127,6 @@ export function findViewerPosition(
   return fallback;
 }
 
-/** Finite horizontal navigation within the active group. */
 export function moveViewerWork(
   collection: ReplicationViewerCollection,
   position: ReplicationViewerPosition,
@@ -174,10 +140,6 @@ export function moveViewerWork(
     : null;
 }
 
-/**
- * Finite vertical navigation between Gallery groups. A remembered slug wins
- * when it still belongs to the destination group; first visits start at zero.
- */
 export function moveViewerGroup(
   collection: ReplicationViewerCollection,
   position: ReplicationViewerPosition,
@@ -195,7 +157,6 @@ export function moveViewerGroup(
   return { groupIndex, itemIndex: rememberedIndex >= 0 ? rememberedIndex : 0 };
 }
 
-/** Normalize the Gallery's current artist/effect grouping for the overlay. */
 export function viewerCollectionFromGalleryGroups(
   groups: readonly GalleryGroup[],
   grouping: GalleryMode,

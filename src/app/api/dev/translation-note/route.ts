@@ -1,11 +1,3 @@
-/**
- * GET  /api/dev/translation-note?locale=zh-Hans&kind=article&slug=<slug>[&history=<section>]
- * POST /api/dev/translation-note { locale, kind, slug, section, expectedRevision, action, body?, reason, restoreRevision? }
- *
- * Translator's notes under substance article sections. Translator and up, for
- * an assigned locale only; writes obey the write freeze and the revision the
- * reviewer saw, like narrative corrections.
- */
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -81,7 +73,6 @@ export const POST = protectedRouteOperation({
     if (denied) return denied;
     getDataBackend();
     const entry = await writeTranslatorNote(getPublicDataReadAdapter(), { ...body, actor: actorEmail });
-    // Only an approval changes what readers see; the localized article carries its approved notes.
     const publication = body.action === "approve" && isPublicLocaleCode(body.locale)
       ? await publishPublicCache({ targets: [{ kind: "article-translation", slug: body.slug, locale: body.locale }], source: "manual" })
       : [];

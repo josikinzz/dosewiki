@@ -1,14 +1,3 @@
-/**
- * Public image endpoint for hand-authored chemical-class Markush depiction overrides.
- *
- * Class overrides share the `moleculeOverrides` table with substances under the
- * namespaced slug `class:<key>`. Postgres is the only source for class drawings —
- * a class with no stored row simply has no structure image (404 here, and the
- * class detail page omits the figure).
- *
- * As with the substance route, the shared Postgres row stores the dose.wiki brand palette, so
- * the Effect Index colourway is applied at serve time rather than in the data.
- */
 import { NextResponse } from "next/server";
 import {
   applyMoleculeColorway,
@@ -58,13 +47,10 @@ export async function GET(
     return NextResponse.json({ error: "No override for this class structure." }, { status: 404, headers: NO_STORE });
   }
 
-  // Old revisions are not retained. Never put today's bytes under yesterday's
-  // immutable URL, including when the metadata and image caches refresh apart.
   if (version !== null && version !== molecule.updatedAt) {
     return NextResponse.json({ error: "Molecule version unavailable." }, { status: 404, headers: NO_STORE });
   }
 
-  // The colorway query remains part of each representation's URL identity.
   const colorway = resolveMoleculeColorway(searchParams.get("colorway"));
 
   return new NextResponse(applyMoleculeColorway(molecule.svg, colorway), {

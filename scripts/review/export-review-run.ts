@@ -180,9 +180,6 @@ function renderDosage(article: Article): string[] {
   const lines = ["## Dosage", ""];
   for (const route of routes) {
     lines.push(`### ${route.route || "Unspecified route"}`, "");
-    // A prose-only route is a supported state: every tier is null and the human
-    // content lives in notes/bioavailability. Emitting the header first produced
-    // a table with no rows, so the rows are collected before it is written.
     const tierRows: string[] = [];
     for (const tier of DOSE_TIERS) {
       const rendered = range(route.dose_ranges?.[tier], tier === "threshold" ? "threshold" : "ordinary");

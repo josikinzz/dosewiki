@@ -1,12 +1,3 @@
-/**
- * ESLint Plugin: Vercel Policy Guardrails
- *
- * Custom lint rules to enforce Vercel best practices:
- * - No hardcoded secrets or API keys
- * - Proper environment variable access
- * - Safe API route patterns
- */
-
 const noHardcodedSecrets = {
   meta: {
     type: 'problem',
@@ -21,29 +12,27 @@ const noHardcodedSecrets = {
     schema: [],
   },
   create(context) {
-    // Patterns that indicate secrets/credentials
     const secretPatterns = [
-      /^sk[-_](?:live|test|or)[-_][a-zA-Z0-9]{20,}$/,  // Stripe, OpenRouter keys
-      /^pk[-_](?:live|test)[-_][a-zA-Z0-9]{20,}$/,     // Public keys (still shouldn't be hardcoded)
-      /^ghp_[a-zA-Z0-9]{36,}$/,                         // GitHub personal access tokens
-      /^gho_[a-zA-Z0-9]{36,}$/,                         // GitHub OAuth tokens
-      /^github_pat_[a-zA-Z0-9_]{22,}$/,                 // GitHub fine-grained PATs
-      /^xox[baprs]-[a-zA-Z0-9-]{10,}$/,                 // Slack tokens
-      /^AIza[a-zA-Z0-9_-]{35}$/,                        // Google API keys
-      /^ya29\.[a-zA-Z0-9_-]+$/,                         // Google OAuth tokens
-      /^AKIA[A-Z0-9]{16}$/,                             // AWS access key IDs
-      /^[a-zA-Z0-9/+=]{40}$/,                           // AWS secret access keys (40 chars base64)
-      /^eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\./,       // JWT tokens
-      /^npm_[a-zA-Z0-9]{36,}$/,                         // npm tokens
-      /^pypi-[a-zA-Z0-9_-]{60,}$/,                      // PyPI tokens
-      /^-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/, // Private keys
-      /^mongodb(?:\+srv)?:\/\/[^:]+:[^@]+@/,            // MongoDB connection strings with creds
-      /^postgres(?:ql)?:\/\/[^:]+:[^@]+@/,              // PostgreSQL connection strings
-      /^mysql:\/\/[^:]+:[^@]+@/,                        // MySQL connection strings
-      /^redis:\/\/[^:]+:[^@]+@/,                        // Redis connection strings
+      /^sk[-_](?:live|test|or)[-_][a-zA-Z0-9]{20,}$/,
+      /^pk[-_](?:live|test)[-_][a-zA-Z0-9]{20,}$/,
+      /^ghp_[a-zA-Z0-9]{36,}$/,
+      /^gho_[a-zA-Z0-9]{36,}$/,
+      /^github_pat_[a-zA-Z0-9_]{22,}$/,
+      /^xox[baprs]-[a-zA-Z0-9-]{10,}$/,
+      /^AIza[a-zA-Z0-9_-]{35}$/,
+      /^ya29\.[a-zA-Z0-9_-]+$/,
+      /^AKIA[A-Z0-9]{16}$/,
+      /^[a-zA-Z0-9/+=]{40}$/,
+      /^eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\./,
+      /^npm_[a-zA-Z0-9]{36,}$/,
+      /^pypi-[a-zA-Z0-9_-]{60,}$/,
+      /^-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----/,
+      /^mongodb(?:\+srv)?:\/\/[^:]+:[^@]+@/,
+      /^postgres(?:ql)?:\/\/[^:]+:[^@]+@/,
+      /^mysql:\/\/[^:]+:[^@]+@/,
+      /^redis:\/\/[^:]+:[^@]+@/,
     ];
 
-    // Variable names that suggest secrets
     const secretVarPatterns = [
       /(?:api|auth|access|secret|private)[-_]?key/i,
       /(?:password|passwd|pwd)(?:[-_]?\w+)?$/i,
@@ -59,8 +48,6 @@ const noHardcodedSecrets = {
       /(?:^|\/)__tests__\//.test(filename) ||
       /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(filename);
 
-    // Connection strings for hosts that can never resolve to a real service
-    // (RFC 2606 and RFC 6761 names, plus loopback in tests) are fixtures.
     const isPlaceholderConnectionString = (value) => {
       const host = /^[a-z][a-z0-9+.-]*:\/\/[^@/]*@(\[[^\]]+\]|[^:/?#]+)/i.exec(value)?.[1]?.toLowerCase();
       if (!host) return false;
@@ -92,7 +79,6 @@ const noHardcodedSecrets = {
       },
 
       TemplateLiteral(node) {
-        // Check if template literal contains secret-like patterns in its quasis
         const fullValue = node.quasis.map(q => q.value.raw).join('');
         if (isSecretLike(fullValue)) {
           context.report({
@@ -300,17 +286,14 @@ const noUnsafeApiPatterns = {
 
     return {
       CallExpression(node) {
-        // Check for eval()
         if (node.callee.type === 'Identifier' && node.callee.name === 'eval') {
           context.report({ node, messageId: 'noEval' });
         }
 
-        // Check for Function constructor
         if (node.callee.type === 'Identifier' && node.callee.name === 'Function') {
           context.report({ node, messageId: 'noFunctionConstructor' });
         }
 
-        // Check for exec/spawn with template literals or concatenated strings
         if (
           node.callee.type === 'Identifier' &&
           ['exec', 'execSync', 'spawn', 'spawnSync'].includes(node.callee.name) &&
@@ -319,7 +302,6 @@ const noUnsafeApiPatterns = {
           context.report({ node, messageId: 'commandInjection' });
         }
 
-        // Check for unsafe redirects
         if (
           node.callee.type === 'MemberExpression' &&
           node.callee.property?.name === 'redirect' &&
@@ -336,17 +318,15 @@ const noUnsafeApiPatterns = {
       },
 
       TemplateLiteral(node) {
-        // Check for SQL-like patterns with interpolation
-        // Must have SQL keywords followed by typical SQL syntax
         const quasis = node.quasis.map(q => q.value.raw).join('');
         const sqlPatterns = [
-          /SELECT\s+[\w*,\s]+\s+FROM\s+/i,           // SELECT ... FROM
-          /INSERT\s+INTO\s+\w+/i,                     // INSERT INTO table
-          /UPDATE\s+\w+\s+SET\s+/i,                   // UPDATE table SET
-          /DELETE\s+FROM\s+\w+/i,                     // DELETE FROM table
-          /DROP\s+(?:TABLE|DATABASE|INDEX)\s+/i,     // DROP TABLE/DATABASE/INDEX
-          /CREATE\s+(?:TABLE|DATABASE|INDEX)\s+/i,   // CREATE TABLE/DATABASE/INDEX
-          /ALTER\s+TABLE\s+\w+/i,                     // ALTER TABLE
+          /SELECT\s+[\w*,\s]+\s+FROM\s+/i,
+          /INSERT\s+INTO\s+\w+/i,
+          /UPDATE\s+\w+\s+SET\s+/i,
+          /DELETE\s+FROM\s+\w+/i,
+          /DROP\s+(?:TABLE|DATABASE|INDEX)\s+/i,
+          /CREATE\s+(?:TABLE|DATABASE|INDEX)\s+/i,
+          /ALTER\s+TABLE\s+\w+/i,
         ];
         if (
           sqlPatterns.some(pattern => pattern.test(quasis)) &&
@@ -401,17 +381,11 @@ const requireRateLimit = {
       'protectedRouteOperation',
       'citationEvidenceRouteOperation',
       'feedbackStatusRoute',
-      // Feedback queue reads wrap protectedRouteOperation with rateLimit: "diagnosticRead".
       'feedbackQueueRoute',
-      // Feedback item reads wrap protectedRouteOperation with rateLimit: "diagnosticRead".
       'feedbackItemRoute',
-      // Editor read routes wrap protectedRouteOperation with rateLimit: "editorPolledRead".
       'editorReadRoute',
-      // /api/subscribe applies per-IP and global limits through this limiter's limit() calls.
       'createSubscribeRateLimiter',
-      // Cron routes are gated by CRON_SECRET; the caller is Vercel's scheduler, not the public.
       'authorizeCronRequest',
-      // cronRoute applies authorizeCronRequest, after an optional limiter.
       'cronRoute',
     ]);
 

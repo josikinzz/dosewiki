@@ -5,17 +5,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n/client";
 
-/**
- * The 404's on-page chrome, split from the server `not-found.tsx` so the
- * strings render in the mirror's language: the not-found route matches no
- * localized page, so nothing calls `setRequestLocale` above it and the server
- * `t` would stay English. `useT` reads the layout segments, the same root
- * chrome idiom `Footer` and `Header` rely on.
- *
- * The Copy Studio blocks (`not-found-title`, `not-found-body`) arrive as plain
- * strings and win when present; the fallbacks translate when the block is
- * untouched.
- */
 export function NotFoundBody({
   substancesHref,
   effectsHref,

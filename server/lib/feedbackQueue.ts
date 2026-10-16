@@ -8,7 +8,6 @@ import type {
   FeedbackQueueTable,
 } from "../../lib/postgres/runtime/feedbackQueuePage";
 
-/** Shared arguments and result of the article and site `queuePage` reads. */
 export const feedbackQueueOrderValidator = v.union(
   v.literal("oldest"),
   v.literal("newest"),
@@ -31,11 +30,6 @@ type FeedbackQueueReader = QueryCtx["db"] & {
   getFeedbackQueueCounts: (table: FeedbackQueueTable, search: string | undefined) => Promise<FeedbackQueueStatusCounts>;
 };
 
-/**
- * One page of a feedback queue plus the per-status counts of every row the
- * search matches, so the queue can show how many match apart from how many
- * it has loaded.
- */
 export async function readFeedbackQueue(
   ctx: { db: QueryCtx["db"] },
   table: FeedbackQueueTable,

@@ -22,20 +22,12 @@ import {
 import type { ReplicationSelection } from "./useReplicationSelection";
 
 const RAIL_COLUMN_MEDIA = "(min-width: 1024px)";
-/** From xl the inspector is the frame's third column; under it, a sheet. */
 const DRAWER_COLUMN_MEDIA = "(min-width: 1280px)";
 
 function initialView() {
   return readLibraryView(typeof window === "undefined" ? "" : window.location.search);
 }
 
-/**
- * The Library's browse state: search, facets, grouping, view and card size,
- * and what they leave on screen. The view lives in the URL, so a filtered,
- * grouped Library link opens the same view. Writes go through native history
- * rather than the router, like the other dev tools' filters: they are
- * client-only state and a server round trip would buy nothing.
- */
 export function useLibraryController({
   rows,
   effectNames,
@@ -122,11 +114,6 @@ export function useLibraryController({
 
 export type LibraryController = ReturnType<typeof useLibraryController>;
 
-/**
- * The Library's keys: `/` finds, Esc clears the selection, arrows walk the
- * grid (Shift spans a range). Keys belong to the grid; with focus on a
- * control anywhere else they keep their native meaning.
- */
 export function useLibraryKeys(library: LibraryController, selection: ReplicationSelection) {
   const { searchRef, gridRef, setFiltersOpen, visibleIds } = library;
   const { clearSelection, step } = selection;
@@ -148,9 +135,6 @@ export function useLibraryKeys(library: LibraryController, selection: Replicatio
       const typing =
         Boolean(target) &&
         (/^(INPUT|TEXTAREA|SELECT)$/.test(target?.tagName ?? "") || Boolean(target?.isContentEditable));
-      // Selection keys belong to the grid. With focus on a control anywhere
-      // else (an inspector button, a dialog, the rail) they keep their native
-      // meaning, so an arrow never swaps the subject out from under a form.
       const onPage = !target || target === document.body || target === document.documentElement;
       const inGrid = Boolean(target?.closest?.("[data-studio-grid]"));
       const inInspector = Boolean(target?.closest?.("[data-studio-inspector]"));
@@ -166,7 +150,6 @@ export function useLibraryKeys(library: LibraryController, selection: Replicatio
           return;
         }
         if (selectionSize > 0 && (onPage || inGrid || inInspector)) {
-          // Handled: shell keyboard handlers skip events with defaultPrevented.
           event.preventDefault();
           clearSelection();
         }
@@ -180,8 +163,6 @@ export function useLibraryKeys(library: LibraryController, selection: Replicatio
       }
       if (visibleIds.length === 0) return;
       event.preventDefault();
-      // The grid's column count follows its width, so a fixed step would
-      // move diagonally at some widths; the grid reports its own count.
       step({ key: event.key, shift: event.shiftKey, perRow: gridRef.current?.columns ?? 1 });
     };
     document.addEventListener("keydown", onKeyDown);
@@ -189,10 +170,6 @@ export function useLibraryKeys(library: LibraryController, selection: Replicatio
   }, [clearSelection, focusSearch, gridRef, selectionSize, step, visibleIds]);
 }
 
-/**
- * Whether `media` matches. Starts true so the server render and jsdom take
- * the wide layout; the listener corrects it before first paint in a browser.
- */
 function useMediaMatch(media: string) {
   const [matches, setMatches] = useState(true);
   useEffect(() => {
@@ -206,15 +183,6 @@ function useMediaMatch(media: string) {
   return matches;
 }
 
-/**
- * Where the rail and inspector sit. From lg the inspector is a column.
- * Between lg and xl there is room for two columns beside the grid, not
- * three, so while something is selected the rail makes way (it folds into
- * the toolbar's filter popover) and comes back when the selection clears.
- * Under lg it is a sheet. From xl the idle inspector can be pinned open (the
- * grid never moves when a selection lands) or unpinned (the grid takes its
- * space until a work is selected).
- */
 export function useLibraryLayout(hasSelection: boolean) {
   const railInColumn = useMediaMatch(RAIL_COLUMN_MEDIA);
   const drawerInColumn = useMediaMatch(DRAWER_COLUMN_MEDIA);

@@ -164,10 +164,6 @@ export function proposalIdForArtifact(artifactDigest) {
   return `reviewed-section-${requireSha256(artifactDigest, "artifactDigest")}`;
 }
 
-/**
- * Reads every immutable artifact that the proposal digest names, then verifies
- * the digest-bound content before any target query or mutation is created.
- */
 export function loadAndVerifyPublicationArtifact({ proposalPath, repoRoot }) {
   const resolvedProposalPath = resolve(repoRoot, proposalPath);
   if (!isWithin(repoRoot, resolvedProposalPath)) {

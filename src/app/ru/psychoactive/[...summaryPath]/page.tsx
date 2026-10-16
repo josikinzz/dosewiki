@@ -1,10 +1,3 @@
-/**
- * The Russian mirror of `/psychoactive/[...summaryPath]`, reached
- * only through the middleware rewrite from `ru.dose.wiki/psychoactive/...`.
- * Same loader with the localized effect records spliced in for each summary;
- * the mirror carries `noindex` and a canonical link back to the English
- * summary.
- */
 import { notFound } from "next/navigation";
 
 import { buildPublicPageMetadata } from "@server/next/publicSite";
@@ -20,7 +13,6 @@ import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-// Keep the build bounded like the English route; keys enter the ISR cache on first request.
 export function generateStaticParams() {
   return [];
 }

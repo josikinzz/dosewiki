@@ -2,7 +2,6 @@ import { defineTable } from "../../lib/postgres/runtime/schema";
 import { v } from "../../lib/postgres/runtime/values";
 import { replication } from "./effectMediaSchemaValidators";
 
-/** Only placement-policy inputs. Never copy media evidence or URL payloads. */
 export const galleryMatchFields = {
   slug: replication.fields.slug,
   title: replication.fields.title,
@@ -21,8 +20,6 @@ export const publicReadIndexName = v.union(
 );
 
 export const publicReadIndexTables = {
-  // A cursor is persisted only after its entire source page is indexed in the
-  // same transaction. Nonempty derived tables never establish readiness.
   publicReadIndexState: defineTable({
     name: publicReadIndexName,
     version: v.number(),

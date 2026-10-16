@@ -1,4 +1,3 @@
-/** Read-only browser evidence for the catalog and the reported appearance/gallery labels. */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";

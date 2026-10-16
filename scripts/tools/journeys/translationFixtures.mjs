@@ -1,30 +1,6 @@
-/**
- * The translation workbench's records for browser journeys and screenshots
- * of `/dev/glossary`: glossary rows per language, interface text, the review
- * inbox, article paragraphs with their notes, the style guide, coverage,
- * recorded changes, reader reactions and release readiness.
- *
- * `createTranslationRoutes` returns a router the journey fixture calls for
- * every request under the translation routes. It keeps its own small store,
- * so a journey can approve, confirm, save, restore and reload against the
- * same rows, and it holds the rules the real routes hold: the locale
- * assignment of a Translator, the admin floor on the model actions, the
- * editor floor on definitions, the revision check on every review write, the
- * shared-rendering question before two terms of one kind share an approved
- * rendering, and the write freeze (through the fixture's `toolWrite`).
- *
- * Pure module: no Playwright and no Node imports.
- */
-
-/** Every language the pipeline knows, in the order the server lists them. */
 export const TRANSLATION_FIXTURE_LOCALES = Object.freeze(["zh-Hans", "nl", "ar", "cs", "de", "es", "fr", "hi", "ja", "ko", "pl", "pt", "ru"]);
-/** The live mirrors. */
 const LIVE = new Set(["zh-Hans"]);
 
-/**
- * The glossary, one line per term: English, kind, then the rendering in
- * Simplified Chinese, Dutch, German and Japanese.
- */
 const TERMS = Object.freeze([
   ["Visual drifting", "effect-name", "视觉漂移", "Visueel drijven", "Visuelles Driften", "視覚のドリフト"],
   ["Euphoria", "effect-name", "欣快感", "Euforie", "Euphorie", "多幸感"],
@@ -54,24 +30,14 @@ const TERMS = Object.freeze([
 ]);
 const COLUMN = Object.freeze({ "zh-Hans": 2, nl: 3, de: 4, ja: 5 });
 
-/**
- * Where each language's review stands, one letter per term above: A approved
- * by a person, L live but never checked (an older import), D a machine draft,
- * H a person's draft over approved wording. Missing letters mean no row.
- * Chinese is mid-review (the admin's first language); Dutch has drafts only
- * (a Translator's first language, so its Inbox is empty); German is reviewed;
- * Japanese is new and has nothing translated yet.
- */
 const PLAN = Object.freeze({
   "zh-Hans": "AADLDDLALAHLALDDALADLAAAL",
   nl: "AADADDAAAAHAAADDAAADAAAAA",
   de: "AAAAAAAAAAAAAAAAAAAAAAAAA",
   ja: "ADDDDD",
 });
-/** The approved wording a person's draft sits over (H). */
 const APPROVED_UNDER = Object.freeze({ "zh-Hans": "旅程报告", nl: "Ervaringsverslagen", de: "Erfahrungsberichte", ja: "旅の報告" });
 
-/** Definitions (locale-independent), for the terms that have one. */
 const GLOSSES = Object.freeze({
   "Visual drifting": "Surfaces appear to warp, melt or flow while still recognisable.",
   Euphoria: "An intense, often overwhelming feeling of well-being and happiness.",
@@ -82,17 +48,14 @@ const GLOSSES = Object.freeze({
   "Set and setting": "The mindset and the surroundings in which a substance is taken.",
 });
 
-/** Segment and run counts per language: stored translations, how many follow the current terms, and the latest run. */
 const PROGRESS = Object.freeze({
   "zh-Hans": { segments: { total: 48210, current: 46890 }, jobs: { runId: "run-zh-0007", requestedAt: -30, total: 412, active: 0, completed: 404, completedWithRejections: 6, exhausted: 3 } },
   nl: { segments: { total: 18_040, current: 17_990 }, jobs: { runId: "run-nl-0002", requestedAt: -200, total: 380, active: 0, completed: 380, completedWithRejections: 0, exhausted: 0 } },
   de: { segments: { total: 21_300, current: 20_104 }, jobs: { runId: null, requestedAt: null, total: 0, active: 0, completed: 0, completedWithRejections: 0, exhausted: 0 } },
   ja: { segments: { total: 0, current: 0 }, jobs: { runId: null, requestedAt: null, total: 0, active: 0, completed: 0, completedWithRejections: 0, exhausted: 0 } },
 });
-/** Approved terms whose rendering has not reached stored translations yet. */
 const PENDING = Object.freeze({ "zh-Hans": ["Euphoria", "Tolerance", "Set and setting"], nl: ["Tolerance"], de: ["Tolerance", "Set and setting"] });
 
-/** The interface text inventory: id, English, context, locations, then Chinese and German compiled wording, then a state per language. */
 const UI_LABELS = Object.freeze([
   ["nav.substances", "Substances", "Main navigation link to the substance index", ["src/components/layout/Header.tsx"], "物质", "Substanzen"],
   ["nav.effects", "Effects", "Main navigation link to the effect index", ["src/components/layout/Header.tsx"], "效应", "Effekte"],
@@ -125,11 +88,9 @@ const UI_LABELS = Object.freeze([
   ["glossary.feedback.right", "Looks right", "Reader reaction on a glossary term", ["src/features/language-glossary/TermFeedback.tsx"], "看起来没问题", "Sieht richtig aus"],
   ["glossary.feedback.improve", "Needs improvement", "Reader reaction on a glossary term", ["src/features/language-glossary/TermFeedback.tsx"], "需要改进", "Verbesserungswürdig"],
 ]);
-/** States per label for Chinese and German (u unreviewed, d draft, a approved, s source changed, m missing), then the pending refresh keys. */
 const UI_PLAN = Object.freeze({ "zh-Hans": "uuaauuaaudusuudaaaasuuuaudumuau", de: "aaaaaaaaaaaaaudaaaaaaaaaaaaaaaa" });
 const UI_PENDING_REFRESH = Object.freeze({ "zh-Hans": { "gallery.back": { term: "Replication", expectedTarget: "体验再现" }, "replications.tutorials": { term: "Replication", expectedTarget: "体验再现" }, "gallery.next": { term: null, expectedTarget: null } } });
 
-/** Article paragraphs the reader opens: slug, then paragraphs of field, English, Chinese, German and a state. */
 const ARTICLES = Object.freeze({
   lsd: [
     ["summary", "LSD is a semisynthetic psychedelic of the lysergamide class.", "LSD 是一种半合成的麦角酰胺类迷幻剂。", "LSD ist ein halbsynthetisches Psychedelikum aus der Klasse der Lysergamide.", "approved"],
@@ -147,13 +108,11 @@ const ARTICLES = Object.freeze({
     ["harm", "Stay hydrated but avoid drinking too much water.", "保持水分，但避免饮水过量。", "Trinke genug, aber nicht zu viel Wasser.", "draft"],
   ],
 });
-/** Article section headings for translator's notes, by anchor, and the paragraph each follows. */
 const NOTE_SECTIONS = Object.freeze({
   lsd: [["dosage-duration", "Dosage & Duration", 2], ["subjective-effects", "Subjective effects", 4], ["tolerance", "Tolerance and addiction potential", 5], ["harm-potential", "Harm potential", 6], ["history-culture", "History and culture", 7]],
   mdma: [["dosage-duration", "Dosage & Duration", 1], ["harm-potential", "Harm potential", 2]],
 });
 
-/** Articles with open work in the coverage audit, in the audit's order. */
 const COVERAGE_PAGES = Object.freeze([
   ["article", "lsd", 6, 4, 1, 3, 0, 1],
   ["article", "mdma", 3, 2, 0, 1, 1, 0],
@@ -165,7 +124,6 @@ const COVERAGE_PAGES = Object.freeze([
 ]);
 
 const HEX = "0123456789abcdef";
-/** A 64-character hex acknowledgement derived from the colliding terms, the same on every run. */
 function confirmationFor(terms) {
   let seed = 7;
   for (const char of [...terms].sort().join("|")) seed = (seed * 31 + char.charCodeAt(0)) >>> 0;
@@ -179,10 +137,6 @@ function confirmationFor(terms) {
 
 const REVIEW_CONFLICT = Object.freeze({ error: "This translation changed since you opened it. Reload and review the latest revision.", code: "TRANSLATION_REVIEW_CONFLICT" });
 
-/**
- * Seeds one language's glossary rows. `empty` seeds none. Revisions follow the
- * server's `updated_at:reviewRevision`.
- */
 export function seedGlossaryRows(locale, epoch, empty = false) {
   if (empty) return [];
   const plan = PLAN[locale];
@@ -218,7 +172,6 @@ function uiState(locale, index) {
   return plan[index] ?? "u";
 }
 
-/** One language's interface text inventory. */
 export function seedUiLabels(locale, epoch, empty = false) {
   if (empty) return [];
   return UI_LABELS.map(([id, source, context, locations, zh, de], index) => {
@@ -245,7 +198,6 @@ export function seedUiLabels(locale, epoch, empty = false) {
   });
 }
 
-/** One article's paragraphs as the narrative read returns them. */
 function seedArticle(locale, slug, epoch) {
   const paragraphs = ARTICLES[slug];
   if (!paragraphs) return null;
@@ -277,29 +229,21 @@ function seedArticle(locale, slug, epoch) {
   });
 }
 
-/**
- * The router for the translation routes, sharing the journey fixture's
- * session, state and helpers. Returns null for a path it does not own.
- */
 export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, epoch, otherAdmin }) {
   const empty = fixture.state === "empty";
   let clock = epoch;
   const now = () => (clock += 60_000);
-  /** Glossary rows by locale. */
   const glossary = new Map(TRANSLATION_FIXTURE_LOCALES.map((locale) => [locale, seedGlossaryRows(locale, epoch, empty)]));
   const glosses = { ...GLOSSES };
   const pending = new Map(Object.entries(PENDING).map(([locale, terms]) => [locale, empty ? [] : [...terms]]));
   const progress = new Map(Object.entries(PROGRESS).map(([locale, value]) => [locale, structuredClone(value)]));
-  /** Review history per locale and term. */
   const glossaryHistory = new Map();
   const labels = new Map(TRANSLATION_FIXTURE_LOCALES.map((locale) => [locale, seedUiLabels(locale, epoch, empty)]));
   const labelHistory = new Map();
   const articles = new Map();
   const notes = new Map();
   const styleGuides = new Map();
-  /** Items an Accept, Fine here or Resolve took out of the inbox, by locale. */
   const inboxDone = new Map();
-  /** Records someone else already saved over, so `conflicted` refuses each first write once. */
   const contested = new Set();
 
   const actor = () => fixture.session.user.email;
@@ -307,14 +251,12 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
   const isAdmin = () => role() === "admin";
   const translates = () => role() === "admin" || role() === "translator" || role() === "editor_translator";
   const allowed = () => (isAdmin() ? [...TRANSLATION_FIXTURE_LOCALES] : TRANSLATION_FIXTURE_LOCALES.filter((locale) => (fixture.session.user.glossaryLocales ?? []).includes(locale)));
-  /** The locale assignment check every read and write makes; null when allowed. */
   const denied = (locale) => {
     if (!translates()) return json(403, { error: "Translator access required." });
     if (!TRANSLATION_FIXTURE_LOCALES.includes(locale)) return json(400, { error: `Unknown locale. Known: ${TRANSLATION_FIXTURE_LOCALES.join(", ")}.` });
     if (!allowed().includes(locale)) return json(403, { error: `You are not approved to access the ${locale} translation glossary. Ask an admin to assign this language.` });
     return null;
   };
-  /** Under `conflicted`, someone else saves `key` just before the first write of it lands. */
   const contest = (key, bump) => {
     if (fixture.state !== "conflicted" || contested.has(key)) return false;
     contested.add(key);
@@ -361,7 +303,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     return list;
   }
 
-  /** The approved rows of one kind that would share `target` with `term`, as the collision check names them. */
   function collisionsFor(locale, updates) {
     const out = [];
     for (const { term, target } of updates) {
@@ -407,7 +348,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     });
   }
 
-  /** Approve, confirm or edit, each pinned to the revision the reviewer saw. */
   function glossaryWrite(action, body) {
     const locale = String(body.locale ?? "");
     const refusal = denied(locale);
@@ -509,7 +449,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     return json(200, { ok: true, approved: 0, drafts });
   }
 
-  // Interface text.
   const labelsOf = (locale) => labels.get(locale) ?? [];
   function labelWrite(body) {
     const locale = String(body.locale ?? "");
@@ -567,7 +506,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     });
   }
 
-  // The review inbox.
   function inboxItems(locale) {
     if (empty) return [];
     const at = (term) => rowsOf(locale).find((row) => row.term === term);
@@ -601,7 +539,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
       items.push({ scope: "segment", id: "seg-ja-lsd-3", reason: "glossary-disagreement", english: ARTICLES.lsd[3][1], live: "中程度の用量では視覚の流れと時間の歪みがよく見られる。", detail: "Mentions Visual drifting (視覚のドリフト); the translation says 視覚の流れ.", exception: { finding: "glossary-disagreement", hash: "h-lsd-3", term: "Visual drifting", revision: "g1:d2" }, where: "LSD · Effects summary", revision: "g1:d2", href: "/substances/lsd", accept: null });
       items.push({ scope: "segment", id: "seg-ja-mdma-1", reason: "segment-rejected", english: ARTICLES.mdma[1][1], live: null, detail: "Every attempt dropped the number in the English. Readers see English.", where: "MDMA · Dosage notes", revision: "r1", href: "/substances/mdma", accept: null });
     }
-    // German keeps the seven items Home counts.
     const done = inboxDone.get(locale) ?? new Set();
     return (locale === "de" ? items.slice(0, 7) : items).filter((item) => !done.has(`${item.scope}:${item.id}`));
   }
@@ -620,7 +557,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
   }
   const markDone = (locale, key) => inboxDone.set(locale, new Set([...(inboxDone.get(locale) ?? []), key]));
 
-  // Article reader.
   const articleOf = (locale, slug) => {
     const key = `${locale}:${slug}`;
     if (!articles.has(key)) {
@@ -674,7 +610,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     return json(200, { ok: true, entry: { revision: row.revision, draft: row.draft, approved: row.approved }, publication: body.action === "approve" ? [{ target: `${locale}.dose.wiki/substances/${body.slug}`, status: "accepted", attempts: 1, detail: "Cache refreshed." }] : [] });
   }
 
-  // Translator's notes.
   const notesOf = (locale, slug) => {
     const key = `${locale}:${slug}`;
     if (!notes.has(key)) {
@@ -714,7 +649,6 @@ export function createTranslationRoutes({ fixture, json, toolRead, toolWrite, ep
     return json(200, { ok: true, entry: { revision: row.revision, draft: row.draft ? { target: row.draft } : null }, publication: [] });
   }
 
-  // Style guide.
   const guideOf = (locale) => {
     if (!styleGuides.has(locale)) {
       const approved = empty ? null : locale === "zh-Hans" ? {

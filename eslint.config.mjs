@@ -4,6 +4,8 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
+import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.js';
+import { codeCommentFiles, commentExclusions, generatedCommentPaths } from './scripts/lib/comment-scope.mjs';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';
 
@@ -18,7 +20,8 @@ const pureFreezeImports = [
   },
 ];
 
-export default tseslint.config(
+const commentOnlyFiles = ['*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}', 'scripts/eslint-plugins/**', 'tools/**'];
+const existingConfig = tseslint.config(
   {
     ignores: [
       'dist/**',
@@ -26,18 +29,15 @@ export default tseslint.config(
       'coverage/**',
       'public/**',
       'node_modules/**',
-      '*.config.js',
-      '*.config.mjs',
-      '*.config.ts',
-      'scripts/eslint-plugins/**',
+      'vendor/**',
     ],
   },
   js.configs.recommended,
   {
     rules: {
-      // Keep ESLint 10 from expanding this upgrade into unrelated existing-code cleanup.
       'no-useless-assignment': 'off',
       'preserve-caught-error': 'off',
+      'no-empty': ['error', { allowEmptyCatch: true }],
     },
   },
   ...tseslint.configs.recommended,
@@ -59,10 +59,8 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Accessibility rules (WCAG AA compliance)
       ...jsxA11y.configs.recommended.rules,
 
-      // Allow unused vars prefixed with underscore
       '@typescript-eslint/no-unused-vars': [
         'warn',
         {
@@ -71,11 +69,9 @@ export default tseslint.config(
         },
       ],
 
-      // Relax some rules for existing codebase
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-empty-function': 'off',
 
-      // Critical accessibility rules
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/aria-props': 'error',
       'jsx-a11y/aria-role': 'error',
@@ -83,21 +79,16 @@ export default tseslint.config(
       'jsx-a11y/role-has-required-aria-props': 'error',
       'jsx-a11y/role-supports-aria-props': 'error',
 
-      // Allow certain patterns common in this codebase
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/no-noninteractive-element-interactions': 'warn',
-      // Named scroll regions must be keyboard-focusable for overflow navigation.
       'jsx-a11y/no-noninteractive-tabindex': ['error', { roles: ['tabpanel', 'region'] }],
 
-      // Vercel security guardrails
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/enforce-env-prefix': ['warn', { framework: 'next' }],
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
     },
   },
-  // Hook order and effect dependencies across client components. Only the two
-  // classic rules: the React Compiler rules in the plugin's preset are not adopted.
   {
     files: ['src/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
     plugins: {
@@ -108,8 +99,6 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  // Dev tools and in-page editors share one unsaved-work guard and one confirm
-  // dialog. The shared implementations themselves are the only exemptions.
   {
     files: [
       'src/features/dev/**/*.{ts,tsx}',
@@ -134,14 +123,12 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    // Page and document rules describe rendered routes, not unit test fixtures.
     ignores: ['src/**/*.test.{ts,tsx}'],
     ...nextPlugin.configs['core-web-vitals'],
     settings: {
       next: { rootDir: '.' },
     },
   },
-  // Server-side JavaScript helpers under /lib run in Node.
   {
     files: ['lib/**/*.{js,mjs}'],
     languageOptions: {
@@ -177,7 +164,6 @@ export default tseslint.config(
       'no-useless-escape': 'warn',
     },
   },
-  // Active App Router API route guardrails.
   {
     files: ['src/app/api/**/*.{ts,tsx}'],
     plugins: {
@@ -240,3 +226,16 @@ export default tseslint.config(
     },
   },
 );
+
+export default [
+  ...existingConfig.map((config) => config.ignores && Object.keys(config).length === 1
+    ? config
+    : { ...config, ignores: [...(config.ignores ?? []), ...commentOnlyFiles] }),
+  {
+    files: codeCommentFiles,
+    ignores: [...commentExclusions, ...generatedCommentPaths(import.meta.dirname)],
+    languageOptions: { parser: tseslint.parser, parserOptions: { ecmaFeatures: { jsx: true } } },
+    plugins: { 'code-hygiene': codeHygiene },
+    rules: { 'code-hygiene/no-comments': 'error' },
+  },
+];

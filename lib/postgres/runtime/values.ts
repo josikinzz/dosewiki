@@ -1,6 +1,5 @@
 import type { ValidatorJson } from "./validate";
 
-/** IDs remain opaque, table-branded strings. Existing stored IDs are never reminted. */
 export type Id<Table extends string> = string & { __tableName: Table };
 export type Value = null | boolean | number | bigint | string | ArrayBuffer | Value[] | { [key: string]: Value | undefined };
 export type PropertyValidators = Record<string, Validator<any, "required" | "optional">>;
@@ -25,7 +24,6 @@ function object<F extends PropertyValidators>(fields: F): Validator<ObjectType<F
   return Object.freeze({ ...validator<ObjectType<F>>({ type: "object", value }), fields });
 }
 
-/** Runtime-owned validators used by both callable definitions and schema producers. */
 export const v = {
   string: () => validator<string>({ type: "string" }),
   number: () => validator<number>({ type: "number" }),
@@ -46,7 +44,6 @@ export const v = {
 
 const POSTGRES_ERROR = Symbol.for("dosewiki.PostgresError");
 
-/** Application errors preserve their structured data and are never retried as SQL failures. */
 export class PostgresError<T = Value> extends Error {
   readonly data: T;
   readonly [POSTGRES_ERROR] = true;

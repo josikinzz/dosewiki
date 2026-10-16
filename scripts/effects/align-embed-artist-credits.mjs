@@ -1,30 +1,4 @@
 #!/usr/bin/env node
-/**
- * Align the artist credit on every effect-article image embed with the
- * canonical spelling that artist carries in the replication corpus.
- *
- * Why this matters beyond tidiness: an article byline links to the artist's
- * Artist Page by matching its credit line against the gallery corpus
- * (`src/features/effects/vcode/artistCreditLinks.ts`). A credit that spells
- * the same artist differently than their works do resolves to nothing, so the
- * reader gets plain text where a link belongs.
- *
- * Two classes of rewrite, both evidence-gated:
- *
- *  1. Spacing/casing variants. `artist="StasConstantine"` versus the corpus's
- *     "Stas Constantine" (32 works). Matched on the alphanumeric-only key, and
- *     only when that key names exactly one corpus artist.
- *  2. Explicit aliases below. A typo cannot be derived from the corpus, so
- *     each one is listed with the evidence that identifies the artist.
- *
- * Credits with no corpus counterpart are left exactly as written: an unlinked
- * credit is correct when the artist genuinely holds nothing on the site.
- *
- *   node scripts/effects/align-embed-artist-credits.mjs --target=<url>
- *   node scripts/effects/align-embed-artist-credits.mjs --target=<url> \
- *     --write --confirm-write=align-embed-artist-credits \
- *     --expected-deployment=<host>/<database>
- */
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
@@ -45,18 +19,8 @@ const mediaFields = [
   "personal_commentary_raw", "personal_commentary_ast",
 ];
 
-/**
- * Credits the corpus cannot match on spelling alone. Each entry names the
- * corpus rows that identify the artist.
- */
 const CREDIT_ALIASES = {
-  // "Josikinz" appears once, on symmetrical-texture-repetition. The corpus
-  // spells the site owner's replication credit "Josie Kins" (13 works),
-  // "Josikins" and "josikins" (21) — never with a trailing z.
   josikinz: "Josie Kins",
-  // "StingrayZ" is Symmetric Vision's retired handle (owner-confirmed rename);
-  // the corpus carries 520 works under "Symmetric Vision" and none under the
-  // old handle, so the article credits are the only place it survives.
   stingrayz: "Symmetric Vision",
 };
 
@@ -69,8 +33,6 @@ const [effects, replications] = await Promise.all([
   client.query(api.replications.getAll, {}),
 ]);
 
-// Canonical spelling per loose key: the corpus spelling carried by the most
-// works, so a one-off misspelling among an artist's rows cannot win.
 const spellingCounts = new Map();
 for (const row of replications) {
   const artist = row.artist?.trim();
@@ -90,7 +52,6 @@ const corpusExactKeys = new Set(
   replications.flatMap((row) => (row.artist?.trim() ? [exactKey(row.artist)] : [])),
 );
 
-/** The canonical credit for one article byline, or null to leave it alone. */
 function canonicalCredit(artist) {
   const credit = artist?.trim();
   if (!credit) return null;
@@ -102,7 +63,6 @@ function canonicalCredit(artist) {
 
 const creditPattern = /(\[captioned-image\b[^\]]*?\bartist=")([^"]*)(")/g;
 
-/** Rewrite raw markup credits and AST `properties.artist` alike. */
 function rewriteCredits(value, rewrites) {
   if (typeof value === "string") {
     return value.replace(creditPattern, (match, head, artist, tail) => {
@@ -124,7 +84,6 @@ function rewriteCredits(value, rewrites) {
   return value;
 }
 
-/** Every artist credit an embed carries, from raw markup and AST alike. */
 function collectCredits(value, out = []) {
   if (typeof value === "string") {
     for (const [, , artist] of value.matchAll(creditPattern)) out.push(artist);
@@ -205,8 +164,6 @@ for (const plan of plans) {
   console.log(`ALIGNED ${plan.slug} (${plan.changes.map(({ field }) => field).join(", ")})`);
 }
 
-// Post-write verification: every aligned credit now reads the canonical
-// spelling, and no field still carries the old one.
 let failures = 0;
 for (const plan of plans) {
   const effect = await client.query(api.subjectiveEffects.getBySlug, { slug: plan.slug });

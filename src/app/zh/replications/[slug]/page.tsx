@@ -1,9 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications/[slug]`, reached only
- * through the middleware rewrite from `zh.dose.wiki/replications/<slug>`.
- * Same loader with the localized replication record spliced in; the mirror
- * carries `noindex` and a canonical link back to the English permalink.
- */
 import { permanentRedirect, notFound } from "next/navigation";
 import { buildPublicPageMetadata, buildSiteUrl, getPublicRoutePath } from "@server/next/publicSite";
 import { loadReplicationRoute } from "@server/next/routeLoaders.replications";
@@ -60,8 +54,6 @@ export default async function LocalizedReplicationPage({ params }: LocalizedRepl
   const { slug } = await params;
   const result = await loadReplicationRoute(slug, LOCALE);
 
-  // A renamed slug is permanently gone: 301 so shared links settle on the new
-  // URL; the relative target keeps the reader on the mirror host.
   if (result.kind === "redirect") {
     permanentRedirect(result.target);
   }

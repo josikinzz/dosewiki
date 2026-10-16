@@ -9,8 +9,6 @@ import { tripReportSubmissionDecisionLog } from "./contentSchemaValidators";
 import { decisionLogOf, publicReasonOf } from "../../src/features/intake/decisionLog";
 import { TRIP_REPORT_INTAKE_STATUS } from "../../src/features/intake/intakeStatus";
 
-/** Wire validators and row projections for `server/tripReportSubmissions.ts`. */
-
 export const statusValidator = v.union(
   v.literal("submitted"),
   v.literal("reviewing"),
@@ -22,9 +20,6 @@ export const statusValidator = v.union(
 
 const submissionReportValidator = v.object({
   title: v.string(),
-  // Still accepts the submitter-restricted subject fields so rows stored before
-  // intake started stripping them keep reading back; `create` and `promote`
-  // drop them regardless.
   subject: tripReportSubjectValidator,
   substances: v.array(tripReportSubstanceValidator),
   introduction: v.optional(v.string()),
@@ -76,12 +71,6 @@ const portalSubmissionSummaryValidator = v.object({
   }),
 });
 
-/**
- * What a submitter reads about their own submission in My reports: the shared
- * status word, dates, the public reason and the published address. Never the
- * private review note, the decision log's actors, the report body or intake
- * metadata.
- */
 export const memberSubmissionValidator = v.object({
   id: v.string(),
   title: v.string(),
@@ -114,8 +103,6 @@ export const promotionResultValidator = v.object({
   submission: submissionRowValidator,
   reportId: v.id("tripReports"),
   payload: tripReportImportInputValidator,
-  // The membership whose email matches the submission's contact email, for
-  // the admin to assign explicitly. Promotion itself grants no ownership.
   suggestedOwner: v.union(
     v.object({ email: v.string(), username: v.optional(v.string()) }),
     v.null(),
@@ -151,7 +138,6 @@ export function toSubmissionRow(row: SubmissionRow): SubmissionRow {
     review_notes: row.review_notes,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
-    // A row decided before the log existed reads its review note back as the first entry.
     decision_log: decisionLogOf(row),
     exported_trip_report_id: row.exported_trip_report_id,
     exported_at: row.exported_at,
@@ -160,7 +146,6 @@ export function toSubmissionRow(row: SubmissionRow): SubmissionRow {
   };
 }
 
-/** A submission as its author may read it; spam rows never reach this projection. */
 export function toMemberSubmission(row: SubmissionRow, reportSlug?: string): MemberSubmission {
   const status = TRIP_REPORT_INTAKE_STATUS[row.status];
   if (status === "spam") {

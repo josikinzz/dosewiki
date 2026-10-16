@@ -7,11 +7,6 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // ~2,000+ contributor profiles would otherwise prerender on every clean
-  // deploy, each with its own per-key Postgres reads. A real key (including a
-  // forwarded profile's 301) renders on first request and then enters the
-  // hourly ISR cache. The sitemap still advertises unclaimed profiles from
-  // the route plan.
   return [];
 }
 

@@ -36,9 +36,6 @@ export function replicationJournalSnapshot(row: Row | null): unknown {
   return row;
 }
 
-/** One journal generation per touched target, including retained maintenance writers.
- * Contextual mutations already record their exact request, so their receipt wins.
- */
 export function withReplicationEditJournal(ctx: MutationCtx) {
   let failure: { error: unknown } | null = null;
   const changes = new Map<string, { before: unknown; id: Id<Table>; receipt: string | null; expectedRevision: string }>();

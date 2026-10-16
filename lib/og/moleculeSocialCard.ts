@@ -1,10 +1,3 @@
-/**
- * Deterministic renderer for prebuilt dose.wiki substance social cards.
- *
- * Layer order is an invariant: flat background, optional molecule, then every
- * wordmark/title/classification element. Molecule artwork can therefore never
- * obscure the card's readable content.
- */
 import path from "node:path";
 import { readFileSync } from "node:fs";
 

@@ -1,20 +1,4 @@
 #!/usr/bin/env node
-/**
- * Generate the subjective-effects licensing provenance manifest from live Postgres data.
- *
- * Queries every substance's `subjective_effects.attribution` field, keeps only
- * captures dose.wiki treats as Josie Kins' own archived PsychonautWiki
- * authorship (mirrors `isArchivedSubjectiveEffectsAttribution` in
- * src/features/article/components/sections/SubjectiveEffectsSection.tsx),
- * buckets them by Archive.org capture date, and writes
- * data/effects/subjectiveEffectsProvenance.json. The /docs/license page imports it
- * for its date-badge counts, and src/app/subjective-effects-provenance.json/route.ts
- * serves the same file as a downloadable manifest with clickable Archive.org
- * capture links.
- *
- * Usage:
- *   npm run generate:subjective-effects-provenance
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
@@ -28,8 +12,6 @@ import {
 } from "../lib/data-ops-run-context.mjs";
 import { tryWriteArtifactLineageSidecar } from "../lib/data-artifact-lineage.mjs";
 
-// The rights boundary described on /docs/license: only PsychonautWiki
-// captures on or before this date are treated as restorable.
 const CUTOFF_DATE = "2016-08-31";
 
 const runContext = createDataOpsRunContext({

@@ -5,7 +5,6 @@ type DataRuntimeSourceEnvVar = "POSTGRES_POOLED_URL" | "POSTGRES_DIRECT_URL";
 
 export type DataRuntimeTarget = {
   capability: DataRuntimeCapability;
-  /** Redacted diagnostic URL, never a connection string. */
   selectedUrl: string | null;
   sourceEnvVar: DataRuntimeSourceEnvVar | null;
   browserSafe: boolean;
@@ -37,7 +36,6 @@ function buildTarget(capability: DataRuntimeCapability, env: RuntimeEnv): DataRu
       capability,
       selectedUrl: target.displayUrl,
       sourceEnvVar: target.sourceEnvVar,
-      // Browser reads use the same-origin API, not a database connection.
       browserSafe: capability === "editorBrowserRead",
       compatibility: { allowed: true, issues: [], warnings: [] },
     };
@@ -65,7 +63,6 @@ export function getEditorTargetAlignment(env: RuntimeEnv = process.env): DataEdi
   const target = buildTarget("privilegedWrite", env);
   const side = { deploymentName: getDataDeploymentName(target.selectedUrl), sourceEnvVar: target.sourceEnvVar };
   return {
-    // Invalid configuration must refuse the editor rather than pretending to be a read-only deployment.
     status: target.compatibility.allowed ? "aligned" : "split",
     read: side,
     write: side,

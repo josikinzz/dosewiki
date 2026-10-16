@@ -17,22 +17,9 @@ import {
   serializeJsonLd,
 } from "@/utils/seo/structuredData";
 
-// Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
 const BLOG_EMPTY_COPY_KEYS = getCopyKeysByPrefix("empty-blog-");
 
-/**
- * `/blog` serves two entirely different publications, chosen by build flavor.
- *
- * - **Effect Index** — the frozen blog archive, read from `effectIndexArchive`
- *   through `loadBlogIndexRoute`. It is finished; nothing new is ever added to
- *   it, and it renders exactly as it did before dose.wiki had a blog at all.
- * - **dose.wiki** — the live blog, read from the `kind: "blog"` rows of
- *   `effectIndexArticles` through `loadWritingBlogIndexRoute`.
- *
- * The two never mix. The flavor picks the loader, and each loader reads its own
- * table and its own rows, so neither corpus can appear on the other's pages.
- */
 export async function generateMetadata() {
   const result = isEffectIndex()
     ? await loadBlogIndexRoute()

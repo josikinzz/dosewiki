@@ -59,8 +59,6 @@ function composeGeneratorPrompt(seed, prompts) {
     .join("\n").trim();
   if (!retainedFields) throw new Error("Generator seed is missing its unsectioned field contracts");
 
-  // The generated defaults carry the root shape; registered section contracts
-  // supply populated nested shapes. Keep editorial metadata outside generation.
   const defaults = projectPublicArticle(createEmptyArticle());
   return `# Dose.wiki whole-article generation contract
 
@@ -123,8 +121,6 @@ export function collectLocalPromptInventory({
 
   const generator = prompts.get("generator");
   if (generator) {
-    // Both comparison and migration consume this same rendered content. Never
-    // fall back to the obsolete raw seed when a required contract is missing.
     generator.content = composeGeneratorPrompt(generator.content, prompts);
   }
 

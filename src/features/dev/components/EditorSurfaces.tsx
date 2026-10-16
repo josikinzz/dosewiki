@@ -95,7 +95,6 @@ export interface DiffSurfaceProps
   maxHeight?: MaxHeightValue;
   emptyText?: ReactNode;
   actions?: ReactNode;
-  /** Search text to mark inside the diff lines (each whitespace-separated term). */
   highlight?: string;
 }
 

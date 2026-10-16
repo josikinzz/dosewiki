@@ -1,12 +1,3 @@
-/**
- * Path-aware translation policy for scientific article fields.
- *
- * Global corpus exclusions remain the conservative default. This module only
- * nominates observed reader-facing leaves whose schema key is otherwise too
- * broad (for example `route`, `species`, or `half_life`). Projected spans keep
- * source quantities and scientific identities outside translated text.
- */
-
 const CITATION_TOKEN = /\[cite:[^\]]+\]/g;
 const SOURCE_QUANTITY = /(?:[<>~≈±]?\s*\d[\d.,]*(?:\s*(?:-|–|\u2014|to)\s*\d[\d.,]*)?\s*(?:%|mg\/kg|mg|g|kg|ug|µg|mcg|ng|mL|ml|L|mol|nM|µM|uM|mM|hours?|hrs?|h|minutes?|mins?|seconds?|secs?|days?|weeks?|months?|years?))(?![A-Za-z])/gi;
 const SCIENTIFIC_ACRONYM = /\b(?:[A-Z]{2,}[A-Z0-9-]*|[A-Z]+\d+[A-Z0-9-]*)\b/g;
@@ -80,7 +71,6 @@ function projectionFromProtectedRanges(value, policy, protectedRanges) {
   return { path: policy.path, role: policy.role, source: value, spans: translatableSpans };
 }
 
-/** The same metabolite structure consumed by extraction and the public renderer. */
 export function projectMetaboliteDisplay(raw) {
   const citationTokens = raw.match(CITATION_TOKEN) ?? [];
   const visible = raw.replace(CITATION_TOKEN, "").trim();
@@ -103,10 +93,6 @@ function projectMetabolite(value, policy) {
   return { path: policy.path, role: policy.role, source: value, spans: [{ start, end: start + qualification.length, source: qualification }] };
 }
 
-/**
- * Nominates only safe reader-facing spans from a globally excluded scientific
- * leaf. Null means the normal corpus exclusion must win.
- */
 export function nominateScientificSpans(pointer, value) {
   if (typeof value !== "string" || value.trim().length < 2) return null;
   const policy = resolveScientificFieldPolicy(pointer);
@@ -118,7 +104,6 @@ export function nominateScientificSpans(pointer, value) {
   return projectionFromProtectedRanges(value, policy, collectProtectedRanges(value, [CITATION_TOKEN, SOURCE_QUANTITY, SCIENTIFIC_ACRONYM]));
 }
 
-/** Restores translated safe spans into the untouched source leaf. */
 export function restoreScientificSpans(projection, translatedSpans) {
   if (!projection || !Array.isArray(projection.spans) || translatedSpans.length !== projection.spans.length) {
     throw new TypeError("Scientific projection and translated span counts must match");

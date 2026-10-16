@@ -10,7 +10,6 @@ export function parseSegmentHistoryOptions(raw: { cursor?: string | null; hash?:
   if (raw.hash && !/^[a-f0-9]{16}$/.test(raw.hash)) throw new TranslationReviewError("Invalid translation hash.");
   return { limit, cursor: raw.cursor || null, hash: raw.hash || null };
 }
-/** A stable bounded keyset, usable as either a locale feed or one hash's history. */
 export async function readTranslationSegmentHistory(locale: string, raw: { cursor?: string | null; hash?: string | null; limit?: number } = {}): Promise<{ changes: TranslationSegmentChange[]; nextCursor: string | null }> {
   const { limit, cursor, hash } = parseSegmentHistoryOptions(raw);
   const rows = await getPostgresClient().sql<{ id: string; hash: string; before_state: TranslationSegmentSnapshot | null; after_state: TranslationSegmentSnapshot; created_at: number }>(

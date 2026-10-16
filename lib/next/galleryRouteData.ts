@@ -26,12 +26,6 @@ export type GalleryRouteBootstrap = {
   initialViewerCollection: ReplicationViewerCollection | null;
 };
 
-/**
- * Resolve the compact canonical membership and the selected full record in
- * parallel. Membership is authoritative: a full record alone never makes an
- * unpublished, duplicate, or artist-withheld work eligible for the default
- * gallery viewer.
- */
 export async function getGalleryRouteBootstrap(
   viewerSlug: string,
   locale: LiveLocale | null,

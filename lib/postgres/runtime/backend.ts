@@ -6,7 +6,6 @@ import { requirePostgresBackend, resolveRuntimePostgresTarget, type DataBackend 
 
 export type { DataBackend };
 
-/** Normal traffic never falls back to the frozen recovery backend. */
 export function getDataBackend(): DataBackend {
   return requirePostgresBackend();
 }
@@ -14,7 +13,6 @@ export function getDataBackend(): DataBackend {
 let cached: PostgresClient | null = null;
 let cachedUrl: string | null = null;
 
-/** Application traffic uses the pooled PlanetScale port; migrations keep the direct URL. */
 export function getPostgresClient(): PostgresClient {
   const { url } = resolveRuntimePostgresTarget();
   if (!cached || cachedUrl !== url) {

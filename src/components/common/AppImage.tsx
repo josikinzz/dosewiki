@@ -10,7 +10,6 @@ type AppImageProps = {
   className?: string;
   sizes?: string;
   priority?: boolean;
-  /** Preserve original bytes, skipping both Next optimization and Worker resizing. */
   unoptimized?: boolean;
   loading?: ImgHTMLAttributes<HTMLImageElement>["loading"];
   draggable?: boolean;
@@ -22,12 +21,6 @@ function isLocalImage(src: string | StaticImageData) {
   return typeof src !== "string" || (src.startsWith("/") && !src.startsWith("//"));
 }
 
-/**
- * Only local images use Next's optimizer.
- * Managed raster images request Worker renditions directly, so every candidate
- * passes the withdrawal gate. Legacy and other external URLs remain direct
- * fallbacks without managed withdrawal protection.
- */
 export function AppImage({
   src,
   alt,

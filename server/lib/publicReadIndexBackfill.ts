@@ -10,10 +10,6 @@ export async function getPublicReadIndexStatus(ctx: QueryCtx, name: PublicReadIn
     indexActive: current && state.ready, processed: current ? state.processed : 0 };
 }
 
-/** The caller's cursor is a compare-and-swap token, not a start offset. Only
- * this function advances durable progress, atomically with all page writes.
- * A skipped page, interrupted caller, or nonempty relation cannot mark ready.
- */
 export async function backfillPublicReadIndexPage(ctx: MutationCtx, args: {
   name: PublicReadIndexName; cursor?: string; limit?: number;
 }) {

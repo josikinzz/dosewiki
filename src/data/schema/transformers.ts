@@ -1,27 +1,13 @@
 import type { Transformer } from "./types";
 import type { DoseRange, DurationStage, Citation, CountryLegality } from "../../schema";
 
-/**
- * Value transformers for converting between schema objects and form strings.
- * These enable human-friendly editing of structured data.
- */
-
-/** The opening of either citation marker kind, complete or half typed. */
 const CITATION_MARKER_START = /\[(?:cite:|citation-needed)/i;
 
-/**
- * Parse a range string like "10-20 mg", "10+ mg", "~10 mg", or "<20 mg"
- * Returns { min, max, unit } or null if unparseable
- */
 export function parseRangeString(str: string): { min: number | null; max: number | null; unit: string } | null {
   const trimmed = str.trim();
   if (!trimmed) return null;
-  // The unit captures everything after the numbers, so a citation marker typed
-  // here would be stored as part of the unit (`mg[cite:x]`). Doses and
-  // durations are cited in the route notes, never inline.
   if (CITATION_MARKER_START.test(trimmed)) return null;
 
-  // Pattern: "10-20 mg" or "10 - 20 mg"
   const rangeMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(.*)$/);
   if (rangeMatch) {
     return {
@@ -31,10 +17,6 @@ export function parseRangeString(str: string): { min: number | null; max: number
     };
   }
 
-  // Pattern: "10+ mg" (min only, no max), and the "~10 mg" the article itself
-  // renders for a threshold dose. Both mean the same stored shape, and only
-  // accepting the `+` form is what broke the round trip: a threshold seeded
-  // from the page came back unparseable and was thrown away.
   const minOnlyMatch = trimmed.match(/^~?\s*(\d+(?:\.\d+)?)\+\s*(.*)$/)
     ?? trimmed.match(/^~\s*(\d+(?:\.\d+)?)\s*(.*)$/);
   if (minOnlyMatch) {
@@ -45,7 +27,6 @@ export function parseRangeString(str: string): { min: number | null; max: number
     };
   }
 
-  // Pattern: "<20 mg" (max only, no min)
   const maxOnlyMatch = trimmed.match(/^<\s*(\d+(?:\.\d+)?)\s*(.*)$/);
   if (maxOnlyMatch) {
     return {
@@ -55,7 +36,6 @@ export function parseRangeString(str: string): { min: number | null; max: number
     };
   }
 
-  // Pattern: "20 mg" (single value, treat as both min and max)
   const singleMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*(.*)$/);
   if (singleMatch) {
     const value = parseFloat(singleMatch[1]);
@@ -69,9 +49,6 @@ export function parseRangeString(str: string): { min: number | null; max: number
   return null;
 }
 
-/**
- * Format a range object to a human-readable string
- */
 function formatRangeToString(min: number | null, max: number | null, unit: string): string {
   const unitStr = unit || "";
 
@@ -93,9 +70,6 @@ function formatRangeToString(min: number | null, max: number | null, unit: strin
   return "";
 }
 
-/**
- * Dose range transformer: { min: 10, max: 20, unit: "mg" } <-> "10-20 mg"
- */
 export const doseRangeTransformer: Transformer<DoseRange | null, string> = {
   toForm: (value: DoseRange | null): string => {
     if (!value) return "";
@@ -112,9 +86,6 @@ export const doseRangeTransformer: Transformer<DoseRange | null, string> = {
   },
 };
 
-/**
- * Duration stage transformer: { min: 15, max: 30, unit: "minutes" } <-> "15-30 minutes"
- */
 export const durationStageTransformer: Transformer<DurationStage | null, string> = {
   toForm: (value: DurationStage | null): string => {
     if (!value) return "";
@@ -131,10 +102,6 @@ export const durationStageTransformer: Transformer<DurationStage | null, string>
   },
 };
 
-/**
- * Array transformer: string[] <-> comma-separated string
- * ["a", "b", "c"] <-> "a, b, c"
- */
 export const arrayTransformer: Transformer<string[], string> = {
   toForm: (arr: string[]): string => {
     if (!Array.isArray(arr)) return "";
@@ -149,11 +116,6 @@ export const arrayTransformer: Transformer<string[], string> = {
   },
 };
 
-/**
- * Semicolon array transformer: string[] <-> semicolon-separated string
- * Used for fields where commas might appear in values
- * ["a", "b", "c"] <-> "a; b; c"
- */
 export const semicolonArrayTransformer: Transformer<string[], string> = {
   toForm: (arr: string[]): string => {
     if (!Array.isArray(arr)) return "";
@@ -168,9 +130,6 @@ export const semicolonArrayTransformer: Transformer<string[], string> = {
   },
 };
 
-/**
- * Citation transformer: { name, url }[] <-> multiline "name | url" format
- */
 export const citationTransformer: Transformer<Citation[], string> = {
   toForm: (citations: Citation[]): string => {
     if (!Array.isArray(citations)) return "";
@@ -191,9 +150,6 @@ export const citationTransformer: Transformer<Citation[], string> = {
   },
 };
 
-/**
- * Number transformer: number | null <-> string
- */
 export const numberTransformer: Transformer<number | null, string> = {
   toForm: (value: number | null): string => {
     if (value == null) return "";
@@ -208,18 +164,11 @@ export const numberTransformer: Transformer<number | null, string> = {
   },
 };
 
-/**
- * Identity transformer: pass through unchanged (for already-string fields)
- */
 export const identityTransformer: Transformer<string, string> = {
   toForm: (value: string): string => value || "",
   toSchema: (str: string): string => str || "",
 };
 
-/**
- * Record transformer: Record<string, string> <-> multiline "key: value" format
- * Used for receptor binding, reagent testing, etc.
- */
 export const recordTransformer: Transformer<Record<string, string>, string> = {
   toForm: (record: Record<string, string>): string => {
     if (!record || typeof record !== "object") return "";
@@ -245,9 +194,6 @@ export const recordTransformer: Transformer<Record<string, string>, string> = {
   },
 };
 
-/**
- * Country legality transformer: { countries: Record<string, { status, notes }> } <-> multiline format
- */
 export const countryLegalityTransformer: Transformer<Record<string, CountryLegality>, string> = {
   toForm: (countries: Record<string, CountryLegality>): string => {
     if (!countries || typeof countries !== "object") return "";

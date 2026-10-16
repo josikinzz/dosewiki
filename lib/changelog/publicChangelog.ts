@@ -1,5 +1,3 @@
-// Public changelog text predates the separation of publication and account
-// identities. Apply this at both read boundaries, including cached/static rows.
 const EMAIL_TOKEN = /(?:mailto:)?[\p{L}\p{N}.!#$%&'*+/=?^_`{|}~-]+@[\p{L}\p{N}](?:[\p{L}\p{N}.-]*[\p{L}\p{N}])?/gu;
 
 export function redactChangelogEmails(value: string): string {
@@ -19,7 +17,6 @@ type ChangelogPublication = {
   articles: Array<{ id: number; title: string; slug: string }>;
 };
 
-/** Explicit public fields only: never spread a stored row into a public DTO. */
 export function projectPublicChangelog(row: ChangelogPublication): ChangelogPublication {
   return {
     entryId: row.entryId,

@@ -1,41 +1,5 @@
 "use client";
 
-/**
- * Glossary, the translation workbench: `/dev/glossary`, opening on Terms. Waiting lists
- * what needs a person, readers' suggestions first. Suggestions holds what readers sent
- * from the public glossary, with its own count. Terms and Interface text share one search. Articles
- * opens on the articles needing review and holds the article reader, per-page
- * coverage, recorded changes, reader feedback and, for admins, the runs with
- * every control that calls the model. The views are tabs over panels that stay
- * mounted once visited, so switching never drops typed work.
- *
- * Terms, interface text, article paragraphs and the style guide share one
- * reason control and one save-then-approve model (see CorrectionReason), and
- * a translator may approve their own edits; the header says so.
- *
- * The glossary is the reviewed term list every locale mirror's prompts are
- * held to, one row per (locale, term) in Postgres.
- *
- * The workflow for a locale: draft the missing terms by machine, review each
- * one (save a proposed rendering as a draft, then approve that exact revision),
- * then start the main translation once nothing is left unreviewed. Afterwards,
- * editing any rendering and pressing "Retranslate" redoes only the stored
- * translations that mention the edited terms; the background job does the
- * rest. Only approved rows reach a prompt, so an unreviewed row changes nothing
- * on the mirror until someone approves it.
- *
- * A single-row write locks only its own row, so a reviewer can keep typing in
- * the next one; after the row updates in place, focus moves to the next unreviewed row so
- * the reviewer can continue through the list with explicit approval buttons.
- * A row approved this way keeps its place under a status filter until the
- * filter changes (see useHeldInPlace).
- *
- * Under each term sits its definition (gloss): the one-line English meaning
- * the prompt injects beside the approved rendering and the public /glossary
- * page shows. Definitions are locale-independent taxonomy content, so an
- * editor writes them in place here and a translator reads them.
- */
-
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
@@ -105,24 +69,14 @@ import { useReaderSuggestionCount } from "./readerSuggestionCount";
 import { useHeldInPlace } from "./useHeldInPlace";
 import { workbenchTabs, type WorkbenchSection } from "./workbenchSections";
 
-/** A write's outcome: the message to show, and the written rows to patch in place (`null` reloads the locale instead). */
 type WriteResult = { message: string; patch: GlossaryRowPatch | null };
 
-/** Writes that lock the whole tab: everything but a single row's approve or save. */
 type Busy = "load" | "approve" | "confirm" | "draft" | "retranslate" | "start" | "retry" | "import" | null;
 
-/** The writes whose results belong to the Runs view; every other whole-tab result lands in Terms. */
 const RUN_WRITES = new Set<Busy>(["retranslate", "start", "retry"]);
 
-/** The one row a single-row write is locking, and which of its two editable fields is being written. */
 type Writing = { term: string; field: "rendering" | "definition" };
 
-/**
- * Where focus goes after a single-row write: the terms in document order at
- * the time of the write, the written row's place in them, and whether focus
- * moves on to the next row needing review or stays on the written row's
- * Approve (after a plain save, so approving it is one keypress away).
- */
 type Handoff = { order: string[]; index: number; stay: boolean };
 
 type CollisionReview = {
@@ -134,10 +88,8 @@ type CollisionReview = {
   stay?: boolean;
 };
 
-/** A whole-tab write's result and the view it belongs to. */
 type WorkbenchNotice = NoticeMessage & { where: "terms" | "runs" };
 
-/** The tool's own save sentence: two saves, and neither is a site release. */
 const GLOSSARY_SAVE_COPY: SaveLineCopy = {
   label: "Save draft waits for a reviewer. Approve puts wording in use.",
   detail: "A saved draft changes nothing readers see. Approving a term puts it in every prompt at once; approved interface text ships with the next site release, and an approved paragraph publishes to its article.",
@@ -145,28 +97,20 @@ const GLOSSARY_SAVE_COPY: SaveLineCopy = {
   tone: "info",
 };
 
-/** The Terms and Interface text search key, listed in the `?` sheet while those views are open. */
 const SEARCH_SHORTCUT = [{ keys: "/", label: "Search terms and interface text" }] as const;
 
 type GlossaryTabProps = {
-  /** Drafting, retranslating, and the main translation call the model, so they are admin-only; definitions are editor and up; everything else is open to a translator. */
   viewerRole: AppRole | null;
 };
 
 export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const fieldId = useId();
   const [view, setView] = useState<WorkbenchView>("words");
-  /** Views mount on first visit and then stay mounted, so switching never drops typed work. */
   const [visitedViews, setVisitedViews] = useState<Record<WorkbenchView | "labels" | "style", boolean>>({ inbox: false, suggestions: false, words: false, pages: false, labels: false, style: false });
   const [wordsList, setWordsList] = useState<WordsList>("terms");
-  /** The Articles section a deep link asked for. */
   const [pagesSection, setPagesSection] = useState<PagesSection | null>(null);
-  /** Bumped when an Inbox link opens an article in place, so the reader remounts and reads the link. */
   const [articleLink, setArticleLink] = useState(0);
-  /** Set while the view on screen was opened by an Inbox item's Edit, so the reviewer has one step back. */
   const [fromInbox, setFromInbox] = useState(false);
-  // Opens on Terms unless a deep link names a view; links written for the
-  // older five views map onto these three (see parseWorkbenchDeepLink).
   const applyDeepLink = (search: string) => {
     const link = parseWorkbenchDeepLink(search) ?? { view: "words" as const, words: "terms" as const };
     setView(link.view);
@@ -186,9 +130,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     if (link.view !== "pages") return;
     const requestedLocale = new URLSearchParams(window.location.search).get("translationLocale");
     if (requestedLocale) setLocale(requestedLocale);
-    // Mount only: later links arrive through openInboxLink.
   }, []);
-  /** An Inbox item's Edit: opens its place in this workbench without a reload, so unsaved wording elsewhere survives. */
   const openInboxLink = (href: string) => {
     const url = new URL(href, window.location.href);
     if (url.pathname !== window.location.pathname) {
@@ -203,7 +145,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   };
   const updateLocation = (values: Record<string, string | null>) => {
     const url = new URL(window.location.href);
-    // Legacy article links must not override an explicit view selection on reload.
     url.searchParams.delete("translationReview");
     for (const [key, value] of Object.entries(values)) {
       if (value === null) url.searchParams.delete(key); else url.searchParams.set(key, value);
@@ -241,11 +182,9 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const [filters, setFilters] = useState<GlossaryFilters>(DEFAULT_FILTERS);
   const { rows, hold: holdInPlace, release: releaseHeld } = useHeldInPlace(data, filters);
   const [busy, setBusy] = useState<Busy>(null);
-  /** The one row an approve or save is writing; every other row stays editable. */
   const [writing, setWriting] = useState<Writing | null>(null);
   const writingTerm = writing?.term ?? null;
   const [notice, setNotice] = useState<WorkbenchNotice | null>(null);
-  /** A single-row write's outcome, shown on its row; the Terms dock carries it only when the row is no longer listed. */
   const [rowNotice, setRowNotice] = useState<GlossaryRowNotice | null>(null);
   const handoff = useRef<Handoff | null>(null);
   const [collisionReview, setCollisionReview] = useState<CollisionReview | null>(null);
@@ -253,16 +192,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const actionVersion = useRef(0);
   const searchRef = useRef<HTMLInputElement>(null);
   const uiSearchRef = useRef<HTMLInputElement>(null);
-  /** The Inbox's total and the interface text still needing a person, for the view tabs; null until known. */
   const [inboxTotal, setInboxTotal] = useState<number | null>(null);
   const [labelsWaiting, setLabelsWaiting] = useState<number | null>(null);
-  /** Reader suggestions still open in this language, recounted on every view change so a decision reaches the tab. */
   const suggestionsWaiting = useReaderSuggestionCount(locale, view);
-  /** What "Retranslate" sends: derived on the server from review and retranslate stamps, so it is the same list after a reload or on another machine. */
   const pending = data?.pending ?? [];
   const { confirm, dialog } = useConfirm();
   const locked = busy !== null || writingTerm !== null || collisionReview !== null;
-  /** The view nav stays usable while one row saves; only whole-tab writes and the collision question hold it. */
   const navLocked = busy !== null || collisionReview !== null;
 
   const load = useCallback(async (code: string | null, background = false) => {
@@ -294,9 +229,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     void load(params.get("locale") ?? params.get("translationLocale"));
   }, [load]);
 
-  // Unsaved term and label wording lives only in memory. Each scope reports
-  // to the shell, which asks before a rail click, Leave or a reload drops it.
-  // Each row needs its own reason before it saves, so the shell only discards.
   const hasTermDrafts = useDraftMapHasEntries(termEditDrafts);
   const hasUiDrafts = useDraftMapHasEntries(uiEditDrafts);
   const languageName = locale ? languageLabel(locale) : "this language";
@@ -320,7 +252,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   });
   const { confirmExit } = useUnsavedWorkRegistry();
 
-  // `/` finds a term or a label while one of those lists is open.
   const searching = view === "words" && wordsList !== "style";
   useDevShortcuts(SEARCH_SHORTCUT, searching);
   useEffect(() => {
@@ -337,7 +268,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [searching, wordsList]);
 
-  /** The poll during a run: counts only, against the prompt digest already loaded, so the server rereads no rows. */
   const pollProgress = useCallback(async (code: string, promptVersion: string) => {
     if (refreshInFlight.current) return;
     const version = loadVersion.current;
@@ -354,7 +284,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     }
   }, []);
 
-  /** Refresh: a full reload, shown as in progress on the button until it lands. */
   const refresh = async () => {
     releaseHeld();
     setBusy("load");
@@ -374,9 +303,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     return () => window.clearInterval(timer);
   }, [runActive, pollLocale, pollVersion, pollProgress, locked]);
 
-  // Runs once the written row is unlocked and the reload has rendered: the
-  // next unreviewed row after the written one takes focus, or the written row
-  // itself if nothing follows it, so a reviewer never reaches for the mouse.
   useEffect(() => {
     if (writingTerm !== null || !handoff.current) return;
     const { order, index, stay } = handoff.current;
@@ -394,8 +320,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
 
   const groups = useMemo(() => groupRows(rows), [rows]);
   const allGroups = useMemo(() => (data ? groupRows(data.rows) : []), [data]);
-  // Header numerics come from the unfiltered rows, so "34 of 120 unreviewed"
-  // keeps meaning the same thing while a search narrows what is listed below.
   const totals = useMemo(() => {
     const byCategory: Record<string, { total: number; draft: number; unchecked: number }> = {};
     for (const group of allGroups) byCategory[group.category.id] = { total: group.rows.length, draft: group.draftCount, unchecked: group.uncheckedCount };
@@ -411,7 +335,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const nothingTranslatedYet = !!data && data.segments.total === 0;
   const toggleGroup = (id: string) => {
     if (filters.search.trim()) {
-      // While searching every group is shown; the row takes you to its matches.
       document.getElementById(`glossary-terms-pane-${id}`)?.scrollIntoView({ block: "start" });
       return;
     }
@@ -424,7 +347,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     updateLocation({ translationCategory: null });
   };
 
-  /** Set by Continue: once the category renders, its first row needing review takes focus. */
   const [continueTo, setContinueTo] = useState<string | null>(null);
   const continueReview = (id: string) => {
     const status = filters.status === "draft" || filters.status === "unchecked" ? filters.status : "all";
@@ -441,20 +363,11 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     target?.scrollIntoView?.({ block: "center" });
   }, [continueTo]);
 
-  /**
-   * Written rows replace theirs in place, with no locale reload. A full load
-   * already in flight read the rows before this write, so it is dropped.
-   */
   const applyPatch = useCallback((patch: GlossaryRowPatch) => {
     ++loadVersion.current;
     setData((current) => current && applyRowPatch(current, patch));
   }, []);
 
-  /**
-   * Runs one write and reports the outcome. A row write patches the rows it
-   * returns; a whole-tab write (or a server that returns no rows) reloads the
-   * locale. With a term, only that row locks and focus moves on afterwards.
-   */
   const run = useCallback(
     async (kind: Exclude<Busy, null>, action: (collisionConfirmation?: string) => Promise<string | WriteResult>, term?: string, collisionConfirmation?: string, stay = false) => {
       if (!locale) return;
@@ -468,7 +381,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       try {
         const order = Array.from(document.querySelectorAll<HTMLElement>("[data-term]"), (row) => row.dataset.term ?? "");
         const result = await action(collisionConfirmation);
-        // A language switch during the write owns the tab now.
         if (version !== actionVersion.current) return;
         const { message, patch } = typeof result === "string" ? { message: result, patch: null } : result;
         if (patch) applyPatch(patch); else await load(locale);
@@ -504,7 +416,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       return { message: `Approved ${count(approved.terms.length, "term")}.`, patch: approved.patch };
     });
 
-  /** Each term and the wording it puts in use, so the confirm shows what is being approved, not only its name. */
   const wordingList = (terms: readonly string[], heading: string) => {
     const byTerm = new Map((data?.rows ?? []).map((row) => [row.term, row]));
     return (
@@ -524,7 +435,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     );
   };
 
-  /** The category header's action: the confirm names the group so a stray click cannot approve the wrong hundred terms. */
   const confirmApprove = (terms: readonly string[], where: string) => {
     confirm({
       title: `Approve the ${count(terms.length, `${STATE_WORD.draft} term`)} ${where === "shown" ? "shown" : `in ${where}`}?`,
@@ -538,7 +448,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   const revisionsOf = (terms: readonly string[]) =>
     Object.fromEntries((data?.rows ?? []).filter((row) => terms.includes(row.term)).map((row) => [row.term, row.revision]));
 
-  /** Records a person's check of live wording exactly as readers see it; nothing on the site changes. */
   const confirmOne = (row: GlossaryRow) =>
     run("confirm", async (collisionConfirmation) => {
       const { patch } = await confirmTerms(locale!, [row.term], { [row.term]: row.revision }, collisionConfirmation);
@@ -551,7 +460,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       return { message: `Confirmed ${count(confirmed.terms.length, "term")}.`, patch: confirmed.patch };
     });
 
-  /** Bulk confirm always names the exact number it will record, and the terms, before anything is written. */
   const confirmLive = (terms: readonly string[], where: string) => {
     confirm({
       title: `Confirm the ${count(terms.length, "live, never checked term")} ${where === "shown" ? "shown" : `in ${where}`}?`,
@@ -569,19 +477,12 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       return { message: `Saved "${saved.term}" as ${saved.target}; awaiting approval.`, patch };
     }, row.term, undefined, true);
 
-  /**
-   * The row's main action once it is edited: save the wording as a draft,
-   * then approve exactly the revision that save produced. A shared-rendering
-   * question can interrupt either step; the retry reuses a finished save
-   * rather than saving twice.
-   */
   const saveAndApprove = (row: GlossaryRow, target: string, reason: ReviewReason) => {
     let saved: GlossaryRow | null = null;
     return run("approve", async (collisionConfirmation) => {
       if (!saved) {
         const draft = await saveTermDraft(locale!, row.term, target, collisionConfirmation, row.revision, reason);
         saved = draft.row;
-        // The saved draft shows at once, even if the approval then stops on a question.
         if (draft.patch) applyPatch(draft.patch);
       }
       termEditDrafts.delete(JSON.stringify([row.locale, row.term]));
@@ -591,7 +492,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     }, row.term);
   };
 
-  /** Locks the row like a rendering save, but the definition is locale-independent, so the map updates in place and nothing reloads. */
   const saveDefinition = async (row: GlossaryRow, gloss: string) => {
     ++actionVersion.current;
     setCollisionReview(null);
@@ -609,12 +509,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     }
   };
 
-  /**
-   * After a row was refused because someone saved it first: reload the
-   * language so the row shows the latest wording and revision. Typed wording
-   * for that row still carries the old revision, so it is dropped, and the
-   * confirm says so first.
-   */
   const reloadRow = (term: string) => {
     const key = JSON.stringify([locale, term]);
     const reload = () => {
@@ -690,7 +584,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     });
   };
 
-  /** The file is parsed and its terms confirmed here (see glossaryImport), then sent whole; the server writes all of it or none. */
   const importFile = async (file: File | undefined) => {
     if (!file) return;
     const read = await readGlossaryImport(file);
@@ -702,8 +595,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       })));
   };
 
-  // Every panel below is keyed on the language, so a switch remounts them and
-  // drops their typed work: the shell's dialog asks first for this tab's scopes.
   const requestLocale = (code: string) => {
     if (code === locale) return;
     confirmExit(() => changeLocale(code), "tab", { tab: "glossary" });
@@ -742,7 +633,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   };
 
   const articlesSection: ArticlesSection | null = pagesSection;
-  /** Terms' "Open Runs" asks Articles for its Runs section. */
   const [articlesRequest, setArticlesRequest] = useState<{ section: ArticlesSection; n: number } | null>(null);
   const openRuns = () => {
     setArticlesRequest((current) => ({ section: "runs", n: (current?.n ?? 0) + 1 }));
@@ -750,7 +640,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
     window.scrollTo({ top: 0 });
   };
   const changeArticlesSection = (next: ArticlesSection) => {
-    // The older view names carry the Articles section in the address, so a reload reopens it.
     updateLocation({ translationView: next === "coverage" || next === "changes" ? next : "pages" });
   };
 
@@ -770,9 +659,7 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
       <DevToolSection
         tool="glossary"
         description="The translation workbench. Review how dose.wiki reads in your language. You can approve your own edits: Save and approve puts your wording in use, and Save draft leaves it for another reviewer."
-        // Beside the heading from `sm`; on a phone it follows the description instead of splitting it from the title.
         actions={<span className="max-sm:hidden"><SaveLine model="instant" copy={GLOSSARY_SAVE_COPY} /></span>}
-        // Above the workspaces, so the legend's popover is not covered by a sticky pane.
         className="relative z-20"
       >
         <div className="sm:hidden">
@@ -786,7 +673,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
           <div className="space-y-4">
             <div className="flex items-end gap-x-3 gap-y-2 sm:flex-wrap sm:gap-x-4">
               {data.locales.length === 1 ? (
-                // One assigned language: a fact, not a one-option choice.
                 <div className="min-w-0 flex-1 space-y-1 sm:flex-none">
                   <p className="theme-text-secondary text-sm font-medium">Language</p>
                   <p className="theme-text-primary flex min-h-10 items-center gap-2 text-sm">
@@ -825,7 +711,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
                 <Button type="button" variant="link" size="auto" className="text-sm" onClick={() => openSection("inbox")}>Back to Waiting</Button>
               </p>
             ) : null}
-            {/* Operational counts for the views that deal in stored translations; Terms keeps them out of the terminology work. */}
             {view === "pages" || view === "inbox" ? (
               <p className={cn("text-xs", status?.failed ? "text-[color:var(--theme-warning-text)]" : "theme-text-muted")} data-testid="translation-summary">
                 {status?.text}
@@ -962,7 +847,6 @@ export function GlossaryTab({ viewerRole }: GlossaryTabProps) {
   );
 }
 
-/** A language with no rows yet: where terms come from, with the file and model actions right there. */
 function EmptyTerms({ canAdmin, actions, notice, onDismissNotice, activity }: { canAdmin: boolean; actions: React.ReactNode; notice: NoticeMessage | null; onDismissNotice: () => void; activity: string | null }) {
   return (
     <div className="rounded-card border border-dashed border-[color:var(--editor-panel-border)] px-5 py-8">
@@ -982,7 +866,6 @@ function NoticeLine({ notice, onDismiss }: { notice: NoticeMessage; onDismiss: (
   return <p role="status" className={cn("flex items-center gap-2 text-sm", notice.tone === "danger" ? "text-[color:var(--theme-danger-text)]" : "theme-text-secondary")}>{notice.message}<Button type="button" variant="link" size="auto" className="text-xs" onClick={onDismiss}>Dismiss</Button></p>;
 }
 
-/** The latest run in a few words for the status strip and the Runs heading, or `null` when there has been none. */
 function runStatus(data: GlossaryList, starting: boolean): string | null {
   const { jobs } = data;
   if (starting) return "Preparing a translation run";
@@ -993,7 +876,6 @@ function runStatus(data: GlossaryList, starting: boolean): string | null {
   return `${jobs.active > 0 ? "Translation running" : "Latest run"}: ${percent}% processed${issues ? `, ${issues.toLocaleString()} need attention` : ""}`;
 }
 
-/** The status line on Inbox and Articles: stored translations against the current terms, the run, a failed refresh. */
 function operationalStatus(data: GlossaryList, starting: boolean, refreshError: string | null): { text: string; failed: boolean } {
   const parts = data.segments.total === 0
     ? ["Nothing has been translated into this language yet"]

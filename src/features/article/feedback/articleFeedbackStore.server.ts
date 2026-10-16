@@ -48,7 +48,6 @@ export type ArticleFeedbackQueueItem = Pick<
 export class ArticleFeedbackStorageConfigurationError extends Error {
   constructor(message = "Article feedback storage is not configured.") {
     super(message);
-    // Not a string literal: the guardrails lint rule flags 40-char literals as AWS-key-like.
     this.name = ArticleFeedbackStorageConfigurationError.name;
   }
 }
@@ -199,10 +198,6 @@ export class DataArticleFeedbackStore {
     }) as ArticleFeedbackQueueItem[];
   }
 
-  /**
-   * One page of the review queue, filtered, searched and ordered on the
-   * server, with the per-status counts of every row the search matches.
-   */
   async page(filters: FeedbackQueuePageFilters<ArticleFeedbackStatus>): Promise<FeedbackQueuePageResult<ArticleFeedbackQueueItem>> {
     return await this.options.client.query(queuePageRef, {
       apiKey: this.options.apiKey,
@@ -214,7 +209,6 @@ export class DataArticleFeedbackStore {
     }) as FeedbackQueuePageResult<ArticleFeedbackQueueItem>;
   }
 
-  /** One item by its public id, or null when no row has it. */
   async get(id: string): Promise<ArticleFeedbackQueueItem | null> {
     return await this.options.client.query(getFeedbackRef, {
       apiKey: this.options.apiKey,
@@ -222,7 +216,6 @@ export class DataArticleFeedbackStore {
     }) as ArticleFeedbackQueueItem | null;
   }
 
-  /** Total rows in the given statuses, computed on the server: no list travels. */
   async count(filters: ArticleFeedbackCountFilters): Promise<number> {
     return await this.options.client.query(countFeedbackRef, {
       apiKey: this.options.apiKey,
@@ -244,7 +237,6 @@ export class DataArticleFeedbackStore {
     }) as ArticleFeedbackQueueItem);
   }
 
-  /** The changes linked to one item and where each stands, plus the article's changes to link. */
   async corrections(
     id: string,
     options: { actorEmail: string },
@@ -256,7 +248,6 @@ export class DataArticleFeedbackStore {
     }) as { corrections: ResolvedCorrection[]; candidates: CorrectionCandidates });
   }
 
-  /** Link an existing proposal or published revision of the same article. */
   async linkChange(
     id: string,
     options: { actorEmail: string; change: LinkedChange; note?: string },

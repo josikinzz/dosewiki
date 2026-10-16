@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * The building blocks every Home section shares: an open, separated link row,
- * the lead row a section opens with, a count in words, a relative date, a
- * capped list with Show all, and the inline "some counts did not load" line.
- *
- * Styling lives in `dev-tools.css` (`theme-dev-link-*`), so rows read as
- * content, not as rail chrome.
- */
-
 import { useId, useState, type ReactNode } from "react";
 
 import { ExpandButton } from "@/components/common/ExpandButton";
@@ -18,25 +9,19 @@ import { cn } from "@/lib/utils";
 
 import { HOME_LIST_CAP, describeDay, type HomeTotal } from "./homeModel";
 
-/** Row lists bleed their hover fill past the section edge so row text lines up with the heading. */
 export const LINK_LIST_CLASS = "theme-dev-link-list -mx-2.5";
 
 type LinkRowProps = {
   href: string;
   children: ReactNode;
-  /** Right-hand slot: a count, a date, a status pill. */
   trailing?: ReactNode;
-  /** Second line under the label. */
   meta?: ReactNode;
   leading?: ReactNode;
   className?: string;
-  /** Stack the trailing slot under the label below `sm`, for pills beside long labels. */
   stackOnPhone?: boolean;
-  /** A spoken name for the whole row when its visible parts do not read well joined; it starts with the visible label. */
   label?: string;
 };
 
-/** One row that opens another tool: label (and meta) left, trailing slot and a chevron right. */
 export function LinkRow({ href, children, trailing, meta, leading, className, stackOnPhone = false, label }: LinkRowProps) {
   return (
     <a
@@ -75,7 +60,6 @@ export function LinkRow({ href, children, trailing, meta, leading, className, st
   );
 }
 
-/** The loading stand-in for a count: a short pulse bar, spoken as "Loading". */
 export function CountSkeleton({ className }: { className?: string }) {
   return (
     <>
@@ -85,7 +69,6 @@ export function CountSkeleton({ className }: { className?: string }) {
   );
 }
 
-/** Rows standing in for a list that is still loading. */
 export function RowSkeletons({ rows = 2, label }: { rows?: number; label: string }) {
   return (
     <div aria-busy="true" className={LINK_LIST_CLASS}>
@@ -100,11 +83,6 @@ export function RowSkeletons({ rows = 2, label }: { rows?: number; label: string
   );
 }
 
-/**
- * A count in a row. Unknown is its own word with a warning glyph, so a failed
- * read never looks like an empty queue; zero steps back; a stale count keeps
- * its number and says it is the last known one.
- */
 export function CountValue({ count, noun = "waiting" }: { count: HomeTotal; noun?: string }) {
   switch (count.kind) {
     case "loading":
@@ -146,7 +124,6 @@ export function CountValue({ count, noun = "waiting" }: { count: HomeTotal; noun
   }
 }
 
-/** A date as relative words, with the full date on hover and in the markup. */
 export function RelativeDay({ iso, prefix }: { iso: string; prefix?: string }) {
   const day = describeDay(iso);
   if (!day) return null;
@@ -157,10 +134,6 @@ export function RelativeDay({ iso, prefix }: { iso: string; prefix?: string }) {
   );
 }
 
-/**
- * A list that shows the first few rows and folds the rest behind Show all, so
- * one long list never pushes the rest of Home off screen.
- */
 export function CappedList<T>({
   items,
   getKey,
@@ -173,7 +146,6 @@ export function CappedList<T>({
   getKey: (item: T) => string;
   renderItem: (item: T) => ReactNode;
   label: string;
-  /** Plural noun for the Show all control ("drafts"). */
   noun: string;
   cap?: number;
 }) {
@@ -203,7 +175,6 @@ export function CappedList<T>({
   );
 }
 
-/** Some counts did not load: say so where the rows are, with the one retry beside it. */
 export function CountFailureLine({ failed, onRetry }: { failed: number; onRetry: () => void }) {
   return (
     <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm">
@@ -219,7 +190,6 @@ export function CountFailureLine({ failed, onRetry }: { failed: number; onRetry:
   );
 }
 
-/** A quiet line under a section's rows: an empty state, a note, a way onward. */
 export function SectionNote({ icon, tone = "muted", children }: { icon?: IconName; tone?: "muted" | "success"; children: ReactNode }) {
   return (
     <p className="theme-text-muted flex items-start gap-2 text-sm">
@@ -235,7 +205,6 @@ export function SectionNote({ icon, tone = "muted", children }: { icon?: IconNam
   );
 }
 
-/** A quiet link to the tool that owns a section, under its rows. */
 export function OnwardLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a href={href} className="theme-focus-ring theme-accent-underline inline-flex min-h-11 items-center gap-1.5 rounded-control text-sm font-medium text-dose-accent-strong underline-offset-4 hover:underline">
@@ -245,7 +214,6 @@ export function OnwardLink({ href, children }: { href: string; children: ReactNo
   );
 }
 
-/** The count a section heading carries at its end ("2 open"). */
 export function HeadingCount({ children }: { children: ReactNode }) {
   return <span className="theme-text-muted text-sm tabular-nums">{children}</span>;
 }

@@ -37,17 +37,9 @@ import { useReplicationSelection } from "./useReplicationSelection";
 import { useShowcaseController } from "./useShowcaseController";
 import { useStudioWorkspaces } from "./useStudioWorkspaces";
 
-/** Bottom breathing room under the frame: the dev shell's own `py-6`. */
 const FRAME_BOTTOM_GAP = 24;
-/** Under this the frame stops shrinking and the page scrolls instead. */
 const FRAME_MIN_HEIGHT = 560;
 
-/**
- * The Library is a workspace, not a document: its frame runs from wherever
- * the shell chrome ends to the bottom of the viewport, and the rail, grid,
- * and inspector each scroll inside it. Measured rather than hard-coded
- * because the chrome above it changes height with the rail and breakpoints.
- */
 function useViewportFrame(enabled: boolean) {
   const ref = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number | null>(null);
@@ -61,7 +53,6 @@ function useViewportFrame(enabled: boolean) {
     };
     measure();
     window.addEventListener("resize", measure);
-    // The chrome above settles after first paint (session, rail badges, fonts).
     const observer =
       typeof ResizeObserver === "undefined" || !node.parentElement
         ? null
@@ -88,7 +79,6 @@ const DENSITY_OPTIONS: { value: StudioGridDensity; label: string; icon: string }
   { value: "large", label: "Large cards", icon: "lucide:square" },
 ];
 
-/** A row of icon toggles sharing one rounded well. */
 function ToggleGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div
@@ -120,8 +110,6 @@ function ToggleIcon({
       aria-label={label}
       aria-pressed={pressed}
       title={label}
-      // 36px on a touch screen with a 44px-tall halo: 44px circles made the
-      // wells taller than every control beside them.
       className={cn("size-7 rounded-full [@media(pointer:coarse)]:size-9", TOUCH_HALO_Y)}
       onClick={onClick}
     >
@@ -133,7 +121,6 @@ function ToggleIcon({
 export function ReplicationStudioTab({
   initialSubstanceSlug,
 }: { initialSubstanceSlug?: string } = {}) {
-  // One controller per workspace, over one corpus and one shared selection.
   const corpus = useReplicationCorpus();
   useDevShortcuts(REPLICATION_STUDIO_SHORTCUTS);
   const { load, rows, effects, effectNames, artists, busy, feedback } = corpus;
@@ -169,7 +156,6 @@ export function ReplicationStudioTab({
   const { railInColumn, drawerInColumn, inspectorColumn, railColumn } = layout;
   const [frameRef, frameHeight] = useViewportFrame(isLibrary && load.status === "ready");
 
-  /** Leaves Showcases for the Library with `slug` selected there. */
   const openInLibrary = (slug: string) => {
     selection.inspectRow(slug);
     workspaces.request(null);
@@ -269,8 +255,6 @@ export function ReplicationStudioTab({
     />
   );
 
-  // Upload and the drop target work on every workspace, so the tray that
-  // holds what they queue shows on every workspace too.
   const incomingTray = (
     <IncomingTray
       items={incoming.incoming}
@@ -546,9 +530,6 @@ export function ReplicationStudioTab({
         </div>
       )}
 
-      {/* Under lg the inspector is a non-modal sheet over the grid's right
-          edge (the whole screen on a phone): Esc or the close button hands
-          the space back. */}
       {isLibrary && !railInColumn && hasSelection ? (
         <div className="theme-replication-sheet fixed inset-y-0 right-0 z-[60] w-full border-l sm:w-[26rem]">
           {inspector("sheet")}

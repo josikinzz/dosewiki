@@ -21,7 +21,6 @@ function isValidDirectUrl(value: string | null) {
   }
 }
 
-/** A taxonomy CAS must be anchored to one real, unchanged main-media locator. */
 export function replicationTaxonomyLocatorMatches(
   row: Pick<Doc<"replications">, "storage_id" | "r2_key" | "url">,
   expected: ReplicationTaxonomyLocator,

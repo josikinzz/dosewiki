@@ -23,10 +23,6 @@ const baseProfile: StoredProfile = {
   updatedAt: "2024-01-01T00:00:00.000Z",
 };
 
-/**
- * Mirrors the mocked-ctx shape in `dataSubstanceIndexEditorReadAuth.test.ts`,
- * plus the `contributorProfiles` row the profile patch reads back.
- */
 function createCtx({
   memberships = {},
   profile = baseProfile,
@@ -53,7 +49,7 @@ function createCtx({
     auth: { getUserIdentity: vi.fn(async () => null) },
     storage: { getUrl: vi.fn(async () => "https://cdn.example.com/avatar.png") },
     db: {
-      normalizeId: () => null, // This fixture only mutates contributor profiles.
+      normalizeId: () => null,
       patch,
       insert,
       query: vi.fn((table: string) => ({
@@ -93,16 +89,12 @@ function createCtx({
   };
 }
 
-// Postgres registered functions keep the original handler on `_handler`; there is
-// no in-repo Postgres runtime harness, so the handler is exercised directly.
 const asHandler = (fn: unknown) =>
   (fn as { _handler: (ctx: never, args: unknown) => Promise<never> })._handler;
 
 const saveHandler = asHandler(saveProfileAsEditor);
 const orderingHandler = asHandler(setContributorOrdering);
 
-// `editorArgs` is an editor who does not own JOSIE; `ownerArgs` is the editor
-// whose membership email the JOSIE row carries.
 const editorArgs = { apiKey: "secret", actorEmail: "editor@example.com", expectedUpdatedAt: baseProfile.updatedAt };
 const ownerArgs = { apiKey: "secret", actorEmail: "josie@example.com", expectedUpdatedAt: baseProfile.updatedAt };
 const adminArgs = { apiKey: "secret", actorEmail: "admin@example.com", expectedUpdatedAt: baseProfile.updatedAt };
@@ -216,9 +208,6 @@ describe("contributorProfiles.setContributorOrdering", () => {
 
 describe("profile validator surfaces", () => {
   it("keeps the staff-only fields off the self-serve validator surface", () => {
-    // `saveProfile` (the self-serve path) validates against a strict object,
-    // so a field the validator does not name is rejected at the Postgres
-    // boundary. The editor patch naming them is what makes them admin-only.
     const selfServeFields = Object.keys(profileInputValidator.fields);
     expect(selfServeFields).not.toContain("archival");
     expect(selfServeFields).not.toContain("staffNote");

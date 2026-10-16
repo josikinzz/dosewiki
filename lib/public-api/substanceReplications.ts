@@ -23,7 +23,6 @@ type PublicAssociation = {
   drug_class?: "dissociatives" | "deliriants";
 };
 
-/** Publish placement evidence, never the private curation lists or notes. */
 function projectAssociation(
   substanceSlug: string,
   provenance: SubstanceGalleryMatchProvenance | undefined,
@@ -45,11 +44,6 @@ function projectAssociation(
   };
 }
 
-/**
- * The article showcase owns inclusion and ordering. Its underlying gallery
- * supplies the existing v1 media/rights projection and association evidence.
- * Both loaders share request-deduped reads; no matcher or ordering lives here.
- */
 export async function getPublicApiSubstanceReplications(substanceSlug: string) {
   const [collection, gallery] = await Promise.all([
     getSubstanceShowcaseWorks(substanceSlug),
@@ -61,11 +55,8 @@ export async function getPublicApiSubstanceReplications(substanceSlug: string) {
   const revision = createHash("sha256").update(substanceSlug).update("\n");
   const data = collection.works.map((work) => {
     const item = bySlug.get(work.slug);
-    // Do not silently omit a work and advance the cursor past it.
     if (!item) throw new Error("Canonical substance collection could not be resolved.");
     const association = projectAssociation(substanceSlug, item.provenance);
-    // Signed storage URLs can rotate without changing collection membership.
-    // Bind traversal to ordered identities and their public placement context.
     revision.update(JSON.stringify([work.slug, association])).update("\n");
     return { ...projectPublicApiReplication(item.replication), association };
   });

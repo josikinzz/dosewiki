@@ -7,51 +7,20 @@ import {
   setArticleValueByPath,
 } from "./fieldPath";
 
-// Re-export createEmptyArticle for backward compatibility
 export { createEmptyArticle };
 
-/**
- * Path-based utilities for getting and setting values in nested objects.
- * These enable the schema registry to work with any SubstanceArticle field.
- */
-
-/**
- * Get a value from a nested object using dot-notation path.
- * Supports array notation like "dosage.routes[0].route"
- *
- * @param obj - The object to read from
- * @param path - Dot-notation path (e.g., "identification.common_name")
- * @returns The value at the path, or undefined if not found
- */
 export function getValueByPath(obj: unknown, path: string): unknown {
   return getArticleValueByPath(obj, path);
 }
 
-/**
- * Set a value in a nested object using dot-notation path.
- * Returns a new object (immutable operation).
- *
- * @param obj - The object to clone and modify
- * @param path - Dot-notation path (e.g., "identification.common_name")
- * @param value - The value to set
- * @returns A new object with the value set
- */
 export function setValueByPath<T>(obj: T, path: string, value: unknown): T {
   return setArticleValueByPath(obj, path, value);
 }
 
-/**
- * Hydrate form state from a SubstanceArticle using the field registry.
- * Converts schema values to form-friendly values using transformers.
- *
- * @param article - The SubstanceArticle to read from
- * @returns FormState with transformed values
- */
 export function hydrateFormFromArticle(article: SubstanceArticle): FormState {
   const state: FormState = {};
 
   for (const [path, meta] of Object.entries(FIELD_REGISTRY)) {
-    // Skip route-dependent fields (handled separately)
     if (meta.routeDependent) {
       continue;
     }
@@ -68,14 +37,6 @@ export function hydrateFormFromArticle(article: SubstanceArticle): FormState {
   return state;
 }
 
-/**
- * Build a SubstanceArticle from form state using the field registry.
- * Converts form values back to schema values using transformers.
- *
- * @param state - The form state to convert
- * @param baseArticle - Optional base article to merge with
- * @returns SubstanceArticle with schema values
- */
 export function buildArticleFromForm(
   state: FormState,
   baseArticle?: SubstanceArticle
@@ -83,7 +44,6 @@ export function buildArticleFromForm(
   let article = baseArticle ? structuredClone(baseArticle) : createEmptyArticle();
 
   for (const [path, meta] of Object.entries(FIELD_REGISTRY)) {
-    // Skip route-dependent fields (handled separately)
     if (meta.routeDependent) {
       continue;
     }
@@ -107,12 +67,6 @@ export function buildArticleFromForm(
   return article;
 }
 
-/**
- * Validate form state against the field registry.
- *
- * @param state - The form state to validate
- * @returns ValidationResult with any errors
- */
 export function validateFormState(state: FormState): ValidationResult {
   const errors: FieldError[] = [];
   const requiredFields = getRequiredFields();
@@ -140,9 +94,6 @@ export function validateFormState(state: FormState): ValidationResult {
   };
 }
 
-/**
- * Get form value for a specific field, applying transformer if needed.
- */
 export function getFormValue(article: SubstanceArticle, path: string): unknown {
   const meta = FIELD_REGISTRY[path];
   if (!meta) {
@@ -158,9 +109,6 @@ export function getFormValue(article: SubstanceArticle, path: string): unknown {
   return schemaValue ?? meta.default;
 }
 
-/**
- * Set a form value back to schema format.
- */
 export function setSchemaValue(
   article: SubstanceArticle,
   path: string,
@@ -178,9 +126,6 @@ export function setSchemaValue(
   return setValueByPath(article, path, schemaValue);
 }
 
-/**
- * Get all paths that have non-empty values in an article.
- */
 export function getNonEmptyPaths(article: SubstanceArticle): string[] {
   const paths: string[] = [];
 
@@ -202,9 +147,6 @@ export function getNonEmptyPaths(article: SubstanceArticle): string[] {
   return paths;
 }
 
-/**
- * Compare two articles and return paths that differ.
- */
 export function getDifferingPaths(
   articleA: SubstanceArticle,
   articleB: SubstanceArticle

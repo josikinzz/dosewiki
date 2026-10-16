@@ -107,8 +107,6 @@ function mergeLinks(target: unknown, source: unknown) {
     const normalizedUrl = link.url.trim();
     if (!normalizedUrl || seen.has(normalizedUrl)) continue;
     seen.add(normalizedUrl);
-    // The trim is only a duplicate/blankness key. Keep the stored link bytes
-    // intact so a merge advertised as lossless never silently rewrites them.
     output.push({ label: link.label, url: link.url });
   }
   return output;

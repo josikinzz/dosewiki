@@ -7,11 +7,6 @@ import {
   substanceGalleryTargetOf,
 } from "../../src/data/substanceReplicationGallery";
 
-/**
- * The substance for a slug, or null. Mirrors `substanceIndex:getPublicBySlug`:
- * a duplicated slug is ambiguous and treated as not found rather than letting
- * two articles fight over one gallery.
- */
 export async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   const matches = await ctx.db
     .query("substanceIndex")
@@ -49,9 +44,6 @@ export async function getCurationDetailHandler(
 
   const effects = await ctx.db.query("subjectiveEffects").collect();
   const effectNames = new Map(effects.map((effect) => [effect.slug, effect.name ?? effect.slug]));
-
-  // Effect identity remains presentation metadata for each work. It no
-  // longer decides which substance articles receive the row.
 
   const resolvedUrls = memoizedStorageUrls(ctx);
   const resolved = await Promise.all(

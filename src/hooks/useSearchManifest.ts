@@ -6,19 +6,7 @@ import {
 } from "../data/builders/searchManifest";
 import type { UiLocale } from "../i18n/messages";
 
-/**
- * One manifest per locale per document, shared by every search surface.
- *
- * Fetches and fold-once builds are module-level rather than per-hook so a
- * header search box and a results page mounted together do not each pay for
- * them. HTTP caching handles repeat visits, so nothing is mirrored into
- * `sessionStorage` where it could go stale against the served locale ETag.
- */
 const manifestIndexPromises = new Map<UiLocale, Promise<SearchManifestIndex | null>>();
-/**
- * Resolved indexes are locale-qualified so navigation cannot briefly display
- * labels from the previous language while the requested manifest loads.
- */
 const loadedManifestIndexes = new Map<UiLocale, SearchManifestIndex>();
 const manifestListeners = new Set<() => void>();
 
@@ -47,8 +35,6 @@ export function loadSearchManifestIndex(
     return existing;
   }
 
-  // A failed request is removed from the in-flight map below. The next focus
-  // or explicit search action can therefore retry without remounting search.
   const promise = fetchSearchManifestIndex(locale)
     .then((index) => {
       if (index) loadedManifestIndexes.set(locale, index);
@@ -64,10 +50,6 @@ export function loadSearchManifestIndex(
   return promise;
 }
 
-/**
- * The manifest index once it is available, or `null` while it loads or if it
- * failed. `enabled` defers the request until the user actually engages search.
- */
 export function useSearchManifestIndex(
   enabled: boolean,
   locale: UiLocale = "en",

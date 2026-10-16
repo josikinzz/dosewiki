@@ -1,11 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/retry-exhausted  { locale }
- *
- * Admin only. Gives the pages of the locale's latest run that stopped after
- * repeated failures a fresh set of attempts, in the same run, so the cron picks
- * them up again and the progress card keeps counting them there. Pages that
- * finished, or still have attempts left, are untouched.
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

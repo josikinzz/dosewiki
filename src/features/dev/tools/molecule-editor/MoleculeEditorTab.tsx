@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * Molecule depiction editor (`/dev` → Molecules).
- *
- * Fix the wedge/hash stereo bonds and atom positions of a molecule's skeletal diagram
- * when the automatic layout draws them badly.
- *
- * The editor workspace: the list column (kind of structure, what state each
- * drawing is in, search, the records) on the left, the open structure's pane
- * on the right. This component owns only what outlives one open structure:
- * the mode and selection (mirrored into `/dev/molecule-editor/<mode>/<slug>`),
- * the list data, the chemistry engines and the canvas settings. Everything
- * about the open structure lives in `MoleculeEditorSession`, keyed on
- * `mode:selected`, so switching selection starts a fresh session in one step.
- */
 import { DevToolSection } from "@/features/dev/pages/DevToolSection";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditorReadState } from "@/hooks/useEditorRead";
@@ -47,7 +33,6 @@ import type { EditorMode } from "./moleculeEditorTypes";
 
 const TEMPLATE_API = "/api/dev/molecule-class-template";
 
-/** If server data has not arrived after this long, stop promising it is on its way. */
 const LOAD_TIMEOUT_MS = 8000;
 
 const LIST_SHORTCUTS = [{ keys: "/", label: "Find a structure in the list" }] as const;
@@ -62,22 +47,15 @@ function psychoactiveClasses(classification: unknown): string[] {
 }
 
 export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}) {
-  // `/dev/molecule-editor/<mode>/<slug>` lands with that structure open.
   const [selection, setSelection] = useState<MoleculeEditorSelection>(() =>
     parseMoleculeEditorSlug(initialSlug),
   );
   const { mode, selected } = selection;
-  // A canvas preference, not part of any one structure, so it survives switching.
   const [fineRotation, setFineRotation] = useState(true);
-  // OpenChemLib renders the preview + published SVG (same engine as the canvas);
-  // RDKit remains for the InChI/canonical-SMILES guards and class layout. Idle
-  // visits do not initialize either engine; selection activates both.
   const enginesEnabled = selected !== null;
   const { ocl, error: oclError } = useOcl(enginesEnabled);
   const { rdkit, error: rdkitError } = useRdkit(enginesEnabled);
 
-  // Mirror the selection into the address so the open structure can be shared.
-  // Next's history state is kept, or the router treats the swap as a navigation.
   const urlSlugRef = useRef(initialSlug);
   useEffect(() => {
     const slug = moleculeEditorSlug(selection);
@@ -86,7 +64,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     window.history.replaceState(window.history.state, "", viewToPath({ type: "dev", tab: "molecule-editor", slug }));
   }, [selection]);
 
-  // The open session reports whether it holds unsaved work, so a switch can ask first.
   const sessionDirtyRef = useRef(false);
   const [sessionDirty, setSessionDirty] = useState(false);
   const onSessionDirtyChange = useCallback((dirty: boolean) => {
@@ -98,7 +75,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   const paneRef = useRef<HTMLDivElement>(null);
   const paneTitleRef = useRef<HTMLHeadingElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  /** Set when a row opens a structure, so the pane's heading takes focus once it has rendered. */
   const focusPaneOnOpen = useRef(false);
 
   const switchTo = useCallback(
@@ -153,7 +129,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     [mode, switchTo],
   );
 
-  // Saved template keys: the Class templates list and import sources outside substances mode.
   const [templateSummaries, setTemplateSummaries] = useState<Map<string, OverrideSummary> | null>(null);
   const [templateListError, setTemplateListError] = useState<string | null>(null);
   const [templateReload, setTemplateReload] = useState(0);
@@ -180,7 +155,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   }, [templateReload]);
   const templateKeys = useMemo(() => Array.from(templateSummaries?.keys() ?? []), [templateSummaries]);
 
-  // --- live list data -------------------------------------------------------
   const pickerRead = useMoleculePickerReadState(true);
   const pickerRows = pickerRead.data;
   const overrideListRead = useEditorReadState("moleculeOverrides:listSlugs", {}, "list");
@@ -234,9 +208,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       })),
     [templateKeys],
   );
-  // Import sources: any saved depiction other than the one being edited. Class
-  // and template modes also offer the saved class overrides (their Postgres slugs
-  // carry the class: prefix the depiction route expects).
   const importableMolecules = useMemo<MoleculePickerItem[] | null>(() => {
     if (!molecules) return null;
     const substanceSources = molecules.filter(
@@ -264,7 +235,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     return [...templateSources, ...classSources, ...substanceSources];
   }, [molecules, classStructures, classTemplates, templateKeys, mode, selected]);
 
-  // The list column's rows for the open mode, each with where its drawing comes from.
   const rows = useMemo<MoleculeListRow[] | null>(() => {
     if (mode === "substances") {
       if (!molecules) return null;
@@ -293,7 +263,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     setTemplateReload((key) => key + 1);
   }, [pickerRead, overrideListRead]);
 
-  // If Postgres never resolves, stop showing an indefinite skeleton.
   const [loadTimedOut, setLoadTimedOut] = useState(false);
   useEffect(() => {
     if (rows) {
@@ -311,14 +280,12 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
       : null;
   }, [rows, selected]);
 
-  // Phones: an open structure scrolls into view; its heading takes focus once rendered.
   useScrollToDetail(paneRef, selected ? `${mode}:${selected}` : null);
   useEffect(() => {
     if (!selected || !focusPaneOnOpen.current) return;
     focusPaneOnOpen.current = false;
     paneTitleRef.current?.focus({ preventScroll: true });
   }, [selected, mode]);
-  // A deep link on a phone lands on the pane, not the top of the list, once the list is in.
   const deepLinked = useRef(selection.selected);
   useEffect(() => {
     if (!deepLinked.current || !rows) return;
@@ -334,7 +301,6 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
     (open ?? searchRef.current)?.focus({ preventScroll: true });
   }, []);
 
-  // `/` finds a structure in the list.
   useDevShortcuts(LIST_SHORTCUTS);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

@@ -4,11 +4,6 @@ import { useId, useState } from "react";
 
 import { TagToken } from "@/features/dev/components";
 
-/**
- * Tags as removable tokens with an entry box. Enter adds the trimmed tag;
- * Backspace in an empty box removes the last one. The entry box grows to
- * fill the rest of the row, so most of the field is a place to type.
- */
 export function ReportTagsField({ tags, onChange }: { tags: readonly string[]; onChange: (tags: string[]) => void }) {
   const [tagDraft, setTagDraft] = useState("");
   const labelId = useId();
@@ -45,7 +40,6 @@ export function ReportTagsField({ tags, onChange }: { tags: readonly string[]; o
             if (event.key === "Enter" && tagDraft.trim()) {
               event.preventDefault();
               const next = tagDraft.trim();
-              // A tag already on the report is not added twice; the box clears either way.
               if (!tags.some((tag) => tag.toLowerCase() === next.toLowerCase())) onChange([...tags, next]);
               setTagDraft("");
             } else if (event.key === "Backspace" && !tagDraft && tags.length > 0) {

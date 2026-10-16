@@ -1,50 +1,3 @@
-/**
- * Operator surface for the live locale mirrors (`lib/translation/`).
- *
- * The cron keeps mirrors current after editorial writes; this script covers
- * everything else: seeding the store from a finished batch run, enqueuing
- * articles by hand, working the queue locally, and replaying rows whose prompt
- * digest is no longer the current one.
- *
- * Usage (Postgres write ceremony from docs/operations/data-credentials.md):
- *   export DATA_BACKEND=postgres TARGET_POSTGRES_URL="$POSTGRES_POOLED_URL" POSTGRES_IMPORT_CONFIRM=<host>
- *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/substances --allow-remote --write
- *   bun scripts/translation/live-mirror.ts import --run=notes-and-plans/exports/translation/zh-Hans/articles --corpus=articles --allow-remote --write
- *   bun scripts/translation/live-mirror.ts enqueue --all --allow-remote --write
- *   bun scripts/translation/live-mirror.ts enqueue --kind=library --all --allow-remote --write
- *   bun scripts/translation/live-mirror.ts enqueue --kind=replication --all --allow-remote --write
- *   bun scripts/translation/live-mirror.ts enqueue --slug=2c-b,lsd --allow-remote --write
- *   bun scripts/translation/live-mirror.ts run --limit=20 --allow-remote --write
- *   bun scripts/translation/live-mirror.ts backfill --kind=replication --allow-remote --write
- *   bun scripts/translation/live-mirror.ts stale --allow-remote --write
- *   bun scripts/translation/live-mirror.ts stale --term=Entactogen --term="Come Up" --allow-remote --write
- *
- * Commands:
- *   import   Load a batch run's translations.jsonl into translationSegments.
- *            Rows that failed a blocking gate in the run are skipped. The
- *            store keys segments by locale and source hash, so --corpus only
- *            names the segmenter that recovers each hash's source text.
- *   enqueue  Insert translation jobs for --all public slugs or --slug=a,b.
- *            --kind selects the corpus: article (substances, the default),
- *            effect, report, library (the long-form /articles archive), or
- *            replication (published gallery media; only titles translate).
- *   run      Claim and process due zh-Hans jobs until --limit or none.
- *            Rejected units leave a retryable failure; five failed claims exhaust a job.
- *   backfill Translate every unit the store lacks across all public records of
- *            --kind (or every kind) in bulk: units dedupe across records and
- *            travel in full batches, so a new kind or corpus field lands in
- *            minutes rather than one job at a time. Rejections are recorded.
- *   stale    Retranslate stored rows whose prompt digest differs from today's.
- *            With --term (repeatable), after a glossary edit: only rows whose
- *            English mentions a term (whole word, case insensitive, the
- *            prompt's own matcher) are marked and replayed. Other old digests
- *            remain stale until refreshed, since their unchanged dependencies
- *            are not recorded. Use the plain form for all remaining old digests
- *            or after a system prompt change.
- *   status   Counts only; never writes.
- *
- * Without --write every command reports what it would do and exits.
- */
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -60,8 +13,6 @@ import { guardTarget } from "../postgres/targetGuard";
 import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
 
-
-/** Units per translateUnits call and calls in flight during a stale replay: 6 x 8 requests at most. */
 const STALE_CHUNK = 200;
 const STALE_CONCURRENCY = 6;
 
@@ -87,13 +38,20 @@ const LOCALE = values.locale;
 const command = positionals[0];
 const target = values.target ?? process.env.TARGET_POSTGRES_URL;
 if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].includes(command)) {
-  throw new Error("Usage: live-mirror.ts <import|enqueue|run|backfill|stale|status> [options]");
+  throw new Error(`Usage: bun scripts/translation/live-mirror.ts <command> [options]
+  import --run=<batch run directory> [--corpus=<corpus>]
+  enqueue (--all|--slug=<a,b>) [--kind=<article|effect|report|library|replication>]
+  run [--limit=<n>]
+  backfill [--kind=<article|effect|report|library|replication>] (default: every kind)
+  stale [--term=<term>] (repeat --term to select multiple terms)
+  status
+Options: [--locale=<code>] [--target=<postgres-url>] [--allow-remote] [--write]
+Set TARGET_POSTGRES_URL instead of --target. Without --write, commands report only.
+Follow docs/operations/data-credentials.md for the Postgres write ceremony.`);
 }
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
 guardTarget(target, values["allow-remote"]);
 
-// The store reads the app's connection variables lazily; a script points them
-// at the explicit target only, so the app fallbacks never select a writer here.
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 delete process.env.POSTGRES_DIRECT_URL;
@@ -250,7 +208,6 @@ async function backfill() {
       records += 1;
       for (const unit of live.workUnitsOf(live.segmentsOf(record, kind), kind)) {
         const known = unitsByHash.get(unit.hash);
-        // A hash seen once as safety text keeps that reminder everywhere.
         if (!known || (unit.contextClass === "safety" && known.contextClass !== "safety")) unitsByHash.set(unit.hash, unit);
       }
     }
@@ -302,10 +259,6 @@ async function retranslateStale() {
     'SELECT "hash", "source" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [LOCALE, hashes],
   );
-  // Context class and markup are not stored; rebuild them by re-segmenting
-  // the live corpus of every kind so safety segments keep their reminder and
-  // markup segments keep their gate. Segments no longer in any record are
-  // translated as plain prose, which is harmless: they render nowhere.
   const reads = getPublicDataReadAdapter();
   const segmentByHash = new Map<string, Pick<Segment, "contextClass" | "markup"> & { kind: live.TranslationRecordKind }>();
   for (const kind of live.TRANSLATION_RECORD_KINDS) {
@@ -327,10 +280,6 @@ async function retranslateStale() {
       hash: row.hash, words: row.source.trim().split(/\s+/).length, source: row.source,
     };
   })).map((unit) => ({ ...unit, contextKind: segmentByHash.get(unit.hash)?.kind ?? "any" }));
-  // Each chunk is one translateUnits call with its own request pool; several
-  // chunks in flight keep the model busy across a whole-corpus replay. A chunk
-  // whose write fails (the pooler dropping a connection mid-statement) simply
-  // stays stale for the next run instead of ending the replay.
   const chunks: (typeof units)[] = [];
   for (let start = 0; start < units.length; start += STALE_CHUNK) chunks.push(units.slice(start, start + STALE_CHUNK));
   let cursor = 0;

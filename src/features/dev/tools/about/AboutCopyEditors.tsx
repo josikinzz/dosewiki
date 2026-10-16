@@ -54,11 +54,6 @@ function copyResult(copyNotice: AboutCopyNotice | null | undefined, target: Abou
   );
 }
 
-/**
- * The About page's Markdown and subtitle fields in the public page's
- * contextual editor panel (`AboutBlock.editor.tsx`). The /dev Writing tool
- * draws its own About pane, so this is the panel's layout only.
- */
 export function AboutCopyEditors({
   aboutMarkdown,
   onMarkdownChange,

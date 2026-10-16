@@ -4,33 +4,14 @@ import {
   type ReviewQueueGroup,
 } from "./reviewQueue";
 
-/**
- * A bucket the tick being processed just finished off: a chemical-class
- * subsection ("section") or a whole psychoactive category ("group"). The
- * group level outranks the section level — one tick can complete both, and
- * only the loudest celebration fires.
- */
 export interface ReviewCelebration {
   level: "section" | "group";
-  /** Human label of the completed bucket — "Lysergamides", "Psychedelics". */
   label: string;
-  /** Category icon key, group level only; feed it to `getCategoryIcon`. */
   iconKey?: string;
-  /** How many articles the completed bucket holds. */
   total: number;
-  /** Section level only: the category the section sits in, so "Common" reads as "Stimulant, Common". */
   groupLabel?: string;
 }
 
-/**
- * What marking `slug` reviewed completes, if anything.
- *
- * Called with the tree as it stood *before* the tick landed, so `slug` is
- * treated as completed regardless of its recorded status — which also makes
- * the check idempotent if it ever runs against the post-tick tree. The
- * unplaced bucket never celebrates: "Unplaced" is a holding pen, not
- * an achievement.
- */
 export function resolveReviewCelebration(
   groups: readonly ReviewQueueGroup[],
   slug: string,
@@ -62,8 +43,6 @@ export function resolveReviewCelebration(
       return { level: "section", label: section.label, total: section.entries.length, groupLabel: group.label };
     }
 
-    // A slug lives in exactly one bucket (first placement wins upstream), so
-    // once its group is found and neither level completed, nothing will.
     return null;
   }
 

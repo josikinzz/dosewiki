@@ -1,98 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Give every contributor who has a work in the gallery, and no avatar, an avatar
- * cut from their own work.
- *
- * Seventy-five of the eighty-six contributor profiles render as initials in a
- * circle. Fifty-eight of those seventy-five are credited on at least one
- * publishable replication, which means the archive already holds a picture that
- * is unambiguously theirs. This script cuts a 256x256 square out of one of those
- * pictures, writes it to `public/profile-avatars/<key>/avatar.webp`, and points
- * the profile's `avatarUrl` at it.
- *
- * ## Which work becomes the avatar
- *
- * A strict, total ordering. Every step is derived from stored data, so a re-run
- * on unchanged data picks the same work:
- *
- *  1. **A curated work beats an uncurated one.** `effectIndexFeaturedReplications.json`
- *     is thirty-six slugs of editorial "best of" recovered from Effect Index. It
- *     is the only human judgement available about which works represent the
- *     archive, and it outranks everything mechanical below it.
- *  2. **A still image beats a video.** A still is a frame its author chose and
- *     graded; any frame pulled out of a video is a frame nobody chose. This is a
- *     convenience, not a judgement, which is why it sits under curation — see
- *     below.
- *  3. **The larger square wins**, measured as `min(width, height)` of the source.
- *     The delivered asset is square, so the short side — not the area — is what
- *     bounds it. A 5600x2840 landscape yields a 2840px square; a 3000x200
- *     panorama yields 200.
- *  4. **Slug ascending**, so the ordering is total and nothing is left to
- *     document order or to whatever the database returns first.
- *
- * Steps 1 and 2 disagree for exactly one contributor in the current corpus, and
- * that case is why they are in this order. Hyperactive Filly's one still,
- * `sleep-paralysis-hyperactive-filly`, is a deliberately near-black photograph of
- * a dark ceiling — true to its subject and unreadable at 128px in a circle (mean
- * luminance 22.9 of 255). Their curated work, `strawberry-fields-hyperactive-filly`,
- * is a video, and a frame a second into it is vivid. Preferring the still because
- * extracting a frame is more work produced a black circle; preferring the curated
- * work produced an avatar. Curation is the more considered signal, so it goes on
- * top and the mechanical preference breaks ties beneath it.
- *
- * Only rows whose effective role is `replication` are eligible, via the existing
- * `isPublishableReplication`. A clinical figure or a molecule diagram is stored,
- * credited and rights-tracked in the same table, and is nobody's portfolio.
- *
- * Names resolve through `profileMatchesName`, the shared exact-whole-name
- * matcher. This script deliberately owns no matching of its own: a second
- * definition of "this credit is that contributor" is how one person quietly
- * inherits another's work.
- *
- * ## The crop
- *
- * Centre, always, and never enlarged. `ContributorAvatar` renders into a
- * `rounded-full` frame with `object-cover`, so the delivered square is masked to
- * a circle and its corners are thrown away — the middle of the frame is the only
- * part guaranteed to survive. Artwork is centre-weighted in a way portraits are
- * not; the top-crop convention that suits a face is wrong here, and would land
- * in empty sky on the landscapes that make up most of this set.
- *
- * If a source's short side is under 256 the avatar is delivered at that size
- * instead. Nothing is upscaled, padded or stretched.
- *
- * ## Video frames
- *
- * Fourteen of the fifty-eight have only video. `t=0` is the wrong frame to take:
- * these open on fades from black, and a black circle is a failure rather than an
- * edge case. Frames are tried on a fixed ladder starting a second in, each one
- * measured for mean luminance, and the first frame at or above
- * `MIN_FRAME_LUMA` is kept. If the whole ladder is dark the brightest attempt is
- * kept and the run says so.
- *
- * ## Provenance
- *
- * An avatar cut from someone's artwork is still their artwork. Every selection —
- * the work, its title, its credit line, its rights status, and for a video the
- * exact timestamp of the frame — is recorded in
- * `data/contributors/contributorAvatarSources.json`, which is checked in.
- *
- * ## Running it
- *
- * Requires `ffmpeg`/`ffprobe` on PATH for the video sources.
- *
- * Dry run (default; writes nothing, reads production):
- *   bun scripts/contributors/generate-avatars-from-replications.ts
- *
- * Dry run rendering the avatars somewhere disposable, to look at them first:
- *   bun scripts/contributors/generate-avatars-from-replications.ts --preview-dir=/tmp/avatars
- *
- * Apply:
- *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   bun scripts/contributors/generate-avatars-from-replications.ts --write \
- *     --confirm-write=generate-contributor-avatars \
- *     --expected-deployment=localhost/dosewiki
- */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -169,22 +75,9 @@ export * from "./generate-avatar-media";
 const OPERATION = "generate-contributor-avatars";
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 
-
-
-
-
-
-
-
-
-
-/* -------------------------------------------------------------------- report */
-
 function log(message = "") {
   console.log(message);
 }
-
-/* ---------------------------------------------------------------------- main */
 
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
@@ -242,10 +135,6 @@ async function main() {
     log(`  ${profile.key.padEnd(24)} ${profile.avatarUrl}`);
   }
 
-  // Resolve every tier candidate's bytes through production storage. The stored
-  // `url` column on the older rows points at retired deployments, so storage is
-  // the source of truth and `url` is only a fallback, exactly as the public read
-  // resolves it.
   const tiers = eligible.map(({ profile, works }) => ({ profile, works, tier: preferredTier(works) }));
   const storageIds = [...new Set(tiers.flatMap(({ tier }) => tier.map((row) => row.storage_id)))];
   const resolvedUrls = new Map<string, string>();
@@ -426,9 +315,6 @@ async function main() {
     const rendered = await renderAvatar(source, dimensions);
     const luminance = await meanLuminance(rendered.bytes);
 
-    // `wx` on the repository path: an avatar that already exists was chosen by
-    // somebody and is never replaced. A disposable preview directory is meant to
-    // be re-rendered, so it is overwritten instead.
     writeAvatarFile(filePath, rendered.bytes, command.dryRun);
 
     if (luminance < MIN_FRAME_LUMA) {
@@ -464,9 +350,6 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
-  // The public read materializes rows, which loses avatarStorageId,
-  // membershipEmail, createdAt, updatedAt and updatedBy — every one of which
-  // bulkImport would then reset. Merge against the raw rows instead.
   const rawProfiles = (await writeClient.query(api.contributorProfiles.getForBulkImport, {
     apiKey,
     keys: plan.map((entry) => entry.key),
@@ -482,8 +365,6 @@ async function main() {
       console.warn(`  SKIP ${entry.key} — no contributorProfiles row.`);
       continue;
     }
-    // Re-check at the write boundary: an editor may have set an avatar between
-    // the plan and this moment, and this script must never replace one.
     if (sanitizeContributorAvatarUrl(stored.avatarUrl) || stored.avatarStorageId) {
       console.warn(`  SKIP ${entry.key} — an avatar appeared since the plan was built.`);
       continue;

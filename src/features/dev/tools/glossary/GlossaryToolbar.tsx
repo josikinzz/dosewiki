@@ -16,17 +16,11 @@ import { glossaryExportUrl } from "./glossaryModel";
 type GlossaryActionBarProps = {
   locale: string;
   locked: boolean;
-  /** Drafting calls the model, so only admins see it; retranslation and the main run sit in the Runs panel in Articles. */
   canAdmin: boolean;
   onImport: (file: File | undefined) => void;
   onDraft: () => void;
 };
 
-/**
- * The occasional file and model actions, folded into one menu beside the
- * category heading so the terms stay the first thing a reviewer reads. What
- * a running write is doing shows in the Terms dock, outside the menu.
- */
 export function GlossaryActionBar({
   locale,
   locked,
@@ -37,7 +31,6 @@ export function GlossaryActionBar({
   const fileInput = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-2" role="group" aria-label="Glossary actions">
-      {/* Outside the menu, which unmounts its items on close. */}
       <input
         ref={fileInput}
         type="file"

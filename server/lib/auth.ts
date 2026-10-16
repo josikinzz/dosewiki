@@ -1,14 +1,3 @@
-/**
- * Authentication utilities for native data handlers.
- *
- * Browser sessions terminate in Next server routes, which pass a scoped token
- * and the session's actorEmail. Native runtime contexts have no user identity;
- * trusted automation authenticates with an authorized admin-intent token.
- *
- * SECURITY: This implements VULN-01 (unauthenticated mutations) and VULN-04
- * (localStorage passwords) remediation from the security audit.
- */
-
 import { QueryCtx, MutationCtx } from "../../lib/postgres/runtime/server"
 import { roleMeetsFloor, type AppRole, type RoleFloor } from "../../src/lib/auth/roles";
 export { roleMeetsFloor, type RoleFloor } from "../../src/lib/auth/roles";
@@ -17,15 +6,8 @@ import {
   type AdminIntent,
 } from "./adminIntentTokens";
 
-/**
- * Environment variable name for the admin API key.
- * Configure this only in the trusted server or maintenance process environment.
- */
 const ADMIN_KEY_ENV_VAR = "DATA_ADMIN_KEY";
 
-/**
- * Authenticated user information returned by requireAuth.
- */
 export type AuthenticatedUser = {
   userId: string;
   email: string;
@@ -40,9 +22,6 @@ export type AuthorizedActor = AuthenticatedUser & {
   adminIntent?: AdminIntent;
 };
 
-/**
- * Error thrown when authentication fails.
- */
 export class AuthError extends Error {
   constructor(message: string) {
     super(message);
@@ -74,25 +53,11 @@ export async function requireAdminIntent(
   throw new AuthError("Authentication failed: Invalid API key");
 }
 
-/**
- * Validates a scoped admin-intent token (or the configured admin key).
- * Returns user information on success, throws AuthError on failure.
- *
- * Without a token, the context identity is checked and absence fails closed.
- * Native production contexts return no identity; browser callers must use the
- * authenticated Next route rather than invoking handlers directly.
- *
- * @param ctx - Native handler context
- * @param apiKey - Optional server or trusted automation token
- * @returns Authenticated user information
- * @throws AuthError if authentication fails
- */
 export async function requireAuth(
   ctx: MutationCtx | QueryCtx,
   apiKey?: string,
   adminIntent: AdminIntent = "legacyAdmin"
 ): Promise<AuthenticatedUser> {
-  // API key authentication for batch scripts
   if (apiKey) {
     await requireAdminIntent(apiKey, adminIntent);
 
@@ -103,11 +68,9 @@ export async function requireAuth(
     };
   }
 
-  // Fail closed when no trusted context identity is available.
   const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    // SECURITY: Always require authentication - no dev mode bypass
     throw new AuthError("Authentication required: Please sign in or provide an API key");
   }
 
@@ -129,18 +92,6 @@ async function getMembership(ctx: MutationCtx | QueryCtx, email: string) {
     .unique();
 }
 
-/**
- * Resolves who a call acts as.
- *
- * - A trusted context identity, if supplied, acts as that identity's membership.
- * - Server-key calls that name an `actorEmail` act as that member; the key
- *   only proves the caller is our server, the role comes from memberships.
- * - Server-key calls that name nobody are trusted maintenance scripts.
- *   They act as admin. The Next server must never
- *   take this path: every route passes the session's email (enforced by the
- *   server write capability), and there is no email pattern that shortcuts to
- *   admin any more.
- */
 async function resolveActor(
   ctx: MutationCtx | QueryCtx,
   args: {
@@ -183,12 +134,6 @@ async function resolveActor(
   };
 }
 
-/**
- * The one authorization choke point for writes. Resolves the actor and then
- * checks a role floor: `admin` for destructive and publishing mutations,
- * `editor` for review metadata and proposals, `contributor` (plus an
- * ownership check at the call site) for owned records.
- */
 export async function requireRole(
   ctx: MutationCtx | QueryCtx,
   args: {
@@ -207,10 +152,6 @@ export async function requireRole(
   return actor;
 }
 
-/**
- * Authorizes a server-token write while requiring the delegated audit identity
- * to exist in memberships at the editor floor or above.
- */
 export async function requireRegisteredDelegatedEditorWrite(
   ctx: MutationCtx | QueryCtx,
   args: {
@@ -244,14 +185,6 @@ export async function requireRegisteredDelegatedEditorWrite(
   };
 }
 
-/**
- * Optional authentication - returns user info if authenticated, null otherwise.
- * Does not throw on authentication failure.
- *
- * @param ctx - Native handler context
- * @param apiKey - Optional API key
- * @returns Authenticated user info or null
- */
 export async function optionalAuth(
   ctx: MutationCtx | QueryCtx,
   apiKey?: string,
@@ -267,13 +200,6 @@ export async function optionalAuth(
   }
 }
 
-/**
- * Check if the current user is authenticated without throwing.
- *
- * @param ctx - Native handler context
- * @param apiKey - Optional API key
- * @returns true if authenticated, false otherwise
- */
 export async function isAuthenticated(
   ctx: MutationCtx | QueryCtx,
   apiKey?: string,

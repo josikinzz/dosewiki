@@ -1,8 +1,6 @@
 import { isValidR2Key } from "./replicationUrls";
 import type { IdentitySocialBatchEntry, IdentitySocialTarget } from "./replicationIdentitySocialValidators";
 
-/** Pure canonical digests and batch-shape validation for identity/social projection writes. */
-
 const SHA256 = /^[a-f0-9]{64}$/;
 const MAX_BATCH = 50;
 const MAX_EVIDENCE = 32;

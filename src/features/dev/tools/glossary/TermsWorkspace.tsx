@@ -1,15 +1,4 @@
 "use client";
-/**
- * The Terms view as a workspace: the language's progress across the top, the
- * categories on the left (search, the review-state filter, the file and model
- * actions, one row per category with its progress), and the open category on
- * the right with its bulk actions, its rows and a sticky dock that holds the
- * result of a whole-list write, what is running, and the way on to the next
- * category. A search lists every match, grouped, in the same pane.
- *
- * Below `lg` the pane follows the list: opening a category scrolls to it,
- * and the pane carries Back to list.
- */
 import { useRef, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -30,9 +19,7 @@ type Totals = Record<string, { total: number; draft: number; unchecked: number }
 
 export type TermsWorkspaceProps = {
   paneId: string;
-  /** Every category with rows, from the unfiltered list, in site order: the list column shows them all. */
   allGroups: GlossaryGroup[];
-  /** The categories the filters and search leave, with the rows they keep. */
   groups: GlossaryGroup[];
   totals: Totals;
   counts: ReviewCounts;
@@ -52,13 +39,11 @@ export type TermsWorkspaceProps = {
   locked: boolean;
   onContinue: (id: string) => void;
   onOpenRuns?: () => void;
-  /** The More menu and the running-write pill. */
   actions: ReactNode;
   activity: string | null;
   notice: NoticeMessage | null;
   onDismissNotice: () => void;
   hasUnsaved: boolean;
-  // Row plumbing, passed through to the groups.
   editDrafts: GlossaryEditDrafts;
   busy: boolean;
   writingTerm: string | null;
@@ -89,7 +74,6 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
   const paneRef = useRef<HTMLElement>(null);
   const searching = filters.search.trim().length > 0;
   const open = searching ? null : groups.find((group) => group.category.id === category) ?? null;
-  // An open category that the status filter empties still names itself in the pane.
   const openCategory = searching ? null : allGroups.find((group) => group.category.id === category) ?? null;
   useScrollToDetail(paneRef, category);
   const headingId = `${paneId}-heading`;
@@ -127,7 +111,6 @@ export function TermsWorkspace(props: TermsWorkspaceProps) {
     count: choice.value === "draft" ? counts.drafts : choice.value === "unchecked" ? counts.unchecked : choice.value === "approved" ? counts.approved : undefined,
   }));
   const paneShown = searching || openCategory !== null;
-  // A search the status filter empties says where its matches are.
   const allRows = allGroups.flatMap((group) => group.rows);
   const elsewhere = searching && filterCount === 0 && filters.status !== "all"
     ? STATUS_CHOICES.filter((choice) => choice.value !== "all" && choice.value !== filters.status)

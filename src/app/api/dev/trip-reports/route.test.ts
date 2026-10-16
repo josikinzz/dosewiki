@@ -45,7 +45,6 @@ const reportFields = {
   tags: ["outdoors"],
 };
 
-/** How the Postgres HTTP client rebuilds a thrown `PostgresError` on this side. */
 function forwarded(data: unknown) {
   const error = new PostgresError("Server Error");
   (error as { data: unknown }).data = data;

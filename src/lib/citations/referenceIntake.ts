@@ -1,18 +1,3 @@
-/**
- * One pasted string → one structured `Reference`.
- *
- * This is the intake half of the citation workflow, factored out of
- * `QuickAddReferenceCard` so more than one surface can mint a source: the
- * editor's quick-add card, the review workbench's citation palette, and the
- * server route behind the palette all resolve a pasted DOI/PMID/ISBN/URL/title
- * exactly the same way. Detection is deterministic and side-effect free, which
- * is what lets the client preview an id and the server recompute the same one
- * without the two ever exchanging it as a fact.
- *
- * Deliberately DOM-free and framework-free: an API route imports this module,
- * so nothing here may touch `document`, `window`, or react-hook-form. The
- * clipboard helper stays with the card for that reason.
- */
 import type { Reference } from "@/schema/substance/shared";
 import {
   deterministicReferenceId,
@@ -109,13 +94,6 @@ export function detectQuickAddReference(value: string, title = ""): QuickAddRefe
   };
 }
 
-/**
- * A blank reference with every schema key present.
- *
- * Kept explicit rather than derived so the editor form, the palette, and the
- * server write all produce the same key set — a reference that omits a key
- * reads as "unknown" in some renderers and as "missing" in others.
- */
 export function createEmptyReference(): Reference {
   return {
     id: "",
@@ -144,26 +122,12 @@ export function createEmptyReference(): Reference {
 
 export type QuickAddReferenceInput = {
   detection: QuickAddReferenceDetection;
-  /** Already trimmed and known non-empty; a reference without one is not one. */
   title: string;
   authors?: string[];
   year?: Reference["year"];
   url?: string | null;
 };
 
-/**
- * Builds the reference a quick-add produces.
- *
- * `supportStatus: "needs_review"` is the deliberate policy for anything a
- * portal surface mints: a human pasted an identifier, nobody has yet read the
- * source against the claim it will support, and the citation workbench must be
- * able to find those later. The server write forces the same value rather than
- * trusting this one.
- *
- * The id comes from `detection` and not from the assembled reference, so an
- * edited URL cannot silently re-key a source the reviewer is already looking
- * at — the id previewed on screen is the id that gets stored.
- */
 export function buildQuickAddReference({
   detection,
   title,
@@ -230,11 +194,6 @@ async function fetchPmidMetadata(pmid: string): Promise<ReferenceMetadata> {
   };
 }
 
-/**
- * Whether a detected source has a metadata service behind it at all. A bare
- * URL and a typed title do not, so a caller can skip showing a pending state
- * for a lookup that will never happen.
- */
 export function hasReferenceMetadataLookup(detection: QuickAddReferenceDetection): boolean {
   return (
     (detection.kind === "doi" && Boolean(detection.doi)) ||
@@ -242,14 +201,6 @@ export function hasReferenceMetadataLookup(detection: QuickAddReferenceDetection
   );
 }
 
-/**
- * Resolves what the public metadata services know about a detected source, or
- * `null` for the kinds nobody can look up (a bare URL, a typed title). Throws
- * when a lookup was possible but failed, so the caller can say so.
- *
- * These are the exact two hosts `cspObservationPolicy` allows in `connect-src`;
- * adding a third service means changing that policy too.
- */
 export async function fetchReferenceMetadata(
   detection: QuickAddReferenceDetection,
 ): Promise<ReferenceMetadata | null> {

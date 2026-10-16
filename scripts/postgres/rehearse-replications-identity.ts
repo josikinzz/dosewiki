@@ -1,25 +1,3 @@
-/**
- * Rehearsal: replication curation, playback metadata,
- * contributor identity and attribution, all through `PostgresClient`
- * with the owned native handlers.
- *
- *   a. curation: publishMetadata on a scratch replication updates the derived
- *      `replicationGalleryCandidates` rows and writes one `replicationEditReceipts`
- *      row in the same transaction; a stale expectedRevision leaves both untouched.
- *   b. order and visibility: an effect collection, a playlist, and a substance
- *      selection keep their order through the public queries and through
- *      `PublicDataReadAdapter` under DATA_BACKEND=postgres.
- *   c. viewer and embed data: the adapter methods the showcase and the embed
- *      consume return the field sets `src/types/replications.ts` declares, and
- *      media URLs resolve through `ctx.storage.getUrl` -> `storageObjects`
- *      (a missing mapping yields null, never a throw).
- *   d. conflict and replay codes for stale edits and reused request identities.
- *   e. contributor profiles: owner field permissions, the stale-profile check,
- *      alias matching of attributed works, and the journaled merge with rollback.
- *
- * Usage: bun scripts/postgres/rehearse-replications-identity.ts --target postgres://localhost:5432/dosewiki [--keep]
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,15 +30,12 @@ const ADMIN_EMAIL = `${P13}-admin@rehearsal.invalid`;
 const OWNER_KEY = `${P13}-OWNER`.toUpperCase();
 const ARTIST = `T12 Artist ${RUN}`;
 const ALIAS = `Alias ${RUN}`;
-// contributorProfileMerges.apply is pinned to two owner-approved immutable ids;
-// on Postgres those ids are plain text, so the scratch pair borrows them.
 const MERGE_SOURCE_ID = "kx72vtw19621c4kmbwjt0127558dhbvw" as Id<"contributorProfiles">;
 const MERGE_TARGET_ID = "kx77dw7zwgzk9p8byv1b75ny958c9adm" as Id<"contributorProfiles">;
 const MERGE_SOURCE_KEY = "WHERESSUEDE";
 const MERGE_TARGET_KEY = "LOKA";
 const PINNED_SNAPSHOT_DIGEST = "aea1bbeac1ce5a10e7e3a0981af17b40909c13ecf04fcf49299bbb32f66c2d8d";
 const PINNED_PROFILE_COUNT = 2_119;
-/** Internal mutation the backfill CLI calls; the runtime registry serves internal and public functions alike. */
 const backfill = makeFunctionReference<"mutation", { name: "gallery"; cursor?: string; limit?: number }, { processed: number; inserted: number; removed: number; cursor: string; isDone: boolean }>("publicReadIndexes:backfill");
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
@@ -85,17 +60,14 @@ async function attempt<T>(fn: () => Promise<T>): Promise<{ value?: T; error?: un
   }
 }
 
-/** Scratch rows go through the document store, which registers them in `documentIds` like the runtime's own inserts. */
 class Scratch {
   readonly rows: { table: TableName | "storageObjects"; id: string }[] = [];
   constructor(private readonly pool: Pool) {}
   async seed<T extends TableName>(table: T, doc: Row): Promise<Id<T>> {
     const id = await insertDocument(this.pool, table, { _id: mintDataId(table), ...doc });
     this.rows.push({ table, id });
-    // The store hands back the text primary key; the callable API uses the branded type.
     return id as Id<T>;
   }
-  /** The R2 manifest is a runtime table keyed by storage_id, outside the document codec. */
   async seedStorageObject(storageId: string, url: string): Promise<void> {
     await this.pool.query('INSERT INTO "storageObjects" ("storage_id", "url", "content_type") VALUES ($1, $2, $3)', [storageId, url, "image/jpeg"]);
     this.rows.push({ table: "storageObjects", id: storageId });
@@ -128,7 +100,6 @@ async function receiptState(pool: Pool, target: string) {
   return rows.map((row) => ({ id: row._id, requestId: row.requestId, operation: row.operation }));
 }
 
-/** Property names of an interface in src/types/replications.ts, following `extends`. */
 function typeFields(source: ts.SourceFile, name: string): { all: Set<string>; required: Set<string> } {
   const all = new Set<string>();
   const required = new Set<string>();
@@ -163,13 +134,9 @@ async function main() {
   const target = resolveTarget(argv);
   guardTarget(target, argv.includes("--allow-remote"));
   if (!API_KEY) throw new Error("DATA_ADMIN_KEY is required (Bun loads .env.local)");
-  // The app boundary reads its target from env; point it at the rehearsal target, never PlanetScale.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
-  // REPLICATION_MEDIA_BASE_URL stays set, as every real deployment has it (D6).
-  // The unmapped-storage fallback is still exercised by scratch rows that carry
-  // no r2_key, which is the only case where storage resolution is consulted.
 
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
@@ -189,10 +156,6 @@ async function main() {
   const slugs = { r1: `${P12}-r1`, r2: `${P12}-r2`, r3: `${P12}-r3`, r4: `${P12}-r4`, r5: `${P12}-r5`, r6: `${P12}-r6` };
 
   try {
-    // ---- setup: certify the gallery candidate index ------------------------
-    // Substance showcases refuse to read until the derived index is complete.
-    // Run the production backfill through the runtime, paged by its own CAS
-    // cursor, when the state row is not yet ready (authorized once by Main).
     const S = "setup-gallery-index";
     const [galleryState] = await docs(pool, "publicReadIndexState", '"name" = $1', ["gallery"]);
     if (galleryState?.version === 1 && galleryState.ready === true) {
@@ -221,7 +184,6 @@ async function main() {
       expect(S, "a certified index short-circuits further backfill pages", stale.value?.isDone === true && stale.value.processed === 0, stale.error ? errorMessage(stale.error) : stale.value);
     }
 
-    // ---- scratch corpus ------------------------------------------------------
     await scratch.seedStorageObject(storageId, storageUrl);
     await scratch.seed("substanceIndex", { ...structuredClone(minimalArticle), slug: substanceSlug, title: `Rehearsal ${RUN}`, classification: { psychoactive_class: ["Psychedelic"], chemical_class: [] } });
     const effectId = await scratch.seed("subjectiveEffects", { slug: effectSlug, name: `Rehearsal effect ${RUN}`, tags: [], summary: "", description_raw: "" });
@@ -230,17 +192,14 @@ async function main() {
     const ids = {
       r1: await scratch.seed("replications", { ...base, slug: slugs.r1, title: `Rehearsal work one ${RUN}`, storage_id: storageId }),
       r2: await scratch.seed("replications", { ...base, slug: slugs.r2, title: `Rehearsal work two ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/two.jpg`, created_at: new Date(Date.now() - 1000).toISOString() }),
-      // Unmapped storage id and no direct URL: the null path.
       r3: await scratch.seed("replications", { ...base, slug: slugs.r3, title: `Rehearsal unmapped ${RUN}`, storage_id: `${P12}-storage-missing`, effect_slug: undefined, title_drugs: undefined }),
       r4: await scratch.seed("replications", { ...base, slug: slugs.r4, title: `Rehearsal work four ${RUN}`, url: `https://media.rehearsal.invalid/${P12}/four.jpg`, created_at: new Date(Date.now() - 2000).toISOString() }),
-      // Attributed under an alias, not the profile's display name.
       r5: await scratch.seed("replications", { ...base, slug: slugs.r5, title: `Rehearsal alias work ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/five.jpg`, effect_slug: undefined, title_drugs: undefined }),
       r6: await scratch.seed("replications", { ...base, slug: slugs.r6, title: `Rehearsal duplicate ${RUN}`, artist: ALIAS, url: `https://media.rehearsal.invalid/${P13}/six.jpg`, effect_slug: undefined, title_drugs: undefined, publication_state: "duplicate-suppressed" }),
     };
     await scratch.seed("memberships", { email: OWNER_EMAIL, role: "editor", createdAt: now, updatedAt: now });
     await scratch.seed("memberships", { email: ADMIN_EMAIL, role: "admin", createdAt: now, updatedAt: now });
 
-    // ---- a. curation --------------------------------------------------------
     const A = "a-curation";
     const targetR1 = `replication:${ids.r1}`;
     const detail0 = await client.query(api.replicationContextualEditing.detail, { ...admin, slug: slugs.r1 });
@@ -268,7 +227,6 @@ async function main() {
     expect(A, "stale write left the receipts untouched", same(await receiptState(pool, targetR1), receipts1));
     expect(A, "stale write left the row untouched", (await client.query(api.replications.getBySlug, { slug: slugs.r1 }))?.title === `Rehearsal retitled ${RUN}`);
 
-    // Retained maintenance writer: the journal proxy records a generation without a request id.
     const editorial = await client.mutation(api.replications.updateEditorialFields, {
       ...admin, id: ids.r1, expected: { ...snapshot, title: `Rehearsal retitled ${RUN}` }, updates: { ...snapshot, title: `Rehearsal retitled twice ${RUN}` },
     });
@@ -277,7 +235,6 @@ async function main() {
     expect(A, "retained studio write journaled one retained receipt", receipts2.length === 2 && String(receipts2[1].requestId).startsWith("retained-"), receipts2);
     expect(A, "candidates follow the retained write", (await candidateState(pool, ids.r1)).every((row) => row.title === `Rehearsal retitled twice ${RUN}`));
 
-    // ---- d. replay identities on the metadata path -------------------------
     const D = "d-conflict-replay";
     const replay = await client.mutation(api.replicationContextualEditing.publishMetadata, {
       ...admin, id: ids.r1, expectedRevision: detail0.revision, requestId: request1, updates: { ...snapshot, title: `Rehearsal retitled ${RUN}` }, sourceUrl: null,
@@ -289,7 +246,6 @@ async function main() {
     }));
     expect(D, "same request id with a different payload is REPLICATION_CHANGE_REUSED", errorCode(reused.error) === "REPLICATION_CHANGE_REUSED", errorMessage(reused.error));
 
-    // ---- b. order and visibility --------------------------------------------
     const B = "b-order-visibility";
     for (const key of ["r2", "r4"] as const) {
       const detail = await client.query(api.replicationContextualEditing.detail, { ...admin, slug: slugs[key] });
@@ -297,7 +253,6 @@ async function main() {
         ...admin, id: ids[key], expectedRevision: detail.revision, requestId: `${P12}-publish-${key}`, updates: { ...snapshot, title: detail.row.title }, sourceUrl: null,
       });
     }
-    // Effect collection: order only, membership from canonical metadata.
     const effectCollection = await client.query(api.replicationContextualEditing.collectionDetail, { ...admin, targetKind: "effect", targetKey: effectSlug });
     const effectOrder = [slugs.r4, slugs.r1, slugs.r2];
     const effectPublish = await client.mutation(api.replicationContextualEditing.publishCollection, {
@@ -317,7 +272,6 @@ async function main() {
     expect(D, "stale collection revision is CONFLICT", errorCode(effectStale.error) === "CONFLICT", errorMessage(effectStale.error));
     expect(D, "stale collection write left gallery_order untouched", same((await docs(pool, "subjectiveEffects", '"_id" = $1', [effectId]))[0].gallery_order, effectOrder));
 
-    // Playlist: owner-scoped visibility and archive/restore.
     const playlistOrder = [slugs.r2, slugs.r4, slugs.r1];
     const upsert = await client.mutation(api.replicationPlaylists.upsert, { ...owner, key: playlistKey, title: `Rehearsal playlist ${RUN}`, replication_slugs: [...playlistOrder, slugs.r6] });
     expect(B, "playlist upsert kept the order and pruned the suppressed work", upsert.status === "ok" && same(upsert.replication_slugs, playlistOrder) && same(upsert.pruned, [slugs.r6]), upsert);
@@ -339,7 +293,6 @@ async function main() {
     await client.mutation(api.replicationPlaylists.restore, { ...admin, key: playlistKey });
     expect(B, "restored playlist keeps its order", same((await client.query(api.replicationPlaylists.get, { ...owner, key: playlistKey }))?.replication_slugs, playlistReorder));
 
-    // Substance selection: publishCollection drops r2 and orders r4 before r1.
     const substanceCollection = await attempt(() => client.query(api.replicationContextualEditing.collectionDetail, { ...admin, targetKind: "substance", targetKey: substanceSlug }));
     expect(B, "substance collection detail reads", substanceCollection.value !== undefined, errorMessage(substanceCollection.error));
     const substanceOrder = [slugs.r4, slugs.r1];
@@ -369,7 +322,6 @@ async function main() {
       effectOrder.every((slug, index) => pageBySlug.get(slug)?.effect_order_index?.[effectSlug] === index), effectOrder.map((slug) => pageBySlug.get(slug)?.effect_order_index));
     expect(B, "adapter gallery pages withhold the duplicate-suppressed work and the URL-less work", !pageBySlug.has(slugs.r6) && !pageBySlug.has(slugs.r3));
 
-    // ---- c. viewer and embed shapes, media URLs -----------------------------
     const C = "c-viewer-embed";
     const typesSource = ts.createSourceFile("replications.ts", fs.readFileSync(path.join(ROOT, "src/types/replications.ts"), "utf8"), ts.ScriptTarget.Latest, true);
     const withUrl = typeFields(typesSource, "ReplicationWithUrl");
@@ -387,7 +339,6 @@ async function main() {
     const resolved = await attempt(() => client.query(api.replications.resolveStorageUrls, { storageIds: [storageId, `${P12}-storage-missing`] }));
     expect(C, "resolveStorageUrls returns the mapped URL and null for the missing mapping", same(resolved.value, [storageUrl, null]), resolved.error ? errorMessage(resolved.error) : resolved.value);
 
-    // ---- e. contributor profiles --------------------------------------------
     const E = "e-profiles";
     const created = await client.mutation(api.contributorProfiles.saveProfile, {
       ...owner, profile: { key: "", displayName: `Owner ${RUN}`, bio: "first bio", links: [] }, expectedUpdatedAt: null, operationId: `${P13}-profile-create`,
@@ -429,7 +380,6 @@ async function main() {
     }));
     expect(D, "profile operation id reuse with a different payload is PROFILE_OPERATION_REUSED", errorCode(profileReused.error) === "PROFILE_OPERATION_REUSED", errorMessage(profileReused.error));
 
-    // Alias matching resolves attributed works after an alias is added.
     const profileBefore = await client.query(api.contributorProfiles.getByKey, { key: OWNER_KEY });
     const namesBefore = contributorMatchNames({ displayName: profileBefore!.displayName, aliases: profileBefore!.aliases });
     expect(E, "no works attributed before the alias exists", (await client.query(api.replications.getByArtistNames, { artistNames: namesBefore })).length === 0);
@@ -444,7 +394,6 @@ async function main() {
     const attributedAdapter = await adapter.getPublicReplicationsByArtistNames(namesAfter);
     expect(E, "adapter getPublicReplicationsByArtistNames drains pages to the same works", same(attributedAdapter.map((row) => row.slug).sort(), [slugs.r5, slugs.r6].sort()), attributedAdapter.map((row) => row.slug));
 
-    // Journaled merge of two scratch profiles under the pinned immutable ids.
     const M = "e-merge";
     const sourceId = await scratch.seed("contributorProfiles", { _id: MERGE_SOURCE_ID, key: MERGE_SOURCE_KEY, displayName: "wheressuede", aliases: [], bio: "", links: [], replicationOrder: [slugs.r5], reportOrder: [], createdAt: now, updatedAt: now });
     const targetId = await scratch.seed("contributorProfiles", { _id: MERGE_TARGET_ID, key: MERGE_TARGET_KEY, displayName: "Loka", aliases: ["loka"], bio: "target bio", links: [], replicationOrder: [], reportOrder: [], createdAt: now, updatedAt: now });
@@ -507,7 +456,6 @@ async function main() {
     expect(D, "re-applying a rolled-back operation id is refused", errorMessage(afterRollback.error).includes("rolled-back replay"), errorMessage(afterRollback.error));
   } finally {
     if (!keep) {
-      // Rows the handlers derived from the scratch corpus.
       const replicationIds = (await pool.query('SELECT "_id" FROM "replications" WHERE "slug" LIKE $1', [`${P12}-%`])).rows.map((row) => row._id as string);
       await scratch.derived("replicationGalleryCandidates", '"replication_id" = ANY($1)', [replicationIds]);
       await scratch.derived("replicationEditReceipts", '"target" = ANY($1)', [[...replicationIds.map((id) => `replication:${id}`), `effect:${effectSlug}`, `substance:${substanceSlug}`, `playlist:${playlistKey}`, `artist:${OWNER_KEY}`]]);

@@ -31,34 +31,13 @@ const REFERENCE_METADATA_API_SOURCES = [
   "https://eutils.ncbi.nlm.nih.gov",
 ];
 
-// Cloudflare Turnstile (site-feedback captcha): its loader script plus the
-// challenge iframe it renders. Allowlisted statically — public script-src and
-// the shared frame-src — so the header stays deterministic and cacheable
-// whether or not the deployment sets a site key.
 const TURNSTILE_SOURCE = "https://challenges.cloudflare.com";
 
-// Middleware defaults to the Edge runtime, so keep these precomputed rather
-// than importing node:crypto. The policy test recomputes both from the exact
-// script builders and fails if either deterministic script changes.
 export const ZOD_JITLESS_BOOTSTRAP_CSP_HASH =
   "'sha256-iBFdfuGT0De586Hk5F1vEPXiYlo70p9qtlKCG8zhnV4='";
 
-/**
- * Each flavor has a separate hash because the appearance bootstrap contains its publication
- * policy. A locked axis emits no storage key or validity table.
- *
- * dose.wiki resolves four colour coordinates from storage, falling back to
- * the current style-and-scheme combination's palette defaults, restores the
- * dyslexic-type attribute its font toggle may have saved, and injects
- * the guarded stylesheet links a saved preference needs pre-paint (light
- * scheme, Pro style — the chroma link is server-rendered, with the same guarded fallback
- * here). Effect Index locks visual style, surfaces, accent, and the font
- * axis, and its light default is server-rendered, so its script emits none
- * of that machinery. The policy test calculates each hash from the bootstrap
- * builder and reports drift.
- */
 export const THEME_BOOTSTRAP_CSP_HASHES: Readonly<Record<SiteFlavor, string>> = {
-  dosewiki: "'sha256-DhETMyx69flxUy4ehwgjYjL0HTw8enSr9aDz8rBxwrQ='",
+  dosewiki: "'sha256-frc8twF2gFze0mkO3wlfqK5kFaXx0cgbt23utlLECO4='",
   effectindex: "'sha256-eeEVo6InNy2QhM27eJaw7/nyhFIbb6ATzjYbCwJds0w='",
 };
 
@@ -103,7 +82,6 @@ function getR2UploadOrigin(endpoint: string | null | undefined, isDevelopment: b
       return url.origin;
     }
   } catch {
-    // Invalid upload configuration must not widen browser connection permissions.
   }
 }
 
@@ -140,32 +118,23 @@ export function getBrowserSecurityHeaders({
       ZOD_JITLESS_BOOTSTRAP_CSP_HASH,
       THEME_BOOTSTRAP_CSP_HASH,
       ...(SITE_FLAVOR === "dosewiki" ? [themeLabBootstrapHash.hash] : []),
-      // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
     ];
   } else {
     scriptSources = [
       "'self'",
       "'unsafe-inline'",
-      // RDKit.js compiles the same-origin molecule editor WASM module in-browser.
       "'wasm-unsafe-eval'",
-      // The /about/feedback Turnstile widget loads its script on public routes only.
       TURNSTILE_SOURCE,
     ];
   }
-  // React's development debugging requires eval; deployed builds never allow it.
   if (isDevelopment) {
     scriptSources.push("'unsafe-eval'");
   }
   const connectSources = [
     "'self'",
-    // @iconify/react uses these exact redundant API providers for uncached icons.
     ...ICONIFY_API_SOURCES,
-    // QuickAddReferenceCard resolves DOI and PMID metadata from these exact APIs.
     ...REFERENCE_METADATA_API_SOURCES,
-    // The approved-host PostHog client posts to the same-origin `/ingest`
-    // reverse proxy. `'self'` already authorizes that path; a bare path is not
-    // a valid CSP source expression and must not be emitted separately.
   ];
   const uploadOrigin = isDevRoute ? getR2UploadOrigin(r2UploadOrigin, isDevelopment) : undefined;
   if (uploadOrigin) connectSources.push(uploadOrigin);
@@ -178,13 +147,11 @@ export function getBrowserSecurityHeaders({
     "form-action 'self'",
     `frame-ancestors ${isReplicationEmbed ? getReplicationEmbedFrameAncestors({ isDevelopment }) : "'none'"}`,
     `frame-src ${TURNSTILE_SOURCE}`,
-    // Public article media is editor-curated but may live on many HTTPS origins.
     "img-src 'self' blob: data: https:",
     "manifest-src 'self'",
     "media-src 'self' blob: data: https:",
     "object-src 'none'",
     `script-src ${scriptSources.join(" ")}`,
-    // React style props and the editor's visual tools still require style attributes.
     "style-src 'self' 'unsafe-inline'",
     "worker-src 'self' blob:",
     `report-uri ${CSP_REPORT_ENDPOINT}`,
@@ -196,7 +163,6 @@ export function getBrowserSecurityHeaders({
 
   return [
     { key: CSP_ENFORCEMENT_HEADER, value: directives.join("; ") },
-    // X-Frame-Options cannot express a cross-origin allowlist; CSP owns the embed boundary.
     ...(isReplicationEmbed
       ? [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }]
       : [{ key: "X-Frame-Options", value: "DENY" }]),

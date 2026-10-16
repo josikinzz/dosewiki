@@ -1,36 +1,5 @@
 #!/usr/bin/env node
 
-/**
- * Copy the `dosage` and `duration` sections from the working deployment to
- * production, and nothing else.
- *
- * Production trails the working deployment by a large margin on these two
- * sections: hundreds of substances carry dose ladders and timings on dev while
- * production shows nothing. This publishes that work without touching prose,
- * citations, legality, or any other section, so it is far narrower than a whole
- * deployment sync.
- *
- * The direction of travel is dev -> prod, but that does NOT make dev
- * automatically authoritative for every row. A handful of production articles
- * hold a route, or a filled value, that dev has since lost. Overwriting those
- * would silently destroy published data, so this script REFUSES any article
- * where production holds something the source does not:
- *
- *   - a route (by normalised name) absent from the source, or
- *   - a filled dose range / duration stage that is empty or missing in the source.
- *
- * Refusals are reported per article and need a human to reconcile. Everything
- * else is either a pure fill (production empty) or an update where the source is
- * a strict superset.
- *
- * Usage:
- *   node scripts/data-ops/sync-dosage-duration-to-prod.mjs --dry-run
- *   node scripts/data-ops/sync-dosage-duration-to-prod.mjs --write \
- *     --confirm-dosage-duration-sync \
- *     --confirm-write=sync-dosage-duration-to-prod \
- *     --expected-deployment=<name>
- */
-
 import { createDataClient } from "../lib/data-client.ts";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 
@@ -58,7 +27,6 @@ const sectionSignature = (article) =>
 const hasContent = (article) =>
   (article?.dosage?.routes ?? []).length + (article?.duration?.routes ?? []).length > 0;
 
-/** The filled value keys of a route, so two routes can be compared for coverage. */
 function filledKeys(route, bucket) {
   const values = bucket === "dosage" ? route?.dose_ranges : route?.stages;
   return Object.entries(values ?? {})
@@ -66,10 +34,6 @@ function filledKeys(route, bucket) {
     .map(([key]) => key);
 }
 
-/**
- * List everything production holds that the source does not. An empty list means
- * the source covers production and the overwrite loses nothing.
- */
 function findProdOnlyData(source, target) {
   const losses = [];
   for (const bucket of ["dosage", "duration"]) {
@@ -136,7 +100,6 @@ async function main() {
       continue;
     }
     if (!hasContent(source)) {
-      // Nothing to publish, and blanking the target is never this script's job.
       sourceEmpty += 1;
       continue;
     }
@@ -191,9 +154,6 @@ async function main() {
 
   try {
     for (const item of work) {
-      // The whole per-item body is guarded, not just the mutation: over a run of
-      // several hundred articles a transient `fetch failed` on one of the reads
-      // is likely, and it must cost that one article rather than the whole run.
       try {
       const [freshSource, freshTarget] = await Promise.all([
         sourceClient.query(api.substanceIndex.getBySlug, { slug: item.slug }),
@@ -201,7 +161,6 @@ async function main() {
       ]);
       if (!freshSource || !freshTarget) continue;
 
-      // Re-check the coverage guard against live data, not the planning snapshot.
       const losses = findProdOnlyData(freshSource, freshTarget);
       if (losses.length > 0) {
         console.log(`  SKIP ${item.slug}: target gained data since planning (${losses.join("; ")})`);

@@ -15,12 +15,6 @@ export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  // The ISR page cache does not survive a Vercel deployment, so articles that
-  // are not prerendered pay a cold server render on the first request after
-  // every deploy. Which priority tiers this build prerenders is decided by
-  // resolvePrerenderPolicy (lib/next/prerenderPolicy.ts) for the English
-  // locale and the artifact being built; anything outside that list keeps
-  // `dynamicParams` on-demand rendering plus the hourly ISR cache.
   return await getStaticSubstanceParams("en");
 }
 
@@ -38,8 +32,6 @@ export async function generateMetadata({ params }: SubstancePageProps) {
     notFound();
   }
 
-  // dose.wiki substance pages use immutable build-generated cards. Effect
-  // Index keeps its own publication-wide social identity.
   const socialCardPath =
     result.kind === "ok" && !isEffectIndex() ? substanceSocialCardUrl(slug) : null;
 

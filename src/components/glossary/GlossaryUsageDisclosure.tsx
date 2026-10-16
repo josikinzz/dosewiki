@@ -8,7 +8,6 @@ import type { GlossaryUsageResponse } from "@/lib/glossary/glossaryUsage";
 
 const COMPACT_LINK_COUNT = 3;
 
-/** Public-safe, precomputed on glossary pages, with the API retained for pagination and retry. */
 export function GlossaryUsageDisclosure({ term, initialData = null }: { term: string; initialData?: GlossaryUsageResponse | null }) {
   const t = useT();
   const id = useId();

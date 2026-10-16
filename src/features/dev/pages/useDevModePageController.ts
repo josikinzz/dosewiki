@@ -57,9 +57,6 @@ export function useDevModePageController({
     articleHydration,
   } = useDevMode();
 
-  // The contributor directory and the changelog feed are per-tab, not per-shell:
-  // the trip-report, article-feedback, molecule and replication tools read
-  // neither, and used to pay for both on every load.
   const { profiles: availableProfiles, isLoading: profilesLoading } = useContributorProfiles(
     tabNeedsContributorProfiles(activeTab),
   );
@@ -186,15 +183,12 @@ export function useDevModePageController({
     window.location.href = `/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`;
   }, []);
 
-  // Outside the route client (a test, a bare mount) a record opens as a page load.
   const handleOpenPath = useCallback((path: string) => {
     if (onOpenPath) onOpenPath(path);
     else window.location.assign(path);
   }, [onOpenPath]);
 
   const { onTabChange: changeTab } = routeAccess;
-  // The seed lands in the working set before the editor opens on it, so the
-  // substances tab never renders a half-applied rebase.
   const handleLoadProposal = useCallback(
     async (seed: DevProposalSeed) => {
       requestIndexLayouts();
@@ -221,8 +215,6 @@ export function useDevModePageController({
     userName: routeAccess.userName,
     glossaryLocales: routeAccess.glossaryLocales,
     articlesLength: articles.length,
-    // Treat "still draining" and "drained to nothing" alike: both mean the
-    // corpus-backed tools have nothing real to show yet.
     indexLayoutsReadiness,
     retryIndexLayouts,
     isLibraryLoading: isLibraryLoading || articles.length === 0,

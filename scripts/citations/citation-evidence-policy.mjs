@@ -1,6 +1,3 @@
-// Generic evidence policy for the marker-only workbench workflow, not citation-pi.
-// Producers render these rules into task packets for workers without inherited skills.
-// Artifact fields and acceptance gates remain owned by the executable workbench contract.
 export const WIKIPEDIA_DISCOVERY_INSTRUCTION = "Wikipedia excerpts and reference caches are discovery-only. Inspect the actual cited source before using it as public support; supportingQuote must be a contiguous verbatim quote from that inspected source, and referenceId must identify that same source, never a Wikipedia quote attributed to the underlying work. If the source cannot be inspected or does not support the exact claim, preserve the unmarked claim and record a gap.";
 
 export const CITATION_EVIDENCE_RULES = Object.freeze([

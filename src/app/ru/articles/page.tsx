@@ -1,10 +1,3 @@
-/**
- * The Russian mirror of `/articles`, reached only through the
- * middleware rewrite from `ru.dose.wiki/articles`. Same index component over
- * the localized article records, so each row's title and blurb read in the
- * mirror's language; the mirror carries `noindex` with a canonical link back
- * to the English index.
- */
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 import { loadArticlesIndexRoute } from "@server/next/routeLoaders.publications";
 import { ArticlesIndexPage } from "@/features/articles/pages/ArticlesIndexPage";

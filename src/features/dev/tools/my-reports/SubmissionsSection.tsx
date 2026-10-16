@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The member's own submissions and where each stands, in the shared intake
- * status words. A rejected one shows the public reason the reviewer gave;
- * private review notes never reach this page. Rows are an open, separated
- * list (the Home link-row rhythm) rather than a table, so a long reason reads
- * as a sentence on a phone instead of a squeezed cell.
- */
-
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -28,7 +20,6 @@ export const SUBMISSIONS_SECTION_ID = "my-reports-submissions";
 
 const IN_REVIEW: ReadonlySet<MemberSubmission["status"]> = new Set(["new", "reviewing", "accepted"]);
 
-/** "2 in review, 1 live, 1 turned down": the tally a member scans for. */
 export function submissionTally(rows: readonly MemberSubmission[]): string {
   const inReview = rows.filter((row) => IN_REVIEW.has(row.status)).length;
   const live = rows.filter((row) => row.status === "published").length;
@@ -48,7 +39,6 @@ export function SubmissionsSection({
   onEditOwned,
 }: {
   reloadToken: number;
-  /** Addresses the member owns, so a published submission can offer its editor. */
   ownedSlugs: ReadonlySet<string>;
   onEditOwned: (slug: string) => void;
 }) {

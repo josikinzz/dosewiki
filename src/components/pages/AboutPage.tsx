@@ -44,36 +44,19 @@ import {
 const DEFAULT_TAGLINE = SITE_FLAVOR_CONFIG.description;
 const ABOUT_CONFIG = SITE_FLAVOR_CONFIG.about;
 
-/**
- * Column count follows the card count so neither flavor strands a card on a row of its own:
- * dose.wiki ships three documentation cards, Effect Index four licensing/contact ones.
- */
 const DOC_GRID_COLUMNS =
   ABOUT_CONFIG.docLinks.length % 2 === 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3";
 
-/** Eyebrow above the pinned founder card. */
 const FOUNDER_GROUP_LABEL = msg("Founder");
 
-/** Eyebrow above the pinned staff grid. */
 const STAFF_GROUP_LABEL = msg("Staff");
 
-/** Eyebrow above the ranked contributor grid. */
 const CONTRIBUTORS_GROUP_LABEL = msg("Contributors");
-
-// The shared eyebrow class lives beside the community tiers that also use it.
 
 function rosterCardHref(entry: ContributorRosterEntry): string {
   return publicHref.contributor(entry.profile.key);
 }
 
-/**
- * Effect Index's roster panel: the founder in her own labelled region, then the pinned staff
- * tier, then everybody else in a directory grid ordered by page credits.
- *
- * The founder and staff are separate regions rather than leading grid cells on purpose: a
- * reader has to be able to see *why* they come first, and the positions must not depend on
- * them out-ranking everyone on reference count.
- */
 function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
   const { founder, staff, contributors } = roster;
 
@@ -121,7 +104,6 @@ function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
           <p className={GROUP_LABEL_CLASSNAME}>
             {t(CONTRIBUTORS_GROUP_LABEL)} · {contributors.length}
           </p>
-          {/* Three columns at the wide breakpoint: ~25 cards in two columns reads as a wall. */}
           <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {contributors.map((entry) => (
               <li key={entry.profile.key}>
@@ -142,29 +124,19 @@ function ContributorRosterPanel({ roster }: { roster: ContributorRoster }) {
 }
 
 interface AboutPageProps {
-  /** dose.wiki's editor-curated founder cards. Empty when `contributorRoster` is supplied. */
   founderProfiles: NormalizedUserProfile[];
-  /**
-   * Effect Index's full contributor roster: every profile, the founder pinned, the rest ranked
-   * by page credits. Absent on a flavor that keeps the curated founder list.
-   */
   contributorRoster?: ContributorRoster | null;
-  /** Heading and table-of-contents label for the contributor section. Flavored with the content. */
   contributorsSectionTitle?: string;
   previewSnapshots: AboutPreviewSnapshot[];
   missionContent?: ReactNode;
   sourcesContent?: ReactNode;
   historyContent?: ReactNode;
-  /** A language mirror's translation credits, shown after the founder cards. Absent on the English page. */
   translationCreditsContent?: ReactNode;
   reuseContent?: ReactNode;
-  /** Intro sentence above the Partners & Community roster. dose.wiki only; a Copy Studio slot. */
   communityIntro?: ReactNode;
-  /** Official collaborations body (dose.wiki only), built from Copy Studio slots by the route. */
   collaborationsContent?: ReactNode;
   docBlurbs?: string[];
   docCopyControl?: ReactNode;
-  /** Editor-managed tagline from Postgres siteConfig; falls back to the canonical line. */
   subtitle?: string;
   subtitleControl?: ReactNode;
   downloads: AboutDownloads;
@@ -234,8 +206,6 @@ export const AboutPage = memo(function AboutPage({
 
       {translationCreditsContent}
 
-      {/* Infrastructure credit. For now this is the only surface that renders it;
-          it renders nothing on a flavor that declares no supporter. */}
       <div className="flex justify-center pt-2">
         <SiteSupporter align="center" markHeightRem={2.25} />
       </div>
@@ -247,8 +217,6 @@ export const AboutPage = memo(function AboutPage({
     icon: "lucide:users",
   };
 
-  // One anchor per rendered section, in page order. The ids are the old tab
-  // hash ids (`#data` is linked from the About markdown itself), so deep links
   const tocItems: PublicTableOfContentsItem[] = [
     { id: "mission", label: introductionTitle, icon: "lucide:compass" },
     ...(showSources
@@ -305,15 +273,10 @@ export const AboutPage = memo(function AboutPage({
         className="theme-toc-strip-scope"
         contentClassName="gap-12"
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the hero, pinned under
-            the site header from the very first scroll; replaced by the sticky
-            gutter TOC at >=1200px. */}
         <PublicTocStrip items={tocItems} />
 
-        {/* Hero Section */}
         <div className="relative flex flex-col gap-6 pt-6 sm:pt-8">
           <div className="relative flex flex-col gap-6">
-            {/* Title with icon */}
             <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:justify-start sm:gap-6 sm:text-left">
               <span className="theme-home-logo-frame inline-flex items-center justify-center">
                 <DoseWikiLogo
@@ -326,13 +289,7 @@ export const AboutPage = memo(function AboutPage({
               </span>
               <div>
                 <h1 className="theme-text-primary font-display relative break-words text-[2.5rem] font-bold leading-tight tracking-tight sm:text-[3.2rem]">
-                  {/* "About " plus the wordmark's lead run stay in the primary text
-                      color; only the accent run (".wiki" / "Index") takes the accent,
-                      the same split as the homepage hero. Rejoins to aboutTitle. */}
                   {t("About")} <SiteWordmark />
-                  {/* Superscript beta badge, mirroring the homepage wordmark: absolutely
-                      positioned so the heading's layout never shifts when a flavor has
-                      no badge (Effect Index renders nothing here). */}
                   <span className="absolute top-[0.06em] ml-[0.3em] inline-flex whitespace-nowrap">
                     <SiteVersionBadge variant="hero" />
                   </span>
@@ -347,10 +304,6 @@ export const AboutPage = memo(function AboutPage({
         </div>
 
         <section id="mission" className="scroll-mt-24">
-          {/* The mission prose flows straight from the hero subtitle; keep an
-              sr-only h2 so the landmark keeps its accessible name and the
-              heading outline has no gap. No `space-y` here: the sr-only h2 is
-              still a flow child, so it would push a full gap onto the prose. */}
           <h2 className="sr-only">{introductionTitle}</h2>
 
           <div>{missionContent}</div>
@@ -369,8 +322,6 @@ export const AboutPage = memo(function AboutPage({
         <section id="docs" className="scroll-mt-24 space-y-6">
           <PublicSectionHeading icon="lucide:book-open" title={t(ABOUT_CONFIG.docsTitle)} />
 
-          {/* Without the Open Data section this is the only place the reuse terms
-              appear, and it is where they belong: alongside the licence card. */}
           {ABOUT_CONFIG.showOpenData ? null : (reuseContent ?? (
             <SiteLicenceNotice className="theme-text-faint text-sm leading-6" notice={ABOUT_CONFIG.reuseNotice} />
           ))}
@@ -397,10 +348,6 @@ export const AboutPage = memo(function AboutPage({
           {docCopyControl}
         </section>
 
-        {/* The section's exports are dose.wiki's own: the molecule pack, the
-            dataset downloads and the dose.wiki repository. A flavor that
-            does not ship them drops the section rather than advertising
-            another publication's downloads under its own licence. */}
         {ABOUT_CONFIG.showOpenData ? (
           <section id="data" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:download" title={downloadsTitle} />
@@ -410,17 +357,12 @@ export const AboutPage = memo(function AboutPage({
               downloads={downloads}
             />
 
-            {/* Reuse terms follow the publication: dose.wiki's CC0/MIT dedication is
-                not Effect Index's licence, so this sentence is flavored rather than
-                written inline. */}
             {reuseContent ?? <SiteLicenceNotice className="theme-text-faint text-sm leading-6" notice={ABOUT_CONFIG.reuseNotice} />}
           </section>
         ) : null}
 
         {effectIndex ? contributorsSection : null}
 
-        {/* Official collaborations: projects that work with dose.wiki directly,
-            one expandable row each. dose.wiki only (see `about.showCollaborations`). */}
         {showCollaborations ? (
           <section id="collaborations" className="scroll-mt-24 space-y-4">
             <PublicSectionHeading icon="lucide:badge-check" title={t("Official collaborations")} />
@@ -428,9 +370,6 @@ export const AboutPage = memo(function AboutPage({
           </section>
         ) : null}
 
-        {/* Partners & Community: one compact roster of data partners and
-            neighbouring communities. dose.wiki only; Effect Index never
-            renders it (see `about.showCommunity`). */}
         {ABOUT_CONFIG.showCommunity ? (
           <section id="community" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:handshake" title={t("Partners & Community")} />
@@ -439,9 +378,6 @@ export const AboutPage = memo(function AboutPage({
           </section>
         ) : null}
 
-        {/* Contact & Feedback: the published inbox plus the general feedback form.
-            Flavored via `about.contact`; Effect Index publishes no dose.wiki address
-            and already cards its own /contact page in the docs grid. */}
         {ABOUT_CONFIG.contact ? (
           <section id="contact" className="scroll-mt-24 space-y-6">
             <PublicSectionHeading icon="lucide:mail" title={t("Contact & Feedback")} />

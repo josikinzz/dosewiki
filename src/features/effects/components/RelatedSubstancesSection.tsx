@@ -13,10 +13,6 @@ interface RelatedSubstancesSectionProps {
   t?: Translate;
 }
 
-/**
- * Related substances section for effect articles.
- * Shows substances that have this effect.
- */
 export function RelatedSubstancesSection({ 
   groups,
   total,

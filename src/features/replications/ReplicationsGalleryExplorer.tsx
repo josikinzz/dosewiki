@@ -115,36 +115,17 @@ import {
 import { useGalleryPagination } from "./useGalleryPagination";
 import type { GalleryPageState } from "./galleryPage";
 
-/**
- * The two effect fields the gallery reads: `name` for lookups/labels and
- * `slug` for linkability and filter options. The pages project the full
- * effect previews down to this before the corpus crosses into client props —
- * summaries and tag lists have no reader here and would only pad the RSC
- * payload.
- */
 interface EffectSummary {
   slug: string;
   name: string;
 }
 
-
-/**
- * Artists get the site's person glyph; effects get the very icon the app
- * header and every effect heading already use, so the browse axes are named
- * by the same marks the rest of the site names them by. A year is a date.
- */
 const MODE_ICON: Record<GalleryMode, IconName> = {
   artist: icons.userRound,
   effect: icons.subjectiveEffectIndex,
   year: "lucide:calendar-days",
 };
 
-/**
- * Browse-mode names. One string does every job: the trigger's visible label,
- * its accessible name, its tooltip, and its row in the menu. "By artist"
- * rather than "Artists" because this control chooses an axis to read the
- * archive along, not a subset of it to keep.
- */
 const MODE_LABEL: Record<GalleryMode, string> = {
   artist: msg("By artist"),
   effect: msg("By effect"),
@@ -165,23 +146,12 @@ const ORDER_LABEL: Record<GalleryOrder, string> = {
   oldest: msg("Oldest"),
 };
 
-/**
- * What the order control offers per axis. Every mode reads in both time
- * directions; only "By effect" has an editor's playlist to defer to, and that
- * is its default, so its rails open on the same work as the effect article.
- */
 const ORDER_OPTIONS: Record<GalleryMode, ReadonlyArray<GalleryOrder>> = {
   artist: ["newest", "oldest"],
   effect: ["curated", "newest", "oldest"],
   year: ["newest", "oldest"],
 };
 
-/**
- * The viewer overlay's collection label under a media filter. `all` and
- * `audio` keep the overlay's own "Sorted by …" label; the two visual media
- * name themselves first, so the sentence reads "Video replications sorted by
- * artist" rather than a qualifier bolted onto a capitalised label.
- */
 const MEDIA_BROWSE_LABEL: Record<"image" | "video", Record<GalleryMode, string>> = {
   image: {
     artist: msg("Image replications sorted by artist"),
@@ -209,14 +179,6 @@ const EFFECT_FOCUS_LABEL: Record<GalleryTypeFilter, string> = {
   video: msg("Video {{effect}} replications"),
 };
 
-
-/**
- * Effect names are article titles, and the corpus carries both `After images`
- * and `aesthetic distillation`. Sorted by locale, the two casings interleave
- * and the select reads like a list nobody edited. The stored name is the truth
- * everywhere else, so only the option's first letter is lifted, and the sort
- * runs on the lifted label so the order matches what the reader sees.
- */
 function optionCase(name: string): string {
   return name ? name[0].toLocaleUpperCase() + name.slice(1) : name;
 }
@@ -225,86 +187,22 @@ function optionCase(name: string): string {
 export interface ReplicationsGalleryExplorerProps {
   replications: PublicGalleryReplicationPreview[];
   effects: EffectSummary[];
-  /**
-   * Endpoint serving bounded, query-keyed gallery pages. The explorer applies
-   * the current URL state to each request and follows its continuation cursor.
-   */
   galleryPageUrl?: string;
-  /** The canonical bounded first page, including its normalized query and cursor. */
   initialPage?: GalleryPageState;
-  /**
-   * Complete-corpus stats for the default artist view's header line,
-   * precomputed on the server so the index never reports the size of a
-   * partially loaded corpus as if it were the archive.
-   */
   corpusStats?: GalleryCounts;
   effectHrefPrefix?: string;
-  /**
-   * Read on the server and passed down for the contributor-curated
-   * `replicationOrder` inside artist groups. `lib/contributorDirectory` is
-   * deliberately free of `server-only` imports — it is just the shared matcher
-   * plus `publicHref` — so the lookup itself is safe on this side of the
-   * boundary; the *data* is not, which is why it arrives as a prop rather
-   * than a fetch.
-   */
   contributorDirectory?: ContributorDirectory;
-  /**
-   * Set by the `/replications/artist/<key>` route after it resolves the key.
-   * Browse mode, search, media type, and artist sort live in query params, so
-   * every public Gallery state still has a stable URL.
-   */
   focus?: GalleryFocus;
-  /**
-   * The Artist Page's identity decoration (avatar, role, bio, links), rendered
-   * server-side when a Contributor Profile claims the focused artist's credit
-   * line. Only meaningful with an artist `focus`; absent, the focus header is
-   * the plain name — the same page shape, undecorated. The Unattributed
-   * bucket's route never passes one.
-   */
   focusIdentity?: ReactNode;
-  /**
-   * Which shell the explorer wears. The `(tabs)` gallery keeps `'full'` — the
-   * sticky control bar (browse-mode toggle, search, media-type pills, artist
-   * sort) plus the corpus stats line. The Artist Page passes `'focus-only'`:
-   * it is a profile, not a querying surface, so only the focus view itself
-   * renders (back link, heading, identity, masonry, deck). The `?type=`
-   * filter in a shared URL still applies; there is just no control to change
-   * it here.
-   */
   chrome?: "full" | "focus-only";
-  /**
-   * The `(tabs)` gallery page renders the fuller fair-use / takedown notice
-   * (the `replications-fair-use-notice` copy block) directly under the
-   * explorer, so it passes `false` here to drop the short in-explorer rights
-   * footnote rather than state the same position twice on one page. Surfaces
-   * without their own notice (the Artist Page) keep the default footnote.
-   */
   rightsFootnote?: boolean;
 }
 
-/** Debounce for search keystrokes → URL writes (history stays clean). */
 const QUERY_WRITE_DELAY_MS = 250;
-/**
- * Browse-state URL writes go through native history, not `router.push`. Next
- * syncs `useSearchParams` from its patched `pushState`/`replaceState` — the
- * state argument must be free of Next's own `__NA` marker (hence `null`) or
- * the patch treats the call as internal and skips the sync — and no RSC round
- * trip happens. The browse state is client-only, so a server refetch would buy
- * nothing, and for a document served by the `?viewer=` deep-link route (see
- * middleware) it would swap the route segment and remount the whole gallery.
- */
 function writeBrowseUrl(url: string, method: "push" | "replace") {
   window.history[method === "push" ? "pushState" : "replaceState"](null, "", url);
 }
 
-/**
- * The URL-derived slice of the explorer's input. Browse filters
- * (?view/?q/?type/?sort/…) and the `?viewer=` deep link are read on the client
- * so the /replications routes stay statically rendered. `urlStateResolved`
- * is false only for the prerendered defaults: effects that *write* URL or
- * cover state wait for it, because the defaults' passive effects run before
- * the bridge's synchronous re-render lands the real params.
- */
 interface GalleryUrlState {
   browse: GalleryBrowseState;
   viewerSlugParam: string | null;
@@ -330,17 +228,6 @@ function sameGalleryUrlState(a: GalleryUrlState, b: GalleryUrlState): boolean {
   );
 }
 
-/**
- * Public entry. Next requires a Suspense boundary around `useSearchParams` on
- * a static route: during prerender the hook bails out to client rendering and
- * the boundary's fallback is what ships in the HTML. Keeping the gallery
- * itself *outside* that boundary is the point of this shape — the prerendered
- * default view is real, hydratable markup rather than a fallback that React
- * would throw away and re-render from scratch once the params resolve. Only
- * the tiny bridge below suspends; it reports the URL state into this
- * component's state from a layout effect, so the explorer re-renders with the
- * real browse state in the same commit, before the browser paints.
- */
 export function ReplicationsGalleryExplorer(
   props: ReplicationsGalleryExplorerProps,
 ) {
@@ -354,10 +241,6 @@ export function ReplicationsGalleryExplorer(
         id={GALLERY_BROWSE_COVER_ID}
         queryKeys={GALLERY_BROWSE_QUERY_KEYS}
       />
-      {/* Ahead of every piece of gallery markup on purpose: the cover and its
-          reveal script precede the rails in the SSR payload, so a `?viewer=`
-          deep link's first paint is black, never the masonry. The bridge
-          dismisses the browse cover once the params resolve. */}
       <ViewerDeepLinkCover />
       <Suspense fallback={null}>
         <GalleryUrlStateBridge onChange={syncUrlState} />
@@ -367,7 +250,6 @@ export function ReplicationsGalleryExplorer(
   );
 }
 
-/** The one component allowed to touch `useSearchParams` — see above. */
 function GalleryUrlStateBridge({
   onChange,
 }: {
@@ -386,7 +268,6 @@ function GalleryUrlStateBridge({
   return null;
 }
 
-/** Keep the last committed collection mounted until its replacement arrives. */
 function SettledGalleryResults({
   pending,
   busy,
@@ -429,8 +310,6 @@ function SettledGalleryResults({
       data-gallery-results=""
       data-results-pending={pending || undefined}
       onClickCapture={pending ? (event) => {
-        // Retained works still open their own source URL, not the new filter's
-        // viewer collection. Retained paging controls must wait for that query.
         if (!(event.target instanceof Element)) return;
         if (event.target.closest("a[href]")) event.stopPropagation();
         else if (event.target.closest("button")) {
@@ -504,26 +383,12 @@ function GalleryExplorer({
   const typeFilter = browse.type;
   const order = browse.sort;
   const yearFilter = browse.year;
-  /**
-   * The search box needs a per-keystroke value while the URL write debounces
-   * behind it, so the input is a controlled mirror of `?q=` rather than being
-   * driven by it directly. `lastWrittenQuery` tells our own replace() echoing
-   * back through useSearchParams apart from an external navigation
-   * (back/forward, a pasted URL): only the latter may reset the input, and it
-   * also cancels any pending write so a stale keystroke cannot undo history.
-   */
   const inputRef = useRef<HTMLInputElement>(null);
   const lastWrittenQueryRef = useRef(browse.query);
   const debounceRef = useRef<number | undefined>(undefined);
 
-  /**
-   * True while a typed query sits in the debounce window waiting for its URL
-   * write. Drives a small spinner at the input's right edge — the only
-   * feedback that a keystroke was heard before the results actually move.
-   */
   const [queryWritePending, setQueryWritePending] = useState(false);
 
-  /** Cancel a scheduled `?q=` write and retire its pending indicator. */
   const cancelQueryWrite = () => {
     clearTimeout(debounceRef.current);
     setQueryWritePending(false);
@@ -542,7 +407,6 @@ function GalleryExplorer({
 
   useEffect(() => () => clearTimeout(debounceRef.current), []);
 
-  /** Every toggle writes the *whole* state, flushing any pending search text. */
   const currentInputQuery = () => inputRef.current?.value ?? browse.query;
 
   const navigate = (url: string, method: "push" | "replace") => {
@@ -565,17 +429,6 @@ function GalleryExplorer({
     }, QUERY_WRITE_DELAY_MS);
   };
 
-  /**
-   * The order to carry into `next`'s URL. A direction the reader named travels
-   * with them; an order they never chose does not. Carrying the resting value
-   * across would pin one axis's default as an explicit override on another —
-   * arriving at "By effect" sorted by date would silently retire the curation
-   * that view exists to show.
-   *
-   * Read against `browse.view`, the view the order was parsed for, not the
-   * effective `mode`: inside a focused collection the two differ, and an
-   * artist page's resting `newest` is not a choice about effect playlists.
-   */
   const orderForView = (next: GalleryMode): GalleryOrder =>
     order === defaultGalleryOrder(browse.view)
       ? defaultGalleryOrder(next)
@@ -616,11 +469,6 @@ function GalleryExplorer({
     }), "push");
   };
 
-  /**
-   * Every filter off in one navigation. Calling the individual setters in
-   * sequence would write three URLs from the same stale `browse`, and the last
-   * one would land having cleared only its own field.
-   */
   const clearAllFilters = () => {
     const query = currentInputQuery();
     lastWrittenQueryRef.current = query;
@@ -661,13 +509,6 @@ function GalleryExplorer({
   const hasActiveTaxonomyFilters = Object.values(taxonomyFilters).some(
     (value) => value !== "all",
   );
-  /**
-   * Everything the chip row can take back off. Media used to be readable from
-   * its own trigger on the bar; now that it lives in the filters popover, a
-   * chip is the only thing that says "videos only" while the popover is shut.
-   * A year is only ever set by following a year rail, so its chip is the way
-   * back out to the whole timeline.
-   */
   const hasRemovableFilters =
     hasActiveTaxonomyFilters || typeFilter !== "all" || browse.year !== "all";
   const drugOptions = useMemo(
@@ -727,17 +568,6 @@ function GalleryExplorer({
     [taxonomyDisplayable, typeFilter, yearFilter, query, effectName, galleryPageUrl],
   );
 
-  /**
-   * The result line's two numbers.
-   *
-   * The numerator is what the grid actually renders. Artist browsing withholds
-   * some effects' works and `groupByArtist` drops them, so counting `filtered`
-   * alone would claim rows nobody can see. The denominator is the archive the
-   * current axis can show at all, ignoring every control in the bar: "247 of
-   * 6,607" only means something if the second number holds still while the
-   * first moves. Search reaches across the whole displayable corpus in either
-   * mode, so while searching both numbers do too.
-   */
   const shown = useMemo(
     () =>
       mode === "artist" && !searching
@@ -753,18 +583,8 @@ function GalleryExplorer({
     [displayable, mode, searching],
   );
 
-  /**
-   * The flat search-results grid, memoized so the incremental masonry's
-   * paging state survives unrelated re-renders — a fresh array identity here
-   * would read as a new result set and rewind the grid to its first page.
-   */
   const searchResults = useMemo(() => searching ? sortWithinGroup(filtered) : [], [filtered, searching]);
 
-  /**
-   * One year rail opened in full. Same memoization reason as the search grid,
-   * and the same order the rail itself used, so following "View all" does not
-   * reshuffle the works the reader was just looking at.
-   */
   const yearItems = useMemo(
     () => singleYear ? sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest") : [],
     [filtered, order, singleYear],
@@ -787,14 +607,6 @@ function GalleryExplorer({
     order,
   ]);
 
-  /**
-   * Browse layout differs by mode. Artist browsing keeps every artist in
-   * their own rail — pooling thin artists into one masonry jumbled works by
-   * different people under one heading — and reveals rails a page at a time.
-   * Effect browsing keeps the hybrid layout: groups with enough works keep a
-   * rail, the thin tail pools into one dense masonry so a one-work effect
-   * costs one tile, not a whole row.
-   */
   const { rails, pool } = useMemo<{
     rails: GalleryGroup[];
     pool: GalleryGroup[];
@@ -806,9 +618,6 @@ function GalleryExplorer({
     [mode, groups],
   );
   const pooledItems = useMemo(() => {
-    // One masonry, so a work depicting two thin effects must still render
-    // once: depicts-based grouping puts it in both pool groups, and two tiles
-    // for one work would collide on its slug key.
     const seen = new Set<string>();
     return pool.flatMap((group) =>
       group.items.filter((item) =>
@@ -840,12 +649,6 @@ function GalleryExplorer({
     });
   }, [activeGroupSummaries, digestActive, filtered, rails]);
 
-  /**
-   * The denominator: the client-side count of whatever is loaded, except in
-   * the digest-backed default view, where the server's complete-corpus total
-   * is authoritative until the corpus arrives. Until one of them is complete
-   * the line says "so far" instead of inventing a total.
-   */
   const statsComplete = !galleryPageUrl || pagedTotal !== null;
   const corpusTotal = pagedTotal ?? archiveTotal;
 
@@ -859,11 +662,6 @@ function GalleryExplorer({
     Math.max(activeGroupSummaries.length, displayRails.length) -
     visibleRails.length;
 
-  /**
-   * Focus is resolved against the *unfiltered* corpus — the route validated it
-   * there, and the header (name, profile link) must survive a `?type=` that
-   * matches none of the group's works; only the masonry empties.
-   */
   const focusedGroup = useMemo(
     () =>
       focus
@@ -893,9 +691,6 @@ function GalleryExplorer({
         },
       ];
     }
-    // The overlay walks exactly what the page shows. Recomputing the grouping
-    // here ran the whole corpus through it a second time and was one argument
-    // list away from disagreeing with the rails on every future change.
     return groups;
   }, [focus, focusedGroup, focusedItems, groups]);
   const viewerSourcePath = focus
@@ -987,11 +782,6 @@ function GalleryExplorer({
 
   useEffect(() => {
     if (!urlStateResolved) return;
-    // A locally launched viewer writes history and viewerSlug directly. An
-    // unrelated render (notably the deferred corpus becoming ready) must not
-    // close it merely because the search-param snapshot still represents the
-    // pre-launch URL. Only a real transition from a viewer URL to a URL
-    // without the parameter (for example Back) closes that local state.
     if (!viewerParamPresent) {
       if (viewerParamWasPresentRef.current) {
         setViewerSlug(null);
@@ -1069,8 +859,6 @@ function GalleryExplorer({
     launchViewer(replication.slug);
   };
 
-  // The gallery section exists whenever it holds media at all — the mode
-  // toggle has to stay reachable even if one mode's own corpus is empty.
   const hasMedia = displayable.length > 0;
   const hideIncompleteResults = pageLoadState === "loading" && galleryReplications.length === 0;
   const browseAllUrl = buildGalleryBrowseUrl({
@@ -1080,23 +868,9 @@ function GalleryExplorer({
     sort: orderForView(mode),
   });
 
-  /**
-   * The order control governs the works inside a group, so it belongs to any
-   * grouped view and leaves only for the flat search grid and a single focused
-   * collection, neither of which is a set of playlists to order.
-   */
   const orderActive = !searching && !focus;
   const orderOptions = ORDER_OPTIONS[mode];
-  /**
-   * `md` (768px) is where each control's label unfolds beside its glyph;
-   * below it the label lives in the menu the glyph opens.
-   */
   const compactBar = useMediaQuery("(max-width: 767px)");
-  /**
-   * Anything that makes the grid smaller than the archive. While one of these
-   * is on, the resting corpus sentence on the tab row is no longer the number
-   * the reader is asking about, so the bar's own line answers instead.
-   */
   const narrowing = searching || hasRemovableFilters;
   const corpusLoading = pageLoadState === "loading";
   const resultSummary = statsComplete
@@ -1112,12 +886,6 @@ function GalleryExplorer({
     if (!resultsPending) settledSummaryRef.current = resultSummary;
   }, [resultSummary, resultsPending]);
 
-  /**
-   * `/` focuses the gallery search from anywhere on the page. Every other
-   * control opens a menu, so this is the one accelerator the bar cannot get
-   * from its own chrome: the site-wide header field is the only other keyboard
-   * entry point to a search box here, and it queries a different corpus.
-   */
   useEffect(() => {
     if (chrome !== "full") return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -1198,16 +966,6 @@ function GalleryExplorer({
               </Alert>
             ) : null}
 
-            {/* One row at every width, and one control set at every width:
-                the browse axis, the search field, then the three controls that
-                narrow what the axis shows. Each is a menu button carrying its
-                own name and current value from `md` up; below `md` the label
-                folds into the glyph and the menu still names everything, which
-                is the only arrangement a 344px track can hold beside a
-                typeable field. The corpus census is not a control and no
-                longer rides here: it states the archive's size once, on the
-                tab row above, and the count that answers "what did I just do"
-                appears under the bar the moment anything narrows the grid. */}
             {chrome === "full" ? (
               <div className="sticky top-[calc(var(--site-header-height)+var(--site-header-sticky-gap))] z-20 mt-2 md:mt-0">
                 <div
@@ -1262,13 +1020,6 @@ function GalleryExplorer({
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
-                      {/* Below `md` the row keeps the browse axis, the search
-                          field and the filters popover, and the search field
-                          needs the width the order trigger would take, so
-                          ordering rides the axis it belongs to instead of
-                          taking a fourth slot. Hidden by CSS rather than by
-                          the media query hook so the server's markup is
-                          already correct. */}
                       {orderActive ? (
                         <DropdownMenuGroup className="md:hidden">
                           <DropdownMenuSeparator />
@@ -1299,11 +1050,6 @@ function GalleryExplorer({
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  {/* The one control that stays a field. Shrunk to its
-                      magnifier a search box stops reading as somewhere you can
-                      type, so it keeps a single elastic rule from `md` up
-                      instead of the two-breakpoint basis that used to wrap the
-                      bar onto a second row for the whole 640-1023px band. */}
                   <div className="relative min-w-0 flex-1 basis-0 md:min-w-48 lg:min-w-52">
                     <Icon
                       icon="lucide:search"
@@ -1315,9 +1061,6 @@ function GalleryExplorer({
                       defaultValue={browse.query}
                       onChange={(event) => updateQuery(event.target.value)}
                       onKeyDown={(event) => {
-                        // Escape empties the field rather than closing it: the
-                        // field is what shows the reader why the grid is
-                        // filtered, so it stays and the query goes.
                         if (event.key !== "Escape" || !inputRef.current?.value) {
                           return;
                         }
@@ -1327,8 +1070,6 @@ function GalleryExplorer({
                       placeholder={t("Search art, artists…")}
                       className={cn(
                         "h-10 pl-9 [@media(pointer:coarse)]:h-11 md:h-9",
-                        // The trailing slot only holds the clear button or the
-                        // pending spinner, so reserve it only while occupied.
                         searching || queryWritePending ? "pr-10" : "pr-3",
                       )}
                       inputMode="search"
@@ -1354,8 +1095,6 @@ function GalleryExplorer({
                         <Icon icon="lucide:x" className="h-4 w-4" aria-hidden />
                       </Button>
                     ) : null}
-                    {/* Decorative only (aria-hidden): the debounce is 250ms, and a
-                      live region firing per keystroke would be pure noise. */}
                     {queryWritePending && !searching ? (
                       <span
                         aria-hidden
@@ -1370,15 +1109,6 @@ function GalleryExplorer({
                     ) : null}
                   </div>
 
-                  {/* Ordering is the second half of the browse axis: which
-                      end of time the playlists lead with, or the editor's
-                      curated pick under "By effect". It leaves for the flat
-                      search grid and a focused collection rather than
-                      standing there inert: with labelled triggers the bar's
-                      width already differs per mode, so an invisible
-                      placeholder bought nothing and cost a 60px hole. Below
-                      `md` it is a row inside the browse menu instead of a
-                      slot on the bar. */}
                   {orderActive ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1390,13 +1120,6 @@ function GalleryExplorer({
                           aria-label={t("Order: {{order}}", { order: t(ORDER_LABEL[order]) })}
                           title={t("Order: {{order}}", { order: t(ORDER_LABEL[order]) })}
                         >
-                          {/* A control holding something other than its
-                              default tints its own glyph. The `pill` variant
-                              already declares a border colour, so a `border-*`
-                              utility beside it is a coin toss the accent
-                              loses; colour on the icon has nothing to compete
-                              with. The default differs per axis, so the tint
-                              is read against this mode's own default. */}
                           <Icon
                             icon={ORDER_ICON[order]}
                             className={cn(
@@ -1442,10 +1165,6 @@ function GalleryExplorer({
                     </DropdownMenu>
                   ) : null}
 
-                  {/* Media joined the filters it always was one of. A separate
-                      dropdown made "is this a video" look like a different
-                      kind of question from "is this closed-eye", and spent a
-                      bar slot saying so. */}
                   <ReplicationTaxonomyFilters
                     filters={taxonomyFilters}
                     onChange={setTaxonomyFilters}
@@ -1460,9 +1179,6 @@ function GalleryExplorer({
               </div>
             ) : null}
 
-            {/* Reserve one chip-height row so pending counts and selected
-                filters do not displace the results. Announce settled counts,
-                keeping the previous count while its replacement is fetched. */}
             {chrome === "full" ? (
               <div
                 className="mt-3 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2 px-1"
@@ -1539,7 +1255,6 @@ function GalleryExplorer({
               busy={corpusLoading}
               revision={galleryBrowseQuery}
             >
-            {/* Focused single-group view (own URL: /replications/artist|effect/<key>) */}
             {hideIncompleteResults ? null : focus && focusedGroup ? (
               <div className="mt-4 space-y-3">
                 <div className="flex flex-wrap items-baseline justify-between gap-3 px-1">
@@ -1560,9 +1275,6 @@ function GalleryExplorer({
                         <ApprovedReplicatorStar className="text-[0.75em]" />
                       ) : null}
                     </h2>
-                    {/* An artist focus IS the artist's page now, so the old
-                      "View profile" link would point at itself; only the
-                      effect focus has a second destination worth naming. */}
                     {mode === "effect" && focusedGroup.href ? (
                       <Link
                         href={focusedGroup.href}
@@ -1604,10 +1316,6 @@ function GalleryExplorer({
                 </div>
                 {mode === "artist" ? focusIdentity : null}
                 {focusedItems.length > 0 ? (
-                  // An artist focus already names the artist in its heading, so
-                  // per-tile bylines would repeat it under every work; effect
-                  // focus tiles keep them as the only attribution in sight.
-                  // Artist-focus tiles open the viewer walking this artist.
                   <IncrementalMasonry
                     items={focusedItems}
                     showByline={focus.kind !== "artist"}
@@ -1632,7 +1340,6 @@ function GalleryExplorer({
                 )}
               </div>
             ) : searching ? (
-              /* Search results — flat masonry */
               filtered.length > 0 ? (
                 <div className="mt-4 space-y-3">
                   <p className="theme-text-faint px-1 text-xs tabular-nums">
@@ -1663,9 +1370,6 @@ function GalleryExplorer({
                 />
               )
             ) : singleYear && filtered.length > 0 ? (
-              /* One year rail, opened in full. A year owns no page of its own,
-                 so its overflow is this: the whole span as one flat grid that
-                 pages in, with the chip above as the way back to every year. */
               <div className="mt-4 space-y-3">
                 <IncrementalMasonry
                   items={yearItems}
@@ -1690,11 +1394,6 @@ function GalleryExplorer({
                 </Button>
               </div>
             ) : (
-              /* Browse — every artist keeps their own rail (revealed a page
-               at a time); in effect mode only groups with enough works get a
-               rail and everything thinner pools into one dense masonry,
-               where each tile's byline carries the attribution. "View all"
-               is a crawlable focus URL. */
               <div className="mt-2 space-y-5">
                 {visibleRails.map((group) => (
                   <MediaRail
@@ -1710,20 +1409,10 @@ function GalleryExplorer({
                           })
                         : buildGalleryFocusUrl(
                             { kind: mode, key: galleryGroupUrlKey(mode, group) },
-                            /* The effect address is the playlist page now; it
-                             reads no type filter, so only artist focus links
-                             carry one. */
                             mode === "artist" ? { type: typeFilter } : {},
                           )
                     }
-                    /* Artist rails carry the artist in their heading, so tile
-                     bylines would echo it fourteen times; effect rails keep
-                     bylines as each work's attribution. An artist rail's tiles
-                     open the viewer walking that artist's works. */
                     tileBylines={mode !== "artist"}
-                    /* Artist rails lead with the artist's portrait; effect
-                     rails and the unattributed bucket name no person, so they
-                     pass none. `null` still draws the monogram frame. */
                     avatarUrl={
                       mode === "artist" && group.key !== UNATTRIBUTED_KEY
                         ? avatarByArtist(group.label)
@@ -1735,13 +1424,6 @@ function GalleryExplorer({
                         replication.slug,
                       )
                     }
-                    /* Touch widths browse in a continuous three-column
-                       masonry: a rail loads fourteen tiles and reveals one at
-                       390px, which is the throughput ceiling on the page. From
-                       `md` up the rail returns, where the horizontal gesture
-                       is cheap and the artist grouping earns its keep. The
-                       breakpoint is the bar's own, so the page has one
-                       compact/full line rather than two. */
                     layout={compactBar ? "masonry" : "rail"}
                     mobileCompact
                     onTileOpen={openViewerAt}
@@ -1827,8 +1509,6 @@ function GalleryExplorer({
             ) : null}
             </SettledGalleryResults>
 
-            {/* Rights footnote — the gallery page replaces it with the
-                editable fair-use notice it renders below the explorer. */}
             {rightsFootnote ? (
               <p className="theme-text-muted mx-auto mt-10 max-w-3xl px-1 text-center text-xs leading-5">
                 {t("Replication media is credited to its creator when known. Rights remain with the original creator or rightsholder unless an individual item states another license. See the")}{" "}

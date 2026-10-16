@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/** Check owned function references without loading a database or provider client. */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCallsiteIntegrityReport, formatCallsiteIntegrityReport } from "../lib/data-drift-report.mjs";

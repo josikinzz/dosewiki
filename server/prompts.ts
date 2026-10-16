@@ -13,16 +13,6 @@ const promptDocument = v.object({
   updatedBy: v.optional(v.string()),
 });
 
-/**
- * Prompt functions.
- *
- * These functions provide CRUD operations for system and section prompts.
- * Prompts are editable via the dev tools UI.
- */
-
-/**
- * Get a specific prompt by key.
- */
 export const getByKey = query({
   args: { key: v.string() },
   returns: v.union(promptDocument, v.null()),
@@ -34,9 +24,6 @@ export const getByKey = query({
   },
 });
 
-/**
- * Get all prompts.
- */
 export const getAll = query({
   args: {},
   returns: v.array(promptDocument),
@@ -45,10 +32,6 @@ export const getAll = query({
   },
 });
 
-/**
- * Save (create or update) a prompt. Prompts drive generation on the live
- * site, so the write is admin-only.
- */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -72,7 +55,6 @@ export const save = mutation({
 
     const updatedAt = new Date().toISOString();
 
-    // Check if prompt with this key already exists
     const existing = await ctx.db
       .query("prompts")
       .withIndex("by_key", (q) => q.eq("key", key))
@@ -97,11 +79,6 @@ export const save = mutation({
   },
 });
 
-/**
- * Delete a prompt by key.
- *
- * @param apiKey - Required API key for authentication
- */
 export const deleteByKey = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -130,11 +107,6 @@ export const deleteByKey = mutation({
   },
 });
 
-/**
- * Bulk import prompts (for migration).
- *
- * @param apiKey - Required API key for authentication
- */
 export const bulkImport = mutation({
   args: {
     apiKey: v.optional(v.string()),

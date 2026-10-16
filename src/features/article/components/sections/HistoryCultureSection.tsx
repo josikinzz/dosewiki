@@ -57,7 +57,6 @@ function renderEditableHistoryText({
   );
 }
 
-/** Server-compatible projection boundary around the interactive history layout. */
 export const HistoryCultureSection = memo(function HistoryCultureSection({
   article,
 }: HistoryCultureSectionProps) {
@@ -116,10 +115,6 @@ export const HistoryCultureSection = memo(function HistoryCultureSection({
         path: contentPath,
         value: section.content,
       });
-      // Collapsed, the first section shows a `truncateContent` preview. An
-      // editor opened on a preview is one keystroke from saving the cut text
-      // over the stored prose, so the editable node is used only while the
-      // preview is the whole field. The ellipsis keeps its own rule.
       const collapsedText =
         displayIndex === 0 ? truncateContent(section.content) : section.content;
       const collapsedContent =

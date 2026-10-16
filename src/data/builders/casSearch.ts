@@ -2,13 +2,11 @@ const normalizeCasFormatting = (value: string): string => value.trim()
   .replace(/[\u2010-\u2013\u2212\uFE63\uFF0D]/g, "-")
   .replace(/\s*-\s*/g, "-");
 
-/** CAS-shaped input never falls through to punctuation-insensitive name matching. */
 export function isCasSearchQuery(value: string): boolean {
   const normalized = normalizeCasFormatting(value);
   return (/^[\d\s-]+$/.test(normalized) && normalized.includes("-")) || /^\d{5,10}$/.test(normalized);
 }
 
-/** Validate a registry number's transcription, without certifying its assignment. */
 export function normalizeCasNumber(value: string | undefined | null): string | null {
   const normalized = normalizeCasFormatting(value ?? "");
   if (!/^\d{2,7}-\d{2}-\d$/.test(normalized)) return null;

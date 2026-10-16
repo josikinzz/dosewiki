@@ -9,7 +9,6 @@ import { isDataBrowserClient, isEditorOnly } from "./public-editor-boundary.mjs"
 
 let serverRuntimeIncludes;
 
-/** Trace the complete dependency closure, not just the missing context entrypoint. */
 export function getServerRuntimeIncludes() {
   return serverRuntimeIncludes ??= (async () => {
     const root = process.cwd();
@@ -59,8 +58,6 @@ export class EditorArtifactAudit {
       if (!this.editorBuild && editorModules.length) {
         throw new Error(`Public artifact contains editorial browser modules: ${editorModules.map((entry) => entry.module).join(", ")}`);
       }
-      // A public reader must read published data, never open its own Postgres
-      // query or socket. The editorial build is where a live subscription belongs.
       if (!this.editorBuild && dataBrowserModules.length) {
         throw new Error(`Public artifact contains a browser Postgres client: ${[...new Set(dataBrowserModules)].sort().join(", ")}`);
       }
@@ -82,7 +79,6 @@ export class EditorArtifactAudit {
   }
 }
 
-// Compilation alone can succeed with no middleware entry when it is outside src/app's parent.
 export function verifyCompletedArtifact(directory, surface) {
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, "server/middleware-manifest.json"), "utf8"));
   const middleware = manifest.middleware?.["/"];
@@ -111,7 +107,6 @@ export function verifyCompletedArtifact(directory, surface) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   nextEnv.loadEnvConfig(process.cwd(), false);
-  // `next build` ran with NODE_ENV=production, so resolve as that build did.
   const buildEnv = { ...process.env, NODE_ENV: "production" };
   verifyCompletedArtifact(path.resolve(resolveBuildDirectory(buildEnv)), resolveBuildSurface(buildEnv));
 }

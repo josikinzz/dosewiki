@@ -41,12 +41,6 @@ export function canonicalKey(sha256) {
   return `media/sha256/${sha256.slice(0, 2)}/${sha256}.jpg`;
 }
 
-/**
- * A card that already lives at its content-addressed key on this CDN. The
- * entity generator carries such cards forward verbatim (per-replication cards
- * are only re-rendered on an explicit offline rebuild), so a refresh must
- * accept them without a local file: they have nothing to upload.
- */
 function publishedCardKey(cardPath, cdnBase = DEFAULT_CDN_BASE) { const prefix = `${cdnBase.replace(/\/+$/, "")}/`;
 if (!cardPath.startsWith(prefix)) return null;
 const key = cardPath.slice(prefix.length);
@@ -247,13 +241,6 @@ export function hasCompletedCanary(records, planDigest) {
 
 function hasCompletedFullRun(records, planDigest, objectCount) { return records.some((record) => record.type === "full-complete" && record.planDigest === planDigest && record.objectCount === objectCount); }
 
-/**
- * The verifier scopes its run to every unique key in the candidate manifest,
- * which is a superset of the publisher's uploadable objects once carried-through
- * cards are in play. So the gate is per-object: an exhaustive completion for
- * this plan, and within that run an exact digest/size verification of every
- * object this plan publishes.
- */
 function hasCompletedObjectVerification(records, plan) { const completion = records.find((record) => (
   record.type === "object-verification-complete"
   && record.planDigest === plan.planDigest

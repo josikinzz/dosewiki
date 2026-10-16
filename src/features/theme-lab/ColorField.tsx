@@ -14,23 +14,7 @@ import {
 import { PanelInput } from "./panelKit";
 import styles from "./ThemeLab.module.css";
 
-/**
- * The Theme Lab's compact color control: a saturation/value rectangle over a
- * full-width hue slider, with hex + alpha beneath.
- *
- * It replaces the fixed 176px ring-plus-square wheel, which pinned more panel
- * height than the catalog it sat above. The rainbow wheel is not gone — it
- * survives as the tool's brand glyph in the panel header — but
- * the *editing* surface is now a rectangle that spans the panel width and costs
- * roughly half the vertical space.
- *
- * The contract is unchanged from the wheel it replaces: an `initial` color plus
- * an `onChange` callback, with the component remounted (via `key`) whenever the
- * selection changes externally, so it owns its editing state thereafter.
- */
-
 interface ColorFieldProps {
-  /** Starting color. Remount via `key` to rebind to a new selection. */
   initial: Rgba;
   onChange: (next: Rgba) => void;
 }
@@ -39,12 +23,9 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
   const [hsv, setHsv] = useState<Hsv>(() => rgbToHsv(initial));
   const [alpha, setAlpha] = useState<number>(() => initial.a);
   const [hexDraft, setHexDraft] = useState<string>(() => rgbToHex(initial));
-  // The fields are kit components, so the labels pair by id rather than by
-  // wrapping a native control.
   const hexId = useId();
   const alphaId = useId();
 
-  // Always call the freshest onChange without re-binding pointer handlers.
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
@@ -110,7 +91,6 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
           if (dragFrameRef.current !== null) {
             window.cancelAnimationFrame(dragFrameRef.current);
             dragFrameRef.current = null;
-            // Flush the coalesced move so the handle lands where the pointer ended.
             const position = dragPositionRef.current;
             if (position) apply(position);
           }
@@ -132,13 +112,11 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
   const applyHexDraft = (value: string) => {
     const parsed = hexToRgba(value);
     if (!parsed) return;
-    // Hex edits set RGB; preserve the current alpha unless the hex carried one.
     const cleaned = value.trim().replace(/^#/, "");
     const nextAlpha = cleaned.length === 4 || cleaned.length === 8 ? parsed.a : alpha;
     commit(rgbToHsv(parsed), nextAlpha);
   };
 
-  // Keyboard nudges on the focusable handles.
   const onHueKeyDown = (event: React.KeyboardEvent) => {
     const step = event.shiftKey ? 10 : 2;
     if (event.key === "ArrowRight" || event.key === "ArrowUp") {
@@ -258,7 +236,6 @@ export function ColorField({ initial, onChange }: ColorFieldProps) {
               max={1}
               step={0.01}
               value={alpha}
-              // Announce the percentage the label shows, not the raw 0–1 step.
               aria-valuetext={`${Math.round(alpha * 100)}%`}
               className={styles.rangeTrack}
               style={{

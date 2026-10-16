@@ -2,14 +2,12 @@ import { z } from "zod";
 
 import { CANONICAL_LEGAL_STATUSES } from "./legalStatuses";
 
-/** Dose range with min/max/unit */
 export const doseRangeSchema = z.object({
   min: z.number().nullable(),
   max: z.number().nullable(),
   unit: z.string(),
 });
 
-/** Duration stage (onset, come_up, etc.) */
 export const durationStageSchema = z.object({
   min: z.number().nullable(),
   max: z.number().nullable(),
@@ -18,7 +16,6 @@ export const durationStageSchema = z.object({
 
 export const referenceIdArraySchema = z.array(z.string()).default([]);
 
-/** Citation entry */
 export const citationSchema = z.object({
   name: z.string(),
   url: z.string(),
@@ -51,7 +48,6 @@ const referenceMetadataProvenanceEntrySchema = z.object({
   fields: z.array(z.string().min(1).max(64)).max(64).optional(),
 })
 
-/** Structured Wikipedia-style reference entry used by claim-level citations. */
 export const referenceSchema = z.object({
   id: z.string(),
   type: z.enum(["journal_article", "book", "book_chapter", "webpage", "database_entry", "report", "unknown"]).default("unknown"),
@@ -89,7 +85,6 @@ export const referenceSchema = z.object({
   metadataProvenance: z.array(referenceMetadataProvenanceEntrySchema).max(32).optional(),
 });
 
-/** Country legality entry — canonical statuses live in the Zod-free `legalStatuses.ts`. */
 export { CANONICAL_LEGAL_STATUSES } from "./legalStatuses";
 
 export const countryLegalitySchema = z.object({

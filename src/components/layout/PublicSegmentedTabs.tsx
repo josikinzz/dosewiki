@@ -10,24 +10,10 @@ export type PublicSegmentedTabItem<TValue extends string = string> = {
   id: TValue;
   icon?: IconName;
   label: ReactNode;
-  /**
-   * Trailing slot rendered after the label (e.g. a count or badge). Existing
-   * public adopters pass nothing; dev chrome maps any prior badge into this.
-   */
   suffix?: ReactNode;
-  /**
-   * Disable the tab. Forwarded to the Radix TabsTrigger, which already styles
-   * `disabled:opacity-50` and blocks pointer events.
-   */
   disabled?: boolean;
-  /** "major" renders a bolder label for overarching tabs; geometry stays uniform. */
   prominence?: "default" | "major";
-  /** Force the items after this one onto a new row (flex line break). */
   breakAfter?: boolean;
-  /**
-   * Classes for the forced-break spacer. Use a responsive utility such as
-   * "hidden xl:block" to only break the row at wider breakpoints.
-   */
   breakAfterClassName?: string;
 };
 
@@ -36,38 +22,16 @@ export interface PublicSegmentedTabsProps<TValue extends string = string> {
   className?: string;
   items: PublicSegmentedTabItem<TValue>[];
   listClassName?: string;
-  /**
-   * Fires on every click of a tab, after `onValueChange`. The `wasActive` flag
-   * reports whether the clicked tab was already the active tab *before* the
-   * click, so callers can distinguish switching to a tab (`false`) from
-   * re-clicking the tab you are already on (`true`). This is computed at
-   * pointer-down on desktop because Radix activates triggers on focus — a
-   * separate event that updates `value` before the click handler runs.
-   */
   onItemSelect?: (
     item: PublicSegmentedTabItem<TValue>,
     meta: { wasActive: boolean },
   ) => void;
   onValueChange?: (value: TValue) => void;
   value: TValue;
-  /**
-   * Mobile rendering for index pages.
-   * - "default": the pill row reflows on every viewport.
-   * - "appGrid": on `< sm` the control collapses into a centered grid of
-   *   app-style rounded-square icons (the shared substance/effects index
-   *   treatment); on `>= sm` it returns to the standard pill row.
-   */
   mobileVariant?: "default" | "appGrid";
-  /**
-   * Classes for the mobile app-grid wrapper (e.g. a negative top margin to seat
-   * the grid under a page header). Only applies when `mobileVariant="appGrid"`.
-   */
   mobileClassName?: string;
 }
 
-/**
- * Mobile app-grid label: a tight, single-line caption under each icon tile.
- */
 function renderMobileFilterLabel(label: ReactNode) {
   return (
     <span className="theme-index-mobile-tab-label block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.625rem] leading-3 font-semibold">
@@ -76,14 +40,6 @@ function renderMobileFilterLabel(label: ReactNode) {
   );
 }
 
-/**
- * Balance the mobile tile rows so the last one is never a lone straggler:
- * five tabs split 3 + 2 rather than 4 + 1, seventeen split 4/4/3/3/3. The
- * grid has eight tracks and every tile spans two, so a row of 3, 2, or 1
- * tiles can start on an odd column and sit centred under the full rows.
- * Returns the explicit column start of every tile so the grid never
- * auto-flows into a left-aligned row.
- */
 const MOBILE_FILTER_COLUMN_START: Record<number, string> = {
   1: "col-start-1",
   2: "col-start-2",
@@ -98,7 +54,6 @@ function getMobileFilterItemPositionClassName(index: number, itemCount: number) 
   const rowCount = Math.ceil(itemCount / 4);
   const baseSize = Math.floor(itemCount / rowCount);
   const wideRows = itemCount % rowCount;
-  // Rows are `baseSize + 1` for the first `wideRows`, then `baseSize`.
   const wideSpan = wideRows * (baseSize + 1);
   const rowSize = index < wideSpan ? baseSize + 1 : baseSize;
   const indexInRow =
@@ -107,15 +62,6 @@ function getMobileFilterItemPositionClassName(index: number, itemCount: number) 
   return MOBILE_FILTER_COLUMN_START[rowStart + indexInRow * 2];
 }
 
-/**
- * Shared segmented tabs for public index pages. Uses the same route-tab
- * construction as the substance article's Dosage & Duration tabs so every
- * "pick one of N views" control on the site is the same object.
- *
- * With `mobileVariant="appGrid"` the substance and effect indexes share one
- * responsive control: an app-style icon grid on small screens that becomes the
- * standard pill row from `sm` up.
- */
 export function PublicSegmentedTabs<TValue extends string = string>({
   ariaLabel,
   className,
@@ -129,11 +75,6 @@ export function PublicSegmentedTabs<TValue extends string = string>({
 }: PublicSegmentedTabsProps<TValue>) {
   const isAppGrid = mobileVariant === "appGrid";
 
-  // Radix activates a trigger on focus (automatic activation), which fires
-  // `onValueChange` and re-renders with the new `value` *before* the trigger's
-  // own `click` event runs. Capture the value at pointer-down — before that
-  // re-render — so `onItemSelect` can tell a first click (switch) from a
-  // re-click of the already-active tab.
   const pressedValueRef = useRef<TValue | null>(null);
 
   const desktopTabs = (
@@ -163,8 +104,6 @@ export function PublicSegmentedTabs<TValue extends string = string>({
             onClick={
               onItemSelect
                 ? () => {
-                    // Fall back to `value` for keyboard activation, where no
-                    // pointer-down fires.
                     const pressedFrom = pressedValueRef.current ?? value;
                     pressedValueRef.current = null;
                     onItemSelect(item, { wasActive: pressedFrom === item.id });
@@ -226,9 +165,6 @@ export function PublicSegmentedTabs<TValue extends string = string>({
                 aria-pressed={isActive}
                 data-state={isActive ? "active" : "inactive"}
                 onClick={() => {
-                  // The mobile button calls `onValueChange` directly (no Radix
-                  // focus activation), so `value` is still the pre-click active
-                  // tab here and reads correctly.
                   const wasActive = item.id === value;
                   onValueChange?.(item.id);
                   onItemSelect?.(item, { wasActive });

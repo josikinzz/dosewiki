@@ -40,12 +40,10 @@ export const siteFeedbackAdapter: FeedbackSourceAdapter<SiteFeedbackQueueItem> =
     emptyQueue: "No site feedback yet.",
     noun: "site feedback",
     itemTitle: (row) => SITE_FEEDBACK_CATEGORY_LABELS[row.category],
-    // The category is the title and urgency its pill, so there is no subtitle to repeat them.
     itemSubtitle: () => null,
     transitioned: (row, statusLabel) =>
       `Moved ${SITE_FEEDBACK_CATEGORY_LABELS[row.category].toLowerCase()} feedback to ${statusLabel}.`,
   },
-  // The pane draws the title, urgency and status; these are the facts under them.
   renderDetail: (row) => (
     <FeedbackFacts
       facts={[

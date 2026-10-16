@@ -1,9 +1,3 @@
-/**
- * The reads locale routes use in place of the English public reads: the cached
- * English record composed with every stored translation. The composition is
- * request-cached only; the `/zh/...` pages are ISR and every publication
- * revalidates its locale paths alongside the English ones.
- */
 import "server-only";
 
 import { cache } from "react";
@@ -43,11 +37,6 @@ import type { ArticleIndexEntry } from "../../src/features/articles/domain/artic
 import { getPostgresClient } from "../postgres/runtime/backend";
 import { readLocalizedPublicationIndex } from "./publicationIndexStore";
 
-/**
- * Resolve stored translations for a small set of independent reader-facing
- * strings. Search uses this to compose locale display fields before ranking,
- * retaining canonical labels and aliases so English queries keep working.
- */
 export async function getLocalizedLeaves(
   values: readonly string[],
   locale: string,
@@ -63,7 +52,6 @@ export async function getLocalizedLeaves(
   );
 }
 
-/** Content identity for process-local projections of these exact source leaves. */
 export async function getLocalizedLeavesRevision(locale: string, hashes: readonly string[]): Promise<string> {
   if (hashes.length === 0 || locale === "en") return "empty";
   const rows = await getPostgresClient().sql<{ revision: string | null }>(
@@ -104,7 +92,6 @@ export const getLocalizedPublicReportBySlug = cache(async (
   return localized.record;
 });
 
-/** One public contributor profile with only its self-authored bio localized. */
 export const getLocalizedPublicContributorByKey = cache(async (
   key: string,
   locale: string,
@@ -119,7 +106,6 @@ export const getLocalizedPublicContributorByKey = cache(async (
   return { ...profile, bio: localized.record.bio };
 });
 
-/** Public contributor profiles with localized bios for lists and profile joins. */
 export const getLocalizedPublicContributorProfiles = cache(async (
   locale: string,
 ): Promise<NormalizedUserProfile[]> => {
@@ -137,7 +123,6 @@ export const getLocalizedPublicContributorProfiles = cache(async (
   }));
 });
 
-/** The reports-index read: every report preview with its stored segments spliced in. */
 export const getLocalizedPublicReports = cache(async (
   locale: string,
 ): Promise<PublicReportPreview[]> => {
@@ -147,7 +132,6 @@ export const getLocalizedPublicReports = cache(async (
   return localized.records;
 });
 
-/** The effects-index read: every effect preview with its stored segments spliced in. */
 export const getLocalizedPublicEffects = cache(async (
   locale: string,
 ): Promise<PublicEffectPreview[]> => {
@@ -157,7 +141,6 @@ export const getLocalizedPublicEffects = cache(async (
   return localized.records;
 });
 
-/** One library article with its stored segments spliced in; blog rows pass through for the loader to refuse. */
 export const getLocalizedPublicArticleBySlug = cache(async (
   slug: string,
   locale: string,
@@ -168,14 +151,12 @@ export const getLocalizedPublicArticleBySlug = cache(async (
   return localized.record;
 });
 
-/** The library index reads producer-owned metadata, never full narrative bodies. */
 export const getLocalizedPublicArticles = cache(async (
   locale: string,
 ): Promise<ArticleIndexEntry[]> => {
   return getPostgresClient().sqlTransaction((client) => readLocalizedPublicationIndex(client, locale));
 });
 
-/** The gallery-index read: every published replication preview with its stored title spliced in. */
 export const getLocalizedPublicGalleryReplications = cache(async (
   locale: string,
 ): Promise<PublicGalleryReplicationPreview[]> => {
@@ -185,7 +166,6 @@ export const getLocalizedPublicGalleryReplications = cache(async (
   return localized.records;
 });
 
-/** One gallery preview for a viewer deep link, with its stored title spliced in. */
 export const getLocalizedPublicGalleryReplicationBySlug = cache(async (
   slug: string,
   locale: string,
@@ -196,7 +176,6 @@ export const getLocalizedPublicGalleryReplicationBySlug = cache(async (
   return localized.record;
 });
 
-/** The permalink read: the full replication record with its stored title spliced in. */
 export const getLocalizedPublicReplicationBySlug = cache(async (
   slug: string,
   locale: string,
@@ -207,7 +186,6 @@ export const getLocalizedPublicReplicationBySlug = cache(async (
   return localized.record;
 });
 
-/** Localize already canonically joined contributor works without changing credit identity. */
 export async function localizeContributorReplications(
   replications: readonly ReplicationWithUrl[],
   locale: string,
@@ -217,7 +195,6 @@ export async function localizeContributorReplications(
   return localized.records;
 }
 
-/** Join on canonical report identity, localize details, then derive contributor cards. */
 export const getLocalizedReportsByContributor = cache(async (
   profile: NormalizedUserProfile,
   locale: string,
@@ -246,7 +223,6 @@ export const getLocalizedReportsByContributor = cache(async (
   );
 });
 
-/** Join credits by canonical effect slug, then project only localized display fields. */
 export const getLocalizedEffectArticlesByContributor = cache(async (
   profile: NormalizedUserProfile,
   locale: string,
@@ -259,14 +235,6 @@ export const getLocalizedEffectArticlesByContributor = cache(async (
     .sort((left, right) => left.name.localeCompare(right.name));
 });
 
-/**
- * English effect names to their stored translations, for the surfaces that
- * print an effect's name beside a replication: showcase chips and captions,
- * viewer subjects, the permalink's "Represents" line. An effect's name is the
- * `name` leaf of its record, so this reads the row the effect heading renders
- * from and the chip can never disagree with the article. A name the store
- * lacks maps to itself; English asks the store nothing.
- */
 export async function getLocalizedEffectNames(
   names: readonly string[],
   locale: string,

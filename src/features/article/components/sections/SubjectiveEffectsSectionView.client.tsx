@@ -38,7 +38,6 @@ interface SubjectiveEffectsSectionViewProps {
     SubstanceArticle,
     "subjective_effects" | "classification" | "title"
   >;
-  /** Called when an effect badge is clicked */
   onSelectEffect?: (effect: string) => void;
   attributionSection?: ReactNode;
   overviewContent: ReactNode;
@@ -46,10 +45,6 @@ interface SubjectiveEffectsSectionViewProps {
   cognitiveNoteContent?: ReactNode;
   sensoryNoteContent: Record<string, ReactNode>;
   comparisonsContent?: ReactNode;
-  /**
-   * Streamed Replication Showcase (a server-rendered slot), drawn as the final
-   * content in Subjective Effects. Absent — the usual case — nothing changes.
-   */
   replicationShowcaseSection?: ReactNode;
 }
 
@@ -61,7 +56,6 @@ const subjectiveEffectsStubText = msg(
   "This subjective effect section is a stub! Meaning it is very brief and potentially incomplete.",
 );
 
-/** Where each family's subcategory notes live. See `EffectNotePathBase`. */
 const PHYSICAL_NOTE_PATH_BASE = ["subjective_effects", "physical"] as const;
 const COGNITIVE_NOTE_PATH_BASE = ["subjective_effects", "cognitive"] as const;
 
@@ -84,7 +78,6 @@ export const SubjectiveEffectsSectionView = memo(
   }: SubjectiveEffectsSectionViewProps) {
     const t = useT();
     const { subjective_effects } = projection;
-    // Track which effect is currently expanded (only one at a time across all categories)
     const [expandedEffect, setExpandedEffect] = useState<string | null>(null);
 
     const toggleEffect = (effectName: string) => {
@@ -97,10 +90,8 @@ export const SubjectiveEffectsSectionView = memo(
       subjective_effects.progressive_stages,
     );
     const hasComparisons = Boolean(comparisonsContent);
-    // section on the page; the computed verdict below decides the banner alone.
     const isFlaggedStub = subjective_effects.is_stub === true;
 
-    // Check if any sensory category has effects
     const hasAnySensory = SENSORY_CATEGORIES.some(({ key }) =>
       hasSenseEffects(
         subjective_effects.sensory[
@@ -109,9 +100,6 @@ export const SubjectiveEffectsSectionView = memo(
       ),
     );
 
-    // Reached only when the section has something to render, so a computed stub
-    // verdict can never paper a banner over an empty section — that case exits
-    // above with the gap notice instead.
     const hasStubNotice =
       isFlaggedStub ||
       countVisibleEffects(subjective_effects) <=
@@ -121,10 +109,6 @@ export const SubjectiveEffectsSectionView = memo(
       projection.classification?.psychoactive_class ?? [],
     );
     const guides = guideClass ? ARTICLE_GUIDES_BY_CLASS[guideClass] : undefined;
-    // The scale grades every substance in the class; the guide is offered only on
-    // the page of the substance it is about. The article carries no slug field,
-    // and its route slug is the slugified title (`Dextromethorphan` ->
-    // `dextromethorphan`), which is what the guide names.
     const guideLine = guides ? (
       <GuideLinkLine
         scale={guides.scale}
@@ -139,9 +123,6 @@ export const SubjectiveEffectsSectionView = memo(
         icon={SUBSTANCE_SECTION_ICONS["subjective-effects"]}
         heading={t("Subjective Effects")}
       >
-        {/* The roadmap note qualifies the whole section, and the stub notice
-          qualifies everything below it, so both lead rather than trail the
-          intro prose. */}
         <SEIRoadmapNotice />
         {hasStubNotice ? (
           <aside
@@ -152,8 +133,6 @@ export const SubjectiveEffectsSectionView = memo(
             <span className="theme-subjective-stub-icon grid size-9 shrink-0 place-items-center rounded-full border sm:size-10">
               <Icon icon="tabler:egg-cracked" size={22} className="shrink-0" />
             </span>
-            {/* No max-width: the copy is one line on a normal article column, and
-              the old 58ch cap wrapped it well before the container ran out. */}
             <p className="theme-subjective-stub-copy text-sm font-medium leading-6 [text-wrap:pretty]">
               {t(subjectiveEffectsStubText)}
             </p>
@@ -162,9 +141,7 @@ export const SubjectiveEffectsSectionView = memo(
 
         {overviewContent}
 
-        {/* Full-width stacked layout: Physical, Cognitive, Visual, Auditory, other senses */}
         <div className="space-y-8">
-          {/* Physical Effects */}
           {hasPhysical && (
             <ArticleSectionGroup
               heading={t("Physical")}
@@ -186,7 +163,6 @@ export const SubjectiveEffectsSectionView = memo(
             </ArticleSectionGroup>
           )}
 
-          {/* Cognitive Effects */}
           {hasCognitive && (
             <ArticleSectionGroup
               heading={t("Cognitive")}
@@ -208,7 +184,6 @@ export const SubjectiveEffectsSectionView = memo(
             </ArticleSectionGroup>
           )}
 
-          {/* Progressive Stages */}
           {hasProgressiveStages && subjective_effects.progressive_stages && (
             <ArticleSectionGroup
               heading={t("Progressive Stages")}
@@ -231,9 +206,6 @@ export const SubjectiveEffectsSectionView = memo(
                         name={stageName}
                         note={stageData.note}
                         isExpanded={expandedEffect === stageName}
-                        // Stage keys are article data — "1. Taking Off" carries a
-                        // dot that would split the path — so the path is built,
-                        // never interpolated.
                         notePath={buildFieldPath(
                           "subjective_effects",
                           "progressive_stages",
@@ -249,7 +221,6 @@ export const SubjectiveEffectsSectionView = memo(
             </ArticleSectionGroup>
           )}
 
-          {/* Sensory categories - Visual, Auditory, then others */}
           {SENSORY_CATEGORIES.map(
             ({ key, label: rawLabel, icon: senseIcon }) => {
               const label = t(rawLabel);
@@ -288,7 +259,6 @@ export const SubjectiveEffectsSectionView = memo(
             },
           )}
 
-          {/* Comparisons */}
           {hasComparisons && (
             <ArticleSectionGroup
               heading={t("Comparisons")}
@@ -305,10 +275,6 @@ export const SubjectiveEffectsSectionView = memo(
 
         {attributionSection}
 
-        {/* Further reading closes the section: it points away from the page, so
-          it belongs after the effects and their credit rather than above the
-          prose. The roadmap note stays at the top, where it qualifies
-          everything below it. */}
         {guideLine}
 
         {replicationShowcaseSection ?? null}

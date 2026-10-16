@@ -23,7 +23,6 @@ import {
 } from "./changeLogModel";
 import type { ChangeLogController } from "./useDevModeChangeLog";
 
-/** Articles an open save lists before folding the rest behind a count. */
 const OPEN_ARTICLE_CAP = 6;
 
 type ChangeLogEntryRowProps = {
@@ -31,11 +30,8 @@ type ChangeLogEntryRowProps = {
   summary: EntrySummary;
   isExpanded: boolean;
   onToggle: (id: string) => void;
-  /** The saver's display name, or null when the save carries no stamp. */
   submitter: string | null;
-  /** The save came with the site's bundled archive and is not in the server history. */
   archived: boolean;
-  /** The article the list is filtered to, so an open save can show only its part. */
   filterSlug: string | null;
   search: string;
   feedback: ChangeLogController["entryFeedback"];
@@ -57,13 +53,6 @@ function LineCounts({ added, removed }: { added: number; removed: number }) {
   );
 }
 
-/**
- * One save: the whole summary line is the disclosure for its diff (the
- * heading wraps the button, the accordion pattern). Opening it shows the
- * articles it touched, with a filter and a public link for each, the diff
- * actions, and the diff itself, cut to the filtered article's part when the
- * list is filtered to one.
- */
 function ChangeLogEntryRowComponent({
   entry,
   summary,
@@ -91,7 +80,6 @@ function ChangeLogEntryRowComponent({
   const diffText = showSlice ? slice : entry.markdown;
   const shownArticles = allArticles ? entry.articles : entry.articles.slice(0, OPEN_ARTICLE_CAP);
   const hiddenArticles = entry.articles.length - shownArticles.length;
-  // One record to open: the only article, or the one the list is filtered to.
   const editable = entry.articles.length === 1 ? entry.articles[0] : filteredArticle;
 
   return (

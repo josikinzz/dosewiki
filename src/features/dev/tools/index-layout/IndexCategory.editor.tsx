@@ -75,7 +75,6 @@ function LayoutSession({ type, group, close }: { type: LayoutType; group: Dosage
       </ContextualEditorPanel>
     );
   }
-  // Keyed on the revision: loading the latest version starts the draft again from it.
   return <LayoutBody key={source.revision ?? 0} type={type} initial={source} group={group} close={close} reloadLatest={result.reload} />;
 }
 

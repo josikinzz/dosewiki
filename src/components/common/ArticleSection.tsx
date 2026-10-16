@@ -17,21 +17,7 @@ import { articleSectionAdornmentClassName } from "./articleSectionLayout";
 
 type ArticleSectionSpacing = "article" | "effect" | "none";
 
-// The two page-level spacings also defer offscreen rendering
-// (`.theme-offscreen-defer`, utilities-theme.css): a long article restyles in
-// a fraction of the time when sections outside the viewport skip style,
-// layout, and paint. "none" wraps inline groups that may sit inside other
-// containment scopes, so it stays undeferred.
-//
-// "article" carries no top padding: ArticleLayout's movement containers own
-// inter-section spacing, and a section-level `pt` there stacked on top of the
-// flex gap, producing a dead band before every heading. `scroll-mt` absorbs
-// the sticky header (and the mobile TOC strip) for anchor navigation, so it
-// stays generous even though the padding is gone.
 const articleSectionSpacingClasses = {
-  // "article" uses the reader-spacing flow class (utilities-typography.css) in place of
-  // a fixed `space-y-6`: same 1.5rem gap by default, and the paragraph-spacing axis can
-  // re-space the reading surface without touching this file.
   article: "theme-article-flow scroll-mt-20 theme-offscreen-defer",
   effect: "space-y-6 pt-6 scroll-mt-24 theme-offscreen-defer",
   none: "",
@@ -278,11 +264,6 @@ export type ArticleInfoCardProps = Omit<
   icon?: IconName;
   iconClassName?: string;
   title: ReactNode;
-  /**
-   * Sits immediately after the title and outside its truncation, for marks that
-   * qualify the whole card — a citation cluster covering every row, say — and so
-   * must survive a narrow viewport clipping a long title.
-   */
   titleAdornment?: ReactNode;
   titleClassName?: string;
   tone?: ArticleInfoCardTone;
@@ -454,9 +435,6 @@ export type ArticleSectionStateProps = Omit<
   title?: ReactNode;
 };
 
-// The consumer renders these through its own `t`: this module has no client
-// boundary of its own, so the copy stays a catalog key here and the render
-// site passes the translated `title`/`description` (see ReagentSection).
 const articleSectionStateDefaults = {
   loading: {
     icon: "lucide:loader-circle",

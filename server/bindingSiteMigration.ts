@@ -67,10 +67,6 @@ function articleAuditItem(article: Record<string, unknown> & {
   };
 }
 
-/**
- * Read-only, bounded article audit. It exposes only migration diagnostics, not
- * complete article documents, so dry runs do not need a write credential.
- */
 export const auditArticlesPage = query({
   args: {
     cursor: v.optional(v.string()),
@@ -110,11 +106,6 @@ export const auditArticlesPage = query({
   },
 });
 
-/**
- * Canonicalize one bounded page. Conflicting or malformed dual-field records
- * are reported and skipped; every other patch is computed from the document
- * read in this transaction and writes only the pharmacology field.
- */
 export const migrateArticlesPage = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -224,7 +215,6 @@ export const migrateArticlesPage = mutation({
   },
 });
 
-/** Citation evidence remains protected even for read-only migration audits. */
 export const auditEvidencePage = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -289,7 +279,6 @@ export const auditEvidencePage = query({
   },
 });
 
-/** Migrate only exact parsed evidence paths; unsupported legacy maps are skipped. */
 export const migrateEvidencePage = mutation({
   args: {
     apiKey: v.optional(v.string()),

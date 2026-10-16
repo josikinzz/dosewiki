@@ -1,20 +1,3 @@
-/**
- * OKLCH chroma arithmetic for the saturation appearance axis.
- *
- * The axis's model: a *level* in 0..1 places a colour's chroma relative to the
- * most chroma sRGB can hold at that colour's own lightness and hue —
- * `C = level × Cmax(L, H)`. Lightness and hue never move. Levels are what make
- * "the same saturation" comparable across hues: a flat chroma multiplier means
- * something different at cyan's lightness than at amber's, a level does not.
- *
- * Two consumers share this module: `scripts/build/generateChromaCss.ts` bakes
- * per-colourway authored levels into `public/appearance-chroma.css` at build
- * time, and `AppearanceAxes` previews swatches and paints slider tracks live.
- * It lives in `src/theme/` deliberately — the token audit exempts this
- * directory, and the palette's other colour policy already lives here.
- */
-
-
 const enum Channel {
   R = 0,
   G = 1,
@@ -32,7 +15,6 @@ function linearToSrgb(value: number): number {
   return value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055;
 }
 
-/** Parse `#rgb`, `#rrggbb`, `rgb(r g b …)` or `rgb(r, g, b …)`; null otherwise. */
 export function parseColorLiteral(literal: string): Rgb | null {
   const trimmed = literal.trim();
   if (trimmed.startsWith("#")) {
@@ -89,7 +71,6 @@ function inGamut(l: number, c: number, h: number): boolean {
   return rgb.every((value) => value >= -0.0002 && value <= 1.0002);
 }
 
-/** The most chroma sRGB can hold at this lightness and hue, by bisection. */
 export function maxChroma(l: number, h: number): number {
   let low = 0;
   let high = 0.45;
@@ -101,7 +82,6 @@ export function maxChroma(l: number, h: number): number {
   return low;
 }
 
-/** Below this chroma a literal is treated as colourless and never rescaled. */
 export const ACHROMATIC_CHROMA = 0.005;
 
 export function isChromaticLiteral(literal: string): boolean {
@@ -109,10 +89,6 @@ export function isChromaticLiteral(literal: string): boolean {
   return oklch !== null && oklch.c >= ACHROMATIC_CHROMA;
 }
 
-/**
- * Where a colour already sits, as a level in 0..1. Achromatic colours have no
- * meaningful level, and this returns 0 for them.
- */
 export function authoredLevel(literal: string): number {
   const oklch = toOklch(literal);
   if (!oklch) return 0;
@@ -120,7 +96,6 @@ export function authoredLevel(literal: string): number {
   return ceiling > 0.001 ? Math.min(1, oklch.c / ceiling) : 0;
 }
 
-/** Same L, same H, chroma re-seated at `level` of the gamut ceiling, as hex. */
 export function atLevel(literal: string, level: number): string {
   const oklch = toOklch(literal);
   if (!oklch || oklch.c < ACHROMATIC_CHROMA) return literal;
@@ -134,18 +109,6 @@ export function atLevel(literal: string, level: number): string {
   return `#${channel(linear[Channel.R])}${channel(linear[Channel.G])}${channel(linear[Channel.B])}`;
 }
 
-/**
- * The Pro half's representative seed: `--ei-accent`, the base step of the Pro
- * ramp — the link colour every other `--ei-*` accent step is derived around,
- * and the seed Pro's own contrast budgets are stated against. Both the CSS
- * gain denominator (`chromaStylesheet.ts`) and the saturation slider's rail
- * and tick (`AppearanceAxes.tsx`) read this one pick, so the level the slider
- * calls "authored" is exactly the level at which the emitted Pro block's gain
- * resolves to 1 — the two cannot diverge.
- *
- * Null when the ramp does not declare the seed — the same gate block emission
- * uses, so a slider tick can never sit over a block that was never emitted.
- */
 export function proAccentRepresentativeSeed(
   pro: {
     readonly light: Readonly<Record<string, string>>;

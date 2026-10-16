@@ -47,21 +47,6 @@ import {
 import { reagentTestDocumentValidator } from "./reagentTestContract";
 import { changeProposal, inviteCode, membership } from "./lib/accessSchemaValidators";
 
-/**
- * Native document schema for DoseWiki.
- * 
- * Articles are stored as complete documents with the full SubstanceArticle structure.
- * 
- * We use a permissive schema here because:
- * 1. The actual data has many optional fields and variations
- * 2. Zod validation happens on the frontend before display
- * 3. This avoids constant schema updates as data evolves
- * 
- * The frontend's Zod schema (src/schema/substance.schema.ts) is the source of truth
- * for type validation.
- */
-
-
 const generatedPublicationProfile = v.union(
   v.literal("summary"),
   v.literal("dosage_duration"),
@@ -100,14 +85,9 @@ const contributorProfile = v.object({
   avatarStorageId: v.optional(v.string()),
   avatarR2Key: v.optional(v.string()),
   avatarUrl: v.optional(v.string()),
-  // Immutable-current avatar identity used by the reviewed identity/social
-  // projection's exact expected-before CAS. Optional for legacy profiles.
   avatarSha256: v.optional(v.string()),
   avatarProvenance: v.optional(v.string()),
   bio: v.string(),
-  // Free-text contributor title shown on the public profile ("Founder",
-  // "Former Dev", "Replication Artist"). Carried over from the Effect Index
-  // person records; unrelated to the admin/editor/viewer authorization role.
   role: v.optional(v.string()),
   links: v.array(
     v.object({
@@ -116,36 +96,11 @@ const contributorProfile = v.object({
     }),
   ),
   membershipEmail: v.optional(v.string()),
-  // Partial curation of the contributor's replication grid. Listed replication
-  // slugs render first, in exactly this order; everything else the contributor
-  // owns follows in the existing default sort. Slugs that no longer resolve to
-  // a `replications` row are pruned on write and ignored on read, so a deleted
-  // replication cannot leave a hole in the ordering.
   replicationOrder: v.optional(v.array(v.string())),
-  // Same partial-curation contract for the contributor's trip reports, against
-  // `tripReports` slugs.
   reportOrder: v.optional(v.array(v.string())),
-  // The contributor's opt-out from the public /replications gallery. Absent
-  // means included; `false` is never stored (the write clears the field
-  // instead). This gates only the gallery corpus read — effect-article
-  // sections, substance showcases, profile pages, and permalinks still show
-  // the works.
   exclude_from_gallery: v.optional(v.boolean()),
-  // Staff-maintained memorial/showcase marker. Absent means a normal profile;
-  // `false` is never stored (the write clears the field instead). Renders the
-  // "Archival profile" notice on the public page. Admin-only write path
-  // (`saveProfileAsEditor`); the self-serve save cannot touch it.
   archival: v.optional(v.boolean()),
-  // Editorial endorsement of a replication artist. Absent means an ordinary
-  // artist; `false` is never stored (the write clears the field instead).
-  // Stars the artist's name on the /replications index and lifts their rail
-  // above the rest of the default artist order. Distinct from
-  // `contributorReplicatorVerifications`, which records whether a profile
-  // really is the replicator; this records that dose.wiki vouches for the
-  // work. Admin-only write path, like `archival`.
   approved_replicator: v.optional(v.boolean()),
-  // Signed staff commentary ("Editor's note") rendered under the public bio.
-  // Absent renders nothing. Admin-only write path, like `archival`.
   staffNote: v.optional(
     v.object({
       markdown: v.string(),
@@ -155,17 +110,12 @@ const contributorProfile = v.object({
   createdAt: v.string(),
   updatedAt: v.string(),
   updatedBy: v.optional(v.string()),
-  // A losslessly merged source profile remains stored under its immutable ID.
-  // Public reads collapse it into this canonical target; rollback clears these
-  // fields and restores every retargeted association from the merge journal.
   mergedIntoProfileId: v.optional(v.id("contributorProfiles")),
   mergedIntoKey: v.optional(v.string()),
   mergedByOperationId: v.optional(v.string()),
   mergedAt: v.optional(v.number()),
 });
 
-// Lossless Effect Index source records retained for a future EI-specific
-// deployment. This table is intentionally not part of any DoseWiki read path.
 const effectIndexArchiveRecord = v.object({
   kind: v.string(),
   key: v.string(),
@@ -173,26 +123,6 @@ const effectIndexArchiveRecord = v.object({
   importedAt: v.number(),
 });
 
-// Substance-article safety banner presets. One document per preset; the shared
-// pure rules live in `src/data/substanceWarningBanners.ts` and are imported by
-// both `server/warningBanners.ts` and the /dev Banner Studio.
-//
-// Render scope is editorially explicit: `enabled` plus either `allSubstances`
-// or an `enabledSlugs` entry. Nothing is derived from free-text classification
-// strings. `allSubstances` is optional only so rows written before sitewide
-// scope was introduced remain readable; every new write stores it.
-//
-// Four columns were dropped and must not come back. `label` was a third name
-// for a banner beside `key` and `headline`, and three names for one thing was
-// the single largest source of confusion in the Studio; `key` is now both the
-// identity and the editor-facing name. `priority` was a numeric tiebreak nobody
-// could reason about under a two-banner cap, so ordering is tone then key.
-// `links` is a removed feature. `candidateMatchers` was a search input
-// persisted as state: `searchWarningBannerTargets` matches substance names and
-// class strings live, so the stored copy only went stale.
-//
-// Every string a reader sees is stored here, so rewording a banner is an edit
-// rather than a deploy.
 const warningBannerPreset = v.object({
   key: v.string(),
   tone: v.union(v.literal("danger"), v.literal("unsafe"), v.literal("caution")),
@@ -228,10 +158,8 @@ export default defineSchema({
     nextAttemptAt: v.number(),
     attempts: v.number(),
     receipts: v.array(v.any()),
-    /** Set when delivery stopped after the attempt cap or a permanent rejection; the row stays for inspection until the next commit re-pends it. */
     deadLetteredAt: v.optional(v.number()),
   }).index("by_key", ["key"]).index("by_due", ["pending", "nextAttemptAt"]).index("by_fresh", ["pending", "attempts", "nextAttemptAt"]),
-  // Main substance index table - each document is a complete SubstanceArticle
   substanceIndex: defineTable(substanceArticle)
     .index("by_title", ["title"])
     .index("by_article_id", ["id"])
@@ -340,26 +268,21 @@ export default defineSchema({
   }).index("by_key", ["key"])
     .index("by_change", ["changeId"]),
 
-  // Point-in-time ProtestKit snapshot keyed by canonical DoseWiki slug.
   reagentTests: defineTable(reagentTestDocumentValidator)
     .index("by_slug", ["slug"])
     .index("by_snapshot_hash", ["snapshotHash"]),
 
-  // Changelog table - tracks all article changes
   changelog: defineTable(changelogEntry)
     .index("by_entry_id", ["entryId"])
     .index("by_created_at", ["createdAt"])
     .index("by_submitted_by", ["submittedBy"]),
 
-  // Article source files - scraped content per substance (read-only after migration)
   articleSources: defineTable(articleSource)
     .index("by_slug", ["slug"]),
 
-  // Prompts - editable system and section prompts
   prompts: defineTable(prompt)
     .index("by_key", ["key"]),
 
-  // Quote documents - extracted quotes per substance per section
   quotes: defineTable(quote)
     .index("by_slug_section", ["slug", "section"])
     .index("by_section", ["section"]),
@@ -370,23 +293,16 @@ export default defineSchema({
     .index("by_slug_claim", ["slug", "claimKey"])
     .index("by_status", ["status"]),
 
-  // Successful reviewed section publications. The proposal ID index is the
-  // idempotency boundary and the row is inserted in the article patch transaction.
   generatedPublicationOperations: defineTable(generatedPublicationOperation)
     .index("by_proposal_id", ["proposalId"])
     .index("by_slug_created", ["slug", "createdAt"]),
 
-  // Trip reports - imported from EffectIndex
   tripReports: defineTable(tripReport)
     .index("by_slug", ["slug"])
     .index("by_owner_email", ["owner_email"])
     .index("by_featured", ["featured"])
     .index("by_subject_profile_key", ["subject.profile_key"]),
 
-  // Denormalized (report, lowercase substance name) pairs so article renders
-  // can find a substance's reports through an index instead of a table scan.
-  // Maintained by server/lib/tripReportSubstanceIndex.ts; backfilled by
-  // tripReports:backfillSubstanceIndex.
   tripReportSubstances: defineTable({
     report_id: v.id("tripReports"),
     name_lower: v.string(),
@@ -394,20 +310,17 @@ export default defineSchema({
     .index("by_name_lower", ["name_lower"])
     .index("by_report", ["report_id"]),
 
-  // Private public-submission intake. Rows stay editor-only until promoted into tripReports.
   tripReportSubmissions: defineTable(tripReportSubmission)
     .index("by_status_created", ["status", "created_at"])
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"]),
 
-  // Private per-article "report an issue / suggest an edit" intake. Editor-only; never rendered publicly.
   articleFeedback: defineTable(articleFeedback)
     .index("by_status_created", ["status", "created_at"])
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"])
     .index("by_substance", ["substance_slug", "created_at"]),
 
-  // Glossary submissions and append-only reaction choices never mutate translations.
   glossaryFeedback: defineTable(glossaryFeedbackFields)
     .index("by_locale_created", ["locale", "created_at"])
     .index("by_visitor_id", ["visitor", "id"]),
@@ -415,15 +328,11 @@ export default defineSchema({
     .index("by_version_visitor", ["locale", "term", "version", "visitor", "created_at"])
     .index("by_visitor_id", ["visitor", "id"]),
 
-  // Private site-wide general feedback intake. Editor-only; never rendered publicly.
   siteFeedback: defineTable(siteFeedback)
     .index("by_status_created", ["status", "created_at"])
     .index("by_created_at", ["created_at"])
     .index("by_public_id", ["id"]),
 
-  // Private mailing-list signup intake shared by the four public sites
-  // (josiekins.xyz, dose.wiki, effectindex.com, mindstate.design). Rows are
-  // written only through the public /subscribe HTTP endpoint; editor-only reads.
   mailingListSubscribers: defineTable({
     email: v.string(),
     list: v.union(
@@ -445,25 +354,18 @@ export default defineSchema({
     .index("by_email_list", ["email", "list"])
     .index("by_list_status", ["list", "status"]),
 
-  // Subjective effect articles - imported from EffectIndex
   subjectiveEffects: defineTable(subjectiveEffect)
     .index("by_slug", ["slug"])
     .index("by_featured", ["featured"]),
 
-  // EffectIndex articles - intensity scales, substance analyses, methodology
   effectIndexArticles: defineTable(effectIndexArticle)
     .index("by_slug", ["slug"])
-    // Writing tab listings: one kind, one status, newest publication date first.
-    // Legacy rows carry neither `kind` nor `status`, so they sort under the
-    // undefined prefix rather than under "article"/"published".
     .index("by_kind_status_date", ["kind", "status", "publicationDate"])
     .index("by_featured", ["featured"]),
 
-  // Raw Effect Index people, profiles, and posts. Never render from this table.
   effectIndexArchive: defineTable(effectIndexArchiveRecord)
     .index("by_kind_key", ["kind", "key"]),
 
-  // Video and image replications of effects
   replications: defineTable(replication)
     .index("by_effect", ["effect_slug"])
     .index("by_slug", ["slug"])
@@ -473,15 +375,11 @@ export default defineSchema({
     .index("by_taxonomy_record_key", ["taxonomy_record_key"])
     .index("by_replication_status", ["replication_status"]),
 
-  // Full Reddit post/submitter provenance stays out of hot gallery documents.
-  // One record may retain several posts and posters for the same media payload.
   replicationSourceAttribution: defineTable(replicationSourceAttribution)
     .index("by_replication_id", ["replication_id"])
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_source_sha256", ["source_sha256"]),
 
-  // Additive identity/social projection. These records stay separate from the
-  // hot gallery row so legacy replications remain valid and cheap to paginate.
   replicationIdentityAttributions: defineTable(replicationIdentityAttributionValidator)
     .index("by_replication_id", ["replication_id"])
     .index("by_poster_profile_id", ["poster_profile_id"])
@@ -492,8 +390,6 @@ export default defineSchema({
     .index("by_profile_id_and_normalized_alias", ["profile_id", "normalized_alias"])
     .index("by_normalized_alias", ["normalized_alias"]),
 
-  // Precomputed complete identity snapshots let alias CAS remain exact without
-  // scanning thousands of contributor profiles inside one mutation.
   contributorIdentityTokenSnapshots: defineTable(contributorIdentityTokenSnapshotValidator)
     .index("by_snapshot_digest_and_normalized_token", ["snapshot_digest", "normalized_token"]),
 
@@ -537,47 +433,30 @@ export default defineSchema({
   contributorProfileMergeItems: defineTable(contributorProfileMergeItemValidator)
     .index("by_operation_id_and_ordinal", ["operation_id", "ordinal"]),
 
-  // Reversible, evidence-bound consolidation records for same-work duplicates.
-  // Media and source rows remain intact; only one replication stays public.
   replicationDuplicateReconciliations: defineTable(replicationDuplicateReconciliation)
     .index("by_component_id", ["component_id"])
     .index("by_keeper_replication_id", ["keeper_replication_id"])
     .index("by_suppressed_replication_id", ["suppressed_replication_id"]),
 
-  // One full dating/provenance dossier per replication. The compact date_info
-  // summary lives on `replications`; this table keeps the evidence out of hot
-  // gallery reads while remaining available for later editorial/public UI.
   replicationDateResearch: defineTable(replicationDateResearch)
     .index("by_replication_id", ["replication_id"]),
 
-  // Full editorial rationales stay out of the hot gallery documents. Evidence
-  // is retained per campaign digest so a later classification does not erase
-  // the review trail that preceded it.
   replicationTaxonomyEvidence: defineTable(replicationTaxonomyEvidence)
     .index("by_replication_id", ["replication_id"])
     .index("by_replication_digest", ["replication_id", "taxonomy_source_digest"])
     .index("by_source_catalog_id", ["source_catalog_id"])
     .index("by_taxonomy_record_key", ["taxonomy_record_key"]),
 
-  // Artist Pages derive from credited artist labels rather than Contributor
-  // Profile ownership. This table therefore keys the classification to the
-  // normalized Artist Page identity and remains valid for unclaimed artists.
   replicationArtistTaxonomy: defineTable(replicationArtistTaxonomy)
     .index("by_key", ["key"]),
 
-  // Per-substance Replication Showcase curation; see the validator's note.
   substanceGalleries: defineTable(substanceGallery)
     .index("by_substance", ["substance_slug"]),
 
-  // Reusable named replication playlists, applied into a gallery's draft; see
-  // the validator's note. Nothing here publishes on its own.
   replicationPlaylists: defineTable(replicationPlaylist)
     .index("by_key", ["key"])
     .index("by_owner_email", ["owner_email"]),
 
-  // Append-only journal of what a profile, playlist, or trip report looked
-  // like before each write. A member editing or deleting their own things
-  // never destroys the prior version; it moves here. Read by admins only.
   contentRevisions: defineTable({
     table: v.union(
       v.literal("contributorProfiles"),
@@ -621,11 +500,6 @@ export default defineSchema({
     .index("by_display_name", ["displayName"])
     .index("by_membership_email", ["membershipEmail"]),
 
-  // Category layout - stores the manually curated psychoactive index structure
-  // as a single document containing the full layout configuration.
-  // The public /substances page still reads this table; indexLayouts.save and
-  // bulkImport mirror psychoactive layouts into it (server/lib/categoryLayoutMirror.ts).
-  // Durable fix: point public reads at the indexLayouts table, then retire this mirror.
   categoryLayout: defineTable({
     version: v.number(),
     categories: v.array(v.object({
@@ -635,34 +509,18 @@ export default defineSchema({
       sections: v.array(v.object({
         key: v.string(),
         label: v.string(),
-        drugs: v.array(v.string()),  // Just slugs - names resolved client-side
+        drugs: v.array(v.string()),
       })),
-      drugs: v.array(v.string()),    // Top-level drugs not in sections
-      columns: v.optional(v.any()),  // Responsive column configuration
+      drugs: v.array(v.string()),
+      columns: v.optional(v.any()),
     })),
   }),
 
-  // Site configuration - About page content and other global settings.
-  // One document per well-known `key`; every payload field is optional because
-  // a document only carries the fields its own key means.
-  //
-  //   "about"                              → aboutMarkdown / aboutSubtitle / founderProfileKeys / translationCredits
-  //   "effect-index-featured-replications" → featuredReplicationSlugs
-  //   "safety-banner-display"              → bannerIconSize
-  //
-  // The featured list lives here rather than as a `featured` column on
-  // `replications` because it is an *ordered* editorial selection, not a
-  // property of a row: the Effect Index carousel shows these slugs in this
-  // order, and a per-row boolean cannot express the order. It also keeps the
-  // homepage's read to one small document instead of a whole-table scan.
   siteConfig: defineTable({
     key: v.string(),
     aboutMarkdown: v.optional(v.string()),
     aboutSubtitle: v.optional(v.string()),
     founderProfileKeys: v.optional(v.array(v.string())),
-    // Per translation locale, the contributor profiles credited on that
-    // language's public glossary and About mirror, each with one line saying
-    // what they contributed. Validated at the HTTP boundary (translationCredits.ts).
     translationCredits: v.optional(v.record(v.string(), v.array(v.object({
       profileKey: v.string(),
       contribution: v.string(),
@@ -673,17 +531,6 @@ export default defineSchema({
     updatedBy: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
-  // Editable site copy. One document per copy block: the prose that public
-  // pages used to hardcode, lifted into Postgres so the /dev Copy Studio can edit
-  // it without a deploy. `key` is the stable lookup id used by the server read
-  // helper; `flavor` scopes a block to one site skin (e.g. "effect-index") and
-  // is absent for blocks shared by every flavor.
-  //
-  // `kind` picks which payload field is authoritative:
-  //   "markdown" | "plain" → `body`
-  //   "list"               → `items`
-  // `label` and `group` are editor-facing only; they drive the Copy Studio rail
-  // and never reach a reader.
   copyBlocks: defineTable({
     key: v.string(),
     flavor: v.optional(v.string()),
@@ -698,21 +545,13 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_group", ["group"]),
 
-  // Substance-article safety banner presets; see the validator's note. Scope is
-  // explicit: a slug list or the deliberate `allSubstances` switch.
   warningBannerPresets: defineTable(warningBannerPreset).index("by_key", ["key"]),
 
-  // Canonical molecule depictions for public substance/class pages and the /dev
-  // Molecules editor. One document per slug. `svg` is the live brand-palette
-  // display asset; `molblock` is the re-editable source (coords + stereo).
-  // Static /molecules/*.svg files are retained only as a read fallback.
   moleculeOverrides: defineTable({
     slug: v.string(),
     svg: v.string(),
     molblock: v.string(),
     smiles: v.optional(v.string()),
-    // Bond indices (into the molblock's bond block) drawn with the bold line
-    // weight in every renderer. Absent/empty means no bold bonds.
     boldBonds: v.optional(v.array(v.number())),
     source: v.optional(
       v.union(v.literal("seeded"), v.literal("editor"), v.literal("template")),
@@ -721,21 +560,14 @@ export default defineSchema({
     updatedBy: v.optional(v.string()),
   }).index("by_slug", ["slug"]),
 
-  // Editor-authored plain-scaffold orientation templates. These are separate
-  // from both substance/class depiction overrides and public generic class
-  // structures; saving one never changes a published molecule.
   moleculeClassTemplates: defineTable({
     classKey: v.string(),
     molblock: v.string(),
-    // Bond indices drawn with the bold line weight while editing the template.
-    // Editor-only cosmetics: applies copy coordinates, never bold, to members.
     boldBonds: v.optional(v.array(v.number())),
     updatedAt: v.number(),
     updatedBy: v.optional(v.string()),
   }).index("by_class_key", ["classKey"]),
 
-  // Index layouts - stores all category/classification index definitions
-  // Replaces the bundled JSON files in data/substances/
   indexLayouts: defineTable({
     type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
     version: v.number(),
@@ -765,9 +597,6 @@ export default defineSchema({
     .index("by_proposed_by_status", ["proposedBy", "status"])
     .index("by_created_at", ["createdAt"]),
 
-  // Who is working an Inbox item whose own record has no Reviewing status
-  // (citation articles, change proposals, review recommendations). Trip
-  // reports and feedback claim through their status and decision log instead.
   inboxClaims: defineTable({
     source: v.union(v.literal("citations"), v.literal("proposals"), v.literal("review-recommendations")),
     item_id: v.string(),

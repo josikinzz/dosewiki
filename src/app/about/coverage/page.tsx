@@ -14,11 +14,6 @@ import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 
 export const revalidate = 3600;
 
-/**
- * Unlisted by design. The page is reachable at its address but carries
- * `noIndex`, is absent from `STATIC_PUBLIC_PATHS` so it never enters the
- * sitemap, and nothing links to it — including the About page it sits under.
- */
 export async function generateMetadata() {
   const copy = await getCopyByKeys([flavoredCopyKey("seo-about-coverage-description")]);
 

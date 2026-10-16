@@ -1,14 +1,3 @@
-/**
- * Pending feedback count for the `/dev` tab rail badge.
- *
- * Its own endpoint rather than a field on either queue read, because the
- * badge is fetched by the shell on every `/dev` visit while the queues are
- * only fetched when the Feedback tab is open. The statuses counted are the
- * models' pending lists, the same rows the queue treats as waiting, so the
- * badge and the queue cannot disagree about what is pending.
- *
- *   GET /api/feedback/pending-count → { article, site, total }
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

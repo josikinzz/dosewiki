@@ -20,7 +20,6 @@ const EditorLauncherSession = lazy(() => import("./EditorLauncherSession"));
 
 export function EditorLauncherProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  // Middleware admits approved editor aliases; the public build substitutes this shell.
   const editorHost = process.env.NEXT_PUBLIC_EDITOR_BUILD === "true" && SITE_FLAVOR === "dosewiki";
   const [identity, setIdentity] = useState<{ role: AppRole | null; email: string | null }>({ role: null, email: null });
   const [mode, setMode] = useState<"view" | "edit">("view");
@@ -29,7 +28,6 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
   const dirty = useRef(new Set<string>());
   const guards = useRef(new Map<string, DraftNavigationGuard>());
   const [, refreshGuards] = useState(0);
-  // Keys of the page's editors with work waiting for review, for the badge.
   const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(() => new Set());
   const setPending = useCallback((key: string, value: boolean) => {
     setPendingKeys((current) => {
@@ -99,15 +97,12 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
     };
   }, [requestLeave]);
   useEffect(() => {
-    // Navigation API cancellation happens before a same-document history
-    // traversal, unlike popstate which fires after React has lost the page.
     type NavigationEvent = Event & {
       destination: { url: string; key: string };
       navigationType: string;
       hashChange: boolean;
     };
     type BrowserNavigation = EventTarget & { traverseTo: (key: string) => unknown };
-    // The installed DOM typings predate this optional browser API.
     const browserWindow = window as unknown as { navigation?: BrowserNavigation };
     const navigation = browserWindow.navigation;
     if (!navigation) return;
@@ -143,7 +138,6 @@ export function EditorLauncherProvider({ children }: { children: ReactNode }) {
     }
     return page?.target;
   }, [targets, pathname]);
-  // Entering edit mode never loses work; leaving it asks first.
   const requestLeaveRef = useRef(requestLeave);
   useEffect(() => { requestLeaveRef.current = requestLeave; }, [requestLeave]);
   const changeMode = useCallback((next: "view" | "edit") => {

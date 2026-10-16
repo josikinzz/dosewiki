@@ -17,8 +17,6 @@ const jurisdictionKey = (value) => value.normalize("NFC").trim().toLowerCase();
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const jsonBytes = (value) => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
 
-// Keep this identical to audit-subsection-citations.mjs: hashes cover the full
-// JSON value, not just reader text, with sorted object keys and ordered arrays.
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -57,8 +55,6 @@ function parseFlags(argv) {
   return flags;
 }
 
-// JSON.parse alone silently overwrites duplicate object keys. Scan the already
-// syntax-checked JSON as well so duplicate raw country keys cannot disappear.
 function rejectDuplicateKeys(text, label) {
   let offset = 0;
   const whitespace = () => { while (/\s/.test(text[offset] ?? "") && offset < text.length) offset++; };
@@ -88,7 +84,7 @@ function rejectDuplicateKeys(text, label) {
           keys.add(key);
           child = `${path}[${JSON.stringify(key)}]`;
           whitespace();
-          offset++; // Colon; JSON.parse already checked syntax.
+          offset++;
         }
         value(child);
         whitespace();
@@ -181,8 +177,6 @@ function referenceMetadata(article, knownAmbiguousIds) {
   const duplicateIds = new Set();
   const unaddressableIndexes = [];
   references.forEach((reference, index) => {
-    // apply-citations.mjs resolves stored references[].id. Legacy source_citations
-    // are discovery metadata, not marker targets; do not invent converted IDs.
     if (!isRecord(reference) || typeof reference.id !== "string" || !reference.id.trim()) {
       unaddressableIndexes.push(index);
       return;
@@ -352,8 +346,6 @@ function main() {
       const history = removalHistory.get(pairKey(slug, country)) ?? [];
       const conflict = group?.rawEntries.length > 1;
       const entry = group && !conflict ? group.rawEntries[0] : null;
-      // Inspect every conflicting value for citation evidence, without treating
-      // the aggregate as cited coverage or selecting a baseline winner.
       const inspected = group ? inspectEntry(conflict ? group.rawEntries.map((item) => item.value) : entry.value, ids, ambiguousIds) : {
         substantiveChars: 0, markerCount: 0, markerIds: [], resolvedMarkerIds: [], danglingMarkerIds: [], ambiguousMarkerIds: [], classification: "absent",
       };
@@ -522,8 +514,6 @@ function main() {
   }));
   files.set("checksums.json", jsonBytes({ algorithm: "sha256", scope: "Every output except checksums.json itself", outputs: checksums() }));
 
-  // Validate all input and compute all artifacts before touching the output tree.
-  // Existing differing artifacts and symlinks are refused, not overwritten.
   const outputDir = resolve(flags.get("out-dir"));
   const pending = [];
   for (const [relative, bytes] of files) {

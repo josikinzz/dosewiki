@@ -2,13 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * Explicit-render Turnstile loader. The widget only mounts when the deployment
- * sets `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (the form checks before rendering this
- * component), so builds without the key ship no Cloudflare script at all.
- * `challenges.cloudflare.com` is allowlisted for script-src/frame-src in
- * `lib/next/cspObservationPolicy.ts`.
- */
 const TURNSTILE_SCRIPT_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -51,7 +44,6 @@ function loadTurnstile(): Promise<TurnstileApi> {
         }
       };
       script.onerror = () => {
-        // Allow a later mount to retry after a transient network failure.
         turnstileLoader = null;
         reject(new Error("Turnstile script failed to load."));
       };
@@ -63,12 +55,7 @@ function loadTurnstile(): Promise<TurnstileApi> {
 
 interface TurnstileWidgetProps {
   siteKey: string;
-  /** Receives the fresh token, or `null` when the token expires or errors. */
   onToken: (token: string | null) => void;
-  /**
-   * Turnstile tokens are single-use: bump this after every completed POST so
-   * the widget issues a fresh challenge for the next submission.
-   */
   resetSignal?: number;
 }
 

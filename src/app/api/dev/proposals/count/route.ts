@@ -1,11 +1,3 @@
-/**
- * Open-queue size for the `/dev` rail badge.
- *
- * Its own endpoint because the shell fetches every badge on each `/dev`
- * visit; the queue list is only fetched when the Queue tab is open.
- *
- *   GET /api/dev/proposals/count -> { submitted }
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

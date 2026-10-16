@@ -1,15 +1,4 @@
 #!/usr/bin/env node
-/**
- * Push a single prompt seed file to Postgres by key.
- *
- * Unlike migrate-prompts-to-data.mjs (which bulk-imports every prompt and
- * would overwrite Postgres-side hand edits to unrelated prompts), this writes
- * exactly one prompt row, then verifies the write by read-back.
- *
- * Usage:
- *   TARGET_POSTGRES_URL="https://..." node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects
- *   node scripts/migrate/push-single-prompt.mjs --key=section_subjective_effects --dry-run
- */
 
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"

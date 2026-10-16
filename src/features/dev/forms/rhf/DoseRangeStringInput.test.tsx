@@ -58,7 +58,6 @@ describe("DoseRangeStringInput", () => {
     await user.click(screen.getByRole("button", { name: "elsewhere" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Not a dose range");
-    // The stored value is exactly what it was; only the draft is unsaved.
     expect(latest()).toEqual({ min: 10, max: 20, unit: "mg" });
     expect(field).toHaveValue("quite a lot");
     expect(field).toHaveAttribute("aria-invalid", "true");

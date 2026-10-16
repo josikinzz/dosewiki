@@ -65,12 +65,6 @@ export const collectDiff = (original: unknown, updated: unknown, segments: strin
 };
 const ensureTrailingNewline = (value: string) => (value.endsWith("\n") ? value : `${value}\n`);
 
-/**
- * Prose ends in exactly one newline for a text diff. Blank lines at the end
- * render as nothing, so a draft that drops them (a textarea trims them) must
- * not show a bare removed line under the paragraph it inserted. Trailing
- * spaces stay: two of them are a Markdown line break.
- */
 const endWithOneNewline = (value: string) => `${value.replace(/\r\n/g, "\n").replace(/\n+$/, "")}\n`;
 
 const stringifyForDiff = (value: unknown) => {

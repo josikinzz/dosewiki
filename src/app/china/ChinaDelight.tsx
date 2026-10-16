@@ -6,11 +6,6 @@ import { AppImage } from "@/components/common/AppImage";
 
 const MOTION_QUERY = "(prefers-reduced-motion: no-preference)";
 
-/**
- * A number that counts up from zero the first time it scrolls into view.
- * Renders the final value immediately when motion is reduced or before
- * hydration, so nothing ever reads as "0 substances".
- */
 export function CountUp({ value, className }: { value: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(value);
@@ -47,11 +42,6 @@ export function CountUp({ value, className }: { value: number; className?: strin
   );
 }
 
-/**
- * The author's sign-off, revealed once the reader has scrolled past the end
- * of the statement. `watch` is the id of the element whose bottom edge marks
- * "read to the end".
- */
 export function Signature({ watch }: { watch: string }) {
   const [seen, setSeen] = useState(false);
 
@@ -78,7 +68,6 @@ export function Signature({ watch }: { watch: string }) {
   );
 }
 
-/** A greeting for whoever opens devtools on this page, which the maintainer will. */
 export function ConsoleGreeting() {
   useEffect(() => {
     console.info(
@@ -90,15 +79,7 @@ export function ConsoleGreeting() {
   return null;
 }
 
-/**
- * Molecules drifting left, endlessly. The row is rendered twice and the track
- * slides by exactly half its width, so the seam never shows. One transform
- * animation; the row is kept short enough for the compositor to own it (a
- * track wider than the GPU texture limit falls back to the main thread).
- * Stands still when motion is reduced. Decorative, hidden from assistive tech.
- */
 export function MoleculeCarousel({ slugs }: { slugs: readonly string[] }) {
-  // About 5s per drawing: a drift, not a scroll.
   const seconds = Math.max(40, slugs.length * 5);
   return (
     <div className="theme-china-carousel relative overflow-hidden opacity-70" aria-hidden="true">

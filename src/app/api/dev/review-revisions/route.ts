@@ -1,18 +1,3 @@
-/**
- * Editor read endpoint for review staleness in `/review`.
- *
- * A review sign-off records the published revision it covered
- * (`editorial_review.reviewed_revision`). This endpoint supplies the other half
- * of the comparison, and the content behind it:
- *
- *   GET /api/dev/review-revisions                         → { ok, revisions: { [slug]: revision } }
- *   GET /api/dev/review-revisions?slug=lsd&since=<rev>    → { ok, slug, revision, publishedRevision, signed, current }
- *
- * The list names each article's current published revision, derived from its
- * stored content so every write path moves it. The per-slug form returns
- * the article at the signed revision and as published now, so the workbench
- * can show only what changed since the sign-off. Both are read-only.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

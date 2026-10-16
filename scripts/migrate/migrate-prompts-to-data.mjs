@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Migrate prompts to Postgres.
- * 
- * This script reads all prompt files (generator prompt and section prompts)
- * and uploads them to the Postgres database.
- * 
- * Prerequisites:
- * 1. Set DATA_BACKEND=postgres and configure an explicit Postgres target
- * 2. Ensure POSTGRES_DIRECT_URL is set in your environment or .env.local
- * 
- * Usage:
- *   node scripts/migrate-prompts-to-data.mjs
- *   node scripts/migrate-prompts-to-data.mjs --dry-run
- */
 
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -76,7 +62,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Create Postgres client
   const client = createDataClient({ target: dataUrl }).client;
 
   console.log("\nImporting prompts to Postgres...");

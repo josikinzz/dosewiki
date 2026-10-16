@@ -8,9 +8,6 @@ interface ReportDossierProps {
   subject: TripReportSubject;
   substances: TripReportSubstance[];
   t: Translate;
-  /** Map of substance name -> public article href, for substances that resolve
-   *  to a known article. Resolved chips link to the article; the rest stay
-   *  static text. */
   substanceLinks?: Record<string, string>;
 }
 
@@ -29,11 +26,6 @@ const FIELD_CONFIG: FieldConfig[] = [
   { key: "setting", label: msg("Setting"), icon: "lucide:map-pin" },
 ];
 
-/**
- * Single quiet "fact sheet" strip combining the substances taken and the
- * subject context. Uses the dark chrome/inset tone so it reads as reference
- * material, visually subordinate to the narrative below it.
- */
 export const ReportDossier = memo(function ReportDossier({
   subject,
   substances,

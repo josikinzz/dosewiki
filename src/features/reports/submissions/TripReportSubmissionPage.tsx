@@ -32,10 +32,6 @@ import {
   type PiruImportedReport,
 } from "./piruReportImport";
 
-// No contributor profile key, avatar URL, or PDF URL: the public form is
-// unauthenticated, so a key would be an unverified claim and the two URLs would
-// let a submitter place a remote image and an outbound link on a published
-// page. An editor assigns attribution when the submission is published.
 type SubjectDraft = {
   name: string;
   trip_date: string;
@@ -158,11 +154,6 @@ function createInitialDraft(): ReportDraft {
 
 type PiruImportNotice = "imported" | "unreadable";
 
-/**
- * Fills the report fields a Piru session carries. Subject details, contact,
- * and the consents are left exactly as they were: the reader gives those on
- * the form. A field the session left empty keeps what the draft had.
- */
 function applyPiruReport(draft: ReportDraft, report: PiruImportedReport, nextId: () => number): ReportDraft {
   const timeline = { ...draft.timeline };
   for (const phase of ["onset", "peak", "offset"] as const) {
@@ -235,7 +226,6 @@ const SubmissionHero = memo(function SubmissionHero() {
 const PIRU_PROMO_MESSAGE =
   "If you log your sessions in {{piru}}, it can remind you to note how you feel as a session goes, then turn those notes into a report that fills in this form.";
 
-/** Shown to readers who did not arrive from Piru; the link opens Piru's entry on the About page. */
 function PiruPromoLine() {
   const t = useT();
   const [before, after = ""] = t(PIRU_PROMO_MESSAGE).split("{{piru}}");
@@ -261,8 +251,6 @@ function TripReportSubmissionForm() {
   const [narrativeMode, setNarrativeMode] = useState<NarrativeMode>("simple");
   const [result, setResult] = useState<SubmissionResult>({ kind: "idle" });
   const [piruNotice, setPiruNotice] = useState<PiruImportNotice | null>(null);
-  // Decided after mount, because only the client sees the fragment: hidden until then, so a
-  // reader arriving from Piru never sees the line flash before the import notice.
   const [showPiruPromo, setShowPiruPromo] = useState(false);
   const piruImportCheckedRef = useRef(false);
   const nextIdRef = useRef(2);
@@ -275,9 +263,6 @@ function TripReportSubmissionForm() {
     pendingFocusRef.current = null;
   }, [draft.substances, draft.timeline]);
 
-  // A Piru session handed over in the fragment (see `piruReportImport`). The
-  // fragment is dropped from the address either way, so the report does not
-  // linger in history or travel with a copied link.
   useEffect(() => {
     if (!SITE_FLAVOR_CONFIG.showPiruLinks || piruImportCheckedRef.current) return;
     piruImportCheckedRef.current = true;

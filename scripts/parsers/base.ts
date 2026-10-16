@@ -1,8 +1,3 @@
-/**
- * Base parsing utilities shared across all source parsers.
- * This file remains the stable public surface for parser callers.
- */
-
 import type { ParserResult, NarrativeContent } from "./types";
 
 export { parseDoseRange, normalizeRoute } from "./base/dose";

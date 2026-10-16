@@ -39,19 +39,10 @@ export type RouteChromeIcon =
   | "dev"
   | "github";
 
-/**
- * One entry in a top-level nav item's dropdown.
- *
- * Children are deliberately addressed by `href` rather than by {@link AppView}: a flavor may
- * point one at a routed subsection, query string, or another site, none of which the in-app
- * view union models. They therefore carry no active state either: the chrome only knows
- * which section the reader is in, not which view within it.
- */
 export interface RouteChromeNavChild {
   id: string;
   label: string;
   href: string;
-  /** `true` renders an anchor that opens in a new tab. */
   external: boolean;
 }
 
@@ -64,11 +55,6 @@ export interface RouteChromeNavItem {
   group: RouteChromeNavGroup;
   icon: RouteChromeIcon;
   active: boolean;
-  /**
-   * Dropdown children, or `undefined` when this item is a plain link. Absent on every
-   * dose.wiki item, since that publication's header is flat, and the submenu code path must stay
-   * inert rather than render an empty panel.
-   */
   submenu?: readonly RouteChromeNavChild[];
 }
 

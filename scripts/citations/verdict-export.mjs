@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-// Step 5 of the citation-pi campaign: freeze one slug+section verdict packet
-// from the latest audit plus the live article (read-only production read).
-//
-// Usage:
-//   npm run citations:verdict-export -- --slug=fentanyl --section=harm_potential
-//   npm run citations:verdict-export -- --slug=fentanyl --section=summary \
-//     --audit=tmp/citation-verdict-audit-2026-08-31.json --out-dir=tmp/packets --overwrite
-//
-// Refuses with ContentHashDriftError when the live section content no longer
-// matches the audit row's contentHash — re-run citations:verdict-audit first.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

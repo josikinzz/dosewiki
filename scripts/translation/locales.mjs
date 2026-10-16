@@ -1,16 +1,3 @@
-/**
- * Locale configuration for corpus translation.
- *
- * A locale owns its script gate, length band, and the register notes appended
- * to the shared prompt. Adding a locale is configuration, not code.
- *
- * The glossary is not here. It lives in Postgres (`translationGlossary`,
- * loaded by `lib/translation/glossary.ts`) so a reviewer can approve or edit
- * one term at a time; every caller passes the loaded `term -> target` map to
- * the engine beside the locale. `data/i18n/glossary/<code>.json` is
- * an export of that table for review and diffing, never read at runtime.
- */
-
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" with { type: "json" };
@@ -18,17 +5,10 @@ import translationLocaleNames from "../../src/i18n/translationLocaleNames.json" 
 import { styleGuidePromptLines } from "./style-guide.mjs";
 import { mentionsTerm, termMatcher } from "./term-match.mjs";
 
-/** Where `build-glossary.mjs --export` writes a locale's snapshot. */
 export function glossaryPath(code) {
   return path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data/i18n/glossary", `${code}.json`);
 }
 
-/**
- * The matcher for "this source mentions the term", as a RegExp. It delegates
- * to the shared matcher in `term-match.mjs` (whole word, case insensitive,
- * English inflections), so the prompt builder, the validator, the QA packet,
- * and the scoped stale replay agree on what a mention is.
- */
 export function glossaryTermPattern(term) {
   return termMatcher(term);
 }
@@ -178,15 +158,6 @@ ${SHARED_RULES}
   },
 });
 
-/**
- * Whether a Latin word in translated output is a name rule 2 keeps in Latin
- * script. `word` is spelled as the output has it. An acronym or a word with
- * inner capitals (MDMA, LSD, MeO, NBOMe, publicData) is an identifier. A capitalized word
- * the source also capitalizes (Ibogaine, Anton, Drug Enforcement
- * Administration) is a proper noun carried over. A lowercase English word is
- * never a name by this rule; substance names written in lowercase prose reach
- * the validator as `latinNames` from a caller that knows the corpus.
- */
 export function isLatinName(word, source) {
   if (/[A-Z].*[A-Z]|[a-z][A-Z]/.test(word)) return true;
   if (!/^[A-Z]/.test(word)) return false;
@@ -201,20 +172,8 @@ export function resolveLocale(code) {
   return locale;
 }
 
-/** Glosses printed per batch at most; past the cap a line prints the rendering only. */
 export const GLOSS_CAP = 40;
 
-/**
- * Whether a glossary term of `kind` belongs in a batch whose units come from
- * `contexts` (the `contextKind` values the units carry). Dose tiers, duration
- * stages, harm levels, legal statuses, frequencies, routes, and section
- * headings are substance-article and effect-article vocabulary: injected
- * there, and never into a trip report or a replication caption that happens
- * to use the word. Replication vocabulary is likewise confined to
- * replication contexts. A batch carrying a unit of unknown context ("any",
- * the default) is not filtered, so a caller that does not stamp its units
- * gets today's mention-based injection.
- */
 export function kindInContext(kind, contexts) {
   if (contexts.has("any")) return true;
   if (kind === "replication") return contexts.has("replication");
@@ -224,23 +183,6 @@ export function kindInContext(kind, contexts) {
   return true;
 }
 
-/**
- * The batch instruction. Segments travel as a JSON object keyed by opaque ids
- * so the model cannot merge, split, or reorder them, and the reply parses
- * without heuristics. `glossary` is the approved `term -> target` map. Each
- * segment lists, under its own id, only the terms it mentions (by the shared
- * matcher, inflections included) whose kind (`kinds`, `term -> kind`) belongs
- * to that segment's context (`kindInContext`), so a term never reaches an
- * unrelated segment in the same batch. `glosses` is the locale-independent
- * `term -> gloss` map: an injected term that has one is printed as
- * `term -> target  (gloss)` at its first listing so the model knows which
- * sense it is rendering, for at most `GLOSS_CAP` terms, longest terms first
- * (a multi-word term outranks a one-word homograph); past the cap, and at
- * later listings, the rendering stands alone. `styleGuide` is the locale's
- * approved style guide (`{ rules, examples, revision }`, or null): every rule
- * is printed, with the examples `selectStyleExamples` picks for this batch's
- * English (see style-guide.mjs).
- */
 export function buildBatchPrompt(locale, units, { retryNote, glossary = {}, glosses = {}, kinds = {}, styleGuide = null } = {}) {
   const payload = Object.fromEntries(units.map((unit) => [unit.id, unit.source]));
   const safety = units.some((unit) => unit.contextClass === "safety");

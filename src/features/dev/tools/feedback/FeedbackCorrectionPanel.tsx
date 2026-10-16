@@ -27,7 +27,6 @@ import { formatFeedbackDate } from "./FeedbackReviewQueue";
 import { isFreezeRefusal } from "./feedbackReviewModel";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
-/** The section Start correction opens on when the admin picks none: a guess from the category. */
 const CATEGORY_SECTION: Partial<Record<string, ArticleEditorSection>> = {
   source: "references",
   "broken-link": "references",
@@ -44,15 +43,6 @@ type PanelNotice = { tone: "success" | "danger"; message: string };
 
 const shortId = (id: string) => `#${id.slice(-6)}`;
 
-/**
- * Article feedback's way to its correction: Start correction opens the
- * in-page article editor on a section with this feedback attached, Link
- * existing change connects a proposal or published revision of the same
- * article, and every linked change shows where it stands now.
- *
- * Advisory only. Nothing here decides the feedback's status or gates a
- * proposal's review; only a published correction reads as completed.
- */
 export function FeedbackCorrectionPanel<Row extends { id: string }>({
   feedbackId,
   slug,
@@ -62,7 +52,6 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
   feedbackId: string;
   slug: string;
   category?: string;
-  /** The feedback row as the link left it, so the decision log can show the link. */
   onLinked?: (row: Row) => void;
 }) {
   const headingId = useId();
@@ -167,7 +156,6 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
             <Icon icon="lucide:triangle-alert" size={14} className="theme-warning-text-strong shrink-0" />
             {state.message}
           </p>
-          {/* Named for this panel: the queue keeps its own Try again. */}
           <Button type="button" variant="outline" size="sm" onClick={() => void load()}>
             Reload corrections
           </Button>
@@ -212,8 +200,6 @@ export function FeedbackCorrectionPanel<Row extends { id: string }>({
             href={startHref()}
             target="_blank"
             rel="noopener noreferrer"
-            // The address is the queue's task link by now; read it at the click so the
-            // article can return to this item with its filters.
             onClick={(event) => {
               event.currentTarget.href = startHref(window.location.pathname + window.location.search);
             }}

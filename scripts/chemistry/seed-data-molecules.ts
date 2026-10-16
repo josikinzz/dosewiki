@@ -22,13 +22,6 @@ const DEFAULT_REPORT = "tmp/molecule-seed/report.json";
 const UPDATED_BY = "seed-data-molecules";
 const GAP_FILL_COVERAGE_REPORT = "data/chemistry/smiles-coverage.json";
 
-/**
- * slug → SMILES for articles without inline `identification.smiles`, from the
- * tracked SMILES-coverage resolution (the same source the retired static
- * pipeline drew from; plants/preparations resolve to their active molecule).
- * Multi-component preparations use the principal (first) component, matching
- * the retired renderer.
- */
 function loadGapFillSmiles(repoRoot: string): Map<string, string> {
   const gapFill = new Map<string, string>();
   let entries: Array<{ slug?: unknown; smiles?: unknown }>;

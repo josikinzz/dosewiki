@@ -1,19 +1,9 @@
-/**
- * Pure helpers and the HTTP client for member accounts (`/api/dev/members`),
- * shared by People and the playlist owner picker.
- */
-
 import translationLocaleNames from "@/i18n/translationLocaleNames.json";
 import { approvedGlossaryLocales, getRoleDisplayName, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
 const LOCALE_NAMES: Record<string, string> = translationLocaleNames;
 
-/**
- * Glossary language codes as the names an admin reads ("Dutch, Russian"),
- * falling back to the code for anything the name table does not know.
- * `empty` is what an empty grant reads as.
- */
 export function formatLocaleNames(codes: readonly string[], empty = "none"): string {
   return codes.length === 0 ? empty : codes.map((code) => LOCALE_NAMES[code] ?? code).join(", ");
 }
@@ -30,16 +20,10 @@ export type MemberRow = {
 };
 
 export type MemberRoster = {
-  /** The signed-in admin's email; their own row takes no actions. */
   self: string;
   members: MemberRow[];
 };
 
-/**
- * Why a row shows no actions. `admin` rows are seeded and rotated from a
- * workstation; the actor's own row is off limits so an admin cannot lock
- * themselves out from the roster. Both are refused by Postgres as well.
- */
 export type MemberRowLock = "admin" | "self" | null;
 
 export function memberRowLock(row: MemberRow, self: string): MemberRowLock {
@@ -51,7 +35,6 @@ export function memberRowLock(row: MemberRow, self: string): MemberRowLock {
 
 const ROLE_RANK: Record<AppRole, number> = { admin: 0, editor_translator: 1, editor: 2, translator: 3, contributor: 4, viewer: 5 };
 
-/** Admins first, then by role, then by username (email when a row has none). */
 export function sortRoster(rows: readonly MemberRow[]): MemberRow[] {
   return [...rows].sort(
     (a, b) =>
@@ -60,7 +43,6 @@ export function sortRoster(rows: readonly MemberRow[]): MemberRow[] {
   );
 }
 
-/** A short "when" for the roster: date only, the time never matters here. */
 export function formatSeen(iso: string | undefined): string {
   if (!iso) {
     return "Never";
@@ -72,13 +54,11 @@ export function formatSeen(iso: string | undefined): string {
   return new Date(time).toISOString().slice(0, 10);
 }
 
-/** A grant as words: "Editor + Translator (Dutch, German)". */
 export function describePermissions(role: AppRole, glossaryLocales: readonly string[]): string {
   const name = getRoleDisplayName(role);
   return roleMeetsFloor(role, "translator") && role !== "admin" ? `${name} (${formatLocaleNames(glossaryLocales, "no languages")})` : name;
 }
 
-/** What a staged permission change does, for the line beside Save permissions. */
 export function describePermissionChange(row: MemberRow, role: AppRole, glossaryLocales: readonly string[]): string {
   return `From ${describePermissions(row.role, approvedGlossaryLocales(row))} to ${describePermissions(role, glossaryLocales)}, once you confirm.`;
 }
@@ -108,7 +88,6 @@ export async function unbanMember(email: string): Promise<void> {
   await postJson("unban", { email }, "Unable to unban that member.");
 }
 
-/** Returns the one-time reset path (`/reset-password?token=...`). */
 export async function issueMemberReset(email: string): Promise<string> {
   const payload = await postJson("reset", { email }, "Unable to issue a password reset.");
   if (typeof payload.resetPath !== "string") {

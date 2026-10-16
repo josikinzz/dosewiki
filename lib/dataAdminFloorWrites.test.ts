@@ -30,11 +30,6 @@ const MEMBERSHIPS: Record<string, Role> = {
   "contributor@example.com": "contributor",
 };
 
-/**
- * A ctx that resolves memberships and refuses every other table: the point of
- * each case below is that a sub-admin actor is turned away at the handler
- * seam before the handler reads or writes anything, whatever route called it.
- */
 function createCtx() {
   const insert = vi.fn(async () => "new-id");
   const patch = vi.fn(async () => undefined);
@@ -98,11 +93,6 @@ const snapshot = {
   effect_tags: [],
 };
 
-/**
- * Every direct production write that used to sit on the editor floor. Each
- * entry names the handler and the arguments a real caller would send; the
- * actor is spliced in per case.
- */
 const DIRECT_WRITES: Array<[string, (ctx: never, args: never) => Promise<unknown>, Record<string, unknown>]> = [
   ["saveSubstance", saveSubstanceHandler as never, { article: { id: 1, title: "LSD", slug: "lsd" } }],
   ["saveSubstances", saveSubstancesHandler as never, { articles: [{ id: 1, title: "LSD", slug: "lsd" }] }],
@@ -166,8 +156,6 @@ describe("direct production writes sit on the admin floor", () => {
   }
 
   it("admits an admin past the floor (the ctx refuses the very next read)", async () => {
-    // Proves the refusals above are the floor and not the ctx: an admin gets
-    // past requireRole and fails only on this ctx's deliberately hostile db.
     const { ctx } = createCtx();
 
     await expect(

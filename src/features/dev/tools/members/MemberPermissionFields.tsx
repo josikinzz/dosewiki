@@ -4,7 +4,6 @@ import { EditorCheckbox } from "@/features/dev/components";
 import { managedRoleFor, roleMeetsFloor, type AppRole, type ManagedRole } from "@/lib/auth/roles";
 import translationLocaleNames from "@/i18n/translationLocaleNames.json";
 
-/** Languages by their English name, so a grant reads in the order people look for it. */
 const LANGUAGES = Object.entries(translationLocaleNames).sort(([, left], [, right]) => left.localeCompare(right));
 
 export function MemberPermissionFields({ role, glossaryLocales, onChange, disabled, label }: {

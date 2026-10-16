@@ -10,10 +10,6 @@ interface EffectContributorsSectionProps {
   t?: Translate;
 }
 
-/**
- * Contributors section for effect articles.
- * Compact inline list of contributor names.
- */
 export function EffectContributorsSection({
   contributors,
   contributorDirectory = [],

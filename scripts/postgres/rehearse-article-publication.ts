@@ -1,24 +1,3 @@
-/**
- * Rehearsal: publish one article through Postgres and prove the
- * acceptance criteria against a live engine.
- *
- *   bun scripts/postgres/rehearse-article-publication.ts [--target <url>] [--allow-remote] [--keep]
- *
- * Creates one scratch article (slug `rehearsal-<random>`), runs
- * every scenario against it, and deletes the scratch rows unless `--keep`.
- * Nothing outside the scratch slug is read for update or written. The report
- * lands in runs/postgres-import/<timestamp>-publication/report.json.
- *
- * Scenarios:
- *   1. read: the public projection of the scratch article is served from SQL.
- *   2. publish: a save persists content, receipt, and outbox atomically.
- *   3. replay: the same proposal returns its prior result without writing;
- *      a different payload under the same proposalId is refused.
- *   4. race: two stale publishers of one section cannot both win.
- *   5. rollback: a failure injected after every write leaves content,
- *      receipts, and derived rows unchanged.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -110,11 +89,9 @@ async function main() {
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-publication`);
   const started = performance.now();
   try {
-    // Scratch article. `id` is the fixture's canonical id; slug is unique to this run.
     const seed = { ...structuredClone(minimalArticle), slug, title: `Rehearsal ${slug}`, summary: "before summary" } as Record<string, unknown>;
     await insertDocument(pool, "substanceIndex", seed);
 
-    // 1. read
     const projection = await readPublicArticleBySlug(pool, slug);
     expect("read", "public projection served from SQL", projection?.slug === slug && projection.summary === "before summary");
     expect("read", "editorial_review stripped, expert_reviewed exposed", projection !== null && !("editorial_review" in projection) && "expert_reviewed" in projection);
@@ -123,7 +100,6 @@ async function main() {
     expect("read", "stored document round-trips the seed losslessly", documentHash(storedContent) === documentHash(seed));
     const base = stored;
 
-    // 2. publish
     const first = proposalFor(slug, base, "after summary", `rehearsal-${slug}-1`);
     const s0 = await snapshot(pool, slug);
     const r1 = await publishReviewedSectionInPostgres({ pool, proposal: first, actorEmail: ACTOR, expectedTargetDeploymentFingerprint: FINGERPRINT });
@@ -134,7 +110,6 @@ async function main() {
     expect("publish", "outbox receipt pending at generation 1 with the new revision", s1.outbox?.generation === 1 && s1.outbox.pending === true && s1.outbox.revision === s1.publicRevision, s1.outbox);
     expect("publish", "public revision moved", s0.publicRevision !== s1.publicRevision);
 
-    // 3. replay
     const r2 = await publishReviewedSectionInPostgres({ pool, proposal: first, actorEmail: ACTOR, expectedTargetDeploymentFingerprint: FINGERPRINT });
     const s2 = await snapshot(pool, slug);
     expect("replay", "same payload returns already_applied with the recorded nextHash", r2.status === "already_applied" && r2.currentHash === (r1.status === "updated" ? r1.nextHash : null), r2);
@@ -148,7 +123,6 @@ async function main() {
     }
     expect("replay", "different payload under the same proposalId is refused", reuseError instanceof GeneratedPublicationError && reuseError.code === "IDEMPOTENCY_KEY_REUSED", reuseError instanceof Error ? reuseError.message : reuseError);
     expect("replay", "refused reuse wrote nothing", JSON.stringify(await snapshot(pool, slug)) === JSON.stringify(s1));
-    // The unique index is the last line of defence against a raced replay.
     let uniqueError: unknown = null;
     try {
       await insertDocument(pool, "generatedPublicationOperations", { ...(await selectDocuments(pool, "generatedPublicationOperations", { where: '"proposalId" = $1', params: [first.proposalId] }))[0], _id: mintDocumentId() });
@@ -157,7 +131,6 @@ async function main() {
     }
     expect("replay", "SQL refuses a second receipt for the same proposalId", (uniqueError as { code?: string } | null)?.code === "23505");
 
-    // 4. race: both publishers hold the same stale base; A holds the row lock until B is blocked on it.
     const [live] = await selectDocuments(pool, "substanceIndex", { where: '"slug" = $1', params: [slug] });
     const a = proposalFor(slug, live, "publisher A", `rehearsal-${slug}-A`);
     const b = proposalFor(slug, live, "publisher B", `rehearsal-${slug}-B`);
@@ -171,7 +144,6 @@ async function main() {
     });
     await bStartedPromise;
     const runB = publishReviewedSectionInPostgres({ pool, proposal: b, actorEmail: ACTOR, expectedTargetDeploymentFingerprint: FINGERPRINT });
-    // B is now queued on A's row lock; give it a moment to prove it did not read past the lock, then let A commit.
     const bSettledEarly = await Promise.race([runB.then(() => true, () => true), new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 750))]);
     expect("race", "second publisher blocks on the row lock instead of reading stale content", bSettledEarly === false);
     releaseA();
@@ -183,7 +155,6 @@ async function main() {
     expect("race", "only A's receipt exists", s4.operations.length === 2 && s4.operations.includes(a.proposalId) && !s4.operations.includes(b.proposalId), s4.operations);
     expect("race", "outbox generation advanced exactly once", s4.outbox?.generation === 2, s4.outbox);
 
-    // 5. rollback
     const [live2] = await selectDocuments(pool, "substanceIndex", { where: '"slug" = $1', params: [slug] });
     const failing = proposalFor(slug, live2, "never visible", `rehearsal-${slug}-fail`);
     const before = await snapshot(pool, slug);
@@ -192,7 +163,6 @@ async function main() {
       await publishReviewedSectionInPostgres({
         pool, proposal: failing, actorEmail: ACTOR, expectedTargetDeploymentFingerprint: FINGERPRINT,
         beforeCommit: async (client) => {
-          // Every write is already issued on this connection; prove it, then fail.
           const pending = await client.query('SELECT count(*)::int AS n FROM "generatedPublicationOperations" WHERE "proposalId" = $1', [failing.proposalId]);
           if (pending.rows[0].n !== 1) throw new Error("expected the receipt to be visible inside the transaction");
           throw new Error("injected failure before commit");

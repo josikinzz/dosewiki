@@ -568,10 +568,6 @@ async function applyEvidenceWrite({
   return results;
 }
 
-/**
- * A citation article leaves the open queue once every row is approved (see
- * `matchesQueueSummaryStatus`); its Inbox claim ends in the same write.
- */
 async function clearResolvedCitationClaim(ctx: MutationCtx, slug: string) {
   const rows = await ctx.db
     .query("citationEvidence")
@@ -633,8 +629,6 @@ export const applyDraft = mutation({
       adminIntent: "citationEvidenceWrite",
     }, "admin");
 
-    // Run the shared Zod article contract before patching citable sections so
-    // citation applies cannot persist structurally invalid article content.
     const validation = validateArticleForIngestion(args.article);
     if (validation.ok === false) {
       throw new Error(
@@ -642,9 +636,6 @@ export const applyDraft = mutation({
       );
     }
 
-    // Validate every evidence row and every publishable entailment before the
-    // article patch. A failed citation gate must leave article and evidence
-    // storage untouched.
     for (const row of args.evidence) {
       const normalizedRow = validateEvidenceRow(row);
       if (normalizedRow.status === "supported" || normalizedRow.status === "approved") {
@@ -656,9 +647,6 @@ export const applyDraft = mutation({
       ctx,
       slug: args.slug,
       article: validation.article,
-      // The Zod contract defaults omitted references to [], so consult the
-      // original mutation input to distinguish "not patched" from an explicit
-      // replacement with an empty reference set.
       includeReferences: Object.prototype.hasOwnProperty.call(args.article, "references"),
       expectedArticleId: validation.article.id,
       expectedArticleSlug: validation.article.slug,
@@ -818,7 +806,6 @@ export const setManyStatus = mutation({
     slug: v.string(),
     claimKeys: v.array(v.string()),
     status: evidenceStatus,
-    // Reviewer's note for the next editor; replaces whatever the row carried.
     statusReason: v.optional(v.string()),
   },
   handler: setManyStatusHandler,

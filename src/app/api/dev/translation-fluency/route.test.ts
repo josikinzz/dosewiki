@@ -17,7 +17,6 @@ vi.setConfig({ testTimeout: 90_000 });
 vi.mock("server-only", () => ({}));
 const auth = vi.hoisted(() => ({ requireRoleSession: vi.fn() }));
 const seam = vi.hoisted(() => ({ client: null as unknown, record: null as null | Record<string, unknown> }));
-// The provider is stubbed at the pipeline's client; the engine's transport, the route, checks, and stores are production code.
 const provider = vi.hoisted(() => ({ callOpenRouterChat: vi.fn() }));
 vi.mock("../../../../../scripts/lib/openrouter-sdk.mjs", () => provider);
 vi.mock("@/lib/auth/requireEditorSession", () => auth);
@@ -45,7 +44,6 @@ const PHENIDATE_SOURCE = "2-Benzylpiperidine is a stimulant that is structurally
 const PHENIDATE_TARGET = "2-苄基哌啶是一种兴奋剂，在结构上与其他哌甲酯类相关。";
 const DOSE_SOURCE = "A common oral dose is 50 mg.";
 const DOSE_TARGET = "常见的口服剂量是 50 mg。";
-/** One fluent edit, one that changes a number, and one that drops the approved rendering. */
 const REPLY = {
   suggestions: [
     { paragraph: "p0", current: "在结构上与其他哌甲酯类相关", suggested: "与其他哌甲酯类在结构上相关", reason: "More natural word order." },
@@ -60,7 +58,6 @@ beforeAll(async () => {
   database = new PGlite();
   for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort())
     await database.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  // Adapt the pg transport only. Routes, access checks, stores, and SQL are production code.
   const connection = {
     query: async (sql: string, params?: unknown[]) => {
       if (!params?.length && sql.includes(";")) {
@@ -156,7 +153,6 @@ describe("model fluency review over isolated Postgres", () => {
     expect(history).toMatchObject({ action: "save", actor: translator.email });
     expect(decodeReviewReason(history.reason).reason).toMatchObject({ kind: "fluency", note: expect.stringContaining("More natural word order.") });
     expect((await inbox()).total).toBe(0);
-    // Accepting again is refused and writes nothing.
     const before = await count("translationReviewHistory");
     expect((await accept(item.accept.id, item.accept.expectedRevision)).status).toBe(409);
     expect(await count("translationReviewHistory")).toBe(before);

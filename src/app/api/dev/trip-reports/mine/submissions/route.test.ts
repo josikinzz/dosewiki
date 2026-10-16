@@ -35,7 +35,6 @@ const rejected = {
   public_reason: "The dose for the second substance is missing.",
 };
 
-/** Answers like Postgres: only the rows whose contact email is the actor's. */
 function storeFor(rowsByEmail: Record<string, unknown[]>) {
   mocks.query.mockImplementation(async (_ref: unknown, args: { actorEmail?: string }) =>
     rowsByEmail[args.actorEmail ?? ""] ?? [],

@@ -50,10 +50,6 @@ function sameJson(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-/**
- * Compare-and-swap backfill for a bounded batch of replication date research.
- * Identity/editorial fields are assertions only and are never written.
- */
 export const applyResearchBatch = mutation({
   args: replicationDateBackfillArgs.fields,
   returns: replicationDateBackfillResult,
@@ -151,7 +147,6 @@ export const applyResearchBatch = mutation({
   },
 });
 
-/** Authenticated, bounded verification/read surface for full research dossiers. */
 export const getResearchByReplicationIds = query({
   args: replicationDateResearchReadArgs.fields,
   returns: v.array(replicationDateResearchReadRow),

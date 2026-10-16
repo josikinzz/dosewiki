@@ -1,12 +1,3 @@
-/**
- * Translator's notes: locale-only text under one section of a substance
- * article. Stored in the review tables under scope `note` with the same Save
- * draft, Approve, and Restore history as corrections. Only the article
- * reader, its route, and the localized article render path read this scope;
- * the translation pipeline never does, so a note never reaches a prompt or
- * another locale. A note whose section is gone from the English is orphaned:
- * hidden from readers and listed in the Review Inbox.
- */
 import "server-only";
 import { getPostgresClient } from "@server/postgres/runtime/backend";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
@@ -33,11 +24,6 @@ export function translatorNoteSectionLabel(section: TranslatorNoteSection): stri
   return SECTION_ENTRIES.get(section)?.label ?? section;
 }
 
-/**
- * Note sections the English article currently renders with content, by the
- * same presence rule as the public table of contents. A record the rule cannot
- * read counts as absent, never as present.
- */
 export function presentTranslatorNoteSections(article: object): Set<TranslatorNoteSection> {
   const present = new Set<TranslatorNoteSection>();
   for (const section of TRANSLATOR_NOTE_SECTIONS) {
@@ -45,18 +31,11 @@ export function presentTranslatorNoteSections(article: object): Set<TranslatorNo
     try {
       if (isPresent?.(article as SubstanceArticle, {})) present.add(section);
     } catch {
-      // A partial record lacks the fields the rule reads, so the section is not there.
     }
   }
   return present;
 }
 
-/**
- * Blocking defects in a note body. A note has no English source, so the shared
- * validator runs against an empty source: it still rejects doubled
- * punctuation, script leaks, citation markers, links, and placeholders. A
- * Simplified Chinese note must also be written in Chinese.
- */
 export function translatorNoteDefects(body: string, localeCode: string): string[] {
   const locale = resolveLocale(localeCode);
   const defects = validateSegment({ source: "", target: body, locale }).defects.filter((code: string) => BLOCKING_DEFECTS.includes(code));
@@ -69,7 +48,6 @@ function noteContext(slug: string, section: TranslatorNoteSection): string {
   return JSON.stringify({ kind: "article", slug, section });
 }
 
-/** The section a stored note belongs to, read from its snapshot. */
 export function translatorNoteLocation(entry: ReviewEntry): { slug: string; section: TranslatorNoteSection } | null {
   const snapshot = entry.approved ?? entry.draft;
   try {
@@ -90,7 +68,6 @@ async function sourceArticle(reads: PublicDataReadAdapter, slug: string) {
   return { record, slug: canonicalSlug };
 }
 
-/** Every note section of one article for the reader: present sections with their notes, then orphaned notes. */
 export async function readTranslatorNotes(reads: PublicDataReadAdapter, locale: string, slug: string): Promise<TranslatorNotePacket> {
   resolveLocale(locale);
   const source = await sourceArticle(reads, slug);
@@ -168,10 +145,6 @@ export async function translatorNoteHistory(locale: string, slug: string, sectio
   return readReviewHistory(locale, "note", translatorNoteId(slug, section));
 }
 
-/**
- * Approved notes readers see on one localized article: present sections only,
- * so an orphaned note stops rendering. English has no notes and reads nothing.
- */
 export async function readApprovedTranslatorNotes(locale: string, slug: string, article: object): Promise<ApprovedTranslatorNotes> {
   if (locale === "en") return {};
   const present = [...presentTranslatorNoteSections(article)];
@@ -179,7 +152,6 @@ export async function readApprovedTranslatorNotes(locale: string, slug: string, 
   const ids = present.map((section) => translatorNoteId(slug, section));
   const rows = await getPostgresClient().sql<{ source_id: string; approved: ReviewSnapshot | null }>(
     'SELECT "source_id","approved" FROM "translationReviewEntries" WHERE "locale"=$1 AND "scope"=\'note\' AND "source_id"=ANY($2::text[]) AND "approved" IS NOT NULL', [locale, ids]);
-  // A never-approved entry stores JSON null, which `IS NOT NULL` does not exclude.
   const byId = new Map(rows.map((row) => [row.source_id, row.approved?.target]));
   const notes: ApprovedTranslatorNotes = {};
   for (const section of present) {

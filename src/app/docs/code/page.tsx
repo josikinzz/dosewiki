@@ -48,7 +48,6 @@ const TOC_ITEMS = [
   { id: "s12", copyKey: "docs-code-toc-s12", icon: "lucide:compass" },
 ] as const;
 
-// Mermaid uses fixed palette colors; page labels use theme-aware domain tokens.
 const DOMAIN_VAR = {
   blue: "var(--theme-doc-domain-blue)",
   gold: "var(--theme-doc-domain-gold)",
@@ -78,8 +77,6 @@ const PRE_CLASS =
   "theme-public-card-subtle theme-text-secondary max-w-full overflow-x-auto rounded-2xl border border-dose-divider p-4 font-mono text-[13px] leading-6 whitespace-pre-wrap shadow-[var(--theme-elevation-inner)] [scrollbar-gutter:stable]";
 
 export default async function DocsCodePage() {
-  // The content figures come from the same overview the About page renders, so
-  // the two never disagree; the code-size figures below stay hand-maintained.
   const [copy, overview] = await Promise.all([
     getCopyByKeys(DOCS_CODE_COPY_KEYS),
     getPublicDataOverview(),
@@ -101,9 +98,6 @@ export default async function DocsCodePage() {
         className="theme-toc-strip-scope"
         contentClassName="gap-8"
       >
-        {/* Mobile/tablet TOC: sticky chip strip above the header, pinned
-            under the site header from the very first scroll; replaced by
-            the sticky gutter TOC at >=1200px. */}
         <PublicTocStrip items={tocItems} />
 
         <header className="flex flex-col gap-4">
@@ -124,10 +118,6 @@ export default async function DocsCodePage() {
             {copy.text("docs-code-s1-heading")}
           </h2>
 
-          {/* Flattened from a five-card hero-metric grid to one open figure row:
-              plain figure blocks separated by spacing and a leading hairline,
-              no per-stat box. The lead stat reads first and largest by type
-              scale and weight rather than a bordered accent tile. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
             <div className="min-w-0">
@@ -274,8 +264,6 @@ export default async function DocsCodePage() {
             {copy.text("docs-code-s3-heading")}
           </h2>
 
-          {/* Flattened from a six-card grid to one surface of hairline-separated
-              definition rows (style-guide §9). Same label/title/body, calmer. */}
           <ContentCard
             variant="subtle"
             padding="lg"
@@ -530,7 +518,6 @@ export default async function DocsCodePage() {
 └── README.md  ARCHITECTURE.md  CONTRIBUTING.md  AGENTS.md`}
           </pre>
 
-          {/* Demoted from a status-less role=alert callout to emphasized prose. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
             <DocsInline>{copy.text("docs-code-s4-skills")}</DocsInline>
@@ -1063,9 +1050,6 @@ export default async function DocsCodePage() {
             </DocsInline>
           </p>
 
-          {/* The content pipeline itself (sources, excerpts, prompts, citation
-              passes, human review) lives on /docs/how; this page only points
-              at it so the two never drift apart. */}
           <div role="presentation" className="theme-horizontal-divider mt-6" />
           <p className={`${PROSE_CLASS} mt-6`}>
             <DocsInline>{copy.text("docs-code-s8-deferral")}</DocsInline>
@@ -1296,8 +1280,6 @@ export default async function DocsCodePage() {
             {copy.text("docs-code-s11-heading")}
           </h2>
 
-          {/* Flattened from a six-card glossary grid to one surface of
-              hairline-separated term/definition rows (style-guide §9). */}
           <ContentCard
             variant="subtle"
             padding="lg"

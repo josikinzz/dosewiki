@@ -1,61 +1,16 @@
-/**
- * Deterministic fixtures for browser journeys and screenshots of the `/dev`
- * shell.
- *
- * Everything here answers inside the test browser (see `browserFixtures.mjs`):
- * a request the fixture answers never reaches the dev server, so no private
- * row, credential or database is involved, and nothing in production code
- * knows these fixtures exist. The dev server still has to be the local
- * screenshot viewer (`lib/auth/devScreenshotViewer.ts`) for `/dev` documents
- * to render without an account; every `/api/*` route there keeps its own
- * session check, which is why the fixture answers those routes instead.
- *
- * One fixture is one browser session: a role (what the synthetic session
- * says), a tool state (how tool routes answer), and a small in-memory store,
- * so a journey can save, submit, reload and reopen against the same records.
- * Revisions, ids and timestamps are derived from counters and a fixed clock,
- * never from the real time or randomness.
- *
- * Pure module: no Playwright and no Node imports, so the unit tests drive it
- * directly.
- */
-
 import { createTranslationRoutes } from "./translationFixtures.mjs";
 import { createMoleculeRoutes } from "./moleculeFixtures.mjs";
 import { createSubstanceRoutes, wholeArticle } from "./substanceFixtures.mjs";
 import { createReviewRoutes, seedReviewRecords } from "./reviewFixtures.mjs";
 
-/** Roles the synthetic session can carry; mirrors `APP_ROLES` in `src/lib/auth/roles.ts`, minus `viewer`, which cannot open `/dev`. */
 export const JOURNEY_ROLES = Object.freeze(["admin", "editor_translator", "editor", "translator", "contributor"]);
 
-/**
- * How tool routes answer:
- * - `loaded`: records exist, writes succeed against the revision check.
- * - `empty`: no records; writes create them.
- * - `failed`: reads answer 500.
- * - `conflicted`: someone else saves each record just before the editor's
- *   first save of it lands, so that save is refused by the revision check
- *   (409); a save made after loading the newer version goes through.
- * - `frozen`: reads work, writes answer 503 with the write-freeze code.
- * - `session-expired`: tool reads and writes answer 401, as they do once the
- *   Auth.js cookie has lapsed under an open page.
- */
 export const TOOL_STATES = Object.freeze(["loaded", "empty", "failed", "conflicted", "frozen", "session-expired"]);
 
-/** The fixed clock every fixture timestamp is derived from. */
 export const FIXTURE_EPOCH = Date.parse("2026-01-15T12:00:00.000Z");
 
-/**
- * The viewer's own address (`DEV_SCREENSHOT_VIEWER_EMAIL`); the `.invalid`
- * domain can never match a stored membership (RFC 2606). Every role shares it
- * on purpose: the server renders the viewer's session before the fixture's
- * replaces it, and browser recovery copies are scoped to the account, so a
- * second address would make each reload look like another account and drop
- * the copy a journey is about to recover.
- */
 export const FIXTURE_EMAIL = "screenshot-viewer@localhost.invalid";
 
-/** The session the viewer's `SessionProvider` reads; presentation only, like the viewer's own. */
 export function fixtureSession(role, now = FIXTURE_EPOCH) {
   if (!JOURNEY_ROLES.includes(role)) throw new Error(`Unknown journey role: ${role}.`);
   const translates = role === "translator" || role === "editor_translator";
@@ -64,26 +19,14 @@ export function fixtureSession(role, now = FIXTURE_EPOCH) {
       email: FIXTURE_EMAIL,
       name: `Journey ${role.replace(/_/g, " ")}`,
       role,
-      // The languages a translating role reviews, so Home and Glossary have something to show.
       ...(translates ? { glossaryLocales: [...FIXTURE_GLOSSARY_LOCALES] } : {}),
     },
     expires: new Date(now + 60 * 60 * 1000).toISOString(),
   };
 }
 
-/** The languages a translating fixture role holds. */
 export const FIXTURE_GLOSSARY_LOCALES = Object.freeze(["de", "nl", "ja"]);
 
-/**
- * Review inbox totals per fixture language follow the translation store
- * (`translationFixtures.mjs`): German 7, Dutch none, Japanese 2.
- */
-
-/**
- * Invite codes for the admin's Home and People, newest first: two open (one
- * with languages), one expired, one used, one revoked, and two older codes the
- * history pages in on request (`INVITES_PAGE_SIZE`).
- */
 function seedInvites() {
   const day = 86_400_000;
   const at = (offset) => new Date(FIXTURE_EPOCH + offset * day).toISOString();
@@ -107,20 +50,12 @@ function seedInvites() {
   ];
 }
 
-/** Invite history pages this many codes at a time, so "Load older codes" has a second page. */
 const INVITES_PAGE_SIZE = 5;
 
 const FEEDBACK_STATUSES = Object.freeze(["new", "reviewing", "resolved", "rejected", "spam"]);
 const FEEDBACK_IMPORTANCE_RANK = Object.freeze({ critical: 0, high: 1, normal: 2, low: 3 });
-/** Row fields the feedback search reads: never the reader's contact columns, as the route. */
 const FEEDBACK_UNSEARCHED = new Set(["id", "contact_email", "email", "status", "created_at", "updated_at", "reviewed_by", "reviewed_at"]);
 
-/**
- * `GET /api/{article,site}-feedback/queue`: `status` (a status, `all` or
- * `unresolved`), `q`, `order` (oldest, newest, importance), an offset
- * `cursor` and `limit`, with per-status counts of every row the search
- * matches, as the route answers.
- */
 export function feedbackQueuePage(all, params) {
   const status = params.get("status") ?? "all";
   const order = params.get("order") ?? "oldest";
@@ -155,13 +90,10 @@ export function feedbackQueuePage(all, params) {
   };
 }
 
-/** Another admin, so the Inbox can show an item someone else holds. */
 export const FIXTURE_OTHER_ADMIN = "other-admin@localhost.invalid";
 
-/** Submission statuses that wait on an admin (the portal's Needs review, the rail badge). */
 const TRIP_NEEDS_REVIEW = Object.freeze(["submitted", "reviewing", "accepted"]);
 
-/** A submitted report body: who, what, and the phases, as the intake form stores it. */
 function tripReportBody(title, subject, substances, parts = {}) {
   return {
     title,
@@ -176,12 +108,6 @@ function tripReportBody(title, subject, substances, parts = {}) {
   };
 }
 
-/**
- * Trip report submissions in every status the portal shows: new, claimed by
- * another admin, claimed by the viewer, accepted (one whose byline matches a
- * contributor, so Publish asks about attribution), rejected before the
- * decision log with a public reason, spam from the spam trap, and published.
- */
 function seedTripSubmissions(at, logged) {
   const row = (id, status, title, author, report, extra = {}) => ({
     id,
@@ -278,14 +204,6 @@ function seedTripSubmissions(at, logged) {
   ];
 }
 
-/**
- * Citation evidence for Citations (`/dev/citation-review`) and the Inbox, by
- * article slug. Every row state the reviewer meets: ready rows with one and
- * with two verified quotes, blocking and non-blocking gaps, a needs-review row
- * with diagnostics, decided rows (one rejected with a note), a legacy snippet,
- * an article that is fully accepted (only under Accepted and All) and one
- * holding a rejection (under Rejected).
- */
 export function seedCitationEvidence() {
   const hour = 3_600_000;
   const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
@@ -390,12 +308,6 @@ export function seedCitationEvidence() {
   ]);
 }
 
-/**
- * `GET /api/citation-evidence/queue?status=`: one summary per article, as the
- * route's native query answers. `open` keeps an article while any row is not
- * accepted, `approved` lists fully accepted articles, `rejected` those holding
- * a rejected row, `all` every article; newest activity first.
- */
 export function citationQueueSummaries(evidence, filter = "open") {
   const summaries = [];
   let articleId = 0;
@@ -434,12 +346,6 @@ export function citationQueueSummaries(evidence, filter = "open") {
   return summaries.sort((left, right) => String(right.updatedAt).localeCompare(String(left.updatedAt)));
 }
 
-/**
- * What waits on an admin in the Inbox: trip reports, article, site and
- * glossary feedback, citation articles and one expired claim. The waiting
- * proposal comes from `seedProposal`. Every source is present so each row
- * shape, urgency and claim state renders.
- */
 export function seedInbox() {
   const hour = 3_600_000;
   const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
@@ -532,7 +438,6 @@ export function seedInbox() {
         honeypot_triggered: true, created_at: at(15), updated_at: at(15),
       },
     ],
-    /** Changes already linked to article feedback, and what Link existing change can offer, by article. */
     corrections: {
       "fixture-af-2": [
         {
@@ -563,18 +468,14 @@ export function seedInbox() {
         alternative: "Gewöhnung", details: "Reads oddly in the dosage context.", created_at: at(90),
       },
     ],
-    // The open queue, as the route answers it from `seedCitationEvidence`.
     citations: citationQueueSummaries(seedCitationEvidence(), "open"),
     claims: [
-      // Held by another admin and left untouched for over a day: reads as unclaimed.
       { source: "citations", item_id: "mdma", claimed_by: FIXTURE_OTHER_ADMIN, claimed_at: at(60), expired: true },
-      // The seeded proposal, held by another admin: offers Take over.
       { source: "proposals", item_id: "journeyseed000001", claimed_by: FIXTURE_OTHER_ADMIN, claimed_at: at(2), expired: false },
     ],
   };
 }
 
-/** A 64-character hex revision from a counter, so every run names the same revisions. */
 export function fixtureRevision(n) {
   return n.toString(16).padStart(64, "0");
 }
@@ -586,10 +487,8 @@ const FROZEN_ERROR = Object.freeze({
 const AUTH_ERROR = Object.freeze({ error: "Authentication required." });
 const REVISION_CONFLICT = "Someone saved this article after you loaded it.";
 
-/** Published reports an admin can assign in the fixture; any other slug answers 404. */
 const OWNED_REPORT_SLUGS_EXTRA = Object.freeze(["museum-walk"]);
 
-/** The viewer's own published trip reports, oldest last. */
 export const OWNED_REPORT_SEED = Object.freeze([
   {
     id: "fixture-report-1",
@@ -642,12 +541,6 @@ export const OWNED_REPORT_SEED = Object.freeze([
 ]);
 const OWNER_ASSIGNABLE_SLUGS = Object.freeze([...OWNED_REPORT_SEED.map((row) => row.slug), ...OWNED_REPORT_SLUGS_EXTRA]);
 
-/**
- * Published trip reports other members wrote, so the portal's corpus has
- * several authors, substances, licences and one attributed report. The
- * flat one keeps its whole account in the introduction, as a submitted
- * report often arrives.
- */
 export const PORTAL_REPORTS_SEED = Object.freeze([
   {
     id: "fixture-report-4",
@@ -763,11 +656,6 @@ export const WRITING_SEED = Object.freeze([
   },
 ]);
 
-/**
- * The About page document (`/api/dev/about`): an introduction, the two
- * section headings the public page splits on, two founders and one
- * translation credit, as `siteConfig.getAboutForEditor` returns it.
- */
 export const ABOUT_SEED = Object.freeze({
   aboutMarkdown: [
     "dose.wiki gathers what harm reduction volunteers have written about {{compoundCount}} substances into one open dataset.",
@@ -787,7 +675,6 @@ export const ABOUT_SEED = Object.freeze({
   translationCredits: { "zh-Hans": [{ profileKey: "MIRA", contribution: "Chinese glossary and About translation" }] },
 });
 
-/** The live counts the About placeholders resolve to. */
 const ABOUT_AGGREGATES = Object.freeze({
   compoundCount: 412,
   psychoactiveClassCount: 38,
@@ -799,11 +686,6 @@ const ABOUT_AGGREGATES = Object.freeze({
   replicationCount: 540,
 });
 
-/**
- * The contributor directory the shell reads for every tool: public profiles
- * with no remote avatar, so People can pair them with accounts (see
- * `PROFILE_LINKS_SEED`) and nothing is fetched from a media host.
- */
 export const CONTRIBUTOR_PROFILES_SEED = Object.freeze([
   ["NERVEWING", "Nervewing", "Site admin"],
   ["RIVER", "River Okafor", "Artist"],
@@ -816,14 +698,6 @@ export const CONTRIBUTOR_PROFILES_SEED = Object.freeze([
   key, displayName, aliases: [], avatarUrl: null, bio: "", links: [], hasCustomBio: false, ...(role ? { role } : {}),
 })));
 
-/**
- * What the Contributors editor reads beside a directory profile
- * (`/api/dev/contributor-profile?key=`): stored fields past the directory's,
- * and the works and reports credited to the name. River carries a full record
- * (aliases, links, a curated order with one position whose work is gone, a
- * byline that is not their name); Mira an admin's note and the trust flags;
- * Halcyon the archival flag. No avatar points at a media host.
- */
 export const CONTRIBUTOR_DETAIL_SEED = Object.freeze({
   RIVER: {
     aliases: ["riverdraws", "r. okafor"],
@@ -847,11 +721,6 @@ export const CONTRIBUTOR_DETAIL_SEED = Object.freeze({
   HALCYON: { archival: true, exclude_from_gallery: true, works: [], reports: [] },
 });
 
-/**
- * Replication Studio rows with no private field and no remote media: slugs,
- * titles and effects are synthetic, and thumbnails are left empty so nothing
- * is fetched from a media host.
- */
 export function buildReplicationFixture(count = 24) {
   const effects = ["drifting", "color-enhancement", "geometry", "tracers"];
   const rows = Array.from({ length: count }, (_, index) => {
@@ -882,11 +751,6 @@ export function buildReplicationFixture(count = 24) {
   return { rows, effects: effects.map((slug) => ({ slug, name: titleCase(slug) })).sort((a, b) => a.slug.localeCompare(b.slug)) };
 }
 
-/**
- * Banners: the substance corpus the tool enables presets on
- * (`/api/dev/warning-banner/targets`). Class strings are free-form, as the real
- * articles' are, so a class search finds what an editor would find.
- */
 export const BANNER_TARGETS_SEED = Object.freeze([
   ["alcohol", "Alcohol", ["Depressant"]],
   ["alprazolam", "Alprazolam", ["Benzodiazepine"]],
@@ -908,12 +772,6 @@ export const BANNER_TARGETS_SEED = Object.freeze([
   ["25i-nbome", "25I-NBOMe", ["Phenethylamine", "Psychedelic"]],
 ].map(([slug, title, classes]) => Object.freeze({ slug, title, classes: Object.freeze(classes) })));
 
-/**
- * Banner presets in every state the tool shows: live on a list (danger and
- * caution), live everywhere (the sitewide caution notice), enabled on nothing
- * (renders nowhere) and switched off. Diazepam carries three, so the
- * two-banner cap suppresses one there.
- */
 export const BANNER_PRESETS_SEED = Object.freeze([
   {
     key: "opioid-respiratory", tone: "danger", icon: "lucide:wind", severityLabel: "Danger",
@@ -947,18 +805,10 @@ export const BANNER_PRESETS_SEED = Object.freeze([
   },
 ].map((preset) => Object.freeze(preset)));
 
-/** Another member, who owns a playlist the editor can only read. */
 export const FIXTURE_MEMBER = "river@localhost.invalid";
 
-/** Another admin on the roster, whose account People shows without actions. */
 export const FIXTURE_ADMIN_PEER = "lyrea@localhost.invalid";
 
-/**
- * The roster (`/api/dev/members`, and People's `/api/dev/people`): the viewer,
- * another admin, members of every managed role (a translator and an editor
- * translator with languages), one who never signed in, and one banned account
- * the owner pickers leave out.
- */
 export const MEMBERS_SEED = Object.freeze([
   { email: FIXTURE_EMAIL, username: "nervewing", name: "Nervewing", role: "admin", lastSeenAt: "2026-01-15T09:00:00.000Z" },
   { email: FIXTURE_ADMIN_PEER, username: "lyrea", role: "admin", lastSeenAt: "2026-01-12T18:30:00.000Z" },
@@ -970,11 +820,6 @@ export const MEMBERS_SEED = Object.freeze([
   { email: "banned@localhost.invalid", username: "banned-member", role: "contributor", bannedAt: "2025-11-01T00:00:00.000Z", invitedBy: FIXTURE_ADMIN_PEER, lastSeenAt: "2025-10-30T00:00:00.000Z" },
 ].map((member) => Object.freeze(member)));
 
-/**
- * The account-to-profile links People reads (`links` on `/api/dev/people`):
- * paired accounts, a second profile on an account that already has one, and a
- * profile linked to an address nobody signs in with.
- */
 export const PROFILE_LINKS_SEED = Object.freeze([
   { key: "NERVEWING", membershipEmail: FIXTURE_EMAIL },
   { key: "RIVER", membershipEmail: FIXTURE_MEMBER },
@@ -983,12 +828,6 @@ export const PROFILE_LINKS_SEED = Object.freeze([
   { key: "HALCYON", membershipEmail: "departed@localhost.invalid" },
 ].map((link) => Object.freeze(link)));
 
-/**
- * Replication playlists in every state the Playlists tab shows: the viewer's
- * own (one long enough to fold, one holding a work that is no longer
- * published), another member's (read only below admin) and an unowned one
- * (admin only). Entries name `buildReplicationFixture` slugs.
- */
 export const PLAYLISTS_SEED = Object.freeze([
   {
     key: "classic-psychedelic-opener", title: "Classic psychedelic opener", owner: FIXTURE_EMAIL, hoursAgo: 3,
@@ -1012,15 +851,8 @@ export const PLAYLISTS_SEED = Object.freeze([
   },
 ].map((playlist) => Object.freeze({ ...playlist, slugs: Object.freeze(playlist.slugs) })));
 
-/** The site-wide banner glyph size the fixture stores. */
 export const BANNER_ICON_SIZE_SEED = 40;
 
-/**
- * Stored copy blocks (Copy): rows that override a checked-in default, plus one
- * block stored with no default at all (it lists under "Other" and has no
- * default to go back to). The catalogue route answers metadata only, as
- * `copyBlocks.getEditorCatalogue` does; the keyed read answers the full row.
- */
 export const COPY_BLOCKS_SEED = Object.freeze([
   {
     key: "about-reuse-notice", kind: "markdown", label: "Reuse notice", group: "About", hoursAgo: 30,
@@ -1031,15 +863,6 @@ export const COPY_BLOCKS_SEED = Object.freeze([
   { key: "launch-week-note", kind: "markdown", label: "Launch week note", group: "Launch", hoursAgo: 900, body: "Thanks for visiting during **launch week**. Tell us what [reads badly](/about#contact)." },
 ].map((row) => Object.freeze({ ...row, ...(row.items ? { items: Object.freeze(row.items) } : {}) })));
 
-/**
- * The substance corpus the editor library and Tags read
- * (`/api/dev/editor-library`): identity plus the four tag fields, with the
- * mechanism tags carried as binding sites the way the projection sends them.
- * The labels are what an editor meets: a tag used once, one used everywhere,
- * near-duplicates that a rename merges ("Stimulant" and "Stimulants",
- * "Benzodiazepine" and "Benzodiazepines"), a label with different spacing,
- * and one long mechanism label.
- */
 export const TAG_ARTICLES_SEED = Object.freeze([
   ["alcohol", "Alcohol", ["Depressants"], ["Alcohol"], ["Depressant"], ["GABA-A receptor positive allosteric modulator", "NMDA receptor antagonist"]],
   ["alprazolam", "Alprazolam", ["Depressants", "Benzodiazepines"], ["Benzodiazepine"], ["Depressant", "Anxiolytic"], ["GABA-A receptor positive allosteric modulator"]],
@@ -1073,18 +896,6 @@ export const TAG_ARTICLES_SEED = Object.freeze([
   pharmacology: Object.freeze({ binding_sites: Object.freeze(mechanisms.map((tag) => Object.freeze({ target: tag.split(" receptor")[0], tag }))) }),
 })));
 
-/**
- * The three index layouts (`/api/dev/index-layout?type=all`), which the
- * editor library is built with and Index layout edits. Psychoactive reads
- * like the public index: sectioned categories (Common first, Other last, a
- * top-level list shown as General beside named sections), a slug no article
- * answers ("dmt", drawn as Missing), a direct-URL-only article placed
- * ("25i-nbome", drawn as Hidden), a category with nothing in it (dropped by
- * the site), and two public substances left out (DXM, Nicotine) plus a
- * direct-URL-only one (Phenibut) for the unplaced tray. Chemical leaves most
- * of the corpus unplaced. Mechanism's category carries no `sections` key at
- * all, the shape a hand-written layout can take.
- */
 export const INDEX_LAYOUTS_SEED = Object.freeze([
   {
     type: "psychoactive",
@@ -1136,31 +947,16 @@ export const INDEX_LAYOUTS_SEED = Object.freeze([
   { type: "mechanism", version: 1, revision: 1, categories: [{ key: "serotonergic", label: "Serotonergic", iconKey: "mechanism", drugs: ["lsd", "psilocybin", "mescaline"] }] },
 ]);
 
-/**
- * Listing priority per slug for the library list; everything else is
- * "normal". Low and hide-for-now articles are direct-URL-only, so Index
- * layout draws them as Hidden and keeps them out of the public tray.
- */
 export const LIBRARY_PRIORITY_SEED = Object.freeze({ "25i-nbome": "hide_for_now", phenibut: "low" });
 
-/** What another admin publishes to the psychoactive layout under `conflicted`. */
 const INDEX_LAYOUT_CONCURRENT_SLUG = "nicotine";
 
-/** What someone else saved on an article while the editor's copy of it sat in the browser (the `conflicted` state). */
 const TAG_ARTICLE_CONCURRENT_CATEGORY = "Reviewed by the fixture";
 
 function titleCase(slug) {
   return slug.split("-").map((word) => word[0].toUpperCase() + word.slice(1)).join(" ");
 }
 
-/**
- * The change log feed (`/api/editor/changelog`), in the shape the route
- * projects: newest first, one save every five hours back from the fixture
- * clock. The saves cycle through every kind the tab describes: an inline
- * prose edit, a source added and removed, a bare Dev editor stamp, a
- * hand-written note on a save that touched many articles, and one long diff.
- * Submitters are profile keys, never addresses.
- */
 export function buildChangelogFixture(count = 24) {
   const hour = 3_600_000;
   const article = (id, title) => ({ id, title, slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-") });
@@ -1219,13 +1015,11 @@ export function buildChangelogFixture(count = 24) {
   });
 }
 
-/** One waiting proposal, so the Queue has a record to show before a journey submits its own. */
 function seedProposal(row, role) {
   const at = new Date(FIXTURE_EPOCH - 3_600_000).toISOString();
   return {
     _id: "journeyseed000001",
     proposerName: "Journey editor",
-    // Editors see only their own submissions; an admin sees everyone's.
     isAuthor: role !== "admin",
     createdAt: at,
     updatedAt: at,
@@ -1240,14 +1034,6 @@ function seedProposal(row, role) {
   };
 }
 
-/**
- * Change Review's history and waiting work beyond the seeded proposal: every
- * status, an article proposal read field by field, one whose live article
- * moved (so approving returns it), the viewer's own proposal (which they
- * cannot approve), a returned one with its reason, copy and index layout
- * targets, an older one with no verifiable comparison, and a discussion.
- * `mine` marks proposals the viewer wrote; an editor sees only those.
- */
 export function seedChangeReview(viewerName) {
   const hour = 3_600_000;
   const at = (hours) => new Date(FIXTURE_EPOCH - hours * hour).toISOString();
@@ -1398,7 +1184,6 @@ export function seedChangeReview(viewerName) {
   ];
 }
 
-/** Editors' "Recommended reviewed" records: two ready, one with a note, one stale. */
 export function seedRecommendations() {
   const at = (hours) => new Date(FIXTURE_EPOCH - hours * 3_600_000).toISOString();
   const row = (slug, title, by, hours, note, stale = false) => ({
@@ -1423,11 +1208,6 @@ function json(status, body) {
   return { status, json: body };
 }
 
-/**
- * One browser session's fixture. `respond` answers a request the way the
- * matching route would, or returns null for a request the fixture does not
- * own (documents and static assets, which the dev server serves).
- */
 export function createJourneyFixture({ role = "admin", state = "loaded", replicationRows = 24, changelogRows = 24 } = {}) {
   if (!JOURNEY_ROLES.includes(role)) throw new Error(`Unknown journey role: ${role}.`);
   if (!TOOL_STATES.includes(state)) throw new Error(`Unknown tool state: ${state}.`);
@@ -1444,7 +1224,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       { ...structuredClone(row), baseRevision: nextRevision(), creationTime: FIXTURE_EPOCH - index * 1000 },
     ]),
   );
-  // An editor sees only their own proposals; an admin sees everyone's.
   const proposals = state === "empty" ? [] : [
     seedProposal(writing.get("field-notes"), role),
     ...seedChangeReview(fixtureSession(role).user.name).filter((row) => role === "admin" || row.mine),
@@ -1455,24 +1234,18 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   const inbox = state === "empty"
     ? { trip: [], article: [], site: [], glossary: [], citations: [], claims: [], corrections: {}, candidates: {} }
     : seedInbox();
-  /** Citation evidence rows by article slug (Citations and the Inbox's citation queue). */
   const citationEvidence = state === "empty" ? new Map() : seedCitationEvidence();
-  /** Records someone else already saved over, so a `conflicted` store bumps each once. */
   const contested = new Set();
-  /** The viewer's own published trip reports (My reports), keyed by id. */
   const ownedReports = new Map([
     ...(state === "empty" ? [] : OWNED_REPORT_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: FIXTURE_EMAIL, revision: nextRevision() }]),
-    // Everyone else's published reports: the portal lists them, My reports does not.
     ...(state === "empty" ? [] : PORTAL_REPORTS_SEED).map((row) => [row.id, { ...structuredClone(row), ownerEmail: null, revision: nextRevision() }]),
   ]);
-  /** Banner presets keyed by key, each with its revision, plus the answered writes by change id. */
   const banners = {
     presets: new Map((state === "empty" ? [] : BANNER_PRESETS_SEED).map((preset) => [preset.key, { preset: structuredClone(preset), baseHash: nextRevision() }])),
     operations: new Map(),
     iconSize: BANNER_ICON_SIZE_SEED,
   };
 
-  /** Copy: stored rows by key with their revision, the revision of every key ever written, and answered operations. */
   const copy = {
     rows: new Map((state === "empty" ? [] : COPY_BLOCKS_SEED).map(({ hoursAgo, ...row }, index) => [row.key, {
       ...structuredClone(row),
@@ -1484,7 +1257,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   };
   for (const key of copy.rows.keys()) copy.revisions.set(key, 1);
 
-  /** About: the one stored document (none when empty), its revision, and answered operations by id. */
   const about = {
     doc: state === "empty" ? null : {
       ...structuredClone(ABOUT_SEED),
@@ -1495,7 +1267,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     operations: new Map(),
   };
 
-  /** Replication playlists keyed by key (Playlists). */
   const playlists = new Map(
     (state === "empty" ? [] : PLAYLISTS_SEED).map((row) => [row.key, {
       key: row.key,
@@ -1507,7 +1278,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }]),
   );
 
-  /** People: accounts by email, the profile links, invite codes and stored profiles, all changed by writes. */
   const people = {
     members: new Map((state === "empty" ? MEMBERS_SEED.filter((member) => member.email === FIXTURE_EMAIL) : MEMBERS_SEED)
       .map((member) => [member.email, structuredClone(member)])),
@@ -1515,17 +1285,10 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     invites: state === "empty" ? [] : seedInvites(),
     inviteCounter: 0,
     profiles: new Map(),
-    /** Profiles a merge or delete removed from the directory. */
     removedProfiles: new Set(),
   };
 
-  /**
-   * The substance corpus (editor library and Tags), keyed by slug, plus how
-   * many times each article was read whole, so `conflicted` can have someone
-   * else save an article after the editor's first read of it.
-   */
   const library = {
-    // Each row carries its human review record (`reviewFixtures.mjs`), as the library projection does.
     rows: new Map((state === "empty" ? [] : TAG_ARTICLES_SEED).map((row) => {
       const review = seedReviewRecords({ epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN })[row.slug];
       return [row.slug, { ...structuredClone(row), editorial_review: review ? structuredClone(review) : { status: "needed", notes: "" } }];
@@ -1533,7 +1296,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     articleReads: new Map(),
     articleRevisions: new Map(),
     saves: 0,
-    /** The stored index layouts; a commit replaces them after the route's revision check. */
     layouts: structuredClone(INDEX_LAYOUTS_SEED),
   };
 
@@ -1541,14 +1303,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     role,
     state,
     session: fixtureSession(role),
-    /** Every request the fixture answered, in order, with what it answered. */
     requests: [],
-    /** Requests nothing owns; a journey fails when a write lands here. */
     unhandled: [],
     writing,
     proposals,
 
-    /** Another editor saves `slug` now: its revision moves and `patch` lands. */
     simulateConcurrentEdit(slug, patch) {
       const row = writing.get(slug);
       if (!row) throw new Error(`No writing row ${slug} to edit concurrently.`);
@@ -1556,19 +1315,16 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       return row.baseRevision;
     },
 
-    /** Another person on the same records: the next browser context signs in as `next`. */
     setRole(next) {
       fixture.role = next;
       fixture.session = fixtureSession(next);
     },
 
-    /** The tool state from now on; a journey moves to `session-expired` mid-edit. */
     setState(next) {
       if (!TOOL_STATES.includes(next)) throw new Error(`Unknown tool state: ${next}.`);
       fixture.state = next;
     },
 
-    /** The request log, filtered to one method and path. */
     requestsTo(method, pathname) {
       return fixture.requests.filter((entry) => entry.method === method && entry.pathname === pathname);
     },
@@ -1591,16 +1347,13 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return answer();
   };
 
-  /** The translation workbench's store and routes (`translationFixtures.mjs`). */
   const translation = createTranslationRoutes({ fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN });
-  /** The molecule editor's picker, depictions and class templates (`moleculeFixtures.mjs`). */
   const molecules = createMoleculeRoutes({
     fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH,
     articles: () => [...library.rows.values()],
     priorityOf: (slug) => LIBRARY_PRIORITY_SEED[slug] ?? "normal",
   });
 
-  /** The Substances tool's article lifecycle (`substanceFixtures.mjs`). */
   const substances = createSubstanceRoutes({
     fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH, otherAdmin: FIXTURE_OTHER_ADMIN,
     row: (slug) => library.rows.get(slug) ?? null,
@@ -1608,7 +1361,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     proposalSummary: (proposal) => proposalSummary(proposal),
   });
 
-  /** The review workbench's records and writes (`reviewFixtures.mjs`). */
   const reviews = createReviewRoutes({
     fixture, json, toolRead, toolWrite, epoch: FIXTURE_EPOCH,
     rows: () => library.rows,
@@ -1623,19 +1375,16 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }));
   }
 
-  /** The About content a publication compares, in one stable string. */
   function aboutContent(doc) {
     if (!doc) return "null";
     return JSON.stringify([doc.aboutMarkdown ?? "", doc.aboutSubtitle ?? "", doc.founderProfileKeys ?? [], doc.translationCredits ?? {}]);
   }
 
-  /** `POST /api/dev/about`: admin floor, operation replay, and the revision and content check `saveAbout` makes. */
   function saveAbout(body) {
     if (fixture.role !== "admin") return json(403, { error: "Only an admin can publish the About page. Submit it for review instead.", code: "FORBIDDEN" });
     const operationId = String(body.operationId ?? "");
     const replay = about.operations.get(operationId);
     if (replay) return json(200, { ...replay, replayed: true });
-    // Someone else publishes just before the editor's first publication lands.
     if (fixture.state === "conflicted" && !contested.has("about") && about.doc) {
       contested.add("about");
       about.doc = { ...about.doc, aboutSubtitle: `${about.doc.aboutSubtitle} Edited by someone else.`, updatedAt: tick(), updatedBy: FIXTURE_OTHER_ADMIN };
@@ -1670,13 +1419,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
   function saveWritingRow(body) {
     const key = body.originalSlug ?? body.slug;
     const existing = key ? writing.get(key) : undefined;
-    // Someone else's save lands just before the editor's first one.
     if (fixture.state === "conflicted" && existing && !contested.has(key)) {
       contested.add(key);
       fixture.simulateConcurrentEdit(key, { body_raw: `${existing.body_raw ?? ""} Edited by someone else.`.trim() });
     }
     const currentRevision = existing?.baseRevision ?? fixtureRevision(0);
-    // The route's revision check: a save made against an older version is refused.
     if (body.expectedRevision !== currentRevision) return json(409, { error: REVISION_CONFLICT });
     const revision = nextRevision();
     const row = {
@@ -1699,7 +1446,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, slug: body.slug, created: !existing, revision, operationId: body.operationId, intent: body.intent });
   }
 
-  /** The portal's index projection of one published report: no body. */
   function portalRowOf(row) {
     return {
       id: row.id,
@@ -1715,7 +1461,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     };
   }
 
-  /** The profile a byline answers to, by display name, as the attribution guard reads it. */
   function claimedProfile(name) {
     const needle = String(name ?? "").trim().toLowerCase();
     return needle ? CONTRIBUTOR_PROFILES_SEED.find((profile) => profile.displayName.toLowerCase() === needle) ?? null : null;
@@ -1729,7 +1474,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     });
   }
 
-  /** The promote route: accepted only, the attribution guard, then a preview or a published report. */
   function promoteSubmission(id, request) {
     if (fixture.session.user.role !== "admin") return json(403, { error: "Admin access required." });
     const row = inbox.trip.find((entry) => entry.id === id);
@@ -1759,7 +1503,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, published: true, submission: structuredClone(row), payload, suggestedOwner: member ? { email: member.email } : null });
   }
 
-  /** The record route's delete: admin only, and the report leaves every list. */
   function deletePortalReport(body) {
     if (fixture.session.user.role !== "admin") return json(403, { error: "Admin access required." });
     const id = String(body.id ?? "");
@@ -1774,7 +1517,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (!row) return json(404, { error: "That trip report no longer exists." });
     const admin = fixture.session.user.role === "admin";
     if (!admin && row.ownerEmail !== FIXTURE_EMAIL) return json(403, { error: "Only this report's owner or an admin can change it." });
-    // Someone else's save lands just before the owner's first one.
     if (fixture.state === "conflicted" && !contested.has(row.id)) {
       contested.add(row.id);
       row.fields = { ...row.fields, introduction: `${row.fields.introduction ?? ""} Edited by someone else.`.trim() };
@@ -1785,7 +1527,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     }
     const updates = body.updates ?? {};
     if (admin) {
-      // An admin also changes the byline, subject, substances and attribution; the attribution guard still applies.
       const profileKey = typeof body.profile_key === "string" ? body.profile_key.trim() : undefined;
       if (profileKey && !CONTRIBUTOR_PROFILES_SEED.some((profile) => profile.key === profileKey)) return json(400, { error: "Contributor profile not found." });
       const bylineMoved = String(updates.subject?.name ?? "").trim().toLowerCase() !== String(row.fields.subject.name ?? "").trim().toLowerCase();
@@ -1798,7 +1539,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       row.revision = nextRevision();
       return json(200, { ok: true, slug: row.slug, fields: structuredClone(row.fields), revision: row.revision });
     }
-    // An owner saves content only: title, tags and the body. Byline, subject and substances stay.
     row.fields = {
       ...row.fields,
       title: String(updates.title ?? row.fields.title),
@@ -1817,12 +1557,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return { ...structuredClone(preset), baseHash };
   }
 
-  /**
-   * The warning route's publish and delete: the revision check (409 with the
-   * route's words), a conflicted store's concurrent save, slugs that name no
-   * article dropped from the echo, and each answer kept by change id so a
-   * retried write reconciles instead of publishing twice.
-   */
   function writeBanner(method, body) {
     const key = String(body.key ?? "");
     const row = banners.presets.get(key);
@@ -1855,13 +1589,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, ...structuredClone(answer) });
   }
 
-  /** The comparable content of a copy row, for the route's `expected` check. */
   function copyContent(row) {
     if (!row || typeof row !== "object") return null;
     return JSON.stringify({ key: row.key, kind: row.kind, body: row.body ?? null, items: row.items ?? null, label: row.label, group: row.group, flavor: row.flavor ?? null });
   }
 
-  /** `POST` and `DELETE /api/dev/copy-block`: admin only, with the revision check and operation replay. */
   function writeCopyBlock(method, body) {
     if (fixture.role !== "admin") return json(403, { error: "Only an admin can publish copy. Submit it for review instead.", code: "FORBIDDEN" });
     const key = String(body.key ?? "");
@@ -1902,12 +1634,10 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, answer);
   }
 
-  /** Whether the session may change a playlist: its owner, or any admin. */
   function playlistEditable(row) {
     return fixture.role === "admin" || row.owner_email === fixture.session.user.email;
   }
 
-  /** The collection route: editors and admins list every playlist, everyone else only their own. */
   function listPlaylists() {
     const all = fixture.role === "admin" || fixture.role === "editor" || fixture.role === "editor_translator";
     return [...playlists.values()]
@@ -1916,12 +1646,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       .map(({ replication_slugs, ...row }) => ({ ...row, work_count: replication_slugs.length, editable: playlistEditable(row) }));
   }
 
-  /**
-   * The upsert: the `updated_at` check (409 with the stored row), the owner
-   * rule (403 NOT_OWNER), and entries that name no published work pruned and
-   * named in the answer. A conflicted store saves each playlist once as
-   * someone else just before the editor's first save.
-   */
   function savePlaylistRow(body) {
     const key = String(body.key ?? "");
     const existing = playlists.get(key);
@@ -1951,7 +1675,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, playlist: { ...structuredClone(row), editable: true, pruned: slugs.filter((slug) => !known.has(slug)) } });
   }
 
-  /** The bounded candidates read: newest first, at most 24 matches, or the asked slugs that exist. */
   function playlistCandidates(params) {
     const project = (row) => ({ slug: row.slug, title: row.title, artist: row.artist, type: row.type, thumbnail_url: row.thumbnail_url, url: row.type === "image" ? row.url : null, duration: row.duration });
     const asked = params.get("slugs");
@@ -1972,14 +1695,8 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return { ...summary, ...(mine === undefined ? {} : { isAuthor: mine }), commentCount: comments.length };
   }
 
-  /** The viewer's own proposal: seeded rows say so with `mine`, submitted ones with `isAuthor`. */
   const ownsProposal = (proposal) => proposal.mine ?? proposal.isAuthor;
 
-  /**
-   * The review routes: admin floor, the self-approval refusal, the status
-   * each decision allows, and approve's compare-and-swap (a moved target, or
-   * any target under `conflicted`, comes back as changes requested).
-   */
   function reviewProposal(id, action, body) {
     const proposal = proposals.find((row) => row._id === id);
     if (action === "comment") {
@@ -2024,7 +1741,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return null;
   }
 
-  /** `POST /api/dev/review-recommendations`: approves each at the revision it covered; stale or unknown ones come back. */
   function approveRecommendations(body) {
     if (fixture.role !== "admin") return json(403, { error: "Admin access required.", code: "FORBIDDEN" });
     const items = Array.isArray(body?.items) ? body.items : [];
@@ -2078,7 +1794,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { proposal: structuredClone({ ...detail, ...(mine === undefined ? {} : { isAuthor: mine }) }) });
   }
 
-  /** One page of invite history, newest first; the cursor is the index the next page starts at. */
   function invitePage(cursor) {
     const start = cursor ? Number(cursor.replace("fixture-invites-", "")) || 0 : 0;
     const invites = people.invites.slice(start, start + INVITES_PAGE_SIZE);
@@ -2121,7 +1836,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true });
   }
 
-  /** The member writes, refused the way Postgres refuses them: admins and the actor's own row. */
   function memberWrite(action, input) {
     const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
     const member = people.members.get(email);
@@ -2139,7 +1853,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true, email });
   }
 
-  /** A directory profile as the editor reads it, with its link and any saved changes. */
   function directoryProfile(key) {
     const entry = CONTRIBUTOR_PROFILES_SEED.find((profile) => profile.key === key);
     if (!entry || people.removedProfiles.has(key)) return null;
@@ -2158,7 +1871,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return profile;
   }
 
-  /** The works and reports credited to a profile, in the route's default order (newest first). */
   function creditedTo(key) {
     const seed = fixture.state === "empty" ? null : CONTRIBUTOR_DETAIL_SEED[key];
     const profile = people.profiles.get(key);
@@ -2174,7 +1886,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return { works, reports };
   }
 
-  /** The ordering route: editor floor, own record unless admin, the works revision checked like Postgres checks it. */
   function saveContributorOrdering(input) {
     if (!["admin", "editor", "editor_translator"].includes(fixture.role)) return json(403, { error: "Editor access required." });
     const profile = directoryProfile(String(input.key ?? ""));
@@ -2203,7 +1914,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ...answer, replicationOrder: profile.replicationOrder, reportOrder: profile.reportOrder });
   }
 
-  /** Merge, delete and retarget: admin floor and the typed key, as the danger route checks them. */
   function contributorDanger(input) {
     if (fixture.role !== "admin") return json(403, { error: "Admin access required." });
     const confirmed = (expected) => String(input.confirmKey ?? "").trim().toLowerCase() === String(expected ?? "").trim().toLowerCase();
@@ -2236,7 +1946,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(400, { error: "Unknown contributor action." });
   }
 
-  /** The profile route's admin patch: fields and the membership email, checked against `expectedUpdatedAt`. */
   function saveContributorProfile(input) {
     const profile = directoryProfile(String(input.key ?? ""));
     if (!profile) return json(200, { ok: true });
@@ -2257,7 +1966,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     for (const field of ["displayName", "bio", "role", "aliases", "links", "exclude_from_gallery", "archival", "approved_replicator", "staffNote", "avatarUrl"]) {
       if (field in input && input[field] !== undefined) profile[field] = structuredClone(input[field]);
     }
-    // An uploaded file is kept as the data it arrived as, so the preview survives the reload without a media host.
     if (input.avatarUpload?.base64) {
       Object.assign(profile, { avatarUrl: null, avatarStorageId: "fixture-avatar", storedAvatarUrl: `data:${input.avatarUpload.mimeType};base64,${input.avatarUpload.base64}` });
     } else if (input.avatarUrl === null) {
@@ -2267,18 +1975,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return json(200, { ok: true });
   }
 
-  /**
-   * `GET /api/dev/editor-library?slug=`: one whole article. Under
-   * `conflicted`, someone else saves the article right after the editor's
-   * first whole read of it, so a later read (a restore after a reload) finds
-   * a newer version than the one the editor's copy was made against.
-   */
   function readLibraryArticle(slug) {
     const row = library.rows.get(slug);
     if (!row) return json(404, { error: `No substance article is stored at ${slug}.` });
     const reads = (library.articleReads.get(slug) ?? 0) + 1;
     library.articleReads.set(slug, reads);
-    // Four articles are whole (`substanceFixtures.mjs`); the rest stay the thin projection.
     if (!library.articleRevisions.has(slug)) library.articleRevisions.set(slug, nextRevision());
     const answer = json(200, { ok: true, scope: "article", article: wholeArticle(row) ?? structuredClone(row), baseHash: library.articleRevisions.get(slug) });
     if (fixture.state === "conflicted" && reads === 1 && !contested.has(`article:${slug}`)) {
@@ -2289,12 +1990,9 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     return answer;
   }
 
-  /** `POST /api/save-article`: the admin floor, then the saved articles' tag fields land in the corpus. */
   function saveLibraryArticles(body) {
     if (fixture.role !== "admin") return json(403, { error: "Editor access required for Postgres writes.", code: "data_editor_access_required" });
     const layouts = Array.isArray(body.indexLayouts) ? body.indexLayouts : [];
-    // Under `conflicted`, another admin publishes the psychoactive layout just
-    // before this commit lands, so its revision check refuses it.
     if (fixture.state === "conflicted" && layouts.length && !contested.has("index-layout")) {
       contested.add("index-layout");
       const stored = library.layouts.find((row) => row.type === "psychoactive");
@@ -2340,18 +2038,13 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     const params = new URLSearchParams(search);
     const upper = method.toUpperCase();
 
-    // The viewer's client session: the fixture's role, whatever the server built.
     if (pathname === "/api/dev/screenshot-viewer/session") return json(200, fixture.session);
     if (pathname.startsWith("/api/dev/screenshot-viewer/")) return json(200, {});
     if (pathname === "/api/csp-report") return { status: 204, json: null };
 
-    // Shell-wide reads answer as loaded in every state, so a tool's state is
-    // what a journey sees rather than the whole shell failing around it.
     if (upper === "GET") {
       if (pathname === "/api/editor/contributor-profiles") return json(200, structuredClone(CONTRIBUTOR_PROFILES_SEED.filter((profile) => !people.removedProfiles.has(profile.key))));
       if (pathname === "/api/dev/proposals/count") return json(200, { ok: true, submitted: proposals.filter((row) => row.status === "submitted").length });
-      // Rail counts come from the same seeds the queues list, so the rail, Home
-      // and each queue agree (the routes count the same statuses the queues treat as waiting).
       const pending = (row) => row.status === "new" || row.status === "reviewing";
       if (pathname === "/api/dev/trip-reports/needs-review-count") return json(200, { ok: true, count: inbox.trip.filter((row) => TRIP_NEEDS_REVIEW.includes(row.status)).length });
       if (pathname === "/api/feedback/pending-count") {
@@ -2362,7 +2055,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (pathname === "/api/citation-evidence/open-count") return json(200, { ok: true, count: citationQueueSummaries(citationEvidence, "open").length });
       if (pathname === "/api/glossary-feedback/pending-count") return json(200, { ok: true, total: inbox.glossary.filter(pending).length });
       if (pathname === "/api/dev/index-layout" && params.get("type") === "all") return json(200, structuredClone(library.layouts));
-      // The commit button's server check: ready, so a commit is not held back.
       if (pathname === "/api/editor-config-health") return json(200, { canSaveToPostgres: true, issues: [], checkedAt: new Date(FIXTURE_EPOCH).toISOString() });
     }
 
@@ -2399,7 +2091,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (upper === "POST") return toolWrite(() => approveRecommendations(body));
     }
 
-    // Home: the member's own drafts and proposals, invites, language inboxes, own profile.
     if (pathname === "/api/dev/my-work" && upper === "GET") {
       return toolRead(() => json(200, {
         ok: true,
@@ -2418,7 +2109,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/invites" && upper === "POST") return toolWrite(() => mintInvite(body ?? {}));
     const revokeMatch = /^\/api\/dev\/invites\/([^/]+)\/revoke$/.exec(pathname);
     if (revokeMatch && upper === "POST") return toolWrite(() => revokeInvite(decodeURIComponent(revokeMatch[1])));
-    // The translation workbench (Glossary) and the language inboxes Home counts.
     const translationAnswer = translation({ upper, pathname, params, body });
     if (translationAnswer) return translationAnswer;
     if (pathname === "/api/dev/contributor-profile" && upper === "POST") return toolWrite(() => saveContributorProfile(body ?? {}));
@@ -2433,7 +2123,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         profile: {
           key,
           displayName: fixture.session.user.name,
-          // Name and bio done in the loaded state, only the name in the empty one.
           bio: fixture.state === "empty" ? "" : "Writes field notes.",
           links: [],
           avatarUrl: null,
@@ -2444,7 +2133,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       }));
     }
 
-    // Home and My reports: the member's own trip report submissions and published reports.
     if (pathname === "/api/dev/trip-reports/mine/submissions" && upper === "GET") {
       const at = (hours) => new Date(FIXTURE_EPOCH - hours * 3_600_000).toISOString();
       return toolRead(() => json(200, {
@@ -2471,7 +2159,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         })),
       }));
     }
-    // My reports: one owned report's editable body, its save, and the admin's owner assignment.
     if (pathname === "/api/dev/trip-reports/record") {
       if (upper === "GET") {
         const row = ownedReports.get(params.get("id") ?? "");
@@ -2492,7 +2179,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       });
     }
 
-    // Inbox: every intake queue it reads, plus claims, answered from one in-memory store.
     if (pathname === "/api/dev/inbox/claims") {
       if (upper === "GET") return toolRead(() => json(200, { ok: true, claims: structuredClone(inbox.claims) }));
       if (upper === "POST") {
@@ -2506,7 +2192,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         });
       }
     }
-    // Trip reports: the published corpus, the submission queue (portal index, needs review, one item), promotion.
     if (pathname === "/api/dev/trip-reports" && upper === "GET") {
       return toolRead(() => json(200, {
         ok: true,
@@ -2588,7 +2273,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         return json(200, { ok: true, feedback: structuredClone(row) });
       });
     }
-    // Citations: the queue by filter, one article's rows, and status writes (admin only, as the route).
     if (pathname === "/api/citation-evidence/queue" && upper === "GET") {
       return toolRead(() => json(200, { ok: true, queue: citationQueueSummaries(citationEvidence, params.get("status") ?? "open") }));
     }
@@ -2597,8 +2281,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         const slug = params.get("slug") ?? "";
         const rows = citationEvidence.get(slug) ?? [];
         const answer = json(200, { ok: true, slug, rows: structuredClone(rows) });
-        // Under `conflicted`, another admin decides the article's first ready
-        // row right after the reviewer's first read of it.
         if (fixture.state === "conflicted" && !contested.has(`citations:${slug}`)) {
           contested.add(`citations:${slug}`);
           const ready = rows.find((row) => row.status === "supported");
@@ -2641,7 +2323,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       });
     }
 
-    // Copy: the metadata-only catalogue, one block by key with its revision, and the admin writes.
     if (pathname === "/api/editor/copy-blocks" && upper === "GET") {
       return toolRead(() => json(200, [...copy.rows.values()].map(({ key, flavor, kind, label, group, updatedAt, updatedBy }) => ({ key, flavor, kind, label, group, updatedAt, updatedBy }))));
     }
@@ -2658,13 +2339,11 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
       if (upper === "POST" || upper === "DELETE") return toolWrite(() => writeCopyBlock(upper, body ?? {}));
     }
 
-    // Change log: the route caps `limit` at 500, as `changelog.getRecent` does.
     if (pathname === "/api/editor/changelog" && upper === "GET") {
       const limit = Math.min(Number(params.get("limit") ?? 50) || 50, 500);
       return toolRead(() => json(200, structuredClone(changelog.slice(0, limit))));
     }
 
-    // Banners: presets, the corpus, the site-wide glyph size, and the preview's article read.
     if (pathname === "/api/dev/warning-banner") {
       if (upper === "GET") {
         const key = params.get("key");
@@ -2697,7 +2376,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
     if (pathname === "/api/dev/replications/featured" && upper === "GET") {
       return toolRead(() => json(200, { slugs: replications.rows.slice(0, 12).map((row) => row.slug), curated: false }));
     }
-    // Playlists: the member's own playlists, one by key, the upsert, removal, owner handoff and the work lookup.
     if (pathname === "/api/dev/replications/playlists") {
       if (upper === "GET") return toolRead(() => json(200, { ok: true, playlists: listPlaylists() }));
       if (upper === "POST") return toolWrite(() => savePlaylistRow(body ?? {}));
@@ -2744,8 +2422,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
         links: structuredClone(people.links),
       }));
     }
-    // The editor library (shell-wide, answers in every state so other tools keep their corpus),
-    // the Tags projection and one whole article (tool reads, so `failed` fails them).
     if (pathname === "/api/dev/editor-library" && upper === "GET") {
       const scope = params.get("scope");
       const slug = params.get("slug");
@@ -2765,8 +2441,6 @@ export function createJourneyFixture({ role = "admin", state = "loaded", replica
 
     if (pathname.startsWith("/api/")) {
       fixture.unhandled.push({ method: upper, pathname, search });
-      // Answered here rather than passed on: the dev server would only say 401,
-      // and a write must never leave the test browser.
       return json(upper === "GET" || upper === "HEAD" ? 404 : 501, { error: `No journey fixture answers ${upper} ${pathname}.` });
     }
     return null;

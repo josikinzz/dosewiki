@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Notice } from "./Notice";
 
-/** Shown wherever a tool step has no touch grammar and stays read-only on a coarse pointer. */
 export const DESKTOP_ONLY_NOTICE = "This step needs a desktop browser. Everything else here works on a phone.";
 
 export interface DesktopOnlyNoticeProps {

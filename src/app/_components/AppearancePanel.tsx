@@ -34,62 +34,20 @@ import {
   axisDot,
 } from "./AppearanceAxes";
 
-/**
- * Which way the panel is currently turned. Colour first: the look controls are what a
- * reader reaches for most, so the panel opens on them and the reading-type controls sit
- * one swap away. A publication that offers no colour axis at all opens on Font instead,
- * because an empty opening tab is worse than the wrong one.
- */
 type AppearanceTab = "font" | "colour";
 
-/**
- * An em value with its direction signed: `-0.01 em` tightens, `+0.03 em` loosens, and
- * zero stays unsigned. Spacing direction is the one thing a bare number hides, and it
- * is the one thing a reader tuning letterfit needs to see.
- */
 function signedEm(value: number): string {
   return `${value > 0 ? "+" : ""}${Number(value.toFixed(2))} em`;
 }
 
-/**
- * Which rows this instance offers. Passed in rather than read here: the visibility
- * questions are publication and role policy, resolved once in `AppearanceControls`, and
- * keeping them as props is what lets a story or a test show a locked publication's
- * appearance without standing up a flavor config or a session.
- */
 export type AppearancePanelRows = {
-  /**
-   * The Vivid/Clinical look picker. Absent where the publication's identity is one
-   * style (the provider's setter is a no-op under that lock).
-   */
   showVisualStyle: boolean;
-  /** Dark/Light page scheme. */
   showColorScheme: boolean;
-  /** The surface colour pair: hue and saturation. */
   showSurface: boolean;
   showAccent: boolean;
-  /** The face picker and the reading-type sliders. Absent where the publication locks the axis. */
   showFont: boolean;
 };
 
-/**
- * The two halves of the reader's appearance menu: a Colour tab that opens on the look
- * picker and mode row, with Background and Accent collapsed on mobile, open on desktop,
- * and "Reset colors" beside the dev-only Theme Lab entry, then a Font tab behind one swap. One icon
- * swaps between them — the type glyph on the colour tab, the paintbrush on the font
- * tab — rendered as a bare control beside the tab's first row, with no card of its own.
- *
- * Everything is read from and written to `ThemeContext`; this component holds no
- * appearance state of its own beyond the tab and mobile disclosures. The range inputs write the
- * context per input tick — that is what keeps them controlled and the thumb, readout,
- * and rail gradients live — and per-tick writes are safe because the provider
- * rAF-throttles the document paint and debounces persistence: nothing here needs its
- * own throttle.
- *
- * The Theme Lab drawer keeps the fuller, always-open `AppearanceAxes` instead: it is an
- * authoring surface and still offers the Fun/Pro style axis and the System scheme
- * option that this reader panel leaves out.
- */
 export function AppearancePanel({
   showVisualStyle,
   showColorScheme,
@@ -99,19 +57,10 @@ export function AppearancePanel({
   surfaceLabel = "Background",
   footerAction,
 }: AppearancePanelRows & {
-  /** Reader-facing surface-axis name: "Background" for readers, "Surface" for authors. */
   surfaceLabel?: string;
-  /**
-   * A caller-owned action that shares the colour tab's footer row with Reset — the
-   * cog's dev-only Theme Lab entry. Rendered right-aligned so the two never claim a
-   * row each.
-   */
   footerAction?: ReactNode;
 }) {
   const t = useT();
-  // Same reachability test `colourTabReachable` applies below, inlined because the
-  // initial tab is resolved before those derivations run: open on Colour, and fall back
-  // to Font only where this publication offers no colour axis to open onto.
   const [tab, setTab] = useState<AppearanceTab>(
     showSurface || showAccent || showColorScheme ? "colour" : "font",
   );
@@ -135,21 +84,14 @@ export function AppearancePanel({
     setAccentHue,
   } = useTheme();
 
-  // Null is "never chose": resolve the current appearance combination's default hue.
   const defaultColors = getDefaultAppearanceColors(visualStyle, colorScheme);
   const effectiveSurfaceHue = surfaceHue ?? defaultColors.surfaceHue;
   const effectiveAccentHue = accentHue ?? defaultColors.accentHue;
-  // The reading-type sliders park on the site defaults while the reader never saved a
-  // value — the same resolve-the-effective-value rule the colour rails follow.
   const effectiveTextSize = textSize ?? DEFAULT_TEXT_SIZE;
-  // Tracking's resting value follows the face: Lexend's letterfit is the default face's
-  // whole point, so it rests at zero; the other faces carry the authored negative ramp.
   const effectiveLetterSpacing =
     letterSpacing ?? (fontPreference === "lexend" ? DEFAULT_LETTER_SPACING_LEXEND : DEFAULT_LETTER_SPACING_STANDARD);
   const effectiveLineHeight = lineHeight ?? DEFAULT_LINE_HEIGHT;
 
-  // The rails must show the palette the reader is actually wearing, per axis — the same
-  // fixed-legibility anchors AppearanceAxes paints (see that file for the reasoning).
   const surfaceSwatch =
     visualStyle === "pro"
       ? BASE_SURFACE_PRO_SEEDS[colorScheme]["--ei-paper"]!
@@ -185,12 +127,6 @@ export function AppearancePanel({
               display={`${Math.round(effectiveTextSize * 100)}%`}
               onChange={(value) => setTextSize(value / 100)}
             />
-            {/* The fractional axes run on integer slider domains — a value scaled by
-                100 (tracking, leading) — because range inputs snap values to
-                `min + n * step`, and a fractional step's float error parks a thumb off
-                its default. The bounds are rounded for the same reason (2.2 * 100 is
-                220.00000000000003), the read-out carries the unit, and `aria-valuetext`
-                announces it. */}
             <TypeSliderRow
               label={t("Letter spacing")}
               min={Math.round(READER_TRACKING_RANGE[0] * 100)}
@@ -218,18 +154,11 @@ export function AppearancePanel({
           </div>
         ) : null}
 
-        {/* The reset is a permanent fixture of the tab, not a reward for having tuned
-            something: a reader scanning for the way back should always find it, and
-            pressing it on an untouched panel is a harmless no-op. It restores the three
-            reading-type sliders and never touches the colour axes — or the face choice,
-            which the picker itself owns. */}
         {showFont ? (
           <div className="flex items-center">
             <button
               type="button"
               onClick={() => {
-                // Null is the setters' "back to the site default": the keys are
-                // removed and every slider axis disengages. The face stays as chosen.
                 setTextSize(null);
                 setLetterSpacing(null);
                 setLineHeight(null);
@@ -247,8 +176,6 @@ export function AppearancePanel({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* First row: the look picker with the swap beside it, on the font tab's exact
-          geometry (dropdown flex-1, bare swap control). Mode follows beneath. */}
       {showVisualStyle || swapTarget ? (
         <div className="flex items-center gap-1">
           {showVisualStyle ? <StylePicker className="min-w-0 flex-1" /> : null}
@@ -300,18 +227,12 @@ export function AppearancePanel({
         </ColorAxisGroup>
       ) : null}
 
-      {/* The reset is a permanent fixture of the tab, on the font tab's terms: a reader
-          scanning for the way back should always find it, and pressing it on an
-          untouched palette is a harmless no-op. It restores only Background and
-          Accent. */}
       {showColorAxes || footerAction ? (
         <div className="flex items-center gap-2">
           {showColorAxes ? (
             <button
               type="button"
               onClick={() => {
-                // Null is the setters' "back to the site default": the storage
-                // keys are removed, and every color axis returns to the authored look.
                 setSurfaceHue(null);
                 setSurfaceChroma(null);
                 setAccentHue(null);
@@ -330,13 +251,6 @@ export function AppearancePanel({
   );
 }
 
-/**
- * The one control that turns the panel between its two halves. A bare icon beside the
- * tab's first row — deliberately not a card, not a segmented pair: the sketch's
- * correction removes the box that used to sit behind it. The glyph names the tab it
- * opens (paintbrush for colour, type for font), so the same control reads as a
- * destination, not a state.
- */
 function TabSwapButton({
   target,
   onSwap,
@@ -360,16 +274,6 @@ function TabSwapButton({
   );
 }
 
-/**
- * One reading-type slider: its uppercase name and live value over a filled track. The
- * fill is data, not decoration — the track reads as a meter of where the reader's value
- * sits between the slider's domain ends, wearing the reader's accent (the scoped
- * `[data-appearance-type]` rule beside the chroma tracks), on the same "the rail shows
- * what the thumb means" terms as the colour rails. `tick` marks the axis's resting
- * default in the slider's own units — where Reset returns — mirroring the authored-
- * position mark the colour rails carry; on the tracking axis it moves with the face,
- * exactly as the colour ticks move with the style/scheme variant.
- */
 function TypeSliderRow({
   label,
   min,
@@ -384,9 +288,7 @@ function TypeSliderRow({
   min: number;
   max: number;
   step: number;
-  /** The effective value the thumb parks on: the reader's saved number or the site default. */
   value: number;
-  /** The resting default in the slider's own (scaled) units. */
   tick: number;
   display: string;
   onChange: (value: number) => void;
@@ -400,8 +302,6 @@ function TypeSliderRow({
         <span className="text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-dose-text-muted">
           {label}
         </span>
-        {/* The live value is the state the reader is setting; it reads brighter than
-            its static label for the same reason the rails' readouts do. */}
         <span className="text-[0.6875rem] font-medium tabular-nums text-dose-text-secondary">
           {display}
         </span>
@@ -411,10 +311,6 @@ function TypeSliderRow({
           className="theme-chroma-track"
           style={
             {
-              // The fill is a meter, so it wears the reader's accent (CSS owns the
-              // gradient — see the scoped rule beside the chroma tracks); this custom
-              // property only carries where the fill ends. At accent saturation 0 the
-              // accent token greys out and the fill follows honestly.
               "--dw-type-fill": `${percent}%`,
             } as CSSProperties
           }
@@ -443,11 +339,6 @@ function TypeSliderRow({
   );
 }
 
-/**
- * The colour sliders' direct-touch contract, generalized past the hue rail's integer
- * domain: coarse pointers get first-contact positioning, pointer capture, and one
- * continuous drag, quantized to the slider's own step; mouse input stays native.
- */
 function useDirectTypeRange(
   min: number,
   max: number,
@@ -501,10 +392,6 @@ function useDirectTypeRange(
   };
 }
 
-/**
- * One colour axis with a compact mobile disclosure. Desktop always shows the sliders,
- * independently of the mobile expansion state.
- */
 function ColorAxisGroup({
   axisName,
   dotColor,

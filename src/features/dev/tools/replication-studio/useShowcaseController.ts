@@ -8,14 +8,8 @@ import type { ConfirmRequest } from "@/features/dev/components";
 import type { StudioRow } from "./replicationStudioModel";
 import { currentSearch, type StudioWorkspaces } from "./useStudioWorkspaces";
 
-/** Showcases are curated per drug article, or reviewed per replication. */
 export type ShowcaseMode = "drug" | "replication";
 
-/**
- * The Showcases workspace: which side of the placement it is read from, the
- * replication open in the per-work view, and the ways in from the other
- * workspaces. Each view holds its own draft, so switching views asks first.
- */
 export function useShowcaseController({
   rows,
   workspaces,
@@ -53,7 +47,6 @@ export function useShowcaseController({
     [confirm, mode, setShowcaseDirty, showcaseDirty],
   );
 
-  /** Opens one drug article's showcase. */
   const openArticle = useCallback(
     (slug: string) => {
       setMode("drug");
@@ -62,7 +55,6 @@ export function useShowcaseController({
     [router],
   );
 
-  /** Opens one replication's drug-article placements. */
   const openPlacement = useCallback(
     (id: string) =>
       request("substances", () => {
@@ -83,7 +75,6 @@ export function useShowcaseController({
     placementRow,
     choosePlacementRow: setPlacementRowId,
     openArticle,
-    /** Opens an article's showcase from Playlists, once an unsaved playlist is dealt with. */
     reviewArticle: (slug: string) => guardPlaylist(() => openArticle(slug)),
     openPlacement,
   };

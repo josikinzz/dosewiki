@@ -17,11 +17,7 @@ type PromoteRouteContext = {
 
 type PromoteBody = {
   publish?: unknown;
-  // Editor-assigned contributor attribution. Trusted because this route is
-  // behind an editor session; submissions themselves never carry a key.
   profile_key?: unknown;
-  // Editor acknowledgement that the submitted byline matches a real
-  // contributor and is being published without granting that identity.
   confirm_author_name_claim?: unknown;
 };
 
@@ -35,8 +31,6 @@ type ParsedPromoteBody = {
 
 export async function POST(request: Request, context: PromoteRouteContext) {
   return protectedRouteOperation<PromoteBody, ParsedPromoteBody>({
-    // Previewing the promotion payload is an editor read; publishing it is an
-    // admin decision, checked once the body says which one this is.
     auth: "editor",
     rateLimit: "editorSmallWrite",
     body: {
@@ -48,7 +42,6 @@ export async function POST(request: Request, context: PromoteRouteContext) {
       }),
     },
     unexpectedErrorLabel: "Failed to promote trip report submission:",
-    // Total, so every failure keeps this route's own response shape.
     mapError: mapPromoteRouteError,
     operation: async ({ auth, actorEmail, body }) => {
       const { id } = await Promise.resolve(context.params);
@@ -96,10 +89,6 @@ function asBoolean(value: unknown): boolean {
   return value === true || value === "true" || value === "on" || value === "1";
 }
 
-/**
- * Postgres prefixes a thrown mutation error with its own request framing and
- * appends a stack, so lift just the sentence the editor needs to act on.
- */
 function extractAuthorNameClaimMessage(message: string): string {
   const start = message.indexOf('Author name "');
   if (start < 0) {
@@ -133,14 +122,10 @@ function mapPromoteRouteError(error: unknown): NextResponse {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  // Postgres wraps thrown mutation errors, so match by substring rather than
-  // exact equality.
   if (error instanceof Error && error.message.includes("Contributor profile \"")) {
     return NextResponse.json({ error: "Contributor profile not found." }, { status: 400 });
   }
 
-  // Relayed verbatim: it names the colliding profile and the two ways out, and
-  // the editor is the one who has to choose between them.
   if (error instanceof Error && error.message.includes("matches contributor profile")) {
     return NextResponse.json({ error: extractAuthorNameClaimMessage(error.message) }, { status: 409 });
   }

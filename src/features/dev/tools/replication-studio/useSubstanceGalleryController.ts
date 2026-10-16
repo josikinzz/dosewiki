@@ -256,12 +256,6 @@ export function useSubstanceGalleryController({
     [applyCuration, curation, titleOf],
   );
 
-  /**
-   * Apply a saved playlist into this draft. Playlist membership is not an
-   * effect-match claim: every corpus row eligible for a public showcase may be
-   * pinned directly. Existing exclusions still outrank the playlist, and the
-   * editor must explicitly save before the article changes.
-   */
   const handleApplyPlaylist = useCallback(
     (playlist: { title: string; replication_slugs: readonly string[] }) => {
       const eligibleSlugs = playlist.replication_slugs.filter((slug) =>
@@ -309,9 +303,6 @@ export function useSubstanceGalleryController({
   const handleExclude = useCallback(
     (slug: string) => {
       const next = excludeSlug(curation, slug);
-      // The excluded row unmounts. Hand focus to its neighbour so a keyboard
-      // editor keeps their place instead of dropping to <body>; with no
-      // neighbour left, the excluded shelf toggle is the nearest real target.
       const index = board.rows.findIndex((row) => row.match.replication.slug === slug);
       const neighbour =
         board.rows[index + 1]?.match.replication.slug ??
@@ -324,13 +315,6 @@ export function useSubstanceGalleryController({
     [applyCuration, board.rows, curation, titleOf],
   );
 
-  /**
-   * The corpus-wide verb. Junk is junk on every article, so this retires the
-   * work from every candidate pool at once instead of spending one of this
-   * gallery's exclusion slots on it. It writes immediately, since there is no
-   * draft to hold a corpus fact in, and reloads the detail so the row leaves the
-   * pool it was just judged in.
-   */
   const handleExcludeEverywhere = useCallback(
     async (slug: string) => {
       const match = matches.find((entry) => entry.replication.slug === slug);
@@ -599,7 +583,6 @@ export function useSubstanceGalleryController({
 
 
   return {
-    /** The substance picker, and the switch that waits on a dirty board. */
     picker: {
       candidates,
       state: candidatesState,
@@ -642,7 +625,6 @@ export function useSubstanceGalleryController({
       undo: handleUndo,
       redo: handleRedo,
     },
-    /** Every change to the board; each one is a single undo step. */
     edit: {
       curate: handleCurate,
       uncurate: handleUncurate,

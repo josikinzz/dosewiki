@@ -1,8 +1,3 @@
-/**
- * Shared pieces of the `/api/dev/translation-glossary/*` routes: body parsing
- * (a locale the translation pipeline knows, terms as written) and the rows
- * the tab renders. Mutations require their existing role floor and Postgres.
- */
 import { NextResponse } from "next/server";
 
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -92,10 +87,6 @@ export function parseTarget(raw: unknown): string {
   return target;
 }
 
-/**
- * The reviewer's reason for a glossary write: `{ kind, note }` or legacy text.
- * Absent means the route's default wording; malformed is refused.
- */
 export function parseGlossaryReason(raw: unknown, maxNote = 1000): ReviewReason | undefined {
   if (raw === undefined || (typeof raw === "string" && !raw.trim())) return undefined;
   const reason = parseReviewReason(raw);
@@ -104,7 +95,6 @@ export function parseGlossaryReason(raw: unknown, maxNote = 1000): ReviewReason 
   return reason;
 }
 
-/** A fixed-size acknowledgement, never a blanket override or a body in a query. */
 export function parseCollisionConfirmation(raw: unknown): string | undefined {
   if (raw === undefined) return undefined;
   if (typeof raw !== "string" || !/^[a-f0-9]{64}$/.test(raw)) {
@@ -113,7 +103,6 @@ export function parseCollisionConfirmation(raw: unknown): string | undefined {
   return raw;
 }
 
-/** The digest a progress poll measures segments against; the client echoes what the last full load returned. */
 export function parsePromptVersion(raw: unknown): string {
   if (typeof raw !== "string" || !/^[A-Za-z0-9._:-]{1,128}$/.test(raw))
     throw new JsonBodyError(400, "Refresh the glossary before polling its progress.");
@@ -160,45 +149,30 @@ export function glossaryCollisionResponse(error: unknown): NextResponse | null {
   );
 }
 
-/** One locale in the picker: the live mirrors always, plus any locale with rows. */
 export type GlossaryLocaleOption = GlossaryLocaleSummary & { live: boolean };
 
 export type GlossaryListResponse = {
   ok: true;
   generatedAt: number;
   locale: string;
-  /** The prompt digest the approved set currently produces; segments stamped otherwise are stale. */
   promptVersion: string;
-  /** Stored segments for the locale and how many carry `promptVersion`. */
   segments: { total: number; current: number };
-  /** Newest translation enqueue generation, with terminal rejections separated from actionable work. */
   jobs: TranslationJobCounts;
   locales: GlossaryLocaleOption[];
   rows: GlossaryReviewRow[];
-  /** First-page source locations computed before row disclosures render. Omitted from background progress polls. */
   usages?: import("@/lib/glossary/glossaryUsage").GlossaryUsageMap;
-  /** Approved terms whose rendering changed since it last reached stored segments: what a retranslate sends. */
   pending: string[];
-  /** `term -> gloss`, the locale-independent English definitions; shown under each row and injected into every prompt. */
   glosses: Record<string, string>;
 };
 
-/** The progress-only answer to the workbench's poll: counts, no rows. */
 export type GlossaryProgressResponse = Pick<GlossaryListResponse, "ok" | "generatedAt" | "locale" | "promptVersion" | "segments" | "jobs">;
 
-/**
- * What a row write returns so the workbench patches those rows in place
- * instead of reloading the locale: the written rows as the list shows them,
- * and the retranslation list, which an approval can change.
- */
 export type GlossaryRowPatch = Pick<GlossaryListResponse, "rows" | "pending">;
 
 export function glossaryRowPatch(rows: readonly GlossaryReviewRow[], terms: readonly string[]): GlossaryRowPatch {
   const written = new Set(terms);
   return {
     rows: rows.filter((row) => written.has(row.term)),
-    // A review row shows a pending draft over the stored status; the list's
-    // retranslation set reads the stored status, which `approved_target` keeps.
     pending: pendingRetranslation(rows.map((row) => ({ ...row, status: row.approved_target === null ? ("draft" as const) : ("approved" as const) }))),
   };
 }

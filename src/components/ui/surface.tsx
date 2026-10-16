@@ -4,12 +4,6 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-/**
- * The keyboard focus indicator every interactive surface shares. Exported
- * because feature code kept re-typing it character for character, and a
- * focus ring that drifts between surfaces is a focus ring people stop
- * trusting.
- */
 export const focusRingClassName = "theme-focus-ring";
 
 const surfaceVariants = cva("relative border", {
@@ -71,8 +65,6 @@ const interactiveSurfaceVariants = cva(
         card:
           "hover:border-[color:var(--theme-card-border-strong)] hover:shadow-[var(--theme-elevation-overlay)]",
         public: "theme-public-card-interactive",
-        // Index panels intentionally have no surface-level hover effect (no
-        // brighten/lift/glow). Only the links inside them respond to hover.
         index: "",
         result:
           "theme-public-card-hover-quiet group overflow-hidden hover:-translate-y-px hover:shadow-[var(--theme-elevation-accent-lift)]",

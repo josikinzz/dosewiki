@@ -38,15 +38,8 @@ import {
 const prefersReducedMotion = () =>
   typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Below the `lg` split the list stacks above the pane. */
 const STACKED_QUERY = "(max-width: 1023px)";
 
-// Read-wide, write-narrow: the registry arrives as a dedicated projection
-// carrying exactly the tag fields `buildTagRegistry` reads, so listing and
-// planning never touch an article body. A mutation hydrates only the slugs it
-// rewrites (hydration fills draft and baseline together), then rewrites the
-// now-full rows, so the save path sees the mutation as the only diff and
-// unhydrated rows never reach it.
 type RegistryFetchState =
   | { status: "loading" }
   | { status: "error" }
@@ -55,22 +48,10 @@ type RegistryFetchState =
 const TAG_REGISTRY_ENDPOINT = "/api/dev/editor-library?scope=tag-registry";
 
 type RebasedTagMutation = {
-  /** The working set the rewrite ran over: hydrated where the plan asked, otherwise as found. */
   before: SubstanceArticle[];
   result: TagMutationResult;
 };
 
-/**
- * Re-run a planned mutation against the draft as it stands *now*, after the
- * awaited hydration. Editing carried on while the batch was in flight, so the
- * render-time array the plan was made from is not the array to rewrite.
- *
- * Hydrated bodies are merged into a row only while its draft is still the
- * pre-mutation placeholder it was planned from (`hydrateArticles` applies the
- * same rule); a row edited meanwhile keeps its edit and the rewrite lands on
- * top of it. The rewrite is then confined to the slugs the plan hydrated, so
- * a row the plan never saw is never rewritten unhydrated.
- */
 function rebaseTagMutation({
   previous,
   baseline,
@@ -114,12 +95,6 @@ function rebaseTagMutation({
 
 type RevertedTagMutation = { articles: SubstanceArticle[]; restoredCount: number };
 
-/**
- * Put a rewrite back. A row is restored only while it is still exactly the
- * row the rewrite produced; one edited since keeps its edit. Rows are matched
- * by slug, so an article added or removed elsewhere since cannot shift the
- * restore onto a neighbour.
- */
 function revertTagMutation(previous: SubstanceArticle[], undo: TagUndo): RevertedTagMutation {
   const bySlug = new Map<string, { before: SubstanceArticle; after: SubstanceArticle }>();
   for (const index of undo.changedIndexes) {
@@ -188,9 +163,6 @@ export function TagEditorTab({
   }, [registryRetry]);
 
   const registryEntries = registryFetch.status === "ready" ? registryFetch.entries : null;
-  // The list is the server's tags with the draft's tag changes layered on
-  // top, the same projection a finished mutation reports, so an uncommitted
-  // rename survives a remount or a reload and the next mutation finds it.
   const baseline = useMemo(() => getOriginalArticles(), [getOriginalArticles]);
   const projectRegistry = useCallback(
     (draftArticles: readonly SubstanceArticle[]) =>
@@ -202,8 +174,6 @@ export function TagEditorTab({
     [articles, baseline, registryEntries],
   );
 
-  // A commit moves the baseline onto the draft's tags; the fetched server
-  // list predates it, so read it again rather than show the old names.
   const baselineSignature = useMemo(() => baselineTagSignature(baseline), [baseline]);
   const fetchedForSignature = useRef(baselineSignature);
   useEffect(() => {
@@ -226,9 +196,6 @@ export function TagEditorTab({
     };
   }, [baselineSignature]);
 
-  // The header's reload keeps the panels mounted: the rebuilt registry flows
-  // in through the articlesChanged dispatch, and the button reports the
-  // round trip instead of leaving the editor guessing whether it ran.
   const [reload, setReload] = useState<TagReloadState>("idle");
   const handleReload = useCallback(() => {
     setReload("busy");
@@ -256,9 +223,6 @@ export function TagEditorTab({
   const selectedUsage = useMemo(() => getSelectedUsage(state), [state]);
   const totalTags = useMemo(() => getTotalTags(state), [state]);
 
-  // Below the xl split the tag list stacks above the detail and mutation
-  // panels. Keyed on the tapped tag, not `state.selected`, so the first-tag
-  // fallback on registry load, field change, or search does not move the page.
   const detailRef = useRef<HTMLElement | null>(null);
   const [pickedTagKey, setPickedTagKey] = useState<string | null>(null);
   useScrollToDetail(detailRef, pickedTagKey);
@@ -276,10 +240,6 @@ export function TagEditorTab({
     if (effect.kind === "tagMutation") {
       void (async () => {
         try {
-          // Plan the rewrite over the current working set: slim rows carry
-          // every tag field, so the planned change set is exact. Then hydrate
-          // only the rows the rewrite touches and run the rewrite over the
-          // now-full rows; untouched rows stay slim and never enter the diff.
           const plan = runTagEditorMutation(articles, effect.mutation);
           const hydratedSlugs = new Set(
             plan.changes
@@ -313,15 +273,8 @@ export function TagEditorTab({
               return slug ? [[slug, article] as const] : [];
             }),
           );
-          // The baseline from before the await is the right comparison: a
-          // row still identical to it is the untouched placeholder the plan
-          // saw, which is exactly the row a landed body should fill.
           const baseline = getOriginalArticles();
 
-          // The rewrite is computed inside the draft transform so it sees
-          // every edit made while hydration was in flight. flushSync makes
-          // React run that transform before this continues, so the result the
-          // notice and registry are built from is the one the draft holds.
           const outcome: { rebased: RebasedTagMutation | null } = { rebased: null };
           flushSync(() => {
             applyArticlesTransform((previous) => {
@@ -431,9 +384,7 @@ export function TagEditorTab({
     dispatch({ type: "downloadDiffRequested", hasDatasetChanges });
   }, [hasDatasetChanges]);
 
-  // What the working changes did to each tag, against the server's list.
   const serverRegistry = useMemo(() => buildTagRegistry(registryEntries ?? []), [registryEntries]);
-  // Only once the server's list is in: before that there is nothing to compare against.
   const changes = useMemo(
     () => (registryEntries ? tagChanges(serverRegistry, state.registry) : []),
     [registryEntries, serverRegistry, state.registry],
@@ -459,8 +410,6 @@ export function TagEditorTab({
   const paneTitleRef = useRef<HTMLHeadingElement | null>(null);
   const changesHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
-  // A tap on a stacked (phone) layout scrolls the pane in; its heading takes
-  // focus once it is there, so a screen reader lands on the tag it opened.
   useEffect(() => {
     if (pickedTagKey === null || typeof window === "undefined" || typeof window.matchMedia !== "function" || !window.matchMedia(STACKED_QUERY).matches) return;
     const frame = window.requestAnimationFrame(() => paneTitleRef.current?.focus({ preventScroll: true }));
@@ -481,12 +430,7 @@ export function TagEditorTab({
     heading.focus({ preventScroll: true });
   }, []);
 
-  // Removing asks first and names the articles; the machine's own guard
-  // (the confirmation flag) is set by the confirm, then the removal runs.
   const { confirm, dialog: confirmDialog } = useConfirm();
-  // After a removal the pane stays on the removed tag (its result and Undo
-  // with it) instead of showing the tag the list falls back to, until the
-  // editor picks something else.
   const [removed, setRemoved] = useState<{ tag: string; field: TagField; count: number; notice: TagNoticeState | null } | null>(null);
   useEffect(() => {
     if (!removed || removed.notice || state.isApplying) return;
@@ -516,8 +460,6 @@ export function TagEditorTab({
     });
   }, [confirm, selectedUsage]);
 
-  // `/` focuses the search; Cmd or Ctrl+S does what the commit button does
-  // (an admin's commit still asks first; an editor's proposal goes out).
   const production = commit?.destination !== "proposal";
   useDevShortcuts([
     { keys: "/", label: "Search tags" },

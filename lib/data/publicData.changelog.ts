@@ -31,12 +31,10 @@ import { publicHref } from "../../src/utils/publicHref";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import type { PublicChangelogRow } from "./publicData.shared";
 
-/** Public history summaries keep diff bodies outside list payloads. */
 const PUBLIC_PROFILE_HISTORY_LIMIT = 20;
 
 export type PublicProfileHistoryEntry = Omit<ChangeLogEntry, "markdown"> & { hasDiff: boolean };
 
-/** Preserve the existing per-expansion diff cap. */
 export const PUBLIC_PROFILE_DIFF_CHAR_LIMIT = PUBLIC_CHANGELOG_DIFF_CHAR_LIMIT;
 
 type DataChangelogRow = Omit<PublicChangelogRow, "articles"> & { articles: ChangeLogArticleSummary[] };
@@ -97,19 +95,6 @@ const readChangelogBySubmitters = cache(
   },),
 );
 
-/**
- * The contributor's public changelog history.
- *
- * Live Postgres rows are the source of truth; the static build-time snapshot
- * only backfills rows the deployment no longer carries (and keeps the section
- * alive when `changelog:getBySubmitter` is not deployed yet — additive query,
- * same degrade rationale as the replication portfolio read). Matching is
- * alias-aware: profile aliases and legacy stamp groups (a retired handle and
- * the profile that absorbed it) all attribute to this profile.
- *
- * Every returned entry's `submittedBy` is rewritten to the canonical profile
- * key, so a legacy handle can never reach the public page payload.
- */
 export const getPublicProfileHistory = cache(
   async (
     profile: Pick<NormalizedUserProfile, "key" | "aliases">,
@@ -121,9 +106,6 @@ export const getPublicProfileHistory = cache(
       return [];
     }
 
-    // The Postgres index match is exact, and legacy stamps carry both casings
-    // (an uppercase profile key, a lowercase "josie kins"), so query upper and
-    // lower case variants.
     const submitters = [
       ...new Set([...submitterKeys].flatMap((key) => [key, key.toLowerCase()])),
     ].sort();
@@ -156,14 +138,10 @@ export const getPublicProfileHistory = cache(
   },
 );
 
-/** Number of summaries shown on an article. */
 const PUBLIC_ARTICLE_HISTORY_LIMIT = 8;
 
-/** How many edits the site-wide /changes page lists, with or without an article filter. */
 export const PUBLIC_CHANGES_PAGE_LIMIT = 60;
 
-
-/** The cached projection before contributor resolution. */
 type StampedArticleChange = PublicChangelogSummary;
 
 
@@ -197,8 +175,6 @@ function resolveContributors(
     if (!submittedBy) {
       return { ...change, contributor: null };
     }
-    // Legacy stamps under a retired handle attribute to their current profile,
-    // the same grouping the profile page uses in the other direction.
     let profile: ContributorDirectory[number] | null = null;
     for (const handle of expandLegacyContributorHandles([submittedBy])) {
       profile = findContributorProfileByKeyOrAlias(directory, handle);
@@ -217,16 +193,6 @@ function resolveContributors(
   });
 }
 
-/**
- * The human edits recorded against one article, newest first. Only signed-in
- * editor saves write changelog rows (agent and script pipelines mutate
- * articles without one), so every row here is a human edit by construction.
- *
- * Contributor identity resolves here against the directory so the page never
- * ships raw submitter stamps for known profiles. Returns [] when Postgres is
- * unreachable: the disclosure simply does not render, which is the same thing
- * an unedited article shows.
- */
 export const getPublicArticleHistory = cache(
   async (
     slug: string,
@@ -242,11 +208,6 @@ export const getPublicArticleHistory = cache(
   },
 );
 
-/**
- * The site's most recent human edits across every article, newest first, for
- * the public /changes page. Same projection and contributor resolution as the
- * per-article ledger.
- */
 export const getPublicRecentChanges = cache(
   async (
     directory: ContributorDirectory | Promise<ContributorDirectory>,
@@ -261,12 +222,6 @@ export const getPublicRecentChanges = cache(
   },
 );
 
-/**
- * One changelog entry by id, persisted per entry and article scope. The scope
- * only chooses the tag: an edit to that article expires its history tag, and
- * any publication expires the changelog list tag, which also covers an entry
- * first read before it existed.
- */
 const readChangelogEntry = cache(
   publicDataCache(
     async (entryId: string, _slug: string | null): Promise<PublicChangelogRow | null> =>
@@ -284,7 +239,6 @@ const readChangelogEntry = cache(
   ),
 );
 
-/** Addressable diff read. An article scope must actually belong to the entry. */
 export const getPublicHistoryDiff = cache(async (entryId: string, slug: string | null = null, wholeEntry = false): Promise<string | null> => {
   const fallback = initialChangeLogEntries.find((entry) => entry.id === entryId);
   let live: PublicChangelogRow | null;

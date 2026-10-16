@@ -19,10 +19,6 @@ type Collaboration = {
   links: readonly CollaborationLink[];
 };
 
-/**
- * Row order matches the `about-collaboration-summaries` list and the
- * per-partner `about-collaboration-<key>` bodies, both Copy Studio blocks.
- */
 export const ABOUT_COLLABORATIONS: readonly Collaboration[] = [
   {
     key: "piru",
@@ -47,11 +43,6 @@ export const ABOUT_COLLABORATIONS: readonly Collaboration[] = [
   },
 ];
 
-/**
- * Piru's screenshots are the app in its dose.wiki skin: 720 px wide, 4:4:4 AVIF so small
- * coloured UI text stays sharp, and served `unoptimized` so the optimizer does not
- * re-encode them to 4:2:0 WebP.
- */
 const PIRU_SCREENSHOTS = [
   { src: "/about/piru/journal-timeline.avif", alt: msg("Piru's journal timeline with LSD and MDMA effect curves") },
   { src: "/about/piru/session-notes.avif", alt: msg("A Piru session with its summary and timestamped trip notes") },
@@ -77,11 +68,6 @@ function PiruScreenshots() {
   );
 }
 
-/**
- * Official collaborations section body (dose.wiki only): open rows, no card. Each row
- * shows the partner and a one-line summary; the rest opens under a native `<details>`,
- * so the section stays short and needs no client JS.
- */
 export function AboutCollaborationsSection({
   summaries,
   bodies,
@@ -112,7 +98,6 @@ export function AboutCollaborationsSection({
               />
             </summary>
             <div className="flex flex-col gap-4 pb-5 pt-1 sm:pl-[3.75rem]">
-              {/* Secondary detail, so it reads a step below the page's article prose. */}
               <div className="max-w-[65ch] [&_p]:text-[0.95rem] [&_p]:leading-7">{bodies[partner.key]}</div>
               {partner.key === "piru" ? <PiruScreenshots /> : null}
               <div className="flex flex-wrap gap-2">

@@ -25,10 +25,6 @@ import { useHeroTitleFit } from "./heroTitleFit.client";
 
 const MAX_VISIBLE_NAMES = 5;
 
-/**
- * Strips parenthetical qualifiers from a class name for icon lookup.
- * e.g., "Entactogen (Mild)" -> "entactogen"
- */
 function getIconKeyFromClass(className: string): string {
   return className
     .replace(/\s*\([^)]*\)\s*$/, "")
@@ -54,21 +50,13 @@ export interface HeroSectionViewProps {
   summaryContent: ReactNode;
   hasSummary: boolean;
   stubBanner: ReactNode;
-  /** Called when a category tag is clicked */
   onSelectCategory?: (categoryKey: string) => void;
-  /** Called when a classification badge is clicked */
   onSelectClassification?: (
     type: "psychoactive" | "chemical",
     label: string,
   ) => void;
-  /** Canonical public category keys; omitted in editor previews that own navigation. */
   linkableCategoryKeys?: readonly string[];
-  /** Whether to show the "Preview" indicator badge (default: true in dev context) */
   showPreviewBadge?: boolean;
-  /**
-   * A compact control after the alternative names (the "Open in Piru" chip).
-   * Articles without alternative names give it a row of its own there.
-   */
   nameRowAction?: ReactNode;
 }
 export const HeroSectionView = memo(function HeroSectionView({
@@ -128,14 +116,12 @@ export const HeroSectionView = memo(function HeroSectionView({
       ref={heroRef}
       className="theme-article-hero relative scroll-mt-6 overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8"
     >
-      {/* Preview badge indicator (only shown in dev context) */}
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
           <Icon icon="lucide:eye" size={12} />
           {t("Preview")}
         </div>
       )}
-      {/* Keep the same image mounted when the title needs the molecule below it. */}
       {moleculeUrl && (
         <DesktopMoleculeImage
           key={`desktop:${moleculeUrl}`}
@@ -146,7 +132,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         />
       )}
 
-      {/* Title */}
       {hasTitle && (
         <h1
           ref={titleRef}
@@ -171,12 +156,10 @@ export const HeroSectionView = memo(function HeroSectionView({
       )}
       {stubBanner}
 
-      {/* Molecule SVG - centered below title on mobile only */}
       {moleculeUrl && (
         <MobileMoleculeImage key={`mobile:${moleculeUrl}`} src={moleculeUrl} alt={moleculeAlt} />
       )}
 
-      {/* Substitutive name */}
       {identification.substitutive_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon
@@ -205,7 +188,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         />
       )}
 
-      {/* Alternative names - directly under title */}
       {identification.alternative_names &&
         identification.alternative_names.length > 0 &&
         (() => {
@@ -267,7 +249,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         <div className="mt-3 flex empty:hidden">{nameRowAction}</div>
       ) : null}
 
-      {/* Botanical name */}
       {identification.botanical_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
           <Icon
@@ -296,7 +277,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         />
       )}
 
-      {/* Classification badges */}
       {hasClassification && (
         <div className="mt-6 space-y-4">
           {classification.psychoactive_class.length > 0 && (
@@ -396,7 +376,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         </div>
       )}
 
-      {/* Identification details - always visible */}
       {identification.common_name && identification.common_name !== title && (
         <div className="mt-6 space-y-1">
           <p className="type-detail-copy theme-text-secondary">
@@ -423,7 +402,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         />
       )}
 
-      {/* Expandable chemistry details */}
       {isExpanded && hasExpandableDetails && (
         <div
           id={chemistryDetailsPanelId}
@@ -491,9 +469,6 @@ export const HeroSectionView = memo(function HeroSectionView({
         </div>
       )}
 
-      {/* Keep the summary in one citation pass. Splitting translated prose on
-          whitespace can swallow an entire Chinese sentence and breaks marker
-          suppression across the split. */}
       {summaryContent}
     </div>
   );

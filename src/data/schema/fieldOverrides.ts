@@ -1,9 +1,3 @@
-/**
- * Manual field metadata overrides.
- * Domain-owned overrides live in `src/data/schema/fieldOverrides/` and are
- * merged here so current consumers keep a stable import path.
- */
-
 import { classificationFieldOverrides } from "./fieldOverrides/classification";
 import { citationsFieldOverrides } from "./fieldOverrides/citations";
 import { dosageFieldOverrides } from "./fieldOverrides/dosage";

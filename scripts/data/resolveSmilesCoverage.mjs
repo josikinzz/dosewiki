@@ -1,15 +1,4 @@
 #!/usr/bin/env node
-/**
- * Resolve a SMILES string for every substance in public/SubstanceIndex.json using all
- * available local sources, in priority order:
- *   1. identification.smiles (inline, authored)
- *   2. titleIupacSmiles.json  (matched by title / common_name / alternative names)
- *   3. iupacSmilesMap.json     (matched by identification.iupac_name)
- *
- * Emits:
- *   data/chemistry/smiles-coverage.json   (full resolution per substance)
- *   data/chemistry/smiles-gaps.json        (substances still missing SMILES)
- */
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -28,15 +17,12 @@ let generated = { entries: {} };
 try {
   generated = await read('data/chemistry/generatedSmiles.json');
 } catch {
-  // generatedSmiles.json is optional (produced by the gap-fill batches)
 }
 
-// Build title -> smiles index from titleIupacSmiles.json
 const byTitle = new Map();
 for (const d of titleMapRaw.drugs ?? []) {
   if (d?.title && d?.smiles) byTitle.set(norm(d.title), d.smiles);
 }
-// Build iupac -> smiles index
 const byIupac = new Map();
 for (const [k, v] of Object.entries(iupacMap)) {
   if (v) byIupac.set(norm(k), v);
@@ -64,8 +50,6 @@ for (const s of substances) {
     smiles = ident.smiles.trim();
     source = 'identification.smiles';
   } else if (ident.smiles && typeof ident.smiles === 'object' && ident.smiles.components) {
-    // multi-component preparation (e.g. Ayahuasca, Lean) — keep the components object;
-    // the renderer draws the principal (first) component.
     smiles = ident.smiles;
     source = 'identification.smiles.components';
   }

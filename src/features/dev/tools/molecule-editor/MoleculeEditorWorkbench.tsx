@@ -1,20 +1,5 @@
 "use client";
 
-/**
- * The open structure's pane in the Molecules workspace. One header names the
- * record (its name, key, where its drawing comes from, the last save), then
- * the drawing (whole-depiction adjustments, the OpenChemLib canvas with its
- * tool strip, and beside it the brand preview, canvas settings, the tracing
- * image and the canvas keys), the changed-chemistry check when the drawing is
- * a different molecule, the other starting points, the article preview, and
- * Remove at the end. A sticky save dock holds the result of the last write,
- * the chemistry guard, why Save is off when it is, Save with its key, Revert
- * to saved, the state and the save sentence.
- *
- * Phones get the canvas too: it sits behind a "Draw" switch so a swipe over
- * it scrolls the page, and while drawing the strips scroll sideways and the
- * bond-picking modes work by tap. Every other operation works by touch.
- */
 import { useId, useState, type ReactNode, type RefObject } from "react";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { Icon } from "@/components/common/Icon";
@@ -57,7 +42,6 @@ import {
 } from "./MoleculeEditorWorkbenchStatus";
 import { depictionLabel, depictionSentence, type DepictionState } from "./moleculeListModel";
 
-/** Templates publish nothing; the dock says so in place of the instant line. */
 export const TEMPLATE_SAVE_COPY: SaveLineCopy = {
   label: "Saving stores the template. Nothing public changes.",
   detail: "A class template is private. It changes member depictions only when you apply it to the class and confirm.",
@@ -65,7 +49,6 @@ export const TEMPLATE_SAVE_COPY: SaveLineCopy = {
   tone: "info",
 };
 
-/** What the pane knows about the record it has open. */
 export interface MoleculePaneRecord {
   title: string;
   slug: string;
@@ -78,15 +61,12 @@ export interface MoleculePaneRecord {
 interface MoleculeEditorWorkbenchProps {
   mode: EditorMode;
   record: MoleculePaneRecord;
-  /** What the canvas holds right now, in words ("Saved depiction", "Automatic layout, not saved"). */
   canvasSource: string;
   titleRef: RefObject<HTMLHeadingElement | null>;
   onClose: () => void;
   onBackToList: () => void;
   engineStatus: "loading" | "ready" | "failed";
-  /** Load failures and the template's first starting points, above the drawing. */
   lead?: ReactNode;
-  /** Other starting points: another saved structure, pasted SMILES. */
   startingPoints: ReactNode;
   noStructure: boolean;
   oclReady: boolean;
@@ -96,9 +76,7 @@ interface MoleculeEditorWorkbenchProps {
   onCanvasError: (error: string | null) => void;
   source: string | null;
   sourceEpoch: number;
-  /** Class-mode R-group display labels for the canvas, atom index -> "R2"/"Rα"/"RN". */
   atomLabels: Record<number, string> | undefined;
-  /** Canvas emissions: stripped MOL block + the labels OCL currently displays. */
   onEditorChange: (molblock: string, displayedAtomLabels?: Record<number, string>) => void;
   fineRotation: boolean;
   onFineRotationChange: (enabled: boolean) => void;
@@ -126,21 +104,17 @@ interface MoleculeEditorWorkbenchProps {
   renderBlocked: boolean;
   canTransform: boolean;
   canSave: boolean;
-  /** Why Save is off while there is something to save; null when it is not. */
   saveBlocker: string | null;
   hasOverride: boolean;
   templateDoc: MoleculeClassTemplate | null | undefined;
   templatePreparing: boolean;
   canPrepareTemplate: boolean;
   onPrepareTemplate: () => void;
-  /** Back to the stored depiction (or this session's baseline); never writes. */
   onRevertToSaved: () => void;
   canRevertToSaved: boolean;
-  /** Explicit, confirmed delete of the saved override. */
   onRequestRemove: () => void;
   onSave: () => void;
   saveKeyLabel: string;
-  /** Name the chemist types to publish changed chemistry; null when no typed confirm applies. */
   publishName: string | null;
   confirmName: string;
   onConfirmNameChange: (value: string) => void;
@@ -216,8 +190,6 @@ export function MoleculeEditorWorkbench({
   const headingId = useId();
   const blockerId = useId();
   const guardMismatch = guard != null && !guard.match;
-  // Touch screens draw only after "Draw": until then a swipe over the canvas
-  // scrolls the page instead of dragging atoms (OpenChemLib takes every touch).
   const coarsePointer = useMediaQuery("(pointer: coarse)");
   const [drawingOn, setDrawingOn] = useState(false);
   const hasCanvas = !noStructure && !!record.slug;
@@ -426,7 +398,6 @@ export function MoleculeEditorWorkbench({
                 </EditorToolbar>
               ) : null}
 
-              {/* Drag-and-drop duplicates the accessible tracing file picker. */}
               {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
               <div
                 className={cn(
@@ -560,7 +531,6 @@ export function MoleculeEditorWorkbench({
 
         {startingPoints}
 
-        {/* Substances only: a class or template structure has no one article. */}
         {mode === "substances" && hasCanvas ? (
           <MoleculeArticlePreview slug={record.slug} svg={previewSvg} />
         ) : null}
@@ -674,7 +644,6 @@ export function MoleculeEditorWorkbench({
   );
 }
 
-/** "Saved 3 days ago by RIVER", with the full moment on hover. */
 function SavedWhen({ at, by }: { at: string | number; by?: string | null }) {
   const date = new Date(typeof at === "number" ? at : Date.parse(at));
   if (Number.isNaN(date.getTime())) return null;
@@ -686,7 +655,6 @@ function SavedWhen({ at, by }: { at: string | number; by?: string | null }) {
   );
 }
 
-/** One quiet phrase beside the actions: what Save would do right now. */
 function SaveState({ dirty, saving, savingLabel }: { dirty: boolean; saving: boolean; savingLabel: string }) {
   return (
     <p aria-live="polite" className={cn("flex min-w-0 items-center gap-2 text-xs", dirty ? "theme-text-secondary" : "theme-text-faint")}>
@@ -704,11 +672,6 @@ function SaveState({ dirty, saving, savingLabel }: { dirty: boolean; saving: boo
   );
 }
 
-/**
- * Over the canvas on a touch screen until "Draw": it takes the touches so the
- * page scrolls, and says how to start drawing. OpenChemLib's canvas claims
- * every touch (`touch-action: none`) once it has one.
- */
 function TouchShield({ onDraw, disabled }: { onDraw: () => void; disabled: boolean }) {
   return (
     <div data-testid="canvas-touch-shield" className="absolute inset-0 z-20 grid place-items-end justify-center p-3">
@@ -720,7 +683,6 @@ function TouchShield({ onDraw, disabled }: { onDraw: () => void; disabled: boole
   );
 }
 
-/** OpenChemLib's single-key bindings, which its canvas otherwise never shows. */
 function CanvasKeyLegend() {
   const headingId = useId();
   return (
@@ -773,7 +735,6 @@ function NoStructureCanvas({ mode }: { mode: EditorMode }) {
   );
 }
 
-/** What the pane says on desktop before a structure is open. Hidden on phones. */
 export function MoleculeIdlePane({ mode, loading }: { mode: EditorMode; loading: boolean }) {
   return (
     <EditorPanel variant="subtle" className="hidden space-y-3 px-5 py-6 lg:block" aria-busy={loading || undefined}>

@@ -11,20 +11,6 @@ import {
   type InboxClaimSource,
 } from "./lib/inboxClaimSources";
 
-/**
- * Claims on Inbox items whose own record has no Reviewing status: citation
- * articles (by slug), change proposals (by id) and review recommendations (by
- * slug). A claim names the admin working the item so a second admin does not
- * triage it too. Trip reports and feedback never land here: claiming one moves
- * it to Reviewing, and its decision log records who did.
- *
- * A claim ends when its holder releases it, when another admin takes it over
- * after confirming, when the item's decision clears it (see
- * `clearInboxClaim`), or when it expires after a day untouched.
- *
- * Admin floor for reads and writes, like every queue the Inbox gathers.
- */
-
 export { INBOX_CLAIM_SOURCES, type InboxClaimSource };
 
 export type InboxClaim = {
@@ -34,7 +20,6 @@ export type InboxClaim = {
   claimed_at: string;
 };
 
-/** A claim as the Inbox reads it: an expired claim still names who held it. */
 export type ListedInboxClaim = InboxClaim & { expired: boolean };
 
 const sourceValidator = v.union(...INBOX_CLAIM_SOURCES.map((source) => v.literal(source)));
@@ -77,7 +62,6 @@ export async function listClaimsHandler(ctx: QueryCtx, args: ActorArgs): Promise
   });
 }
 
-/** Record the calling admin as holder: a fresh row, or the existing row rewritten. */
 async function holdFor(ctx: MutationCtx, args: ItemArgs, claimedBy: string, existing: ClaimRow | null): Promise<InboxClaim> {
   const claim: InboxClaim = {
     source: args.source,
@@ -93,12 +77,6 @@ async function holdFor(ctx: MutationCtx, args: ItemArgs, claimedBy: string, exis
   return claim;
 }
 
-/**
- * Claim an item for the calling admin. Claiming an item you already hold is a
- * no-op; an item another admin holds is refused with their name, so the Inbox
- * can say who has it and offer an explicit take over instead of silently
- * taking it. An expired claim is replaced.
- */
 export async function claimHandler(ctx: MutationCtx, args: ItemArgs): Promise<InboxClaim> {
   assertDataWritesNotFrozen("inboxClaims:claim");
   const actor = await requireAdmin(ctx, args);
@@ -115,10 +93,6 @@ export async function claimHandler(ctx: MutationCtx, args: ItemArgs): Promise<In
   return holdFor(ctx, args, actor.email, existing);
 }
 
-/**
- * Take over another admin's claim. The Inbox confirms first; the claim is then
- * recorded with the new claimer and a fresh claim time.
- */
 export async function takeOverHandler(ctx: MutationCtx, args: ItemArgs): Promise<InboxClaim> {
   assertDataWritesNotFrozen("inboxClaims:takeOver");
   const actor = await requireAdmin(ctx, args);
@@ -126,7 +100,6 @@ export async function takeOverHandler(ctx: MutationCtx, args: ItemArgs): Promise
   return holdFor(ctx, args, actor.email, await claimRow(ctx, args.source, args.item_id));
 }
 
-/** Give up a claim. Only the admin who holds it may release it. */
 export async function releaseHandler(ctx: MutationCtx, args: ItemArgs): Promise<{ released: boolean }> {
   assertDataWritesNotFrozen("inboxClaims:release");
   const actor = await requireAdmin(ctx, args);

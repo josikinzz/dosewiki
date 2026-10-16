@@ -1,10 +1,3 @@
-/**
- * React context provider for lazy-loaded substance index data.
- *
- * Wraps the application and provides substance data via context.
- * Uses React Suspense for loading states.
- */
-
 import {
   createContext,
   useContext,
@@ -32,37 +25,26 @@ export type PublicTaxonomyDetail =
   | MechanismDetail
   | EffectDetail;
 
-/**
- * Shape of the library data computed from substance index.
- * This mirrors the exports from library.ts.
- */
 export interface LibraryData<
   TArticle extends LibraryArticleInput = LibraryArticleInput,
 > {
-  // Raw articles
   articles: TArticle[];
 
-  // Substance records
   allSubstanceRecords: SubstanceRecord[];
   substanceRecords: SubstanceRecord[];
   allSubstancesBySlug: Map<string, SubstanceRecord>;
   substanceBySlug: Map<string, SubstanceRecord>;
 
-  // Interaction index
   interactionIndex: InteractionIndex;
 
-  // Category groups
   dosageCategoryGroups: DosageCategoryGroup[];
   chemicalClassIndexGroups: DosageCategoryGroup[];
   mechanismIndexGroups: DosageCategoryGroup[];
 
-  // Effect summaries
   effectSummaries: EffectSummary[];
 
-  // Mechanism summaries
   mechanismSummaries: MechanismSummary[];
 
-  // Lookup functions
   findCategoryByKey: (input: string) => CategoryDefinition | undefined;
   normalizeCategoryKey: (value: string) => string;
   getCategoryDetail: (categoryKey: string) => CategoryDetail | null;
@@ -81,31 +63,15 @@ export interface LibraryData<
   buildCategoryGroupsForRecords: (records: SubstanceRecord[]) => DosageCategoryGroup[];
 }
 
-/**
- * Context for library data.
- */
 type EditorLibraryData = LibraryData<SubstanceArticle>;
 
 const SubstanceIndexContext = createContext<EditorLibraryData | null>(null);
 
-/**
- * Props for SubstanceIndexProvider.
- */
 interface SubstanceIndexProviderProps {
   children: ReactNode;
   libraryData: EditorLibraryData;
 }
 
-/**
- * Provider component that supplies library data to the app.
- *
- * Usage:
- * ```tsx
- * <SubstanceIndexProvider libraryData={data}>
- *   <App />
- * </SubstanceIndexProvider>
- * ```
- */
 export function SubstanceIndexProvider({ children, libraryData }: SubstanceIndexProviderProps) {
   return (
     <SubstanceIndexContext.Provider value={libraryData}>
@@ -114,15 +80,6 @@ export function SubstanceIndexProvider({ children, libraryData }: SubstanceIndex
   );
 }
 
-/**
- * Hook to access the full library data.
- *
- * @throws Error if used outside of SubstanceIndexProvider
- */
-/**
- * The library when a provider is mounted, else null: for a surface that only
- * improves with it (names instead of slugs) and renders without it.
- */
 export function useLibraryIfPresent(): EditorLibraryData | null {
   return useContext(SubstanceIndexContext);
 }

@@ -225,7 +225,6 @@ export function extractJsonObject(text) {
   try {
     return JSON.parse(trimmed);
   } catch {
-    // Fall through to fenced/block extraction.
   }
 
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);

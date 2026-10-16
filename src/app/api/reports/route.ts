@@ -3,12 +3,10 @@ import { getReportBrowsePage } from "@server/next/reportBrowse";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 
-/** Report pages are public projections; the CDN absorbs repeat queries. */
 const PAGE_CACHE_CONTROL = "public, max-age=0, s-maxage=300, stale-while-revalidate=3600";
 const REFUSAL_HEADERS = { "Cache-Control": "no-store" } as const;
 
 export async function GET(request: Request) {
-  // Every query is matched against every report, so repeat callers are bounded.
   const rateLimited = await enforceRateLimit(request, "publicContentApiRead");
   if (rateLimited) return rateLimited;
 

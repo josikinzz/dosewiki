@@ -8,37 +8,18 @@ import {
 } from "@/data/changelog/changeLog";
 import { useEditorReadState } from "@/hooks/useEditorRead";
 
-/** Server rows fetched per page; each "Load older saves" adds one more page. */
 export const CHANGELOG_FEED_PAGE_SIZE = 100;
-/** The most rows `changelog.getRecent` will return; older saves are unreachable here. */
 export const CHANGELOG_FEED_MAX_ROWS = 500;
 
-/**
- * What the change log knows about the slice of server history it holds, so
- * the tab can say so instead of presenting a capped feed as the whole record.
- */
 export type ChangelogFeedWindow = {
-  /** Server rows currently held; 0 until the first page arrives or when Postgres is off. */
   loadedCount: number;
-  /** The last page came back full and the server cap is not reached: older saves can be loaded. */
   hasMore: boolean;
-  /** The window is as large as the server allows; anything older cannot be loaded from this page. */
   atServerCap: boolean;
-  /** A page is in flight (the first one, or an older one after `loadMore`). */
   loading: boolean;
   loadMore: () => void;
-  /**
-   * The page being read failed before it answered: the first page when
-   * `loadedCount` is 0, an older page otherwise. The saves already held stay.
-   */
   error: string | null;
-  /** A retry of the failed page is in flight. */
   retrying: boolean;
   retry: () => void;
-  /**
-   * Saves that came with the site's bundled archive and are not in the server
-   * rows held, so the tab can tell them apart from live history.
-   */
   archivedIds: ReadonlySet<string>;
 };
 
@@ -79,20 +60,14 @@ function mergeStaticAndDataChangelogEntries(
   ]);
 }
 
-/**
- * @param active - Only the change log displays the feed, so only it reads it.
- */
 export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const [changeLogEntries, setChangeLogEntries] = useState<ChangeLogEntry[]>(() =>
     sortChangeLogEntries(initialChangeLogEntries),
   );
   const [limit, setLimit] = useState(CHANGELOG_FEED_PAGE_SIZE);
   const [loadedCount, setLoadedCount] = useState(0);
-  // The ids the last server page held; kept while a wider page loads.
   const [serverIds, setServerIds] = useState<ReadonlySet<string>>(() => new Set());
 
-  // A failed read is drawn by the tab (with Try again) instead of throwing to
-  // the route error boundary, which would take the whole editor down with it.
   const {
     data: dataChangelogEntries,
     error: readError,
@@ -113,9 +88,6 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
         normalizeDataChangelogEntries(dataChangelogEntries),
       );
 
-      // Keep locally appended entries (a save's entry can land here before
-      // the server feed catches up) instead of rebuilding from the static
-      // snapshot.
       const mergedIds = new Set(merged.map((entry) => entry.id));
       const localOnlyEntries = previous.filter((entry) => !mergedIds.has(entry.id));
 
@@ -129,8 +101,6 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
     setChangeLogEntries((previous) => appendChangeLogEntry(previous, entry));
   }, []);
 
-  // A page is loading whenever the read is live but has no answer: a changed
-  // `limit` reads as undefined until the wider page lands.
   const archivedIds = useMemo<ReadonlySet<string>>(
     () => new Set([...STATIC_IDS].filter((id) => !serverIds.has(id))),
     [serverIds],
@@ -142,7 +112,6 @@ export function useDevChangelogFeed({ active = true }: { active?: boolean }) {
   const atServerCap = loadedCount >= CHANGELOG_FEED_MAX_ROWS;
   const hasMore = !atServerCap && loadedCount >= limit && limit < CHANGELOG_FEED_MAX_ROWS;
 
-  // A failed page is retried as it is, never skipped past for a wider one.
   const loadMore = useCallback(() => {
     if (loading || error !== null) {
       return;

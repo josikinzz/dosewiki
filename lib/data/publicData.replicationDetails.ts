@@ -6,7 +6,6 @@ import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicD
 import { PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 
-/** Leaf cache: callers assembling corpus collections must remain request-scoped. */
 const getPublicReplicationsBySlugBatch = cache(publicDataCache(async (
   slugs: string[],
 ): Promise<ReplicationWithUrl[]> => {
@@ -17,7 +16,6 @@ const getPublicReplicationsBySlugBatch = cache(publicDataCache(async (
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.replications],
 }));
 
-/** Hydrate slim catalog selections with complete public media and rights metadata. */
 export const getPublicReplicationsBySlugs = cache(async (
   slugs: string[],
 ): Promise<ReplicationWithUrl[]> => {

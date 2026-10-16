@@ -1,4 +1,3 @@
-/** Owned callable validators preserve omitted optional fields and opaque stored IDs. */
 export type ValidatorJson =
   | { type: "string" | "number" | "boolean" | "null" | "any" | "bytes" | "int64" }
   | { type: "literal"; value: string | number | boolean | bigint }
@@ -16,7 +15,6 @@ export class ReturnValidationError extends Error {
 }
 export interface IdValidation { id: string; table: string; where: string }
 export interface ValidationOptions {
-  /** Known identity only, not an existence check. Deleted/unknown IDs remain representable. */
   ids?: IdValidation[];
   idTable?: (id: string) => string | undefined;
 }
@@ -32,7 +30,6 @@ function plainObject(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
-/** v.any is a supported application value, not a bypass for functions/cycles/undefined. */
 function validateSerializable(value: unknown, where: string, ancestors: Set<object>): void {
   if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean" || value instanceof ArrayBuffer) return;
   if (typeof value === "bigint") {
@@ -55,7 +52,6 @@ function validateSerializable(value: unknown, where: string, ancestors: Set<obje
 }
 
 export function validateValue(validator: ValidatorJson, value: unknown, where: string, options: ValidationOptions = {}): void {
-  // Validate the value graph once before descending through the declared shape.
   validateSerializable(value, where, new Set());
   validateShape(validator, value, where, options);
 }
@@ -125,7 +121,6 @@ function validateShape(validator: ValidatorJson, value: unknown, where: string, 
   }
 }
 
-/** Handler fallthrough is the established null result, not an undefined wire value. */
 export function validateReturn(validator: ValidatorJson, value: unknown, where: string, options?: ValidationOptions): unknown {
   const result = value === undefined ? null : value;
   try { validateValue(validator, result, where, options); }

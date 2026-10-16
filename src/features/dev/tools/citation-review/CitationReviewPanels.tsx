@@ -5,22 +5,15 @@ import {
   type CitationReviewDecisionRecord,
 } from "./citationReviewModels";
 
-/** Row-level decisions raised from an evidence row or a section. */
 export type CitationEvidenceDecisionHandlers = {
-  /** Approve rows that already carry a verified quote. */
   onApprove: (claimKeys: string[]) => void;
-  /** Reject one row with the reviewer's note for the next editor. */
   onReject: (claimKey: string, statusReason: string | undefined) => void;
-  /** A row was opened, so its quote has been on screen. */
   onRowExpanded: (claimKey: string) => void;
-  /** A row was closed again; the triage keys stop acting on it. */
   onRowCollapsed?: (claimKey: string) => void;
 };
 
-/** A request from the `r` key to open the reject form on one row; `nonce` changes per press. */
 export type CitationRejectRequest = { claimKey: string; nonce: number };
 
-/** The undo for the last decision, rendered where that decision was made. */
 export type CitationUndoOffer = {
   decision: CitationReviewDecisionRecord;
   disabled: boolean;
@@ -28,11 +21,6 @@ export type CitationUndoOffer = {
   onKeep: () => void;
 };
 
-/**
- * Inline result with Undo, shown inside the row, section or dock the decision
- * came from. It stays until the next decision replaces it or the reviewer
- * dismisses it; there is no timer, so the reviewer can read on first.
- */
 export function CitationUndoBar({ offer }: { offer: CitationUndoOffer }) {
   const { decision } = offer;
   const verb = decision.status === "approved" ? "Approved" : "Rejected";

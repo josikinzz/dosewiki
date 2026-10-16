@@ -1,21 +1,11 @@
 import type { PublicationReceipt } from "@server/next/publicationDispatch";
 
-/**
- * What an article write can honestly say about public delivery.
- *
- * The write route answers once the change is saved on the editor host; the
- * public site catches up later through the publication outbox. The receipt it
- * returns is the only evidence of where delivery stands, so this reads that
- * receipt and never reports a change as live while delivery is pending.
- */
 export type PublicationDelivery = "done" | "pending" | "failed" | "unknown";
 
 export type ArticlePublicationNotice = {
   delivery: PublicationDelivery;
   message: string;
-  /** App Path of the public article the change goes to. */
   path: string;
-  /** The receipt the route returned, so a delivery tracker can start from it. */
   receipts: readonly Pick<PublicationReceipt, "status" | "verification">[] | null;
 };
 
@@ -39,7 +29,6 @@ const MESSAGES: Record<PublicationDelivery, string> = {
   unknown: "Saved on the editor host. The public delivery state was not reported.",
 };
 
-/** The sentence for one delivery state, as a polled receipt moves through them. */
 export function publicationMessage(delivery: PublicationDelivery): string {
   return MESSAGES[delivery];
 }

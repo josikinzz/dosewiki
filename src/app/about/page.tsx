@@ -28,21 +28,8 @@ import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 
 export const revalidate = 3600;
 
-/**
- * The Postgres About document is dose.wiki's: it names dose.wiki and states its CC0 terms.
- * A flavor that owns its About prose (`about.missionMarkdown`) therefore takes neither the
- * document's markdown nor its subtitle — see `SiteAboutConfig.missionMarkdown`.
- */
 const OWNS_ABOUT_PROSE = SITE_FLAVOR_CONFIG.about.missionMarkdown !== null;
 
-/**
- * Copy-block slot for the mission statement of a flavor that owns its About prose.
- *
- * Resolved per flavor (`about-mission-effect-index`), and only consulted on a flavor that
- * already overrides the CMS document. dose.wiki's About stays exactly where it was — on the
- * Postgres `siteConfig` document that its editor edits — because a flavor with no
- * `missionMarkdown` never reaches this branch at all.
- */
 const ABOUT_MISSION_COPY_KEY = "about-mission";
 const ABOUT_COPY_KEYS = getCopyKeysByPrefix("about-");
 
@@ -65,9 +52,6 @@ export async function generateMetadata() {
 
 export default async function AboutPage() {
   const showOpenData = SITE_FLAVOR_CONFIG.about.showOpenData;
-  // Effect Index lists every contributor, ranked by how many pages credit them; dose.wiki keeps
-  // its editor-curated founder subset. Only the ranking and full profile table are gated: the
-  // curated founder profiles already arrive through `getPublicAboutData()`.
   const showContributorRoster = isEffectIndex();
 
   const [
@@ -83,8 +67,6 @@ export default async function AboutPage() {
     getCopyByKeys(ABOUT_COPY_KEYS),
     getPublicAboutData(),
     getPublicDataOverview(),
-    // The archive preview only renders inside the Open Data tab; skip the read entirely on
-    // a flavor that does not show it.
     showOpenData ? getPublicAboutPreviewSubstances() : [],
     getIndexLayoutByType("chemical"),
     getIndexLayoutByType("mechanism"),
@@ -94,8 +76,6 @@ export default async function AboutPage() {
       : new Map<string, number>(),
   ]);
 
-  // Ship only the rendered JSON the preview actually needs: the smallest articles
-  // complete (within a byte budget), the rest truncated. See aboutArchiveSnapshot.ts.
   const previewSnapshots = buildAboutPreviewSnapshots(
     substances.map(({ slug: _slug, ...article }) => article as SubstanceArticle),
   );

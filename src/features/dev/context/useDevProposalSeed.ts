@@ -1,15 +1,3 @@
-/**
- * Rebasing a returned proposal: the queue hands over one full proposal row and
- * the working set becomes that proposal on top of current production.
- *
- * Seeding goes through the same paths an edit would. Each proposed article's
- * production row is hydrated first (draft and baseline together, so the save
- * diff compares against the whole article production holds now), then the
- * proposed fields are laid over the draft row; an article production does not
- * have is appended as a new row. Proposed index layouts replace the layout
- * drafts. What was seeded is remembered so a discard can put exactly those
- * rows back.
- */
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { ManualIndexConfig } from "@/data/builders/manualIndexLoader";
 import type { SubstanceArticle } from "@/schema";
@@ -57,8 +45,6 @@ export function useDevProposalSeed({
         proposedBySlug.set(slug, article);
       }
 
-      // Only slugs production holds are hydrated; a proposal for a new
-      // article has nothing to load and is appended below.
       const known = new Set(getOriginalArticles().map((article) => resolveEditorArticleSlug(article)));
       const toHydrate = [...proposedBySlug.keys()].filter((slug) => known.has(slug));
       if (toHydrate.length > 0) {
@@ -119,8 +105,6 @@ export function useDevProposalSeed({
             next.push(article);
             return;
           }
-          // A seeded row production holds goes back to production; one the
-          // proposal appended goes away.
           const baseline = original[index];
           if (baseline) {
             next.push(baseline);

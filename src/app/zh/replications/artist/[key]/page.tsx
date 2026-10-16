@@ -1,10 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/replications/artist/[key]`, reached only
- * through the middleware rewrite from `zh.dose.wiki/replications/artist/<key>`.
- * Same artist page over the localized corpus, so each work's stored title and
- * effect name read in the mirror's language; the artist's own name, links and
- * bio stay as written. `noindex` with a canonical link to the English page.
- */
 import type { Metadata } from "next";
 
 import {

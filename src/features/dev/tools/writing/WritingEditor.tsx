@@ -30,10 +30,8 @@ type WritingEditorProps = {
   contributorProfiles: NormalizedUserProfile[];
   profilesLoading: boolean;
   controller: WritingWorkbenchController;
-  /** Admin: the save publishes straight to the site. Without it the save is submitted for review as a proposal. */
   canApprove: boolean;
   bylineAuthors?: ArticleBylineAuthor[];
-  /** A prose-first layout inside the contextual dialog; standalone workbench stays expanded. */
   contextual?: boolean;
 };
 
@@ -58,8 +56,6 @@ export function WritingEditor({
     submitForReview,
   } = controller;
   const [reviewed, setReviewed] = useState<string | null>(null);
-  // The workbench opens with the preview beside the form; the contextual
-  // dialog is too narrow for two columns, so there it starts closed.
   const [preview, setPreview] = useState(!contextual);
   const [discarding, setDiscarding] = useState(false);
   const reviewRef = useRef<HTMLDivElement>(null);
@@ -97,7 +93,6 @@ export function WritingEditor({
         </span>
       </EditorToolbar>
 
-      {/* Form and preview side by side from `lg:`; below that the preview follows the form. */}
       <div className={preview && !contextual ? "grid gap-6 lg:grid-cols-2 lg:items-start" : undefined}>
       <div className={contextual ? "min-w-0 space-y-4" : "min-w-0 space-y-6"}>
       <WritingFields
@@ -110,7 +105,6 @@ export function WritingEditor({
 
       <EditorToolbar variant="split">
         <div className="flex flex-wrap items-center gap-2">
-          {/* An editor proposes the state too; an admin's approval applies it. */}
           <EditorSegmentedControl
             label="Publication state"
             value={draft.status}

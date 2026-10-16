@@ -1,40 +1,3 @@
-/**
- * Editor read + write for one replication's drug associations
- * (`/dev` → Replications → Studio → associations panel).
- *
- *   GET   /api/dev/replications/associations/<slug>
- *     → { ok, associations }
- *   PATCH /api/dev/replications/associations/<slug>
- *          { substanceSlug, assigned }
- *     → { ok, association }
- *   POST  /api/dev/replications/associations/<slug>
- *          { excludedSubstanceSlugs }
- *     → { ok, updated, droppedCuratedPositions }
- * The association is derived, never stored: a substance article surfaces this
- * replication when one of its visual-effect names resolves to the row's owning
- * `effect_slug` or to one of its `effect_tags`. So there is no join table to
- * read — Postgres walks the article table
- * (`substanceGalleries:getReplicationAssociationsPage`) and pages to stay under
- * its read limits, and this route drains the cursor so the panel makes exactly
- * one request. A figure or audio row is on no article and answers with an empty
- * list rather than an error.
- *
- * The write is a full-set replace: `excludedSubstanceSlugs` is every drug that
- * should suppress this replication, and every drug missing from it stops
- * suppressing it. Each decision lands in that one substance's `removed_slugs`,
- * the same delta the per-substance curation portal writes — unticking a drug is
- * never an `effect_tags` edit, which would drop the replication off every
- * article deriving that effect.
- *
- * Its own URL segment rather than a `substances`-sibling parameter: the picker
- * route at `/api/dev/replications/substances` is static, and a `[slug]` in that
- * segment reads as a substance address everywhere else in this tree.
- *
- * A successful save publishes each written substance article and the shared
- * replication collections, so the showcases this replication left or joined
- * reflect the change on the public deployments immediately instead of at the
- * end of the public-data cache window.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import type { PublicationTarget } from "@server/next/publicationWire";
@@ -48,25 +11,15 @@ export const runtime = "nodejs";
 
 const MAX_PAYLOAD_BYTES = 32 * 1024;
 
-/** Matches the ceiling enforced in `server/substanceGalleries.ts`. */
 const MAX_EXCLUDED_SUBSTANCES = 250;
 
 const PAGE_LIMIT = 100;
-/** Hard stop against a cursor that never reports done. */
 const MAX_PAGES = 100;
 
-/** Substance slugs are kebab-case with the occasional dotted segment. */
 const SUBSTANCE_SLUG = /^[a-z0-9]+(?:[-.][a-z0-9]+)*$/;
 
-/**
- * What a stored replication slug can actually look like — the tolerant shape
- * the curation route accepts, not strict kebab-case: the legacy import left
- * underscores and dots in the corpus (`grass_photos_v2_x2-unknown`) and those
- * rows have associations like any other.
- */
 const REPLICATION_SLUG = /^[a-z0-9][a-z0-9._-]{0,119}$/;
 
-/** The `<slug>` path segment, or a 404 refusal for a shape no replication has. */
 function replicationSlugOf(request: Request): string {
   const segments = new URL(request.url).pathname.split("/").filter(Boolean);
   const slug = decodeURIComponent(segments[segments.length - 1] ?? "").trim().toLowerCase();
@@ -84,11 +37,6 @@ type ParsedExclusionBody = {
   excludedSubstanceSlugs: string[];
 };
 
-/**
- * The authoritative set of drugs that should suppress this replication.
- * Membership is what matters, so duplicates are collapsed rather than refused;
- * anything that is not a substance address is a client bug and is bounced.
- */
 function parseExclusionBody(raw: ExclusionBody): ParsedExclusionBody {
   const value = raw?.excludedSubstanceSlugs;
   if (!Array.isArray(value)) {
@@ -168,9 +116,6 @@ export const GET = protectedRouteOperation({
       cursor = page.cursor;
     }
 
-    // A slug stored on two articles is ambiguous, and the write refuses to
-    // touch one for exactly that reason, so both copies are dropped rather than
-    // offering a tick box that could never save.
     const slugCounts = new Map<string, number>();
     for (const row of rows) {
       slugCounts.set(row.slug, (slugCounts.get(row.slug) ?? 0) + 1);
@@ -248,8 +193,6 @@ export const POST = protectedRouteOperation<ExclusionBody, ParsedExclusionBody>(
       },
     );
 
-    // Only substances whose row actually changed are published; a save that
-    // wrote nothing leaves every cache entry still true.
     if (result.updated.length > 0) {
       const targets: PublicationTarget[] = [{ kind: "replication-collections" }];
       for (const substanceSlug of result.updated) {

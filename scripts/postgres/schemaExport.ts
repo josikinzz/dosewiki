@@ -1,7 +1,3 @@
-/**
- * Reads the application's owned document validators and ordered index metadata.
- */
-
 import schema from "../../server/schema";
 
 import type { ValidatorJson } from "../../lib/postgres/runtime/validate";
@@ -28,7 +24,6 @@ export function exportSchemaTables(): ExportedTable[] {
   }));
 }
 
-/** Narrow a table's document validator to its object fields or fail loudly. */
 export function objectFieldsOf(table: ExportedTable): ObjectFields {
   if (table.documentType.type !== "object") {
     throw new Error(`Table ${table.tableName} has a non-object document type; extend the Postgres generator`);

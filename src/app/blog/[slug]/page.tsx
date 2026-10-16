@@ -10,11 +10,9 @@ import { WritingBlogPostPage } from "@/features/blog/pages/WritingBlogPostPage";
 import { EditorLauncherTarget } from "@/features/editor-launcher/EditorLauncherTarget";
 import WritingContextualEditor from "@/features/dev/tools/writing/WritingContextualEditor.editor";
 
-// Same incremental revalidation interval as the articles pages.
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-// Both flavors resolve their own published corpus on demand through the loaders.
 export function generateStaticParams() {
   return [];
 }

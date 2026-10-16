@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-/**
- * Read-only campaign dashboard for Pi-native citation run artifacts.
- * It never launches workers, rewrites a run, applies a draft, or contacts Postgres.
- */
 
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, openSync, readFileSync, readdirSync, writeFileSync, closeSync } from "node:fs";

@@ -24,33 +24,22 @@ import {
 import type { ReviewSettingsState } from "./useReviewSettings";
 
 export interface ReviewQueueState {
-  /** Whether `/api/dev/article-source-stats` answered, for the settings panel. */
   statsState: "loading" | "ready" | "fallback";
-  /** Every reachable article in the reviewer's chosen order. */
   queue: ReviewQueueEntry[];
-  /** The queue under the flag filters only, which is what the picker lists. */
   flagFilteredQueue: ReviewQueueEntry[];
-  /** The queue the arrows walk: flag filters plus unreviewed-only. */
   visibleQueue: ReviewQueueEntry[];
   availableFlagLabels: string[];
   queueGroups: ReviewQueueGroup[];
   pickerGroups: ReviewQueueGroup[];
-  /** Index of the current article in `visibleQueue`. */
   position: number;
   current: ReviewQueueEntry | null;
   article: SubstanceArticle | null;
   reviewedCount: number;
-  /** Signed-off articles published since their sign-off. */
   changedSinceReviewCount: number;
   allReviewed: boolean;
   substances: SubstanceInfo[];
 }
 
-/**
- * The review queue and everything derived from it: the flip-through order,
- * the picker tree, the landing pick, and the article the queue position
- * currently names.
- */
 export function useReviewQueue({
   typedArticles,
   layout,
@@ -62,9 +51,7 @@ export function useReviewQueue({
   typedArticles: SubstanceArticle[];
   layout: CategoryLayout;
   overrides: ReviewStatusOverrides;
-  /** Review Flags written this session, which the queue's badges read first. */
   flagOverrides?: Readonly<Record<string, ReviewFlag[]>>;
-  /** Each article's current published revision; null until it loads. */
   publishedRevisions?: PublishedRevisions | null;
   settings: ReviewSettingsState;
 }): ReviewQueueState {
@@ -82,8 +69,6 @@ export function useReviewQueue({
     "loading",
   );
 
-  // Source richness drives the default order; fall back to bibliography sizes
-  // and say so, rather than silently pretending the stats arrived.
   useEffect(() => {
     if (!settingsRestored || order !== "sources") {
       return;
@@ -120,8 +105,6 @@ export function useReviewQueue({
 
   const homeOrder = useMemo(() => flattenHomeOrder(layout), [layout]);
 
-  // The queue reads flags written this session so picker badges and flag
-  // filters follow the notes panel without waiting for a library refresh.
   const queueArticles = useMemo(() => {
     if (!flagOverrides || Object.keys(flagOverrides).length === 0) return typedArticles;
     return typedArticles.map((article) => {
@@ -131,9 +114,6 @@ export function useReviewQueue({
     });
   }, [flagOverrides, typedArticles]);
 
-  // Every reachable article is in the corpus, placed on the index or not:
-  // unplaced ones land in the picker's Unplaced group and count toward
-  // progress like any other.
   const queue = useMemo(
     () =>
       sortReviewQueue(
@@ -155,14 +135,10 @@ export function useReviewQueue({
     [queue, unreviewedOnly, currentSlug, changedSinceReview, effectiveFlagLabels, effectiveFlagSeverity],
   );
   const availableFlagLabels = useMemo(() => deriveReviewFlagLabels(queue), [queue]);
-  // The picker's category tree. Built from the full queue, like the flat list:
-  // the unreviewed-only filter governs the flip-through, not the jump target.
   const queueGroups = useMemo(
     () => buildReviewGroups(queue, layout),
     [queue, layout],
   );
-  // Filtered to changed sign-offs, the picker is one "Changed since review"
-  // group listing exactly those articles.
   const pickerGroups = useMemo(
     () => changedSinceReview
       ? buildChangedSinceReviewGroups(flagFilteredQueue)
@@ -170,13 +146,6 @@ export function useReviewQueue({
     [changedSinceReview, flagFilteredQueue, layout, effectiveFlagGroupBy],
   );
 
-  // Land on the deep-linked article, else the first still-unreviewed one in
-  // the queue's own order — home-page order unless the reviewer chose another.
-  //
-  // Waiting for the stored settings is the whole point of the guard: articles
-  // and layout are already in hand when this component mounts, so without it
-  // the landing is picked on the first commit, from a queue sorted by the
-  // *default* order, and then never revisited once `currentSlug` is set.
   useEffect(() => {
     if (currentSlug || !settingsRestored) return;
     const first =
@@ -207,7 +176,6 @@ export function useReviewQueue({
       queue.map((entry) => ({
         slug: entry.slug,
         name: entry.name,
-        // A stale sign-off needs review again.
         reviewStatus: entry.status === "stale" ? "needed" : entry.status,
       })),
     [queue],

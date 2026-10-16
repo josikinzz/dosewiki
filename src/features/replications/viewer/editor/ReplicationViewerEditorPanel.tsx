@@ -70,7 +70,6 @@ function publicationValue(field: string, value: unknown, collection: Replication
   return String(value);
 }
 
-/** App Paths, or plain names where a collection has no page of its own, that a publication changes. */
 function publicationPages(publication: Publication, collection: ReplicationViewerEditorGateProps["collection"]): string[] {
   if (publication.mode === "metadata") return [`/replications/${publication.slug}`, collection.sourcePath, "Every collection that shows this work"];
   const kind = publication.change.targetKind;
@@ -81,18 +80,11 @@ function publicationPages(publication: Publication, collection: ReplicationViewe
   return [`Playlist ${key}`];
 }
 
-/**
- * Outbox identities whose delivery state belongs to this publication alone.
- * Playlists and effect or artist orders enqueue no identity of their own, and
- * a shared list identity would report other writes, so those poll nothing
- * and the receipt says the public state was not reported.
- */
 function publicationIdentities(publication: Publication): PublicationTarget[] {
   if (publication.mode === "metadata") return [{ kind: "replication", slug: publication.slug }];
   return publication.change.targetKind === "substance" ? [{ kind: "article", slug: String(publication.change.targetKey) }] : [];
 }
 
-/** The viewer owns the only dialog. This panel portals into its existing focus boundary. */
 export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateProps) {
   const { collection, activeSlug, open, panelHost, railHost, onOrderChange, onReorderModeChange } = props;
   const editing = useContextualEditing();
@@ -217,7 +209,6 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
 
   const reviewMetadata = () => {
     if (!session || !session.dirty) return;
-    // The viewer publishes metadata and source only; rights are set in the studio.
     const { source_url, rights_status: _rightsStatus, ...updates } = session.draft;
     const fingerprint = JSON.stringify([session.base.row.id, session.base.revision, session.draft]);
     const requestId = requestIds.current[fingerprint] ??= crypto.randomUUID();
@@ -260,7 +251,6 @@ export function ReplicationViewerEditorPanel(props: ReplicationViewerEditorGateP
       startReceipt(publicationIdentities(publication));
       setPendingPublication(null);
       setReview(null);
-      // Only the confirmed domain is cleared. Other works' drafts survive reconciliation.
       if (publication.mode === "metadata") setSessions(current => { const next = { ...current }; delete next[publication.slug]; return next; });
       else if (publication.collectionKey) setCollections(current => { const next = { ...current }; delete next[publication.collectionKey!]; return next; });
       await load(undefined, false).catch(() => setError("Publication is confirmed, but the refreshed record could not be loaded. Retry the read before editing again."));

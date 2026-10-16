@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * Pi-native audit controller for one existing DoseWiki citation-workbench run.
- * It writes only run-local manifest/log/archive files. It never edits Postgres,
- * the app repository, citation task content, or queue state.
- */
 
 import { chmodSync, existsSync, mkdirSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";

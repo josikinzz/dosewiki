@@ -1,26 +1,4 @@
 #!/usr/bin/env node
-/**
- * Seed (or reset) admin accounts in the Postgres `memberships` table.
- *
- * Prompts on the terminal for each admin's username, email, display name,
- * and password (hidden input, typed twice), hashes the password locally with
- * the same scrypt scheme the app verifies against, and calls
- * `memberships:setAdminAccount` with `DATA_ADMIN_KEY`. Re-running for an
- * existing username rotates that account's password and forces role admin.
- *
- * Passwords are never read from env, files, or argv. Nothing is printed
- * except the outcome per account.
- *
- * Usage (the shared production-write boundary: every flag is required):
- *   TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   node scripts/auth/seed-admin-accounts.mjs --write \
- *     --confirm-write=seed-admin-accounts --expected-deployment=<fingerprint>
- *
- * Without `--write` the script only prints the target and exits. The
- * fingerprint is printed by the dry run. `DATA_ADMIN_KEY` comes from the
- * environment or `.env.local`; the ambiguous `POSTGRES_DIRECT_URL` fallbacks are refused
- * on purpose: this writes admin credentials and must name its deployment.
- */
 
 import { stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
@@ -41,10 +19,6 @@ async function ask(rl, question) {
   return (await rl.question(question)).trim();
 }
 
-/**
- * Reads a line with echo suppressed. readline's `question` still writes the
- * prompt; the output hook swallows everything after it until Enter.
- */
 async function askHidden(rl, question) {
   const write = stdout.write.bind(stdout);
   stdout.write(question);
@@ -76,7 +50,6 @@ async function askPassword(rl) {
   }
 }
 
-/** Prompts for the rest of an account once the username is known. */
 async function promptAccountDetails(rl) {
   const email = await ask(rl, "  email: ");
   if (!email.includes("@")) {

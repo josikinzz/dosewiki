@@ -1,14 +1,3 @@
-/**
- * Delivery state an in-page editor polls after it publishes.
- *
- *   GET /api/dev/publication-status?target={"kind":"article","slug":"lsd"}&target=...
- *   → { ok: true, publications: [{ key, state, translations }] }
- *
- * The write routes answer once a change is saved on the editor host; the
- * publication outbox delivers it to the public site later. This reads that
- * outbox row per named identity so the editor's receipt can say when the
- * public site has the change. It reads states only, never content.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { isPublicationTarget, type PublicationTarget } from "@server/next/publicationWire";
@@ -17,7 +6,6 @@ import { JsonBodyError } from "@/lib/http/readJsonBody";
 
 export const runtime = "nodejs";
 
-/** Matches `PUBLICATION_STATUS_MAX_TARGETS` in the status query. */
 const MAX_TARGETS = 8;
 
 function parseTargets(url: URL): PublicationTarget[] {

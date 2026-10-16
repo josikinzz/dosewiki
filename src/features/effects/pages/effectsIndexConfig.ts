@@ -62,9 +62,6 @@ export const TABS: TabConfig[] = [
     filterTags: ["physical", "uncomfortable"],
     blob: "Physical effects are subjective effects that directly affect part of a person's physical body.",
   },
-  // The archive of long-form articles that the effect entries lean on: the
-  // intensity scales, the substance guides, and the dream and meditation
-  // pieces. Static curation lives in libraryConfig, so no filter tags.
   {
     id: "library",
     label: msg("Library"),
@@ -72,9 +69,6 @@ export const TABS: TabConfig[] = [
     filterTags: [],
     blob: "The long-form writing behind the index: the scales that grade how intense these effects are, the substance guides that walk an experience end to end, and the pieces on dreaming and meditation.",
   },
-  // The index's thesis lives here rather than above the grid: the "All
-  // Effects" view opens straight into the categories, and this tab carries
-  // the full three-paragraph introduction for anyone who wants it.
   { id: "info", label: msg("More Info"), icon: "lucide:info", filterTags: [] },
 ];
 
@@ -203,7 +197,6 @@ function normalizeCategoryLabel(label: string): string {
 
 const CATEGORY_ICONS_BY_LABEL = new Map<string, IconName | null>();
 
-// Flat titles can be shared; only retain aliases that agree on the icon.
 for (const category of FLAT_CATEGORIES) {
   for (const label of [category.key, category.routeSlug, category.title]) {
     const key = normalizeCategoryLabel(label);
@@ -215,7 +208,6 @@ for (const category of FLAT_CATEGORIES) {
   }
 }
 
-// A broad category owns its route, even when several flat panels link to it.
 for (const category of PARENT_CATEGORIES) {
   for (const label of [
     category.key,
@@ -243,7 +235,6 @@ for (const tab of TABS) {
   }
 }
 
-/** Match canonical category keys, slugs, titles, and unambiguous display labels. */
 export function resolveEffectCategoryIcon(label: string): IconName | undefined {
   return CATEGORY_ICONS_BY_LABEL.get(normalizeCategoryLabel(label)) ?? undefined;
 }

@@ -30,7 +30,6 @@ type ParsedEdit = {
   term: string;
   target: string;
   expectedRevision: string;
-  /** Why the draft was proposed, e.g. from a correction; defaults to the glossary review wording. */
   reason?: ReviewReason;
 };
 

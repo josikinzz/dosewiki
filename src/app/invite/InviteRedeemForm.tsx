@@ -12,19 +12,10 @@ import { MIN_PASSWORD_LENGTH, validateNewPassword } from "@server/auth/passwordP
 import { normalizeUsername, validateUsername } from "@server/auth/usernamePolicy";
 
 type InviteRedeemFormProps = {
-  /** The `?code=` from the invite link, if any; the field stays editable. */
   initialCode: string;
-  /** Where to land once signed in. */
   destination: string;
 };
 
-/**
- * Accept an invite: choose a username and password, optionally a name and a
- * real email, then sign straight in. The redeem route owns every refusal
- * message; the form only pre-checks what it can without the server (password
- * policy, username shape, matching confirmation) so a typo never costs a
- * rate-limited round trip.
- */
 export function InviteRedeemForm({ initialCode, destination }: InviteRedeemFormProps) {
   const [code, setCode] = useState(initialCode);
   const [username, setUsername] = useState("");

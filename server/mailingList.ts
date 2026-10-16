@@ -28,13 +28,6 @@ const subscriberRowValidator = v.object({
 
 type SubscriberRow = typeof subscriberRowValidator.type;
 
-/**
- * Outcome contract for the /subscribe HTTP endpoint:
- * - "subscribed", "duplicate", and "spam" all map to a generic 200 so the
- *   public endpoint never enumerates existing addresses or reveals the
- *   honeypot.
- * - "invalid" maps to 400.
- */
 const outcomeValidator = v.union(
   v.literal("subscribed"),
   v.literal("duplicate"),
@@ -45,11 +38,6 @@ const outcomeValidator = v.union(
 const MAX_EMAIL_LENGTH = 254;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-/**
- * Internal intake for the public /subscribe HTTP endpoint.
- * Never exposed to clients directly; the HTTP layer owns CORS, rate limiting,
- * and response shaping.
- */
 export const subscribe = internalMutation({
   args: {
     email: v.string(),
@@ -63,8 +51,6 @@ export const subscribe = internalMutation({
     const email = args.email.trim().toLowerCase();
 
     if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) {
-      // Bots that trip the honeypot get the generic success path even with a
-      // garbage address; nothing is stored.
       return args.honeypotTriggered ? "spam" : "invalid";
     }
 
@@ -73,7 +59,6 @@ export const subscribe = internalMutation({
       .withIndex("by_email_list", (q) => q.eq("email", email).eq("list", args.list))
       .unique();
     if (existing) {
-      // Silently succeed; a previously unsubscribed address stays unsubscribed.
       return args.honeypotTriggered ? "spam" : "duplicate";
     }
 
@@ -91,9 +76,6 @@ export const subscribe = internalMutation({
   },
 });
 
-/**
- * Editor-gated listing for admin tooling, mirroring siteFeedback.list.
- */
 export const list = query({
   args: {
     apiKey: v.string(),
@@ -131,9 +113,6 @@ export const list = query({
   },
 });
 
-/**
- * Internal operator cleanup for test or mistaken rows.
- */
 export const remove = internalMutation({
   args: {
     email: v.string(),

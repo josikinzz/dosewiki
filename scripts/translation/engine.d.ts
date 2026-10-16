@@ -15,13 +15,10 @@ export type WorkUnit = {
   markup: boolean;
   words: number;
   occurrences: number;
-  /** The surface the text comes from, so the prompt can scope glossary kinds; absent means "any". */
   contextKind?: PromptContextKind;
-  /** Meaning of a contextual UI label, kept separate from translatable text. */
   context?: string;
 };
 
-/** A provider request that failed for transport or authorization reasons; never a content defect. */
 export class TranslationTransportError extends Error {
   constructor(cause: unknown);
   readonly code: "TRANSPORT_FAILURE";
@@ -48,26 +45,19 @@ export function sendBatch(input: {
   userMessage: string;
   temperature?: number;
   signal?: AbortSignal;
-  /** Defaults to the locale's translation prompt. */
   systemPrompt?: string;
-  /** Defaults to APP_TITLE. */
   appTitle?: string;
 }): Promise<OpenRouterChatResult>;
 
 export function translateBatchWithRetries(input: {
   units: readonly WorkUnit[];
   locale: TranslationLocale;
-  /** The approved `term -> target` map, loaded by the caller from Postgres. */
   glossary: Readonly<Record<string, string>>;
-  /** The locale-independent `term -> gloss` map, loaded by the caller from Postgres; printed beside each injected term. */
   glosses: Readonly<Record<string, string>>;
-  /** `term -> kind` for the approved rows, so the prompt can confine surface-specific kinds to their surface. */
   kinds: Readonly<Record<string, string>>;
-  /** The locale's approved style guide, loaded by the caller; null or absent prints no style block. */
   styleGuide?: PromptStyleGuide | null;
   model: string;
   apiKey: string;
-  /** Cancels in-flight requests and stops transport and validation retries. */
   signal?: AbortSignal;
   onUsage?: (usage: BatchUsage, attempt: number) => void;
 }): Promise<SegmentVerdict[]>;

@@ -1,23 +1,4 @@
 #!/usr/bin/env node
-/**
- * Browser journeys through the `/dev` shell against deterministic fixtures.
- *
- *   npm run dev:journeys-server           # terminal 1, serves 127.0.0.1:3100
- *   npm run test:journeys                 # terminal 2
- *   npm run test:journeys -- --only conflict-and-reconcile --variant narrow-dark-touch
- *
- * The dev server is the local screenshot viewer, which renders `/dev`
- * documents without an account (`lib/auth/devScreenshotViewer.ts`). Every API
- * request is answered inside this browser by `fixtures.mjs`, so a journey
- * reads no private data, reaches no database, and posts nothing to the
- * server. Journeys wait on specific ready-state locators, never on network
- * idle or a fixed sleep.
- *
- * Each journey runs once per variant: a desktop viewport in the light theme
- * with a mouse, and a narrow viewport in the dark theme with real touch
- * emulation (`hasTouch`, `isMobile`, coarse pointer). Both drive the page by
- * keyboard where an editor would.
- */
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
@@ -50,13 +31,10 @@ const VARIANTS = {
 };
 
 const WRITING_ROW = "/dev/writing/launch-post";
-/** `colorSchemeStorageKey` in `src/theme/theme-token-interface.json`. */
 const COLOR_SCHEME_STORAGE_KEY = "dosewiki-theme";
-/** WCAG 2.2 target size minimum; a tapped control smaller than this fails the touch variant. */
 const MIN_TOUCH_TARGET = 24;
 const STEP_TIMEOUT = 15_000;
 
-/** Polls `check` until it stops throwing: waits on a condition, never on a clock. */
 async function eventually(check, { timeout = STEP_TIMEOUT, interval = 100 } = {}) {
   const deadline = Date.now() + timeout;
   for (;;) {
@@ -69,12 +47,9 @@ async function eventually(check, { timeout = STEP_TIMEOUT, interval = 100 } = {}
   }
 }
 
-/** One browser context: a variant, a fixture, and the helpers a journey drives the page with. */
 async function openSession(browser, variantName, { role = "admin", state = "loaded", fixture: shared = null } = {}) {
   const variant = VARIANTS[variantName];
   const context = await browser.newContext(variant.context);
-  // The site paints dark unless told otherwise; "system" hands the theme to
-  // the emulated OS preference, so the variant's colorScheme decides it.
   await context.addInitScript((key) => {
     if (window.localStorage.getItem(key) === null) window.localStorage.setItem(key, "system");
   }, COLOR_SCHEME_STORAGE_KEY);
@@ -86,7 +61,6 @@ async function openSession(browser, variantName, { role = "admin", state = "load
   const unloadPrompts = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   page.on("dialog", (dialog) => {
-    // The shell's unsaved-work guard: the journey records it and lets the reload go ahead.
     if (dialog.type() === "beforeunload") {
       unloadPrompts.push(page.url());
       void dialog.accept();
@@ -117,18 +91,12 @@ async function openSession(browser, variantName, { role = "admin", state = "load
       await session.settle();
     },
 
-    /**
-     * The shell is ready and the client session is the fixture's: the server
-     * renders the viewer's own admin session first, and a tool that reads the
-     * role resets when the fixture's session replaces it.
-     */
     async settle() {
       await waitForDevShellReady(page);
       await page.getByText(fixture.session.user.name, { exact: true }).first().waitFor({ state: "attached", timeout: STEP_TIMEOUT });
       await waitForDevShellReady(page);
     },
 
-    /** A click with the mouse, or a real tap on the touch variant, after checking the target is big enough to tap. */
     async activate(locator) {
       await locator.waitFor({ state: "visible", timeout: STEP_TIMEOUT });
       if (variant.touch) {
@@ -145,19 +113,15 @@ async function openSession(browser, variantName, { role = "admin", state = "load
       }
     },
 
-    /** Focus by keyboard-reachable means, then press a key, as a keyboard user would. */
     async press(locator, key) {
       await locator.waitFor({ state: "visible", timeout: STEP_TIMEOUT });
       await locator.focus();
       await page.keyboard.press(key);
     },
 
-    /** Types at the end of a field with the keyboard. */
     async typeAtEnd(locator, text) {
       await locator.waitFor({ state: "visible", timeout: STEP_TIMEOUT });
       await locator.focus();
-      // End means end of line in a textarea and scrolls instead on macOS, so
-      // the caret is placed directly; the text itself is typed key by key.
       await locator.evaluate((node) => node.setSelectionRange(node.value.length, node.value.length));
       await page.keyboard.type(text);
     },
@@ -166,7 +130,6 @@ async function openSession(browser, variantName, { role = "admin", state = "load
       await eventually(async () => assert.equal(await locator.inputValue(), expected));
     },
 
-    /** The accessible name of whatever holds focus, or its text. */
     async focused() {
       return page.evaluate(() => {
         const node = document.activeElement;
@@ -179,7 +142,6 @@ async function openSession(browser, variantName, { role = "admin", state = "load
       });
     },
 
-    /** The last answered request to one route, once it has been answered. */
     async lastRequest(method, pathname, { count = 1 } = {}) {
       return eventually(() => {
         const hits = fixture.requestsTo(method, pathname);
@@ -199,7 +161,6 @@ async function openSession(browser, variantName, { role = "admin", state = "load
   return session;
 }
 
-/** The environment the variant promises: theme, pointer and viewport. */
 async function assertVariantEnvironment({ page, touch, dark }) {
   const environment = await page.evaluate(() => ({
     dark: matchMedia("(prefers-color-scheme: dark)").matches,
@@ -221,14 +182,12 @@ async function openWritingRow(session) {
   await session.open(WRITING_ROW);
   const title = session.page.getByLabel("Title", { exact: true });
   await session.expectValue(title, "Launch post");
-  // The selected record is the one the address names.
   const selected = session.page.getByRole("group", { name: "Entries" }).getByRole("button", { name: /Launch post/ });
   await eventually(async () => assert.equal(await selected.getAttribute("aria-current"), "true", "the row the address names is open"));
   return { title, body: session.page.getByLabel("Body", { exact: true }), revision: session.fixture.writing.get("launch-post").baseRevision };
 }
 
 const JOURNEYS = {
-  /** Ticket 03: Leave stops for unsaved work, Keep editing keeps it, and Save goes through before leaving. */
   async "edit-and-leave"(session) {
     const { page } = session;
     const { title, revision } = await openWritingRow(session);
@@ -244,7 +203,6 @@ const JOURNEYS = {
     await dialog.getByText("Writing: Launch post revised").waitFor();
     await eventually(async () => assert.equal((await session.focused())?.inDialog, true, "focus moves into the dialog"));
 
-    // Escape is Keep editing: nothing is lost and focus returns to Leave.
     await page.keyboard.press("Escape");
     await dialog.waitFor({ state: "hidden" });
     assert.equal(new URL(page.url()).pathname, WRITING_ROW);
@@ -264,7 +222,6 @@ const JOURNEYS = {
     assert.equal(session.fixture.writing.get("launch-post").title, "Launch post revised");
   },
 
-  /** Ticket 54: a reload keeps typed work in a recovery copy, and Restore brings it back without saving. */
   async "reload-and-recover"(session) {
     const { page } = session;
     const { body } = await openWritingRow(session);
@@ -280,18 +237,15 @@ const JOURNEYS = {
     const offer = page.getByRole("region", { name: "Recovered changes" });
     await offer.waitFor({ timeout: STEP_TIMEOUT });
     await offer.getByText(/from this browser, saved at/).waitFor();
-    // Nothing is replaced until the editor chooses.
     await session.expectValue(body, "Post.");
 
     await session.press(offer.getByRole("button", { name: "Restore" }), "Enter");
     await session.expectValue(body, "Post. Kept.");
     await offer.waitFor({ state: "hidden" });
     assert.equal(session.fixture.requestsTo("POST", "/api/dev/writing-article").length, 0, "restoring never saves");
-    // The restored draft is still unsaved, so it is kept again for the next reload.
     await page.getByText(/Unsaved changes kept in this browser at/).waitFor({ timeout: STEP_TIMEOUT });
   },
 
-  /** An editor submits a proposal from Writing, finds it in the Queue, and reopens it from its link. */
   async "submit-and-reopen"(session) {
     const { page } = session;
     const { title, revision } = await openWritingRow(session);
@@ -307,7 +261,6 @@ const JOURNEYS = {
     assert.equal(sent.body.baselines[0].document.baseRevision, revision);
     const proposalId = sent.response.proposalId;
     await page.getByText(`#${proposalId.slice(-6)}`).waitFor({ timeout: STEP_TIMEOUT });
-    // The proposal holds the edit now; the editor is back on the saved version.
     await session.expectValue(title, "Launch post");
     assert.equal(session.fixture.requestsTo("POST", "/api/dev/writing-article").length, 0, "an editor's submit never saves directly");
 
@@ -317,13 +270,10 @@ const JOURNEYS = {
     const row = page.getByRole("button", { name: /Update blog post “Launch post revised”/ });
     await session.press(row, "Enter");
     await eventually(async () => assert.equal(await row.getAttribute("aria-pressed"), "true", "the chosen submission is selected"));
-    // The pane names the open proposal in its heading.
     await page.getByRole("heading", { name: /Update blog post “Launch post revised”/ }).waitFor();
     const opened = await session.lastRequest("GET", `/api/dev/proposals/${proposalId}`);
     assert.equal(opened.status, 200);
 
-    // The reviewer opens the task link in a fresh browser: the same record is
-    // selected, with the actions that review needs.
     session.fixture.setRole("admin");
     const reviewer = await openSession(session.browser, session.variantName, { fixture: session.fixture });
     try {
@@ -340,7 +290,6 @@ const JOURNEYS = {
     }
   },
 
-  /** Ticket 55: a stale save is refused, loading the latest version merges it, and the chosen draft saves against the newer revision. */
   async "conflict-and-reconcile"(session) {
     const { page } = session;
     const { title, revision } = await openWritingRow(session);
@@ -385,7 +334,6 @@ const JOURNEYS = {
   },
 };
 
-/** Each tool state renders meaningful content, and a refused write keeps the draft. */
 const STATE_EXPECTATIONS = {
   loaded: { writing: /Field notes/, queue: /Update article “Field notes”/ },
   empty: { writing: /Nothing written here yet\./, queue: /No submissions to review\./ },
@@ -427,7 +375,6 @@ async function runStateMatrix(browser, variantName) {
   return results;
 }
 
-/** What each role finds on Writing: an admin saves, an editor submits, the rest are told why they cannot. */
 const ROLE_EXPECTATIONS = {
   admin: { button: "Save draft" },
   editor_translator: { button: "Submit for review" },

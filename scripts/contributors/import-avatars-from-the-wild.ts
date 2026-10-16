@@ -1,83 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Give a replication artist the avatar they actually use out in the wild.
- *
- * `generate-avatars-from-replications.ts` gave every profiled contributor a
- * square cut out of their own artwork. That was a stand-in: it says what someone
- * paints, not who they are, and the artists it describes were never asked. Every
- * artist credited here who links a site or a social account from one of their
- * works already publishes a picture they chose to be recognized by. This script
- * installs that picture instead.
- *
- * The research pass - visiting each linked account, confirming it is the same
- * person as the credit line, and reading the avatar off it - happens outside
- * this script and arrives as a findings file. What lives here is everything that
- * has to be mechanical and repeatable: resolving a credit line to a profile,
- * fetching bytes, cropping, and writing.
- *
- * ## Findings file
- *
- * `--findings=<path>` is JSON: `{ findings: [ { artist, imageUrl, sourcePage,
- * platform, evidence, license, confidence } ] }`, where `artist` is the credit
- * line exactly as stored on the replication rows and `confidence` is one of
- * `high | medium | low | none`.
- *
- * Only `high` and `medium` are installed. A `low` finding is a same-name account
- * nobody could corroborate, and attaching a stranger's face to a credit line is
- * a worse outcome than a monogram, so those are reported and skipped alongside
- * `none`.
- *
- * ## Which profile an avatar lands on
- *
- * A credit line resolves through `findContributorProfileByAuthorName` - the
- * app's only definition of "this name is that contributor" - so the avatar lands
- * exactly where the gallery, the Artist Page and the viewer will look for it.
- *
- * An artist with no profile row has nowhere to keep an avatar, so this creates
- * one: key, display name, `role: "Replication Artist"` to match the fifty-eight
- * profiles already carrying it, and nothing else. The row claims nothing on the
- * artist's behalf - no bio, no links, no email - and their Artist Page renders
- * exactly as it did apart from the portrait, because the page already merges
- * their `artist_url` into the links row on its own.
- *
- * ## Rights
- *
- * A profile picture is the artist's own image, published by them as the face of
- * the account we link. It is used here to credit them at the size of a credit
- * line. Every install records where the image came from, the evidence that the
- * account is theirs, and any license the source demanded, in the provenance
- * manifest named by `--manifest=<path>`. That manifest is identity research
- * about real people, so it is kept outside the repository alongside the
- * findings; an artist who wants their picture gone is one line in that file
- * away from being found. A run reads the manifest first (avatars it installed
- * earlier are its own to refresh) and rewrites it in full.
- *
- * A replaced artwork crop is dropped from `contributorAvatarSources.json` in the
- * same run. Two manifests describing the same bytes, one of them wrong, is worse
- * than either alone.
- *
- * ## Usage
- *
- * Dry run (default; reads production, writes nothing):
- *   bun scripts/contributors/import-avatars-from-the-wild.ts \
- *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json
- *
- * Render the avatars somewhere disposable to look at them first:
- *   bun scripts/contributors/import-avatars-from-the-wild.ts \
- *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json \
- *     --preview-dir=/tmp/wild-avatars
- *
- * A profile whose avatar was chosen deliberately (neither an artwork crop nor
- * absent) is left alone and reported. Add `--replace-chosen-avatars` only when
- * you mean to overrule somebody's pick.
- *
- * Apply (repo files, manifests, and the production profile rows):
- *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=postgresql://localhost/dosewiki \
- *   bun scripts/contributors/import-avatars-from-the-wild.ts \
- *     --findings=/tmp/findings.json --manifest=/tmp/wild-avatar-sources.json \
- *     --write --confirm-write=import-wild-avatars \
- *     --expected-deployment=localhost/dosewiki
- */
 import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -126,16 +47,11 @@ import {
 
 const OPERATION = "import-wild-avatars";
 
-/** The title the fifty-eight existing replication-artist profiles carry. */
 const REPLICATION_ARTIST_ROLE = "Replication Artist";
-
-/* -------------------------------------------------------------------- report */
 
 function log(message = "") {
   console.log(message);
 }
-
-/* ---------------------------------------------------------------------- main */
 
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
@@ -162,16 +78,6 @@ async function main() {
   }
   const previewDir = flag("preview-dir");
 
-  /**
-   * Where fetched source bytes are kept between runs.
-   *
-   * Instagram, Patreon, 500px and Reddit all serve avatars from signed CDN URLs
-   * that expire, and some of the accounts they came from rate-limit hard enough
-   * that a signature cannot be regenerated on demand. Without a cache the write
-   * run is not the run that was reviewed: a URL that resolved during planning
-   * can be dead minutes later. With one, the bytes that were planned are the
-   * bytes that get installed.
-   */
   const cacheDir = flag("cache-dir");
   const fetchSource = async (url: string): Promise<Buffer> => {
     if (!cacheDir) return await fetchBytes(url);
@@ -194,17 +100,6 @@ async function main() {
     );
   }
 
-  /**
-   * Credit lines that name the same human, decided by research rather than by
-   * spelling.
-   *
-   * The automatic check below catches "Shupliak"/"Shuplyak" - two spellings of
-   * one string. It cannot catch "Eloh Projects"/"Sean Allum" or "k
-   * visuals"/"Keana Sears", where the only thing tying the two together is that
-   * somebody read their sites. Those arrive here as reviewed pairs, each with
-   * the evidence that justified it, and every credit line in a group resolves to
-   * the one profile - including a spelling that had no avatar of its own.
-   */
   const mergesPath = flag("merges");
   const mergeGroups: string[][] = mergesPath
     ? (JSON.parse(fs.readFileSync(mergesPath, "utf8")).merges ?? []).map(
@@ -227,8 +122,6 @@ async function main() {
     ),
   );
 
-  // Avatars this producer installed on an earlier run are ours to refresh; the
-  // guard below is about pictures somebody else picked.
   const wildKeys = new Set<string>(
     fs.existsSync(wildManifestPath)
       ? (
@@ -247,19 +140,6 @@ async function main() {
     mergeGroups,
   });
 
-  /**
-   * An avatar somebody already chose is not a stand-in.
-   *
-   * This script exists to replace the squares a script cut out of artists'
-   * artwork, and profiles with no avatar at all. A profile carrying anything
-   * else had its picture picked deliberately, and replacing that is a judgement
-   * call rather than a migration: Josie Kins' portrait was overwritten that way
-   * once, which is why this gate exists. Those are reported and left alone
-   * unless the run explicitly asks for them.
-   *
-   * An avatar this producer installed is not somebody else's pick, so a re-run
-   * still refreshes its own work without the flag.
-   */
   const replacesChosen = argv.includes("--replace-chosen-avatars");
   const plan = resolved.filter((entry) => {
     const foreign =
@@ -312,8 +192,6 @@ async function main() {
     );
   }
 
-  /* ------------------------------------------------------------ fetch bytes */
-
   const rendered = new Map<
     string,
     {
@@ -346,8 +224,6 @@ async function main() {
         );
         continue;
       }
-      // A profile picture is as often a photograph of a person as it is a piece
-      // of art, and the two want different crops - see `renderAvatarAttention`.
       const attention = needsAttentionCrop(oriented.dimensions);
       const avatar = attention
         ? await renderAvatarAttention(oriented.bytes, oriented.dimensions)
@@ -387,8 +263,6 @@ async function main() {
     );
   }
 
-  /* -------------------------------------------------------------- the plan */
-
   const newProfiles = installable.filter((entry) => !entry.profile);
   const existingProfiles = installable.filter((entry) => entry.profile);
 
@@ -424,8 +298,6 @@ async function main() {
   assertProductionWriteAllowed(command);
   const { token: apiKey } =
     requireProductionWriteCredential("profileMediaWrite");
-
-  /* ------------------------------------------------------------ repo files */
 
   for (const entry of installable) {
     writeAvatarFile(
@@ -489,8 +361,6 @@ async function main() {
     )}\n`,
   );
 
-  // Drop the artwork provenance for every crop these bytes just replaced: the
-  // file at that path is no longer a square of the work the entry describes.
   const replacedKeys = new Set(installable.map((entry) => entry.key));
   const survivingArtwork = (artworkManifest.avatars ?? []).filter(
     (entry: { profileKey: string }) =>
@@ -501,20 +371,8 @@ async function main() {
     `${JSON.stringify({ ...artworkManifest, avatars: survivingArtwork }, null, 2)}\n`,
   );
 
-  /* ---------------------------------------------------------------- data */
-
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
-  /**
-   * Import rows are built from the RAW stored rows, not the ones resolved above.
-   *
-   * `contributorProfiles.getAll` materializes: it resolves `avatarStorageId`
-   * into a URL and drops `createdAt`, `updatedAt`, `updatedBy` and
-   * `membershipEmail` entirely. `bulkImport` defaults every field it is not
-   * handed, so a row echoed back from a materialized read would silently reset
-   * a profile's creation date and authorship. Re-reading raw is the only way the
-   * "avatarUrl moved and nothing else" claim can be true.
-   */
   const rawRows = (await writeClient.query(
     api.contributorProfiles.getForBulkImport,
     {
@@ -535,10 +393,6 @@ async function main() {
         );
       }
 
-      // An import row may move the avatar and, when this artist was credited
-      // under more than one name, may add those names as aliases so both credit
-      // lines resolve to this one profile. Nothing else may move, and the alias
-      // list may only grow by exactly the spellings the plan named.
       const intendedAliases = [...(raw.aliases ?? []), ...entry.aliasesToAdd];
       const row = {
         ...avatarOnlyImportRow(raw, entry.avatarUrl),

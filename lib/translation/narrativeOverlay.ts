@@ -4,12 +4,6 @@ import type { Segment } from "../../scripts/translation/segment-manifest.mjs";
 import { narrativeOverlayApplies, type NarrativeOverlayDecision, type ReviewSnapshot } from "./reviewTypes";
 import { narrativeIdentity, narrativeOverlayDecision } from "./narrativeIdentity";
 export type { NarrativeOverlayDecision } from "./reviewTypes";
-/**
- * Read-only overlay. Automatic writers own the machine table, never these approvals.
- * `decisions` aligns with `segments` and is null where no approval exists.
- * `approvedAt` aligns too: epoch ms of the entry's latest approve action, or of
- * its last update for an approval stored without history; null without one.
- */
 export async function approvedNarrativeOverlay(locale: string, kind: string, segments: readonly Segment[], machine: Map<string, string>) {
     if (!segments.length || locale === "en")
         return { segments: [...segments], translations: machine, decisions: segments.map((): NarrativeOverlayDecision | null => null), approvedAt: segments.map((): number | null => null) };

@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * Session-only image tracing layer for the molecule canvas (the editor's
- * "drop a picture in and draw through it" feature).
- *
- * The OpenChemLib canvas paints an opaque white background internally, so the
- * reference image sits ON TOP of the canvas at reduced opacity instead of
- * behind it. While "Adjust image" is on, the overlay captures the pointer for
- * dragging; switched off, it is `pointer-events: none`, so every click and
- * drag falls straight through to the drawing tools underneath.
- *
- * Nothing here is uploaded or persisted: the image lives in an object URL for
- * this browser session only and is revoked on replace, clear, and unmount.
- */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
@@ -60,7 +47,6 @@ export function useTracingLayer(): TracingLayerState {
     setAdjusting(false);
   }, []);
 
-  // Revoke the object URL when the editor unmounts.
   const imageUrlRef = useRef<string | null>(null);
   imageUrlRef.current = imageUrl;
   useEffect(
@@ -85,7 +71,6 @@ export function useTracingLayer(): TracingLayerState {
   };
 }
 
-/** The see-through image over the canvas. Renders nothing without an image. */
 export function TracingOverlay({
   layer,
   className,
@@ -132,7 +117,6 @@ export function TracingOverlay({
         dragState.current = null;
       }}
     >
-      {/* plain <img>: the source is a session-local object URL, never a hosted asset */}
       <img
         src={layer.imageUrl}
         alt="Tracing reference"
@@ -147,7 +131,6 @@ export function TracingOverlay({
   );
 }
 
-/** The control cluster for the tracing layer (file pick, fade, size, move, clear). */
 export function TracingControls({
   layer,
   disabled,

@@ -1,15 +1,5 @@
-/**
- * Browser-safe contracts for a locale's style guide: short rules its
- * translators write, and example corrections (before, after, why), most of
- * them promoted from Fluency corrections in the article reader. The guide is
- * one document per locale in the review tables under scope `style-guide`,
- * with Save draft, Approve, and Restore history like the glossary. Only the
- * approved document reaches prompts (scripts/translation/style-guide.mjs),
- * and its revision joins the prompt version digest.
- */
 import type { ReviewHistoryEntry } from "./reviewTypes";
 
-/** The review-table source id of a locale's single style guide document. */
 export const STYLE_GUIDE_SOURCE_ID = "style-guide";
 
 export const STYLE_GUIDE_LIMITS = {
@@ -20,37 +10,27 @@ export const STYLE_GUIDE_LIMITS = {
   whyChars: 500,
 } as const;
 
-/** Where a promoted example came from: one saved Fluency correction in narrative review history. */
 export type StyleExampleOrigin = { kind: "article"; slug: string; segment: string; revision: number };
 
 export type StyleGuideExample = {
   id: string;
-  /** The English the corrected wording translates; example selection measures overlap on it. */
   source?: string;
   before: string;
   after: string;
   why: string;
-  /** Milliseconds; ties on overlap go to the most recent. */
   addedAt: number;
   origin?: StyleExampleOrigin;
 };
 
-/** What the review snapshot stores, as JSON in its target. */
 export type StyleGuideDocument = { rules: string[]; examples: StyleGuideExample[] };
 
-/**
- * The approved guide a prompt reads. `revision` is a digest of the approved
- * document, empty when nothing is approved; a draft never changes it.
- */
 export type StyleGuide = StyleGuideDocument & { revision: string };
 
 export type StyleGuidePacket = {
   locale: string;
-  /** The review entry revision a write must name. */
   revision: number;
   draft: StyleGuideDocument | null;
   approved: StyleGuideDocument | null;
-  /** The approved guide's prompt revision; empty when none is approved. */
   approvedRevision: string;
   history?: ReviewHistoryEntry[];
 };
@@ -76,12 +56,6 @@ function origin(value: unknown): StyleExampleOrigin | undefined {
   return { kind: "article", slug: raw.slug, segment: raw.segment, revision: Number(raw.revision) };
 }
 
-/**
- * A style guide document from a request body or a stored snapshot. Trims
- * every field, drops blank rules, and throws `StyleGuideFormatError` on
- * anything malformed or over the limits. An example without an id or time
- * gets them from `stamp`, so a new example can arrive without either.
- */
 export function parseStyleGuideDocument(raw: unknown, stamp: (example: Omit<StyleGuideExample, "id" | "addedAt">) => { id: string; addedAt: number } = () => {
   throw new StyleGuideFormatError("Every example needs an id and a time.");
 }): StyleGuideDocument {
@@ -118,7 +92,6 @@ export function parseStyleGuideDocument(raw: unknown, stamp: (example: Omit<Styl
   return { rules: parsedRules, examples: parsedExamples };
 }
 
-/** The document a stored snapshot holds; null when it is missing or unreadable. */
 export function readStyleGuideSnapshot(target: string | null | undefined): StyleGuideDocument | null {
   if (!target) return null;
   try {

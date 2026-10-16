@@ -420,7 +420,6 @@
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
       "src/components/changelog/ProseDiff.tsx",
-      "src/features/article/components/CitationMarks.tsx",
       "src/features/article/components/CitedText.tsx"
     ],
     "glossaryTerms": [

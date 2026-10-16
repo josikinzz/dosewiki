@@ -1,31 +1,3 @@
-/**
- * Rehearsal: effects and Effect Index writing on Postgres.
- *
- * Every call goes through `PostgresClient` with the owned `api.*`
- * references the app uses. Criteria:
- *
- *   a. round-trip: an Effect Index article written with `upsertArticle` (raw
- *      VCode, embedded `[ref]` citations, ordered media directives, citations
- *      array) reads back through the public `getBySlug` deep-equal to what was
- *      written, plus a fixture row whose stored `body_ast` carries a nested
- *      `$float` wrapper decodes to the same special value on every read path.
- *   b. draft: an unpublished writing is invisible to the public detail, listing,
- *      tag, and export reads and to `PublicDataReadAdapter` under
- *      `DATA_BACKEND=postgres`, while the editor reads still see it.
- *   c. authorization: an update with the scoped `editorArticleWrite` token
- *      preserves publication identity and names the actor in its receipt;
- *      effect updates preserve audio rights fields; wrong key, wrong intent,
- *      editor-role actor, and anonymous calls are refused without writing.
- *   d. ordering: `subjectiveEffects` public listings follow the index each
- *      query uses (`_creationTime`, `_id`; `by_featured` prefix) and the slug
- *      lookups hit `by_slug`.
- *
- *   bun scripts/postgres/rehearse-effects.ts --target postgres://localhost:5432/dosewiki
- *
- * Scratch rows carry a `t10-<random>` prefix and are removed in `finally`
- * unless `--keep` is passed.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -62,7 +34,6 @@ async function refused(run: () => Promise<unknown>): Promise<string | null> {
   }
 }
 
-/** Depth-first `src` attributes, in document order: the media sequence the article embeds. */
 function mediaSources(content: unknown, out: string[] = []): string[] {
   if (Array.isArray(content)) for (const child of content) mediaSources(child, out);
   else if (content && typeof content === "object") {
@@ -88,7 +59,6 @@ function withoutSystemFields<T extends Record<string, unknown>>(document: T): Om
   return rest;
 }
 
-/** The fields on `effectIndexArticles` that identify a publication rather than carry its body. */
 const PUBLICATION_IDENTITY_FIELDS = ["kind", "status", "publication_status", "publicationDate", "authors", "authorProfileKeys"] as const;
 
 const VCODE = [
@@ -106,16 +76,11 @@ async function main() {
   guardTarget(target, argv.includes("--allow-remote"));
   const keep = argv.includes("--keep");
 
-  // The app boundaries (`serverClient.queryData` -> `getPostgresClient`)
-  // read these at call time; pin them so the adapter reads this run's target,
-  // never the PlanetScale URL that `.env.local` also carries.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   process.env.POSTGRES_DIRECT_URL = target;
   const legacyKey = process.env.DATA_ADMIN_KEY;
   if (!legacyKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
-  // A run-local scoped token, distinct from the legacy key, so a call that
-  // succeeds with it is provably taking the scoped `editorArticleWrite` path.
   const scopedToken = `t10-${randomBytes(24).toString("hex")}`;
   process.env.DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE = scopedToken;
 
@@ -138,7 +103,6 @@ async function main() {
       scratch.push({ table: "memberships", id: await insertDocument(pool, "memberships", { email, role, createdAt: now, updatedAt: now }) });
     }
 
-    // ---------------------------------------------------------------- a. round-trip
     const written = {
       slug,
       title: `Rehearsal ${prefix}`,
@@ -204,9 +168,6 @@ async function main() {
     });
     expect("round-trip", "replaying the same operation returns the recorded receipt without a second write", isDeepStrictEqual(replay, created) && (await selectDocuments(pool, "narrativeRevisions", { where: '"kind" = $1 AND "key" = $2', params: ["writing", slug] })).length === 1, replay);
 
-    // Fixture rows whose jsonb carries a nested `$float` wrapper: the runtime
-    // must hand the handler the decoded special value (NaN, +/-Infinity, -0),
-    // identical on the single-row and collection paths.
     await insertDocument(pool, "effectIndexArticles", {
       ...written, slug: `${prefix}-float`, title: "Special-value fixture", tags: [],
       body_ast: encodeDocumentValue([{ name: "p", properties: {}, children: [{ value: Number.NaN }] }]),
@@ -224,7 +185,6 @@ async function main() {
       expect("round-trip", "nested $float decodes identically on getAll", fromList !== undefined && isDeepStrictEqual(fromList.body_ast, expectedFloatAst));
     }
 
-    // ---------------------------------------------------------------- b. draft
     const draftOperation = randomUUID();
     const draft = await client.mutation(api.effectIndexArticles.upsertArticle, {
       intent: "save-unpublished",
@@ -289,7 +249,6 @@ async function main() {
       adapterArticle,
     );
 
-    // ---------------------------------------------------------------- c. authorization
     const update = {
       title: `Rehearsal ${prefix} (revised)`,
       publicationDate: "2026-09-10",
@@ -336,9 +295,6 @@ async function main() {
     const editorView = await client.query(api.effectIndexArticles.getForEditor, { apiKey: scopedToken, actorEmail: editorEmail, slug });
     expect("authorization", "getForEditor reports the new base revision and actor history", editorView?.baseRevision === revised.revision && editorView.history[0]?.actorEmail === adminEmail && editorView.history.length === 2);
 
-    // Rights metadata on subjective effects. The scratch effect is inserted
-    // through the document store (which registers `documentIds`, so `db.get`
-    // resolves it), then updated through the real mutation.
     const effectId = await insertDocument(pool, "subjectiveEffects", { slug: effectSlug, name: `Rehearsal effect ${prefix}`, tags: ["visual", tag], summary: "before", description_raw: "[p]Before.[/p]", featured: true });
     scratch.push({ table: "subjectiveEffects", id: effectId });
     const audio = [
@@ -361,7 +317,6 @@ async function main() {
     expect("rights", "adapter getPublicEffectBySlug serves the rights fields from Postgres", isDeepStrictEqual(adapterEffect?.audio_replications, audio));
     expect("rights", "adapter effect listings include the scratch effect", (await adapter.getPublicEffects()).some((effect) => effect.slug === effectSlug) && (await adapter.getPublicEffectArticles()).some((effect) => effect.slug === effectSlug) && (await adapter.getPublicEffectsByCategory("visual")).some((effect) => effect.slug === effectSlug));
 
-    // Scoped-token effect publication through the editor mutation.
     const editorEffect = await client.query(api.subjectiveEffects.getForEditor, { apiKey: scopedToken, actorEmail: adminEmail, slug: effectSlug });
     const effectDraft = { name: `Rehearsal effect ${prefix}`, summary: "after", description_raw: "[p]After[ref url=\"https://c.example/effect\" text=\"Effect source\"].[/p]", tags: ["visual", tag], citations: effectCitations };
     const effectOperation = randomUUID();
@@ -371,7 +326,6 @@ async function main() {
     const effectReceipt = (await selectDocuments(pool, "narrativeRevisions", { where: '"kind" = $1 AND "operationId" = $2', params: ["effect", effectOperation] }))[0];
     expect("rights", "effect receipt names the actor and operation", effectReceipt?.actorEmail === adminEmail && effectReceipt.revision === published.revision && effectReceipt.baseRevision === editorEffect!.baseRevision);
 
-    // Refusals. None may write.
     const before = { article: await client.query(api.effectIndexArticles.getBySlug, { slug }), effect: afterPublish, receipts: (await pool.query('SELECT count(*)::int AS n FROM "narrativeRevisions" WHERE "key" LIKE $1', [`${prefix}%`])).rows[0].n as number };
     const attempts: { name: string; run: () => Promise<unknown>; pattern: RegExp }[] = [
       { name: "wrong api key", pattern: /Authentication failed/, run: () => client.mutation(api.effectIndexArticles.upsertArticle, { intent: "publish", apiKey: `${scopedToken}-wrong`, actorEmail: adminEmail, slug, expectedRevision: revised.revision, operationId: randomUUID(), title: "never" }) },
@@ -387,7 +341,6 @@ async function main() {
     const after = { article: await client.query(api.effectIndexArticles.getBySlug, { slug }), effect: await client.query(api.subjectiveEffects.getPublicBySlug, { slug: effectSlug }), receipts: (await pool.query('SELECT count(*)::int AS n FROM "narrativeRevisions" WHERE "key" LIKE $1', [`${prefix}%`])).rows[0].n as number };
     expect("refused", "refused calls wrote nothing", isDeepStrictEqual(before, after), { before: before.receipts, after: after.receipts });
 
-    // ---------------------------------------------------------------- d. ordering
     const all = await client.query(api.subjectiveEffects.getAll, {});
     const sqlOrder = (await pool.query('SELECT "_id" FROM "subjectiveEffects" ORDER BY "_creationTime" ASC, "_id" ASC')).rows.map((row) => row._id as string);
     const monotonic = all.every((doc, index) => index === 0 || all[index - 1]._creationTime < doc._creationTime || (all[index - 1]._creationTime === doc._creationTime && all[index - 1]._id < doc._id));

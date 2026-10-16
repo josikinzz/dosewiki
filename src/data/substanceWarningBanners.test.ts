@@ -7,14 +7,6 @@ import {
   type WarningBannerPreset,
 } from "./substanceWarningBanners";
 
-/**
- * The render rule is the safety-critical contract in this feature: a banner may
- * only reach a reader because an editor enabled it on that slug. Every test here
- * defends an observable behaviour that a plausible bug would break: an inverted
- * default, a forgotten cap, a case-sensitive slug compare, or a future "helpful"
- * change that starts inferring assignment from a substance's classification.
- */
-
 function preset(overrides: Partial<WarningBannerPreset> = {}): WarningBannerPreset {
   return {
     key: "depressant-respiratory",
@@ -71,7 +63,6 @@ describe("resolveEnabledBanners", () => {
       preset({ key: "d-early", tone: "danger", enabled: true, enabledSlugs: ["x"] }),
     ];
 
-    // The cap trims the tail, so assert against the full ordering first.
     expect(resolveSuppressedBanners(presets, "x").map((entry) => entry.key)).toEqual(["u", "c"]);
     expect(resolveEnabledBanners(presets, "x").map((entry) => entry.key)).toEqual([
       "d-early",

@@ -1,30 +1,3 @@
-/**
- * Rehearsal: prove on Postgres that `ctx.storage.getUrl` serves the
- * `storageObjects` mapping and that every storage-id fallback behaves exactly
- * as specified when the mapping is absent (null, never a throw).
- *
- *   bun scripts/postgres/rehearse-storage-fallbacks.ts [--target <url>] [--allow-remote] [--keep]
- *
- * Creates scratch rows prefixed `t11-<random>` (one replication, two
- * contributor profiles, one avatar history row, storageObjects rows) and
- * deletes them unless `--keep`. Every read goes through `PostgresClient`
- * with the same `api.*` references the app uses; handlers are unchanged.
- *
- * Scenarios:
- *   1. absent:   no mapping. `replications.getBySlug` falls back to the row's
- *                direct `url`/`thumbnail_url`; preview/motion/poster are null;
- *                `replications.resolveStorageUrls` yields nulls; profile avatar
- *                falls back to `avatarUrl` or null; identity avatar is null.
- *                The resolved row equals the unmapped-media shape, so the src
- *                poster/motion ladders (`qualityLadder.ts`) pick the same frame.
- *   2. mapped:   storageObjects rows exist. Each mapped id resolves to its
- *                mapped URL; unmapped siblings keep scenario 1 behaviour.
- *   3. sharing:  thumbnail_storage_id === storage_id reuses the mapped URL.
- *   4. placeholder: `placeholder-*` ids are never looked up.
- *   5. precedence: a canonical R2 key with REPLICATION_MEDIA_BASE_URL set wins
- *                over a historical storage identity mapping.
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -118,7 +91,6 @@ async function main() {
     });
     scratch.push({ table: "contributorAvatarHistory", id: historyId });
 
-    // 1. absent
     const absent = resolvedOf(await client.query(api.replications.getBySlug, { slug }));
     const unmapped: Resolved = { url: directUrl, thumbnail_url: directThumb, preview_url: null, motion_url: null, motion_poster_url: null };
     expect("absent", "getBySlug falls back to direct url/thumbnail_url and nulls the rest (unmapped-media shape)", JSON.stringify(absent) === JSON.stringify(unmapped), { absent, unmapped });
@@ -138,7 +110,6 @@ async function main() {
       expect("absent", "src ladders give a GIF no poster and no motion when the renditions are unmapped", slidePosterSource(gif) === null && slideMotionSource(gif) === null);
     }
 
-    // 2. mapped
     for (const id of [storageIds.main, storageIds.preview, storageIds.poster, storageIds.avatar, storageIds.historyAvatar]) {
       await pool.query('INSERT INTO "storageObjects" ("storage_id", "url", "r2_key") VALUES ($1, $2, $3)', [id, mapped(id), `imported-storage/${id}`]);
     }
@@ -156,18 +127,15 @@ async function main() {
       expect("mapped", "src GIF poster uses the mapped motion poster; motion stays off without a motion rendition", slidePosterSource(gif) === mapped(storageIds.poster) && slideMotionSource(gif) === null);
     }
 
-    // 3. sharing
     await patchDocument(pool, "replications", replicationId, { thumbnail_storage_id: storageIds.main });
     const shared = resolvedOf(await client.query(api.replications.getBySlug, { slug }));
     expect("sharing", "thumbnail sharing the main id reuses the mapped url", shared?.thumbnail_url === mapped(storageIds.main), shared);
 
-    // 4. placeholder
     await patchDocument(pool, "replications", replicationId, { storage_id: "placeholder-t11", thumbnail_storage_id: storageIds.thumb });
     const placeholder = resolvedOf(await client.query(api.replications.getBySlug, { slug }));
     expect("placeholder", "placeholder id is skipped and the direct url wins", placeholder?.url === directUrl, placeholder);
     await patchDocument(pool, "replications", replicationId, { storage_id: storageIds.main });
 
-    // 5. precedence
     const r2Key = `media/sha256/ab/${"ab".repeat(32)}.mp4`;
     await patchDocument(pool, "replications", replicationId, { r2_key: r2Key });
     process.env.REPLICATION_MEDIA_BASE_URL = "https://media.invalid";

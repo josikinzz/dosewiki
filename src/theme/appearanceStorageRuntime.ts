@@ -52,7 +52,6 @@ export function persistPreference(storageKey: string, value: string) {
   try {
     window.localStorage.setItem(storageKey, value);
   } catch {
-    // Keep the in-memory appearance active when storage is unavailable.
   }
 }
 
@@ -62,7 +61,6 @@ export function persistAxisNumber(storageKey: string, value: number | null) {
     if (value === null) window.localStorage.removeItem(storageKey);
     else window.localStorage.setItem(storageKey, String(value));
   } catch {
-    // Keep the in-memory appearance active when storage is unavailable.
   }
 }
 
@@ -71,7 +69,6 @@ export function removeStoredKey(storageKey: string) {
   try {
     window.localStorage.removeItem(storageKey);
   } catch {
-    // A key that cannot be removed also cannot be read later.
   }
 }
 
@@ -170,7 +167,6 @@ export function hydrateStoredAppearance(options: HydrationOptions): HydratedAppe
       : null;
     if (isColorSchemePreference(stored)) storedPreference = stored;
   } catch {
-    // The painted attribute remains available below.
   }
   if (storedPreference) result.colorSchemePreference = storedPreference;
   else if (options.isColorSchemePersistent) {
@@ -196,7 +192,6 @@ export function hydrateStoredAppearance(options: HydrationOptions): HydratedAppe
         result.fontPreference = migrated;
       }
     } catch {
-      // A blocked read also cannot be rewritten.
     }
     const textSize = readAxis(TEXT_SIZE_STORAGE_KEY, ...TEXT_SIZE_RANGE);
     result.textSize = textSize === DEFAULT_TEXT_SIZE ? null : textSize;

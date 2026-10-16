@@ -25,13 +25,6 @@ export function isCitationEvidenceStatus(value: string): value is CitationEviden
 
 export type CitationEvidenceSeverity = "blocking" | "non_blocking";
 
-/**
- * Queue membership filter shared by the tab, the queue route, and the Postgres
- * summary query. `open` is the default: an article stays queued while at least
- * one row is not approved, so fully approved articles drain out of the queue.
- * `approved` brings those drained articles back; `rejected` narrows to
- * articles holding at least one rejected row; `all` lifts the filter.
- */
 export type CitationReviewQueueFilter = "open" | "approved" | "rejected" | "all";
 
 export const CITATION_QUEUE_FILTERS: readonly CitationReviewQueueFilter[] = [
@@ -52,7 +45,6 @@ export function isCitationReviewQueueFilter(value: string): value is CitationRev
   return (CITATION_QUEUE_FILTERS as readonly string[]).includes(value);
 }
 
-/** What the queue route could tell about a failed native summary query. */
 export type CitationReviewQueueLoadCause = "query";
 
 export type CitationReviewQueueLoadFailure = {
@@ -65,7 +57,6 @@ export const CITATION_QUEUE_LOAD_CAUSE_LABEL: Record<CitationReviewQueueLoadCaus
   query: "The data server could not run the queue summary.",
 };
 
-/** Reviewer decision written to a row; `statusReason` is the note the next editor reads. */
 export type CitationReviewDecisionStatus = "approved" | "rejected";
 
 export type CitationRejectReason =
@@ -88,10 +79,6 @@ export const CITATION_REJECT_REASON_LABEL: Record<CitationRejectReason, string> 
   other: "Other",
 };
 
-/**
- * The text stored on the row for a rejection. Fixed reasons store their label;
- * `other` stores the reviewer's own words, or nothing when they left it blank.
- */
 export function formatCitationRejectReason(
   reason: CitationRejectReason,
   detail: string,
@@ -103,7 +90,6 @@ export function formatCitationRejectReason(
   return note ? `${CITATION_REJECT_REASON_LABEL[reason]}: ${note}` : CITATION_REJECT_REASON_LABEL[reason];
 }
 
-/** A write the reviewer can undo: the rows as they were before the decision. */
 export type CitationReviewPriorRow = {
   claimKey: string;
   status: CitationEvidenceStatus;
@@ -116,11 +102,6 @@ export type CitationReviewDecisionRecord = {
   prior: CitationReviewPriorRow[];
 };
 
-/**
- * Groups prior rows into the fewest status writes that restore them. The
- * status route writes one status and one note per call, so rows that shared a
- * status and note before the decision travel together.
- */
 export function groupPriorRowsForRestore(
   prior: readonly CitationReviewPriorRow[],
 ): Array<{ status: CitationEvidenceStatus; statusReason?: string; claimKeys: string[] }> {
@@ -219,14 +200,6 @@ export type CitationReviewCommands = {
   rows: Record<string, CitationReviewRowCommand>;
 };
 
-/**
- * Single source of truth that resolves every citation-review semantic onto a
- * shared {@link EditorStatusPillTone}. Status badges, checklist tiles, and
- * diagnostic chips all route through these maps so a status, its tile fill, and
- * its diagnostic chip can never drift out of sync. No raw palette classes, no
- * forbidden cyan: `supported` (ready-to-approve) maps to the green/info family
- * via `success`, never cyan.
- */
 export type CitationReviewChecklistTone = CitationReviewChecklistItem["tone"];
 
 export type CitationReviewDiagnosticSeverity = CitationEvidenceDiagnostic["severity"];
@@ -239,11 +212,6 @@ const CITATION_STATUS_TONE: Record<CitationEvidenceStatus, EditorStatusPillTone>
   rejected: "danger",
 }
 
-/**
- * Decided rows read in the shared intake words (docs/glossary.md, Intake
- * Status). Undecided rows are New there; the pill names their evidence
- * qualifier, since that decides whether they can be approved.
- */
 export const CITATION_STATUS_LABEL: Record<CitationEvidenceStatus, string> = {
   supported: "Ready to approve",
   needs_source: "Needs source",
@@ -276,11 +244,6 @@ const CITATION_DIAGNOSTIC_TONE: Record<
   warning: "caution",
 }
 
-/**
- * Resolve the {@link EditorStatusPillTone} for any citation-review surface
- * (badge, checklist tile, diagnostic chip) from a single switchboard so the
- * three surfaces never diverge.
- */
 export function citationTone(
   input:
     | { kind: "status"; value: CitationEvidenceStatus }
@@ -300,16 +263,10 @@ export function citationTone(
   }
 }
 
-/** Pluralize a count + noun pair for reviewer-facing copy ("1 row" / "3 rows"). */
 export function formatCitationCount(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-/**
- * Canonical article order for evidence section keys, derived from the section
- * catalog so the review page reads top-to-bottom like the public article.
- * Unknown sections sort last, alphabetically.
- */
 const ARTICLE_SECTION_RANK = new Map<string, number>(
   getCatalogSectionPromptDescriptors().map((descriptor, index) => [descriptor.sectionKey, index]),
 );
@@ -322,7 +279,6 @@ const ARTICLE_SECTION_LABEL = new Map<string, string>(
   getCatalogSectionPromptDescriptors().map((descriptor) => [descriptor.sectionKey, descriptor.label]),
 );
 
-/** A section key in the reader's words, sentence case ("Harm potential", "History & culture"). */
 export function formatCitationSectionLabel(section: string): string {
   const label =
     ARTICLE_SECTION_LABEL.get(section) ??
@@ -334,7 +290,6 @@ export function formatCitationSectionLabel(section: string): string {
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
-/** A row can be approved only when at least one support carries a quote verified against its source. */
 export function canApproveCitationEvidence(row: CitationEvidenceRow): boolean {
   return (row.supports ?? []).some(
     (support) => support.supportingQuote.trim().length > 0 && Boolean(support.verifiedQuote?.sourceId),
@@ -368,8 +323,6 @@ export function buildCitationReviewCommands({
 
     const isPending = pending.has(row.claimKey);
     const canApprove = canApproveCitationEvidence(row);
-    // A verdict button is inert once the row already holds that verdict, so
-    // the disabled state reads as the current decision.
     rowCommands[row.claimKey] = {
       canApprove,
       isPending,

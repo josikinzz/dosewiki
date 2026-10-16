@@ -1,22 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * Seed/refresh the Postgres `moleculeOverrides` rows for chemical classes
- * (`class:<key>`) from the canonical SMILES in
- * data/substances/chemicalIndexManual.json (via CLASS_STRUCTURES).
- *
- * MOL blocks are generated exactly like the editor's class creation flow:
- * RDKit-JS automatic layout, which keeps every R position as a plain `*`
- * dummy atom with a V2000 atom map — the only spelling both RDKit and
- * OpenChemLib survive (see applyRLabelsToMolblock.ts). The svg is rendered on
- * the same OpenChemLib engine as substance rows, with the class's R-group
- * labels injected at draw time by atom index.
- *
- * Existing `class:` rows are skipped (and reported) by default; `--force`
- * re-seeds them through moleculeOverrides.replicate with `source: "seeded"`
- * provenance, after writing a full-row local backup.
- */
-
 import { mkdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -84,7 +67,6 @@ Options:
 `);
 }
 
-/** The editor's generateClassMolblock, server-side: RDKit automatic layout. */
 function generateClassMolblock(rdkit: RDKitModule, item: ClassStructureItem): string | null {
   let mol: JSMol | null = null;
   try {
@@ -98,7 +80,6 @@ function generateClassMolblock(rdkit: RDKitModule, item: ClassStructureItem): st
   }
 }
 
-/** RDKit-JS loaded the same way the molecule-editor integration tests load it. */
 async function loadRdkit(): Promise<RDKitModule> {
   const require = createRequire(import.meta.url);
   const wasmPath = require.resolve("@rdkit/rdkit/dist/RDKit_minimal.wasm");
@@ -117,8 +98,6 @@ async function main() {
 
   const write = rawArgv.includes("--apply");
   const force = rawArgv.includes("--force");
-  // The shared run context keys write mode off --write; --apply is this
-  // script's execute flag, so a write run carries both.
   const argv = write
     ? [...rawArgv, "--write"]
     : rawArgv.includes("--dry-run")
@@ -204,7 +183,6 @@ async function main() {
   const rdkit = actionable.length > 0 ? await loadRdkit() : null;
   for (const { cls, slug, action } of actionable) {
     if (action === "force-reseed") {
-      // Full-row local backup before anything is written anywhere.
       const row = await client.query(api.moleculeOverrides.getBySlug, { slug });
       if (!row) {
         failures.push({ slug, reason: "Row disappeared between list and read." });
@@ -245,9 +223,6 @@ async function main() {
     const { token: apiKey } = requireAdminIntentToken("editorArticleWrite");
     for (const molecule of rendered) {
       if (molecule.action === "force-reseed") {
-        // replicate keeps machine provenance (`source: "seeded"`) so a forced
-        // re-seed stays overwritable by later seeds/template applies; `save`
-        // would stamp it as a hand edit.
         await client.mutation(api.moleculeOverrides.replicate, {
           apiKey,
           slug: molecule.slug,

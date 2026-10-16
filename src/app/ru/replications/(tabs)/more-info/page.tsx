@@ -1,9 +1,3 @@
-/**
- * The Russian mirror of `/replications/more-info`, reached only
- * through the middleware rewrite from `ru.dose.wiki/replications/more-info`.
- * Same copy blocks rendered through the catalog; `noindex` with a canonical
- * link to the English tab.
- */
 import {
   getReplicationsInfoMetadata,
   ReplicationsInfoRoute,

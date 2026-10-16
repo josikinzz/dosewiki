@@ -1,7 +1,3 @@
-/**
- * Section, gate, and schema vocabulary shared by the Pi run manifest controller.
- */
-
 export const CITABLE_SECTIONS = [
   "summary",
   "pharmacology",
@@ -14,7 +10,6 @@ export const SECTION_STATUSES = new Set([
   "checked",
   "missing_preserve_original",
   "failed_preserve_original",
-  // Terminal skip statuses for subsection-scoped runs (task.selectedSections).
   "skipped_already_cited",
   "skipped_empty",
   "not_selected",

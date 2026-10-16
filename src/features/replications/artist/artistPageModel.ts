@@ -8,20 +8,8 @@ import type { GalleryGroup } from "@/features/effects/gallery/galleryTypes";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import type { ShowcaseWork } from "../components/showcaseWork";
 
-/**
- * The Artist Page's works model: the artist's whole body of work as one
- * showcase carousel — a single viewer-ready gallery group in the artist's
- * own curated order, exactly as it arrives from the focused gallery group.
- */
-
-/** The single showcase group's stable key — never a real effect slug. */
 export const ARTIST_WORKS_KEY = "__artist-works__";
 
-/**
- * Wrap one artist's (already curated-ordered) works into the single
- * viewer-ready gallery group the page's one showcase stages. `translate` is
- * the page's `t`, so the group's label reads in the UI locale.
- */
 export function buildArtistShowcaseGroup(
   items: readonly PublicGalleryReplicationPreview[],
   translate: Translate = formatMessage,
@@ -43,13 +31,6 @@ export function buildArtistShowcaseGroup(
   };
 }
 
-/**
- * Flatten a gallery preview into the serializable stage work the showcase
- * consumes. `artistHref` stays null on purpose: every work here belongs to the
- * page's own artist, and the identity header already carries the name — a
- * per-stage byline would only link the page to itself (the showcase hides the
- * credit row too, but aria labels still read the byline).
- */
 export function showcaseWorkFromPreview(
   preview: PublicGalleryReplicationPreview,
   effectName: string,
@@ -79,13 +60,6 @@ export function showcaseWorkFromPreview(
   };
 }
 
-/**
- * The identity header's count line: always the works total, plus the media
- * split only where it says something. One kind alone needs no split ("24
- * works", never "24 works · 24 images · 0 videos"), and a kind the artist has
- * none of is omitted rather than printed as a zero. `translate` is the
- * header's `t`, so every count phrase reads in the UI locale.
- */
 export function formatArtistWorksLine(
   counts: {
     count: number;
@@ -111,12 +85,6 @@ export function formatArtistWorksLine(
   ].join(" · ");
 }
 
-/**
- * How an artist's external link wears its site mark. Recognizable platforms
- * get their committed brand glyph; domains the further-reading corpus already
- * ships a favicon for reuse it (`getFaviconForUrl`, committed PNGs — never a
- * runtime favicon fetcher); everything else falls back to the globe.
- */
 const BRAND_ICON_BY_HOST: Record<string, string> = {
   "wikipedia.org": "simple-icons:wikipedia",
   "youtube.com": "simple-icons:youtube",
@@ -151,9 +119,7 @@ const BRAND_ICON_BY_HOST: Record<string, string> = {
 };
 
 export interface ArtistLinkPresentation {
-  /** Iconify name when the host maps to a brand glyph or the globe fallback. */
   icon: string | null;
-  /** Committed favicon path; mutually exclusive with `icon`. */
   faviconSrc: string | null;
 }
 
@@ -165,8 +131,6 @@ export function artistLinkPresentation(url: string): ArtistLinkPresentation {
     host = null;
   }
   if (host) {
-    // Walk sub.domain.tld up toward the registrable domain so a channel or
-    // regional subdomain still lands on its platform's glyph.
     const parts = host.split(".");
     for (let index = 0; index < parts.length - 1; index += 1) {
       const icon = BRAND_ICON_BY_HOST[parts.slice(index).join(".")];
@@ -179,12 +143,6 @@ export function artistLinkPresentation(url: string): ArtistLinkPresentation {
   return { icon: faviconSrc ? null : "lucide:globe", faviconSrc };
 }
 
-/**
- * Fold the legacy per-work `artist_url` into the profile links row without
- * duplicating a destination the profile already names. Comparison ignores
- * scheme, `www.`, case, and trailing slashes — the level at which two links
- * are "the same place".
- */
 export function mergeArtistLinks(
   profileLinks: readonly { label: string; url: string }[],
   externalUrl: string | undefined,
@@ -209,20 +167,10 @@ export function mergeArtistLinks(
   try {
     label = new URL(externalUrl).hostname.replace(/^www\./, "");
   } catch {
-    // Keep the raw URL as the label; the sanitized corpus should never hit this.
   }
   return [...links, { label, url: externalUrl }];
 }
 
-/**
- * Links displayed on an Artist Page.
- *
- * A claimed Contributor Profile is the curated public source of truth. Legacy
- * per-work `artist_url` values remain on the replication rows (and therefore
- * remain available on their item pages as provenance), but must not be
- * promoted into profile chips after the owner has curated their profile links.
- * Unclaimed artists still receive the historical URL as a useful fallback.
- */
 export function artistPagePublicLinks(
   profileLinks: readonly { label: string; url: string }[],
   externalUrl: string | undefined,

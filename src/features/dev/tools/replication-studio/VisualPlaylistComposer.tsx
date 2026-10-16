@@ -37,7 +37,6 @@ import type { StudioRow } from "./replicationStudioModel";
 
 const CANDIDATE_BATCH_SIZE = 24;
 
-/** Compact icon control; the Button `icon` size is always 44px. */
 const ICON_BUTTON_CLASS = `h-8 w-8 ${TOUCH_ICON}`;
 
 export type VisualPlaylistComposerProps = {
@@ -180,7 +179,6 @@ function CandidateCard({
   );
 }
 
-/** A bounded, media-first playlist builder: one persistent sequence and one filtered candidate pool. */
 export function VisualPlaylistComposer({
   allRows,
   filteredRows,

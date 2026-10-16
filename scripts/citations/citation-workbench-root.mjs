@@ -1,7 +1,3 @@
-// The citation workbench is a private directory outside the repository. Its
-// location is never guessed from the current user's home: callers pass an
-// explicit path or set DOSEWIKI_CITATION_WORKBENCH. Resolution is lazy so pure
-// library modules and their tests can import callers without the variable set.
 import { resolve } from "node:path";
 
 export const CITATION_WORKBENCH_ENV = "DOSEWIKI_CITATION_WORKBENCH";

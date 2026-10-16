@@ -23,15 +23,9 @@ import {
 } from "./DevModeToolRail";
 import type { DevModeToolSheetProps, GroupView, LockedToolItem } from "./DevModeToolTypes";
 
-/**
- * A tool in the sheet is a 48px tile, two to a row, so the whole catalog fits
- * one thumb-height instead of a list that scrolls past the fold. The glyph
- * leads so a tool is found by shape before it is read.
- */
 const SHEET_TILE_CLASS =
   "theme-dev-rail-tab theme-dev-sheet-tile flex min-h-12 w-full min-w-0 items-center gap-2.5 rounded-control px-3 py-2 text-left text-sm font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45";
 
-/** Full-width rows for the sections, utilities and the way out. */
 const SHEET_ROW_CLASS =
   "theme-dev-rail-tab flex min-h-11 w-full items-center gap-3 rounded-control px-3 py-2 text-left text-sm font-medium transition-[background-color,color,box-shadow] duration-200 motion-reduce:transition-none disabled:pointer-events-none disabled:opacity-45";
 
@@ -81,10 +75,6 @@ function SheetToolGroups({ groups, activeTab, isToolsSection, activeRowRef, onTa
   );
 }
 
-/**
- * Tools above the role, folded behind one row so an editor's sheet leads with
- * the tools they can open. Each keeps its reason when unfolded.
- */
 function SheetLockedGroup({ locked }: { locked: readonly LockedToolItem[] }) {
   const [open, setOpen] = useState(false);
   const listId = useId();
@@ -132,18 +122,14 @@ export function DevToolSheet({
     action(value);
   };
   const changeLogActive = activePrimaryTab === "change-log";
-  // A Change log the role cannot open lives with the other locked tools; one
-  // that is only waiting on the session stays here, disabled with its reason.
   const changeLogShown = changeLogLockReason === null || !locked.some((item) => item.id === "change-log");
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
         <button type="button" className="theme-dev-rail-tab flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-control px-2.5 text-left text-base font-semibold transition-colors duration-200 motion-reduce:transition-none">
           <ToolGlyph icon={activeIcon} className="theme-dev-tool-glyph-active" />
-          {/* One text run for the name, so it reads "Tools menu, current tool Tags, 3 awaiting review". */}
           <span className="sr-only">{`Tools menu, current tool ${activeLabel}${unsavedAnywhere ? ", unsaved changes" : ""}${attention ? countBadgeSuffix(attention, undefined, attentionStale, attentionAtLeast) : ""}`}</span>
           <span aria-hidden className="min-w-0 truncate">{activeLabel}</span>
-          {/* The count and dot belong to the menu (every tool), so they ride with its chevron, not the tool's name. */}
           <span className="ml-auto flex shrink-0 items-center gap-2">
             <ToolMarks unsaved={unsavedAnywhere} badge={attention} stale={attentionStale} atLeast={attentionAtLeast} />
             <MenuChevron open={open} />
@@ -169,9 +155,6 @@ export function DevToolSheet({
             <DialogTitle className="theme-text-primary text-base font-semibold">Tools</DialogTitle>
             <DialogPrimitive.Close aria-label="Close tools menu" className={`${ICON_BUTTON_CLASS} ml-auto`}><Icon icon="lucide:x" size={16} /></DialogPrimitive.Close>
           </div>
-          {/* One scroller for every row: search, tools, then the site sections.
-              Only the session line stays pinned, so a short phone never
-              squeezes the tool list into a sliver above a fixed footer. */}
           <nav aria-label="Editor tools menu" className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-3 pb-3">
             <button type="button" onClick={() => closeThen(onOpenPalette)(undefined)} className="theme-dev-sheet-search mt-1 flex min-h-11 w-full items-center gap-2.5 rounded-control border px-3 text-left text-sm">
               <Icon icon="lucide:search" size={16} className="shrink-0" />

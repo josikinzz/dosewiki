@@ -30,10 +30,6 @@ export function parseRowId(id: string): { slot: LayoutSlot; slug: string } | nul
   return { slot: { categoryKey: parts[0], sectionKey: parts[1] === "" ? null : parts[1] }, slug: parts[2] };
 }
 
-/**
- * Icon buttons on a 28px box with a 44px halo: dense enough to sit inside an
- * index row without stealing its name's width.
- */
 const ROW_CONTROL_CLASS = cn("h-7 w-7 scroll-mb-28 scroll-mt-28 rounded-control p-0", TOUCH_HALO);
 
 export type RowPlace = "top" | "end";
@@ -41,32 +37,17 @@ export type RowPlace = "top" | "end";
 export interface LayoutDrugRowProps {
   slot: LayoutSlot;
   item: BoardItem;
-  /** Position within the slot, for the move affordances. */
   index: number;
   count: number;
-  /** The list's name ("Psychedelic, Common"), for the menu and the move dialog. */
   listLabel: string | null;
   onBump: (slot: LayoutSlot, slug: string, direction: MoveDirection) => void;
   onPlace?: (slot: LayoutSlot, slug: string, place: RowPlace) => void;
   onRequestMove: (request: LayoutMoveRequest) => void;
   onRemove: (slot: LayoutSlot, slug: string) => void;
-  /** The working changes put this row here (moved, added or reordered): an unsaved dot after the name. */
   changed?: boolean;
-  /**
-   * Tray rows have no order to change and nothing to remove from: their one
-   * action is the Place button that puts them into the index.
-   */
   variant?: "list" | "tray";
 }
 
-/**
- * One substance line, drawn like the public index row (bullet, label) with the
- * editing handles a reader never sees: a grip to drag, and a menu that can do
- * everything the grip does (move up, down, to the top or end, to another list,
- * out of this list). On a fine pointer the grip and the up and down arrows
- * wake on hover or focus; on a touch screen the grip and the menu are always
- * there and the arrows live in the menu, so the name keeps its width.
- */
 export const LayoutDrugRow = memo(function LayoutDrugRow({
   slot,
   item,
@@ -116,7 +97,6 @@ export const LayoutDrugRow = memo(function LayoutDrugRow({
         <Icon icon="lucide:grip-vertical" size={14} />
       </button>
       <span aria-hidden className="theme-index-card-bullet mr-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full" />
-      {/* Pills ride inline after the name, so a long name wraps at its words instead of being squeezed by them. */}
       <span className="theme-index-card-label min-w-0 flex-1 break-words py-1.5">
         {item.name}
         {changed ? (

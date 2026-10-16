@@ -40,8 +40,6 @@ function summarizeIssues(canSaveToPostgres: boolean, issues: string[]): string {
   return issues[0] ?? "Server issue";
 }
 
-// Skip focus-triggered rechecks when the last check is this recent, so tab
-// switching does not hammer the rate-limited diagnostics endpoint.
 const FOCUS_REFRESH_MIN_INTERVAL_MS = 15_000;
 
 export function useEditorServerConfigHealth(enabled: boolean) {
@@ -74,8 +72,6 @@ export function useEditorServerConfigHealth(enabled: boolean) {
 
       if (!response.ok) {
         if (response.status === 429) {
-          // Our own polling got throttled; keep the last known status instead
-          // of alarming the editor. The next interval tick rechecks.
           setHealth((current) => ({ ...current, isRefreshing: false }));
           return;
         }

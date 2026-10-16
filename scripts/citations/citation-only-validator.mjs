@@ -1,11 +1,3 @@
-// Citation-only edit validator (ADR-0001).
-//
-// One rule is load-bearing for the marker-only citation workflow: stripping
-// `[cite:reference-id]` markers from a marked candidate must restore the
-// original text exactly (punctuation, capitalization, whitespace). This module
-// owns that rule plus marker syntax validation, so callers never re-implement
-// marker grammar, stripping, or text-safety comparison.
-
 export const CITE_MARKER_PATTERN = /\[cite:([A-Za-z0-9][A-Za-z0-9._:-]*)\]/g;
 
 const MARKER_LIKE_PATTERN = /\[cite:[^\]\s]*(?:\]|$)/g;
@@ -159,10 +151,6 @@ if (isObjectRecord(value)) {
 }
 return []; }
 
-// A contiguous run of markers (optionally separated only by whitespace) that
-// repeats the same reference id is never intentional — it is the signature of a
-// double-insertion bug. Stripping markers leaves identical text, so the
-// text_changed check cannot catch it; this rule can.
 function findDuplicateReferenceInCluster(value, path = "") { if (typeof value === "string") {
   const found = [];
   for (const cluster of value.matchAll(/(?:\[cite:[^\]\s]+\]\s*)+/g)) {
@@ -202,8 +190,6 @@ if (isObjectRecord(value)) {
 }
 return []; }
 
-// Marker-insensitive equality between two values (strings or nested
-// structures). Object key order is ignored; text must otherwise match exactly.
 export function strippedValuesEqual(left, right) {
   return stableStringify(stripCitationMarkersFromValue(left))
     === stableStringify(stripCitationMarkersFromValue(right));
@@ -221,10 +207,6 @@ function firstDifferenceMessage(expected, actual) {
   return "Candidate changed content outside citation markers.";
 }
 
-// Validate that `markedValue` is the original value plus citation markers and
-// nothing else. Accepts strings or nested structures (arrays/objects of
-// strings). When `knownReferenceIds` is provided, every marker must point at a
-// known reference id.
 export function validateCitationOnlyEdit(originalValue, markedValue, {
   knownReferenceIds = null,
   path = "",

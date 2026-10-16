@@ -1,15 +1,5 @@
-/**
- * Pure state logic for the Substance Galleries ordering and exclusion portal.
- *
- * Automatic drug/class assignments publish without an editor gate. The stored
- * lists are deltas: `curated_slugs` orders priority rows within their placement
- * tier, while `removed_slugs` suppresses a row on one article. Direct manual
- * associations remain possible through `curated_slugs`.
- */
-
 import type { StudioMediaType } from "./replicationStudioModel";
 
-/** One picker row of the batched `/api/dev/replications/substances` read. */
 export type GalleryCandidate = {
   slug: string;
   title: string;
@@ -43,7 +33,6 @@ type GalleryMatchProvenance = | {
     effectName: string;
   }
 
-/** The media fields the panel rows draw, resolved server-side. */
 export type GalleryMatchReplication = {
   id: string;
   slug: string;
@@ -72,14 +61,12 @@ export type GalleryCurationRow = {
   updated_by: string;
 };
 
-/** The per-substance `/api/dev/replications/substances/<slug>` payload. */
 export type GalleryDetail = {
   substance: { slug: string; title: string };
   matches: GalleryMatch[];
   curation: GalleryCurationRow | null;
 };
 
-/** The editable ordering and per-article exclusion delta. */
 export type GalleryCurationState = {
   curated: string[];
   removed: string[];
@@ -101,7 +88,6 @@ export function curationStatesEqual(a: GalleryCurationState, b: GalleryCurationS
   );
 }
 
-/** Prioritize a row within its automatic tier, or add a direct association. */
 export function curateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.curated.includes(slug)) {
     return state;
@@ -112,7 +98,6 @@ export function curateSlug(state: GalleryCurationState, slug: string): GalleryCu
   };
 }
 
-/** Remove stored priority; an automatic match remains published in its tier. */
 export function uncurateSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.curated.includes(slug)) {
     return state;
@@ -120,7 +105,6 @@ export function uncurateSlug(state: GalleryCurationState, slug: string): Gallery
   return { ...state, curated: state.curated.filter((entry) => entry !== slug) };
 }
 
-/** Suppress a row on this article. Also removes stored priority. */
 export function excludeSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (state.removed.includes(slug)) {
     return state;
@@ -131,7 +115,6 @@ export function excludeSlug(state: GalleryCurationState, slug: string): GalleryC
   };
 }
 
-/** Lift a row off the excluded shelf and back into automatic placement. */
 export function restoreSlug(state: GalleryCurationState, slug: string): GalleryCurationState {
   if (!state.removed.includes(slug)) {
     return state;
@@ -139,7 +122,6 @@ export function restoreSlug(state: GalleryCurationState, slug: string): GalleryC
   return { ...state, removed: state.removed.filter((entry) => entry !== slug) };
 }
 
-/** Move one curated slug a step up or down the published order; no-op at the edges. */
 export function moveCuratedSlug(
   state: GalleryCurationState,
   slug: string,
@@ -156,19 +138,12 @@ export function moveCuratedSlug(
   return { ...state, curated };
 }
 
-/**
- * Insert a slug at an exact position in the curated list. Out-of-range indices
- * clamp instead of throwing so a drop past the last row means "last", and an
- * already-curated slug moves rather than duplicating. Lifts the slug off the
- * excluded shelf for the same reason `curateSlug` does.
- */
 export function curateSlugAt(
   state: GalleryCurationState,
   slug: string,
   index: number,
 ): GalleryCurationState {
   const from = state.curated.indexOf(slug);
-  // A move re-inserts into a list one shorter than it is now; an insert appends.
   const limit = from === -1 ? state.curated.length : state.curated.length - 1;
   const target = Math.min(Math.max(Math.trunc(index), 0), limit);
   if (from === target && !state.removed.includes(slug)) {
@@ -182,10 +157,6 @@ export function curateSlugAt(
   return { curated, removed: state.removed.filter((entry) => entry !== slug) };
 }
 
-/**
- * Jump a curated slug to the first or last published position — the keyboard
- * and overflow-menu equivalent of dragging it the whole way.
- */
 export function moveCuratedSlugToEdge(
   state: GalleryCurationState,
   slug: string,
@@ -205,19 +176,6 @@ export function moveCuratedSlugToEdge(
   return { ...state, curated };
 }
 
-/**
- * Apply a board drag, in terms of the order the editor can actually see.
- *
- * Only the curated list is published, so it is the only thing a drag can
- * express. Dropping onto a curated row takes that row's index — promoting a
- * candidate into the article, or reordering the article. Any other drop id
- * (the un-curate zone, a candidate row, nothing) takes the active row off the
- * article.
- *
- * The old prefix-pinning rule is gone with the published tail: there is no
- * longer an absolute position below the curated list for a drop to mean, so
- * nothing has to be pinned to express one.
- */
 export function applyBoardDrag(
   state: GalleryCurationState,
   board: GalleryBoard,
@@ -227,9 +185,6 @@ export function applyBoardDrag(
   if (activeSlug === overId) {
     return state;
   }
-  // Read the order off the board, not off `state.curated`: the board has
-  // already dropped slugs that match nothing, so indices mean what the editor
-  // sees and a phantom position cannot shift the drop.
   const curated = board.rows
     .filter((row) => row.band === "curated")
     .map((row) => row.match.replication.slug);
@@ -237,8 +192,6 @@ export function applyBoardDrag(
   if (to === -1) {
     return uncurateSlug(state, activeSlug);
   }
-  // dnd-kit's sortable semantic: the dragged row takes the slot it was dropped
-  // on, and everything between shuffles up or down to close the gap.
   const from = curated.indexOf(activeSlug);
   if (from !== -1) {
     curated.splice(from, 1);
@@ -247,29 +200,22 @@ export function applyBoardDrag(
   return { curated, removed: state.removed.filter((slug) => slug !== activeSlug) };
 }
 
-/** Which ordering band a row occupies: stored priority or automatic placement. */
 type GalleryBand = "curated" | "auto"
 
 export type GalleryBoardRow = {
   match: GalleryMatch;
-  /** 1-based position in the effective article collection. */
   position: number;
-  /** True when the effective position is within the inline stage cap. */
   onStage: boolean;
   band: GalleryBand;
 };
 
 export type GalleryBoard = {
-  /** Priority and automatic rows, each retaining effective article order. */
   rows: GalleryBoardRow[];
   excluded: GalleryMatch[];
   filledSlots: number;
   emptySlots: number;
-  /** Rows carrying a stored priority/direct-association entry. */
   curatedCount: number;
-  /** Automatically placed rows without a stored priority entry. */
   candidateCount: number;
-  /** Every non-excluded row in effective article order. */
   publishedCount: number;
   cap: number;
 };
@@ -283,12 +229,6 @@ function galleryTier(match: GalleryMatch): number {
   return match.replication.type === "video" ? 2 : 3;
 }
 
-/**
- * Apply the public ordering contract: specific videos, specific images,
- * permitted class videos, permitted class images, direct associations, then
- * Visual Disconnection still-image fallbacks. Stored order only breaks ties
- * inside a tier.
- */
 function orderGallery(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
@@ -318,7 +258,6 @@ function orderGallery(
   return { published, curated, auto, excluded };
 }
 
-/** Build the priority editor bands while preserving each row's true article position. */
 export function buildGalleryBoard(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
@@ -347,7 +286,6 @@ export function buildGalleryBoard(
   };
 }
 
-/** The exact collection the article and the portal preview publish. */
 export function effectiveGalleryOrder(
   matches: readonly GalleryMatch[],
   state: GalleryCurationState,
@@ -355,29 +293,18 @@ export function effectiveGalleryOrder(
   return orderGallery(matches, state).published;
 }
 
-/**
- * Undo stack for the working curation. Curation is a long sequence of tiny
- * reorders, so an accidental drag must be reversible without a refetch that
- * would discard every other unsaved edit.
- */
 export type CurationHistory = {
   past: readonly GalleryCurationState[];
   present: GalleryCurationState;
   future: readonly GalleryCurationState[];
 };
 
-/** Deep enough for a whole curation session, shallow enough to stay cheap. */
 export const HISTORY_LIMIT = 50;
 
 export function historyOf(state: GalleryCurationState): CurationHistory {
   return { past: [], present: state, future: [] };
 }
 
-/**
- * Record a new present. Mutators return the same reference on a no-op, so
- * reference equality is exactly the right test for "nothing happened" — an
- * edge-of-list drag must not push an undo step that appears to do nothing.
- */
 export function pushHistory(
   history: CurationHistory,
   next: GalleryCurationState,
@@ -423,10 +350,6 @@ export function canRedo(history: CurationHistory): boolean {
   return history.future.length > 0;
 }
 
-/**
- * The server's row when a save is rejected as stale. Carried back to the panel
- * so a conflict can show what the other editor did rather than just failing.
- */
 export type GalleryConflict = {
   curated_slugs: string[];
   removed_slugs: string[];
@@ -442,7 +365,6 @@ export type GalleryProvenanceSummary = {
   manual: number;
 };
 
-/** Count each automatic provenance tier and direct manual placements. */
 export function summarizeProvenance(matches: readonly GalleryMatch[]): GalleryProvenanceSummary {
   let specificDrug = 0;
   let generalClass = 0;

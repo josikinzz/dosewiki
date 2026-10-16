@@ -29,14 +29,6 @@ interface HighlightPattern {
   pattern: RegExp | null;
 }
 
-/**
- * Terms and pattern for a query, remembered across instances.
- *
- * A results page renders three of these per row over dozens of rows, all with
- * the same query, so the pattern is built once per query rather than ~180 times
- * per render. `String.prototype.split` does not carry `lastIndex` between calls,
- * so one shared regex is safe to reuse.
- */
 let lastHighlightPattern: (HighlightPattern & { query: string }) | null = null;
 
 function getHighlightPattern(query: string): HighlightPattern {

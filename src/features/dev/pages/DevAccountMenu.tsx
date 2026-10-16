@@ -16,22 +16,17 @@ import { cn } from "@/lib/utils";
 import { guardedLinkProps, MENU_ROW_CLASS, MenuChevron, RAIL_TAB_CLASS } from "./DevModeToolRail";
 import type { DevUtility } from "./devUtilities";
 
-/** Up to two letters from the member's name, or the first of their email. */
 export function accountInitials(label: string): string {
   const words = label.replace(/@.*$/, "").split(/[\s._-]+/).filter(Boolean);
   const letters = words.length > 1 ? `${words[0][0]}${words[words.length - 1][0]}` : (words[0] ?? "?").slice(0, 2);
   return letters.toUpperCase();
 }
 
-/** The member's initials on the chrome-rail material; decoration beside a written name. */
 export function AccountAvatar({ label, image, className }: { label: string; image?: string | null; className?: string }) {
-  // A dead image URL falls back to the initials instead of a broken glyph.
   const [failed, setFailed] = useState(false);
   return (
     <span aria-hidden className={cn("theme-dev-avatar inline-flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-semibold", className)}>
       {image && !failed ? (
-        // A remote account image; the Next image optimizer has no host allowlist
-        // for it. `onError` is the image's load event, not a pointer handler.
         // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/no-noninteractive-element-interactions
         <img src={image} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} className="h-full w-full object-cover" />
       ) : accountInitials(label)}
@@ -43,25 +38,14 @@ export type DevAccountMenuProps = {
   userLabel: string;
   userEmail?: string | null;
   roleName: string;
-  /** What this role may do, said once in the menu header ("You can edit articles."). */
   ability: string;
-  /** The utility routes this role may open. */
   utilities: readonly DevUtility[];
-  /** Only for a session image; initials otherwise. */
   userImage?: string | null;
   onShowShortcuts: () => void;
-  /** Opens a utility route once the unsaved-work registry agrees. */
   onOpenHref?: (href: string) => void;
   onSignOut: () => void;
 };
 
-/**
- * Who is signed in, and the things that belong to the session rather than to
- * a tool: the keyboard sheet, the developer utilities (UI kit, Theme lab) and
- * Sign out. One trigger replaces a row of unlabeled icons; the trigger still
- * names the member and their role, so the rail always says whose edits these
- * are.
- */
 export function DevAccountMenu({
   userLabel,
   userEmail,

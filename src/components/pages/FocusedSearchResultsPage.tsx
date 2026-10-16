@@ -99,8 +99,6 @@ export function FocusedSearchResultsPage({
   const resultRegionRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  // Keep useful matches through an empty pending response. Updating during
-  // render avoids painting an empty frame between the old and new result sets.
   if (results !== visibleResults && (!isLoading || results.length > 0)) {
     setVisibleResults(results);
   }
@@ -121,8 +119,6 @@ export function FocusedSearchResultsPage({
       return;
     }
 
-    // Animate the settled handoff, not the input or a keyed result subtree:
-    // existing focused links remain mounted throughout a refinement.
     const animation = region.animate(
       [{ opacity: 0 }, { opacity: 1 }],
       { duration: 160, easing: "ease-out" },

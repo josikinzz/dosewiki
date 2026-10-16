@@ -1,32 +1,3 @@
-/**
- * Cloudflare Worker serving the private `replications` R2 bucket as the public
- * replication-media delivery surface (docs/operations/replication-media-delivery.md#urgent-media-withdrawal).
- *
- * This file is the deployed artifact, kept in-repo as the source of truth.
- * Deploy via dashboard: Workers & Pages -> Create Worker -> paste this file,
- * then Settings -> Bindings -> R2 bucket: variable name `BUCKET`, bucket
- * `replications`. The resulting `https://<name>.<account>.workers.dev` URL is
- * the value for the Postgres deployment variable REPLICATION_MEDIA_BASE_URL.
- *
- * Contract, matching `resolveReplicationUrls` and the migration acceptance
- * checks:
- * - GET/HEAD only; any other method is 405.
- * - Only canonical content-addressed keys (`media/sha256/<2-hex>/<sha256>.<ext>`,
- *   shard repeating the digest's first two characters) are ever looked up;
- *   everything else is 404 without touching the bucket.
- * - Byte ranges are honored (video seeking); responses carry Accept-Ranges.
- *   A GET with no Range header answers 200, never a full-object 206.
- * - Requests without a width selector serve the original. `?width=<allowed-width>` serves a private
- *   fixed-quality WebP rendition of a raster original, without a redirect.
- * - Every response is no-store for browsers and CDNs. Conditional requests
- *   still answer 304 via the object's etag after checking withdrawal status.
- * - A private `_withdrawals/<media-key>` marker blocks GET, HEAD, conditional,
- *   and range delivery with 410 before looking up media bytes. Marker lookup
- *   failures fail closed with 503. Markers are never cached or publicly served.
- * - `Content-Disposition: inline` makes media render instead of downloading.
- * - No credential exists here: the bucket binding is capability, not secret.
- */
-
 const R2_KEY_PATTERN = /^media\/sha256\/([0-9a-f]{2})\/([0-9a-f]{64})\.([a-z0-9]{2,5})$/;
 const VARIANT_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "avif"]);
 const VARIANT_WIDTHS = new Set([64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048, 3840]);
@@ -100,9 +71,6 @@ export default {
       deliveryKey = `_renditions/v1/${key}/${selector[1]}.webp`;
     }
 
-    // Keep this outside application state and ahead of every media read. R2
-    // marker presence is authoritative even for old URLs in cached manifests.
-    // Do not add a negative cache: it would extend the withdrawal deadline.
     try {
       if (await env.BUCKET.head(`${WITHDRAWAL_PREFIX}${key}`)) {
         return publicResponse(410);
@@ -124,13 +92,6 @@ export default {
       return new Response(null, { status: 200, headers });
     }
 
-    // Forward `range` only when the client actually sent one. R2 populates
-    // `R2ObjectBody.range` whenever the option is present, so passing the
-    // request headers unconditionally made every plain GET answer 206 with a
-    // whole-object Content-Range. RFC 9110 15.3.7 allows 206 only in reply to
-    // a range request, and strict consumers reject it: Twitter's card-image
-    // fetcher discards the response, which silently stripped the art from
-    // every dose.wiki link preview once the cards moved onto this worker.
     const rangeRequested = request.headers.has("range");
     let object;
     try {
@@ -145,7 +106,6 @@ export default {
 
     const headers = objectHeaders(object, deliveryKey);
 
-    // Precondition (If-None-Match) satisfied: R2 returns the object without a body.
     if (!object.body) {
       return new Response(null, { status: 304, headers });
     }

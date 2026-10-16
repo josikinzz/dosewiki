@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The Trip reports list column: the count and Refresh, the three views
- * (Needs review, Published, All), search, the folded filters (order,
- * grouping, substances, authors, tags), the active filter chips, the bulk
- * bar, the list, and what an empty list means. Sticky beside the pane from
- * `lg`; on a phone it is the whole view until a row is picked.
- */
-
 import { useId, useMemo, useState, type ReactNode, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -45,11 +37,6 @@ const FACET_KINDS: readonly PortalFacetKind[] = ["substance", "author", "tag"];
 const SORTS: readonly PortalSort[] = ["waiting", "newest", "oldest", "title"];
 const GROUPINGS: readonly PortalGroupBy[] = ["none", "substance", "author", "date"];
 
-/**
- * Three views in the segmented capsule, label over count (People's
- * `ViewChoices`). A view whose source has not loaded, or failed, leaves its
- * count off and says so to a screen reader, never zero.
- */
 function BucketChoices({
   value,
   counts,
@@ -103,7 +90,6 @@ export type PortalListColumnProps = {
   groups: readonly PortalGroup[];
   bucket: PortalBucket;
   onBucketChange: (bucket: PortalBucket) => void;
-  /** Which sources are in: a view's count waits for the source it reads. */
   needsKnown: boolean;
   publishedKnown: boolean;
   query: string;
@@ -120,7 +106,6 @@ export type PortalListColumnProps = {
   notice: ReactNode;
   bulk: ReactNode;
   error: ReactNode;
-  /** True while nothing can be listed yet: skeleton rows stand in. */
   loading: boolean;
   hideList: boolean;
   empty: PortalEmpty | null;
@@ -182,7 +167,6 @@ export function PortalListColumn(props: PortalListColumnProps) {
     all: needsKnown && publishedKnown ? rows.length : null,
   };
 
-  // Facet counts read the view on screen, so a count promises the rows ticking it gives.
   const bucketRows = useMemo(
     () => (bucket === "all" ? rows : rows.filter((row) => bucketOf(row) === bucket)),
     [bucket, rows],

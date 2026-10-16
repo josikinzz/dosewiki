@@ -1,9 +1,5 @@
 #!/usr/bin/env bun
 
-// Regenerate one card with `bun scripts/build/generatePageSocialCards.ts --only=replications`.
-// Replication stats use the public gallery's hourly-cached corpus and counting rules.
-// Generation is local only; R2 publication remains a separate explicit step.
-
 import { createHash } from "node:crypto";
 import { access, mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -113,7 +109,6 @@ async function main(): Promise<void> {
     ));
     console.log("[page-social-cards] Live gallery counts:", replicationCounts);
   }
-  // Every digest hashes the pack manifest, so a missing manifest fails here with the build command.
   const chinaDatasetCounts = await readChinaDatasetCounts();
   const expectedFiles = new Set<string>();
   let rendered = 0;

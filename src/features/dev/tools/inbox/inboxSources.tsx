@@ -41,13 +41,8 @@ import { reviewRecommendationHref } from "@/features/dev/tools/queue/queueTaskLi
 import { inboxKey, type InboxItem, type InboxSourceId, type InboxUrgency } from "./inboxModel";
 import { devFetch, devPost } from "@/features/dev/tools/devFetch";
 
-/** The decisions a triage key can make on an item, in the shared words. */
 export type InboxDecision = "accept" | "reject" | "spam";
 
-/**
- * What one Inbox claim row says; see `/api/dev/inbox/claims`. `expired` marks
- * a claim left untouched for a day, which no longer holds the item.
- */
 export type InboxClaim = {
   source: InboxSourceId;
   item_id: string;
@@ -57,57 +52,26 @@ export type InboxClaim = {
 };
 
 export type InboxListContext = {
-  /** Claims for sources with no Reviewing status of their own, by `inboxKey`. */
   claims: ReadonlyMap<string, InboxClaim>;
 };
 
-/**
- * One owning tool's queue as the Inbox reads it.
- *
- * - `list()` returns every item in the bucket the tool's rail badge counts, so
- *   each counted item is reachable from the Inbox.
- * - `detail(id)` renders the owning tool's own detail for an item `list()`
- *   returned, reusing that tool's components.
- * - `actions` claims, releases and (where the tool decides one row at a time)
- *   makes the triage decisions. A decision resolves to the item as it now
- *   stands, or null when it has left the Inbox.
- */
 export type InboxSourceAdapter = {
   id: InboxSourceId;
-  /** The owning tool, named where the Inbox says where a decision happens. */
   toolLabel: string;
-  /**
-   * True when `detail(id)` draws the item's own title and status pills (the
-   * Feedback adapters do), so the Inbox pane header does not repeat them.
-   */
   detailHasHeading?: boolean;
   list: (context: InboxListContext) => Promise<InboxItem[]>;
   detail: (id: string) => ReactNode;
   actions: {
     claim: (id: string) => Promise<InboxItem>;
     release: (id: string) => Promise<InboxItem>;
-    /**
-     * Take over another admin's claim, recorded with the caller as claimer.
-     * Only sources whose claims live in `inboxClaims` offer it; the Inbox
-     * confirms first.
-     */
     takeOver?: (id: string) => Promise<InboxItem>;
-    /** Whether the claimer may hand the item back from its current state. */
     canRelease: (item: InboxItem) => boolean;
-    /** Decisions this item can take here; empty when the owning tool decides. */
     decisions: (item: InboxItem) => readonly InboxDecision[];
     decide?: (id: string, decision: InboxDecision, note: string) => Promise<InboxItem | null>;
-    /**
-     * Take back the last decision `decide` made on `id`, through the same
-     * status route and transition table the owning tool's own undo uses: back
-     * where it was when the transitions allow it, else to Reviewing. Null
-     * when there is nothing to take back.
-     */
     undo?: (id: string) => Promise<InboxItem> | null;
   };
 };
 
-/** The rail badge each source feeds, so a claim or decision refreshes the right count. */
 export const BADGE_OF_SOURCE = {
   "trip-reports": "trip-reports",
   "article-feedback": "feedback",
@@ -117,9 +81,6 @@ export const BADGE_OF_SOURCE = {
   proposals: "proposals",
   "review-recommendations": "review-recommendations",
 } as const satisfies Record<InboxSourceId, string>;
-
-// ---------------------------------------------------------------------------
-// Shared helpers
 
 const INBOX_MESSAGES = {
   network: "Network error while loading the Inbox.",
@@ -134,11 +95,6 @@ function postJson(url: string, body: unknown) {
   return devPost(url, body, { messages: INBOX_MESSAGES });
 }
 
-/**
- * Who holds an item that claims through its status: the actor of the
- * decision that put it in its current waiting state. A row still New has no
- * claimer, and a pre-log row with no recorded reviewer has none either.
- */
 function claimerFromLog<Status extends string>(row: DecisionLogged<Status>, unclaimed: Status): string | null {
   if (row.status === unclaimed) return null;
   const log = decisionLogOf(row);
@@ -147,7 +103,6 @@ function claimerFromLog<Status extends string>(row: DecisionLogged<Status>, uncl
   return row.reviewed_by?.trim() || null;
 }
 
-/** A rows-by-id cache the adapter's `detail(id)` reads from; filled by `list()` and every write. */
 function rowCache<Row>() {
   const rows = new Map<string, Row>();
   return {
@@ -182,16 +137,10 @@ function DetailFacts({ facts }: { facts: readonly { label: string; value: ReactN
   );
 }
 
-/** One sub-heading recipe for every source's detail blocks. */
 function DetailHeading({ children }: { children: ReactNode }) {
   return <h4 className="theme-accent-heading text-sm font-semibold">{children}</h4>;
 }
 
-/**
- * The Feedback tool's correction panel, folded in the Inbox: triage reads the
- * report and decides, and linking a correction is the rarer step. Nothing
- * mounts (or loads) until the admin opens it.
- */
 function CorrectionReveal({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const regionId = useId();
@@ -220,11 +169,6 @@ function CorrectionReveal({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Where undo takes a decided row: back where it was when the transitions
- * allow it, else to Reviewing, which every decided status reopens to. The
- * owning tools' own undo reads their tables the same way.
- */
 function undoStatus<Status extends string>(
   transitions: Readonly<Record<string, readonly string[]>>,
   from: Status,
@@ -234,9 +178,6 @@ function undoStatus<Status extends string>(
   if (allowed.includes(from)) return from;
   return allowed.includes("reviewing") ? ("reviewing" as Status) : null;
 }
-
-// ---------------------------------------------------------------------------
-// Trip reports: claim is the Reviewing status, recorded in the decision log.
 
 const TRIP_DECISION_STATUS: Record<InboxDecision, TripReportSubmissionStatus> = {
   accept: "accepted",
@@ -248,7 +189,6 @@ const NEEDS_REVIEW: readonly string[] = NEEDS_REVIEW_SUBMISSION_STATUSES;
 
 function tripReportsSource(): InboxSourceAdapter {
   const cache = rowCache<TripReportSubmissionRow>();
-  /** The last decision per row, so `undo` knows where it came from. */
   const decided = new Map<string, { from: TripReportSubmissionStatus; to: TripReportSubmissionStatus }>();
   const toItem = (row: TripReportSubmissionRow): InboxItem => {
     cache.put(row.id, row);
@@ -339,9 +279,6 @@ function tripReportsSource(): InboxSourceAdapter {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Feedback (article, site, glossary): claim is the Reviewing status.
-
 const FEEDBACK_DECISION_STATUS: Record<InboxDecision, FeedbackQueueStatus> = {
   accept: "resolved",
   reject: "rejected",
@@ -352,11 +289,9 @@ const PENDING_FEEDBACK: readonly string[] = SITE_FEEDBACK_PENDING_STATUSES;
 
 type FeedbackSourceSpec<Item extends FeedbackQueueItem> = {
   id: "article-feedback" | "site-feedback" | "glossary-feedback";
-  /** The adapter for one row: glossary feedback has one per language. */
   adapterFor: (row: Item) => FeedbackSourceAdapter<Item>;
   loadPending: () => Promise<Item[]>;
   href: (row: Item) => string;
-  /** Glossary feedback stores no decision log; its latest reviewer stands in. */
   claimer: (row: Item) => string | null;
 };
 
@@ -390,7 +325,6 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
   return {
     id: spec.id,
     toolLabel: spec.id === "glossary-feedback" ? "Glossary" : "Feedback",
-    // The feedback adapters draw facts only; the Inbox pane header names the item and its pills.
     detailHasHeading: false,
     async list() {
       return (await spec.loadPending()).filter((row) => PENDING_FEEDBACK.includes(row.status)).map(toItem);
@@ -406,7 +340,6 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
             <DetailHeading>Details</DetailHeading>
             <p className="theme-text-secondary mt-2 max-w-prose whitespace-pre-line text-sm leading-6">{row.details}</p>
           </section>
-          {/* A link does not move the item, so the cached row just takes the new log. */}
           {adapter.renderCorrection ? (
             <CorrectionReveal key={row.id}>
               {adapter.renderCorrection(row, (updated) => cache.put(updated.id, { ...row, ...updated }))}
@@ -460,7 +393,6 @@ function feedbackSource<Item extends FeedbackQueueItem>(spec: FeedbackSourceSpec
   };
 }
 
-/** Every pending row of a paged feedback queue: New and Reviewing, every page. */
 async function allPendingPages<Item extends FeedbackQueueItem>(adapter: FeedbackSourceAdapter<Item>): Promise<Item[]> {
   const rows: Item[] = [];
   for (const status of PENDING_FEEDBACK as FeedbackQueueStatus[]) {
@@ -474,7 +406,6 @@ async function allPendingPages<Item extends FeedbackQueueItem>(adapter: Feedback
   return rows;
 }
 
-/** Pending glossary feedback across every language the admin may open, the set the Glossary badge counts. */
 async function allPendingGlossary(): Promise<GlossaryFeedbackItem[]> {
   const first = await requestJson("/api/glossary-feedback/queue");
   const locales = Array.isArray(first.locales)
@@ -489,11 +420,6 @@ async function allPendingGlossary(): Promise<GlossaryFeedbackItem[]> {
   }
   return rows;
 }
-
-// ---------------------------------------------------------------------------
-// Citations, proposals, review recommendations: claims live in `inboxClaims`,
-// and every decision stays in the owning tool, where its confirm and revision
-// checks are.
 
 type ClaimTableSource = "citations" | "proposals" | "review-recommendations";
 
@@ -518,8 +444,6 @@ function claimTableSource<Row>(spec: {
   detail: (row: Row) => ReactNode;
 }): InboxSourceAdapter {
   const cache = rowCache<Row>();
-  // Only rows the owning tool still lists as pending carry a claim here, so a
-  // claim on an item decided elsewhere never shows.
   const claims = new Map<string, { by: string; expired: boolean } | null>();
   const toItem = (row: Row): InboxItem => {
     const id = spec.idOf(row);
@@ -531,7 +455,6 @@ function claimTableSource<Row>(spec: {
       key: inboxKey(spec.id, id),
       source: spec.id,
       id,
-      // A claim is this source's Reviewing: someone has picked it up.
       status: claimedBy ? "reviewing" : "new",
       claimedBy,
       ...(claim?.expired ? { expiredClaimBy: claim.by } : {}),
@@ -662,10 +585,8 @@ function recommendationsSource() {
     base: (row) => ({
       title: row.title || row.slug,
       subtitle: `Recommended as reviewed by ${formatReviewerIdentity(row.recommended_by) ?? row.recommended_by}`,
-      // A stale recommendation cannot be approved, only looked at again.
       urgency: row.stale ? "low" : "normal",
       receivedAt: row.recommended_at,
-      // Change Review opens with this recommendation picked out in its lane.
       href: reviewRecommendationHref(row.slug),
     }),
     detail: (row) => (
@@ -694,10 +615,6 @@ function recommendationsSource() {
   });
 }
 
-/**
- * One adapter per source, fresh for each Inbox mount so their row caches
- * never outlive the list they came from.
- */
 export function createInboxSources(): InboxSourceAdapter[] {
   return [
     tripReportsSource(),
@@ -705,7 +622,6 @@ export function createInboxSources(): InboxSourceAdapter[] {
       id: "article-feedback",
       adapterFor: () => articleFeedbackAdapter,
       loadPending: () => allPendingPages(articleFeedbackAdapter),
-      // The task link: the Feedback tab opens on this item, not only on the queue.
       href: (row) => feedbackTaskHref({ source: "article", id: row.id }),
       claimer: (row) => claimerFromLog(row, "new"),
     }),
@@ -713,7 +629,6 @@ export function createInboxSources(): InboxSourceAdapter[] {
       id: "site-feedback",
       adapterFor: () => siteFeedbackAdapter,
       loadPending: () => allPendingPages(siteFeedbackAdapter),
-      // The task link: the Feedback tab opens on this item, not only on the queue.
       href: (row) => feedbackTaskHref({ source: "site", id: row.id }),
       claimer: (row) => claimerFromLog(row, "new"),
     }),

@@ -1,4 +1,3 @@
-/** Admin-only warning publication, reconciliation and attributed history. */
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { api } from "@server/postgres/runtime/api";
@@ -48,16 +47,9 @@ function parseGuard(raw: Record<string, unknown>): WarningGuard {
 function publish(result: { allSubstances: boolean; affectedSlugs: string[] }) {
   const targets: PublicationTarget[] = [{ kind: "banners" }];
   if (!result.allSubstances) {
-    // `affectedSlugs` carries the slugs this change removed from the preset as
-    // well as the ones it added, so an article that just lost its banner is
-    // refreshed too.
     for (const slug of result.affectedSlugs) targets.push({ kind: "article", slug });
   }
   applyPublicCacheLocally({ targets, source: "manual" });
-  // A preset that covers every substance has no per-article identity to name,
-  // and no content identity expires the root layout, so that one stays a
-  // direct call. It only reaches this deployment; the public deployments pick
-  // the change up through the delivered `banners` identity.
   if (result.allSubstances) revalidatePath("/", "layout");
   return { status: "pending" as const };
 }
@@ -87,13 +79,6 @@ function requireKey(raw: unknown): string {
   return key;
 }
 
-/**
- * Every `maxLength` passed in comes from `WARNING_BANNER_LIMITS` in
- * `src/data/substanceWarningBanners.ts`, which the Postgres mutation validates
- * against too — the two sides read the same constants so a ceiling can only
- * move in one place. Whitespace is collapsed because a banner renders on one
- * or two lines and a pasted newline would silently break the layout.
- */
 function requireText(raw: unknown, field: string, maxLength: number): string {
   if (typeof raw !== "string") {
     throw new JsonBodyError(400, `${field} must be text. Send a string for this field.`);
@@ -126,8 +111,6 @@ function requireStringList(
   if (!Array.isArray(raw)) {
     throw new JsonBodyError(400, `${field} must be an array of strings.`);
   }
-  // `Array.isArray` on an `unknown` narrows to `any[]`; the annotation puts the
-  // elements back to `unknown` so the checks below are what prove the type.
   const entries: unknown[] = raw;
   if (entries.length > maxItems) {
     throw new JsonBodyError(

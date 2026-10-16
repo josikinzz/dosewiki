@@ -5,7 +5,6 @@ import { saveLineCopy, type SaveDestination, WRITE_FREEZE_COPY } from "@/feature
 import { useWriteFreeze } from "../components/writeFreeze";
 import type { DevTabDescriptor } from "./devTabRegistry";
 
-/** Where this member's save goes in a tool, read off the descriptor. */
 export function saveDestinationFor(tab: DevTabDescriptor, canApprove: boolean): SaveDestination {
   if (canApprove || tab.withoutApproval === undefined) {
     return "live";
@@ -13,22 +12,10 @@ export function saveDestinationFor(tab: DevTabDescriptor, canApprove: boolean): 
   return tab.withoutApproval === "submits-for-review" ? "proposal" : "read-only";
 }
 
-/** Whether the shell, rather than the tool, says this tool's save model. */
 export function shellOwnsSaveLine(tab: DevTabDescriptor): boolean {
   return tab.group !== "chrome" && tab.destination.kind === "shell" && tab.saveLine === undefined;
 }
 
-/**
- * The frame's write status: one quiet sentence directly under the rail that
- * says where a save in the open tool lands, read off the registry descriptor
- * so a tool cannot say one thing and do another. It is the one place the
- * frame reports the write freeze too: once a write has come back refused,
- * the strip turns into a warning on every tool, including the ones that draw
- * their own save line.
- *
- * `ready` is false while the tool is locked for the role or still loading, so
- * the strip never describes a save the editor cannot make.
- */
 export function DevWriteStatus({ tab, canApprove, ready }: { tab: DevTabDescriptor; canApprove: boolean; ready: boolean }) {
   const freeze = useWriteFreeze();
   if (freeze.frozen) {

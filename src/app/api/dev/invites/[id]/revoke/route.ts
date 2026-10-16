@@ -1,9 +1,3 @@
-/**
- * POST /api/dev/invites/[id]/revoke → { ok }
- *
- * Admin only. A fully redeemed code cannot be revoked (Postgres refuses with
- * `INVITE_EXHAUSTED`); revoking an already revoked code is a no-op.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import type { Id } from "@server/postgres/runtime/dataModel";

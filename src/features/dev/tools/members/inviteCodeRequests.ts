@@ -1,12 +1,6 @@
-/**
- * HTTP client for the invite code admin routes (`/api/dev/invites`), shared
- * by the Members tab's `InviteCodesPanel` and the routes' response typing.
- */
-
 import type { ManagedRole } from "@/lib/auth/roles";
 import { devFetch } from "@/features/dev/tools/devFetch";
 
-/** An invite grants any role an admin can hand out from the roster. */
 export type InviteCodeRole = ManagedRole;
 export type InviteCodeStatus = "active" | "expired" | "exhausted" | "revoked";
 
@@ -33,7 +27,6 @@ export type MintInviteInput = {
 };
 
 export type MintedInvite = {
-  /** Plaintext, returned exactly once. */
   code: string;
   invite: InviteCodeSummary;
 };

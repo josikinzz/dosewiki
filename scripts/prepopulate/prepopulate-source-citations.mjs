@@ -1,18 +1,4 @@
 #!/usr/bin/env node
-/**
- * Prepopulate source_citations from article-sources
- *
- * Extracts URLs from the "*Source: URL*" line at the top of each source file,
- * adds them to source_citations, and deduplicates existing citations.
- *
- * Usage:
- *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json> --dry-run
- *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json>
- *   node scripts/prepopulate/prepopulate-source-citations.mjs --input <local-substance-export.json> --verbose
- *
- * The input is a local Postgres export (scripts/data-ops/export-data-to-json.mjs);
- * it is never the tracked public/SubstanceIndex.json archive.
- */
 
 import fs from "fs";
 import path from "path";
@@ -28,7 +14,6 @@ import { formatStructuredCitationCompatibilityError } from "./source-citations-c
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
 
-// Parse CLI args
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const verbose = args.includes("--verbose");
@@ -37,11 +22,9 @@ if (inputIndex < 0 || !args[inputIndex + 1]) {
   throw new Error("Pass --input <path> naming the local substance export to prepopulate.");
 }
 
-// Paths
 const articlesPath = path.resolve(args[inputIndex + 1]);
 const articleSourcesDir = path.join(repoRoot, "src/data/article-sources");
 
-// Load articles
 const articles = JSON.parse(fs.readFileSync(articlesPath, "utf-8"));
 const structuredCitationCompatibilityError = formatStructuredCitationCompatibilityError(articles);
 if (structuredCitationCompatibilityError) {
@@ -56,10 +39,8 @@ const runContext = createDataOpsRunContext({
   localArtifacts: [path.relative(repoRoot, articlesPath), "src/data/article-sources"],
 });
 
-// Slugify function matching article-sources file naming
 import { slugify } from "../lib/slug.mjs";
 
-// Source display names for citations
 const SOURCE_DISPLAY_NAMES = {
   "disregardeverythingisay": "Disregard Everything I Say",
   "drugbank": "DrugBank",
@@ -74,14 +55,11 @@ const SOURCE_DISPLAY_NAMES = {
   "wikipedia": "Wikipedia",
 };
 
-// Extract source URL from content
-// Format: *Source: https://example.com/...*
 function extractSourceUrl(content) {
   const match = content.match(/\*Source:\s*(https?:\/\/[^\s*]+)\*/);
   return match ? match[1] : null;
 }
 
-// Check if URL matches (for deduplication)
 function normalizeUrl(url) {
   if (!url) return "";
   return url.toLowerCase()
@@ -90,7 +68,6 @@ function normalizeUrl(url) {
     .replace(/\/+$/, "");
 }
 
-// Stats tracking
 const stats = {
   articlesProcessed: 0,
   articlesUpdated: 0,
@@ -102,14 +79,12 @@ const stats = {
   bySource: {},
 };
 
-// Process each article
 const modifiedArticles = articles.map(article => {
   stats.articlesProcessed++;
 
   const slug = slugify(article.title);
   const sourceFilePath = path.join(articleSourcesDir, `${slug}.ts`);
 
-  // Check if source file exists
   if (!fs.existsSync(sourceFilePath)) {
     stats.articlesSkipped++;
     if (verbose) {
@@ -118,11 +93,8 @@ const modifiedArticles = articles.map(article => {
     return article;
   }
 
-  // Read and parse the TypeScript source file
   const sourceContent = fs.readFileSync(sourceFilePath, "utf-8");
 
-  // Extract sources array using regex (since we can't import TS directly)
-  // Format: export const sources = [{...}];
   const sourcesMatch = sourceContent.match(/export const sources = (\[[\s\S]*?\]);/);
   if (!sourcesMatch) {
     stats.articlesSkipped++;
@@ -143,7 +115,6 @@ const modifiedArticles = articles.map(article => {
     return article;
   }
 
-  // Build source citations
   const newSourceCitations = [];
   const sourceUrls = new Set();
 
@@ -151,9 +122,6 @@ const modifiedArticles = articles.map(article => {
     const sourceId = source.id;
     const displayName = SOURCE_DISPLAY_NAMES[sourceId] || source.displayName;
 
-    // Find the content for this source using a more flexible pattern
-    // Look for "sourceId": ` followed by content until closing backtick
-    // Need to handle template literals with backticks inside
     const contentStartRegex = new RegExp(`"${sourceId}":\\s*\``, "m");
     const startMatch = sourceContent.match(contentStartRegex);
 
@@ -162,19 +130,14 @@ const modifiedArticles = articles.map(article => {
       continue;
     }
 
-    // Find the start position and extract until we find the closing pattern
     const startPos = startMatch.index + startMatch[0].length;
 
-    // Look for the first few lines of content to extract the source URL
-    // We just need the beginning of the content where the source URL is
     const contentPreview = sourceContent.substring(startPos, startPos + 500);
     const url = extractSourceUrl(contentPreview);
 
-    // Track by source type
     stats.bySource[sourceId] = (stats.bySource[sourceId] || 0) + 1;
 
     if (url) {
-      // Has URL - add as linked citation
       newSourceCitations.push({
         name: displayName,
         url: url,
@@ -182,7 +145,6 @@ const modifiedArticles = articles.map(article => {
       sourceUrls.add(normalizeUrl(url));
       stats.sourceCitationsAdded++;
     } else if (sourceId === "drugusersbible") {
-      // Drug Users Bible - add as text-only (no URL)
       newSourceCitations.push({
         name: "Drug Users Bible by Dominic Milton Trott",
         url: "",
@@ -190,7 +152,6 @@ const modifiedArticles = articles.map(article => {
       stats.drugUsersBibleCount++;
       stats.sourceCitationsAdded++;
     }
-    // Skip other sources without URLs
   }
 
   if (newSourceCitations.length === 0) {
@@ -201,7 +162,6 @@ const modifiedArticles = articles.map(article => {
     return article;
   }
 
-  // Deduplicate existing citations
   const existingCitations = article.citations || [];
   const deduplicatedCitations = existingCitations.filter(citation => {
     const citationUrl = normalizeUrl(citation.url);
@@ -228,7 +188,6 @@ const modifiedArticles = articles.map(article => {
   };
 });
 
-// Output summary
 console.log("\n" + "=".repeat(60));
 console.log("SOURCE CITATIONS PREPOPULATION");
 console.log("=".repeat(60));
@@ -253,7 +212,6 @@ for (const [source, count] of sortedSources) {
   console.log(`  ${SOURCE_DISPLAY_NAMES[source] || source}: ${count}`);
 }
 
-// Write if not dry run
 if (!dryRun) {
   assertDataOpsWriteAllowed(runContext);
   fs.writeFileSync(articlesPath, JSON.stringify(modifiedArticles, null, 2) + "\n");

@@ -1,23 +1,3 @@
-/**
- * Admin write endpoint for the About page document (the pinned About entry
- * of the /dev Writing tab).
- *
- *   POST /api/dev/about  { aboutMarkdown, aboutSubtitle, founderProfileKeys, translationCredits? }
- *
- * Admin only: an editor's About save goes through `POST /api/dev/proposals`
- * as an `about` proposal instead, and reaches `siteConfig.saveAbout` only
- * when an admin approves it. The browser holds no admin intent token, so the
- * write is delegated here, which checks the admin session and then calls
- * `siteConfig.saveAbout` with the server's own token plus the actor's email
- * for the audit trail.
- *
- * The About page reads the document through `getPublicAboutData`, which is
- * persisted under `PUBLIC_DATA_CACHE_TAGS.about`. Every save publishes the
- * `about` content identity through the shared publication seam, which expires
- * that cache here and delivers the same identity to the public deployments,
- * so `/about` shows the edit in seconds rather than at the end of the
- * public-data window.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { publishPublicCache } from "@server/next/publishPublicCache";

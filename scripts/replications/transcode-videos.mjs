@@ -1,43 +1,4 @@
 #!/usr/bin/env node
-/**
- * Transcode replication video masters into web-delivery H.264 renditions.
- *
- * The live replication corpus is 125 raw masters totalling ~44.6 GB (median
- * 27.5 MB, p90 984 MB, largest 4,802 MB). Nothing in this repository has ever
- * transcoded them, so the browser is handed the master. Two separate problems
- * follow from that:
- *
- *   1. Size. A multi-gigabyte master cannot be streamed over a domestic
- *      connection at playback rate, so the video stalls regardless of caching.
- *   2. Atom order. No script has ever passed `-movflags +faststart`, so the
- *      `moov` atom trails the `mdat` payload. A browser cannot begin decoding
- *      until it has the `moov`, so it fetches to end-of-file first: on a 4.8 GB
- *      file that is the entire download before the first frame paints.
- *
- * This script fixes both, locally, on files the operator has already pulled
- * down. It performs NO Postgres write and never contacts a deployment: it reads a
- * directory of masters and writes a directory of renditions plus a manifest.
- * Uploading the renditions and repointing `storage_id` is a separate, later
- * operation that consumes this manifest: see docs/operations/replication-media-delivery.md.
- *
- * Masters are treated as irreplaceable. The script refuses to encode a file
- * whose master is not verifiably preserved at the configured archive location,
- * and it never writes into that archive.
- *
- * Dry run (default: probes everything, plans, writes the manifest, encodes
- * nothing):
- *   node scripts/replications/transcode-videos.mjs \
- *     --source-dir=/vol/replication-masters \
- *     --masters-dir=/vol/replication-masters \
- *     --output-dir=/vol/replication-web
- *
- * Apply:
- *   node scripts/replications/transcode-videos.mjs \
- *     --source-dir=/vol/replication-masters \
- *     --masters-dir=/vol/replication-masters \
- *     --output-dir=/vol/replication-web \
- *     --write --confirm-transcode
- */
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -101,20 +62,10 @@ export {
 
 const OPERATION = "transcode-replication-videos";
 
-/**
- * Containers we are willing to read. Everything is normalised to MP4 on the way
- * out because MP4/H.264/AAC is the one combination that plays in every browser
- * without a fallback source, including Safari and iOS.
- */
 const SOURCE_EXTENSIONS = new Set([
   ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".avi",
   ".mpg", ".mpeg", ".wmv", ".flv", ".ogv", ".ts", ".3gp",
 ]);
-
-// ---------------------------------------------------------------------------
-// Runtime
-// ---------------------------------------------------------------------------
-
 
 function collectVideoFiles(dir) {
   const found = [];
@@ -145,8 +96,6 @@ export function probeVideo(filePath, runner = spawnSync) {
   }
   const probe = parseProbeJson(JSON.parse(result.stdout));
   probe.sizeBytes = probe.sizeBytes ?? fs.statSync(filePath).size;
-  // ffprobe reports neither atom order nor truncation, so both facts come from
-  // reading the box grid directly.
   const isIsoBmff = probe.formatNames.some((name) => name === "mp4" || name === "mov");
   const layout = isIsoBmff ? inspectMp4Atoms(filePath) : { faststart: false, truncated: false };
   probe.faststart = layout.faststart;
@@ -154,13 +103,6 @@ export function probeVideo(filePath, runner = spawnSync) {
   return probe;
 }
 
-
-/**
- * Resumption is derived from the filesystem, never from a ledger that can go
- * stale. Encodes land on `<name>.part` and are renamed only on a zero exit, so
- * an interrupted run cannot leave a half-written file at the final path; this
- * check additionally re-validates whatever is already there.
- */
 function inspectExistingOutput(outputPath, expectedDurationSeconds) {
   if (!fs.existsSync(outputPath)) return { complete: false, reason: "not rendered yet" };
   try {
@@ -188,7 +130,7 @@ async function main() {
   const mastersDir = getFlagValue(argv, "--masters-dir");
   const outputDir = getFlagValue(argv, "--output-dir");
 
-  if (!sourceDir) throw new Error("Pass --source-dir=<directory of master videos>.");
+  if (!sourceDir) throw new Error("Pass --source-dir=<directory of master videos>.\nUsage: bun scripts/replications/transcode-videos.mjs --source-dir=<masters> --masters-dir=<preserved-archive> --output-dir=<renditions>\nDefault probes files and writes the manifest without encoding. Apply requires --write --confirm-transcode and the approved write ceremony in docs/operations/data-credentials.md. The archive must already preserve every master.");
   if (!mastersDir) {
     throw new Error(
       "Pass --masters-dir=<archive directory>. Masters must be preserved before anything is encoded; set it equal to --source-dir when the source directory is itself the archive.",
@@ -213,9 +155,6 @@ async function main() {
   const resolvedOutput = path.resolve(outputDir);
   const inPlace = resolvedSource === resolvedMasters;
 
-  // Checked before the first file is touched. Archiving a master is a write in
-  // its own right, so a run missing the confirmation must fail here rather than
-  // after it has already started copying gigabytes around.
   if (!command.dryRun) assertTranscodeAllowed(command, argv);
   assertToolsAvailable();
   assertOutputSafety({
@@ -262,7 +201,6 @@ async function main() {
       output: path.relative(resolvedOutput, outputPath),
     };
 
-    // --- master preservation gate -------------------------------------------
     const masterPath = inPlace ? sourcePath : resolveMasterPath(sourcePath, resolvedSource, resolvedMasters);
     const masterExists = !inPlace && fs.existsSync(masterPath);
     let preservation = classifyPreservation({
@@ -288,8 +226,6 @@ async function main() {
         fs.mkdirSync(path.dirname(masterPath), { recursive: true });
         fs.copyFileSync(sourcePath, `${masterPath}.part`);
         fs.renameSync(`${masterPath}.part`, masterPath);
-        // A copy we just made is the one case that must always be digested:
-        // a short write would otherwise pass a size check and lose the master.
         if (sha256File(masterPath) !== sha256File(sourcePath)) {
           throw new Error(`Master copy verification failed for ${relative}. Aborting before any encode.`);
         }
@@ -308,7 +244,6 @@ async function main() {
     }
     entry.preservation = preservation;
 
-    // --- probe and plan ------------------------------------------------------
     let probe;
     try {
       probe = probeVideo(sourcePath);
@@ -365,7 +300,6 @@ async function main() {
       continue;
     }
 
-    // --- resumability --------------------------------------------------------
     const existing = inspectExistingOutput(outputPath, entry.durationSeconds);
     if (existing.complete) {
       entry.outputBytes = fs.statSync(outputPath).size;
@@ -399,13 +333,9 @@ async function main() {
       continue;
     }
 
-    // --- execute -------------------------------------------------------------
     assertTranscodeAllowed(command, argv);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     const partPath = `${outputPath}.part`;
-    // Discard any debris from an interrupted previous run rather than resuming
-    // into it; ffmpeg's -y will overwrite, but an orphan part after a `copy`
-    // would otherwise linger.
     if (fs.existsSync(partPath)) fs.rmSync(partPath);
 
     const startedAt = Date.now();
@@ -457,7 +387,6 @@ async function main() {
     );
   }
 
-  // --- manifest --------------------------------------------------------------
   const summary = summarizeManifest(entries);
   const manifestPath = getFlagValue(argv, "--manifest") ?? path.join(resolvedOutput, "transcode-manifest.json");
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
@@ -490,8 +419,6 @@ async function main() {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((error) => {
-    // Lead with the message: these failures are operator-facing preconditions,
-    // not crashes, and the stack buries the one line that says what to fix.
     console.error(`\n${error.message}\n`);
     if (process.env.DEBUG) console.error(error);
     process.exit(1);

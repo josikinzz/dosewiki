@@ -14,12 +14,6 @@ const ThemeLabPanel = dynamic(() => import("./ThemeLab").then((module) => module
   ssr: false,
 });
 
-/**
- * The editor and persistence runtime wait for saved data or reader intent.
- * A small prepaint restore applies saved edits before either chunk arrives.
- * Once loaded, the runtime stays mounted across close/reopen and navigation,
- * retaining its pagehide flush and cross-tab persistence lifecycle.
- */
 export function ThemeLabLazy() {
   const open = useThemeLabOpen();
   const [hasEverOpened, setHasEverOpened] = useState(false);
@@ -31,7 +25,6 @@ export function ThemeLabLazy() {
       try {
         if (window.localStorage.getItem(THEME_LAB_STORAGE_KEY) !== null) setRuntimeNeeded(true);
       } catch {
-        // Blocked storage does not prevent explicitly opening the editor.
       }
     };
     const onStorage = (event: StorageEvent) => {

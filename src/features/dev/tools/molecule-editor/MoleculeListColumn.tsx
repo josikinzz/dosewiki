@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * The Molecules list column: which kind of structure (substances, generic
- * classes, class templates), what state each drawing is in, a search with
- * its `/` key, and the records as link rows grouped the way the old picker
- * grouped them (publicly listed first, then by psychoactive class). The open
- * row carries "Editing" and an unsaved dot. Sticky from `lg`, a capped scroll
- * well so the pane beside it keeps the canvas in view.
- */
 import { forwardRef, useMemo, type RefObject } from "react";
 
 import { Icon } from "@/components/common/Icon";
@@ -36,7 +28,6 @@ const MODE_CHOICES: ReadonlyArray<{ value: EditorMode; label: string; short: str
   { value: "templates", label: "Class templates", short: "Templates" },
 ];
 
-/** The tone a row's state reads in: a missing drawing warns, a baseline is neutral, a finished one is quiet. */
 const STATE_TONE: Record<DepictionState, "warning" | "neutral" | "success" | "info"> = {
   none: "warning",
   seeded: "neutral",
@@ -48,7 +39,6 @@ const STATE_TONE: Record<DepictionState, "warning" | "neutral" | "success" | "in
 export type MoleculeListColumnProps = {
   mode: EditorMode;
   onModeChange: (mode: string) => void;
-  /** How many records each mode lists; null while unknown. */
   modeCounts: Record<EditorMode, number | null>;
   rows: MoleculeListRow[] | null;
   error: string | null;

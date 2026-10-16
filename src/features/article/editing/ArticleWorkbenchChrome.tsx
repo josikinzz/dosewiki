@@ -1,21 +1,11 @@
 "use client";
 
-/**
- * The Substances tool's chrome around the in-page article editor
- * (`ArticleContextBridge` with `chrome="dock"`): one strip above the article
- * that says what the preview shows (a private draft, a waiting proposal, a
- * reader-feedback correction), and a save dock under it that holds the result
- * of the last write, what is running, the one reason the actions are paused,
- * the actions themselves and where a save lands. The public page and Review
- * keep the full-width editing bar instead.
- */
 import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
 
-/** One line of the strip over the article: a glyph, a sentence, and its actions. */
 export function SessionLine({ icon, tone = "neutral", children, actions }: {
   icon: string;
   tone?: "neutral" | "accent" | "warning";
@@ -39,7 +29,6 @@ export function SessionLine({ icon, tone = "neutral", children, actions }: {
   );
 }
 
-/** The lines over the article. Renders nothing when there is nothing to say. */
 export function SessionStrip({ children }: { children: ReactNode }) {
   const lines = (Array.isArray(children) ? children : [children]).filter(Boolean);
   if (lines.length === 0) return null;
@@ -50,7 +39,6 @@ export function SessionStrip({ children }: { children: ReactNode }) {
   );
 }
 
-/** An accent text link in a session line or a notice. */
 export function SessionLink({ href, children, external = false }: { href: string; children: ReactNode; external?: boolean }) {
   const className = "theme-accent-underline inline-flex items-center gap-1 font-medium text-dose-accent-strong underline-offset-4 hover:underline";
   if (external) {
@@ -65,7 +53,6 @@ export function SessionLink({ href, children, external = false }: { href: string
   return <Link href={href} className={className}>{children}</Link>;
 }
 
-/** The unsaved dot and one phrase: where the draft stands right now. */
 export function DraftStatePhrase({ text, unsaved }: { text: string; unsaved: boolean }) {
   return (
     <p aria-live="polite" className={cn("flex min-w-0 items-center gap-2 text-xs", unsaved ? "theme-text-secondary" : "theme-text-faint")}>
@@ -75,7 +62,6 @@ export function DraftStatePhrase({ text, unsaved }: { text: string; unsaved: boo
   );
 }
 
-/** A key cap on a button, shown on fine pointers only. */
 export function ButtonKeyCap({ label }: { label: string }) {
   return (
     <span aria-hidden className="[@media(pointer:coarse)]:hidden">
@@ -84,11 +70,6 @@ export function ButtonKeyCap({ label }: { label: string }) {
   );
 }
 
-/**
- * The save dock: `sticky bottom-0` inside the tool's pane, the decision dock
- * recipe. Rows in order: the result, the running write, the blocker, then the
- * actions with the state phrase and the save line.
- */
 export function SaveDock({ result, pending, blocker, actions, state, saveLine }: {
   result?: ReactNode;
   pending?: string | null;
@@ -121,7 +102,6 @@ export function SaveDock({ result, pending, blocker, actions, state, saveLine }:
   );
 }
 
-/** The blocker line: the one reason the actions are paused, with its way forward. */
 export function DockBlocker({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <p role="status" className="theme-text-secondary flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">

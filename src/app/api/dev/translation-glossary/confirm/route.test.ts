@@ -50,7 +50,6 @@ beforeAll(async () => {
   database = new PGlite();
   for (const filename of readdirSync("lib/postgres/migrations").filter((file) => file.endsWith(".sql")).sort())
     await database.exec(readFileSync(`lib/postgres/migrations/${filename}`, "utf8"));
-  // Adapt the pg transport only; the route, review store, and SQL are production code.
   const connection = {
     query: async (sql: string, params?: unknown[]) => {
       if (!params?.length && sql.includes(";")) {

@@ -1,8 +1,3 @@
-/**
- * RHF-based Pharmacology fields component.
- * Classification fields have been moved to ClassificationFieldsRHF.
- */
-
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { Icon } from "@/components/common/Icon";
 
@@ -36,7 +31,6 @@ export function ChemistryFieldsRHF({
 
   return (
     <section className="space-y-6">
-      {/* Pharmacodynamics */}
       <FormEditorField
         htmlFor={`${idPrefix}-pharmacology-pharmacodynamics`}
         label="Pharmacodynamics"
@@ -50,7 +44,6 @@ export function ChemistryFieldsRHF({
         />
       </FormEditorField>
 
-      {/* Binding sites combine target identity, mechanism, and measured activity. */}
       <div className="space-y-3">
         <p className="type-meta-label theme-text-faint flex items-center gap-1.5">
           <Icon icon="fluent:brain-circuit-28-filled" className="theme-icon-accent h-4 w-4" size={16} />
@@ -135,7 +128,6 @@ export function ChemistryFieldsRHF({
         </div>
       </div>
 
-      {/* Pharmacokinetics & Metabolites */}
       <p className="type-meta-label theme-text-faint flex items-center gap-1.5">
         <Icon icon="material-symbols:metabolism-rounded" className="theme-icon-accent h-3.5 w-3.5" size={14} />
         Pharmacokinetics
@@ -164,8 +156,7 @@ export function ChemistryFieldsRHF({
           openStrategy="button"
         />
       </EditorFieldRow>
-      
-      {/* Extended pharmacokinetics - stored but not displayed in public section */}
+
       <CollapsibleSubsection
         title="Extended Pharmacokinetics"
         pairedIndicator

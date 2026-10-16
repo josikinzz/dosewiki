@@ -1,37 +1,3 @@
-/**
- * Rehearsal: the complete release, its duration, and its rollback
- * boundary, in isolation.
- *
- *   bun scripts/postgres/rehearse-release.ts --target postgres://localhost:5432/dosewiki
- *
- * What it proves, all against a local Postgres with scratch rows it deletes:
- *
- *   freeze      `DATA_WRITES_FROZEN` (lib/runtime/dataWriteFreeze.ts) makes a
- *               representative mutation of every transactional group in
- *               inventory/tables.md refuse with code DATA_WRITES_FROZEN, on the
- *               operator factory (scripts/lib/data-client.ts) and on the app
- *               write client (lib/data/serverWriteCapability.ts), while every
- *               read keeps serving byte-identical results. Every one of the 61
- *               table counts is unchanged across the sweep.
- *   liveness    the same writer commits with the freeze off, refuses with it on,
- *               and commits again once it is lifted, so the refusals above are
- *               a freeze and not a broken call.
- *   drain       a mutation that entered the runtime before the freeze commits
- *               after it (held mid-flight on a row lock), and one started after
- *               the freeze refuses. The measured drain wait is reported.
- *   retirement  a retired DATA_BACKEND selector is refused by both application
- *               and operator clients without contacting another service.
- *   flavors     host, permission, transaction and privacy scenarios for the
- *               dosewiki and effectindex flavors.
- *   sweep       every rehearsal script run back to back, with pass counts. A
- *               rehearsal that no longer passes is recorded as a blocker
- *               (measurement, not a check: this script owns the release
- *               rehearsal, not the state of its siblings).
- *
- * Flags: --keep (leave scratch rows), --no-sweep (skip the sibling rehearsals),
- * --allow-remote (with POSTGRES_IMPORT_CONFIRM, per targetGuard).
- */
-
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -77,12 +43,10 @@ async function attempt<T>(run: () => Promise<T>): Promise<Outcome<T>> {
 }
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-/** Refused by the freeze specifically, not by validation, auth, or SQL. */
 function refusedByFreeze(outcome: Outcome<unknown>): boolean {
   return !outcome.ok && isDataWriteFrozenError(outcome.error);
 }
 
-/** `in` rather than the `ok` discriminant: the scripts tsconfig has no strictNullChecks, so boolean discriminants do not narrow. */
 function capabilityMissing(result: ServerDataWriteCapabilityResult): string[] {
   return "failure" in result ? [...result.failure.missing] : [];
 }
@@ -94,10 +58,6 @@ function percentile(values: number[], fraction: number): number | null {
   return Math.round(sorted[index] * 10) / 10;
 }
 
-/**
- * One representative mutation per transactional group. The freeze has to hold
- * for all of them, not only for the article path.
- */
 const TRANSACTIONAL_GROUPS: ReadonlyArray<{ group: string; fn: string; what: string }> = [
   { group: "G0", fn: "changelog:addEntry", what: "universal indexedMutation wrapper (index sync, journal, outbox)" },
   { group: "G1", fn: "articleLifecycle:write", what: "article publish/restore" },
@@ -131,7 +91,6 @@ const TRANSACTIONAL_GROUPS: ReadonlyArray<{ group: string; fn: string; what: str
   { group: "G27", fn: "publicationRecovery:claimDue", what: "outbox lease (cron)" },
 ];
 
-/** Rehearsals run back to back by the sweep; `verify-migrations` and `check-env-isolation` are checks, not rehearsals. */
 const SWEEP_SCRIPTS: readonly string[] = [
   "rehearse-article-publication",
   "rehearse-auth",
@@ -154,11 +113,6 @@ const RUNTIME_TABLES: readonly string[] = ["documentIds", "storageObjects", "__d
 
 type LatencySample = { kind: string; name: string; statements: number; ms: number };
 
-/**
- * `POSTGRES_RUNTIME_TRACE` is read when `lib/postgres/runtime/client.ts` is
- * imported, so the write-latency measurement runs as a child of this script
- * with the flag set and reports the runtime's own per-call trace.
- */
 async function latencyChild(): Promise<void> {
   const prefix = `t22l-${mintDocumentId().slice(0, 8)}`;
   const apiKey = process.env.DATA_ADMIN_KEY;
@@ -221,7 +175,6 @@ function readJson(file: string): Record<string, unknown> | null {
   }
 }
 
-/** Newest `runs/postgres-import/*` report whose directory name matches `suffix`. */
 function newestReport(suffix: string): { path: string; report: Record<string, unknown> } | null {
   const base = path.join(ROOT, "runs", "postgres-import");
   if (!fs.existsSync(base)) return null;
@@ -237,11 +190,6 @@ function newestReport(suffix: string): { path: string; report: Record<string, un
   return null;
 }
 
-/**
- * Newest importer report for a remote (PlanetScale) or a local target. The
- * cutover duration that matters is the remote one; the local number is the
- * fixture reload and is reported separately so the two are never conflated.
- */
 function newestImportReport(scope: "remote" | "local"): { path: string; report: Record<string, unknown> } | null {
   const base = path.join(ROOT, "runs", "postgres-import");
   if (!fs.existsSync(base)) return null;
@@ -269,7 +217,6 @@ async function main(): Promise<void> {
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-release`);
   const started = performance.now();
 
-  // The app boundary reads its backend and URL from env at call time.
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
@@ -327,7 +274,6 @@ async function main(): Promise<void> {
 
     expect("freeze", `all ${tableNames.length} application tables enumerated for the row-count guard`, tableNames.length === 61, tableNames.length);
 
-    // ------------------------------------------------------------------ liveness: the writer works with the freeze off
     const copyKey = `${run}-copy`;
     purge("contentRevisions", '"key" = $1', copyKey);
     purge("copyBlocks", '"key" = $1', copyKey);
@@ -345,18 +291,14 @@ async function main(): Promise<void> {
     const journalAfterCreate = await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] });
     expect("liveness", "the write and its journal row landed in one transaction", journalAfterCreate.length === 1, journalAfterCreate.length);
 
-    // A mutation reference cannot be used to reintroduce deployment actions.
-    // Publication dispatch is owned by the cron route, outside transactions.
     const recoveryAsAction = makeFunctionReference<"action", { actorEmail: string }, unknown>("publicationRecovery:claimDue");
     const unsupportedAction = await attempt(() => runtime.action(recoveryAsAction, { actorEmail: adminActor.actorEmail }));
     expect("liveness", "the native runtime refuses action invocation while writes are enabled", !unsupportedAction.ok && !refusedByFreeze(unsupportedAction), errorMessage(unsupportedAction.error));
 
-    // The freeze baseline is taken after that write, so the sweep below is compared against a settled database.
     const readsBefore: Record<string, string> = {};
     for (const probe of READ_PROBES) readsBefore[probe.name] = JSON.stringify(await probe.read());
     const countsBefore = await countRows();
 
-    // ------------------------------------------------------------------ freeze: every transactional group refuses
     process.env.DATA_WRITES_FROZEN = "1";
     const frozenGroups: Array<{ group: string; fn: string; refused: boolean; registered: boolean }> = [];
     for (const entry of TRANSACTIONAL_GROUPS) {
@@ -422,8 +364,6 @@ async function main(): Promise<void> {
       body: blockDuringFreeze?.body,
     });
 
-    // What the freeze costs the editor: `auth.ts:45` awaits `memberships:touchSignIn`, so a NEW sign-in
-    // refuses while frozen. An existing session keeps working because the JWT refresh only reads.
     const memberUsername = `${run}-member`;
     const memberEmail = `${run}-member@rehearsal.invalid`;
     const memberPassword = `${run} member passphrase`;
@@ -440,7 +380,6 @@ async function main(): Promise<void> {
     const frozenRefresh = await attempt(async () => await authOptions.callbacks!.jwt!({ token: { email: memberEmail }, user: undefined, account: null } as never));
     expect("freeze", "an existing session still refreshes its role while frozen (reads only)", frozenRefresh.ok && frozenRefresh.value.role === "editor", frozenRefresh.ok ? frozenRefresh.value.role : errorMessage(frozenRefresh.error));
 
-    // ------------------------------------------------------------------ drain
     const holder = await pool.connect();
     let drainWaitMs: number | null = null;
     try {
@@ -489,7 +428,6 @@ async function main(): Promise<void> {
     }
     measurements.drain = { waitFromFreezeToCommitMs: drainWaitMs, method: "one mutation held on a row lock across the freeze flip, timed from the flip to its commit" };
 
-    // ------------------------------------------------------------------ retired backend cannot become a rollback path
     expect("rollback", "the freeze remains on while checking the retirement boundary", process.env.DATA_WRITES_FROZEN === "1");
     process.env.DATA_BACKEND = "retired-backend";
     process.env.TARGET_RETIRED_BACKEND_URL = "https://retired.example.invalid";
@@ -502,7 +440,6 @@ async function main(): Promise<void> {
     process.env.DATA_BACKEND = "postgres";
     resetServerDataWriteCapabilityCacheForTests();
 
-    // ------------------------------------------------------------------ the freeze is liftable
     process.env.DATA_WRITES_FROZEN = "0";
     const reopened = await attempt(() =>
       operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "reopened body", label: "Rehearsal", group: "rehearsal", operationId: `${run}-copy-reopened` }),
@@ -510,7 +447,6 @@ async function main(): Promise<void> {
     expect("liveness", "lifting the freeze by value reopens writes", reopened.ok && (await runtime.query(api.copyBlocks.getByKey, { key: copyKey }))?.body === "reopened body", reopened.ok ? reopened.value : errorMessage(reopened.error));
     delete process.env.DATA_WRITES_FROZEN;
 
-    // ------------------------------------------------------------------ flavors: host, permission, transaction, privacy
     const reportSource = (await selectDocuments(pool, "tripReports", { limit: 1 }))[0];
     const reportSlug = `${run}-report`;
     if (reportSource) {
@@ -528,10 +464,8 @@ async function main(): Promise<void> {
       const config = getSiteFlavorConfig({ NEXT_PUBLIC_SITE_FLAVOR: flavor });
       expect(S, "the flavor resolves from NEXT_PUBLIC_SITE_FLAVOR alone", config.flavor === flavor && isEffectIndex(config) === (flavor === "effectindex"));
 
-      // host: one Postgres database serves both publications; the fingerprint is the deployment identity.
       expect(S, "reads resolve to the same Postgres deployment fingerprint", postgresFingerprintFromUrl(target) === "localhost/dosewiki", postgresFingerprintFromUrl(target));
 
-      // permission: the effectindex project holds no write credential, which is what makes it read-only.
       const savedKey = process.env.DATA_ADMIN_KEY;
       if (flavor === "effectindex") delete process.env.DATA_ADMIN_KEY;
       resetServerDataWriteCapabilityCacheForTests();
@@ -540,9 +474,6 @@ async function main(): Promise<void> {
         expect(S, "no write capability exists without a credential, so no write transaction can open", capability.ok === false && capabilityMissing(capability).includes("adminKey"), capabilityMissing(capability));
         const read = await attempt(() => runtime.query(api.copyBlocks.getAll, {}));
         expect(S, "reads still serve on the credential-free flavor", read.ok);
-        // A fresh credential-free process is the real Effect Index shape: it starts its own client, and
-        // the deployment contract must let it (on Postgres DATA_ADMIN_KEY is the write credential, so
-        // requiring it would hand write authority to the read-only deployments).
         const construction = await attempt(async () => {
           const client = PostgresClient.fromUrl(target);
           const rows = await client.query(api.copyBlocks.getAll, {});
@@ -568,7 +499,6 @@ async function main(): Promise<void> {
       process.env.DATA_ADMIN_KEY = savedKey;
       resetServerDataWriteCapabilityCacheForTests();
 
-      // transaction: a refused write leaves no partial row behind, on either flavor's data path.
       const journalBefore = (await selectDocuments(pool, "contentRevisions", { where: '"key" = $1', params: [copyKey] })).length;
       const stale = await attempt(() =>
         operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "plain", body: "never", label: "Rehearsal", group: "rehearsal", expectedRevision: 1 }),
@@ -580,7 +510,6 @@ async function main(): Promise<void> {
         journalAfter,
       });
 
-      // privacy: the public projections never carry private-personal fields, and private queues need a credential.
       if (reportSource) {
         const publicReport = await runtime.query(api.tripReports.getBySlug, { slug: reportSlug });
         const keys = publicReport && typeof publicReport === "object" ? Object.keys(publicReport) : [];
@@ -592,8 +521,6 @@ async function main(): Promise<void> {
       expect(S, "the subscriber list refuses a wrong credential", !subscribers.ok, subscribers.ok ? "served" : errorMessage(subscribers.error));
     }
 
-
-    // ------------------------------------------------------------------ measurements
     const remoteImport = newestImportReport("remote");
     const localImport = newestImportReport("local");
     measurements.import = {
@@ -632,7 +559,6 @@ async function main(): Promise<void> {
       },
     };
 
-    // Timed outside this process (a build cannot run inside it). Each row names its command and who ran it.
     measurements.migrationApply = {
       seconds: 1.84,
       migrations: 6,
@@ -662,7 +588,6 @@ async function main(): Promise<void> {
       { quantity: "migration apply time on PlanetScale", why: "the branch already carries all six migrations and this rehearsal may not run DDL there", howToMeasure: "time drizzle-kit migrate on a fresh PlanetScale branch created for the cutover" },
     );
 
-    // ------------------------------------------------------------------ sweep
     if (runSweep) {
       const sweepEnv = { ...process.env };
       delete sweepEnv.DATA_WRITES_FROZEN;

@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Suggestions, a view of the Glossary workbench: what readers sent from the
- * public glossary about this language's wording, in one place with its own
- * count on the view tab. Waiting lists the same suggestions first; this view
- * keeps every suggestion and its decisions. Each one links to its term in
- * Terms, where using the reader's wording is an ordinary edit.
- */
-
 import { useMemo, useState } from "react";
 
 import { FeedbackReviewQueue, type FeedbackQueueFilter } from "../feedback/FeedbackReviewQueue";

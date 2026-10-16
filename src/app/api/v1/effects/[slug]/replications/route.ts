@@ -30,8 +30,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
   }
 
   try {
-    // Audio-first media rank leads; the stored read order survives within
-    // each rank, matching the article gallery's default playlist.
     const replications = sortByMediaRank(
       await getPublicReplicationsByEffect(slug),
       (replication) => replication,

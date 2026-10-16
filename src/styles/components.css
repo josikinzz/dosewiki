@@ -1,15 +1,4 @@
-  /* This prose stack is hand-rolled — @tailwindcss/typography is NOT installed —
-     so the plugin's automatic `not-prose` escape hatch does not exist unless
-     every descendant rule below opts out of it explicitly. Components embedded
-     in an article body (EffectListPanel's index cards, inside the VCode article
-     `prose` container) mark themselves `not-prose` and style themselves; without
-     the guard they still collected prose heading margins, list padding and link
-     underlines. The `:where()` wrapper keeps the guard at zero specificity, so
-     these rules keep cascading against the theme sheets exactly as before.
 
-     .prose-accent is the neutral name for .prose-fuchsia (accent headings,
-     links and bold): the accent is a palette axis now, not fuchsia. Both names
-     share every rule; new call sites use .prose-accent. */
   .prose,
   .prose-fuchsia,
   .prose-accent {
@@ -79,11 +68,6 @@
     margin: 0 0 1.1rem;
   }
 
-  /* Paragraph spacing is a fixed site value — the gap after a plain paragraph is 2x
-     the font size, not a reader preference. Every other prose block (and the gap
-     before headings, tables, callouts) keeps its authored 1.1rem, so the chapter
-     rhythm never moves. Sits before the last-child zeroing below, which must keep
-     winning the trailing edge. */
   .prose :where(p):not(:where(.not-prose, .not-prose *)),
   .prose-fuchsia :where(p):not(:where(.not-prose, .not-prose *)),
   .prose-accent :where(p):not(:where(.not-prose, .not-prose *)) {
@@ -165,11 +149,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    /* No overflow shorthand here: this class sits on <body>, and a
-       components-layer `overflow: visible` outranks base.css's
-       `body { overflow-x: clip }`. WebKit does not stop root panning from
-       html's clip alone, so on iOS anything a few px too wide made the whole
-       page drag sideways. */
+
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
@@ -330,4 +310,3 @@
     transform: none;
     animation: none !important;
   }
-

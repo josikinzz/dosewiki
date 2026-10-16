@@ -1,13 +1,3 @@
-/**
- * Harm-potential badge configuration: the reader-facing level labels together
- * with the classes and tones the badges render them in. Plain TypeScript, so a
- * script can read the labels without importing a React component, following the
- * split described in `schema/substance/legalStatuses.ts`.
- *
- * `antibiotic_function.level` has no config of its own: it shares the
- * carcinogenicity key set, and `ToxicitySubsection` reads its label from
- * `CARCINOGENICITY_LEVEL_CONFIG`.
- */
 import type { RiskLevel, CarcinogenicityLevel, EvidenceLevel } from "@/schema";
 import { msg } from "@/i18n/messages";
 

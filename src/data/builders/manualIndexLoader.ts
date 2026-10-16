@@ -1,30 +1,3 @@
-/**
- * Shared manual index dataset loader utilities.
- *
- * JSON shape (see related schemas):
- * {
- *   "$schema": string,
- *   "version": number,
- *   "categories": [
- *     {
- *       "key": string,
- *       "label": string,
- *       "iconKey": string,
- *       "notes"?: string,
- *       "drugs": string[],
- *       "sections": [
- *         {
- *           "key": string,
- *           "label": string,
- *           "notes"?: string,
- *           "link"?: { "type": "chemicalClass" | "psychoactiveClass" | "mechanism", "value": string },
- *           "drugs": string[]
- *         }
- *       ]
- *     }
- *   ]
- * }
- */
 import { slugify } from "../../utils/slug";
 
 type ManualSectionLinkType = "chemicalClass" | "psychoactiveClass" | "mechanism";
@@ -49,7 +22,6 @@ export interface ManualCategoryDefinition {
   label: string;
   iconKey: string;
   notes?: string;
-  /** @deprecated Use columns instead */
   column?: number;
   columns?: ColumnAssignments;
   drugs: string[];
@@ -60,7 +32,6 @@ export interface ManualCategoryDefinition {
 export interface ManualIndexConfig {
   version: number;
   categories: ManualCategoryDefinition[];
-  /** Monotonic stored publication revision; absent on checked-in layout defaults. */
   revision?: number;
 }
 
@@ -72,7 +43,7 @@ export interface NormalizedManualCategorySection extends ManualCategorySection {
 export interface NormalizedManualCategoryDefinition extends Omit<ManualCategoryDefinition, 'sections'> {
   normalizedKey: string;
   columns?: ColumnAssignments;
-  sections: NormalizedManualCategorySection[];  // Override to use normalized sections
+  sections: NormalizedManualCategorySection[];
   sectionMap: Map<string, NormalizedManualCategorySection>;
   drugSet: Set<string>;
 }
@@ -194,11 +165,9 @@ const parseCategory = (value: unknown, index: number): NormalizedManualCategoryD
   const label = assertString(value.label, `categories[${index}].label`);
   const iconKey = assertString(value.iconKey, `categories[${index}].iconKey`);
   const notes = typeof value.notes === "string" ? value.notes.trim() || undefined : undefined;
-  
-  // Parse new columns object
+
   const columns = parseColumns(value.columns, `categories[${index}].columns`);
-  
-  // Legacy column support for backwards compatibility
+
   const legacyColumn =
     typeof value.column === "number" && Number.isInteger(value.column) && value.column >= 0
       ? value.column

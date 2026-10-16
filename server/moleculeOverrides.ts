@@ -3,18 +3,6 @@ import { mutation } from "./lib/indexedMutation";
 import { v } from "../lib/postgres/runtime/values";
 import { requireRole } from "./lib/auth";
 
-/**
- * Canonical molecule depictions used by the Molecules editor and public pages.
- *
- * One document per substance slug holds the current published depiction:
- *   • `svg`: the display asset rendered from the MOL block by OpenChemLib
- *   • `molblock`: the re-editable source of atom coordinates and bond stereo
- *
- * Reads are public. Public pages display `svg` when a document exists and show
- * no depiction when it does not. Writes require an editor or admin actor via
- * `requireRole`, matching the substance-article and index-layout editors.
- */
-
 const SLUG_RE = /^(class:)?[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 const MAX_SVG_BYTES = 2 * 1024 * 1024;
@@ -26,11 +14,6 @@ function assertValidSlug(slug: string) {
   }
 }
 
-/**
- * A depiction URL identifies SVG bytes, not the time of a metadata-only save.
- * Advance past the stored timestamp when writes share a millisecond or a mirror
- * brings an older revision. Identical SVGs keep their already-published URL.
- */
 function depictionUpdatedAt(
   existing: { svg: string; updatedAt: string } | null,
   svg: string,
@@ -45,7 +28,6 @@ function depictionUpdatedAt(
     : new Date(proposedTime).toISOString();
 }
 
-/** Returns one canonical depiction by slug; null means none has been published. */
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
@@ -56,7 +38,6 @@ export const getBySlug = query({
   },
 });
 
-/** Lightweight public lookup for choosing and versioning one article image. */
 export const getMetadataBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
@@ -70,10 +51,6 @@ export const getMetadataBySlug = query({
   },
 });
 
-/**
- * Published depiction index used by the editor picker, seed tool, and cached
- * chemical-class computation. Substance articles use getMetadataBySlug instead.
- */
 export const listSlugs = query({
   args: {},
   handler: async (ctx) => {
@@ -86,10 +63,6 @@ export const listSlugs = query({
   },
 });
 
-/**
- * Editor-only batch read used by the class-template preview. The bounded slug
- * list avoids turning this into a second public depiction index.
- */
 export const getCurrentBySlugs = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -134,17 +107,6 @@ export const getCurrentBySlugs = query({
   },
 });
 
-/**
- * Create or replace the canonical depiction for a slug. Admin only.
- *
- * `expectedUpdatedAt` is the editor's version check, matching
- * `substanceGalleries:upsert`: omit it to write unconditionally, pass `null` to
- * assert no depiction exists yet, or pass the `updatedAt` the editor loaded to
- * assert nobody has saved since. A failed check writes nothing and returns
- * `{ status: "conflict", server }` with the stored revision, so a chemist never
- * overwrites a colleague's newer drawing. Every write returns `status: "ok"`
- * with the revision it stored.
- */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -199,7 +161,6 @@ export const save = mutation({
       svg: args.svg,
       molblock: args.molblock,
       smiles: args.smiles,
-      // Empty is stored as absent so untouched rows and cleared rows look alike.
       boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       source: "editor" as const,
       updatedAt: depictionUpdatedAt(existing, args.svg),
@@ -216,12 +177,6 @@ export const save = mutation({
   },
 });
 
-/**
- * Mirror tool for copying the canonical depiction set between deployments
- * (e.g. prod → dev). Preserves source and author provenance. Changed SVGs use
- * the incoming revision only when it advances the target; unchanged SVGs keep
- * their published revision. Not used by the editor.
- */
 export const replicate = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -281,11 +236,6 @@ export const replicate = mutation({
   },
 });
 
-/**
- * Apply one already-previewed template depiction. Editor-authored rows are
- * protected inside the transaction so a hand edit that races the preview is
- * reported as a skip instead of being overwritten.
- */
 export const applyTemplateDepiction = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -315,9 +265,6 @@ export const applyTemplateDepiction = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
 
-    // Overwrite only rows explicitly marked machine-produced. A row without a
-    // source marker predates the marker (e.g. a pre-unification hand edit) and
-    // must be treated as a hand edit, not as fair game.
     if (existing && existing.source !== "seeded" && existing.source !== "template") {
       return {
         applied: false as const,
@@ -345,16 +292,6 @@ export const applyTemplateDepiction = mutation({
   },
 });
 
-/**
- * Replace only the rendered `svg` of an existing row, preserving its molblock,
- * provenance (`source`), and smiles. Built for the one-time engine re-render
- * (RDKit → OpenChemLib): published articles pick up the new drawing without
- * changing what the editor loads or which rows a template apply may overwrite.
- *
- * `expectedMolblock` guards against racing an editor save — if the stored
- * molblock changed after the script read the row, the row is skipped so the
- * fresher hand edit keeps the svg that was rendered from it.
- */
 export const rerenderSvg = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -396,10 +333,6 @@ export const rerenderSvg = mutation({
   },
 });
 
-/**
- * Add one automatic-layout baseline without replacing a concurrently-created row.
- * Batch scripts use the same editor-write guard as interactive saves.
- */
 export const seedMissing = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -446,7 +379,6 @@ export const seedMissing = mutation({
   },
 });
 
-/** Remove a row (used for class overrides and deliberate seed rollback). */
 export const remove = mutation({
   args: {
     apiKey: v.optional(v.string()),

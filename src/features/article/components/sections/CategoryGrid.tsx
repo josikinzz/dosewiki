@@ -11,12 +11,6 @@ import { useT } from "@/i18n/client";
 
 const formatDrugLabel = (drug: DosageCategoryGroup["drugs"][number]) => drug.name;
 
-/**
- * Column arrangement keyed by column count: columns left to right, each a
- * list of group keys top to bottom. Counts above the largest key reuse the
- * largest entry; groups absent from the entry are appended to the column
- * holding the fewest panels.
- */
 export type ColumnLayoutTable = Record<number, readonly (readonly string[])[]>;
 
 export function arrangeGroupsByLayout<T extends { key: string }>(
@@ -52,7 +46,6 @@ export function arrangeGroupsByLayout<T extends { key: string }>(
   return columns;
 }
 
-// Memoized card component to prevent unnecessary re-renders
 interface CategoryGroupCardProps {
   group: DosageCategoryGroup;
   isExpanded: boolean;
@@ -85,9 +78,6 @@ const CategoryGroupCard = memo(function CategoryGroupCard({
   hideIcon,
 }: CategoryGroupCardProps) {
   const t = useT();
-  // Category and class labels are editorial index data; the kit translates
-  // them here so every caller (index, category, mechanism, effect pages)
-  // localizes the same way. Keys stay English.
   const groupName = t(group.name);
   const toggleLabel = isExpanded
     ? t("Collapse {{category}} category", { category: groupName })
@@ -177,15 +167,8 @@ interface CategoryGridProps {
   hideEmptyGroups?: boolean;
   limitColumns?: boolean;
   maxColumns?: number;
-  /** Hand-authored arrangement; when set it replaces per-group placement. */
   columnLayout?: ColumnLayoutTable;
   getCardTone?: (group: DosageCategoryGroup) => "default" | "dim";
-  /**
-   * Hide the per-panel leading icon. Use when every panel in the grid shares
-   * the same category glyph (single-class substance-index tabs), where the
-   * icon is redundant. Defaults to false so multi-category grids — and other
-   * surfaces like the Effect Index — keep their icons.
-   */
   hideCardIcons?: boolean;
 }
 
@@ -383,7 +366,6 @@ export function CategoryGrid({
     [categoryHrefPrefix],
   );
 
-  // Stable reference for format function
   const memoizedFormatDrugLabel = useCallback(
     (drug: DosageCategoryGroup["drugs"][number]) => formatDrugLabel(drug),
     []

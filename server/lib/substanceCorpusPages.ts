@@ -10,8 +10,6 @@ import {
 import { normalizePharmacologySection } from "../../lib/article/normalization.mjs";
 import { EDITORIAL_REVIEW_DEFAULT } from "../../src/schema/substance/editorialReviewVisibilityPolicy";
 
-/** Page-size clamps, retired-operation refusals, and row projections for `server/substanceIndex.ts` corpus reads. */
-
 const RETIRED_CORPUS_OPERATION_MESSAGE =
   "Whole-corpus substance operations are retired. Use the bounded pagination endpoints and guarded per-article/CAS write workflows.";
 

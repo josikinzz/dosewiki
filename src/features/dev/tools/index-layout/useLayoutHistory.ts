@@ -1,13 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ManualDatasetKey, ManualIndexConfig } from "./types";
 
-/**
- * Deep enough to walk back out of a wrong drag session, short enough that a
- * long editing run never pins dozens of whole layouts in memory.
- */
 const HISTORY_LIMIT = 40;
 
-/** One step: the manual it replaced and, when the caller named it, what the step did ("Moved LSD to Dissociative"). */
 type Step = { manual: ManualIndexConfig; label: string | null };
 type Trail = { past: readonly Step[]; future: readonly Step[] };
 
@@ -16,28 +11,15 @@ const EMPTY_TRAIL: Trail = { past: [], future: [] };
 export type LayoutHistory = {
   canUndo: boolean;
   canRedo: boolean;
-  /** What Undo would take back, in words, when the step was named. */
   undoLabel: string | null;
-  /** What Redo would put back, in words, when the step was named. */
   redoLabel: string | null;
-  /** Apply an edit to the active dataset and record what it replaced; `label` names the step for Undo and announcements. Returns whether anything changed. */
   edit: (transform: (manual: ManualIndexConfig) => ManualIndexConfig, label?: string) => boolean;
-  /** Takes back the last step; returns its label (or null when unnamed or nothing to undo). */
   undo: () => string | null;
-  /** Puts back the last undone step; returns its label. */
   redo: () => string | null;
-  /** Forget the trail: the draft was replaced wholesale, so its steps no longer apply. */
   forget: () => void;
-  /** Forget every dataset's trail: a commit made the drafts the new starting point. */
   forgetAll: () => void;
 };
 
-/**
- * Undo for the layout editor. Every gesture writes straight into the dev
- * draft, which is what makes the tool feel like the page rather than a form,
- * so the safety net is a trail of the manuals each gesture replaced. One trail
- * per dataset: switching datasets keeps both histories.
- */
 export function useLayoutHistory({
   dataset,
   manual,

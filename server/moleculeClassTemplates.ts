@@ -3,14 +3,6 @@ import { mutation } from "./lib/indexedMutation";
 import { v } from "../lib/postgres/runtime/values";
 import { requireRole } from "./lib/auth";
 
-/**
- * Plain-scaffold orientation templates authored in `/dev` → Molecules.
- *
- * Templates intentionally live outside `moleculeOverrides`: saving a template
- * has no effect on substance depictions, generic class structures, or public
- * pages. Applying a template is a separate workflow.
- */
-
 const CLASS_KEY_RE = /^[a-z0-9][a-z0-9-]*$/;
 const MAX_MOLBLOCK_BYTES = 256 * 1024;
 
@@ -20,7 +12,6 @@ function assertValidClassKey(classKey: string) {
   }
 }
 
-/** One saved template by canonical chemical class key. */
 export const getByClassKey = query({
   args: { classKey: v.string() },
   handler: async (ctx, { classKey }) => {
@@ -32,7 +23,6 @@ export const getByClassKey = query({
   },
 });
 
-/** Keys of every saved template — feeds the editor's import-source picker. */
 export const listKeys = query({
   args: {},
   handler: async (ctx) => {
@@ -41,7 +31,6 @@ export const listKeys = query({
   },
 });
 
-/** Create or replace one orientation template. Admin only. */
 export const save = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -69,7 +58,6 @@ export const save = mutation({
     const doc = {
       classKey: args.classKey,
       molblock: args.molblock,
-      // Empty is stored as absent so untouched rows and cleared rows look alike.
       boldBonds: args.boldBonds && args.boldBonds.length > 0 ? args.boldBonds : undefined,
       updatedAt: Date.now(),
       updatedBy: args.updatedBy,

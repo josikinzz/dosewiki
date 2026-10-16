@@ -40,7 +40,6 @@ import {
   CONTROL_TRIGGER_LABEL_CLASS,
 } from "@/components/ui/controlBarTrigger";
 
-// Selects rendered as a flat list, then the "Named in the title" sub-group.
 const GENERAL_KEYS = ["effect", "viewing", "family", "artistType"] as const;
 const TITLE_KEYS = ["drug", "drugClass"] as const;
 
@@ -48,10 +47,6 @@ function mediaValueLabel(type: GalleryTypeFilter): string {
   return MEDIA_OPTIONS.find((option) => option.value === type)?.label ?? type;
 }
 
-/**
- * A year filter's value is a year rail's own key, so its chip reads the same
- * as that rail's heading: a year, a span with an en dash, or "Undated".
- */
 function yearValueLabel(year: GalleryYearFilter, translate: Translate): string {
   if (year === UNDATED_YEAR_FILTER) return translate(UNDATED_YEAR_LABEL);
   const [from, to] = year.split("-");
@@ -63,11 +58,6 @@ export interface ReplicationTaxonomyFiltersProps {
   onChange: (filters: GalleryTaxonomyFilterState) => void;
   type: GalleryTypeFilter;
   onTypeChange: (type: GalleryTypeFilter) => void;
-  /**
-   * Set only by following a year rail, so this popover shows no control for
-   * it — but its Clear takes it off, so its badge counts it. A reader looking
-   * at one year with two filters on must not read "1 active".
-   */
   year: GalleryYearFilter;
   onClear: () => void;
   drugOptions: ReadonlyArray<FilterOption>;
@@ -97,13 +87,6 @@ export function ReplicationTaxonomyFilters({
     onChange({ ...filters, [key]: value } as GalleryTaxonomyFilterState);
   };
 
-  /**
-   * One row per axis: name on the left, current value on the right. Stacked
-   * label-above-control, the six axes stood 681px tall and the popover scrolled
-   * on a 900px screen, so the reader had to scroll to discover controls nobody
-   * had told them existed. Side by side they fit, and the column of values
-   * reads as a list of what is set.
-   */
   const renderSelect = (key: FilterKey) => (
     <label key={key} className="flex items-center justify-between gap-3">
       <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
@@ -136,10 +119,6 @@ export function ReplicationTaxonomyFilters({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* The same object as its four neighbours in the control bar: glyph,
-            label, chevron from `md` up, glyph alone below it. The count reads
-            as part of the label where there is room for words, and rides the
-            glyph's corner where there is not. */}
         <Button
           type="button"
           variant="pill"
@@ -156,10 +135,6 @@ export function ReplicationTaxonomyFilters({
               : t("Filters")
           }
         >
-          {/* Active filters tint the glyph. The `pill` variant declares its own
-              border colour, so a `border-*` utility beside it is a coin toss
-              the accent loses; colour on the icon has nothing to compete
-              with. */}
           <Icon
             icon="lucide:sliders-horizontal"
             className={cn(
@@ -179,10 +154,6 @@ export function ReplicationTaxonomyFilters({
             aria-hidden
           />
           {activeCount > 0 ? (
-            // Accent on the bar's own material rather than `theme-badge-surface`,
-            // whose appearance-matrix rule repaints it in body text colour: a
-            // white numeral was the weakest possible mark for the only state
-            // this control keeps while closed.
             <span
               aria-hidden
               className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-dose-surface-muted px-1 text-[0.625rem] font-semibold leading-4 text-dose-accent-strong md:hidden"
@@ -197,13 +168,8 @@ export function ReplicationTaxonomyFilters({
         collisionPadding={8}
         className="max-h-[min(var(--radix-popover-content-available-height),38rem)] w-[calc(100vw-1rem)] space-y-2.5 overflow-y-auto sm:w-80"
       >
-        {/* The popover holds seven axes, so it says what it is at the top:
-            without a heading the reader who pressed an unnamed glyph met
-            unexplained dropdowns and a scrollbar. */}
         <p className="theme-text-primary text-sm font-semibold">{t("Filter works")}</p>
 
-        {/* Media leads: it is the axis readers reach for most, and the one
-            that used to have the bar slot this popover absorbed. */}
         <label className="flex items-center justify-between gap-3">
           <span className="theme-text-secondary min-w-0 flex-1 text-xs font-medium">
             {t(MEDIA_LABEL)}
@@ -238,13 +204,7 @@ export function ReplicationTaxonomyFilters({
           {TITLE_KEYS.map(renderSelect)}
         </fieldset>
 
-        {/* Sticky so Clear/Done stay reachable while the list scrolls; the
-            negative margins let the row own the popover's bottom padding, and
-            theme-overlay-surface repaints the popover's own opaque material
-            (all four appearance matrix points restyle that class together). */}
         <div className="theme-overlay-surface sticky bottom-0 z-10 -mx-4 -mb-4 space-y-2 border-t px-4 py-2.5">
-          {/* Full width: sharing a row with the buttons wrapped it to three
-              lines and squeezed both exits into the corner. */}
           <p className="theme-text-faint text-xs">
             {t("Filtering by a tag hides works nobody has tagged yet.")}
           </p>
@@ -287,18 +247,6 @@ export interface ReplicationActiveFilterChipsProps {
   className?: string;
 }
 
-/**
- * Slim row of removable chips, one per active filter — the visible
- * counterpart of the popover's count badge. Shares the popover's option
- * labels and the same whole-state `onChange`, so removing a chip is exactly
- * a select flipping back to "all" (URL params and corpus update together).
- * Renders nothing while every filter is at its default.
- *
- * Media leads the row for the same reason it leads the popover, and it is the
- * one filter that used to be readable from the bar itself: once it moved into
- * the popover, a chip is the only thing that still says "you are looking at
- * videos only" without opening anything.
- */
 export function ReplicationActiveFilterChips({
   filters,
   onChange,
@@ -316,8 +264,6 @@ export function ReplicationActiveFilterChips({
   );
   if (active.length === 0 && type === "all" && year === "all") return null;
 
-  // Corpus-derived facets (drug, effect) label from their live option lists;
-  // a URL-typed value missing from the corpus falls back to its raw slug.
   const valueLabel = (key: FilterKey): string => {
     const value = filters[key];
     const pool =

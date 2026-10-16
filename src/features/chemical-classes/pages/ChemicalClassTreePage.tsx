@@ -105,8 +105,6 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
     }
   }, [payload.nodes, router]);
 
-  // Large families read as full outlines; single-node roots follow as a
-  // tighter run of rows below them, still part of the same tree.
   const { branchingRoots, leafRoots } = useMemo(() => {
     const sorted = [...payload.roots].sort(
       (a, b) => (payload.nodes[b]?.rolledTotal ?? 0) - (payload.nodes[a]?.rolledTotal ?? 0),
@@ -125,9 +123,6 @@ export function ChemicalClassTreePage({ payload }: ChemicalClassTreePageProps) {
           title={t("Chemical Class Index")}
           icon={CHEMICAL_CLASS_INDEX_ICON}
         />
-        {/* Credit line under the title, mirroring the Subjective Effect
-            Index's "created by Josie Kins, 2011": the class taxonomy is
-            adapted from AnodyneWiki's chemical class tree. */}
         <div className="relative z-10 -mt-12 mb-12 flex flex-col items-center gap-2 sm:-mt-4">
           <a
             href="https://anodyne.wiki/"

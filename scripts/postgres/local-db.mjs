@@ -1,17 +1,4 @@
 #!/usr/bin/env node
-/**
- * Project-local Postgres cluster for migration rehearsal.
- *
- *   node scripts/postgres/local-db.mjs init     # initdb into .postgres/ and create the dosewiki database
- *   node scripts/postgres/local-db.mjs start    # pg_ctl start on POSTGRES_LOCAL_PORT (default 5432)
- *   node scripts/postgres/local-db.mjs stop
- *   node scripts/postgres/local-db.mjs status
- *   node scripts/postgres/local-db.mjs url      # print the connection URL
- *
- * The data directory is ignored by Git. This is not a production target;
- * PlanetScale credentials are supplied through POSTGRES_DIRECT_URL and
- * POSTGRES_POOLED_URL, never through this script.
- */
 
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";

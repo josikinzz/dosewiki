@@ -25,25 +25,8 @@ interface PublicTocStripProps {
   className?: string;
 }
 
-/**
- * How long after the reader lets go of the strip before scrollspy is allowed
- * to steer it again. Long enough for a flick's momentum to settle; short
- * enough that the strip re-syncs before the next section flips.
- */
 const DRAG_SETTLE_MS = 700;
 
-/**
- * Mobile companion of `PublicTableOfContents`: the same section list condensed
- * into one swipeable row of chips, rendered above the article hero so it is
- * pinned beneath the sticky site header from the very first scroll
- * (`--public-toc-strip-top` re-times it under the review workbench's command
- * bar). The chip for the section under the reader lights up and glides to the
- * center of the row as they scroll; tapping a chip jumps to its section.
- *
- * Hidden at >=1200px, where `StickyTocLayout`'s gutter rail takes over. Pages
- * that render the strip mark their layout root `theme-toc-strip-scope` so
- * anchor targets scroll clear of the header + strip stack.
- */
 export const PublicTocStrip = memo(function PublicTocStrip({
   items,
   className,
@@ -51,16 +34,9 @@ export const PublicTocStrip = memo(function PublicTocStrip({
   const t = useT();
   const activeId = useActiveSection(items.map((item) => item.id));
   const scrollerRef = useRef<HTMLDivElement | null>(null);
-  /** True from first touch until DRAG_SETTLE_MS after release. */
   const draggingRef = useRef(false);
   const settleTimerRef = useRef<number | null>(null);
 
-  /**
-   * Edge fades are data, not decoration: each one appears only while there are
-   * chips hidden beyond that edge. Written as data attributes from a scroll
-   * listener rather than state — the strip repaints its mask, React does not
-   * re-render.
-   */
   const syncEdgeFades = useCallback(() => {
     const scroller = scrollerRef.current;
     if (!scroller) {
@@ -114,22 +90,11 @@ export const PublicTocStrip = memo(function PublicTocStrip({
     };
   }, [syncEdgeFades]);
 
-  /**
-   * Chip centering: when the scrollspy flips to a new section, glide that
-   * chip to the center of the strip with a single native smooth scroll and do
-   * nothing between flips. (A previous version mirrored reading progress with
-   * per-frame scrollLeft writes, which forced a layout read/write cycle and a
-   * backdrop-blur repaint on every page-scroll frame — visibly janky on
-   * mobile.) The browser composites the smooth scroll off the main thread, so
-   * scrolling the page costs the strip nothing. Stands down while a finger is
-   * on the strip; reduced motion gets an instant jump instead of a glide.
-   */
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller || activeId === null) {
       return;
     }
-    // Hidden at >=1200px, or the reader is mid-swipe — leave it alone.
     if (draggingRef.current || scroller.offsetParent === null) {
       return;
     }
@@ -173,16 +138,10 @@ export const PublicTocStrip = memo(function PublicTocStrip({
       data-nosnippet
       className={cn(
         "theme-toc-strip-shell sticky z-30 min-[1200px]:hidden",
-        // Full-bleed: break out of the centered column to span the viewport,
-        // and cancel the layout's pt-8 so the bar sits flush against the
-        // header from the very first paint.
         "-mt-8 mx-[calc(50%-50vw)]",
         className,
       )}
     >
-      {/* Bar chrome and scroller are separate layers: the edge-fade mask
-          lives on the scroller so overflowing chips dissolve at the edges
-          while the bar's bottom border stays crisp. */}
       <div className="theme-toc-strip-bar backdrop-blur-[var(--frost-blur)] backdrop-safe">
         <div
           ref={scrollerRef}
@@ -206,8 +165,6 @@ export const PublicTocStrip = memo(function PublicTocStrip({
                     data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      // Every chip carries the border, transparent unless a tone
-                      // paints it, so toned and plain chips share one box height.
                       "theme-article-toc-item flex items-center gap-1.5 whitespace-nowrap rounded-chip border border-transparent px-2.5 py-1.5 text-[13px] font-medium transition-[background-color,color] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
                         ? undefined

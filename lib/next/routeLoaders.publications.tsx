@@ -29,13 +29,6 @@ export type ArticleRouteResult =
     }>
   | NotFoundRouteResult;
 
-/**
- * Bylines render from `authorProfileKeys`, never from `authors`: the legacy
- * import left `authors` as raw Mongo ObjectIds, and "by 60542430198361300fea3610"
- * is worse than no byline at all. A key that no contributor profile claims is
- * dropped for the same reason, so an unbackfilled article shows no byline
- * exactly as it does today.
- */
 async function resolveArticleBylineAuthors(
   article: Pick<PublicEffectIndexArticle, "authorProfileKeys">,
 ): Promise<ArticleBylineAuthor[]> {
@@ -68,11 +61,6 @@ async function resolveArticleBylineAuthors(
   return authors;
 }
 
-/**
- * `effectIndexArticles` holds both families. A row is an article unless it says
- * otherwise, which is what keeps every legacy import — none of which carries
- * `kind` — on the article routes exactly as before.
- */
 function isArticleKind(article: Pick<PublicEffectIndexArticle, "kind">): boolean {
   return article.kind !== "blog";
 }
@@ -86,8 +74,6 @@ export const loadArticleRoute = cache(async (slug: string, locale: LiveLocale | 
     ? await getLocalizedPublicArticleBySlug(slug, locale.code)
     : await getPublicEffectIndexArticleBySlug(slug);
 
-  // A blog post is not reachable at `/articles/<slug>` even though it shares
-  // the table: the two families never render on each other's routes.
   if (!article || !isArticleKind(article)) {
     return { kind: "not-found" };
   }
@@ -140,10 +126,6 @@ export type BlogIndexRouteResult = OkRouteResult<{
   emptyState?: PublicRouteEmptyState;
 }>;
 
-/**
- * The archived Effect Index blog. Only routed on the Effect Index flavor — the pages
- * themselves call `requireEffectIndexFlavor()` before reaching these loaders.
- */
 export const loadBlogIndexRoute = cache(async (): Promise<BlogIndexRouteResult> => {
   const posts = (await getPublicEffectIndexPosts()).map(toBlogPostViewModel);
 
@@ -192,16 +174,6 @@ export type WritingBlogIndexRouteResult = OkRouteResult<{
   emptyState?: PublicRouteEmptyState;
 }>;
 
-/**
- * The dose.wiki blog: `kind: "blog"` rows of `effectIndexArticles`, written in
- * the /dev Blog tab.
- *
- * This is a different blog from `loadBlogIndexRoute`, which serves the frozen
- * Effect Index archive out of `effectIndexArchive`. The separation is by data as
- * well as by flavor — these loaders read only rows that say `kind: "blog"`, and
- * no such row exists in the archive table, so neither corpus can leak into the
- * other's pages even if both routes were somehow reachable on one build.
- */
 export const loadWritingBlogIndexRoute = cache(
   async (): Promise<WritingBlogIndexRouteResult> => {
     const rows = await getPublishedPublicationIndex("blog");

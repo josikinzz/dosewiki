@@ -30,16 +30,11 @@ import type {
 import { crossedMilestone } from "./reviewSettings";
 import { describeReviewRefusal, ReviewWriteRefusal, type ReviewRefusalKind } from "./reviewDockModel";
 
-/** Long enough to notice a slip after moving on; a later change replaces it. */
 const UNDO_WINDOW_MS = 30_000;
 const MILESTONE_MS = 4000;
-/** How long a finished chemical-class subsection holds its toast. */
 const SECTION_CELEBRATION_MS = 4500;
-/** How long a finished psychoactive category holds its medallion card. */
 const GROUP_CELEBRATION_MS = 6000;
 
-
-/** What the reviewer saw, so an undo can restore a sign-off's revision too. */
 function seenStatus(entry: ReviewQueueEntry): { status: ReviewState; revision?: string } {
   return {
     status: entry.status,
@@ -52,43 +47,30 @@ interface ReviewOverlays {
   setOverrides: Dispatch<SetStateAction<ReviewStatusOverrides>>;
 }
 
-/** Human review status overlays; article drafts use the canonical lifecycle. */
 export function useReviewOverlays(): ReviewOverlays {
   const [overrides, setOverrides] = useState<ReviewStatusOverrides>({});
   return { overrides, setOverrides };
 }
 
-
-/** The last status change, held for the undo window. */
 interface ReviewLastTick {
   slug: string;
   name: string;
-  /** The status the reviewer saw before the change, overlay included. */
   previous: ReviewState;
-  /** The revision the previous sign-off covered, so undo restores it. */
   previousRevision?: string;
-  /** The status the change set. */
   status: ReviewStatus;
 }
 
 export interface ReviewStatusWrites {
   isTicking: boolean;
   tickError: string | null;
-  /** Why the last write was refused, when the answer said: the freeze, a lapsed sign-in, the admin floor. */
   tickRefusal: ReviewRefusalKind | null;
   clearTickError: () => void;
   lastTick: ReviewLastTick | null;
-  /** Whether this role may mark an article reviewed (admins only). */
   canSignOff: boolean;
-  /** Whether this role recommends instead: editors, whose R asks an admin to sign off. */
   canRecommend: boolean;
-  /** The current article's pending recommendation, and whether a later publish made it stale. */
   currentRecommendation: { recommendation: ReviewRecommendation; stale: boolean } | null;
-  /** The article just recommended, for the toast; cleared after the undo window's length. */
   lastRecommended: string | null;
-  /** Records "Recommended reviewed" for the current article at the revision on screen. */
   recommendReviewed: (note: string) => Promise<void>;
-  /** Whether the current article body has loaded, so a tick means it was read. */
   currentHydrated: boolean;
   milestone: number | null;
   celebration: (ReviewCelebration & { id: number }) | null;
@@ -98,17 +80,6 @@ export interface ReviewStatusWrites {
   dismissCelebration: () => void;
 }
 
-/**
- * The tick and the flag (`/api/dev/editorial-review`), plus the undo window,
- * milestone toast, and bucket celebration a tick can set off.
- *
- * Completing a review is admin-only at the route, so `canSignOff` keeps the
- * tick from firing for any other role, and `currentHydrated` keeps it from
- * firing before the reviewer could have read the article body.
- *
- * A sign-off names the published revision the reviewer read, from
- * `publishedRevisions`; before those load the route records the current one.
- */
 export function useReviewStatusWrites({
   current,
   typedArticles,
@@ -139,15 +110,10 @@ export function useReviewStatusWrites({
   }, []);
   const [lastTick, setLastTick] = useState<ReviewLastTick | null>(null);
   const [milestone, setMilestone] = useState<number | null>(null);
-  // The bucket the last tick finished off, if any. Fire-and-forget by design:
-  // an undo inside the window does not recall the confetti — the sealed picker
-  // chips and the trophy shelf derive from live counts and self-correct.
   const [celebration, setCelebration] = useState<
     (ReviewCelebration & { id: number }) | null
   >(null);
 
-  // Recommendations written this session, keyed by slug, until the working
-  // set re-reads them.
   const [recommendations, setRecommendations] = useState<Record<string, ReviewRecommendation>>({});
   const [lastRecommended, setLastRecommended] = useState<string | null>(null);
   const recommendTimerRef = useRef<number | null>(null);
@@ -206,9 +172,6 @@ export function useReviewStatusWrites({
           [slug]: { status, baseStatus, ...(persistedReview ? { review: persistedReview } : {}) },
         }));
 
-
-        // Every change, un-reviewing included, gets the toast and its undo
-        // window; an undo itself does not, so U never ping-pongs.
         if (options?.isUndo) {
           setLastTick(null);
         } else {
@@ -228,10 +191,6 @@ export function useReviewStatusWrites({
 
         if (status === "completed" && !options?.isUndo) {
 
-          // Loudest celebration only. `queueGroups` is this render's closure,
-          // i.e. the tree as it stood before this tick — exactly what the
-          // helper expects, since it counts the ticked slug as completed
-          // itself. A finished bucket outranks the every-50 milestone toast.
           const finished = resolveReviewCelebration(queueGroups, slug);
           if (finished) {
             celebrationIdRef.current += 1;
@@ -275,23 +234,15 @@ export function useReviewStatusWrites({
     [queueGroups, reviewedCount, setOverrides, setTickError],
   );
 
-  /**
-   * What the working set's own row says, which is the base an override is
-   * recorded against (see `ReviewStatusOverride.baseStatus`). The status the
-   * reviewer sees, and so the one an undo returns to, is the queue entry's,
-   * which already reads the optimistic overlay first.
-   */
   const articleStatus = useCallback((entrySlug: string): ReviewStatus => {
     const record = typedArticles.find((candidate) => resolveEditorArticleSlug(candidate) === entrySlug);
     const raw = record?.editorial_review?.status;
     return raw === "in_progress" || raw === "completed" ? raw : "needed";
   }, [typedArticles]);
 
-  // A stale sign-off is not reviewed: R signs the revision on screen again.
   const toggleReviewed = useCallback(() => {
     if (!current || isTicking || !canSignOff || !currentHydrated) return;
     const signing = current.status !== "completed";
-    // Without a revision on screen the route records the current one.
     const onScreen = publishedRevisions?.[current.slug];
     void setReviewStatus(
       current.slug,
@@ -322,15 +273,10 @@ export function useReviewStatusWrites({
     const published = publishedRevisions?.[current.slug];
     return {
       recommendation,
-      // Before the revisions load nothing reads as stale, as with sign-offs.
       stale: published ? isRecommendationStale(recommendation, published) : false,
     };
   })();
 
-  /**
-   * An editor's R: a recommendation bound to the revision on screen, which
-   * never changes the review status. Only an admin approval completes it.
-   */
   const recommendReviewed = useCallback(async (note: string) => {
     if (!current || isTicking || !canRecommend || !currentHydrated) return;
     const { slug, name } = current;
@@ -379,8 +325,6 @@ export function useReviewStatusWrites({
 
   const undoLastTick = useCallback(() => {
     if (!lastTick || isTicking) return;
-    // Undoing back to a sign-off, stale or not, restores the revision it
-    // covered rather than signing whatever is published now.
     const restoresSignOff = lastTick.previous === "completed" || lastTick.previous === "stale";
     void setReviewStatus(
       lastTick.slug,

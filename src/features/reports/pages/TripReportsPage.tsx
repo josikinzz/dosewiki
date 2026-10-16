@@ -19,16 +19,9 @@ interface TripReportsPageProps {
   locale?: string;
   reportHrefPrefix?: string;
   emptyState?: PublicRouteEmptyState;
-  /** Server-resolved URL state for the first rendered grouping. */
   initialView?: ReportsIndexView;
 }
 
-/**
- * Experience reports index. The page owns orientation only: title, framing,
- * and a last invitation for the reader who reached the end of the index. The
- * standing invitation lives in the explorer's band, because the end of a
- * 4,600px page was reaching 7% of readers.
- */
 export function TripReportsPage({
   browsingPage,
   locale,
@@ -40,9 +33,6 @@ export function TripReportsPage({
     <main
       id="main-content"
       tabIndex={-1}
-      // Unbounded width, matching the substance and effect indexes: the panel
-      // grid measures its own container and takes as many 320px columns as the
-      // monitor allows. Header and controls keep the reading measure.
       className="mx-auto w-full px-4 pb-20 pt-6 focus:outline-none md:px-8"
     >
       <PageHeader

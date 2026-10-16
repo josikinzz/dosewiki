@@ -1,45 +1,4 @@
 #!/usr/bin/env node
-/**
- * Apply one validated citation-pi verdict draft to a single article, modeled
- * on scripts/legality/apply-draft.mjs and the workbench citation write path.
- *
- * Semantics (see docs/workflows/citations.md, verdict contract):
- *   keep  → citation evidence row set `supported` with the verdict's quote
- *           and rationale; the marker is untouched.
- *   strip → the exact `[cite:<id>]` token is replaced with `[citation-needed]`
- *           in the field string, and the evidence row is set `needs_source`
- *           with `statusReason` carrying the full verdict record.
- *   park  → no-op (recorded in the plan only).
- *
- * Marker-token replacement is the ONLY permitted textual delta. The plan
- * builder refuses on live content-hash drift, on markers absent from the live
- * field, and on any operation that would change text beyond the single token
- * replacement (checked by stripping both token kinds from before/after and
- * requiring identical strings).
- *
- * Usage:
- *   DATA_BACKEND=postgres npm run citations:verdict-apply -- --slug=<slug> --dry-run --target=<postgres-url> --expected-deployment=<host>/<database>
- *   DATA_BACKEND=postgres TARGET_POSTGRES_URL=<postgres-url> POSTGRES_IMPORT_CONFIRM=<host> npm run citations:verdict-apply -- \
- *     --slug=<slug> --write --allow-remote --confirm-citation-write \
- *     --confirm-write=apply-citation-verdict-draft --expected-deployment=<host>/<database>
- *
- * Options:
- *   --slug=<slug>            Article slug (required; must match the draft).
- *   --draft-file=<path>      Verdict draft (default runs/citations/verdicts/<slug>/verdict-draft.json).
- *   --article-file=<path>    Offline article fixture for dry-run previews and tests; never valid with --write.
- *   --dry-run                Print the full plan and stop (default).
- *   --write                  Persist through native citationEvidence.applyDraft with the guard stack.
- *   --revalidate-url=<url>   Editor-host origin serving /api/dev/revalidate-article
- *                            (default $DOSEWIKI_REVALIDATE_URL, else https://dev.dose.wiki).
- *                            After a successful --write the script POSTs the slug there so
- *                            the public page re-renders now instead of on the next 1-hour
- *                            ISR window; authenticated with the same citationEvidenceWrite
- *                            token as the Postgres write. Failure is a WARNING recorded in
- *                            the receipt — the write itself stays valid.
- *   --verify-public-url=<url> Optionally fetch <url>/<slug> after revalidation and confirm
- *                            each fully-stripped reference no longer renders; recorded in
- *                            the receipt as publicVerification. Skipped when absent.
- */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -76,18 +35,12 @@ function stripDataMetadata(article) {
   return clean;
 }
 
-/** Remove both token kinds: `[cite:<id>]` markers and `[citation-needed]`. */
 export function stripVerdictTokens(text) {
   return String(text ?? "")
     .replaceAll(CITATION_NEEDED_TOKEN, "")
     .replace(CITE_TOKEN_PATTERN, "");
 }
 
-/**
- * Guard: a patched field may differ from the live field only by marker-token
- * replacement. Stripping both token kinds from each side must leave the
- * surrounding prose byte-identical.
- */
 export function assertTokenOnlyDelta({ fieldPath, before, after }) {
   if (stripVerdictTokens(before) !== stripVerdictTokens(after)) {
     throw new Error(
@@ -254,11 +207,6 @@ function stripEvidenceRow({ draft, section, row, fieldPath }) {
   };
 }
 
-/**
- * Build the full apply plan from a live article and a validated verdict
- * draft. Pure: throws named errors (`content_hash_drift`, `claim_not_found`,
- * `marker_not_found`, `text_delta_beyond_token`, …) and never mutates inputs.
- */
 export function buildVerdictApplyPlan({ article, draft }) {
   const operations = [];
   const evidence = [];
@@ -398,13 +346,6 @@ export function printPlan(plan) {
 const DEFAULT_REVALIDATE_BASE_URL = "https://dev.dose.wiki";
 const REVALIDATE_ROUTE_PATH = "/api/dev/revalidate-article";
 
-/**
- * POST the slug to the editor host's revalidate route so the public page
- * re-renders now instead of on the next 1-hour ISR window
- * (`src/app/api/dev/revalidate-article/route.ts`). Never throws: the Postgres
- * write has already landed and stays valid; a failure here only means public
- * visibility lags by up to an hour.
- */
 export async function requestArticleRevalidation({ slug, revalidateBaseUrl, token, fetchImpl = fetch }) {
   const url = `${revalidateBaseUrl.replace(/\/+$/, "")}${REVALIDATE_ROUTE_PATH}`;
   try {
@@ -427,10 +368,6 @@ export async function requestArticleRevalidation({ slug, revalidateBaseUrl, toke
   }
 }
 
-/**
- * Fetch the live public page and assert each fully-stripped reference no
- * longer renders (no superscript link, no leaked raw token). Never throws.
- */
 export async function verifyPublicArticle({ slug, publicBaseUrl, checks, fetchImpl = fetch }) {
   const url = `${publicBaseUrl.replace(/\/+$/, "")}/${slug}`;
   if (checks.length === 0) {
@@ -448,13 +385,6 @@ export async function verifyPublicArticle({ slug, publicBaseUrl, checks, fetchIm
   }
 }
 
-/**
- * Post-write visibility step: revalidate the public page, then optionally
- * verify the stripped markers are gone from the live HTML. Returns the
- * receipt fields (`revalidation`, and `publicVerification` when a public URL
- * is given). Failures are warnings — the Postgres write is already durable and
- * at worst the page refreshes on the next ISR window.
- */
 export async function recordPostWriteVisibility({
   slug,
   plan,
@@ -528,8 +458,6 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const runContext = createDataOpsRunContext({
-    // operationName "apply-citation-verdict-draft" is the required
-    // --confirm-write phrase for production writes.
     operation: "apply citation verdict draft",
     intent: "citation-verdicts",
     argv,
@@ -618,9 +546,6 @@ export async function main(argv = process.argv.slice(2)) {
     throw new Error(`Citation verdict write did not update ${slug}: ${JSON.stringify(writeResult)}`);
   }
 
-  // Post-write visibility: the mutation is durable, so from here on failures
-  // downgrade to warnings recorded in the receipt (at worst the public page
-  // refreshes on the next 1-hour ISR window).
   const revalidateBaseUrl = getFlagValue(argv, "--revalidate-url")?.trim()
     || process.env.DOSEWIKI_REVALIDATE_URL?.trim()
     || DEFAULT_REVALIDATE_BASE_URL;

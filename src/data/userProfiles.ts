@@ -28,46 +28,10 @@ export type NormalizedUserProfile = {
   links: UserProfileLink[];
   hasCustomBio: boolean;
   role?: string;
-  /**
-   * The contributor's curated report ordering, passed through from Postgres
-   * (`contributorProfiles.reportOrder`). Optional because only the public
-   * profile read carries it — a profile materialized locally (fallbacks, the
-   * identity mapping, normalizeProfileRecord) has no curation, and absent
-   * means "use the surface's default sort". Consumers apply it with
-   * `applyCuratedOrder`.
-   *
-   * There is deliberately no works counterpart: an artist's replications are
-   * ordered newest work first and nothing outranks the date.
-   */
   reportOrder?: string[];
-  /**
-   * The contributor's opt-out from the public /replications gallery, passed
-   * through from Postgres (`contributorProfiles.exclude_from_gallery`). Absent
-   * means included. It gates ONLY the gallery corpus
-   * (`getPublicGalleryReplications`) — effect-article replication sections,
-   * substance showcases, the contributor's own profile page, and permalinks
-   * still show the works.
-   */
   exclude_from_gallery?: boolean;
-  /**
-   * Staff-maintained archival marker, passed through from Postgres
-   * (`contributorProfiles.archival`). Absent means a normal profile; `true`
-   * renders the "Archival profile" notice under the public profile handle.
-   */
   archival?: boolean;
-  /**
-   * Editorial endorsement of a replication artist, passed through from Postgres
-   * (`contributorProfiles.approved_replicator`). Absent means an ordinary
-   * artist; `true` stars the name on the /replications index, lifts the
-   * artist's rail above the rest of the default order, and badges the Artist
-   * Page.
-   */
   approved_replicator?: boolean;
-  /**
-   * Signed staff commentary, passed through from Postgres
-   * (`contributorProfiles.staffNote`). Absent renders nothing; present it is
-   * the public "Editor's note" speech-bubble section under the bio.
-   */
   staffNote?: {
     markdown: string;
     attribution?: string;

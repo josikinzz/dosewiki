@@ -1,8 +1,3 @@
-/**
- * Task identity checks: local proposal bindings, corrective rerun linkage, and
- * the match between the current citation task and its initialized manifest.
- */
-
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, resolve } from "node:path";

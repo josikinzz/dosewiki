@@ -68,7 +68,6 @@ describe("UI translation workbench route boundaries", () => {
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     const json = await response.json();
     expect(json.locales).toEqual(["zh-Hans"]);
-    // The waiting list came from an offline compile, so the reviewer is told it was not refreshed.
     expect(json.catalogRefreshed).toBe(false);
   });
 });

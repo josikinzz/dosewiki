@@ -76,7 +76,6 @@ export interface DatabaseWriter extends DatabaseReader {
 }
 export interface UserIdentity { subject: string; tokenIdentifier: string; issuer: string; email?: string; name?: string }
 export interface QueryCtx {
-  /** Non-secret identity from the actual pool destination; receipt acceptance requires it. */
   readonly targetIdentity?: string;
   db: DatabaseReader;
   auth: { getUserIdentity(): Promise<UserIdentity | null> };
@@ -114,7 +113,6 @@ function builder<K extends "query" | "mutation", Visibility extends FunctionVisi
   return <Fields extends PropertyValidators, Result>(definition: Definition<K, Fields, Result>): RegisteredFunction<K, Visibility, ObjectType<Fields>, Result> => {
     if (!definition || typeof definition.handler !== "function" || !definition.args) throw new Error("Postgres callables require argument validators and a handler");
     const args = v.object(definition.args).json;
-    // An unspecified result still has to be a serializable application value.
     const returns = definition.returns?.json ?? v.any().json;
     return Object.freeze({
       kind, visibility, args, returns,
@@ -129,6 +127,5 @@ function builder<K extends "query" | "mutation", Visibility extends FunctionVisi
 
 export const query = builder("query", "public");
 export const internalQuery = builder("query", "internal");
-/** Domain writes use the indexedMutation wrapper, which preserves journals and derived indexes. */
 export const mutation = builder("mutation", "public");
 export const internalMutation = builder("mutation", "internal");

@@ -30,11 +30,6 @@ export function entitySocialCardImage(
     : undefined;
 }
 
-/**
- * Resolve an immersive-view deep link's work to its immutable replication
- * card. Unknown slugs fail closed so the host page keeps its normal social
- * image.
- */
 export function replicationViewerSocialCardImage(viewerSlug: string) {
   return entitySocialCardImage(
     "replications",

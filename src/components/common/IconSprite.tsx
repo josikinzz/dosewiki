@@ -3,19 +3,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import iconData from "./iconData.generated.json";
 
-/**
- * Icons that a long page repeats: disclosure controls, reference backlinks,
- * category chips, and paired collapsed/expanded pharmacology cards. Each name
- * maps to the `<symbol>` id the sprite registers it under.
- *
- * Inside an `IconSpriteScope`, `Icon` renders these as a one-line
- * `<svg><use href="#id"/></svg>` instead of inlining the full glyph markup on
- * every occurrence.
- *
- * Deliberately small and explicit. A name is worth adding only when the same
- * article can render it more than once; one-off section icons stay on the
- * regular inline path.
- */
 const SPRITE_ICON_IDS: Readonly<Record<string, string>> = {
   "lucide:ellipsis": "dw-icon-ellipsis",
   "lucide:chevron-down": "dw-icon-chevron-down",
@@ -31,7 +18,6 @@ type SpriteSymbol = {
   viewBox: string;
 };
 
-/** Resolve each sprite name against the offline icon bundle, once per module. */
 function buildSpriteSymbols(): SpriteSymbol[] {
   const symbols: SpriteSymbol[] = [];
   for (const [name, id] of Object.entries(SPRITE_ICON_IDS)) {
@@ -72,11 +58,6 @@ const SPRITE_VIEWBOX_BY_ID = new Map(
   SPRITE_SYMBOLS.map((symbol) => [symbol.id, symbol.viewBox]),
 );
 
-/**
- * Look up how `Icon` should reference a sprited name: the symbol id and the
- * viewBox the referencing `<svg>` must carry so the glyph scales exactly as the
- * inline render did. `null` when the name is not in the sprite.
- */
 export function getSpriteReference(
   icon: string,
 ): { id: string; viewBox: string } | null {
@@ -88,16 +69,10 @@ export function getSpriteReference(
 
 const IconSpriteContext = createContext(false);
 
-/** Whether the nearest `IconSpriteScope` has mounted the sprite for this tree. */
 export function useIconSpriteAvailable(): boolean {
   return useContext(IconSpriteContext);
 }
 
-/**
- * The hidden sprite itself: one `<symbol>` per entry in `SPRITE_ICON_IDS`.
- * Zero-sized and absolutely positioned rather than `display: none` so every
- * browser resolves `<use>` references into it.
- */
 function IconSpriteDefinitions() {
   if (SPRITE_SYMBOLS.length === 0) return null;
   return (
@@ -122,11 +97,6 @@ function IconSpriteDefinitions() {
   );
 }
 
-/**
- * Mounts the sprite once and tells every `Icon` beneath it that `<use>`
- * references will resolve. Outside a scope `Icon` keeps inlining full glyphs,
- * so a page that never opts in cannot lose an icon to a missing sprite.
- */
 export function IconSpriteScope({ children }: { children: ReactNode }) {
   return (
     <IconSpriteContext.Provider value={true}>

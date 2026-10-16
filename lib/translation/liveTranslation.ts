@@ -1,17 +1,3 @@
-/**
- * Live locale mirrors of dose.wiki records: substance articles, effect
- * articles, trip reports, the long-form library articles, and replication
- * media records.
- *
- * The batch pipeline under `scripts/translation/` owns segmentation, the
- * prompt, validation, and the model call; this module runs the same pieces
- * against the runtime store instead of an export artifact. A record is cut
- * into segments keyed by content hash, the stored targets are spliced back
- * over a clone, and any segment without a stored target keeps its English
- * so a fresh edit never blanks a page. The refresh side translates only the
- * hashes the store lacks, always with the same model and system prompt, and
- * records the prompt digest so a deliberate prompt change can be replayed.
- */
 import "server-only";
 
 import { createHash } from "node:crypto";
@@ -43,10 +29,8 @@ import { soloClaim, type TranslationWave } from "./translationWave";
 
 export { createTranslationWave, type TranslationWave } from "./translationWave";
 
-/** Which runtime record corpus a translation job addresses. */
 export type TranslationRecordKind = "article" | "effect" | "report" | "library" | "replication" | "profile";
 
-/** Every kind, in the order the operator tooling reports them. */
 export const TRANSLATION_RECORD_KINDS: readonly TranslationRecordKind[] = [
   "article",
   "effect",
@@ -56,13 +40,11 @@ export const TRANSLATION_RECORD_KINDS: readonly TranslationRecordKind[] = [
   "profile",
 ];
 
-/** The batch corpus plus the runtime-only keys a public record carries that an export does not. */
 const LIVE_SUBSTANCE_CORPUS = {
   ...CORPORA.substances,
   excludedKeys: [...CORPORA.substances.excludedKeys, "publicRevision", "section_gaps", "editorial_review"],
 };
 
-/** Contributor records are projected to `{ slug, bio }` before segmentation. */
 const LIVE_PROFILE_CORPUS = {
   id: "profiles",
   label: "Contributor profiles",
@@ -75,17 +57,6 @@ const LIVE_PROFILE_CORPUS = {
   markupFields: {},
 };
 
-/**
- * Public effect and report records carry the same fields the open-data
- * exports segment, so the batch corpora apply unchanged. Effect bodies are
- * raw VCode beside a derived tree, so localization reparses the translated
- * raw into the tree field exactly as the batch run does. A public library
- * article is the batch export plus `authors`, the legacy Mongo ObjectIds the
- * batch loader strips and no reader ever sees; its VCode body reparses into
- * `body_ast` the same way. A replication record's only prose is its title;
- * the corpus excludes every other field by name, so the gallery projection
- * and the full permalink record segment identically.
- */
 const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> = {
   article: LIVE_SUBSTANCE_CORPUS,
   effect: { ...CORPORA.effects, excludedKeys: [...CORPORA.effects.excludedKeys] },
@@ -95,16 +66,13 @@ const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> 
   profile: LIVE_PROFILE_CORPUS,
 };
 
-/** Effect and library bodies reconcile their derived `*_ast` trees against the translated raw. */
 const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<Parameters<typeof assembleLocaleDataset>[3]["parse"]>>> = {
   effect: parseRawVCodeContent,
   library: parseRawVCodeContent,
 };
 
-/** The job table keys every record by slug; the non-substance kinds carry a namespace prefix so one row always resolves to exactly one corpus. */
 const PREFIXED_KINDS = ["effect", "report", "library", "replication", "profile"] as const;
 
-/** The corpus and bare slug one `translationJobs` row addresses; a bare slug is a substance article. */
 export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRecordKind; slug: string } {
   for (const kind of PREFIXED_KINDS) {
     const prefix = `${kind}/`;
@@ -113,16 +81,10 @@ export function parseTranslationJobSlug(jobSlug: string): { kind: TranslationRec
   return { kind: "article", slug: jobSlug };
 }
 
-/** The `translationJobs` slug for one record: bare for substances, kind-prefixed otherwise. */
 export function translationJobSlug(kind: TranslationRecordKind, slug: string): string {
   return kind === "article" ? slug : `${kind}/${slug}`;
 }
 
-/**
- * Every public record, of every kind, with a segment that mentions any of
- * `terms` by the glossary matcher: the records a glossary edit can change.
- * Reads the whole corpus, as the coverage lens and the stale replay do.
- */
 export async function recordsMentioning(
   reads: PublicDataReadAdapter,
   terms: readonly string[],
@@ -138,12 +100,6 @@ export async function recordsMentioning(
   return hits;
 }
 
-/**
- * The public record a job addresses, read uncached because the job exists
- * precisely when the cached record is stale. Null means nothing public carries
- * the slug: unpublished, renamed, a blog row asked for as a library article,
- * or a replication the public surfaces would not publish.
- */
 export async function readTranslationRecord(
   reads: PublicDataReadAdapter,
   kind: TranslationRecordKind,
@@ -173,7 +129,6 @@ export async function readTranslationRecord(
   }
 }
 
-/** Every slug the public surfaces currently publish for one kind: the enqueue-all set and the coverage denominator. */
 export async function publicRecordSlugs(reads: PublicDataReadAdapter, kind: TranslationRecordKind): Promise<string[]> {
   switch (kind) {
     case "article":
@@ -195,12 +150,6 @@ export async function publicRecordSlugs(reads: PublicDataReadAdapter, kind: Tran
   }
 }
 
-/**
- * Every public record of one kind, for the whole-corpus passes (backfill,
- * coverage). Kinds with a plain bulk read use it; substances and effects only
- * list slugs or previews outside a Next process, so they are read by slug a
- * few at a time.
- */
 export async function publicRecords(
   reads: PublicDataReadAdapter,
   kind: TranslationRecordKind,
@@ -240,49 +189,27 @@ export async function publicRecords(
 
 export const TRANSLATION_MODEL = DEFAULT_MODEL;
 
-/** Every locale the pipeline can translate into, live or not; the Glossary tab drafts for any of them. */
 export const TRANSLATION_LOCALE_CODES: readonly string[] = Object.keys(LOCALES);
 
-/** Requests in flight per refresh; a refresh runs inside one cron invocation, not a 100-wide batch run. */
 const REFRESH_CONCURRENCY = 8;
 
 export type TranslationExecutionOptions = {
   signal?: AbortSignal;
   requestPool?: TranslationRequestPool;
-  /** Bulk only: the wave this job belongs to. Incremental refreshes write and request on their own. */
   wave?: TranslationWave;
-  /** Called once per model request, including requests of a refresh that later fails. */
   onUsage?: (usage: { prompt: number; completion: number }) => void;
-  /** Called with the number of segments a refresh stored, even when it then fails. */
   onStored?: (count: number) => void;
 };
 
-/**
- * Everything a translation run needs to agree on: the locale's prompt, the
- * approved glossary it injects, the kind of each approved term (so the
- * prompt confines surface-specific kinds to their surface), the English
- * glosses that ride beside each injected term, and the digest the prompt
- * and the two maps produce. Loaded once per run so every batch in it is
- * stamped with the digest it was made under.
- */
 export type TranslationContext = {
   locale: TranslationLocale;
   glossary: Glossary;
-  /** `term -> kind` for the approved rows; see `kindInContext` in locales.mjs. */
   kinds: Readonly<Record<string, string>>;
-  /** `term -> gloss`, locale-independent; injected beside the rendering of any term a batch mentions. */
   glosses: Readonly<Record<string, string>>;
-  /** The locale's approved style guide (rules and examples the prompt prints); null when none is approved. */
   styleGuide?: StyleGuide | null;
   promptVersion: string;
 };
 
-/**
- * Digest of everything that shapes an answer besides the segment itself:
- * model, system prompt, approved glossary, glosses, and the approved style
- * guide revision. A locale with no approved guide keeps the digest it had
- * before style guides existed, so introducing them marks nothing stale.
- */
 export function promptVersionFor(
   locale: TranslationLocale,
   glossary: Glossary,
@@ -301,7 +228,6 @@ export function promptVersionFor(
   return hash.digest("hex").slice(0, 16);
 }
 
-/** Build a prompt context from glossary data a request already fetched. */
 export function translationContextFromRows(
   localeCode: string,
   rows: readonly Pick<TranslationGlossaryRow, "term" | "target" | "kind" | "status">[],
@@ -328,15 +254,12 @@ export function segmentsOf(record: { slug: string }, kind: TranslationRecordKind
   return extractSegments({ items: [record as unknown as Record<string, unknown>] }, LIVE_CORPORA[kind]).segments;
 }
 
-/** The deduped work units of one record, each stamped with the corpus it came from so the prompt can scope glossary kinds. */
 export function workUnitsOf(segments: readonly Segment[], kind: TranslationRecordKind): WorkUnit[] {
   return buildWorkUnits(segments).map((unit) => ({ ...unit, contextKind: kind }));
 }
 
-/** `review` is the page review state: paragraphs whose human approval is current, of all paragraphs. */
 export type LocalizedRecord<T> = { record: T; applied: number; missing: number; review: PageReviewState };
 
-/** The record with every stored translation spliced in; untranslated leaves stay English. */
 export async function localizeRecord<T extends { slug: string }>(
   record: T,
   localeCode: string,
@@ -359,7 +282,6 @@ export async function localizeRecord<T extends { slug: string }>(
   };
 }
 
-/** A whole set of records with stored translations spliced in, one store round trip. */
 export async function localizeRecords<T extends { slug: string }>(
   records: readonly T[],
   localeCode: string,
@@ -378,11 +300,6 @@ export async function localizeRecords<T extends { slug: string }>(
   return { records: assembled.dataset.items as T[], applied: assembled.applied, missing: assembled.missing };
 }
 
-/**
- * Splice flat-store translations into an arbitrary corpus-shaped dataset.
- * This is for reader datasets such as warning banners that are not translation
- * job record kinds; untranslated leaves remain canonical English.
- */
 export async function localizeDataset<T extends Record<string, unknown>>(
   dataset: { items: readonly T[] },
   corpus: typeof LIVE_SUBSTANCE_CORPUS,
@@ -415,12 +332,6 @@ export type RefreshOutcome = {
   usage: { prompt: number; completion: number; requests: number };
 };
 
-/**
- * Translate the work units the store lacks and persist the ones that pass
- * every blocking check. A rejected unit is recorded, not stored: its English
- * keeps rendering, the rejection row explains why, and the next refresh
- * tries it again.
- */
 export async function translateUnits(
   units: readonly WorkUnit[],
   context: TranslationContext,
@@ -434,8 +345,6 @@ export async function translateUnits(
   const usage = { prompt: 0, completion: 0, requests: 0 };
   const rows: TranslationSegmentRow[] = [];
   const rejected: RefreshOutcome["rejected"] = [];
-  // Claim before the first await, so a job started later in the same tick
-  // shares this job's segments instead of requesting them again.
   const claim = wave ? wave.claim(localeCode, promptVersion, units) : soloClaim(units);
 
   const batches = planBatches(claim.owned);
@@ -479,7 +388,6 @@ export async function translateUnits(
             prompt_version: promptVersion,
           });
         }
-        // Persist accepted work before another model batch can time out.
         await claim.settle(batchRows, batchRejected);
         if (batchRows.length > 0) options.onStored?.(batchRows.length);
         await Promise.all([
@@ -498,16 +406,13 @@ export async function translateUnits(
   );
 
   const failure = results.find((result) => result.status === "rejected");
-  // Only segments no batch answered are still open to fail.
   claim.abandon(failure?.status === "rejected" ? failure.reason : new Error("Translation segment was never answered"));
   if (failure?.status === "rejected") throw failure.reason;
   signal?.throwIfAborted();
-  // Segments another job in the wave owned: stored or rejected there, never requested here.
   const shared = await claim.shared();
   return { stored: rows.length + shared.stored, rejected: [...rejected, ...shared.rejected], usage };
 }
 
-/** Bring one record's locale up to date with its current English and the current prompt digest. */
 export async function refreshRecordTranslations(
   record: { slug: string },
   context: TranslationContext,
@@ -520,9 +425,6 @@ export async function refreshRecordTranslations(
   const localeCode = context.locale.code;
   const segments = segmentsOf(record, kind);
   const units = workUnitsOf(segments, kind);
-  // Missing hashes and hashes stamped with another digest both go back to the
-  // model: a scoped stale replay marks the segments a glossary edit touched
-  // and enqueues their records, and this is where the cron picks them up.
   const pending = new Set(await pendingTranslationHashes(localeCode, units.map((unit) => unit.hash), context.promptVersion));
   const due = units.filter((unit) => pending.has(unit.hash));
   const result = due.length > 0

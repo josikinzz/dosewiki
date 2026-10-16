@@ -14,34 +14,12 @@ import {
   WARNING_BANNER_LIMITS,
 } from "../src/data/substanceWarningBanners";
 
-/**
- * Drug-class safety banner presets: the stored `warningBannerPresets` rows and
- * the editorial reads the /dev Banner Studio needs.
- *
- * The invariant, and the reason this module is deliberately thin: **a banner is
- * opt-in**. It renders on a substance if and only if `enabled` is true and the
- * substance's slug is in `enabledSlugs`. Nothing here reads a substance's
- * classification to decide that, and `listSubstanceTargetsPage` hands class
- * strings to the Studio purely so an editor can be *shown* likely candidates —
- * the suggestion never becomes an assignment without a save.
- *
- * The pure rules — matching, ordering, the two-banner cap, and the shared
- * normalizers this module writes through — live in
- * `src/data/substanceWarningBanners.ts`, imported by the browser Studio, the
- * Next read helper, and this file, so the three cannot disagree about what a
- * valid preset is. This module only wires them to the database. The public
- * article read goes through `lib/next/warningBanners.ts` on top of
- * `listPresets`, cached under the banners tag.
- */
-
-/** Shared by the row read validator and the write args; see `server/schema.ts`. */
 const warningBannerToneValidator = v.union(
   v.literal("danger"),
   v.literal("unsafe"),
   v.literal("caution"),
 );
 
-/** Public warning projection: excludes editor identities and revision tokens. */
 const warningBannerPresetDocValidator = v.object({
   _id: v.id("warningBannerPresets"),
   _creationTime: v.number(),
@@ -61,11 +39,6 @@ function reject(message: string): never {
   throw new PostgresError({ code: "INVALID_WARNING_BANNER", message });
 }
 
-/**
- * The substance for a slug, or null. Mirrors `uniqueSubstanceBySlug` in
- * `server/substanceGalleries.ts`: a duplicated slug is ambiguous and treated as
- * not found rather than letting two articles fight over one banner.
- */
 async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   const matches = await ctx.db
     .query("substanceIndex")
@@ -74,13 +47,6 @@ async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-/**
- * Every preset, unfiltered. Public and ungated on purpose: this is a handful of
- * rows — one per drug-class warning, single digits in practice — and the public
- * article read needs all of them to resolve which banners a slug opted into.
- * Nothing here is editor-private; a live preset is copy a reader already sees,
- * and a dormant one is copy nobody can reach.
- */
 export const listPresets = query({
   args: {},
   returns: v.array(warningBannerPresetDocValidator),
@@ -102,22 +68,9 @@ export const listEditorPresets = query({
   },
 });
 
-/** How the Banner Studio's target picker pages the substance index. */
 const TARGET_PAGE_SIZE = 100;
 const TARGET_MAX_PAGE_SIZE = 200;
 
-/**
- * One page of the Studio's substance picker: every substance with the class
- * strings its search box can match on. Editorial read — it walks the whole
- * article table — so it takes the same maintenance intent as
- * `substanceGalleries.listCurationCandidatesPage`. The caller (the batched Next
- * route) drains the cursor and answers the picker in one response.
- *
- * The class arrays are search fuel only, never stored on a preset:
- * `searchWarningBannerTargets` in `src/data/substanceWarningBanners.ts` turns a
- * typed word into a list an editor ticks, and ticking is the only thing that
- * enables a banner.
- */
 export const listSubstanceTargetsPage = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -145,9 +98,6 @@ export const listSubstanceTargetsPage = query({
 
     for (const substance of page.page) {
       const slug = substance.slug?.trim();
-      // No slug means no article URL, and the render rule keys on slug alone —
-      // such a row can never be a banner target, so offering it in the picker
-      // would only let an editor enable a preset that can never appear.
       if (!slug) {
         continue;
       }
@@ -163,18 +113,6 @@ export const listSubstanceTargetsPage = query({
   },
 });
 
-/**
- * Create or replace one preset, addressed by `key`.
- *
- * Idempotent by key: a retried save patches the same row instead of minting a
- * duplicate, which matters because the article read resolves a key to exactly
- * one banner.
- *
- * `enabledSlugs` is pruned here rather than stored as submitted — a slug that
- * names no article would be a silent promise of a banner nobody can see — and
- * the surviving list comes back in the echo, which the Studio adopts verbatim.
- * Pruning has to be visible: "you enabled 7, 5 stuck" is the whole point.
- */
 export const upsertPreset = mutation({
   args: {
     apiKey: v.optional(v.string()),
@@ -257,8 +195,6 @@ export const upsertPreset = mutation({
       );
     }
 
-    // Checked before the per-slug lookups: a payload that can never be stored
-    // should not cost the corpus a few hundred index reads first.
     if (args.enabledSlugs.length > MAX_ENABLED_SLUGS) {
       reject(`A banner preset may be enabled on at most ${MAX_ENABLED_SLUGS} substances.`);
     }
@@ -270,10 +206,6 @@ export const upsertPreset = mutation({
       );
     }
 
-    // Prune, do not reject: a slug naming no article (renamed, unpublished, or
-    // typed) is dropped so the stored list cannot promise a banner nobody can
-    // reach. `uniqueSubstanceBySlug` treats a duplicated slug as not found for
-    // the same reason it does in `server/substanceGalleries.ts`.
     const enabledSlugs: string[] = [];
     for (const slug of normalizeEnabledSlugs(args.enabledSlugs)) {
       if (await uniqueSubstanceBySlug(ctx, slug)) {
@@ -335,11 +267,6 @@ export const upsertPreset = mutation({
   },
 });
 
-/**
- * Delete one preset. Not destructive to a reader: the public helper resolves
- * banners from whatever rows exist, so a removed preset simply stops rendering
- * — there is no checked-in default banner to fall back to, by design.
- */
 export const removePreset = mutation({
   args: {
     apiKey: v.optional(v.string()),

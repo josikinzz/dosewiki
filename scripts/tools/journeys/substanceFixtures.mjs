@@ -1,49 +1,12 @@
-/**
- * The Substances tool's records for browser journeys and screenshots of
- * `/dev/articles`: whole articles for the editor library's per-slug read, and
- * the private article lifecycle (`/api/dev/article-lifecycle`) the in-page
- * editor loads, saves drafts to, submits and publishes through.
- *
- * Four articles are whole with real content (LSD, MDMA, Ketamine and Alcohol,
- * taken once from the archived public snapshot `public/SubstanceIndex.json`
- * into `substanceArticlesSeed.json`). Every other library row answers as a
- * whole article with its own identity and tags over empty sections
- * (`emptyArticleSeed.json`, a copy of the schema's `createEmptyArticle()`
- * that `src/data/schema/journeysEmptyArticleSeed.test.ts` keeps in step;
- * refresh it with `node -e "import('./src/data/schema/defaults.generated.ts').then((m) =>
- * require('fs').writeFileSync('scripts/tools/journeys/emptyArticleSeed.json',
- * JSON.stringify(m.createEmptyArticle(), null, 2) + '\n'))"`), so article previews in Banners,
- * Molecules and Replication Studio draw the page. Caffeine alone stays the
- * thin projection the corpus tools read, so opening it exercises the tools'
- * "cannot draw this article" state.
- *
- * `createSubstanceRoutes` keeps its own small store per fixture and holds the
- * rules the real route holds: the editor floor, the admin floor for publish
- * and restore, the draft version check, the base revision check (409
- * `ARTICLE_CONFLICT`), "No article content changed", the summary rule, and the
- * write freeze (through the fixture's `toolWrite`). Under `conflicted`,
- * another admin publishes each article just before the editor's first publish
- * or submit of it lands, so that one is refused until they load the latest
- * version and merge.
- *
- * Seeded state: MDMA holds the viewer's saved private draft (a raised oral
- * moderate dose), so opening it shows a recovered draft; LSD has two recorded
- * revisions (one by another admin). Proposals come from the shared proposal
- * list, so the seeded LSD and Ketamine proposals show on their articles.
- *
- * Pure module: no Playwright and no Node imports beyond the JSON seed.
- */
 import EMPTY_ARTICLE from "./emptyArticleSeed.json" with { type: "json" };
 import SUBSTANCE_ARTICLES from "./substanceArticlesSeed.json" with { type: "json" };
 
 export const WHOLE_ARTICLE_SLUGS = Object.freeze(Object.keys(SUBSTANCE_ARTICLES));
 
-/** The one library row kept thin on purpose: the renderer cannot draw it. */
 export const UNDRAWABLE_ARTICLE_SLUGS = Object.freeze(["caffeine"]);
 
 const isPlainObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
-/** `overlay` over `base`, merging nested plain objects so a row's partial section keeps the rest. */
 function mergeOver(base, overlay) {
   const merged = structuredClone(base);
   for (const [key, value] of Object.entries(overlay)) {
@@ -52,21 +15,17 @@ function mergeOver(base, overlay) {
   return merged;
 }
 
-/** The line another admin publishes under `conflicted`. */
 export const CONCURRENT_SUMMARY_SUFFIX = " Edited by another admin while you were working.";
 
-/** A whole article for `slug` with the library row's identity and tags on top, or null. */
 export function wholeArticle(row) {
   if (!row?.slug || UNDRAWABLE_ARTICLE_SLUGS.includes(row.slug)) return null;
   const seed = SUBSTANCE_ARTICLES[row.slug];
   if (!seed) {
-    // Identity and tags over empty sections: a real article with nothing written yet.
     return mergeOver(EMPTY_ARTICLE, { ...row, editorial_review: row.editorial_review ?? { status: "needed", notes: "" } });
   }
   return {
     ...structuredClone(seed),
     ...structuredClone(row),
-    // The row's review record when it has one (`reviewFixtures.mjs`).
     editorial_review: structuredClone(row.editorial_review ?? { status: row.slug === "lsd" ? "in_progress" : "needed" }),
   };
 }
@@ -74,7 +33,6 @@ export function wholeArticle(row) {
 const HOUR = 3_600_000;
 
 export function createSubstanceRoutes({ fixture, json, toolRead, toolWrite, epoch, otherAdmin, row, proposals, proposalSummary }) {
-  /** Per slug: the published article, its hash, the viewer's draft, the revisions and answered changes. */
   const store = new Map();
   let hashCounter = 0;
   let revisionCounter = 0;
@@ -134,7 +92,6 @@ export function createSubstanceRoutes({ fixture, json, toolRead, toolWrite, epoc
     };
   }
 
-  /** Another admin publishes `slug` now: its content and hash move. */
   function publishConcurrently(slug, record) {
     const before = structuredClone(record.article);
     const after = structuredClone(record.article);
@@ -184,7 +141,6 @@ export function createSubstanceRoutes({ fixture, json, toolRead, toolWrite, epoc
       record.draft = { article: structuredClone(body.article), baseHash: body.baseHash, version: record.draftVersion, updatedAt: new Date().toISOString(), ...(body.revisionOf ? { revisionOf: body.revisionOf } : {}) };
       result = { draft: { version: record.draftVersion, baseHash: body.baseHash }, draftVersion: record.draftVersion, baseHash: body.baseHash, changeId: body.changeId };
     } else {
-      // Under `conflicted`, another admin publishes just before the editor's first publish or submit lands.
       if (fixture.state === "conflicted" && !record.contested) {
         record.contested = true;
         publishConcurrently(slug, record);
@@ -234,10 +190,8 @@ export function createSubstanceRoutes({ fixture, json, toolRead, toolWrite, epoc
     return json(200, answer);
   }
 
-  /** The viewer's saved article drafts, for `/api/dev/my-work`. */
   function myDrafts() {
     if (fixture.state === "empty") return [];
-    // MDMA's seeded draft exists before the article is first opened.
     recordFor("mdma");
     return [...store.entries()]
       .filter(([, record]) => record.draft)

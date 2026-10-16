@@ -9,10 +9,6 @@ const paginate = vi.fn(async () => ({
   isDone: true,
 }));
 
-/**
- * Mirrors the ctx shape in `dataAuthzWriteIntents.test.ts`, plus the
- * `substanceIndex` table read the editor projection performs once authorized.
- */
 function createCtx({
   identity,
   memberships = {},
@@ -57,8 +53,6 @@ function createCtx({
   } as never;
 }
 
-// Postgres registered functions keep the original handler on `_handler`; there is
-// no in-repo Postgres runtime harness, so the handler is exercised directly.
 const handler = (getTagRegistryPage as unknown as {
   _handler: (ctx: never, args: unknown) => Promise<unknown>;
 })._handler;
@@ -113,8 +107,6 @@ describe("substanceIndex.getEditorLibraryPage authorization", () => {
   });
 
   it("is guarded exactly like the whole-article drain", async () => {
-    // The slim list still carries `editorial_review` (review status, notes,
-    // and flags), so trimming the projection must not have relaxed the gate.
     process.env.DATA_ADMIN_KEY = "secret";
 
     await expect(

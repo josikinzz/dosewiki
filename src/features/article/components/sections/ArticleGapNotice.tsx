@@ -22,7 +22,6 @@ export interface ArticleGapNoticeProps {
   footer?: ReactNode;
 }
 
-/** Pure projection wrapper: whole-article gap policy is resolved before the client boundary. */
 export const ArticleGapNotice = memo(function ArticleGapNotice({
   article,
   section,
@@ -44,7 +43,6 @@ export interface ArticleSubsectionGapProps {
   className?: string;
 }
 
-/** Pure projection wrapper: only resolved reason scalars cross to localization. */
 export const ArticleSubsectionGapNotice = memo(
   function ArticleSubsectionGapNotice({
     article,
@@ -75,7 +73,6 @@ export interface ArticleStubBannerProps {
   className?: string;
 }
 
-/** Pure projection wrapper: classification and missing-section scans remain server-side. */
 export const ArticleStubBanner = memo(function ArticleStubBanner({
   article,
   className,

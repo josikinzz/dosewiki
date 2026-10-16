@@ -54,7 +54,6 @@ import {
 
 export type FeedbackQueueStatus = "new" | "reviewing" | "resolved" | "rejected" | "spam";
 
-/** A status, `all`, or `unresolved` (New and Reviewing together). */
 export type FeedbackQueueFilter = FeedbackQueueStatus | "all" | "unresolved";
 
 export type FeedbackTransitionInput = { status: FeedbackQueueStatus; note?: string; outcome?: FeedbackOutcome };
@@ -70,53 +69,24 @@ export type FeedbackQueueItem = {
   decision_log?: DecisionLogEntry<FeedbackQueueStatus>[];
 };
 
-/** How much a reader said a report matters; the queue shows it as a pill and can sort by it. */
 export type FeedbackImportance = "critical" | "high" | "normal" | "low";
 
 export type FeedbackSourceAdapter<Item extends FeedbackQueueItem> = {
   source: "article" | "site" | "glossary";
-  /**
-   * One page of the queue with status, search and order applied by the
-   * source, plus the per-status counts of every row the search matches.
-   */
   fetchPage: (query: FeedbackPageQuery) => Promise<FeedbackPage<Item>>;
-  /**
-   * One item by id, for a task link whose item the current list does not
-   * show. Null when it no longer exists or the session cannot open it.
-   */
   fetchItem?: (id: string) => Promise<Item | null>;
   transition: (id: string, input: FeedbackTransitionInput) => Promise<Item>;
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>;
-  /** The row's importance, for sources whose form asks for one. */
   importance?: (item: Item) => FeedbackImportance | null | undefined;
-  /**
-   * The item's facts (where it came from, received, contact, spam trap) as
-   * `FeedbackFacts`. The review pane draws the title, pills and what the
-   * reader wrote itself, so this draws neither.
-   */
   renderDetail: (item: Item) => ReactNode;
-  /**
-   * True when the source stores a decision log, so the review shows every
-   * decision. A source without one shows only its latest note.
-   */
   keepsDecisionLog?: boolean;
-  /**
-   * True when the source records an explicit outcome (Duplicate, Explanation
-   * provided, No change needed) with the decision that closes an item.
-   */
   recordsOutcomes?: boolean;
-  /**
-   * The source's correction tracking under the details (article feedback:
-   * Start correction, Link existing change, and where each linked change
-   * stands). `onRowChange` puts the row a link left back in the queue.
-   */
   renderCorrection?: (item: Item, onRowChange: (updated: Item) => void) => ReactNode;
   labels: {
     icon: string;
     title: string;
     description: string;
     emptyQueue: string;
-    /** What one item is called in sentences ("article feedback"). */
     noun?: string;
     itemTitle: (item: Item) => string;
     itemSubtitle: (item: Item) => string | null;
@@ -131,31 +101,20 @@ type LoadState =
 
 type MoreState = { status: "idle" } | { status: "loading" } | { status: "error"; message: string };
 
-/**
- * The search a queue request may carry: the typed text, or nothing when it
- * looks like a reader's contact details, which never enter a request URL.
- */
 function searchableText(text: string): string {
   return looksLikeContactDetails(text) ? "" : text.trim();
 }
 
-/** Pause after the last keystroke before the search goes to the server. */
 const SEARCH_DEBOUNCE_MS = 250;
 
 const QUEUE_FILTERS: FeedbackQueueFilter[] = ["all", "unresolved", ...QUEUE_STATUSES];
 
 const STATUS_LABELS = FEEDBACK_STATUS_LABELS;
 
-/** Decisions the bulk bar can make on ticked rows. */
 type BulkDecision = Extract<FeedbackQueueStatus, "rejected" | "spam">;
 
-/** The last single decision, so `u` and the Undo button can take it back. */
 type LastDecision = { id: string; title: string; from: FeedbackQueueStatus; to: FeedbackQueueStatus };
 
-/**
- * Where undo takes a decided row: back where it was when the transitions
- * allow it, else to Reviewing, which every decided status can reopen to.
- */
 export function undoTarget(
   transitions: Record<FeedbackQueueStatus, FeedbackQueueStatus[]>,
   decision: Pick<LastDecision, "from" | "to">,
@@ -165,7 +124,6 @@ export function undoTarget(
   return allowed.includes("reviewing") ? "reviewing" : null;
 }
 
-/** Decisions that take the row off the queue and are asked about before they write. */
 const CONFIRMED_DECISIONS: Record<
   Extract<FeedbackQueueStatus, "rejected" | "spam">,
   { title: string; lead: (title: string) => string; confirmLabel: string; destructive: boolean }
@@ -180,10 +138,6 @@ export function isFeedbackQueueFilter(value: unknown): value is FeedbackQueueFil
   return typeof value === "string" && (QUEUE_FILTERS as string[]).includes(value);
 }
 
-/**
- * Where the automatic filter goes when its status has nothing: New, then
- * Reviewing, then everything, so the queue opens on the oldest waiting work.
- */
 function automaticFallback(filter: FeedbackQueueFilter, counts: StatusCounts): FeedbackQueueFilter {
   if (filter === "new" && counts.new === 0) {
     return counts.reviewing > 0 ? "reviewing" : "all";
@@ -196,26 +150,12 @@ function automaticFallback(filter: FeedbackQueueFilter, counts: StatusCounts): F
 
 export type FeedbackDraftGuard = (proceed: () => void) => void;
 
-/** The queue context a task link restores: the chosen order, the search, and the item. */
 export type FeedbackQueueContext = { sort: QueueSort | null; search: string; selectedId: string | null };
 
-/**
- * Where a task link's item stands. `pending` while the queue looks for it,
- * `found` once it is on screen, `missing` when it no longer exists or the
- * session cannot open it, `error` when the lookup itself failed.
- */
 type LinkState =
   | { id: string; state: "pending" | "found" | "missing" }
   | { id: string; state: "error"; message: string };
 
-/**
- * A feedback queue as a triage workspace: the list and its filters on the
- * left (sticky from `lg`), the item under review docked on the right with
- * one header and a decision dock (see the Inbox, which embeds the same
- * adapters). Below `lg` the two stack: picking a row scrolls the pane in, the
- * pane carries Back to list and a pager, and the automatic first row stays
- * off screen until a pick.
- */
 export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   adapter,
   heading,
@@ -230,39 +170,19 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   actorEmail = null,
 }: {
   adapter: FeedbackSourceAdapter<Item>;
-  /** The tool heading, when it is not the source's own (the Feedback tab names the tool). */
   heading?: { icon: string; title: string; description?: ReactNode };
-  /**
-   * Controls under the tool heading, such as the tab's source filter.
-   * They receive the queue's draft guard: a control that replaces the queue
-   * runs its change through `guard` so a typed note is never dropped silently.
-   */
   headerActions?: (guard: FeedbackDraftGuard) => ReactNode;
-  /**
-   * Which statuses the list shows. `null` leaves the choice to the queue: the
-   * New rows when there are any, since clearing them is the job, then
-   * Reviewing, else all.
-   */
   statusFilter: FeedbackQueueFilter | null;
   onStatusFilterChange: (filter: FeedbackQueueFilter) => void;
-  /** The item a task link names; the queue opens on it, or says it is gone. */
   initialSelectedId?: string | null;
   initialSort?: QueueSort | null;
   initialSearch?: string;
-  /**
-   * The order the admin chose, the search that went to the server, and the
-   * item they picked or a link named (never the automatic first row), so
-   * the tab can keep them in the address.
-   */
   onContextChange?: (context: FeedbackQueueContext) => void;
-  /** The task link for one item, for the pane's Copy link button. */
   taskLinkFor?: (id: string) => string;
-  /** The signed-in admin, so the pane can say "You are reviewing this". */
   actorEmail?: string | null;
 }) {
   const { labels } = adapter;
   const noun = labels.noun ?? "feedback";
-  // The rail count this queue feeds: glossary feedback has its own badge.
   const railBadge = adapter.source === "glossary" ? "glossary-feedback" : "feedback";
   const [feedback, setFeedback] = useState<Item[]>([]);
   const [counts, setCounts] = useState<StatusCounts | null>(null);
@@ -272,7 +192,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const [link, setLink] = useState<LinkState | null>(() =>
     initialSelectedId ? { id: initialSelectedId, state: "pending" } : null,
   );
-  /** A linked item the current list does not show (another status, or beyond the loaded pages). */
   const [linkedRow, setLinkedRow] = useState<Item | null>(null);
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [refreshing, setRefreshing] = useState(false);
@@ -288,13 +207,7 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const contactSearch = looksLikeContactDetails(searchText);
   const pendingId = pending?.id ?? null;
   const { frozen } = useWriteFreeze();
-  /**
-   * Which list request is allowed to write state. Every load takes the next
-   * number, so a response arriving after a newer load (or after unmount) is
-   * dropped instead of overwriting the newer list.
-   */
   const loadVersion = useRef(0);
-  /** How many rows are loaded, so a background refresh re-reads as many. */
   const loadedCount = useRef(0);
 
   const baseId = useId();
@@ -308,8 +221,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   const noteRef = useRef<HTMLTextAreaElement | null>(null);
 
   const activeFilter: FeedbackQueueFilter = statusFilter ?? autoFilter;
-  // Waiting work opens most important first when the source asks readers for importance, so a
-  // safety report never sits under older nits; history opens newest first.
   const sort = sortChoice ?? (adapter.importance && defaultSort(activeFilter) === "oldest" ? "importance" : defaultSort(activeFilter));
   const automatic = statusFilter === null;
 
@@ -318,7 +229,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     description: "The note you typed is only saved with a decision. Leaving this item now drops it.",
   });
   const { confirm, dialog: confirmDialog } = useConfirm();
-  /** Rows ticked for a bulk decision; separate from the one row under review. */
   const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set());
   const [bulkPending, setBulkPending] = useState(false);
   const [lastDecision, setLastDecision] = useState<LastDecision | null>(null);
@@ -332,13 +242,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     return () => window.clearTimeout(timer);
   }, [searchText]);
 
-  /**
-   * Load the first page for the current status, search and order, or refresh
-   * the rows already loaded. A load never moves the selection: the row the
-   * admin is on stays selected while it is listed. A `background` refresh
-   * keeps the rows on screen, re-reads as many rows as are loaded, and shows
-   * no loading label.
-   */
   const loadQueue = useCallback(
     async ({ background = false }: { background?: boolean } = {}) => {
       const version = ++loadVersion.current;
@@ -362,7 +265,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         }
         const fallback = automatic && !background ? automaticFallback(activeFilter, page.counts) : activeFilter;
         if (fallback !== activeFilter) {
-          // The effect loads the fallback status; this list is never shown.
           setAutoFilter(fallback);
           return;
         }
@@ -397,7 +299,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     void loadQueue({ background: feedback.length > 0 });
   }
 
-  /** The next page, appended; the selection and any typed note stay where they are. */
   async function loadMore() {
     if (!nextCursor || moreState.status === "loading") {
       return;
@@ -427,17 +328,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
   }
 
-  // Rows come in the server's order; a decided row leaves a status filter at once.
   const visible = useMemo(
     () => feedback.filter((row) => matchesFilter(row.status, activeFilter)),
     [feedback, activeFilter],
   );
   const total = counts ? totalFor(counts, activeFilter) : null;
 
-  // A row that left the current filter (after a decision, or a filter change)
-  // hands the review over to the first row still showing. While a note is
-  // typed, a row the search or a reload no longer lists stays under review,
-  // so the note never moves to another row.
   const selected = useMemo(() => {
     const listed = visible.find((row) => row.id === selectedId);
     if (listed) {
@@ -449,22 +345,16 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     if (heldRow && heldRow.id === selectedId && note.trim().length > 0) {
       return heldRow;
     }
-    // A task link never falls back to another row: while its item is looked
-    // for, or once it is known to be gone, the review says so instead.
     if (link && link.id === selectedId && link.state !== "found") {
       return null;
     }
     return visible[0] ?? null;
   }, [heldRow, link, linkedRow, note, selectedId, visible]);
   const selectedIndex = selected ? visible.findIndex((row) => row.id === selected.id) : -1;
-  /** A row the admin picked, or a link named, as opposed to the automatic first row. */
   const picked = selected !== null && selected.id === selectedId;
 
-  // Picking a row below `lg` brings the pane into view; the automatic first row never scrolls.
   useScrollToDetail(paneRef, picked ? selected.id : link && link.id === selectedId && !selected ? `link:${link.id}:${link.state}` : null);
 
-  // Find a task link's item once the first list is in: on the list, or read
-  // on its own when this filter, search or page does not show it.
   const lookupStarted = useRef(false);
   const fetchItem = adapter.fetchItem;
   const lookUpLinked = useCallback(
@@ -500,13 +390,10 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     void lookUpLinked(link.id);
   }, [activeFilter, feedback, link, loadState.status, lookUpLinked]);
 
-  // Report the context a task link restores. The automatic first row is not
-  // a choice, so only a picked or linked item goes out.
   const onContextChangeRef = useRef(onContextChange);
   useEffect(() => {
     onContextChangeRef.current = onContextChange;
   }, [onContextChange]);
-  // The address already holds what the queue opened on; only changes go out.
   const reportedContext = useRef(`${initialSort}|${initialSearch.trim()}|${initialSelectedId}`);
   useEffect(() => {
     const key = `${sortChoice}|${search}|${selectedId}`;
@@ -521,17 +408,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
   }, [selected]);
 
-  /**
-   * The row on screen, for work that finishes later: a decision that lands
-   * after the admin moved on must not touch the note typed on the new row.
-   */
   const currentRowId = useRef<string | null>(null);
   useEffect(() => {
     currentRowId.current = selected?.id ?? null;
   }, [selected]);
 
   function changeNote(value: string) {
-    // Typing pins the row, so a refresh that reorders the list cannot move the note to another one.
     if (selected && selected.id !== selectedId) {
       setSelectedId(selected.id);
     }
@@ -540,7 +422,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
 
   function selectRow(id: string) {
     if (id === selected?.id) {
-      // Picking the automatic row still counts as a pick: on a phone it brings the pane in.
       if (selectedId !== id) setSelectedId(id);
       return;
     }
@@ -553,7 +434,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   }
 
   function changeFilter(next: FeedbackQueueFilter) {
-    // Ticks belong to the list they were made on.
     const apply = () => {
       onStatusFilterChange(next);
       setChecked(new Set());
@@ -573,7 +453,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     setSearchText(text);
   }
 
-  /** Put a written row in the list and move its count from the old status to the new one. */
   function applyTransition(updated: Item, previousStatus: FeedbackQueueStatus) {
     setFeedback((rows) => rows.map((row) => (row.id === updated.id ? updated : row)));
     setLinkedRow((row) => (row && row.id === updated.id ? updated : row));
@@ -590,11 +469,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     return { tone: "danger", message: isFreezeRefusal(message) ? FREEZE_DECISION_COPY : message };
   }
 
-  /**
-   * Write one status change on the row under review. Claims and releases
-   * change the hold line in place and are announced; decisions leave a notice
-   * with Undo in the dock.
-   */
   async function updateStatus(
     status: FeedbackQueueStatus,
     outcome?: FeedbackOutcome,
@@ -624,8 +498,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
           : null,
       );
       setPending(null);
-      // The admin may have moved to another row while this was in flight;
-      // that row, its note and its notices are theirs to keep.
       if (currentRowId.current === decidedId) {
         if (quiet) {
           setAnnouncement(kind === "claim" ? `You are reviewing "${title}".` : `Released "${title}" for anyone to pick up.`);
@@ -643,16 +515,12 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         }
         if (trimmedNote.length > 0) setNote("");
         if (!matchesFilter(updated.status, activeFilter)) {
-          // The decided row leaves this filter: hand the review to its neighbour, pinned.
           const index = visible.findIndex((row) => row.id === decidedId);
           const next = visible[index + 1] ?? visible[index - 1] ?? null;
           setSelectedId(next?.id ?? null);
         }
       }
-      // Any transition can move the row in or out of the pending bucket the rail counts.
       invalidateDevRailBadge(railBadge);
-      // Reconcile counts and concurrent reviewer changes in the background,
-      // keeping the list and the selection where they are.
       void loadQueue({ background: true });
     } catch (error) {
       setNotice(failureNotice(error, "Unable to update feedback."));
@@ -683,7 +551,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     });
   }
 
-  /** Put a row a correction link left back in the list; its status did not move. */
   function replaceRow(updated: Item) {
     setFeedback((rows) => rows.map((row) => (row.id === updated.id ? { ...row, ...updated } : row)));
     setLinkedRow((row) => (row && row.id === updated.id ? { ...row, ...updated } : row));
@@ -691,7 +558,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
 
   const undoTo = lastDecision ? undoTarget(adapter.transitions, lastDecision) : null;
 
-  /** Take the last single decision back; the decision log records both moves. */
   async function undoLastDecision() {
     if (!lastDecision || !undoTo || pendingId || bulkPending) {
       return;
@@ -708,7 +574,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
         tone: "success",
         message: `Undone. ${labels.transitioned(updated, STATUS_LABELS[updated.status].toLowerCase())}`,
       });
-      // Bring the row back under review when it is listed and no note would be dropped.
       if (note.trim().length === 0 && matchesFilter(updated.status, activeFilter)) {
         setSelectedId(updated.id);
       }
@@ -720,10 +585,8 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     }
   }
 
-  /** The task link on screen: one the review is still looking for, or cannot show. */
   const openLink = link && link.id === selectedId && !selected ? link : null;
 
-  /** Drop a link that cannot open; the review goes to the queue's first row. */
   function leaveLink() {
     setLink(null);
     setSelectedId(null);
@@ -757,7 +620,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     setNotice(null);
     const failures: string[] = [];
     const done = new Set<string>();
-    // One at a time: each write is its own decision in the item's log.
     for (const row of targets) {
       try {
         const updated = await adapter.transition(row.id, { status });
@@ -829,7 +691,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
     labels: { accept: "Resolve" },
   });
 
-  // `/` focuses the search, as in every other list tool.
   useDevShortcuts(SEARCH_SHORTCUTS);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -900,7 +761,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
       </div>
     ) : null;
 
-  // Below `lg` the pane waits for a pick: the automatic first row is a desktop convenience.
   const paneHidden = !picked && !openLink && !notice;
 
   return (
@@ -1045,7 +905,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
               validTargets={adapter.transitions[selected.status] ?? []}
               recordsOutcomes={adapter.recordsOutcomes === true}
               pending={pending && pending.id === selected.id ? pending.action : null}
-              // Another row's decision in flight leaves this one free to read and note.
               busy={pending?.id === selected.id || bulkPending}
               frozen={frozen}
               notice={notice}
@@ -1106,10 +965,6 @@ export function FeedbackReviewQueue<Item extends FeedbackQueueItem>({
   );
 }
 
-/**
- * The source's correction panel. On spam it folds shut (nothing to correct,
- * but a mistaken spam call can still be corrected) and mounts only when opened.
- */
 function CorrectionSlot({ folded, children }: { folded: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(!folded);
   const regionId = useId();
@@ -1136,7 +991,6 @@ function CorrectionSlot({ folded, children }: { folded: boolean; children: React
   );
 }
 
-/** The decision log for sources that keep one; otherwise the latest note with who and when. */
 function FeedbackHistory({ row, keepsDecisionLog }: { row: FeedbackQueueItem; keepsDecisionLog: boolean }) {
   if (keepsDecisionLog) {
     return (

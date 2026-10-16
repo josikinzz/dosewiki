@@ -1,19 +1,3 @@
-/**
- * Segment manifest for locale translation.
- *
- * A manifest is the list of things a run will pay to translate: one entry per
- * translatable leaf, with the path that put it there, the safety class of the
- * field group it belongs to, and a content hash. Identical English strings
- * share a hash and translate once.
- *
- * Two kinds of leaf exist. A plain leaf is a JSON string the walker found. A
- * markup leaf is one span inside a VCode body, cut at block boundaries so a
- * model receives a paragraph rather than a fragment, and spliced back at its
- * original offsets so everything the scanner did not select survives byte for
- * byte. Which fields hold markup is a property of the corpus, not of this
- * module.
- */
-
 import { createHash } from "node:crypto";
 
 import { CORPORA } from "./corpora.mjs";
@@ -27,13 +11,11 @@ export {
   SUBSTANCE_SAFETY_GROUPS as SAFETY_GROUPS,
 } from "./corpora.mjs";
 
-/** "20-30 mg", "4 hours", "1.2-2.5h": a measurement, not a sentence. */
 const BARE_MEASUREMENT =
   /^[\s(<>~≈+-]*\d[\d\s.,:/xX*+-]*(?:to|and|or)?[\s\d.,:/-]*(?:%|mg|g|kg|ug|µg|mcg|ng|ml|l|mol|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s|days?|d|weeks?|wks?|months?|years?|yrs?)?[\s).]*$/i;
 const HAS_LETTERS = /[A-Za-z]{2}/;
 const LOOKS_LIKE_URL = /^(?:https?:\/\/|www\.|mailto:)/i;
 
-/** A leaf worth sending to a translation model. */
 export function isTranslatableValue(value) {
   if (typeof value !== "string") return false;
   const trimmed = value.trim();
@@ -61,10 +43,6 @@ export function countWords(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-/**
- * Walks one item and appends its translatable leaves. Object keys are visited
- * in sorted order so the manifest does not inherit key order from upstream.
- */
 function walkValue(value, pointer, corpus, sink) {
   if (Array.isArray(value)) {
     value.forEach((entry, index) => walkValue(entry, [...pointer, index], corpus, sink));
@@ -86,7 +64,6 @@ function walkValue(value, pointer, corpus, sink) {
   sink(pointer, value);
 }
 
-/** Precomputed lookups, so a corpus descriptor stays a plain object. */
 function prepare(corpus) {
   return {
     ...corpus,
@@ -98,11 +75,6 @@ function prepare(corpus) {
   };
 }
 
-/**
- * @param {object} dataset - a published export or a Postgres-backed envelope
- * @param {object} [corpusInput] - corpus descriptor; defaults to the substance index
- * @returns {{segments: Array, counts: object}}
- */
 export function extractSegments(dataset, corpusInput = CORPORA.substances) {
   const corpus = prepare(corpusInput);
   const itemKey = corpus.itemKey ?? "slug";
@@ -122,7 +94,6 @@ export function extractSegments(dataset, corpusInput = CORPORA.substances) {
         continue;
       }
 
-      // A derived syntax tree is never translated and never sent anywhere.
       if (Object.values(corpus.markupFields).includes(group)) {
         excludedWords[group] = (excludedWords[group] ?? 0) + countJsonWords(item[group]);
         continue;
@@ -201,11 +172,6 @@ function countJsonWords(value) {
   return 0;
 }
 
-/**
- * Unique source texts, each carrying its most safety-critical context class and
- * the segments that share it. Identical English strings translate once and land
- * identically everywhere, which is the cheapest form of glossary consistency.
- */
 export function buildWorkUnits(segments) {
   const byHash = new Map();
 
@@ -269,17 +235,6 @@ function setAtPointer(root, pointer, value) {
   return true;
 }
 
-/**
- * Rebuilds the dataset with translated leaves in place. Structure, key order,
- * and every excluded value are inherited from the source, so the artifact is
- * the source shape with different strings in it.
- *
- * A markup body is spliced from its spans and then reconciled: the translated
- * raw is reparsed and its tree compared with the source tree. A body whose
- * tree moved keeps its English, because a broken document is worse than an
- * untranslated one. When a parser is supplied the derived `*_ast` field is
- * recomputed from the shipped raw, so the two can never disagree.
- */
 export function assembleLocaleDataset(
   dataset,
   segments,
@@ -367,14 +322,6 @@ export function assembleLocaleDataset(
   return { dataset: output, applied, missing, reconciliation };
 }
 
-/**
- * Structural equality between source and translated artifact: same keys, same
- * array lengths, same leaf types. Returns the first differing paths.
- *
- * Derived syntax trees are exempt: the pipeline deliberately rebuilds them from
- * the translated raw, so their internal string values move by design. Their
- * node structure is checked by the reconciler instead.
- */
 export function structuralDiff(a, b, pointer = [], out = [], limit = 25, exemptKeys = new Set()) {
   if (out.length >= limit) return out;
 

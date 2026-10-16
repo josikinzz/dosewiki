@@ -4,19 +4,12 @@ import { Button } from "@/components/ui/button";
 
 import { useDevRailBadgeStatus, type DevRailBadge } from "./useDevRailBadges";
 
-/**
- * A quiet line inside the opened queue when its rail count is stale or
- * unknown. The rail badge keeps the last known count and never turns into an
- * alert; this line is where the editor learns that number may be old, and
- * where they ask for it again. A healthy count renders nothing.
- */
 export function DevRailBadgeFreshness({
   badge,
   noun,
   className,
 }: {
   badge: DevRailBadge;
-  /** Plural name of what the badge counts, e.g. "reports". */
   noun: string;
   className?: string;
 }) {

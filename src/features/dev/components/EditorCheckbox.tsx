@@ -6,24 +6,15 @@ export interface EditorCheckboxProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: ReactNode;
   description?: ReactNode;
-  /** `danger` tints the checked accent toward the semantic danger token. */
   tone?: "default" | "danger";
-  /** Wrapper class (the label row); use `className` for the input itself. */
   containerClassName?: string;
 }
 
 const checkboxToneClasses: Record<NonNullable<EditorCheckboxProps["tone"]>, string> = {
-  // accent-color drives the checked fill; ring-soft drives the focus halo.
   default: "accent-[var(--theme-accent-strong)]",
   danger: "accent-[color:var(--theme-danger-text)]",
 };
 
-/**
- * Themed checkbox: --theme-field-surface fill, --theme-border-subtle rim, a
- * checked accent driven by accent-color (--theme-accent-strong, or the danger
- * token for tone="danger"), and a --theme-ring-soft focus-visible ring. No raw
- * white/fuchsia opacity, no baked navy hex — reverso-safe in both themes.
- */
 export const EditorCheckbox = forwardRef<HTMLInputElement, EditorCheckboxProps>(
   (
     { label, description, tone = "default", id, className, containerClassName, ...props },

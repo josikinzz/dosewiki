@@ -16,12 +16,7 @@ export type ContextualEditingState = {
   email: string | null;
   setDirty: (key: string, dirty: boolean) => void;
   registerDraftGuard: (key: string, guard: DraftNavigationGuard) => () => void;
-  /**
-   * Report that work on this page waits for review (a submitted proposal), so
-   * the launcher can badge it. Optional: a surface with no launcher ignores it.
-   */
   setPending?: (key: string, pending: boolean) => void;
-  /** Switch page mode through the launcher, which asks before leaving unsaved work. */
   setMode?: (mode: "view" | "edit") => void;
 };
 

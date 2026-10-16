@@ -1,16 +1,4 @@
 #!/usr/bin/env node
-/**
- * Point one replication row at a verified native R2 upload, preserving its
- * metadata, rights, and historical recovery storage IDs. Stale derivatives
- * are cleared atomically with the main replacement.
- *
- * Dry run (default):
- *   node scripts/replications/replace-media.mjs --id=<rowId> --file=<path>
- *
- * Apply:
- *   node scripts/replications/replace-media.mjs --id=<rowId> --file=<path> --write \
- *     --confirm-write=replace-replication-media --expected-deployment=<fingerprint>
- */
 import fs from "fs";
 import path from "path";
 import { createDataClient } from "../lib/data-client.ts";

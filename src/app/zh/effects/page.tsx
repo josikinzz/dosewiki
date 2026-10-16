@@ -1,10 +1,3 @@
-/**
- * The Simplified Chinese mirror of `/effects`, reached only through the
- * middleware rewrite from `zh.dose.wiki/effects`. Same index component; the
- * mirror carries `noindex` with a canonical link back to the English index,
- * and effect names render through the frozen-glossary catalog with English
- * fallbacks.
- */
 import { UiLocaleProvider } from "@/i18n/client"
 import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";

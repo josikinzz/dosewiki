@@ -66,8 +66,6 @@ export const POST = protectedRouteOperation({
         { status: 400 },
       );
 
-    // The universe first, then the locale's own rows over it: an existing row's
-    // spelling and kind win, and a term only the site publishes is still known.
     const [existing, universe] = await Promise.all([
       readGlossaryRows(locale),
       collectGlossaryTerms(getPublicDataReadAdapter()),

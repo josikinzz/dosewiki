@@ -1,16 +1,3 @@
-/**
- * Eyedropper reverse-mapping: given a clicked DOM element, work out which
- * editable `--theme-*` token(s) actually color it.
- *
- * Why CSSOM matching rather than sampling the pixel: the rendered pixel is the
- * blended result of gradients / `color-mix()` / opacity, so it maps back to no
- * single token. Instead we read the CSS *rules* that match the element and
- * collect the `var(--theme-*)` references in their fill / text / border
- * declarations. That yields the token regardless of how the color was applied
- * (utility class, Tailwind arbitrary value, inline). Hardcoded-hex spots
- * resolve to nothing — honestly surfacing the parts that aren't themed yet.
- */
-
 import { PICK_EXPANSIONS, PICK_REDIRECTS, getEssential, getToken } from "./paletteTokens";
 
 export type PickRole = "fill" | "text" | "border";
@@ -23,13 +10,7 @@ export interface PickCandidate {
 
 interface WeightedToken {
   id: string;
-  /** Rough visible contribution 0-100: a `color-mix(... var() N%, …)` stop
-   *  counts as N; a bare `var()` counts as 100. Lets us prefer the stop that
-   *  actually dominates a translucent gradient instead of the faintest one. */
   weight: number;
-  /** Prefer visible background images/shorthands over fallback background-color
-   * tokens. A class such as `.backdrop-safe` can carry a background-color
-   * fallback while another class paints the actual gradient. */
   propertyPriority: number;
   important: boolean;
 }
@@ -69,7 +50,6 @@ function extractWeightedTokens(
 ): WeightedToken[] {
   const out: WeightedToken[] = [];
   const defaultWeight = value.includes("color-mix(") ? 50 : 100;
-  // Capture the optional `N%` that follows a token inside a color-mix stop.
   const re = /var\(\s*(--(?:theme|site-logo|c)-[a-z0-9-]+)\s*\)(?:\s*(\d+(?:\.\d+)?)\s*%)?/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(value))) {
@@ -83,7 +63,6 @@ function extractWeightedTokens(
   return out;
 }
 
-/** Coarse specificity for ranking matched rules; exact CSS math isn't needed. */
 function specificity(sel: string): number {
   const ids = (sel.match(/#[\w-]+/g) || []).length;
   const classes =
@@ -122,7 +101,6 @@ function* iterStyleRules(rules: CSSRuleList): Generator<CSSStyleRule> {
         try {
           if (!window.matchMedia(mediaText).matches) continue;
         } catch {
-          /* unparseable media — fall through and descend */
         }
       }
       yield* iterStyleRules(rule.cssRules);
@@ -130,13 +108,6 @@ function* iterStyleRules(rules: CSSRuleList): Generator<CSSStyleRule> {
   }
 }
 
-/**
- * Snapshot every currently-applicable rule that references a theme token,
- * pre-split and pre-classified, so per-element matching at click/hover time is
- * cheap. Built once when pick mode is armed; rebuilt when the edited theme
- * changes. Rules scoped to the *other* theme, and `:hover`/`:focus`/pseudo-
- * element rules, are dropped so we resolve the resting-state color.
- */
 export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
   const other = theme === "dark" ? "light" : "dark";
   const otherRe = new RegExp(`\\[data-theme=["']?${other}["']?\\]`);
@@ -148,7 +119,7 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
     try {
       rules = sheet.cssRules;
     } catch {
-      continue; // cross-origin stylesheet — not readable
+      continue;
     }
     for (const rule of iterStyleRules(rules)) {
       const decl = rule.style;
@@ -182,11 +153,6 @@ export function buildThemeRuleIndex(theme: string): ThemeRuleIndex {
   return index;
 }
 
-/**
- * The token that actually colors one role on one element: the winning rule by
- * importance, specificity, visible background priority, then source order. For
- * gradients/color-mix values, choose the dominant stop by weight.
- */
 function betterToken(next: WeightedToken, current: WeightedToken): boolean {
   if (next.important !== current.important) return next.important;
   if (next.propertyPriority !== current.propertyPriority) {
@@ -320,7 +286,7 @@ function bestForRole(el: Element, role: PickRole, index: ThemeRuleIndex): string
     try {
       matches = el.matches(rule.selector);
     } catch {
-      continue; // selector matches() can't parse (e.g. exotic syntax)
+      continue;
     }
     if (!matches) continue;
     const dominant = tokens.reduce((a, b) => (betterToken(b, a) ? b : a));
@@ -400,13 +366,6 @@ function labelFor(id: string): string {
   return getEssential(id)?.label ?? getToken(id)?.label ?? id;
 }
 
-/**
- * Resolve the editable tokens for a click target, one per role. For fill and
- * text we walk up to the nearest ancestor that paints that role (so clicking
- * the text inside a panel still finds the panel's fill); border stays local.
- * Derived/gradient tokens are redirected to their friendly editable base
- * (e.g. the frosted-panel gradient → "Panel color").
- */
 export function resolveTokensAt(start: Element, index: ThemeRuleIndex): PickCandidate[] {
   const roles: { role: PickRole; climb: boolean }[] = [
     { role: "fill", climb: true },

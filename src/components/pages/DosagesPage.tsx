@@ -20,10 +20,6 @@ import { getCategoryIcon } from "../../data/config/categoryIcons";
 import type { CategoryLayout } from "../../hooks/useCategoryLayout";
 import { orderIndexSections, sectionConventionRank } from "../../data/builders/indexSectionOrder";
 import { useLegacyIndexHashRoute } from "@/hooks/useLegacyIndexHashRoute";
-// Deep-import the pure visibility helper instead of the `@/schema` barrel: the
-// barrel `export *`s the Zod-heavy substance schema, which would otherwise drag
-// the entire Zod graph (~109 KB gz) into this client component's bundle. The
-// helper itself has no runtime dependencies.
 import { isDirectUrlOnlySubstance } from "@/schema/substance/substanceVisibilityPolicy";
 import { slugify } from "@/utils/slug";
 import { replaceCurrentIndexViewPath, scrollIntoViewRespectingMotion } from "@/utils/navigation";
@@ -46,20 +42,10 @@ import {
 interface DosagesPageProps {
   layout: CategoryLayout;
   substances: SubstanceLookupEntry[];
-  /**
-   * Per-category intro content (Markdown), keyed by category `key`, projected
-   * server-side from the manual index JSON. Umbrella super-category tabs carry
-   * their own content inline in `SUBSTANCE_INDEX_SUPER_TABS`.
-   */
   definitions?: Record<string, CategoryTabContent>;
-  /** Server-resolved URL state; must match the first rendered panel set. */
   initialView?: SubstanceIndexView;
 }
 
-/**
- * Build DosageCategoryGroup[] from category layout and slug lookup.
- * This avoids loading all 679 articles just to render the home page.
- */
 function buildGroupsFromLayout(
   layout: CategoryLayout,
   lookup: Map<string, SubstanceLookupEntry>
@@ -77,7 +63,6 @@ function buildGroupsFromLayout(
       return { name: section.label, drugs };
     }).filter((s) => s.drugs.length > 0);
 
-    // Top-level drugs not in sections
     const topLevelDrugs: DrugListEntry[] = category.drugs
       .map((slug) => {
         const entry = lookup.get(slug);
@@ -86,8 +71,6 @@ function buildGroupsFromLayout(
       })
       .filter((d): d is DrugListEntry => d !== null);
 
-    // Combine sections and top-level, then enforce the canonical order
-    // (Common/General first, "Other …" last) regardless of authored order.
     const allSections = orderIndexSections(
       topLevelDrugs.length > 0 && sections.length > 0
         ? [{ name: "General", drugs: topLevelDrugs }, ...sections]
@@ -111,11 +94,6 @@ function buildGroupsFromLayout(
   }).filter((g) => g.total > 0 || g.key === "miscellaneous");
 }
 
-/**
- * Split one category into one panel per subcategory section. Categories
- * without sections fall back to their single panel. Explicit column
- * placements are dropped: they were tuned for the full grid.
- */
 function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[] {
   const sections = (group.sections ?? []).filter((section) => section.drugs.length > 0);
   if (sections.length === 0) {
@@ -127,11 +105,6 @@ function splitGroupBySections(group: DosageCategoryGroup): DosageCategoryGroup[]
     return (a.name ?? "").localeCompare(b.name ?? "");
   });
   return orderedSections.map((section, index) => {
-    // Spread panels across min(count, n) columns as evenly as possible,
-    // filling each column top-to-bottom so the ordered list still reads down
-    // each column. Balanced sizing stops a small panel count from starving the
-    // trailing columns: 4 panels across 3 columns become 2+1+1 (three columns)
-    // instead of the old 2+2+0 (which collapsed the grid to two columns).
     const n = orderedSections.length;
     const columns: Record<string, number> = {};
     for (let count = 1; count <= 6; count++) {
@@ -219,10 +192,6 @@ export function DosagesPage({
     replaceCurrentIndexViewPath(substanceIndexViewPath(nextView));
   };
 
-  // Only scroll down to the panels when the user re-clicks the tab they are
-  // already on. `wasActive` comes from the tab strip (captured at pointer-down
-  // on desktop) so switching tabs never scrolls — comparing against `activeTab`
-  // here would be wrong on desktop, where Radix updates it before this fires.
   const handleTabSelect = (
     item: PublicSegmentedTabItem,
     { wasActive }: { wasActive: boolean },
@@ -256,14 +225,8 @@ export function DosagesPage({
   const isFiltered = activeTab !== "all";
   const isSingleCategoryView = isFiltered && groupsByKey.has(activeTab);
 
-  // Intro content for the active tab: the "All" tab deliberately carries no
-  // intro — the grid speaks for itself — while umbrella tabs carry their own
-  // copy and per-category tabs read from the server-provided definitions map.
   const activeContent = useMemo<CategoryTabContent | undefined>(() => {
     if (activeTab === "all") return undefined;
-    // The umbrella tabs are not categories in the manual index, so the server
-    // contributes their prose under their tab id when the copy layer knows it.
-    // The inline `tab.content` stays as the fallback.
     const superTab = SUBSTANCE_INDEX_SUPER_TABS.find((tab) => tab.id === activeTab);
     if (superTab) {
       const content = definitions?.[superTab.id] ?? superTab.content;
@@ -314,9 +277,6 @@ export function DosagesPage({
           columnLayout={activeTab === "all" ? SUBSTANCE_INDEX_ALL_COLUMN_LAYOUT : undefined}
           drugHrefPrefix="/"
           categoryHrefPrefix={isSingleCategoryView ? undefined : "/category/"}
-          // Single-class tabs split one category into subsection panels that
-          // all share the same category glyph — redundant, so drop the icon.
-          // "All" and the super-category tabs (mixed classes) keep theirs.
           hideCardIcons={isSingleCategoryView}
         />
       </div>

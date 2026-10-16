@@ -2,11 +2,6 @@ import { useId, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-/**
- * One part of the About pane: an `h4` heading with a quiet note, and the
- * part's own reset or count beside the heading. The section is named by its
- * heading, so each part is a landmark a screen reader can jump to.
- */
 export function AboutPaneSection({
   title,
   note,
@@ -35,7 +30,6 @@ export function AboutPaneSection({
   );
 }
 
-/** "Changed" beside a part's heading while it holds edits; nothing when clean. */
 export function ChangedMark({ changed }: { changed: boolean }) {
   if (!changed) return null;
   return (

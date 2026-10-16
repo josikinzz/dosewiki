@@ -8,21 +8,14 @@ import { cn } from "@/lib/utils";
 import { msg } from "@/i18n/messages";
 
 interface ProseDiffProps {
-  /** Unified-diff-style text: `-`/`+` lines and `@@ … @@` hunk labels. */
   markdown: string;
   id: string;
   className?: string;
-  /**
-   * How to render `[cite:id]` tokens: the article's current numbering, and
-   * the page the `#ref-…` anchors live on (empty on the article itself).
-   */
   citations?: CitationContext;
 }
 
 export type CitationContext = {
-  /** Reference id → citation number in the article as it stands now. */
   numbers: Record<string, number>;
-  /** Path prefix for reference anchors; "" when rendering on the article page. */
   hrefBase: string;
 };
 
@@ -41,12 +34,6 @@ type Block =
   | { kind: "added"; text: string }
   | { kind: "context"; text: string };
 
-/**
- * Group the stored diff into readable blocks. A run of `-` lines followed by a
- * run of `+` lines is paired positionally (line i of each), which is how the
- * editor writes prose edits: one field before, the same field after. Leftover
- * lines on either side stand alone.
- */
 function toBlocks(markdown: string): Block[] {
   const blocks: Block[] = [];
   let removed: string[] = [];
@@ -65,7 +52,6 @@ function toBlocks(markdown: string): Block[] {
 
   for (const line of markdown.split("\n")) {
     if (line.startsWith("-")) {
-      // A `+` run already started means this `-` opens a new hunk.
       if (added.length > 0) flush();
       removed.push(line.slice(1).trim());
     } else if (line.startsWith("+")) {
@@ -85,28 +71,17 @@ function toBlocks(markdown: string): Block[] {
   return blocks;
 }
 
-// Both marks take the active theme's accent as their ink, so the changed
-// words are the one accent-coloured thing in the passage, and nothing else:
-// a wash behind them broke the sentence into chips and made it harder to
-// read. Before is struck, After is heavier.
 const removedClass = "text-[color:var(--theme-accent-strong)] line-through decoration-[1.5px] decoration-current";
 const addedClass = "font-semibold text-[color:var(--theme-accent-strong)] no-underline";
 
 const sideLabelClass = "theme-text-faint mb-1 block text-[11px] font-semibold uppercase tracking-[0.15em]";
 const passageClass = "theme-text-secondary text-sm leading-relaxed [text-wrap:pretty]";
 
-/** Words kept on each side of a change before the passage is elided. */
 const CONTEXT_WORDS = 8;
 const ELLIPSIS = "…";
 
 const isWhitespace = (token: string) => /^\s+$/.test(token);
 
-/**
- * A citation token rendered the way the article renders it: a numbered
- * superscript link when the source is currently cited, a plain "source" chip
- * when it is not (removed, or renamed since), and the citation-needed marker
- * for the sentinel.
- */
 function CitationToken({ token, citations }: { token: string; citations: CitationContext }) {
   if (token === CITATION_NEEDED_TOKEN) {
     return <CitationNeededMarker />;
@@ -137,13 +112,6 @@ function renderTokens(tokens: string[], citations: CitationContext, keyPrefix: s
 
 type Parts = ReturnType<typeof diffArrays<string>>;
 
-/**
- * Which tokens of the shared stream to show: every changed token plus a
- * window of `CONTEXT_WORDS` words on each side of it. Computed once, so
- * Before and After show the same surroundings even when one side has no
- * marks of its own (a pure insertion). Gaps of a word or two are kept whole
- * rather than replaced with an ellipsis.
- */
 function keepWindows(parts: Parts): boolean[] {
   const tokens = parts.flatMap((part) => part.value);
   const changed = parts.flatMap((part) => part.value.map(() => Boolean(part.added || part.removed)));
@@ -177,7 +145,6 @@ function keepWindows(parts: Parts): boolean[] {
 
 type Run = { changed: boolean; tokens: string[] } | { gap: true };
 
-/** Group one side's kept tokens into unchanged runs, marked runs, and gaps. */
 function toRuns(parts: Parts, keep: boolean[], omit: "added" | "removed"): Run[] {
   const runs: Run[] = [];
   let index = 0;
@@ -228,8 +195,6 @@ function renderSide(
       nodes.push(<span key={index}>{renderTokens(run.tokens, citations, String(index))}</span>);
       return;
     }
-    // Whitespace at the edges of a change stays outside the mark, so the
-    // strike and the wash hug the words and speech does not run tokens together.
     let first = 0;
     let last = run.tokens.length;
     while (first < last && isWhitespace(run.tokens[first])) first += 1;
@@ -251,12 +216,6 @@ function renderSide(
   return nodes;
 }
 
-/**
- * Two passages, Before and After, trimmed to the same words around the
- * change: what Before loses is struck, what After gains is highlighted, and
- * long unchanged stretches collapse to an ellipsis on both sides alike. Side
- * by side from `md` up, stacked below.
- */
 function BeforeAfter({
   before,
   after,
@@ -315,14 +274,8 @@ function Standalone({
   );
 }
 
-/**
- * A prose edit shown as the text before and the text after, with the changed
- * words marked on each side. For the changelog's line-pair diffs of article
- * copy; JSON and structural diffs stay on `ChangelogDiff`.
- */
 export function ProseDiff({ markdown, id, className, citations = NO_CITATIONS }: ProseDiffProps) {
   const blocks = toBlocks(markdown);
-  // One field edited: the row above already names it. Several: label each.
   const showLabels = blocks.filter((block) => block.kind === "label").length > 1;
   return (
     <div id={id} className={cn("flex flex-col gap-3", className)}>

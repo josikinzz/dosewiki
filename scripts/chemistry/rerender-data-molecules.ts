@@ -1,20 +1,5 @@
 #!/usr/bin/env bun
 
-/**
- * One-time engine re-render: regenerate the stored `svg` of every existing
- * moleculeOverrides row from its own stored MOL block on the OpenChemLib
- * renderer (renderMoleculeSvg), replacing the retired RDKit output.
- *
- * MOL blocks, provenance (`source`), and smiles are untouched — only `svg`
- * (and its cache-busting `updatedAt`) change, through the svg-only
- * `moleculeOverrides.rerenderSvg` mutation, which also skips any row whose
- * molblock changed after this script read it.
- *
- * Usage:
- *   npm run molecules:rerender -- --dry-run
- *   npm run molecules:rerender -- --write --confirm-molecule-rerender
- */
-
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import * as OCL from "openchemlib";
@@ -73,13 +58,6 @@ Options:
 `);
 }
 
-/**
- * Draw-time R-group labels for a class row. Postgres class rows are
- * self-sufficient: `chemicalIndexManual.json` (via CLASS_STRUCTURES) supplies
- * the human labels when the class is still in the manual taxonomy; dummies it
- * does not name fall back to a generic `R<map>` so they never render as raw
- * `?` pseudoatoms.
- */
 function classLabelsFor(slug: string, molblock: string): Record<number, string> | undefined {
   if (!slug.startsWith("class:")) return undefined;
   const key = slug.slice("class:".length);
@@ -158,7 +136,6 @@ async function main() {
       failures.push({ slug, reason: "Row disappeared between list and read." });
       continue;
     }
-    // Full-row local backup before anything is written anywhere.
     writeFileSync(
       resolve(backupDir, `${slug.replace(/[^a-z0-9-]/g, "_")}.json`),
       `${JSON.stringify(row, null, 2)}\n`,

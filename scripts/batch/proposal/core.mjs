@@ -180,12 +180,6 @@ function stripCitationMarkers(value) {
   return value;
 }
 
-/**
- * Generated prose cannot create, remove, or replace citation markers. Marker
- * groups remain attached to their prior sentence ordinal when a matching
- * string leaf is regenerated. A generated structure that drops or changes a
- * citation-bearing leaf fails closed for the dedicated citation workflow.
- */
 function preserveCitationMarkers(targetValue, generatedValue, path) {
   if (typeof targetValue === "string") {
     if (typeof generatedValue !== "string") {

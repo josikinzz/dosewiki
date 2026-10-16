@@ -9,42 +9,23 @@ import {
 
 import { cn } from "@/lib/utils";
 
-/** The appearance axis a segmented picker owns. Mirrored to the DOM for tests and skins. */
 type AppearanceAxis = "color-scheme" | "visual-style" | "font";
 
 type AppearanceToggleOption<Value extends string> = {
   value: Value;
   label: string;
   icon?: ReactNode;
-  /** Extra class on the label span, e.g. a font-face preview for the font axis. */
   labelClassName?: string;
 };
 
 interface AppearanceTogglePillProps<Value extends string> {
   axis: AppearanceAxis;
-  /** The axis's accessible name, e.g. "Style" or "Mode". */
   label: string;
   value: Value;
-  /** Two or more options; every segment gets an equal share of the pill. */
   options: readonly AppearanceToggleOption<Value>[];
   onChange: (value: Value) => void;
 }
 
-/**
- * A named segmented appearance picker.
- *
- * Each choice is exposed as a radio so the visible labels, checked state, screen-reader
- * output, and arrow-key behavior stay aligned. With exactly two options, pointer/Enter/
- * Space activation keeps the historical toggle contract: pressing either half always
- * flips to the other value, including when the pressed half is already checked. With
- * three or more, re-pressing the checked segment is a no-op — cycling through the ring
- * from an already-made choice would change the theme the reader just confirmed.
- *
- * The axis name is the group's accessible name, not a visible gutter label: named
- * options ("Dark"/"System"/"Light", "Vivid"/"Clinical") plus their icons already state
- * the choice, spending a share of the panel's width restating the category only
- * narrowed the pill that has to hold the labels.
- */
 export function AppearanceTogglePill<Value extends string>({
   axis,
   label,

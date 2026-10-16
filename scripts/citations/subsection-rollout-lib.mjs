@@ -1,11 +1,3 @@
-// Subsection-scoped citation rollout: live audit + tracker seeding.
-//
-// Pure library shared by scripts/citations/audit-subsection-citations.mjs
-// (step 1: refreshed public-only audit) and
-// scripts/citations/seed-subsection-rollout-tracker.mjs (step 2: one
-// slug+section rollout tracker). See
-// notes-and-plans/plans/subsection-citation-rollout-seam-map.md.
-
 import { createHash } from "node:crypto";
 
 import { CITABLE_ARTICLE_SECTIONS } from "./citation-marker-workflow.mjs";
@@ -183,10 +175,6 @@ export function buildSubsectionAudit({
   };
 }
 
-/**
- * Normalize an explicit selected-section allowlist: citable keys only, no
- * duplicates, non-empty. Returns an array in input order.
- */
 export function normalizeSectionList(sections) {
   if (!Array.isArray(sections) || sections.length === 0) {
     throw new Error("selectedSections must be a non-empty array.");
@@ -206,17 +194,6 @@ export function normalizeSectionList(sections) {
   return result;
 }
 
-/**
- * Frozen per-section scope metadata for a scoped workbench task export.
- *
- * `strippedSections` are the marker-stripped citable sections written into the
- * task file; `contentHash` is computed over them so preflight can re-hash the
- * task file and detect drift. (The rollout tracker's originalContentHash
- * instead covers the live value including markers; for uncited gap sections
- * the two are identical.) Marker counts and coverage forms come from the
- * original (pre-strip) live content. Non-selected sections get an explicit
- * skipReason: "empty", "already_cited", or "not_selected".
- */
 export function buildExportScope({
   originalSections,
   strippedSections,
@@ -268,12 +245,6 @@ export function buildExportScope({
   };
 }
 
-/**
- * Derive a run's selected sections from the subsection rollout tracker: the
- * sections of rows for `slug` whose status is `ready` or `researching` (a row
- * claimed by an in-flight run must still export into that run's scope), in
- * tracker order.
- */
 export function selectedSectionsFromTracker(tracker, slug) {
   const rows = (tracker?.items ?? []).filter(
     (item) => item.slug === slug && (item.status === "ready" || item.status === "researching"),
@@ -316,8 +287,6 @@ export function seedSubsectionTracker({
       const key = `${article.slug}:${section}`;
       if (entry.coverageForm === "inline" || !entry.viable) {
         if (existingItems.has(key)) {
-          // Existing rollout item resolved outside the tracker: keep it
-          // unchanged and report it as no longer a gap; never silently drop it.
           items.push(existingItems.get(key));
         } else {
           skipped.push({

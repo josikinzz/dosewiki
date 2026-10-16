@@ -4,18 +4,11 @@ type AuthRuntimeEnv = Partial<Record<string, string | undefined>>;
 
 type AuthDeploymentTarget = "local" | "preview" | "production"
 
-/**
- * Sign-in is username + password against Postgres memberships; the only
- * auth-specific env it needs is the session secret. The Postgres URL and
- * admin key that the credentials lookup uses are reported by the server
- * write contract, not here.
- */
 export type AuthRuntimePolicy = {
   deploymentTarget: AuthDeploymentTarget;
   nodeEnv: string | undefined;
   authSecret: string | undefined;
   authSecretSource: "AUTH_SECRET" | "NEXTAUTH_SECRET" | "development-fallback" | "missing";
-  /** Sessions can be issued: a secret is present. */
   sessionsAvailable: boolean;
   requiredSecrets: string[];
   restrictions: string[];

@@ -3,7 +3,6 @@ import { SUBSTANCE_SECTION_IDS } from "./sectionCatalog";
 
 const reviewFlagSeveritySchema = z.enum(["major", "minor", "note"])
 
-/** Preferred reusable labels; Review Flag labels remain open to 1–3 word values. */
 export const CANONICAL_REVIEW_FLAG_LABELS = [
   "skinny",
   "missing citations",
@@ -33,7 +32,6 @@ const reviewFlagSchema = z.object({
   created_by: z.string().optional(),
 })
 
-/** An editor's pending "Recommended reviewed", bound to the revision they read. */
 const reviewRecommendationSchema = z.object({
   revision: z.string(),
   recommended_by: z.string(),
@@ -41,72 +39,29 @@ const reviewRecommendationSchema = z.object({
   note: z.string(),
 });
 
-/** Manual editorial review states used in Dev Tools */
 export const editorialReviewStatusSchema = z.enum([
   "needed",
   "in_progress",
   "completed",
 ]);
 
-
-/** Internal-only editorial review metadata */
 export const editorialReviewSchema = z.object({
   status: editorialReviewStatusSchema.default("needed"),
   notes: z.string().default(""),
-  /**
-   * Who completed the review and when, stamped by the review-mode tick
-   * (`substanceIndex.setEditorialReview`). Optional so hand-set statuses and
-   * historical data stay valid; declared here so full editor saves round-trip
-   * the stamp instead of stripping it as an unknown key.
-   */
   reviewed_by: z.string().optional(),
   reviewed_at: z.string().optional(),
-  /**
-   * The published revision the sign-off covered, derived from the stored
-   * article content and its molecule chemistry (`articleReviewRevision` in
-   * `server/lib/articleReviewRevision.ts`). Any later content write, through
-   * any write path, moves it, so the review derives `stale`. Sign-offs made
-   * before that derivation hold a revision journal `resultHash` or
-   * `REVIEW_INITIAL_REVISION`; they read as stale and their diff still resolves.
-   */
   reviewed_revision: z.string().optional(),
-  /**
-   * An editor's recommendation that this article is reviewed, awaiting an
-   * admin. It never changes `status`: completion stays admin-only, and an
-   * admin approval writes `completed` with the recommended `revision`. When
-   * the published revision moves on, the recommendation reads as stale.
-   */
   recommendation: reviewRecommendationSchema.optional(),
-  /**
-   * On a sign-off that approved a recommendation: the editor who recommended
-   * it, when, and their note, so the record credits both the recommender and
-   * the approving admin (`reviewed_by`). Absent on a direct admin sign-off.
-   */
   recommended_by: z.string().optional(),
   recommended_at: z.string().optional(),
   recommendation_note: z.string().optional(),
-  /** Declared so editor saves preserve Review Flags instead of stripping them. */
   flags: z.array(reviewFlagSchema).optional(),
 });
 
-/**
- * The revision name early sign-offs recorded when the article had no recorded
- * revision yet: the content it covered is the `before` of the first revision.
- * New sign-offs never record it; it is read only so those older ones resolve.
- */
 export const REVIEW_INITIAL_REVISION = "initial";
 
-/**
- * The review status a reviewer sees. `stale` is never stored: it is a
- * `completed` sign-off whose `reviewed_revision` is no longer the published one.
- */
 export type ReviewState = "needed" | "in_progress" | "completed" | "stale";
 
-/**
- * Derive the review status from the stored record and the article's current
- * published revision. A sign-off stamped before revisions were recorded
- * carries no `reviewed_revision`, so it cannot be compared and stays completed.
- */
 export function deriveReviewState(
   review: { status?: unknown; reviewed_revision?: unknown } | null | undefined,
   publishedRevision: string,
@@ -118,11 +73,6 @@ export function deriveReviewState(
   return typeof signed === "string" && signed !== publishedRevision ? "stale" : "completed";
 }
 
-
-/**
- * Whether a recommendation still covers what is published. One made before
- * the latest publish is stale and cannot be approved without re-review.
- */
 export function isRecommendationStale(
   recommendation: { revision?: unknown } | null | undefined,
   publishedRevision: string,

@@ -75,8 +75,6 @@ describe("substance read projections", () => {
         slug: "lsd",
         reviewed_at: "2026-08-01T00:00:00.000Z",
       });
-      // The privacy contract, stated as bytes: nothing resembling the stamp's
-      // email or the editor notes survives into the projection.
       const serialized = JSON.stringify(projection);
       expect(serialized).not.toContain("oldhandle");
       expect(serialized).not.toContain("@");

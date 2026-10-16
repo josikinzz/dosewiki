@@ -1,16 +1,5 @@
 #!/usr/bin/env node
 
-// Folds voice-fixer proposals into per-slug repair drafts that `legality:apply`
-// can ship. Every proposal is gated here before it reaches a draft: `expected`
-// must equal the audited live value byte-for-byte, citation markers must survive
-// in order, and the new text must pass the voice check. Rejections are written
-// beside the drafts so the responsible fixer batch can be re-run.
-//
-//   npm run legality:build-repair-drafts -- \
-//     --voice-audit=tmp/legality-voice-audit-<date>.json \
-//     --proposals=tmp/legality-voice-fix-<date>/proposals \
-//     --campaign=voice-scrub-<date>
-
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
@@ -40,7 +29,6 @@ function markers(text) {
   return typeof text === "string" ? (text.match(CITE_MARKER) ?? []) : [];
 }
 
-/** Returns a rejection reason, or null when the field repair is shippable. */
 function gate(row, field, repair) {
   if (!READER_FIELDS.includes(field)) return `unknown field ${field}`;
   const current = row.current[field];

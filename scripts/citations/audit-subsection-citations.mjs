@@ -1,23 +1,4 @@
 #!/usr/bin/env node
-/**
- * Step 1 of the subsection citation rollout: refresh the public-only
- * uncited-subsection audit from the live production Postgres dataset.
- *
- * Read-only. Covers all six canonical citable sections (including tolerance)
- * for every article in the public category-layout scope, and tags the
- * first-rollout cohort (the 36 changed pharmacology slugs from the final
- * regeneration audit artifact).
- *
- * Usage:
- *   node scripts/citations/audit-subsection-citations.mjs
- *   node scripts/citations/audit-subsection-citations.mjs --out tmp/subsection-citation-audit.json
- *
- * Environment:
- *   DATA_BACKEND=postgres is required; --source-url / SOURCE_POSTGRES_URL selects
- *   the read source, with the canonical Postgres target as fallback.
- *   DATA_ADMIN_KEY (optional) enables per-cohort citationEvidence status
- *   counts; without it evidence fields are null.
- */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";

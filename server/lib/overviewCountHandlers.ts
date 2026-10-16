@@ -22,11 +22,6 @@ export async function getPublicOverviewCountsHandler(ctx: QueryCtx): Promise<Pub
   return (ctx.db as typeof ctx.db & CountReader).getPublicOverviewCounts();
 }
 
-/**
- * Exact About placeholder values from the same normalization and manual-index
- * projection as buildLibrary. The SQL projection carries taxonomy only: prose,
- * dosage, interactions, references, and renditions never cross the wire.
- */
 export async function getAboutEditorAggregates(ctx: QueryCtx) {
   const reader = ctx.db as typeof ctx.db & CountReader;
   const [rows, layouts, overview] = await Promise.all([

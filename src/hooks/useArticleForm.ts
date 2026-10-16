@@ -1,8 +1,3 @@
-/**
- * React Hook Form-based article form hook.
- * Replaces useArticleDraftForm with RHF + Zod validation.
- */
-
 import { useCallback, useEffect, useRef } from "react";
 import { useForm, useFieldArray, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,20 +8,9 @@ import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } 
 type DosageRouteValue = SubstanceArticle["dosage"]["routes"][number];
 type DurationRouteValue = SubstanceArticle["duration"]["routes"][number];
 
-/**
- * Route labels drift in case across the dataset ("Sublingual" vs "sublingual").
- * Matching is deliberately on the trimmed, lowercased label rather than the
- * canonical route taxonomy: canonicalizing would collapse genuinely distinct
- * editorial labels such as "Oral" and "Oral (extended release)" onto one route
- * and let the first steal the other's duration data.
- */
 const normalizeRouteName = (route: string | undefined) =>
   String(route ?? "").trim().toLowerCase();
 
-/**
- * True when the two arrays are already index-aligned for the editor's positional
- * `duration.routes.${index}` field paths.
- */
 function routesAreAligned(
   dosage: DosageRouteValue[],
   duration: DurationRouteValue[],
@@ -35,20 +19,6 @@ function routesAreAligned(
   return dosage.every((route, index) => route.route === duration[index]?.route);
 }
 
-/**
- * Pair dosage and duration routes by name instead of by position.
- *
- * Pairing by index corrupts data in two ways. When the arrays are the same length
- * but ordered differently, it relabels — attaching one route's timings to another
- * route's name. When duration is longer, it truncates, destroying a duration route
- * that the public page was rendering.
- *
- * Here, every dosage route keeps its editorial order and takes the duration route
- * that shares its name; a duration route with no dosage counterpart is appended
- * with an empty dosage route so it becomes a real, editable, deletable card rather
- * than being silently dropped. Matched duration routes are carried over whole, so
- * fields this hook does not know about survive the round trip.
- */
 export function pairRoutesByName(
   dosageRoutes: DosageRouteValue[],
   durationRoutes: DurationRouteValue[],
@@ -67,7 +37,6 @@ export function pairRoutesByName(
     dosage.push(dosageRoute);
     if (matchIndex >= 0) {
       claimed.add(matchIndex);
-      // Adopt the dosage label so the pair displays one spelling.
       duration.push({ ...durationRoutes[matchIndex], route: dosageRoute.route });
     } else {
       duration.push(
@@ -141,7 +110,6 @@ export type UseArticleFormOptions = {
 
 export type UseArticleFormReturn = {
   methods: ArticleFormMethods;
-  // Field arrays
   dosageRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "dosage.routes">>;
   durationRoutes: ReturnType<typeof useFieldArray<SubstanceArticle, "duration.routes">>;
   references: ReturnType<typeof useFieldArray<SubstanceArticle, "references">>;
@@ -149,7 +117,6 @@ export type UseArticleFormReturn = {
   citations: ReturnType<typeof useFieldArray<SubstanceArticle, "citations">>;
   comparisons: ReturnType<typeof useFieldArray<SubstanceArticle, "comparisons">>;
   historyCultureSections: ReturnType<typeof useFieldArray<SubstanceArticle, "history_culture.sections">>;
-  // Helpers
   addDosageRoute: () => void;
   removeDosageRoute: (index: number) => void;
   moveDosageRoute: (from: number, to: number) => void;
@@ -174,26 +141,14 @@ export function useArticleForm({
   const onMutateRef = useRef(onMutate);
   onMutateRef.current = onMutate;
 
-  // Programmatic resets also fire the watch subscription; suppress mutate
-  // reporting around them so the dirty flag only reflects real edits. Clear the
-  // flag in a post-render effect (after the field arrays), not synchronously: each
-  // useFieldArray re-emits a values notification from its own effect on the
-  // render caused by reset()/replace(), and those trailing notifications must
-  // stay suppressed too.
   const suppressMutateRef = useRef(false);
   const suppressClearSkipRef = useRef(0);
   const suppressionGeneration = useRef(0);
   const runWithoutMutate = useCallback((operation: () => void) => {
     const generation = ++suppressionGeneration.current;
     suppressMutateRef.current = true;
-    // The clear effect below also runs in the effect flush that invoked this
-    // helper (it is declared later in this hook); skip that first clear so the
-    // suppression survives into the re-render the operation triggers.
     suppressClearSkipRef.current = 1;
     operation();
-    // A parent can reset again after this hook's clear effect. No further
-    // render is guaranteed after the skipped flush, so release that hold
-    // before the next user event rather than suppressing edits indefinitely.
     queueMicrotask(() => {
       if (suppressionGeneration.current !== generation) return;
       suppressMutateRef.current = false;
@@ -201,10 +156,7 @@ export function useArticleForm({
     });
   }, []);
 
-  // Pair once at hydration. A typed label is a rename, never a new pairing key.
   const getDefaultValues = useCallback((source?: SubstanceArticle): SubstanceArticle => {
-    // Postgres-sourced articles carry `_id` / `_creationTime`; keep those DB
-    // internals out of the form values so YAML copy/download/save stay clean.
     const base = source ? stripUnderscoreKeys(source) : createEmptyArticle();
     if (preserveStructure) return base;
     const empty = createEmptyArticle();
@@ -215,7 +167,6 @@ export function useArticleForm({
       ...base,
       dosage: { ...base.dosage, routes: paired.dosage },
       duration: { ...base.duration, routes: paired.duration },
-      // Ensure history_culture has default values for form editing (optional field)
       history_culture: base.history_culture ?? empty.history_culture,
       editorial_review: base.editorial_review ?? empty.editorial_review,
       references: Array.isArray(base.references) ? base.references : empty.references,
@@ -225,7 +176,6 @@ export function useArticleForm({
   }, [preserveStructure]);
 
   const methods = useForm<SubstanceArticle>({
-    // Validate without replacing the draft with Zod's stripped/defaulted output.
     resolver: zodResolver(substanceArticleSchema, undefined, { raw: true }) as never,
     defaultValues: getDefaultValues(article),
     mode: "onBlur",
@@ -233,7 +183,6 @@ export function useArticleForm({
 
   const { control, watch, reset, getValues, register } = methods;
 
-  // Reset form when article prop changes (detected via id or title)
   const articleIdentifier = article?.id ?? article?.title ?? null;
   useEffect(() => {
     runWithoutMutate(() => {
@@ -241,7 +190,6 @@ export function useArticleForm({
     });
   }, [articleIdentifier, reset, getDefaultValues, article, runWithoutMutate]);
 
-  // Field arrays for complex nested structures
   const dosageRoutes = useFieldArray({
     control,
     name: "dosage.routes",
@@ -277,9 +225,6 @@ export function useArticleForm({
     name: "history_culture.sections",
   });
 
-  // Clear the programmatic-write suppression after every render. This effect
-  // is declared after the useFieldArray hooks above so it runs after their
-  // internal sync effects have re-emitted (still-suppressed) notifications.
   useEffect(() => {
     if (suppressClearSkipRef.current > 0) {
       suppressClearSkipRef.current -= 1;
@@ -288,8 +233,6 @@ export function useArticleForm({
     suppressMutateRef.current = false;
   });
 
-  // Mutation tracking - call onMutate when the form changes, except for the
-  // suppressed programmatic writes above.
   useEffect(() => {
     const subscription = watch(() => {
       if (!suppressMutateRef.current) {
@@ -299,7 +242,6 @@ export function useArticleForm({
     return () => subscription.unsubscribe();
   }, [watch]);
 
-  // Helpers
   const addDosageRoute = useCallback(() => {
     dosageRoutes.append(createEmptyDosageRoute());
     durationRoutes.append(createEmptyDurationRoute(), { shouldFocus: false });
@@ -313,8 +255,6 @@ export function useArticleForm({
     [dosageRoutes, durationRoutes]
   );
 
-  // The editor addresses duration fields positionally, so both arrays must move
-  // together to keep the index alignment that `pairRoutesByName` establishes.
   const moveDosageRoute = useCallback(
     (from: number, to: number) => {
       const count = dosageRoutes.fields.length;
@@ -328,9 +268,6 @@ export function useArticleForm({
   const renameDosageRoute = useCallback(
     (index: number, name: string) => {
       if (!getValues(`dosage.routes.${index}`) || !getValues(`duration.routes.${index}`)) return;
-      // Use the registered change path, as native inputs and Controllers do.
-      // setValue broadcasts ancestor field-array changes in RHF, replacing row
-      // identities even for a leaf write and detaching the focused input.
       for (const path of [`dosage.routes.${index}.route`, `duration.routes.${index}.route`] as const) {
         void register(path).onChange({ target: { name: path, value: name }, type: "change" });
       }
@@ -438,6 +375,5 @@ export function useArticleForm({
   };
 }
 
-// Re-export types for convenience
 export type { SubstanceArticle };
 

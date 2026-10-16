@@ -10,14 +10,6 @@ import {
 } from "../../editing";
 import { DosageDurationSection } from "./DosageDurationSection";
 
-// Shared fixture builders and DOM readers for the DosageDurationSection suites.
-// Each test file installs its own next/link and framer-motion mocks because
-// vi.mock is hoisted per file.
-
-/**
- * The shape generators scaffold when a source merely mentions a route: every
- * tier present, every value null.
- */
 export function hollowDosageRoute(route: string, overrides: Partial<DosageRoute> = {}): DosageRoute {
   const nullDose = { min: null, max: null, unit: "mg" };
   return {
@@ -111,7 +103,6 @@ export function renderEditing(
   return { ...result, commit };
 }
 
-/** Row labels currently drawn in the dosage panel, in render order. */
 export function tierLabels(container: HTMLElement): string[] {
   return Array.from(container.querySelectorAll("[data-dose-tier]")).map(
     (marker) =>

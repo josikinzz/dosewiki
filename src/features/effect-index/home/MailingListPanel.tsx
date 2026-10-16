@@ -11,13 +11,6 @@ import {
 } from "@/features/mailing-list/useMailingListSignup";
 import { HomePanel } from "./HomePanel";
 
-/**
- * The Effect Index mailing-list panel: the same panel shape as its neighbours, holding
- * an inline email signup. It writes to the `effectindex` list — this publication's own,
- * never dose.wiki's — through the shared portal endpoint. The form is the panel's whole
- * content, so success replaces it with one line rather than stacking a notice above an
- * emptied form.
- */
 export function MailingListPanel() {
   const fieldId = useId();
   const { email, setEmail, website, setWebsite, status, error, submit } =

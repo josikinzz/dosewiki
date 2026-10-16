@@ -1,27 +1,4 @@
 #!/usr/bin/env node
-/**
- * Verification and application-build command for every Vercel project that
- * builds this repository.
- *
- * Ordinary builds check that owned Postgres function references resolve in the
- * checkout, then build the application. No database deployment is performed.
- * Deployment and rollback procedures belong to separately authorized entry
- * points and are intentionally unavailable here, even when deploy credentials
- * are present in the environment.
- *
- * Usage (normally only invoked by Vercel via `bun run build:vercel`):
- *   node scripts/deploy/vercel-build.mjs
- *   node scripts/deploy/vercel-build.mjs --plan   # print the decision, build nothing
- *
- * A finished build leaves `build-timing.json` beside its output (wall-clock
- * start, end, elapsed seconds, surface, flavor, exit status) so
- * scripts/build/prerender-census.mjs can print the release's page count next
- * to how long the build took.
- *
- * Exit codes:
- *   0  build succeeded
- *   1  verification or build failed
- */
 
 import { spawnSync } from "node:child_process";
 import { existsSync, realpathSync, writeFileSync } from "node:fs";
@@ -32,7 +9,6 @@ import { BUILD_TIMING_FILE } from "../build/prerender-census.lib.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** The real app build, separate from this wrapper to avoid recursion. */
 const APP_BUILD_COMMAND = "bun run build";
 
 
@@ -58,11 +34,6 @@ function banner(lines) {
   console.log(`${rule}\n`);
 }
 
-/**
- * Record how long the app build ran, beside its output. Skipped when the build
- * directory does not exist (the build never started), never fatal: a timing
- * record is evidence for the runbook, not a build step.
- */
 function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   let buildDirectory;
   try {
@@ -78,7 +49,6 @@ function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   const record = {
     command: APP_BUILD_COMMAND,
     surface: resolveBuildSurface(process.env),
-    // The flavor the build resolved, through the normaliser siteFlavor.ts uses.
     flavor: normalizeSiteFlavor(process.env.NEXT_PUBLIC_SITE_FLAVOR),
     buildDirectory: path.relative(REPO_ROOT, buildDirectory),
     startedAt: startedAt.toISOString(),
@@ -90,11 +60,6 @@ function writeBuildTiming({ startedAt, endedAt, exitStatus }) {
   console.log(`[vercel-build] Build ran ${record.elapsedSeconds}s; timing recorded in ${record.buildDirectory}/${BUILD_TIMING_FILE}`);
 }
 
-/**
- * Every owned function the app names must exist in this checkout. Typecheck
- * covers the `api.*` form but not the untyped string form used for public reads,
- * so this is the only static coverage those names have.
- */
 function checkCallsitesResolve() {
   console.log("[vercel-build] Checking owned Postgres function references...");
   return run("node", ["scripts/build/check-function-references.mjs"]);
@@ -127,9 +92,6 @@ function main() {
   const startedAt = new Date();
   const status = run("bun", ["run", "build"]);
   writeBuildTiming({ startedAt, endedAt: new Date(), exitStatus: status });
-  // A Vercel-hosted build leaves no local output to point build:census at, so
-  // print the release's page count into the build log here. Informational:
-  // a census failure never changes the build's status.
   if (status === 0) run("node", ["scripts/build/prerender-census.mjs"]);
   process.exit(status);
 }

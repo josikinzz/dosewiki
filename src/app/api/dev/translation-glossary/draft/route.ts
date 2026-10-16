@@ -1,11 +1,3 @@
-/**
- * POST /api/dev/translation-glossary/draft  { locale }
- *
- * Admin only. Drafts every term the locale has no row for, by the model, as
- * draft rows for review: the same routine as `build-glossary.mjs --locale`.
- * About 400 terms in forty-term batches is under a minute; the function
- * budget is generous because a cold locale drafts the whole universe.
- */
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";

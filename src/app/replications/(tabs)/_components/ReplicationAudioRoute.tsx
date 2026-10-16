@@ -30,12 +30,6 @@ export async function getReplicationAudioMetadata(locale: LiveLocale | null = nu
   });
 }
 
-/**
- * The Audio tab, shared by the English route and every locale mirror. Audio
- * clips live on the effect records as an excluded corpus group, so their
- * titles and credits stay as the artists wrote them; on a mirror the effect
- * name each clip is filed under comes from the stored effect-name translation.
- */
 export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLocale | null }) {
   const [audioIndex, replications] = await Promise.all([
     getPublicEffectAudioIndex(),
@@ -49,8 +43,6 @@ export async function ReplicationAudioRoute({ locale = null }: { locale?: LiveLo
       name: names.get(effect.name) ?? effect.name,
     }));
   }
-  // Stored `type: "audio"` rows are published beside the inline clips; the
-  // index dedupes a stored row against an inline clip of the same title.
   const entries = collectAudioReplications(
     effects,
     replications.filter((row) => row.type === "audio"),

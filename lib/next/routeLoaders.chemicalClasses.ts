@@ -11,7 +11,6 @@ import type { ChemicalClassDetail } from "@/features/chemical-classes/types";
 
 const CHEMICAL_CLASS_COPY_KEYS = [flavoredCopyKey("seo-chemical-classes-description")];
 
-/** Preserve the class route's metadata-length contract after locale lookup. */
 export function formatChemicalClassMetadataDescription(value: string): string {
   const clean = value
     .replace(/\*\*([^*]+)\*\*/g, "$1")

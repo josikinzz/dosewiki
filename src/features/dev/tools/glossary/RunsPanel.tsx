@@ -9,17 +9,9 @@ import { count, type GlossaryList } from "./glossaryModel";
 import { PendingTermsList } from "./PendingTermsList";
 import { TranslationProgress } from "./TranslationProgress";
 
-/**
- * Admin run controls, in one place: the latest run's progress, the main
- * translation, the retranslation of pending terms, and the retry of failed
- * pages. Every button calls the model, so the workbench renders this only for
- * admins. The actions themselves live in the workbench and are unchanged.
- */
 export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, starting, refreshError, onRefresh, onStart, onRetranslate, onRetryExhausted, result }: {
   data: GlossaryList;
-  /** Approved terms the stored translations have not been redone for. */
   pending: readonly string[];
-  /** Every glossary row has a decision, so the main translation may start. */
   reviewComplete: boolean;
   draftCount: number;
   locked: boolean;
@@ -29,7 +21,6 @@ export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, s
   onStart: () => void;
   onRetranslate: () => void;
   onRetryExhausted: () => void;
-  /** The last run write's result and what is running, placed under the buttons that made it. */
   result?: ReactNode;
 }) {
   const nothingTranslatedYet = data.segments.total === 0;
@@ -44,7 +35,6 @@ export function RunsPanel({ data, pending, reviewComplete, draftCount, locked, s
             {running ? "Translation running" : nothingTranslatedYet ? "Start main translation" : "Run the main translation again"}
           </Button>
         ) : null}
-        {/* Absent, not disabled, until something has been translated: there is nothing to redo. */}
         {nothingTranslatedYet ? null : (
           <Button
             type="button"

@@ -162,33 +162,18 @@ export type PublicEffectIndexArticle = {
   publicationDate?: string;
   body_raw: string;
   body_ast?: VCodeContent;
-  /**
-   * The legacy Mongo dump's raw 24-character author ObjectIds. Kept as-is
-   * because they are what the imported rows carry; they are never displayed.
-   */
   authors?: string[];
-  /**
-   * Contributor profile keys, backfilled from `authors`. This is the field a
-   * byline renders from — an article without it simply shows no byline.
-   */
   authorProfileKeys?: string[];
   citations?: Array<{
     url: string;
     text: string;
   }>;
-  /**
-   * Writing/Blog system fields. All optional: a legacy Effect Index import
-   * carries none of them, and absence means exactly what it meant before —
-   * `kind` absent is an article, `bodyFormat` absent is the VCode markup in
-   * `body_raw`.
-   */
   kind?: "article" | "blog";
   bodyFormat?: "vcode" | "markdown";
   teaser?: string;
   coverImageUrl?: string;
 };
 
-/** Published index metadata. Narrative bodies belong only to detail reads. */
 export type PublicPublicationIndexEntry = Omit<PublicEffectIndexArticle, "body_raw" | "body_ast" | "citations"> & {
   readMinutes?: number;
   indexDescription?: string;
@@ -210,9 +195,6 @@ export const trimExcerpt = (value: string | null | undefined, maxLength = 180) =
 
   return `${normalized.slice(0, maxLength).trimEnd()}…`;
 };
-
-// Row shapes for reads that historically bypassed the adapter. They describe
-// what the backend returns before any lib-side normalization.
 
 export type PublicChangelogRow = {
   entryId: string;

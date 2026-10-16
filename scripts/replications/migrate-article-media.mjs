@@ -1,85 +1,4 @@
 #!/usr/bin/env node
-/**
- * Move the curated article-embedded media into the `replications` table.
- *
- * 98 media assets were embedded in `subjectiveEffects` prose and
- * `effectIndexArticles` rather than stored as rows, so nothing credited them,
- * nothing tracked their rights, and nothing could withhold them. The curation
- * pass that reviewed them is a JSON dossier passed in with `--curation=<path>`,
- * one entry per asset with a role, an artist, an effect and a confidence.
- *
- * ## What it will and will not migrate
- *
- * Only `confidence: "strong"` entries whose `role` is `replication` or
- * `figure`, plus the entries the owner has explicitly ruled on in the decisions
- * file passed in with `--decisions=<path>`. Everything `weak`, `needs-owner` or
- * `role: "unclear"` that the owner has not ruled on stays out and is reported,
- * never guessed at.
- *
- * Both files are editor review records about creator-retained media (owner
- * rulings, per-asset evidence, and the storage ids they resolved to), so they
- * are kept outside the repository and never defaulted here.
- *
- * ## The duplicate problem this exists to avoid
- *
- * The original audit recorded `already_in_replications_table: false` on every
- * one of the 98. That was wrong. A fifth of them are the same works the public
- * gallery already carries, re-encoded, re-cropped or re-uploaded, so inserting
- * them would duplicate live gallery entries under new slugs. Neither input file
- * is trusted on this point. Every candidate is checked against production three
- * ways, in this order:
- *
- *   1. storage id — the resolved Postgres object is compared against the
- *      `storage_id` of all 247 existing rows.
- *   2. bytes — the asset's `sha-256` digest, taken from production's own
- *      response header, is compared against the digest of every existing row's
- *      stored object. Exact, and it catches a re-upload of identical bytes.
- *   3. pixels — a re-encode or a re-crop changes the bytes and not the work.
- *      Those were found by a downsampled greyscale sweep of every image row in
- *      production and then confirmed by eye; the result is recorded in
- *      `verifiedDuplicates` with its metric, because a judgement made by eye
- *      should not be silently recomputed by a later run.
- *
- * A near-duplicate found by eye is data. A byte duplicate is checked live on
- * every run, so a row inserted between two runs is still caught.
- *
- * ## Assets with no storage object yet
- *
- * The first pass could only file assets Postgres already held. Round two brought
- * four that had to be recovered from the live web first — dead gfycat ids and a
- * page hero whose host started returning 404 — so this script now uploads bytes
- * as well as referencing them. `ownerRulings.uploads` in the decisions file
- * names each recovered file, pins it by sha-256, and states the content type its
- * own container signature must produce; a file that has drifted fails closed
- * rather than quietly becoming the published asset. Uploads happen inside the
- * write phase, after the slug and duplicate checks, so a re-run pushes nothing.
- *
- * ## Re-runnable, not one-shot
- *
- * Every run re-reads production, skips any slug already present, and re-derives
- * type, format and dimensions from the asset's actual bytes rather than from the
- * inventory's `media_kind` label — which says "image/video" for every animated
- * asset and cannot be trusted for either field.
- *
- * Dry run (default, needs no credential):
- *   node scripts/replications/migrate-article-media.mjs \
- *     --curation=/path/to/article-media-curation.json \
- *     --decisions=/path/to/article-media-migration-decisions.json \
- *     --inventory=/path/to/article-embedded-media-inventory.json \
- *     --uploads-dir=/path/to/recovered-media
- *
- * Apply:
- *   node scripts/replications/migrate-article-media.mjs \
- *     --curation=/path/to/article-media-curation.json \
- *     --decisions=/path/to/article-media-migration-decisions.json \
- *     --inventory=/path/to/article-embedded-media-inventory.json \
- *     --uploads-dir=/path/to/recovered-media \
- *     --write --confirm-write=migrate-article-embedded-media \
- *     --confirm-media-migration \
- *     --expected-deployment=<host>/<database> \
- *     --target=postgresql://<host>/<database> \
- *     --limit=5
- */
 import fs from "node:fs";
 import path from "node:path";
 import { uploadReplicationFile, replicationImportReceipts } from "./lib/r2-upload.mjs";
@@ -134,7 +53,6 @@ export {
 const OPERATION = "migrate-article-embedded-media";
 const CONFIRM_FLAG = "--confirm-media-migration";
 
-/** Read a reviewed JSON input named by a required flag. */
 function readRequiredJson(argv, flag, description) {
   const filePath = getFlagValue(argv, flag);
   if (!filePath) {
@@ -159,9 +77,6 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
     ),
   ];
 
-  // Confirm every mapped storage id really is the object the embed points at,
-  // rather than trusting the checked-in map. `getUrl` returns a per-file URL
-  // token, so a wrong id resolves to a different token and fails here.
   const mapped = uuids.map((uuid) => storageIds[uuid]).filter(Boolean);
   const resolved = mapped.length
     ? await client.query(api.replications.resolveStorageUrls, { storageIds: mapped })
@@ -179,14 +94,9 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
   try {
     ({ default: sharp } = await import("sharp"));
   } catch {
-    // Dimensions are optional on the row; a missing decoder costs width/height
-    // and nothing else.
   }
 
   for (const asset of assets) {
-    // A recovered asset's bytes are on disk and nowhere else yet, so its facts
-    // come from the file. Checked before the inventory, which for these assets
-    // still records the dead host the recovery pass replaced.
     const uploadKey = uploadKeyById.get(asset.id);
     if (uploadKey) {
       const upload = uploads[uploadKey];
@@ -223,7 +133,6 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
       try {
         ({ width, height } = await sharp(bytes, { animated: false }).metadata());
       } catch {
-        // Undecodable is not fatal; the row simply carries no dimensions.
       }
     }
     facts.set(asset.id, {
@@ -242,7 +151,6 @@ async function readAssetFacts({ assets, inventoryById, storageIds, readUrl, clie
   return facts;
 }
 
-/** Digest per storage id for every object an existing row points at. */
 async function readExistingDigests(existingRows, readUrl, client) {
   const storageIds = [...new Set(existingRows.map((row) => row.storage_id).filter(Boolean))];
   const urls = await client.query(api.replications.resolveStorageUrls, { storageIds });
@@ -259,8 +167,6 @@ async function readExistingDigests(existingRows, readUrl, client) {
         digests.set(storageIds[index], digest);
       }
     } catch {
-      // A row whose object cannot be reached simply takes no part in the byte
-      // comparison; the pixel list still covers it.
     }
   }
   return digests;

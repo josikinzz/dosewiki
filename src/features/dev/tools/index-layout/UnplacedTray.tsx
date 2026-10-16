@@ -15,30 +15,16 @@ import { LayoutDrugRow, rowId } from "./LayoutDrugRow";
 import type { LayoutMoveRequest } from "./LayoutMoveDialog";
 import { countNoun } from "./layoutModel";
 
-/** Enough to scan; the filter is how you reach the rest of a long tail. */
 const MAX_VISIBLE = 60;
-/** Past this many, the filter shows. */
 const FILTER_FROM = 8;
 
 export interface UnplacedTrayProps {
-  /** Public substances the layout leaves out: every one of these is a gap. */
   items: readonly BoardItem[];
-  /** Hidden and direct-URL-only substances, which the index is right to omit. */
   hiddenItems: readonly BoardItem[];
-  /** Opens the list picker for one of them. */
   onRequestMove: (request: LayoutMoveRequest) => void;
-  /** The dataset's name, for the heading's spoken count. */
   datasetLabel: string;
 }
 
-/**
- * The substances this index does not place. Public ones are gaps a reader
- * would notice, so they lead; hidden and direct-URL-only articles are absent
- * on purpose and stay behind a toggle. Drag a row into a panel to place it,
- * tap Place to pick a list, or drop a placed substance here to take it out of
- * the index. From `xl` it is a sticky column beside the board; below that it
- * folds above the board and says how many gaps it holds.
- */
 export function UnplacedTray({ items, hiddenItems, onRequestMove, datasetLabel }: UnplacedTrayProps) {
   const [query, setQuery] = useState("");
   const [showHidden, setShowHidden] = useState(false);

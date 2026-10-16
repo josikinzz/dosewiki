@@ -48,15 +48,8 @@ import {
   uncurateSlug,
 } from "./contributorsModel";
 
-/**
- * Drop target for the auto-ordered section, so an item can be un-curated by
- * dragging it below the divider onto empty space and not only onto another row.
- * `applyOrderDrag` treats any `over` id that is not a curated slug as
- * "un-curate", which this id satisfies without a special case.
- */
 const AUTO_ZONE_ID = "contributor-order-auto-zone";
 
-/** Compact icon control that still reaches 44px under a coarse pointer. */
 const ICON_BUTTON_CLASS = `h-8 w-8 ${TOUCH_ICON}`;
 
 export type OrderablePanelItem = {
@@ -65,22 +58,12 @@ export type OrderablePanelItem = {
   meta: string;
 };
 
-/**
- * What this panel's in/out decision is called.
- *
- * The panel is reused for two different decisions (what a surface publishes,
- * and what a reusable list contains), and calling both of them "curate" makes
- * the second one read like a publish, which is exactly the confusion a playlist
- * is meant to remove.
- */
 type OrderingPanelVerbs = {
   add: string;
   remove: string;
   addIcon: string;
   removeIcon: string;
-  /** Labels the line between the chosen head and the rest. */
   divider: string;
-  /** Shown when nothing is above the line yet. */
   headEmpty: string;
 };
 
@@ -99,26 +82,18 @@ type OrderingPanelProps = {
   icon: string;
   title: string;
   description: string;
-  /** Already in the surface's default sort; the panel partitions, never re-sorts. */
   items: readonly OrderablePanelItem[];
   order: readonly string[];
   savedOrder: readonly string[];
   emptyLabel: string;
   saveState: EditorActionStatusState | "idle";
-  /** The save button's label; name the list when several panels share one page. */
   saveLabel?: string;
-  /** Defaults to the curation verbs; a reusable list overrides them with add/remove. */
   verbs?: OrderingPanelVerbs;
-  /** Heading tag; `h3` by default. */
   headingLevel?: "h2" | "h3" | "h4" | "h5";
-  /** The result of the last save of this list, drawn beside its Save. */
   notice?: NoticeMessage | null;
   onDismissNotice?: () => void;
-  /** A sentence beside Save saying when the order lands ("Saves on its own, live at once."). */
   saveNote?: string;
-  /** Read only: rows show their order, and nothing moves or saves. */
   readOnly?: boolean;
-  /** Fold the default-order rows past this many behind Show all. Unset shows every row. */
   autoCap?: number;
   onOrderChange: (next: string[]) => void;
   onSave: () => void;
@@ -244,7 +219,6 @@ function SortableRow({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[12rem]">
-                {/* Up and down sit on the row from sm up; on a phone they live here. */}
                 <DropdownMenuItem className="sm:hidden" disabled={first} onSelect={() => onMove(item.slug, "up")}>
                   <Icon icon="lucide:arrow-up" size={14} className="mr-2" />
                   Move up
@@ -270,18 +244,6 @@ function SortableRow({
   );
 }
 
-/**
- * One reorder panel: the curated head above a divider, the default-sorted tail
- * below it.
- *
- * The divider is the point of the layout. A contributor's page shows the pinned
- * items first and then falls back to its own sort, so a flat list would
- * misrepresent the stored state: it would imply every position is a decision,
- * when only the ones above the line are. Dragging across the line is therefore
- * the same gesture as the in/out buttons, which exist because a drag is not
- * reachable from every hand. Every move is announced, and focus stays on the
- * row that moved.
- */
 export function OrderingPanel({
   icon,
   title,

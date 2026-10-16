@@ -11,10 +11,6 @@ type CharacterCountProps = {
   value: string;
 };
 
-/**
- * Collapsible subsection within a form section.
- * Used to hide optional or secondary fields within an expanded section.
- */
 export interface CollapsibleSubsectionProps extends PropsWithChildren {
   title: string;
   icon?: ReactNode;
@@ -45,14 +41,6 @@ export function CollapsibleSubsection({
   );
 }
 
-/**
- * Free-floating grouping for related fields within a form section.
- *
- * The parent accordion row already provides the card container, so a group of
- * fields inside it should read as free-floating — an optional micro-label and a
- * gradient hairline (the public `ArticleSection` DNA at sub-section scale),
- * never another nested card.
- */
 export interface FieldGroupProps extends PropsWithChildren {
   label?: string;
 }

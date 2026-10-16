@@ -93,7 +93,6 @@ function recordSourceJurisdictions(draft) {
       if (!Array.isArray(entry.sources) || entry.sources.length === 0) continue;
       const current = countries.get(country) ?? { sources: [], claim: null };
       current.sources.push(...entry.sources.map((source) => ({ source, entry, section })));
-      // This order mirrors apply-draft: enrichments are applied after corrections.
       current.claim = entry;
       countries.set(country, current);
     }
@@ -205,8 +204,6 @@ export function buildLegalityCitationPlan({ article, draft }) {
     if (referencesById.has(reference.id)) ambiguousIds.add(reference.id);
     referencesById.set(reference.id, reference);
   }
-  // Legacy duplicate IDs cannot identify a single source. Preserve those
-  // references, but allocate unique IDs for any reviewed sources they match.
   for (const reference of existingReferences) {
     if (reference?.id && !ambiguousIds.has(reference.id)) rememberReference(reference, referencesByKey);
   }
@@ -260,9 +257,6 @@ export function buildLegalityCitationPlan({ article, draft }) {
       } else {
         let id = candidate.id;
         if (referencesById.has(id)) {
-          // Two distinct source pages can hash to the same 6-hex suffix
-          // (URLs differing only in trailing characters). Disambiguate by
-          // URL hash, then fall back to numeric suffixes until free.
           const base = id;
           let candidateId = `${base}-${stableSuffix(source.url)}`;
           let sequence = 2;
@@ -301,9 +295,6 @@ export function buildLegalityCitationPlan({ article, draft }) {
     }
 
     const markers = markerString(referenceIds);
-    // Canonicalize: strip every existing [cite:...] token, then append the
-    // desired marker set once — reruns and instrument-text edits converge
-    // instead of stacking marker clusters.
     const before = liveEntry.instrument;
     const stripped = before.replace(/\s*\[cite:[^\]]+\]/g, "").trimEnd();
     const after = `${stripped} ${markers}`;

@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/**
- * Rebuild subjective effect gallery_order arrays from replication metadata.
- *
- * This script uses the same canonical effect-slug mapping as the replication
- * import flow, so effect pages and the replications table stay aligned.
- *
- * Usage:
- *   node scripts/replications/create-gallery-order.mjs --dry-run
- *   node scripts/replications/create-gallery-order.mjs --execute
- */
 
 import fs from "fs";
 import path from "path";

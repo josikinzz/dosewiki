@@ -17,7 +17,6 @@ type BoldBondMolecule = Pick<
   "getAllBonds" | "isBondBold" | "setBondBold"
 >;
 
-/** The current bold-bond indices of a molecule, in ascending order. */
 export function readBoldBonds(molecule: BoldBondMolecule): number[] {
   const bold: number[] = [];
   for (let bond = 0; bond < molecule.getAllBonds(); bond += 1) {
@@ -26,7 +25,6 @@ export function readBoldBonds(molecule: BoldBondMolecule): number[] {
   return bold;
 }
 
-/** Apply a persisted bold-bond index list to a freshly loaded molecule. */
 export function applyBoldBonds(
   molecule: BoldBondMolecule,
   boldBonds: readonly number[] | undefined,
@@ -48,18 +46,14 @@ export type MoleculeSnapOutcome =
   | { kind: "straighten"; status: "no-bonds" }
   | { kind: MoleculeSnapKind; status: "failed" };
 
-/** Below this rotation the depiction is treated as already aligned (~0.03°). */
 const ALIGNED_EPSILON_RADIANS = 0.0005;
 
-/** Bonds on the standard drawing grid sit at multiples of 30°, i.e. π/6. */
 const GRID_PERIODS_PER_TURN = 12;
 
-/** Map an angle onto (-π/2, π/2] — vertical is the same line whichever end points up. */
 function normalizeHalfTurn(radians: number): number {
   return radians - Math.PI * Math.round(radians / Math.PI);
 }
 
-/** Rigidly rotate every atom about the depiction's bounds centre. */
 export function rotateMoleculeCoordinates(molecule: CoordinateMolecule, radians: number): boolean {
   const atomCount = molecule.getAllAtoms();
   if (atomCount === 0) return false;
@@ -86,7 +80,6 @@ export function rotateMoleculeCoordinates(molecule: CoordinateMolecule, radians:
   return true;
 }
 
-/** How many bonds are currently lasso-selected (a bond counts when both atoms are). */
 export function countSelectedBonds(molecule: BondGeometryMolecule): number {
   let count = 0;
   for (let bond = 0; bond < molecule.getAllBonds(); bond += 1) {
@@ -104,17 +97,6 @@ function bondAngle(molecule: BondGeometryMolecule, bond: number): number {
   );
 }
 
-/**
- * The two one-shot alignment actions, as a pure coordinate transform:
- *
- * - `bond-vertical`: rigidly rotate the whole depiction (by the smaller of the two
- *   possible turns) so the single lasso-selected bond becomes exactly vertical.
- * - `straighten`: rigidly rotate by the circular mean of every bond's deviation from
- *   the 30° drawing grid — the one-click fix for a slightly askew depiction.
- *
- * A rigid rotation cannot invert a stereocentre, so unlike mirroring there is no
- * wedge/hash compensation to apply.
- */
 export function applyMoleculeSnap(
   molecule: BondGeometryMolecule,
   kind: MoleculeSnapKind,
@@ -136,8 +118,6 @@ export function applyMoleculeSnap(
   const bondCount = molecule.getAllBonds();
   if (bondCount === 0) return { kind, status: "no-bonds" };
 
-  // Circular mean of the deviations: multiplying each angle by 12 collapses the 30°
-  // grid onto a full turn, so wraparound (+14° vs −14°) averages correctly.
   let sumSin = 0;
   let sumCos = 0;
   for (let bond = 0; bond < bondCount; bond += 1) {
@@ -151,7 +131,6 @@ export function applyMoleculeSnap(
   return { kind, status: "applied", degrees: (delta * 180) / Math.PI };
 }
 
-/** Rigidly rotate the whole depiction (by the smaller turn) so one explicit bond is vertical. */
 export function applyBondVertical(
   molecule: BondGeometryMolecule,
   bond: number,
@@ -171,7 +150,6 @@ export function applyBondVertical(
   return { kind, status: "applied", degrees: (delta * 180) / Math.PI };
 }
 
-/** Reflect a depiction around its own bounds while preserving wedge/hash stereo encoding. */
 export function mirrorMoleculeCoordinates(
   molecule: CoordinateMolecule,
   direction: MoleculeMirrorDirection,

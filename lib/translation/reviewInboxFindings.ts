@@ -1,25 +1,3 @@
-/**
- * Review Inbox findings: what the automated checks found in stored
- * translations, and what readers suggested from the public glossary.
- *
- * - Rejected segments: the validator refused every attempt and nothing is
- *   stored, so readers see English.
- * - Glossary disagreements: the English mentions an approved term (the shared
- *   term matcher, scoped by the term's kind) and the translation lacks its
- *   rendering.
- * - Leftover English: `findLeftoverLatin` over zh-Hans translations.
- *
- * Both checks read what readers see: where a human article correction applies
- * (overlay decision apply or apply-recheck), its wording replaces the stored
- * machine target, and terms the reviewer marked "Fine here" when saving it are
- * not listed.
- * - Reader suggestions: new or in-review rows of the public glossary feedback
- *   queue, read by the caller through the existing feedback query.
- *
- * The scan reuses the coverage inventory and its bounded, batched reads, and is
- * cached for at most five minutes per locale and approved glossary. "Fine here"
- * exceptions are read fresh on every request, so a marked item leaves at once.
- */
 import "server-only";
 import { createHash } from "node:crypto";
 import { getPostgresClient } from "@server/postgres/runtime/backend";
@@ -49,7 +27,6 @@ import { coveragePagePath, getCoverageInventory, type CoverageInventory } from "
 
 const FINDINGS_TTL_MS = 5 * 60_000;
 const READ_BATCH = 1000;
-/** Pages kept per finding for its location; the rest are counted. */
 const RECORDS_PER_FINDING = 5;
 
 type FindingRecord = { kind: TranslationRecordKind; slug: string };
@@ -57,12 +34,9 @@ export type QaFinding = {
   reason: Extract<InboxReason, "segment-rejected" | "glossary-disagreement" | "leftover-latin">;
   hash: string;
   source: string;
-  /** The translation readers see (a human correction where one applies); null for a rejected segment. */
   target: string | null;
-  /** Glossary term, or the leftover English words joined by spaces. */
   term?: string;
   rendering?: string;
-  /** Glossary revision of the rendering and the stored target digest, the stored target digest, or the last rejection time. */
   revision: string;
   defects?: string[];
   attempts?: number;
@@ -70,53 +44,34 @@ export type QaFinding = {
   pages: number;
 };
 
-/**
- * The glossary revision of an approved rendering: when that rendering last
- * changed (`reviewed_at`, which a Confirm leaves alone), else the row's update
- * time. A saved draft does not change it; approving new wording does.
- */
 export function glossaryRenderingRevision(row: Pick<TranslationGlossaryRow, "reviewed_at" | "updated_at">): string {
   return String(row.reviewed_at ?? row.updated_at);
 }
-/** The stored translation a "Fine here" exception is about. */
 export function storedTargetRevision(target: string): string {
   return createHash("sha256").update(target, "utf8").digest("hex").slice(0, 16);
 }
-/** A glossary disagreement's revision: the rendering's glossary revision and the stored translation, so a change to either returns the finding. */
 export function glossaryFindingRevision(glossaryRevision: string, target: string): string {
   return `${glossaryRevision}:${storedTargetRevision(target)}`;
 }
-/** Whether a stored target carries the rendering; Latin renderings match case-insensitively. */
 function carriesRendering(target: string, rendering: string): boolean {
   return target.includes(rendering) || target.toLowerCase().includes(rendering.toLowerCase());
 }
 
 type ScanGlossaryTerm = { term: string; target: string; kind: string; revision: string };
-/** One wording readers see for a sentence, with the glossary terms its reviewer kept out on purpose. */
 type ShownTarget = { target: string; glossaryExceptions: readonly string[] };
-/**
- * A sentence of one article where a human correction applies at one or more of
- * its places. `machineShown` is true when some place still shows the stored
- * machine target.
- */
 export type ArticleCorrection = { targets: ShownTarget[]; machineShown: boolean };
 
-/** Pure scan over the inventory and what is stored for it. Exported for tests. */
 export function scanInboxFindings(input: {
   inventory: CoverageInventory;
   stored: ReadonlyMap<string, string>;
   rejections: ReadonlyMap<string, { source: string; defects: string[]; attempts: number; last_tried_at: number }>;
   glossary: readonly ScanGlossaryTerm[];
   chinese: boolean;
-  /** Applied human corrections by article slug, then segment hash. */
   corrections?: ReadonlyMap<string, ReadonlyMap<string, ArticleCorrection>>;
 }): QaFinding[] {
   const { inventory, stored, rejections, glossary, chinese, corrections } = input;
-  // Indexed by each term's opening letters, so a unit is matched only against
-  // the terms it could mention; the shared matcher still decides every finding.
   const termsIn: (text: string) => ScanGlossaryTerm[] = termFinder(glossary, (entry: ScanGlossaryTerm) => entry.term);
   const glossaryMap = Object.fromEntries(glossary.map(({ term, target }) => [term, target]));
-  // Substance article slugs are the names rule 2 keeps in Latin in lowercase prose.
   const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
   const findings = new Map<string, QaFinding>();
   const note = (key: string, record: FindingRecord, create: () => Omit<QaFinding, "records" | "pages">) => {
@@ -149,7 +104,6 @@ export function scanInboxFindings(input: {
         ...(machineShown && target ? [{ target, glossaryExceptions: [], machine: true }] : []),
       ];
       for (const { target: text, glossaryExceptions, machine } of shown) {
-        // Machine results are shared by every page with this hash; human wording is checked where it applies.
         let terms = machine ? mentioned.get(unit.hash) : undefined;
         if (!terms) {
           terms = termsIn(unit.source).filter(({ target: rendering }) => !carriesRendering(text, rendering));
@@ -187,7 +141,6 @@ function approvedTerms(rows: readonly TranslationGlossaryRow[]): ScanGlossaryTer
     .sort((a, b) => a.term.localeCompare(b.term));
 }
 
-/** The approved narrative entries of a locale that are about substance articles, by slug. */
 function articleApprovals(entries: Awaited<ReturnType<typeof readReviewEntries>>): Map<string, Map<string, ReviewSnapshot>> {
   const bySlug = new Map<string, Map<string, ReviewSnapshot>>();
   for (const entry of entries) {
@@ -203,10 +156,6 @@ function articleApprovals(entries: Awaited<ReturnType<typeof readReviewEntries>>
   return bySlug;
 }
 
-/**
- * The glossary exceptions recorded with each approved wording: those of the
- * latest save whose draft is that wording. Bounded batches, as coverage reads.
- */
 async function approvedWordingExceptions(locale: string, approved: ReadonlyMap<string, string>): Promise<Map<string, string[]>> {
   const ids = [...approved.keys()];
   const exceptions = new Map<string, string[]>();
@@ -223,7 +172,6 @@ async function approvedWordingExceptions(locale: string, approved: ReadonlyMap<s
   return exceptions;
 }
 
-/** Applied human article corrections, by slug and segment hash, with the glossary exceptions saved with each. */
 async function readArticleCorrections(reads: PublicDataReadAdapter, locale: string): Promise<Map<string, Map<string, ArticleCorrection>>> {
   const applied: { slug: string; hash: string; id: string; target: string }[] = [];
   const machineShown = new Set<string>();
@@ -255,7 +203,6 @@ async function buildFindingsScan(reads: PublicDataReadAdapter, locale: string, g
   const hashes = [...new Set(inventory.records.flatMap((record) => record.units.map((unit) => unit.hash)))];
   const stored = new Map<string, string>();
   const rejections = new Map<string, { source: string; defects: string[]; attempts: number; last_tried_at: number }>();
-  // Keep database argument arrays bounded, as coverage does.
   for (let start = 0; start < hashes.length; start += READ_BATCH) {
     const batch = hashes.slice(start, start + READ_BATCH);
     const [rows, rejected] = await Promise.all([readTranslationCoverageRows(locale, batch), readTranslationRejections(locale, batch)]);
@@ -267,7 +214,6 @@ async function buildFindingsScan(reads: PublicDataReadAdapter, locale: string, g
   return { generatedAt: Date.now(), glossaryKey, findings: scanInboxFindings({ inventory, stored, rejections, glossary, chinese, corrections }) };
 }
 
-/** Findings for one locale: at most five minutes old, and never older than the approved glossary. */
 export async function getInboxFindings(reads: PublicDataReadAdapter, locale: string): Promise<QaFinding[]> {
   const glossary = approvedTerms(await readGlossaryRows(locale, { status: "approved" }));
   const glossaryKey = createHash("sha256").update(JSON.stringify(glossary)).digest("hex");
@@ -284,11 +230,9 @@ export async function getInboxFindings(reads: PublicDataReadAdapter, locale: str
       .finally(() => { current.pending = undefined; });
   }
   const scan = await entry.pending!;
-  // A scan started under an older glossary is not reused for a newer one.
   return scan.glossaryKey === glossaryKey ? scan.findings : (await buildFindingsScan(reads, locale, glossary, glossaryKey)).findings;
 }
 
-/** Exceptions a reviewer recorded with "Fine here", as review-table keys. */
 export async function readQaExceptionKeys(locale: string): Promise<Set<string>> {
   return new Set((await readReviewEntries(locale, "qa-exception")).filter((entry) => entry.approved).map((entry) => entry.sourceId));
 }
@@ -296,7 +240,6 @@ export async function readQaExceptionKeys(locale: string): Promise<Set<string>> 
 const KIND_LABEL: Record<TranslationRecordKind, string> = {
   article: "article", effect: "effect", report: "report", library: "library", replication: "replication", profile: "profile",
 };
-/** Items that point at an article sentence resolve their narrative identity only when shown. */
 const articleOrigins = new WeakMap<InboxItem, { slug: string; hash: string }>();
 
 function findingItem(locale: string, finding: QaFinding): InboxItem {
@@ -337,17 +280,12 @@ function findingItem(locale: string, finding: QaFinding): InboxItem {
   return item;
 }
 
-/** QA findings as inbox items, without those a reviewer marked "Fine here". */
 export function qaFindingItems(locale: string, findings: readonly QaFinding[], exceptions: ReadonlySet<string>): InboxItem[] {
   return findings
     .map((finding) => findingItem(locale, finding))
     .filter((item) => !item.exception || !exceptions.has(qaExceptionKey(item.exception)));
 }
 
-/**
- * Points article findings on one page at the sentence's editor field: the
- * Narratives view at that sentence. Reads at most one record per article shown.
- */
 export async function resolveFindingLinks(reads: PublicDataReadAdapter, locale: string, items: readonly InboxItem[]): Promise<void> {
   const bySlug = new Map<string, Promise<ReturnType<typeof segmentsOf> | null>>();
   for (const item of items) {
@@ -365,7 +303,6 @@ export async function resolveFindingLinks(reads: PublicDataReadAdapter, locale: 
   }
 }
 
-/** A row of the public glossary feedback queue, as the existing feedback list query returns it. */
 export type ReaderSuggestionRow = {
   id: string;
   locale: string;
@@ -376,7 +313,6 @@ export type ReaderSuggestionRow = {
   status: string;
   created_at: string;
 };
-/** Suggestions still waiting for a translator: new, or opened for review but not decided. */
 export function readerSuggestionItems(locale: string, rows: readonly ReaderSuggestionRow[]): InboxItem[] {
   return rows
     .filter((row) => row.locale === locale && (row.status === "new" || row.status === "reviewing"))
@@ -385,7 +321,6 @@ export function readerSuggestionItems(locale: string, rows: readonly ReaderSugge
       id: row.id,
       reason: "reader-suggestion",
       english: row.term,
-      // Empty when the reader translated a term this language did not have yet.
       live: row.target || null,
       ...(row.alternative.trim() ? { suggestion: row.alternative.trim() } : {}),
       ...(row.details.trim() ? { detail: `Reader: ${row.details.trim()}` } : {}),
@@ -396,19 +331,12 @@ export function readerSuggestionItems(locale: string, rows: readonly ReaderSugge
     }));
 }
 
-/**
- * "Fine here": records a qa-exception in the review tables, keyed by locale,
- * segment hash, term, and revision (which covers the stored translation), at the revision the reviewer saw. Refuses
- * (409) when the stored translation or the rendering changed since, or the
- * finding no longer holds. Recording the same exception twice is a no-op.
- */
 export async function recordQaException(locale: string, exception: InboxException, actor: string): Promise<void> {
   assertDataWritesNotFrozen("recordQaException");
   const [machine] = await getPostgresClient().sql<{ source: string; target: string }>(
     'SELECT "source", "target" FROM "translationSegments" WHERE "locale" = $1 AND "hash" = $2',
     [locale, exception.hash],
   );
-  // The finding may be about the stored machine target or an approved human correction of the same English.
   const shown = [
     ...(machine?.target.trim() ? [machine] : []),
     ...(await readReviewEntries(locale, "narrative")).flatMap((entry) => (entry.approved?.target.trim() && segmentHash(entry.approved.source) === exception.hash ? [entry.approved] : [])),

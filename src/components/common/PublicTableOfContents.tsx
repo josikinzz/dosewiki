@@ -6,27 +6,10 @@ import { msg, useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 import { isPlainLeftClick, scrollIntoViewRespectingMotion } from "@/utils/navigation";
 
-/**
- * Minimum distance from the viewport top at which a section counts as current.
- * A target's live scroll margin raises this line when editor chrome or a mobile
- * TOC makes the sticky stack taller than the public site's usual header.
- */
 const SCROLLSPY_TOP_OFFSET = 140;
 
-/**
- * Scrollspy: tracks which section heading is currently beneath the site header
- * and returns its id, so the matching table-of-contents entry can light up as
- * the reader scrolls. Reads the live position of each section on scroll (rAF
- * throttled) so it stays correct even for sections taller than the viewport.
- *
- * Exported for `PublicTocStrip`, the mobile companion of this rail — both must
- * agree on which section is "current", so they share the one implementation.
- */
 export function useActiveSection(ids: string[]): string | null {
   const idsKey = ids.join("|");
-  // Seeded with the first item, the same answer the effect gives before any
-  // heading crosses the line, so the server render already carries the lit
-  // item instead of lighting it a frame after hydration.
   const [activeId, setActiveId] = useState<string | null>(() => ids[0] ?? null);
 
   useEffect(() => {
@@ -50,13 +33,11 @@ export function useActiveSection(ids: string[]): string | null {
           Number.parseFloat(window.getComputedStyle(element).scrollMarginTop) || 0,
         );
         if (element.getBoundingClientRect().top - topOffset <= 1) {
-          // Last section whose heading has scrolled above the offset line wins.
           current = id;
         } else {
           break;
         }
       }
-      // Before the first heading reaches the line, keep the first item lit.
       if (current === null) {
         current = ids[0] ?? null;
       }
@@ -80,7 +61,6 @@ export function useActiveSection(ids: string[]): string | null {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-    // idsKey captures the section list; ids itself is a fresh array each render.
   }, [idsKey]);
 
   return activeId;
@@ -97,11 +77,6 @@ interface PublicTableOfContentsProps {
   items: PublicTableOfContentsItem[];
   title?: string;
   className?: string;
-  /**
-   * "panel" (default) renders the frosted bordered card used inline under the
-   * hero. "bare" drops the panel chrome for a quiet support rail in the page
-   * gutter (the wide-screen sticky table of contents).
-   */
   variant?: "panel" | "bare";
 }
 
@@ -160,8 +135,6 @@ export const PublicTableOfContents = memo(function PublicTableOfContents({
                     data-tone={item.tone}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      // Every item carries the border, transparent unless a tone
-                      // paints it, so toned and plain rows share one box height.
                       "theme-article-toc-item group flex w-full items-center gap-2.5 rounded-control border border-transparent px-2 py-2 text-left text-sm transition-[background-color,color,border-color,box-shadow] motion-reduce:transition-none [@media(pointer:coarse)]:min-h-11",
                       isWarning
                         ? undefined

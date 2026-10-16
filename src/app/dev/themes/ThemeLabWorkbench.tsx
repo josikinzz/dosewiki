@@ -8,25 +8,12 @@ import { Button } from "@/components/ui";
 import { Surface } from "@/components/ui/surface";
 import { setThemeLabOpen, useThemeLabOpen } from "@/features/theme-lab/themeLabStore";
 
-/**
- * The protected developer workbench for Theme Lab.
- *
- * Theme Lab itself is mounted globally and opens from every DoseWiki
- * appearance panel. This route adds implementation notes and a full-size reopen
- * action for editors; entering it opens the same global drawer.
- *
- * The workbench leaves color scheme, visual style, surface, and accent alone.
- * Changes remain the reader's own choices exactly as they do on every page.
- */
 export function ThemeLabWorkbench() {
   const open = useThemeLabOpen();
   const reopenRef = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
 
   useEffect(() => {
-    // This route always intends to open Theme Lab. Start both independent
-    // chunks together; ThemeLabLazy still withholds the panel until the runtime
-    // has restored persisted state and reported readiness.
     void Promise.allSettled([
       import("@/features/theme-lab/ThemeLabRuntimeMount"),
       import("@/features/theme-lab/ThemeLab"),
@@ -34,8 +21,6 @@ export function ThemeLabWorkbench() {
     setThemeLabOpen(true);
   }, []);
 
-  // Closing the panel must not drop focus on the body: the action that reopens
-  // it renders in the same commit, so it is the natural place to land.
   useEffect(() => {
     if (wasOpen.current && !open) reopenRef.current?.focus();
     wasOpen.current = open;

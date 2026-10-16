@@ -1,9 +1,3 @@
-/**
- * Discovery-only and wiki residue checks for article-wide packets and the final
- * local review surfaces. Only designated provenance surfaces may name discovery
- * sources.
- */
-
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 

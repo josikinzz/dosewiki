@@ -10,7 +10,6 @@ import { PsychoactiveSummaryPage } from "@/features/psychoactive-summaries/Psych
 export const revalidate = 3600;
 export const dynamicParams = true;
 
-// Keep the build bounded; published keys enter the ISR cache on first request.
 export function generateStaticParams() {
   return [];
 }

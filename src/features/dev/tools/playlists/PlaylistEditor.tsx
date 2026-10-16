@@ -28,27 +28,14 @@ import {
 import { moveSlug, playlistKeyOf, type PlaylistDraft } from "./playlistsModel";
 import type { WorkCards } from "./useWorkCards";
 
-/**
- * Rows shown before the list folds behind "Show all". A long playlist then
- * stays about one screen tall instead of pushing the Save button off the page.
- */
 const COLLAPSED_ROWS = 20;
 
-/** Pause after the last keystroke before the search read goes out. */
 const SEARCH_DEBOUNCE_MS = 250;
 
-/**
- * What this editor lets the member do. Every surface that edits a playlist
- * renders this one editor and turns on only what it allows.
- */
 type PlaylistEditorCapabilities = {
-  /** Change the name (and, while creating, the key minted from it). */
   rename: boolean;
-  /** Add and remove works; reordering is always allowed. */
   membership: boolean;
-  /** Admin creating a playlist: choose the owning member, saved with it. */
   owner: boolean;
-  /** Find works by thumbnail and title through the bounded candidates read. */
   search: boolean;
 };
 
@@ -61,32 +48,20 @@ const DEFAULT_CAPABILITIES: PlaylistEditorCapabilities = {
 
 export type PlaylistEditorProps = {
   draft: PlaylistDraft;
-  /** `null` while creating: the key follows the title until the first save. */
   isNew: boolean;
   isDirty: boolean;
   busy: boolean;
-  /** Outcome of the last write. It sits beside the Save button so it is seen from wherever Save was pressed. */
   notice: NoticeMessage | null;
   onChange: (draft: PlaylistDraft) => void;
   onSave: () => void;
   onCancel: () => void;
   saveLabel?: string;
   capabilities?: Partial<PlaylistEditorCapabilities>;
-  /** Thumbnail cards for the entries; required for `search`, and it also resolves slugs as they are added. */
   workCards?: WorkCards;
-  /** Members an admin may hand the new playlist to (`owner`). */
   memberOptions?: readonly SearchablePickerOption[];
-  /** Embedded in a page pane rather than the /dev shell. */
   contextual?: boolean;
 };
 
-/**
- * A title, a key, and an ordered list of works with up/down/remove controls.
- * With `search` on, entries show their thumbnail and title, a search finds
- * works by what they look like and are called, and a pasted slug is checked
- * against the published corpus the moment it is added, so a save never has
- * to drop anything the member did not see flagged first.
- */
 export function PlaylistEditor({
   draft,
   isNew,
@@ -118,7 +93,6 @@ export function PlaylistEditor({
   const unavailableCount = visual ? draft.slugs.filter((slug) => workCards.unavailable.has(slug)).length : 0;
   const labelOf = (slug: string) => (visual ? workCards.get(slug)?.title : undefined) || slug;
 
-  /** Applies a list change; a row that lands in the folded tail unfolds it so the edit stays visible. */
   const updateSlugs = (slugs: string[], touchedIndex: number) => {
     if (!showAll && touchedIndex >= COLLAPSED_ROWS) setShowAll(true);
     onChange({ ...draft, slugs });
@@ -158,7 +132,6 @@ export function PlaylistEditor({
 
   return (
     <section aria-labelledby={headingId} className="space-y-5">
-      {/* Keep actions at the embedded pane's top, or just below the site header. */}
       <header className={`sticky ${contextual ? "top-0" : "top-[var(--site-header-height)]"} z-10 space-y-2 border-b border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg)]/95 py-2 backdrop-blur`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 id={headingId} className="theme-text-primary text-base font-semibold">
@@ -375,11 +348,6 @@ export function PlaylistEditor({
   );
 }
 
-/**
- * Finds works by title, artist or slug and adds one with a click. The read is
- * bounded on the server, so this shows at most one page of matches and asks
- * for more words rather than paging through the corpus.
- */
 function WorkSearch({
   busy,
   onList,

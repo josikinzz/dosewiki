@@ -1,8 +1,3 @@
-/**
- * Deterministic gate snapshots, freshness, prerequisites, logs, and workbench
- * command invocation for the Pi run manifest controller.
- */
-
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";

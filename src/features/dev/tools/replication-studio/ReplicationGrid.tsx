@@ -26,37 +26,27 @@ export type StudioGridDensity = "compact" | "comfortable" | "large";
 export type ReplicationGridProps = {
   groups: readonly StudioGroup[];
   selection: ReadonlySet<string>;
-  /** The keyboard anchor; the box scrolls so its row is in view whenever it changes. */
   anchorId: string | null;
   onCardActivate: (event: React.MouseEvent, id: string) => void;
   view?: StudioGridView;
   density?: StudioGridDensity;
-  /** Grouped by effect, every card in a group would repeat its heading. */
   hideEffect?: boolean;
-  /** Clears every filter; offered from the empty state when filters are on. */
   onClearFilters?: () => void;
 };
 
-/** What the keyboard handler needs from the grid without touching its DOM. */
 export type ReplicationGridHandle = {
-  /** Cards per visual row at the current width. */
   columns: number;
 };
 
-/** Narrowest card each density draws before dropping a column. */
 const MIN_CARD_WIDTH: Record<StudioGridDensity, number> = {
   compact: 120,
   comfortable: 160,
   large: 240,
 };
 const MAX_COLUMNS = 10;
-/** List rows: a 48px thumbnail plus padding, fixed so rows can be windowed. */
 const LIST_ROW_HEIGHT = 60;
-/** `gap-3` in pixels; rows are spaced by the same amount as columns. */
 const GAP = 12;
-/** Rows kept mounted above and below the visible band. */
 const OVERSCAN_ROWS = 3;
-/** Height assumed for the box before it has been measured (first paint, jsdom). */
 const FALLBACK_VIEWPORT = 640;
 const FALLBACK_HEADER_HEIGHT = 40;
 
@@ -66,7 +56,6 @@ type Segment =
 
 type CardFlag = { label: string; tone?: "warning" };
 
-/** Only what needs attention: a card with nothing to flag carries no chips. */
 function flagsFor(row: StudioRow): CardFlag[] {
   const flags: CardFlag[] = [];
   if (row.publication_state === "unpublished") flags.push({ label: "Unpublished", tone: "warning" });
@@ -127,8 +116,6 @@ function ReplicationCard({ row, selected, focusable, position, total, hideEffect
         ) : null}
       </div>
 
-      {/* Two lines, always: every card in a row shares its height, which is
-          what lets the box window rows without measuring each one. */}
       <div className="min-w-0 px-1 pb-0.5">
         <div className="theme-text-primary truncate text-sm font-medium">{row.title || "Untitled"}</div>
         <div className="theme-text-faint truncate text-xs">
@@ -185,10 +172,6 @@ function ReplicationListRow({ row, selected, focusable, position, total, hideEff
   );
 }
 
-/**
- * Observes one element's height. The callback ref re-targets whenever the
- * probed element changes, so it can ride on "the first mounted row".
- */
 function useHeightProbe(fallback: number) {
   const [height, setHeight] = useState(0);
   const observer = useRef<ResizeObserver | null>(null);
@@ -215,7 +198,6 @@ function columnsFor(width: number, density: StudioGridDensity): number {
   return Math.max(1, Math.min(MAX_COLUMNS, Math.floor((width + GAP) / (min + GAP))));
 }
 
-/** Index of the last segment whose top is at or above `offset`. */
 function segmentAt(segments: readonly Segment[], offset: number): number {
   let low = 0;
   let high = segments.length - 1;
@@ -227,14 +209,6 @@ function segmentAt(segments: readonly Segment[], offset: number): number {
   return low;
 }
 
-/**
- * The media grid: a box that fills its column, scrolls inside itself, and
- * mounts only the rows in view, so the page never grows with the corpus.
- * Groups keep their labelled headers inline, the current group's label stays
- * pinned to the top edge, and the box scrolls to the keyboard anchor when the
- * arrows or the gallery board move it. Keyboard focus follows the anchor, so
- * a screen reader hears each card the arrows land on.
- */
 export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGridProps>(
   function ReplicationGrid(
     {
@@ -256,8 +230,6 @@ export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGrid
     const [scrollTop, setScrollTop] = useState(0);
     const columns = view === "list" ? 1 : columnsFor(width, density);
     const gap = view === "list" ? 2 : GAP;
-    // Cards are 4:3 media plus two fixed text lines; this is what a row costs
-    // before the first one has been measured.
     const cardWidth = columns > 0 && width > 0 ? (width - GAP * (columns - 1)) / columns : 200;
     const [measuredRow, rowProbe] = useHeightProbe(Math.round(cardWidth * 0.75 + 60));
     const rowHeight = view === "list" ? LIST_ROW_HEIGHT : measuredRow;
@@ -313,9 +285,6 @@ export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGrid
       if (box) setScrollTop(box.scrollTop);
     }, []);
 
-    // Scroll the anchor's row into the box whenever the anchor moves. Runs
-    // again once a real row height lands so a mount-time anchor (a row the
-    // gallery board asked to inspect) is honoured with true offsets.
     useEffect(() => {
       const box = boxRef.current;
       if (!box || !anchorId) return;
@@ -330,8 +299,6 @@ export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGrid
       }
     }, [anchorId, segments]);
 
-    // Focus follows the anchor, but only while focus is already in the box:
-    // a click in the inspector or the rail must not be pulled back here.
     useEffect(() => {
       const box = boxRef.current;
       if (!box || !anchorId || !box.contains(document.activeElement)) return;
@@ -360,14 +327,10 @@ export const ReplicationGrid = forwardRef<ReplicationGridHandle, ReplicationGrid
     const mounted = segments.slice(start, end);
     const firstRowKey = mounted.find((segment) => segment.kind === "row")?.key;
     const firstHeaderKey = mounted.find((segment) => segment.kind === "header")?.key;
-    // One card in the box takes Tab: the anchor when it is mounted, else the
-    // first mounted card. Arrows move between the rest.
     const mountedIds = mounted.flatMap((segment) =>
       segment.kind === "row" ? segment.rows.map((row) => row.id) : [],
     );
     const tabStop = anchorId && mountedIds.includes(anchorId) ? anchorId : mountedIds[0];
-    // The label of the group the top edge is inside, pinned while its inline
-    // header is scrolled away.
     const pinned = (() => {
       let label: { label: string; count: number } | null = null;
       for (const segment of segments) {

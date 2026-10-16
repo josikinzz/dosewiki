@@ -1,18 +1,3 @@
-/**
- * Curated ordering write for the Contributors tab's Works and Reports panels.
- *
- *   POST /api/dev/contributor-profile/ordering
- *     { key, replicationOrder?: string[], reportOrder?: string[] }
- *
- * Partial curation: the slugs sent here render first, in this order, and
- * anything unlisted follows in the surface's own default sort. An omitted array
- * leaves that ordering untouched; an empty array is how curation is removed.
- * Slugs that no longer resolve are pruned by the mutation and reported back, so
- * the panel can say what it dropped rather than silently losing a position.
- *
- * Editor floor, ownership in Postgres: `setContributorOrdering` lets an admin
- * curate any profile and an editor only their own, refused here as 403.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
@@ -21,7 +6,6 @@ import { revalidateContributorSurfaces } from "../contributorRevalidation";
 
 export const runtime = "nodejs";
 
-/** Matches `MAX_ORDER_SLUGS` in `server/lib/contributorProfiles.ts`. */
 const MAX_ORDER_SLUGS = 500;
 const MAX_SLUG_LENGTH = 200;
 
@@ -91,7 +75,6 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
   unexpectedErrorLabel: "Failed to save a contributor ordering via Next route:",
   unexpectedErrorMessage: "Unable to save that ordering right now.",
   mapError: (error) => {
-    // Postgres wraps thrown mutation errors, so match by substring.
     const message = error instanceof Error ? error.message : "";
     if (message.includes("You can only edit your own contributor profile")) {
       return NextResponse.json(
@@ -121,8 +104,6 @@ export const POST = protectedRouteOperation<OrderingBody, ParsedOrdering>({
         ...(body.reportOrder === undefined ? {} : { reportOrder: body.reportOrder }),
       },
     );
-    // This route never sends an expected order, so the handler's conflict
-    // receipt cannot come back here.
     if (result.status !== "ok") {
       throw new Error("Unexpected contributor ordering conflict receipt.");
     }

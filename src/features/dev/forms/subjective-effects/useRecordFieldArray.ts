@@ -1,10 +1,3 @@
-/**
- * Helper hook for managing Record<string, T> fields as arrays in React Hook Form.
- * 
- * Converts between Record<key, value> and Array<{ key, ...value }> representations
- * to enable useFieldArray-like operations on object-based schema fields.
- */
-
 import { useCallback, useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { SubstanceArticle, EffectSubcategory } from "@/schema";
@@ -29,7 +22,6 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
   const nextFieldId = useRef(0);
   fieldIds.current ??= new Map();
 
-  // Compare ordered entries: record equality alone ignores a move's key order.
   const entries = useWatch({
     control,
     name: fieldPath,
@@ -48,8 +40,6 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
     () => {
       const current = getValues(fieldPath) ?? {};
       let number = Object.keys(current).length + 1;
-      // `hasOwnProperty` rather than `Object.hasOwn`, which this project's `lib`
-      // target does not carry.
       while (Object.prototype.hasOwnProperty.call(current, `New Subcategory ${number}`)) {
         number += 1;
       }
@@ -104,8 +94,6 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
 
       const [removed] = entries.splice(fromIndex, 1);
       entries.splice(toIndex, 0, removed);
-      // RHF treats records with reordered keys as equal. Replace this one record
-      // in the same event so the final value, not just the display, keeps the order.
       setValue(fieldPath, {});
       setValue(fieldPath, Object.fromEntries(entries), { shouldDirty: true });
     },
@@ -115,13 +103,8 @@ function useSubcategoryRecordField(fieldPath: SubcategoryRecordPath) {
   return { fields, append, remove, updateKey, move };
 }
 
-/**
- * Hook for managing a Record<string, EffectSubcategory> field as an array.
- * Provides append, remove, and update operations while keeping the form data in Record format.
- */
 export function useRecordFieldArray(fieldPath: `subjective_effects.${"cognitive" | "physical" | "progressive_stages"}`,) { return useSubcategoryRecordField(fieldPath); }
 
-/** Hook for managing subcategories within a sensory category. */
 export function useSensorySubcategories(sense: SensoryCategory) { return useSubcategoryRecordField(
   `subjective_effects.sensory.${sense}.subcategories`,
 ); }

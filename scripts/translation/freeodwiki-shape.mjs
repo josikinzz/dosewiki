@@ -1,16 +1,5 @@
-/**
- * The FreeODwiki target shape: which of their trees each page kind lands in,
- * the reuse terms each corpus travels under, and the fixed labels for the
- * closed sets (dose tiers, duration stages, routes, statuses, effect groups)
- * that never went through the translator because they are structure. Every
- * label exists in both locales the exporter emits, so the English tree is a
- * true line-for-line counterpart of the Chinese one. Pure data; the renderer
- * and the page builders read it through `labelsFor(locale)`.
- */
-
 export const SITE = "https://dose.wiki";
 
-/** Their content trees, keyed by the kind of page that lives in each. */
 const ZH_TREE = Object.freeze({
   substance: "药物",
   effect: "药效",
@@ -18,18 +7,8 @@ const ZH_TREE = Object.freeze({
   article: "文档",
 });
 
-/**
- * Directories their drug pages already link into that do not exist in their
- * repository: `报告/` holds only `erowid/`, `overspeedwiki/`, `reddit/` and
- * `杂项/`. A link resolving here is dropped rather than published dangling.
- */
 const ZH_DANGLING_TARGET_PREFIXES = Object.freeze(["/报告/psychounautwiki/"]);
 
-/**
- * What each page says about its source terms. Nothing is withheld on licence
- * grounds: the site owner sends the whole corpus, and each page states the
- * terms its record actually carries so the receiving wiki can decide.
- */
 const ZH_LICENCE = Object.freeze({
   substances: { statement: "CC0 1.0（公有领域贡献）" },
   effects: { statement: "CC0 1.0（公有领域贡献）" },
@@ -38,25 +17,18 @@ const ZH_LICENCE = Object.freeze({
   effectCategories: { statement: "CC0 1.0（公有领域贡献）" },
   reports: {
     statement: "CC0 1.0（投稿人的公有领域贡献）",
-    /**
-     * Legacy reports are contributor-authored and author-retained by default;
-     * a report carrying its own `public-domain` marker is CC0. Mirrors
-     * `resolveTripReportLicense` in src/types/tripReport.ts.
-     */
     perRecord: (item) => (item.license === "public-domain"
       ? { license: "public-domain", statement: "CC0 1.0（投稿人的公有领域贡献）", translation: "译文按 FreeODwiki 的 CC BY-SA 4.0 发布。" }
       : { license: "author-retained", statement: "作者保留全部权利（author-retained）", translation: "译文沿用原作者的保留条款，随 dose.wiki 的公开发表一并提供，不构成重新授权。" }),
   },
 });
 
-/** Interaction tiers in the site's severity order, with their page headings. */
 const ZH_INTERACTION_TIERS = Object.freeze([
   ["dangerous", "危险"],
   ["unsafe", "不安全"],
   ["caution", "谨慎"],
 ]);
 
-/** Fixed row orders. A reader compares tiers across pages, so they never move. */
 const ZH_DOSE_TIERS = Object.freeze([
   ["threshold", "阈值"],
   ["light", "轻微"],
@@ -108,13 +80,6 @@ const ZH_STATUS_LABELS = Object.freeze({
   unknown: "不明",
 });
 
-/**
- * `subjective_effects` groups its entries under freeform keys that never
- * travelled to the translator: they are structure, not prose. `general` and
- * `effects` mean "no grouping", so their heading is dropped rather than
- * printed as an English word on a Chinese page. An unlisted key survives
- * as-authored rather than being guessed at.
- */
 const ZH_GROUP_LABELS = Object.freeze({
   general: null,
   effects: null,
@@ -198,7 +163,6 @@ function zhGroupLabel(key) {
   return Object.hasOwn(ZH_GROUP_LABELS, normalised) ? ZH_GROUP_LABELS[normalised] : String(key).trim();
 }
 
-/** English group keys are already words; they only need a capital. */
 function enGroupLabel(key) {
   const normalised = String(key ?? "").trim().toLowerCase();
   if (normalised.length === 0) return null;
@@ -207,7 +171,6 @@ function enGroupLabel(key) {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/** Page chrome that is prose rather than a closed-set label. */
 const ZH_UI = Object.freeze({
   back: "◀返回",
   colon: "：",
@@ -433,7 +396,6 @@ const LABELS = Object.freeze({
   }),
 });
 
-/** Every piece of page chrome for one emitted locale. Throws on a locale the exporter has no chrome for. */
 export function labelsFor(locale) {
   const labels = LABELS[locale];
   if (!labels) throw new Error(`No FreeODwiki chrome for locale ${locale}; known: ${Object.keys(LABELS).join(", ")}`);

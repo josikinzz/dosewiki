@@ -40,7 +40,6 @@ export type SiteFeedbackQueueItem = Pick<
 export class SiteFeedbackStorageConfigurationError extends Error {
   constructor(message = "Site feedback storage is not configured.") {
     super(message);
-    // Not a string literal: the guardrails lint rule flags 40-char literals as AWS-key-like.
     this.name = SiteFeedbackStorageConfigurationError.name;
   }
 }
@@ -178,10 +177,6 @@ export class DataSiteFeedbackStore {
     }) as SiteFeedbackQueueItem[];
   }
 
-  /**
-   * One page of the review queue, filtered, searched and ordered on the
-   * server, with the per-status counts of every row the search matches.
-   */
   async page(filters: FeedbackQueuePageFilters<SiteFeedbackStatus>): Promise<FeedbackQueuePageResult<SiteFeedbackQueueItem>> {
     return await this.options.client.query(queuePageRef, {
       apiKey: this.options.apiKey,
@@ -193,7 +188,6 @@ export class DataSiteFeedbackStore {
     }) as FeedbackQueuePageResult<SiteFeedbackQueueItem>;
   }
 
-  /** One item by its public id, or null when no row has it. */
   async get(id: string): Promise<SiteFeedbackQueueItem | null> {
     return await this.options.client.query(getFeedbackRef, {
       apiKey: this.options.apiKey,
@@ -201,7 +195,6 @@ export class DataSiteFeedbackStore {
     }) as SiteFeedbackQueueItem | null;
   }
 
-  /** Total rows in the given statuses, computed on the server: no list travels. */
   async count(filters: SiteFeedbackCountFilters): Promise<number> {
     return await this.options.client.query(countFeedbackRef, {
       apiKey: this.options.apiKey,

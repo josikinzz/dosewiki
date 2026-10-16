@@ -1,20 +1,9 @@
-/**
- * Per-language translation credits: which contributor profiles are credited
- * for a translation locale, each with one line saying what they contributed.
- *
- * Stored on the About `siteConfig` document as `translationCredits`, keyed by
- * translation locale. The profile is the identity; the credit only adds the
- * contribution line. `parseTranslationCredits` is the strict HTTP-boundary
- * check shared by the admin save and the proposal route; `translationCreditsFor`
- * is the lenient read of a stored value.
- */
 import translationLocaleNames from "@/i18n/translationLocaleNames.json";
 import { publicHref } from "@/utils/publicHref";
 
 export type TranslationCredit = { profileKey: string; contribution: string };
 export type TranslationCredits = Record<string, TranslationCredit[]>;
 
-/** What a public page renders for one credit: public profile fields only. */
 export type PublicTranslationCredit = {
   key: string;
   displayName: string;
@@ -26,7 +15,6 @@ export type PublicTranslationCredit = {
 export const TRANSLATION_CREDIT_LOCALES: readonly string[] = Object.keys(translationLocaleNames);
 export const MAX_TRANSLATION_CREDITS_PER_LOCALE = 24;
 export const TRANSLATION_CREDIT_CONTRIBUTION_MAX_LENGTH = 240;
-// The stable contributor key grammar, as the founder keys use it.
 const PROFILE_KEY_PATTERN = /^[A-Z0-9-]+$/;
 const PROFILE_KEY_MAX_LENGTH = 200;
 
@@ -40,7 +28,6 @@ function normalizeContribution(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
-/** One entry, or the reason it is not one. */
 function readCredit(raw: unknown): TranslationCredit | string {
   if (!isPlainObject(raw)) return "Each credit must be an object with a profile key and a contribution.";
   if (typeof raw.profileKey !== "string") return "Each credit needs a contributor profile key.";
@@ -57,7 +44,6 @@ function readCredit(raw: unknown): TranslationCredit | string {
   return { profileKey, contribution };
 }
 
-/** Strict: throws `TranslationCreditsError` on any malformed part. Locales come back in registry order. */
 export function parseTranslationCredits(raw: unknown): TranslationCredits {
   if (!isPlainObject(raw)) throw new TranslationCreditsError("The translation credits must be an object keyed by language.");
   for (const locale of Object.keys(raw)) {
@@ -87,7 +73,6 @@ export function parseTranslationCredits(raw: unknown): TranslationCredits {
   return parsed;
 }
 
-/** Lenient: one locale's credits from a stored value, skipping malformed or repeated entries. */
 export function translationCreditsFor(stored: unknown, locale: string): TranslationCredit[] {
   if (!isPlainObject(stored) || !Array.isArray(stored[locale])) return [];
   const credits: TranslationCredit[] = [];
@@ -100,7 +85,6 @@ export function translationCreditsFor(stored: unknown, locale: string): Translat
   return credits;
 }
 
-/** The profile's first external link, else its contributor App Path. */
 export function translationCreditHref(profile: { key: string; links: readonly { url: string; label?: string }[] }): string {
   const external = profile.links.find((link) => /^https?:\/\//i.test(link.url.trim()));
   return external ? external.url.trim() : publicHref.contributor(profile.key);
@@ -113,7 +97,6 @@ type CreditProfile = {
   links: readonly { url: string; label?: string }[];
 };
 
-/** Resolve credits to public fields only; a credit whose profile no longer exists is dropped. */
 export function projectTranslationCredits(
   credits: readonly TranslationCredit[],
   profileFor: (key: string) => CreditProfile | null,

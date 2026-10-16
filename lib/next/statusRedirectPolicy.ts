@@ -131,8 +131,6 @@ export function buildRobotsPolicy(
     site?: PublicSiteIdentity;
   } = {},
 ): MetadataRoute.Robots {
-  // The editor deployment mirrors the application for authenticated work and remains
-  // closed to crawlers.
   if (options.editorHost) {
     return { rules: { userAgent: "*", disallow: "/" } };
   }
@@ -143,8 +141,6 @@ export function buildRobotsPolicy(
       allow: "/",
       disallow: [
         ...noIndexRoutePolicies.map((policy) => policy.robotsDisallow),
-        // Retired preview links redirect permanently; keep crawlers away while old
-        // pre-launch URLs age out of indexes.
         PREVIEW_PATH_PREFIX,
       ],
     },

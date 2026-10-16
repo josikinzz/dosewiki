@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * A published report's content form for the public correction panel
- * (`PublishedReport.editor.tsx`): the title, the trip's details, tags,
- * substances and the report body, with its review action in a sticky toolbar.
- * Attribution, ownership and removal stay in the Trip reports tool, whose
- * editing pane is `PortalReportPane`; both draw the same field groups.
- */
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditorPanel, EditorStatusPill, EditorToolbar, Notice } from "@/features/dev/components";
@@ -35,20 +27,16 @@ export function PortalReportEditor({
   saveLabel = "Save report",
 }: {
   busy: boolean;
-  /** Kept for callers; the correction panel changes no attribution. */
   contributors?: readonly PortalContributorOption[];
   draft: TripReportEditableFields;
   feedback: { tone: "success" | "danger"; message: string } | null;
   onChange: (next: TripReportEditableFields) => void;
-  /** Kept for callers; the panel that hosts this form owns closing it. */
   onClose?: () => void;
-  /** Kept for callers; removal lives in the Trip reports tool. */
   onDelete?: () => void;
   onDismissFeedback: () => void;
   onRevert: () => void;
   onSave: (request: EditorSaveRequest) => void;
   row: PortalRow;
-  /** Kept for callers; the form is always the content-only correction form. */
   contentOnly?: boolean;
   saveLabel?: string;
 }) {

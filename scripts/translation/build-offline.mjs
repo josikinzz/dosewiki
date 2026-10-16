@@ -1,19 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Single-file offline edition of the zh-Hans corpus.
- *
- * Emits one self-contained HTML file: the FreeODwiki-shaped Markdown tree
- * (every substance, effect, effect category, report, article, and summary),
- * the index metadata a reader needs to browse it, the dark-colourway molecule
- * drawings, the site's own icons and logo, and a small vanilla-JS reader.
- * No network is needed to read it; the downloads page links back to the
- * published packs on dose.wiki and can also save the embedded JSON.
- *
- * The data rides as one gzipped, base64-encoded JSON blob inflated in the
- * browser with DecompressionStream, so the file stays a few megabytes.
- *
- *   bun scripts/translation/build-offline.mjs [--out <file>]
- */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
@@ -33,7 +18,6 @@ const TREE = path.join(ROOT, "freeodwiki");
 const OUT_DEFAULT = path.join(repoRoot, "public/downloads/zh-Hans/dose.wiki.zh-Hans.html");
 const SITE = "https://dose.wiki";
 
-/** Corpus directory names in the Chinese tree, and the reader routes each maps to. */
 const CORPUS_ROUTE = {
   substances: "substances",
   effects: "effects",
@@ -55,12 +39,6 @@ async function readJson(relative) {
   return JSON.parse(await readFile(path.join(ROOT, relative), "utf8"));
 }
 
-/**
- * Hard-wrap the payload at 32 characters. `atob` ignores the newlines, and no
- * unbroken run is long enough to look like an API key, so the repository's
- * secret scanner cannot false-positive on compressed bytes. Costs ~3% of the
- * uncompressed file and nothing over the wire.
- */
 function wrapBase64(text) {
   return text.replace(/.{32}/g, "$&\n");
 }
@@ -76,7 +54,6 @@ function firstSentence(text) {
   return (match ? match[0] : plain).trim();
 }
 
-/** Rewrite tree-relative Markdown links to reader routes; leave the web alone. */
 function rewriteLinks(markdown, routeByPath, ownDir, indexRoute) {
   return markdown.replace(/\]\(([^)\s]+?\.md)(#[^)]*)?\)/g, (whole, target, hash) => {
     const clean = target.startsWith("/") ? target.slice(1) : path.posix.normalize(path.posix.join(ownDir, target));
@@ -91,7 +68,6 @@ function stripFrontMatter(markdown) {
   return markdown.startsWith("---\n") ? markdown.replace(/^---\n[\s\S]*?\n---\n\n?/, "") : markdown;
 }
 
-/** The site's hand-drawn icons live as static TSX in customIcons.tsx; lift their SVG bodies verbatim. */
 let customIcons = null;
 async function loadCustomIcons() {
   const source = await readFile(path.join(repoRoot, "src/components/common/customIcons.tsx"), "utf8");
@@ -139,7 +115,6 @@ async function main() {
     JSON.parse(await readFile(path.join(repoRoot, "public/downloads/zh-Hans/manifest.json"), "utf8")),
   ]);
 
-  // Routes: every page in the tree gets `#/<corpus-route>/<slug>`.
   const routeByPath = new Map();
   const pageByRoute = new Map();
   for (const page of report.pages) {
@@ -155,7 +130,6 @@ async function main() {
   for (const page of report.pages) {
     const raw = await readFile(path.join(TREE, page.path), "utf8");
     const route = routeByPath.get(page.path);
-    // The reader draws its own back link, so the tree's `[◀返回](index.md)` line goes.
     const body = stripFrontMatter(raw).replace(/^\[◀[^\]]*\]\(index\.md\)\n\n?/m, "");
     pages[route] = rewriteLinks(body, routeByPath, path.posix.dirname(page.path), indexRouteOf(page.corpus));
   }
@@ -180,7 +154,6 @@ async function main() {
     cc: item.classification?.chemical_class ?? [],
     aliases: item.identification?.alternative_names ?? [],
     iupac: item.identification?.iupac_name ?? "",
-    // Structured hero data: the reader draws the site's tiered dosage and duration panels from these.
     dosage: (item.dosage?.routes ?? []).map((route) => ({
       route: route.route,
       tiers: Object.fromEntries(Object.entries(route.dose_ranges ?? {}).map(([tier, value]) => [tier, range(value)]).filter(([, value]) => value)),
@@ -261,7 +234,6 @@ async function main() {
     ...articles.items.map((item) => ({ slug: item.slug, title: item.title, blurb: firstSentence(pages[`library/${item.slug}`]?.split("\n\n")[2] ?? ""), group: "articles" })),
   ].filter((entry) => pageByRoute.has(`library/${entry.slug}`));
 
-  // Molecule drawings: the dark colourway, keyed by substance slug.
   const zip = unzipSync(new Uint8Array(await readFile(path.join(repoRoot, "public/dosewiki-molecules.zip"))));
   const molecules = {};
   const decoder = new TextDecoder();
@@ -295,12 +267,6 @@ async function main() {
       library: copyOf("effects-index-tab-library"),
     },
     tiles: HOME_TILES,
-    /**
-     * Same render rule as the site: a preset applies to a named slug, never to
-     * a classification. Sorted by tone then key, exactly as
-     * `compareWarningBanners` in src/data/substanceWarningBanners.ts does; the
-     * reader applies the same two-banner cap per article.
-     */
     banners: bannerPresets.items.map((preset) => ({
       key: preset.key,
       tone: preset.tone,

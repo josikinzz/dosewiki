@@ -2,8 +2,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { requireAdminIntent } from "../server/lib/auth";
 import { ADMIN_INTENTS } from "../server/lib/adminIntentTokens";
 
-// Actor and role-floor resolution is covered at the handler seam in
-// server/lib/auth.test.ts; this file covers only the admin intent tokens.
 describe("Postgres write intent authorization", () => {
   afterEach(() => {
     delete process.env.DATA_ADMIN_KEY;

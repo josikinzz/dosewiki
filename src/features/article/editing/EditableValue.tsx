@@ -34,70 +34,20 @@ import type { Reference } from "@/schema";
 import { findEquivalentReference } from "../../../../lib/citations/referenceIdentity.mjs";
 
 interface EditableValueProps<T extends EditableValueInput = string> {
-  /** Concrete article field path, e.g. `dosage.routes[2].notes`. */
   path: string;
-  /**
-   * The RAW stored value, not the rendered output. Citation markers and other
-   * inline syntax must survive a round trip through the input untouched.
-   */
   value: T;
-  /**
-   * Renders the stored value as the text the editor starts from. Defaults to
-   * the identity for prose; a range field passes its own formatter so the
-   * editor opens on `10-20 mg` rather than on an object.
-   */
   format?: (value: T) => string;
-  /**
-   * Turns the edited text back into a stored value, or `null` when the text is
-   * not a value at all.
-   *
-   * A `null` result must never be committed. Coercing an unparseable dose to
-   * `{min: null, max: null, unit: ""}` is exactly how a stored range gets
-   * destroyed by a typo, so this field surfaces the failure and keeps the draft
-   * on screen instead.
-   */
   parse?: (raw: string) => T | null;
-  /**
-   * Message key shown instead of committing when `parse` returns `null`.
-   * Translated here with `labelValues`, like `label`.
-   */
   parseErrorLabel?: string;
-  /**
-   * Message key saying where to cite this value instead. A parsed field has
-   * no Cite control: its parser would read a marker as part of the stored
-   * value (a dose unit of `mg[cite:x]`), so the field says where the citation
-   * belongs.
-   */
   citeHint?: string;
   children: ReactNode;
-  /**
-   * Wrapper element. Stays `span` so inline call sites (a note inside a `<p>`)
-   * keep producing valid markup; pass `div` when the children render blocks.
-   */
   as?: "span" | "div";
-  /**
-   * Message key naming the field, used in the accessible label. A name built
-   * from data is a template (`"{{route}} dosage notes"`) with its parts in
-   * `labelValues`, never a finished sentence: only the template is a key.
-   */
   label?: string;
-  /** Interpolation values for `label`, `emptyLabel` and `parseErrorLabel`. */
   labelValues?: MessageValues;
-  /**
-   * Message key for the placeholder shown when the field is empty, e.g. "Add dosage notes". Without
-   * it an absent value renders nothing and can never be filled in — but the
-   * placeholder only ever appears inside an editing surface, so the public page
-   * keeps rendering nothing at all.
-   */
   emptyLabel?: string;
   className?: string;
 }
 
-/**
- * The field text with one marker taken out, and the one space that separated
- * it from the claim when nothing else needs that space. Everything else in
- * the text, deliberate double spaces included, stays exactly as stored.
- */
 export function withoutMarker(
   text: string,
   marker: Pick<CitationMarkerSpan, "start" | "end">,
@@ -112,44 +62,13 @@ export function withoutMarker(
   return `${before}${after}`;
 }
 
-/** Roughly fits the editor to the text without a resize observer. */
 function rowsFor(text: string): number {
   const lines = text.split("\n").length + Math.floor(text.length / 90);
   return Math.min(12, Math.max(2, lines));
 }
 
-/**
- * A refused-as-stale commit, once the surface has told us what landed instead.
- *
- * Holding the stored value here is what turns the refusal into a recoverable
- * step: it is both the thing shown to the reviewer and the baseline the retry
- * is sent against, so re-applying the same typed text is a normal write rather
- * than a second guess at what the store holds.
- */
 type FieldConflict<T> = { stored: T; storedText: string };
 
-/**
- * Click-to-edit wrapper for one article field.
- *
- * Without an `ArticleEditContext` — which is every public render — this is a
- * fragment: the children pass through and the DOM is byte-identical to the
- * unwrapped markup. Inside an editing surface it draws a resting outline, on
- * every pointer and without hover, so an editor sees what can change before
- * reaching for it; a dot marks a value that differs from the published
- * article, and a validation problem with the value shows beside it the moment
- * the edit applies. Activating it swaps to a small inline editor whose seed
- * is the raw field value.
- *
- * Enter commits, Shift+Enter inserts a newline, Esc cancels, blur commits.
- * A failed commit keeps the article's prior value and shows the reason inline
- * so a rejected edit is never mistaken for a saved one.
- *
- * A commit refused because the stored value moved is recoverable in place: the
- * typed text stays on screen and editable, the value that landed underneath is
- * shown next to it, and the reviewer either saves over it or takes it. Nothing
- * about that path guesses — the surface supplies the newer value through
- * `refreshStoredValue`, and a surface that cannot answer shows only the reason.
- */
 export function EditableValue<T extends EditableValueInput = string>({
   path,
   value,
@@ -174,7 +93,6 @@ export function EditableValue<T extends EditableValueInput = string>({
     labelValues,
   );
   const editing = useArticleEdit();
-  // The textarea is always a string; only the wire carries the parsed value.
   const toText = useCallback(
     (next: T): string =>
       format ? format(next) : typeof next === "string" ? next : "",
@@ -185,10 +103,6 @@ export function EditableValue<T extends EditableValueInput = string>({
   const [draft, setDraft] = useState(text);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // What the field last announced. Progress and cancellation are for screen
-  // readers only; an outcome (Applied, a removed citation) is also drawn next
-  // to the value for a few seconds, because a field that quietly closes reads
-  // the same whether the edit landed or not.
   const [status, setStatusState] = useState({ text: "", shown: false });
   const setStatus = useCallback(
     (text: string, shown = false) => setStatusState({ text, shown }),
@@ -206,46 +120,18 @@ export function EditableValue<T extends EditableValueInput = string>({
   const editorRef = useRef<HTMLElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const restoreFocusRef = useRef(false);
-  // Set only by a rejection the write layer coded as a conflict, and only when
-  // the surface could name the value that landed. While it is held the field
-  // writes against `stored` instead of `value`: the prop is the copy that was
-  // already refused once, and retrying against it would only be refused again.
   const [conflict, setConflict] = useState<FieldConflict<T> | null>(null);
-  // Esc unmounts a focused textarea, and some browsers still fire blur on the
-  // way out. Without this the cancel would immediately commit what it discarded.
   const cancelledRef = useRef(false);
-  // Where the caret belongs when the textarea mounts, set by a marker
-  // activation and consumed once.
   const pendingCaretRef = useRef<number | null>(null);
-  // The span a chosen citation replaces instead of being inserted beside it.
-  // Set when a citation-needed flag opened this field: the sentinel is the
-  // thing being answered, so the new marker takes its place.
   const replaceRangeRef = useRef<{ start: number; end: number } | null>(null);
   const [citeOpen, setCiteOpen] = useState(false);
-  // Sources minted by Cite while this field is open. They belong to the draft,
-  // not the article: Esc drops them with the text, and only an apply hands
-  // them to the surface. Otherwise a cancelled edit leaves an uncited source
-  // in the reference list for review to trip over.
   const pendingReferencesRef = useRef<Reference[]>([]);
-  // A metadata lookup that failed while citing. Lives on the field, because
-  // the popover that noticed it closes the moment the marker lands.
   const [lookupWarning, setLookupWarning] = useState("");
 
   useEffect(() => {
     if (!isEditing) setDraft(text);
   }, [isEditing, text]);
 
-  /**
-   * Place a citation marker where the editor was typing.
-   *
-   * The caret is read from the textarea because that is where the editor put
-   * it; with nothing focused the marker goes to the end, which is where a
-   * citation belongs for the sentence just finished. A selection is kept and
-   * the marker follows it rather than replacing the words it supports.
-   *
-   * A field opened from a citation-needed flag replaces the sentinel instead,
-   * so answering a flag never leaves both the flag and the answer in place.
-   */
   const insertAtCaret = useCallback((marker: string) => {
     const field = textareaRef.current;
     const replacing = replaceRangeRef.current;
@@ -260,7 +146,6 @@ export function EditableValue<T extends EditableValueInput = string>({
       const next = `${current.slice(0, at)}${marker}${current.slice(after)}`;
       if (field) {
         const caret = at + marker.length;
-        // After the popover closes, so the field owns focus again.
         requestAnimationFrame(() => {
           field.focus();
           field.setSelectionRange(caret, caret);
@@ -270,10 +155,6 @@ export function EditableValue<T extends EditableValueInput = string>({
     });
   }, []);
 
-  /**
-   * Hold a source for this draft and answer with the id its marker uses. A
-   * source the article, or this draft, already has answers with that id.
-   */
   const addDraftReference = useCallback(
     (reference: Reference): string => {
       const known = [
@@ -291,11 +172,6 @@ export function EditableValue<T extends EditableValueInput = string>({
     [editing?.references],
   );
 
-  /**
-   * Hand the draft's sources to the surface once its text has applied. A
-   * source whose marker was deleted again before applying is not cited by
-   * anything, so it is dropped rather than added.
-   */
   const commitPendingReferences = useCallback(
     (applied: string) => {
       const pendingReferences = pendingReferencesRef.current;
@@ -337,9 +213,6 @@ export function EditableValue<T extends EditableValueInput = string>({
       textareaRef.current?.focus();
     }
   }, [error, isEditing, isPending]);
-  // What the store is believed to hold right now, and how it reads. Equal to
-  // the rendered value until a conflict retargets the field at the value that
-  // landed underneath it.
   const baseValue = conflict ? conflict.stored : value;
   const baseText = conflict ? conflict.storedText : text;
 
@@ -353,8 +226,6 @@ export function EditableValue<T extends EditableValueInput = string>({
       }
       const parsed = parse ? parse(next) : (next as T);
       if (parsed === null) {
-        // Never coerce: the stored value stays exactly as it was, and the
-        // unparseable draft stays on screen where it can be corrected.
         setError(parseError);
         return;
       }
@@ -362,7 +233,6 @@ export function EditableValue<T extends EditableValueInput = string>({
       setError(null);
       setStatus(t("Applying to preview…"));
       editing
-        // Same runtime object either way; see `EditableValueInput`.
         .commit(
           path,
           parsed as EditableFieldValue,
@@ -374,8 +244,6 @@ export function EditableValue<T extends EditableValueInput = string>({
           finish();
         })
         .catch((reason: unknown) => {
-          // The draft is deliberately left alone here, and `isEditing` with it:
-          // a refused write must cost the reviewer the save, never the typing.
           setIsPending(false);
           setStatus("");
           setError(
@@ -387,10 +255,6 @@ export function EditableValue<T extends EditableValueInput = string>({
           if (!isArticleFieldConflict(reason)) {
             return;
           }
-          // Only a conflict earns the recovery panel, and only when the surface
-          // can actually name what landed. `null` means it has nothing fresher
-          // than the copy that was just refused, so there is nothing to show
-          // and nothing to retry against — the reason alone is the honest end.
           const stored =
             editing.refreshStoredValue?.(
               path,
@@ -468,14 +332,10 @@ export function EditableValue<T extends EditableValueInput = string>({
     finish,
   ]);
 
-  // A callback ref rather than `autoFocus`: the field only mounts in response
-  // to a deliberate activation, and the caret belongs at the end of the value.
   const focusOnMount = useCallback((node: HTMLTextAreaElement | null) => {
     textareaRef.current = node;
     if (!node) return;
     node.focus();
-    // A marker activation asked for a specific caret; everything else opens at
-    // the end of the value, which is where a person resumes typing.
     const at = pendingCaretRef.current ?? node.value.length;
     pendingCaretRef.current = null;
     node.setSelectionRange(at, at);
@@ -491,14 +351,6 @@ export function EditableValue<T extends EditableValueInput = string>({
     setConflict(null);
     setIsEditing(true);
   }, [setStatus, text]);
-  /**
-   * Open this field at one of its own markers.
-   *
-   * A citation-needed flag is the entry point the citation campaign leaves
-   * behind, so activating it opens the editor with the caret on the sentinel
-   * and the cite control already showing. Choosing a source then replaces the
-   * sentinel rather than leaving the editor to delete raw text by hand.
-   */
   const citeAtMarker = useCallback(
     (marker: CitationMarkerSpan) => {
       cancelledRef.current = false;
@@ -515,10 +367,6 @@ export function EditableValue<T extends EditableValueInput = string>({
     },
     [setStatus, text],
   );
-  /**
-   * Drop one marker from the stored value. The reference stays on the article:
-   * a claim losing its citation is not the source leaving the bibliography.
-   */
   const removeMarker = useCallback(
     (marker: CitationMarkerSpan) => {
       if (!editing) return;
@@ -571,9 +419,6 @@ export function EditableValue<T extends EditableValueInput = string>({
       {status.text}
     </span>
   );
-  // Only a value this session changed carries its problem inline: untouched
-  // legacy values are the review sheet's business, and a group rule (one unit
-  // per route) should point at the tier that broke it, not at every tier.
   const changed = editing.isChanged?.(path) ?? false;
   const issue =
     !isEditing && (changed || !editing.isChanged)
@@ -595,8 +440,6 @@ export function EditableValue<T extends EditableValueInput = string>({
           aria-busy={isPending}
           onBlur={(event) => {
             if (event.currentTarget.contains(event.relatedTarget)) return;
-            // Cite's panel renders in a portal, so focus entering it looks like
-            // focus leaving the field. Choosing a source is part of the edit.
             if (cancelledRef.current || isPending || conflict || citeOpen) return;
             commitDraft(draft);
           }}
@@ -611,9 +454,6 @@ export function EditableValue<T extends EditableValueInput = string>({
             rows={rowsFor(draft)}
             value={draft}
             disabled={isPending}
-            // The open editor can sit inside a clickable ancestor (the Notable
-            // Individuals card is one big button). Without this, every click in
-            // the textarea would also toggle that ancestor shut.
             onClick={(event) => event.stopPropagation()}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
@@ -629,8 +469,6 @@ export function EditableValue<T extends EditableValueInput = string>({
                 commitDraft(draft);
               }
             }}
-            // Focus moving to the field's own actions is not a blur-apply.
-            // The wrapper handles only focus leaving the complete editor.
           />
           <span
             id={`${fieldId}-hint`}
@@ -709,15 +547,11 @@ export function EditableValue<T extends EditableValueInput = string>({
             .filter(Boolean)
             .join(" ") || undefined
         }
-        // A button cannot be aria-invalid; the problem reaches assistive
-        // technology through the description above and the alert below.
         data-invalid={issue ? true : undefined}
         data-editable-path={path}
         data-editable-affordance="resting"
         data-changed={changed || undefined}
         className={cn(
-          // The resting outline is the affordance: present on every pointer
-          // and without hover, so edit mode shows at a glance what can change.
           "group relative cursor-text rounded-[3px] underline decoration-dashed decoration-transparent underline-offset-4 outline-1 outline-offset-1 outline-dashed transition-colors duration-150",
           issue ? "outline-dose-danger" : "outline-dose-border-strong",
           "hover:decoration-current focus-visible:decoration-current focus-visible:ring-1 focus-visible:ring-current",
@@ -728,9 +562,6 @@ export function EditableValue<T extends EditableValueInput = string>({
           className,
         )}
         onClick={(event: ReactMouseEvent<HTMLElement>) => {
-          // Citation markers inside the value stay clickable as links, and in an
-          // editing surface they carry their own controls; either way the click
-          // belongs to the marker and must not also open the field.
           if (
             event.target instanceof Element &&
             (event.target.closest("a") !== null ||
@@ -738,8 +569,6 @@ export function EditableValue<T extends EditableValueInput = string>({
           ) {
             return;
           }
-          // A clickable ancestor (an expandable card, a row that toggles) would
-          // otherwise act on the same click and collapse the editor as it opens.
           event.stopPropagation();
           startEditing();
         }}

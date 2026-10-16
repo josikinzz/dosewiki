@@ -1,16 +1,3 @@
-/**
- * A locale's style guide: one document in the review tables under scope
- * `style-guide`, with Save draft, Approve saved revision, and Restore as
- * draft, the revision check, the write freeze, and the locale's Translator
- * access, like the glossary. Promoting a Fluency correction appends it to
- * the draft as an example; nothing is approved automatically.
- *
- * Only the approved document reaches prompts. `loadApprovedStyleGuide` feeds
- * `loadTranslationContext`, and the approved revision (a digest of the
- * approved document) joins `promptVersionFor`, so approving a change marks
- * stored translations stale without enqueueing anything, and a draft changes
- * nothing.
- */
 import "server-only";
 import { createHash } from "node:crypto";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
@@ -73,7 +60,6 @@ export type StyleGuideMutation = {
   locale: string;
   action: ReviewAction;
   expectedRevision: number;
-  /** The whole proposed guide, for `save`. */
   guide?: unknown;
   restoreRevision?: number;
   actor: string;
@@ -105,22 +91,12 @@ export async function writeStyleGuide(input: StyleGuideMutation) {
 export type StyleGuidePromotion = {
   locale: string;
   slug: string;
-  /** The narrative review id of the corrected paragraph. */
   segment: string;
-  /** The history revision of the saved Fluency correction the reviewer chose. */
   revision: number;
-  /** Replaces the correction's own note as the example's why. */
   why?: string;
   actor: string;
 };
 
-/**
- * Adds one saved Fluency correction to the style guide draft as an example:
- * before is the wording the correction replaced (the earlier draft or
- * approval, else the machine target), after is the corrected wording, and
- * why is the reviewer's note. Appends under the entry's row lock, so it never
- * overwrites a concurrent edit; the draft still needs a person to approve it.
- */
 export async function promoteCorrectionToStyleGuide(reads: PublicDataReadAdapter, input: StyleGuidePromotion) {
   resolveLocale(input.locale);
   assertDataWritesNotFrozen("promoteCorrectionToStyleGuide");

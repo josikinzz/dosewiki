@@ -27,14 +27,6 @@ type RouteLoadingLandmark = {
 
 export type RouteLoadingViewModel = {
   family: LoadingRouteFamily;
-  /**
-   * `route` models stand in for a whole document; `section` models fill one
-   * Suspense hole inside a page that has already rendered. Only the former has
-   * to reserve a scrollport. Public routes no longer ship `loading.tsx`
-   * boundaries (the header progress bar carries pending navigation instead),
-   * so `route` models survive for in-page full-surface holds such as the
-   * review workbench boot.
-   */
   scope: "route" | "section";
   label: string;
   pendingLabel: string;
@@ -166,7 +158,6 @@ export function getRouteLoadingModel(family: LoadingRouteFamily): RouteLoadingVi
 const SECTION_PENDING_LABEL = msg("Preparing section content");
 const SECTION_STALLED_LABEL = msg("Still loading. Refresh if this section does not appear.");
 
-/** `t` translates the fixed labels for a localized page; `label` arrives already translated. */
 export function getSectionLoadingModel(
   input: {
     key: string;

@@ -1,15 +1,6 @@
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { mediaTypeFromContentType } from "./article-media-evidence.mjs";
 
-/**
- * Whether the public surfaces will publish this row, per `isPublishableReplication`.
- *
- * The data queries deliberately return every stored row (the rights and
- * provenance tooling needs figures to stay visible), so the gate lives app-side
- * in `src/types/replications.ts`. Restated here as the one thing a written row
- * must be checked against, and cross-checked against the real implementation in
- * this script's test rather than left as a comment claiming they agree.
- */
 export function expectsPublication(row) {
   return (
     row.role === "replication" &&
@@ -17,17 +8,6 @@ export function expectsPublication(row) {
   );
 }
 
-/**
- * Read one written row back the way the site does, and insist it is what was planned.
- *
- * `getBySlug` is the query the permalink uses, so this asks production the same
- * question a visitor's page load asks. Every clause is a way a row can look
- * inserted and still be wrong: a resolved URL that 404s (an upload that landed
- * somewhere else), a served content type that disagrees with the row's `format`
- * (the browser downloads the file instead of drawing it), a role that did not
- * survive the mutation (a figure entering the gallery, or a replication withheld
- * from it).
- */
 export async function verifyInsertedRow({ client, row, fetchImpl = fetch }) {
   const reasons = [];
   const live = await client.query(api.replications.getBySlug, { slug: row.slug });

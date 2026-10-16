@@ -1,33 +1,4 @@
 #!/usr/bin/env bun
-/**
- * Emit the offline icon bundle: every Iconify icon name that appears as a
- * string literal in `src/**` or `lib/**` gets its icon data extracted from the
- * matching `@iconify-json/<prefix>` devDependency and written to
- * `src/components/common/iconData.generated.json`. `Icon.tsx` registers that
- * data at module scope, so the glyphs render during SSR and first paint with
- * zero requests to api.iconify.design — the runtime fetch only remains for
- * names outside this bundle (editor-authored Postgres strings, /dev pickers).
- *
- * Scanned sources: `{src,lib}/**\/*.{ts,tsx}` minus generated files and
- * `*.test.*`, plus the manual index layouts (`data/substances/*IndexManual.json`), which
- * carry `iconKey` values that `getCategoryIcon` passes through verbatim when
- * they contain a `:`. The non-runtime component kit under `src/dev` is assigned
- * to the editor catalog, so story/demo glyphs never inflate a public build.
- *
- * A literal only counts as an icon when its prefix resolves to an installed
- * `@iconify-json/<prefix>` package. Prefixes in `NON_ICON_PREFIXES` are known
- * non-icon string shapes (Tailwind variants, repo id schemes) and are skipped
- * silently; anything else unresolved is printed as a warning so a newly
- * adopted collection is a visible `bun add -d @iconify-json/<prefix>` away
- * from being bundled instead of silently falling back to the network. Names
- * missing from their collection are also warnings, not failures — they keep
- * the runtime-fetch behaviour they had before this bundle existed.
- *
- *   npm run generate:icon-data            write the bundle
- *   npm run generate:icon-data -- --check  fail if it is stale
- *
- * `Icon.test.tsx` renders straight from the emitted bundle in the suite.
- */
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
@@ -38,21 +9,13 @@ import { isEditorOnly } from "./public-editor-boundary.mjs";
 
 export const ICON_DATA_PATH = "src/components/common/iconData.generated.json";
 
-/** Extra non-TS sources whose icon strings reach public pages verbatim. */
 const EXTRA_SOURCES = [
   "data/substances/chemicalIndexManual.json",
   "data/substances/psychoactiveIndexManual.json",
 ];
 
-/**
- * `prefix:name`-shaped strings that are not Iconify names. Tailwind variant
- * classes, the repo's own id schemes, and Node built-in specifiers all match
- * the literal regex; listing them here keeps the "unclassified prefix" report
- * meaningful. `custom:` is the local `customIcons` registry in `Icon.tsx`.
- */
 const NON_ICON_PREFIXES: Record<string, true> = {
   custom: true,
-  // Tailwind variants seen inside class strings.
   sm: true,
   md: true,
   lg: true,
@@ -63,11 +26,8 @@ const NON_ICON_PREFIXES: Record<string, true> = {
   before: true,
   after: true,
   "motion-reduce": true,
-  // Node built-in specifiers and web scheme prefixes.
   node: true,
   blob: true,
-  // Repo id/key schemes (search suggestion ids, claim keys, cache tags, …)
-  // and misc string shapes (SVG style fragments, `m:ss` duration notes).
   slug: true,
   effect: true,
   substance: true,
@@ -115,8 +75,6 @@ function* walkSources(dir: string): Generator<string> {
   }
 }
 
-// ---- Scan ------------------------------------------------------------------
-
 const publicNames = new Map<string, Set<string>>();
 const editorNames = new Map<string, Set<string>>();
 let literalCount = 0;
@@ -140,7 +98,6 @@ for (const path of [
   }
 }
 
-// An editor literal is private data only when no public source also requires it.
 for (const [prefix, names] of editorNames) {
   for (const name of publicNames.get(prefix) ?? []) names.delete(name);
 }
@@ -150,7 +107,6 @@ for (const [outputPath, namesByPrefix] of [
   [ICON_DATA_PATH, publicNames],
   ["src/components/common/iconData.editor.generated.json", editorNames],
 ] as const) {
-  // ---- Resolve ---------------------------------------------------------------
 
   const collections: IconifyJSON[] = [];
   const unresolvable: string[] = [];
@@ -179,7 +135,6 @@ for (const [outputPath, namesByPrefix] of [
       unresolvable.push(...subset.not_found.map((name) => `${prefix}:${name}`));
       delete subset.not_found;
     }
-    // Timestamp metadata churns on collection updates without changing content.
     delete subset.lastModified;
     iconCount +=
       Object.keys(subset.icons).length +
@@ -188,8 +143,6 @@ for (const [outputPath, namesByPrefix] of [
   }
 
   const bundle = `${JSON.stringify({ iconCount, collections })}\n`;
-
-  // ---- Report ----------------------------------------------------------------
 
   stdout.write(
     `${outputPath}: scanned ${literalCount} icon literals; ${iconCount} unique icons across ${collections.length} collections (${bundle.length.toLocaleString()} bytes).\n`,
@@ -204,8 +157,6 @@ for (const [outputPath, namesByPrefix] of [
       `Not found in its collection (will fall back to runtime fetch): ${name}\n`,
     );
   }
-
-  // ---- Write / check ---------------------------------------------------------
 
   const checkOnly = argv.includes("--check");
   let current: string | null = null;

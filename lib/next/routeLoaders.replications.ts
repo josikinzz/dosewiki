@@ -45,7 +45,6 @@ export type ReplicationRouteResult =
   | RedirectRouteResult
   | NotFoundRouteResult;
 
-/** Rows carry `effect_slug: "unknown"` when nothing real is attached. */
 const hasRealEffect = (effectSlug?: string | null): effectSlug is string =>
   Boolean(effectSlug && effectSlug !== "unknown");
 

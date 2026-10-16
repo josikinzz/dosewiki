@@ -8,7 +8,6 @@ export const COOKIE = "glossary-visitor";
 export const UUID =
   /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 
-/** Establish identity before an action so a lost POST response can be retried safely. */
 export async function GET(request: NextRequest) {
   const limited = await enforceRateLimit(request, "publicContentApiRead");
   if (limited) return limited;

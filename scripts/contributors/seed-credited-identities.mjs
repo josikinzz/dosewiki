@@ -1,57 +1,4 @@
 #!/usr/bin/env node
-/**
- * Give every credited name in the corpus a profile row.
- *
- * Two hundred and forty-seven replications and one hundred and sixty-four trip
- * reports credit ninety-odd distinct names. Thirteen of them have a profile.
- * The rest are free text: they render as plain strings, they link nowhere, and
- * nothing in the database says who they are. This script closes that gap.
- *
- * ## Everyone on the same terms
- *
- * The owner's ruling: give every credited name "their own profile page like
- * anyone else". So there is no contributor-versus-attribution split here, no
- * special handling for Zdzisław Beksiński or H. R. Giger or Tame Impala, and
- * nothing held back for a later decision. One shape, one set of defaults,
- * everybody.
- *
- * That has a public consequence, because the same table feeds the About page's
- * contributor roster: the roster grows from twelve names to eighty-three, and
- * the third parties are on it. Every run prints the exact before/after and
- * names every profile that newly appears, because that page is what the owner
- * is actually approving when they approve this import.
- *
- * ## The two things that make this delicate
- *
- * **Matching is exact.** `contributorMatchNames` resolves a credit line to a
- * profile by whole normalized name — display name or alias, nothing else. So a
- * spelling that is not literally recorded does not match, and the aliases below
- * are the whole of the join.
- *
- * **The stored spelling is not always the artist's name.** Some of them are
- * corruptions of a real name, and a long tail of stored `artist_url`s are dead,
- * or answer 200 while belonging to somebody else entirely. Those decisions live
- * in a reviewed identity corrections JSON kept outside the repository (it
- * describes real people) and passed in with `--corrections=<path>`, each with
- * its evidence and a strong/weak/needs-owner marker; only `strong` is applied,
- * and the run prints everything else for the owner. Correcting the name here
- * does not correct `replications.artist`; see
- * `scripts/replications/plan-artist-name-corrections.mjs` for that half.
- *
- * **The largest artist in the corpus is already here under another name.**
- * "Symmetric Vision" credits sixty works, 24% of the gallery, and it is
- * StingrayZ, whose profile currently matches zero works. That is an alias
- * addition, never a new profile: a new one would split the biggest artist in
- * the archive in half and leave both halves looking minor.
- *
- * Dry run (default):
- *   node scripts/contributors/seed-credited-identities.mjs --corrections=<path>
- *
- * Apply:
- *   node scripts/contributors/seed-credited-identities.mjs --corrections=<path> --write \
- *     --confirm-write=seed-credited-contributor-profiles \
- *     --expected-deployment=<fingerprint>
- */
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 
 import { api } from "../../lib/postgres/runtime/api.ts"
@@ -79,12 +26,6 @@ export * from "./seed-credited-identities-policy.mjs";
 export * from "./seed-credited-identities-roster.mjs";
 
 const OPERATION = "seed-credited-contributor-profiles";
-
-
-
-
-
-/* ---------------------------------------------------------------------------- report */
 
 function printPlan(plan, entries, roster) {
   const creates = entries.filter((entry) => entry.action === "create");
@@ -315,8 +256,6 @@ function printPlan(plan, entries, roster) {
   return { creates, updates, unchanged, collisionCount, blockedCount: plan.blockedLinks.length };
 }
 
-/* ------------------------------------------------------------------------------ main */
-
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
@@ -324,9 +263,6 @@ async function main() {
     getFlagValue(process.argv.slice(2), "--corrections"),
   );
 
-  // Deliberately not falling back to POSTGRES_POOLED_URL: that variable points at
-  // the dev deployment, and a plan built from dev data would describe writes to
-  // production that were never checked against production.
   const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
   if (!readUrl) {
@@ -336,9 +272,6 @@ async function main() {
   }
 
   const client = createDataClient({ target: readUrl }).client;
-  // `subjectiveEffects` is read only for the roster preview: its `contributors[]`
-  // and `audio_replications[].artist` are credit sources the About page counts,
-  // so leaving them out would understate where each new name ranks.
   const [replications, reports, profiles, effects] = await Promise.all([
     client.query(api.replications.getAll, {}),
     client.query(api.tripReports.getAll, {}),
@@ -361,9 +294,6 @@ async function main() {
     throw new Error(`${collisionCount} identity collision(s) — resolve them before writing.`);
   }
 
-  // Fails the dry run too. A blocked URL in the plan means the corrections file
-  // and the link planner disagree about what may be published, and that is not
-  // a thing to discover by reading past it.
   if (blockedCount > 0) {
     throw new Error(
       `${blockedCount} planned link(s) are on the blocked list — a trap or a dead host would be published.`,
@@ -383,9 +313,6 @@ async function main() {
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
-  // The public read materializes rows, which loses avatarStorageId, membershipEmail
-  // and createdAt — all of which bulkImport would then clear. Re-plan the merge
-  // against the raw rows before writing anything.
   const rawProfiles = await writeClient.query(api.contributorProfiles.getForBulkImport, {
     apiKey,
     keys: entries.map((entry) => entry.entry.key),

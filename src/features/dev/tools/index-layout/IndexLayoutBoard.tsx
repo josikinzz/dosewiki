@@ -24,7 +24,6 @@ import type { BoardActions } from "./IndexLayoutCardMenus";
 import { parseRowId } from "./LayoutDrugRow";
 import { slotsEqual, type LayoutSlot } from "./layoutOps";
 
-/** One card of the grid, already resolved to the tab being shown. */
 export type LayoutPanel = {
   key: string;
   category: BoardCategory;
@@ -32,38 +31,23 @@ export type LayoutPanel = {
   title: string;
   hideIcon: boolean;
   chrome: "category" | "section";
-  /** Panel-order siblings for a section panel's move affordance. */
   siblings?: readonly BoardSection[];
 };
 
 export interface IndexLayoutBoardProps {
   panels: readonly LayoutPanel[];
-  /** The hand-authored column table when the view has one; round-robin otherwise. */
   columnLayout?: ColumnLayoutTable;
   actions: BoardActions;
-  /** Every drop target of the current view, so a dropped row finds its list. */
   sections: readonly BoardSection[];
-  /** Drop a dragged substance at `index` of `to`; `from` and `to` may be the same slot. */
   onDrop: (from: LayoutSlot, slug: string, to: LayoutSlot, index: number) => void;
   resolveName: (slug: string) => string;
-  /** What the board says when the view has no panels. */
   emptyMessage: ReactNode;
-  /**
-   * The unplaced tray, inside the same drag context as the panels. It sits
-   * above the board below `xl` and in a sticky column beside it from `xl`.
-   */
   tray?: ReactNode;
 }
 
 const SCREEN_READER_INSTRUCTIONS =
   "To move a substance, press space or enter on its handle to pick it up, use the arrow keys to move it within and between lists, and press space or enter again to drop it. Escape puts it back. Each row's menu can do the same.";
 
-/**
- * The panels arranged the way the page arranges them, in one drag context that
- * also spans the tray, so a substance can travel between sections, between
- * categories, and in or out of the index in a single gesture. A mouse drags at
- * once; a finger holds the handle for a moment first, so a swipe still scrolls.
- */
 export function IndexLayoutBoard({
   panels,
   columnLayout,
@@ -96,7 +80,6 @@ export function IndexLayoutBoard({
     );
   }, [columnCount, columnLayout, panels]);
 
-  /** Where a drag is over, in words: a list name, "the unplaced tray", or a row's list and position. */
   const describeOver = (id: string | number | undefined): string | null => {
     if (id === undefined) return null;
     const row = parseRowId(String(id));
@@ -151,7 +134,6 @@ export function IndexLayoutBoard({
       return;
     }
 
-    // Dropped on a list itself: an empty section, the tray, or below the last row.
     const target = sections.find((section) => section.id === String(over.id));
     if (target) {
       onDrop(source.slot, source.slug, target.slot, target.items.length);

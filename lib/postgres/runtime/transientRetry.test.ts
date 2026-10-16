@@ -40,7 +40,6 @@ function fakePool(failures: Array<{ on: string; error: Error }>) {
   return { pool: { on: vi.fn(), connect }, sql };
 }
 
-// CI runs with the freeze on; each case opens writes unless it tests the freeze.
 beforeEach(() => { vi.stubEnv("DATA_WRITES_FROZEN", "0"); });
 afterEach(() => { vi.unstubAllEnvs(); });
 

@@ -23,11 +23,6 @@ import {
   patchReportsForContributorKey,
 } from "./contributorProfilePersistence";
 
-/**
- * Trust settings on a profile: who the record belongs to, how it is
- * presented to readers, and staff commentary. An editor may polish a
- * profile's copy, but changing these is an admin decision.
- */
 export const ADMIN_ONLY_PROFILE_PATCH_FIELDS = [
   "role",
   "membershipEmail",
@@ -53,8 +48,6 @@ export function assertEditorProfilePatchAllowed(
   }
 }
 
-
-/** Authorize the exact pending save before R2 bytes are written outside SQL. */
 export async function authorizeContributorAvatarUploadHandler(
   ctx: QueryCtx,
   args: {
@@ -409,7 +402,6 @@ async function profilePublicationResult(ctx: QueryCtx | MutationCtx, receipt: Do
   };
 }
 
-/** Reconcile the original HTTP request before allocating another avatar upload. */
 export async function readContributorProfilePublicationHandler(ctx: QueryCtx, args: {
   apiKey?: string; actorEmail: string; key: string; operationId: string; clientRequestIdentity: string;
 }) {

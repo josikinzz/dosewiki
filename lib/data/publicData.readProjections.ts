@@ -24,8 +24,6 @@ import {
   projectLibraryInput,
 } from "../../src/data/projections/substanceReadProjections";
 
-/** Pure public projections and provenance stripping applied by `publicData.reads.ts`. */
-
 export const projectPublicEffectPreview = (effect: SubjectiveEffectRecord): PublicEffectPreview => ({
   name: effect.name,
   slug: effect.slug,

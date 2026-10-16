@@ -1,10 +1,3 @@
-/**
- * Approve one change proposal and apply it to production in the same Postgres
- * mutation. Admin only. The mutation is compare-and-swap on every target's
- * base hash: `applied` comes back with the public paths to revalidate,
- * `changes_requested` with the conflict when production moved under the
- * proposal, and nothing was written in that case.
- */
 import { NextResponse } from "next/server";
 import { api } from "@server/postgres/runtime/api";
 import type { Id } from "@server/postgres/runtime/dataModel";

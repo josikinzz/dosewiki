@@ -1,25 +1,3 @@
-/**
- * A preview-shaped environment (VERCEL_ENV=preview) must never
- * resolve a production writer through an implicit target or a retired backend.
- *
- *   bun scripts/postgres/check-env-isolation.ts
- *
- * Runs the three script-side boundaries (`createProductionWriteCommand`,
- * `createDataOpsRunContext`, `createDataClient`) against synthetic
- * environments in which only the browser / app fallback variables point at a
- * production-shaped host, with the full write ceremony on argv, and requires
- * every one of them to refuse. It then proves the explicit path still works so
- * the refusals are not a broken ceremony. Finally it runs every script that
- * takes its target from `targetGuard.resolveTarget` as a child process with
- * env-file loading off and only the app URLs set, and requires each to exit
- * nonzero naming the missing explicit target. Exits non-zero on any leak.
- *
- * Privileged writes require --target or TARGET_POSTGRES_URL. App read URLs never
- * select a write target. Remote access additionally requires --allow-remote and
- * POSTGRES_IMPORT_CONFIRM for the exact hostname. Retired backend selectors
- * never select a normal backend, even when paired with a valid write ceremony.
- */
-
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -37,7 +15,6 @@ import { guardTarget, resolveTarget } from "./targetGuard.ts";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const RETIRED_SOURCE = "https://retired.example.invalid";
-/** Synthetic fixture only: a fake host with placeholder userinfo, assembled so no credential-shaped literal appears in source. */
 const POSTGRES_PROD = ["postgres:", "", "writer:placeholder@db.example.planetscale.internal:6432", "dosewiki"].join("/");
 const POSTGRES_PROD_FINGERPRINT = "db.example.planetscale.internal/dosewiki";
 const OPERATION = "check-env-isolation";
@@ -83,7 +60,6 @@ const previewPostgresEnv: NodeJS.ProcessEnv = {
   DATA_ADMIN_KEY: "leaked-admin-key",
 };
 
-/** The delivery origin `assertDeploymentEnv` requires of every Postgres client; placeholder host. */
 const deliveryEnv = { REPLICATION_MEDIA_BASE_URL: "https://media.example.invalid" };
 
 const postgresCeremony = ["--write", "--execute", `--confirm-write=${OPERATION}`, `--expected-deployment=${POSTGRES_PROD_FINGERPRINT}`];
@@ -102,7 +78,6 @@ for (const backend of [undefined, "retired-backend", "postgress"]) {
   }, /DATA_BACKEND/);
 }
 
-// Postgres: the app's pooled/direct URLs are read fallbacks, never a writer.
 refuses("postgres", "production-write-command ignores POSTGRES_POOLED_URL/POSTGRES_DIRECT_URL", () => {
   assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: postgresCeremony, env: previewPostgresEnv, loadsEnvLocal: false }));
 }, /require TARGET_POSTGRES_URL or --target.*ignored: POSTGRES_POOLED_URL, POSTGRES_DIRECT_URL/);
@@ -134,7 +109,6 @@ allows("postgres", "explicit TARGET_POSTGRES_URL, confirm var, and fingerprint s
   const env = { ...previewPostgresEnv, ...deliveryEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal" };
   assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: postgresCeremony, env, loadsEnvLocal: false }));
   assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env, loadsEnvLocal: false, requiresExecute: true }));
-  // Construction only; the lazy client opens no connection until first use.
   const created = createDataClient({ argv: ["--allow-remote"], env });
   if (created.fingerprint !== POSTGRES_PROD_FINGERPRINT) throw new Error(`fingerprint ${created.fingerprint}`);
 });
@@ -143,8 +117,6 @@ allows("postgres", "a loopback target needs neither --allow-remote nor POSTGRES_
   createDataClient({ argv: ["--target", "postgres://localhost:5432/dosewiki"], env: { NODE_ENV: "test", DATA_BACKEND: "postgres", ...deliveryEnv } });
 });
 
-// The shared resolver behind guarded scripts: the app URLs Bun loads from
-// `.env.local` never select a target, and bracketed IPv6 loopback is local.
 refuses("postgres", "resolveTarget ignores POSTGRES_POOLED_URL/POSTGRES_DIRECT_URL", () => {
   resolveTarget(postgresCeremony, previewPostgresEnv);
 }, /Postgres target is required: pass --target <url> or set TARGET_POSTGRES_URL/);
@@ -153,7 +125,6 @@ allows("postgres", "guardTarget treats bracketed IPv6 loopback as local", () => 
   guardTarget("postgres://[::1]:5432/dosewiki", false, {});
 });
 
-/** Scripts that need an argument before they reach target resolution. */
 const RESOLVER_SCRIPT_ARGS: Record<string, string[]> = {
   "scripts/postgres/import-document-snapshot.ts": ["--export", path.join(ROOT, "runs", "env-isolation-missing-export")],
 };
@@ -179,11 +150,6 @@ function resolverScripts(): string[] {
   return found.sort();
 }
 
-// Every script that uses the resolver, run as its own process with Bun's env
-// file loading off and only the app URLs pointing at a production-shaped host.
-// Each must exit nonzero and name the missing explicit target before it opens a
-// connection; the placeholder host does not resolve, so a leak surfaces as a
-// different error rather than a write.
 const scriptEnv: NodeJS.ProcessEnv = { PATH: process.env.PATH, HOME: process.env.HOME, ...previewPostgresEnv };
 for (const script of resolverScripts()) {
   const result = spawnSync(process.execPath, ["--no-env-file", script, ...(RESOLVER_SCRIPT_ARGS[script] ?? []), ...postgresCeremony], {

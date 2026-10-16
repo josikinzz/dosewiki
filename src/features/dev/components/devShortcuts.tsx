@@ -1,29 +1,18 @@
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 
-/**
- * One key a tool answers to, as the `?` sheet lists it. `keys` is what the
- * editor presses, written the way it reads ("j / k", "Cmd+Z"); `label` says
- * what it does in this tool.
- */
 export interface DevShortcut {
   keys: string;
   label: string;
 }
 
 interface ShortcutRegistryContext {
-  /** Every mounted tool's keys, in registration order. */
   shortcuts: readonly DevShortcut[];
   register: (id: string, shortcuts: readonly DevShortcut[]) => () => void;
 }
 
 const DevShortcutContext = createContext<ShortcutRegistryContext | null>(null);
 
-/**
- * Holds the keys the open tool answers to, so the shell's one `?` sheet can
- * list them. Tools register through `useDevShortcuts`; the shell chrome reads
- * the list with `useDevShortcutList` and owns the sheet and the `?` key.
- */
 export function DevShortcutsProvider({ children }: { children: ReactNode }) {
   const entriesRef = useRef(new Map<string, readonly DevShortcut[]>());
   const [shortcuts, setShortcuts] = useState<readonly DevShortcut[]>([]);
@@ -42,12 +31,6 @@ export function DevShortcutsProvider({ children }: { children: ReactNode }) {
   return <DevShortcutContext.Provider value={value}>{children}</DevShortcutContext.Provider>;
 }
 
-/**
- * Lists `shortcuts` in the shell's `?` sheet while the calling tool is
- * mounted and `enabled` holds. Returns whether a shell is listening, so a hook
- * that also works outside the shell (the triage keys) knows whether it still
- * owes its own help.
- */
 export function useDevShortcuts(shortcuts: readonly DevShortcut[], enabled = true): boolean {
   const registry = useContext(DevShortcutContext);
   const id = useId();
@@ -63,14 +46,12 @@ export function useDevShortcuts(shortcuts: readonly DevShortcut[], enabled = tru
   return registry !== null;
 }
 
-/** The keys every mounted tool registered; empty outside the shell. */
 export function useDevShortcutList(): readonly DevShortcut[] {
   return useContext(DevShortcutContext)?.shortcuts ?? EMPTY;
 }
 
 const EMPTY: readonly DevShortcut[] = [];
 
-/** True when a key starts in a place where letters are text, not commands. */
 export function isTextEntryTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   if (target.isContentEditable) return true;
@@ -80,12 +61,10 @@ export function isTextEntryTarget(target: EventTarget | null): boolean {
   return !["checkbox", "radio", "button", "submit", "reset", "range", "color", "file"].includes(type);
 }
 
-/** True while any dialog is on screen; its own keys come first. */
 export function isDialogOpen(): boolean {
   return document.querySelector('[role="dialog"], [role="alertdialog"]') !== null;
 }
 
-/** Menus and open popovers (a select's options, a command list) own their letters for typeahead. */
 export function isInsidePopupWidget(target: EventTarget | null): boolean {
   return (
     target instanceof Element &&
@@ -93,11 +72,6 @@ export function isInsidePopupWidget(target: EventTarget | null): boolean {
   );
 }
 
-/**
- * Whether a bare key press is a command rather than typing: nothing handled
- * it yet, no modifier other than Shift is held, it does not start in a text
- * field or a menu, and no dialog is open.
- */
 export function isBareCommandKey(event: KeyboardEvent): boolean {
   if (event.defaultPrevented || event.isComposing) return false;
   if (event.metaKey || event.ctrlKey || event.altKey) return false;

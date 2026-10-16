@@ -22,7 +22,6 @@ export default async function ReplicationEmbedPage({ searchParams }: {
   const publisherOrigin = `${protocol}://${host}`;
   const parentOrigin = typeof params.parentOrigin === "string" ? params.parentOrigin : null;
   const theme = params.theme === "light" || params.theme === "dark" ? params.theme : undefined;
-  // Modified clicks on the canonical showcase retain its ordinary ?viewer= URL.
   const requestedWork = params.work ?? params.viewer;
   const initialSlug = isEmbedSlug(requestedWork) ? requestedWork : null;
   const slugs = typeof params.slug === "string" ? [params.slug] : params.slug ?? [];

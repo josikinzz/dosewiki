@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-/**
- * Remove a contributor from all subjective effect articles.
- * Uses the existing update mutation to patch each article.
- * 
- * Usage: node scripts/remove-contributor.mjs "Gabriel"
- */
 
 import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../lib/postgres/runtime/api.ts";
@@ -53,7 +47,6 @@ async function main() {
   const sourceClient = createDataClient({ target: requireReadUrl() }).client;
   
   try {
-    // Get all effects
     const allEffects = await sourceClient.query(api.subjectiveEffects.getAll, {});
     console.log(`Found ${allEffects.length} total effect articles`);
     let targetClient = null;

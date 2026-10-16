@@ -19,7 +19,6 @@ function replicationMatchesArtistNames(
   return hasKnownCreator(row.artist) && matchNames.has(normalizeProfileAlias(row.artist));
 }
 
-/** Match stored credits against a contributor's normalized display name and aliases. */
 export function selectReplicationsByArtistNames<Row extends { artist: string }>(
   rows: readonly Row[],
   artistNames: readonly string[],
@@ -55,10 +54,6 @@ async function resolveRows<Row extends ResolvableReplication>(
 
 const PUBLIC_SLUG_BATCH_LIMIT = 100;
 
-/**
- * Resolve a small, caller-ordered shortlist in one native query. The database
- * retains the by_slug index's first-row semantics for duplicate stored slugs.
- */
 export async function getBySlugsHandler(
   ctx: QueryCtx,
   args: { slugs: string[] },
@@ -160,12 +155,6 @@ function clampContributorReplicationScanLimit(requested?: number): number {
   );
 }
 
-/**
- * Scan one bounded storage-ordered page and return only rows credited to the
- * contributor. Filtering can make a page sparse, so callers must follow the
- * returned opaque cursor until `isDone` rather than treating an empty `items`
- * array as the end of the contributor's works.
- */
 export async function getByArtistNamesPageHandler(
   ctx: QueryCtx,
   args: { artistNames: string[]; cursor?: string; limit?: number },

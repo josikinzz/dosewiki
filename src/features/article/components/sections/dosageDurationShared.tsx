@@ -13,7 +13,6 @@ export {
   getRouteLabelKey,
 } from "./dosageDurationModel";
 
-/** Server-compatible panel wrapper; prose and citation slots are already rendered. */
 export function DurationPanel(props: DurationPanelViewProps) {
   return <DurationPanelView {...props} />;
 }

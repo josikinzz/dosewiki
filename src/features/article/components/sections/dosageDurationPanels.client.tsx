@@ -3,9 +3,6 @@
 import { useState, type ReactNode } from "react";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { Icon } from "@/components/common/Icon";
-// Imported from the module rather than from `@/data/schema` on purpose: the
-// registry barrel drags the dev-tools field registry into whatever imports it,
-// and this file renders on the public article.
 import {
   doseRangeTransformer,
   durationStageTransformer,
@@ -26,13 +23,6 @@ import { formatDose, formatRouteLabel } from "./dosageDurationModel";
 
 export { formatDose };
 
-/**
- * Display only. The stage is normalized to a sensible time unit first — see
- * `normalizeDurationStageForDisplay` for the thresholds — so a stored
- * `120-420 minutes` prints as `2-7 hours` next to the hour rows it sits beside.
- * The stored triple is never changed, and `formatDose` is deliberately not
- * routed through this: dose units must never be converted.
- */
 export function formatDuration(
   t: Translate,
   stage: DurationStage | null,
@@ -51,27 +41,8 @@ export function formatDuration(
   return `${max} ${unit}`;
 }
 
-/**
- * A dose tier and a duration stage are the same `{min, max, unit}` leaf, so one
- * helper and one `EditableValue` instantiation serve both panels.
- */
 type EditableBounds = DoseRange & DurationStage;
 
-/**
- * The exact `{min, max, unit}` triple the inline-edit write path validates.
- *
- * Two reasons this is not just the stored object. A tier can be absent
- * entirely, and the editor still has to offer it — `expected` then has to spell
- * the absence the way the server reads it (`{min: null, max: null, unit: ""}`)
- * or the conflict check rejects the very edit that fills the gap. And a legacy
- * row may carry extra keys, which the strict range guard refuses as an
- * `expected` value, stranding exactly the data most in need of correction.
- *
- * Never derived from `formatDose`/`formatDuration`: those renders are lossy —
- * a threshold prints `~10 mg` and a max-only range prints a bare `20 mg` that
- * reads back as `{min: 20, max: 20}` — so the editor seed comes from the
- * transformer instead.
- */
 function toEditableRange(
   range: DoseRange | DurationStage | null | undefined,
 ): EditableBounds {
@@ -115,9 +86,6 @@ function ExpandableNoteRow({
   const editing = useArticleEdit();
   const [expanded, setExpanded] = useState(false);
   const hasNotes = !!notes?.trim();
-  // An absent note draws no expand button, which makes the missing note the one
-  // thing a reviewer could never add from the page. Inside an editing surface
-  // the toggle stays, and opens onto the placeholder instead of onto nothing.
   const canEditNotes = editing !== null && !!notesPath;
   const showToggle = hasNotes || canEditNotes;
   const showPanel = expanded && showToggle;
@@ -145,7 +113,6 @@ function ExpandableNoteRow({
               {valuePath ? (
                 <EditableValue
                   emptyLabel={valueEmptyLabel}
-                  // `ariaLabelBase` arrives translated; only the template is a key.
                   label="{{label}}"
                   labelValues={{ label: ariaLabelBase }}
                   path={valuePath}
@@ -183,8 +150,6 @@ function ExpandableNoteRow({
             )}
           >
             {notesPath ? (
-              // One editor for the whole note. Wrapping each `<li>` would let a
-              // reviewer save a line back over the field that holds every line.
               <EditableValue
                 as="div"
                 emptyLabel={notesEmptyLabel}
@@ -223,14 +188,8 @@ export function DoseTiersTable({
   const hasNotes = !!route.notes?.trim();
   const routeId = route.route.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const routeLabel = formatRouteLabel(t, route.route);
-  // Every path here is anchored on the route's position in the source array,
-  // which is the only thing that survives the canonical-name grouping the tabs
-  // do. Without an index there is nothing to address, so the table renders
-  // exactly as the public page draws it.
   const routePath =
     typeof routeIndex === "number" ? `dosage.routes[${routeIndex}]` : null;
-  // Empty rows exist only for a reviewer to fill in. Outside an editing surface
-  // an absent tier keeps rendering nothing at all.
   const canEdit = editing !== null && routePath !== null;
 
   return (
@@ -291,8 +250,6 @@ export function DoseTiersTable({
             routePath ? `${routePath}.bioavailability_notes` : undefined
           }
           panelId={`dosage-${routeId}-bioavailability-notes`}
-          // The stored text, not its translation: this seeds the editor, and
-          // `bioavailabilityContent` already renders the translated reading.
           value={route.bioavailability ?? ""}
           valueContent={bioavailabilityContent}
           notesContent={bioavailabilityNotesContent}

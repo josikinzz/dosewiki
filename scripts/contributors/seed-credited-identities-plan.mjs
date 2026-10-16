@@ -1,4 +1,3 @@
-// Pure profile creation, collision, and import planning.
 import {
   ALIAS_ADDITIONS,
   NOTABLE_THIRD_PARTY_NAMES,
@@ -16,22 +15,12 @@ import {
   planProfileLinks,
 } from "./seed-credited-identities-policy.mjs";
 
-/* ---------------------------------------------------------------------------- plan */
-
 export function matchNamesOf(profile) {
   return new Set(
     [profile.displayName, ...(profile.aliases ?? [])].map(normalizeName).filter(Boolean),
   );
 }
 
-/**
- * Build the whole plan: which aliases to add, which profiles to create, what
- * every one of them will contain, and everything deliberately left alone.
- *
- * Alias additions are resolved first and on purpose. Once STINGRAYZ answers to
- * "symmetric vision", those sixty works stop looking like an unclaimed identity
- * and no new profile is proposed for them.
- */
 export function buildSeedPlan({
   replications = [],
   reports = [],
@@ -153,10 +142,6 @@ export function buildSeedPlan({
       linkNotes.push({ displayName, storedAs: identity.displayName, upgraded, dropped, truncated, added, removed });
     }
 
-    // Both spellings, always. Before the replication rows are corrected the
-    // corpus still says "Ben Ridgeway", and after they are corrected it says
-    // "Ben Ridgway"; matching is by whole normalized name, so a profile that
-    // knows only one of them goes blank on one side of that change.
     const aliases = Array.from(
       new Set([...identity.spellings.map(normalizeName), normalizeName(displayName)]),
     )
@@ -181,23 +166,15 @@ export function buildSeedPlan({
       explicitKey: explicit,
       droppedCharacters,
       displayName,
-      // Every spelling the corpus uses, because exact matching means an
-      // unrecorded spelling matches nothing at all.
       aliases,
       bio: "",
       links,
-      // One rule for everybody: a name credited on a replication is a
-      // replication artist. No name is exempted and none is singled out.
       ...(identity.replications > 0 ? { role: "Replication Artist" } : {}),
       sources: { replications: identity.replications, reports: identity.reports },
       notableThirdParty: NOTABLE_THIRD_PARTY_NAMES.has(identity.normalizedName),
     });
   }
 
-  // A correction that matches nothing is a typo in the corrections file, or a
-  // name that has already moved. Either way it is silent unless it is said out
-  // loud, and a silent no-op in a file whose whole job is to prevent a wrong
-  // publication is the wrong kind of quiet.
   const unmatchedCorrections = [
     ...[...index.names.keys()]
       .filter((name) => !usedNameCorrections.has(name))
@@ -242,14 +219,6 @@ export function buildSeedPlan({
   };
 }
 
-/**
- * Everything that would make two identities collapse into one.
- *
- * The third check is the non-obvious one: the public read drops any profile
- * whose key equals another profile's alias (that is how renamed keys stay
- * hidden), so a new key that happens to match an existing alias would create a
- * page that never renders.
- */
 export function findCollisions({ created = [], profiles = [], aliasAdditions = [] } = {}) {
   const existingKeys = new Set(profiles.map((profile) => normalizeKey(profile.key)));
   const aliasesByKey = new Map(
@@ -296,21 +265,8 @@ export function findCollisions({ created = [], profiles = [], aliasAdditions = [
   return { duplicateKeys, keyMatchesExistingProfile, keyShadowedByAlias, aliasClaimsExistingName };
 }
 
-/* -------------------------------------------------------------------------- merging */
-
 const PATCHED_FIELDS = ["displayName", "aliases", "bio", "role", "links"];
 
-/**
- * Fold a planned row into the row that is already stored.
- *
- * `bulkImport` patches every field it is handed, so an import row that omits
- * something clears it. The merge therefore treats the stored row as the
- * authority for everything a human may have touched — bio, display name, links
- * and title — and contributes only what the corpus knows: additional aliases,
- * and defaults for fields that are still empty.
- *
- * This is also what makes a second run a no-op.
- */
 export function mergeWithStoredProfile(planned, stored) {
   if (!stored) {
     return { entry: { ...planned }, action: "create", changedFields: PATCHED_FIELDS };
@@ -320,8 +276,6 @@ export function mergeWithStoredProfile(planned, stored) {
     new Set([...(stored.aliases ?? []).map(normalizeName), ...planned.aliases.map(normalizeName)]),
   ).filter(Boolean);
 
-  // A stored value always wins. The corpus only supplies a default for a field
-  // nobody has filled in, so no rerun can walk back an editor's decision.
   const role = stored.role || planned.role;
 
   const entry = {
@@ -346,10 +300,6 @@ export function mergeWithStoredProfile(planned, stored) {
   return { entry, action: changedFields.length > 0 ? "update" : "unchanged", changedFields };
 }
 
-/**
- * The full write list: alias additions first (so the biggest artist in the
- * corpus is whole before anything else is judged against it), then new rows.
- */
 export function buildImportEntries(plan, storedByKey = new Map()) {
   const entries = [];
 

@@ -2,21 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "@server/postgres/runtime/server";
 import { listMineHandler, transition as submissionTransition } from "../server/tripReportSubmissions";
 
-/**
- * Every status transition on an intake item appends one decision log entry. A
- * submitter reading their own submissions sees only the status and the public
- * reason, never the private note or the reviewer.
- */
-
 type RegisteredHandler = { _handler: (ctx: MutationCtx, args: unknown) => Promise<unknown> };
-// Postgres's registered function type hides `_handler`; the runtime object always carries it.
 const handlerOf = (fn: unknown) => (fn as RegisteredHandler)._handler;
 
 const SERVER_KEY = "test-admin-key";
 
 type Row = Record<string, unknown> & { _id: string };
 
-/** In-memory tables with the `withIndex(...).eq(...)` shape the handlers use (as in dataReviewerIdentity.test.ts). */
 function createCtx(seed: Record<string, Row[]>) {
   const tables = new Map<string, Map<string, Row>>();
   for (const [table, rows] of Object.entries(seed)) {
@@ -173,9 +165,7 @@ describe("a submitter's own submissions", () => {
     await rejectWithReason(ctx);
 
     await expect(listMineHandler(ctx, as("other@example.com"))).resolves.toEqual([]);
-    // An admin reading "mine" gets only their own too.
     await expect(listMineHandler(ctx, as("admin@example.com"))).resolves.toEqual([]);
-    // A server call that names no member is refused rather than read as the system.
     await expect(listMineHandler(ctx, { apiKey: SERVER_KEY })).rejects.toThrow(/signed-in member/);
   });
 });

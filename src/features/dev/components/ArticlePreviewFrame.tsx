@@ -1,25 +1,5 @@
 "use client";
 
-/**
- * A draft inside the real substance article, before it publishes.
- *
- * The frame renders the public `ArticleLayout` itself (beta disclaimer, review
- * chip, safety banners, hero with molecule, the Subjective Effects showcase and
- * every other section) with the editor's draft injected through the same props
- * the substance route passes. Nothing here re-draws the page.
- *
- * Why an iframe. Every colour token keys on `html[data-theme]`, and the
- * appearance runtime writes its sheets and variables against the root element,
- * so a wrapper `div` cannot be themed on its own without flipping the whole
- * editor. Phone width also has to reach the page's media queries, which read
- * the viewport, not a container. A same-origin `about:blank` iframe gives both:
- * its own root carries the preview theme and its own viewport is the chosen
- * width. React still owns the tree through a portal, so context (translation,
- * router, session) and draft props flow in directly, with no preview route and
- * no message passing. The editor's stylesheets are mirrored into the frame and
- * kept in step as the editor loads more.
- */
-
 import {
   useCallback,
   useEffect,
@@ -54,57 +34,38 @@ import { SearchablePicker } from "./SearchablePicker";
 
 export type ArticlePreviewWidth = "phone" | "desktop";
 
-/** Viewport widths the frame lays the article out at. */
 export const ARTICLE_PREVIEW_WIDTHS: Record<ArticlePreviewWidth, number> = {
   phone: 390,
   desktop: 1280,
 };
 
 const FRAME_HEIGHT = 760;
-/** The smallest frame while there is no article to draw (none picked, or it failed). */
 const FALLBACK_MIN_HEIGHT = 120;
 
 export type ArticlePreviewSlugOption = { slug: string; title: string };
 
-/** The unsaved pieces a tool can place in the article. */
 export type ArticlePreviewDraft = {
-  /**
-   * A draft banner preset. It takes its saved copy's place among `presets`
-   * (every stored preset), and the route's own rule orders and caps the stack.
-   */
   banner?: { preset: WarningBannerPreset; presets: readonly WarningBannerPreset[] };
-  /** The Replication Showcase as it will render once saved. */
   showcase?: ReactNode;
-  /** An unsaved depiction as SVG markup, recoloured per the frame's theme. */
   moleculeSvg?: string | null;
 };
 
 export type ArticlePreviewFrameProps = {
   slug: string | null;
-  /** Offered in the picker by title. Omit to fix the frame on `slug`. */
   slugOptions?: readonly ArticlePreviewSlugOption[];
   onSlugChange?: (slug: string) => void;
   draft?: ArticlePreviewDraft;
-  /** Any other layout prop, passed through as the route would pass it. */
   overrides?: Partial<Omit<ArticleLayoutProps, "article">>;
-  /** Names the frame for assistive tech and tests. */
   label?: string;
-  /** The width the frame opens at; the editor can still switch. Defaults to desktop. */
   defaultWidth?: ArticlePreviewWidth;
 };
-
-/* ------------------------------------------------------------------ */
-/* Article loading                                                     */
-/* ------------------------------------------------------------------ */
 
 type ArticleLoad =
   | { status: "idle" | "loading" | "failed"; article: null }
   | { status: "ready"; article: SubstanceArticle };
 
-/** Whole articles already fetched this session, shared across frames. */
 const articleCache = new Map<string, SubstanceArticle>();
 
-/** Test seam: forget every cached article. */
 export function clearArticlePreviewCache() {
   articleCache.clear();
 }
@@ -128,7 +89,6 @@ function usePreviewArticle(slug: string | null): ArticleLoad & { retry: () => vo
     }
     let active = true;
     setLoad({ status: "loading", article: null });
-    // The same per-slug read the review workbench hydrates from.
     Promise.resolve()
       .then(() => fetch(`/api/dev/editor-library?slug=${encodeURIComponent(slug)}`))
       .then((response) =>
@@ -155,20 +115,8 @@ function usePreviewArticle(slug: string | null): ArticleLoad & { retry: () => vo
   return { ...load, retry };
 }
 
-/* ------------------------------------------------------------------ */
-/* Frame document                                                      */
-/* ------------------------------------------------------------------ */
-
-/** Per frame document: each editor style node and the copy mirrored from it. */
 const mirroredStyles = new WeakMap<Document, Map<Element, HTMLElement>>();
 
-/**
- * Keeps the frame document styled like the editor: the same stylesheets and
- * the same root attributes (visual style, accent, surface, fonts), with only
- * the colour scheme replaced by the frame's own. Style nodes are mirrored
- * incrementally, so a title or meta change in the editor never reloads the
- * frame's sheets.
- */
 function syncFrameDocument(frame: Document, scheme: ColorScheme) {
   const host = document;
   const mirrors = mirroredStyles.get(frame) ?? new Map<Element, HTMLElement>();
@@ -184,7 +132,6 @@ function syncFrameDocument(frame: Document, scheme: ColorScheme) {
   for (const source of current) {
     const existing = mirrors.get(source);
     if (existing) {
-      // Dev reloads rewrite a style node's text in place.
       if (source instanceof HTMLStyleElement && existing.textContent !== source.textContent) {
         existing.textContent = source.textContent;
       }
@@ -218,8 +165,6 @@ function useFrameBody(
 ): HTMLElement | null {
   const [frameDocument, setFrameDocument] = useState<Document | null>(null);
 
-  // An iframe without `src` keeps its initial about:blank document; the load
-  // listener covers engines that swap it once.
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
@@ -236,8 +181,6 @@ function useFrameBody(
     if (!frameDocument) return;
     syncFrameDocument(frameDocument, scheme);
     if (typeof MutationObserver === "undefined") return;
-    // Dev and lazily loaded routes add sheets after mount, and the editor's
-    // appearance controls rewrite root attributes; follow both.
     const observer = new MutationObserver(() => syncFrameDocument(frameDocument, scheme));
     observer.observe(document.head, { childList: true, subtree: true, characterData: true });
     observer.observe(document.documentElement, { attributes: true });
@@ -247,7 +190,6 @@ function useFrameBody(
   return frameDocument?.body ?? null;
 }
 
-/** Scales the desktop layout down to the space the editor gives it. */
 function useFitScale(viewportRef: React.RefObject<HTMLDivElement | null>, width: number): number {
   const [available, setAvailable] = useState<number | null>(null);
   useEffect(() => {
@@ -260,7 +202,6 @@ function useFitScale(viewportRef: React.RefObject<HTMLDivElement | null>, width:
   return available && available < width ? available / width : 1;
 }
 
-/** Links and forms are live components; inside a preview they go nowhere. */
 function blockNavigation(event: MouseEvent | SyntheticEvent) {
   const target = event.target as Element | null;
   if (event.type === "submit" || target?.closest?.("a[href]")) {
@@ -272,10 +213,6 @@ function hostScheme(): ColorScheme {
   if (typeof document === "undefined") return "dark";
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
-
-/* ------------------------------------------------------------------ */
-/* Frame                                                               */
-/* ------------------------------------------------------------------ */
 
 export function ArticlePreviewFrame({
   slug,
@@ -295,9 +232,6 @@ export function ArticlePreviewFrame({
   const scale = useFitScale(viewportRef, frameWidth);
   const load = usePreviewArticle(slug);
   const article = load.article;
-  // Without an article the frame holds only the banner stack (or nothing), so
-  // it shrinks to what it shows instead of keeping an article's height. The
-  // stack is measured inside the frame's own window, where it lays out.
   const fallbackRef = useRef<HTMLElement>(null);
   const [fallbackHeight, setFallbackHeight] = useState<number | null>(null);
   const compact = !article && load.status !== "loading";
@@ -317,14 +251,12 @@ export function ArticlePreviewFrame({
   }, [compact, body]);
   const frameHeight = compact ? Math.min(FRAME_HEIGHT, Math.max(FALLBACK_MIN_HEIGHT, fallbackHeight ?? FALLBACK_MIN_HEIGHT)) : FRAME_HEIGHT;
 
-  // The saved depiction, versioned the way the substance route versions it.
   const moleculeMeta = useEditorRead(
     "moleculeOverrides:getMetadataBySlug",
     slug && !draft?.moleculeSvg ? { slug } : "skip",
     "document",
   );
 
-  // Serializes the whole article, so once per article, not per keystroke.
   const showBetaDisclaimer = useMemo(
     () => (article ? substanceHasCitationNeeded(article) : false),
     [article],
@@ -356,8 +288,6 @@ export function ArticlePreviewFrame({
     slug ??
     "";
 
-  // Tools that preview something below the fold (the showcase) mark it; the
-  // frame opens there once the article has laid out.
   useEffect(() => {
     if (!body || !article) return;
     const focus = body.querySelector<HTMLElement>("[data-preview-focus]");

@@ -62,7 +62,6 @@ export function rewriteAssetPath(assetPath, assetMap) {
     const decodedMappedUrl = assetMap.get(decodedPath);
     if (decodedMappedUrl) return decodedMappedUrl;
   } catch {
-    // Keep the original encoded path when it cannot be decoded.
   }
 
   const filename = assetPath.replace("/img/gallery/", "");

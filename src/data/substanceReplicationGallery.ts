@@ -1,23 +1,3 @@
-/**
- * Drug-association policy and editorial ordering for the per-substance
- * Replication Showcase (see docs/glossary.md → Replications Surface Language).
- *
- * Automatic placement is deliberately narrower than general visual-effect
- * matching: a standalone drug mention belongs only to that drug, while a
- * general dissociative or deliriant work belongs to every article in that
- * class. Dissociative articles additionally inherit eligible still images
- * owned by Visual Disconnection, after every higher-priority placement.
- * General psychedelic work is never spread across psychedelic articles, and
- * combinations are never proposed for a single-substance showcase.
- *
- * Stored `curated_slugs` are a direct-association delta and a legacy priority
- * list within automatic tiers. `carousel_order` is the exact editorial prefix
- * across all tiers; every unlisted work keeps the automatic order.
- * `removed_slugs` always wins.
- *
- * Everything here is pure. Imports are relative because the Postgres bundler
- * consumes this file through `server/substanceGalleries.ts`.
- */
 import { DISSOCIATIVE_TITLE_DRUG_RULES } from "./replicationTitleDrugAliases";
 
 import { z } from "zod";
@@ -32,11 +12,6 @@ import {
   type ReplicationWithUrl,
 } from "../types/replications";
 
-/**
- * The ceiling on either stored curation list. One home for a number the Postgres
- * mutation, the DevTools save route, and the portal's exclusion meter all have
- * to agree on.
- */
 export const GALLERY_CURATION_SLUG_CAP = 250;
 
 const TITLE_DRUG_ROUTE_ALIASES: Readonly<Record<string, string>> = Object.freeze({
@@ -58,14 +33,10 @@ type AutomaticSubstanceMatchKind = | "specific_drug"
 | "drug_class"
 | "visual_disconnection"
 
-/** How one corpus row earned its place in a substance's showcase. */
 export type SubstanceGalleryMatchProvenance = {
   matchedVia: AutomaticSubstanceMatchKind | "curated";
-  /** The owning effect remains the chip shown beside the work. */
   effectSlug: string;
-  /** Present for a standalone title-drug placement. */
   substanceSlug?: string;
-  /** Present for a permitted general-class or dissociative-effect placement. */
   drugClass?: "dissociatives" | "deliriants";
 };
 
@@ -74,7 +45,6 @@ type SubstanceGalleryTitleClassMention = {
   matched_title_text: string;
 }
 
-/** The minimum a corpus row must carry to be matchable. */
 export type SubstanceGalleryMatchableRow = {
   slug: string;
   title: string;
@@ -83,7 +53,6 @@ export type SubstanceGalleryMatchableRow = {
   effect_slug?: string | null;
   title_drugs?: ReplicationTitleDrug[];
   title_class_mentions?: SubstanceGalleryTitleClassMention[];
-  /** Corpus-wide suppression: junk or a combination belongs on no drug article. */
   showcase_excluded?: boolean;
   replication_status?: "replication" | "not-replication" | "unclear" | "unreviewed" | "source-corrupt";
   publication_state?: "published" | "unpublished" | "duplicate-suppressed";
@@ -100,14 +69,9 @@ export type SubstanceGalleryMatch<Row extends SubstanceGalleryMatchableRow> = {
 };
 
 export type SubstanceGalleryMatchResult<Row extends SubstanceGalleryMatchableRow> = {
-  /** Automatic candidates in specific, class-general, then visual-fallback order. */
   matches: SubstanceGalleryMatch<Row>[];
 };
 
-/**
- * Stored association and presentation fields. `curated_slugs` can also create a
- * direct association; `carousel_order` only sequences already-included works.
- */
 export type SubstanceGalleryCuration = {
   curated_slugs?: readonly string[];
   removed_slugs?: readonly string[];
@@ -115,13 +79,11 @@ export type SubstanceGalleryCuration = {
   disabled?: boolean;
 };
 
-/** One item of the public per-substance read, URL-resolved for rendering. */
 export type SubstanceGalleryItem = {
   replication: ReplicationWithUrl;
   provenance: SubstanceGalleryMatchProvenance;
 };
 
-/** The public `getPublicReplicationsForSubstance` payload. */
 export type PublicSubstanceGallery = {
   items: SubstanceGalleryItem[];
   carouselOrder?: readonly string[];
@@ -137,7 +99,6 @@ const substanceGalleryTargetSource = z.object({
     .catch({}),
 });
 
-/** Parse the two article fields that own automatic replication placement. */
 export function substanceGalleryTargetOf(article: unknown): SubstanceGalleryTarget | null {
   const parsed = substanceGalleryTargetSource.safeParse(article);
   if (!parsed.success) return null;
@@ -147,12 +108,10 @@ export function substanceGalleryTargetOf(article: unknown): SubstanceGalleryTarg
   };
 }
 
-/** Convert title-taxonomy identity into the article route it addresses. */
 export function canonicalTitleDrugRoute(slug: string): string {
   return TITLE_DRUG_ROUTE_ALIASES[slug] ?? slug;
 }
 
-/** Reviewed dissociative names found directly in a title, longest match first. */
 export function reviewedDissociativeTitleDrugRoutesOf(title: string): string[] {
   const candidates: { route: string; start: number; end: number }[] = [];
   for (const [slug, _name, _drugClass, pattern] of DISSOCIATIVE_TITLE_DRUG_RULES) {
@@ -186,7 +145,6 @@ export function reviewedDissociativeTitleDrugRoutesOf(title: string): string[] {
   return [...new Set(accepted.map((candidate) => candidate.route))];
 }
 
-/** Distinct article routes named by taxonomy or a reviewed title alias. */
 export function titleDrugRoutesOf(row: SubstanceGalleryMatchableRow): string[] {
   const routes: string[] = [];
   const seen = new Set<string>();
@@ -204,7 +162,6 @@ export function titleDrugRoutesOf(row: SubstanceGalleryMatchableRow): string[] {
   return routes;
 }
 
-/** Distinct broad classes explicitly named by a row, preserving source order. */
 export function titleDrugClassesOf(row: SubstanceGalleryMatchableRow): ReplicationDrugClass[] {
   const classes: ReplicationDrugClass[] = [];
   const seen = new Set<ReplicationDrugClass>();
@@ -218,14 +175,6 @@ export function titleDrugClassesOf(row: SubstanceGalleryMatchableRow): Replicati
 
 const COMPACT_COMBINATION_TITLE_PATTERNS = [/\blsdxm\b/iu];
 
-/**
- * A combination is multiple distinct specific drugs, a class-only cross-class
- * work, or one of the reviewed compact labels that can predate corrected title
- * taxonomy. Repeated aliases for one route remain one substance.
- *
- * `showcase_excluded` is the editorial guard for other titles that defeat
- * deterministic extraction.
- */
 export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boolean {
   if (COMPACT_COMBINATION_TITLE_PATTERNS.some((pattern) => pattern.test(row.title))) return true;
   const routes = titleDrugRoutesOf(row);
@@ -233,13 +182,6 @@ export function isCombinationReplication(row: SubstanceGalleryMatchableRow): boo
   return routes.length === 0 && titleDrugClassesOf(row).length > 1;
 }
 
-/**
- * Corpus-wide eligibility shared by automatic and direct placement.
- *
- * The showcase is a frame carousel with a poster per slide, so it takes only
- * the kinds a frame can draw; a published audio row belongs to the audio
- * surfaces instead.
- */
 export function isShowcaseEligible(row: SubstanceGalleryMatchableRow): boolean {
   return (
     isPublishableReplication(row)
@@ -296,11 +238,6 @@ function automaticProvenance(
   return null;
 }
 
-/**
- * Derive the automatic pool. Exact substance work precedes class-general
- * work; eligible Visual Disconnection stills close the automatic pool.
- * Videos precede images inside the specific and class-general tiers.
- */
 export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
   target: SubstanceGalleryTarget,
@@ -335,22 +272,13 @@ export function matchSubstanceGalleryReplications<Row extends SubstanceGalleryMa
   };
 }
 
-/**
- * One bucket of eligible corpus rows that share every input the automatic
- * policy looks at. The corpus collapses to a few hundred buckets, so a count
- * for any substance is derived without re-reading the rows.
- */
 export type SubstanceGalleryMatchBucket = {
-  /** The single title-drug route, when the row names exactly one. */
   route: string | null;
-  /** The single permitted general class, when the row names no drug and one class. */
   drugClass: "dissociatives" | "deliriants" | null;
-  /** A still image owned by Visual Disconnection. */
   visualDisconnection: boolean;
   count: number;
 };
 
-/** The eligible corpus reduced to policy buckets; read the corpus once, count for every article. */
 export function substanceGalleryMatchDigest(
   rows: readonly SubstanceGalleryMatchableRow[],
 ): SubstanceGalleryMatchBucket[] {
@@ -377,7 +305,6 @@ export function substanceGalleryMatchDigest(
   return [...buckets.values()];
 }
 
-/** `matchSubstanceGalleryReplications(rows, target).matches.length` from the digest of `rows`. */
 export function countSubstanceGalleryMatches(
   digest: readonly SubstanceGalleryMatchBucket[],
   target: SubstanceGalleryTarget,
@@ -405,10 +332,6 @@ export function countSubstanceGalleryMatches(
   return total;
 }
 
-/**
- * Return direct-curation provenance for a stored manual association. Exclusion
- * preserves an association so editors can restore it later.
- */
 export function directGalleryAssociationProvenance(
   row: SubstanceGalleryMatchableRow,
   curation: SubstanceGalleryCuration | null | undefined,
@@ -424,7 +347,6 @@ export function directGalleryAssociationProvenance(
   };
 }
 
-/** Add unmatched rows retained by a stored manual placement or exclusion. */
 export function includeDirectlyAssociatedRows<Row extends SubstanceGalleryMatchableRow>(
   rows: readonly Row[],
   matches: readonly SubstanceGalleryMatch<Row>[],
@@ -451,20 +373,6 @@ function automaticTier<Row extends SubstanceGalleryMatchableRow>(
   return match.row.type === "video" ? 2 : 3;
 }
 
-/**
- * Build the effective public order:
- *
- *  1. specific videos
- *  2. specific images
- *  3. permitted class-general videos
- *  4. permitted class-general images
- *  5. unmatched manual associations
- *  6. Visual Disconnection still-image fallback
- *
- * Existing curation orders rows within each tier. Newly tagged rows follow in
- * stable corpus order, so they appear automatically without destroying prior
- * editorial ordering. Suppression wins over every source.
- */
 export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
   matchedItems: readonly SubstanceGalleryMatch<Row>[],
   curation: SubstanceGalleryCuration | null | undefined,
@@ -500,11 +408,8 @@ export function mergeCuratedGallery<Row extends SubstanceGalleryMatchableRow>(
 }
 
 export type NormalizedGalleryCuration = {
-  /** Curated list, trimmed, deduplicated, pruned to showcase-eligible corpus slugs. */
   curatedSlugs: string[];
-  /** Suppression list, trimmed, deduplicated, pruned to showcase-eligible corpus slugs. */
   removedSlugs: string[];
-  /** What pruning dropped, so the editor can be told rather than left guessing. */
   prunedCurated: string[];
   prunedRemoved: string[];
 };
@@ -532,15 +437,6 @@ export function normalizeGalleryCarouselOrder(
   };
 }
 
-/**
- * Normalize a curation write: trim and deduplicate both lists, reject any
- * curated∩removed overlap (a slug cannot be pinned and suppressed at once —
- * that is a client bug, not a preference), and prune both lists against the
- * showcase-eligible corpus. Direct curation and direct exclusion therefore
- * survive without a derived effect match, while deleted, retired, or otherwise
- * ineligible replications cannot survive as phantom associations. Throws on
- * overlap; returns the pruned echo otherwise.
- */
 export function normalizeGalleryCuration(input: {
   curatedSlugs: readonly string[];
   removedSlugs: readonly string[];

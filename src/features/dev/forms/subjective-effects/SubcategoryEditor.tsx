@@ -1,8 +1,3 @@
-/**
- * SubcategoryEditor - Edit a subcategory with its heading, note, and effects list.
- * Used within EffectCategoryCard and SenseCategoryCard.
- */
-
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@/components/common/Icon";
 import { Input } from "@/components/ui/input";
@@ -19,33 +14,19 @@ const SUBCATEGORY_MOVE_BUTTON_CLASS =
   `h-6 w-6 rounded p-1 text-[var(--theme-text-faint)] hover:bg-transparent disabled:opacity-30 disabled:cursor-not-allowed ${TOUCH_ICON}`;
 
 export interface SubcategoryEditorProps {
-  /** The subcategory key/heading */
   subcategoryKey: string;
-  /** The subcategory note */
   note: string;
-  /** The effects in this subcategory */
   effects: EffectEntry[];
-  /** Whether the heading is editable (false for fixed subcategories) */
   editableHeading?: boolean;
-  /** Change the stored key, or return a validation message without changing it. */
   onHeadingChange?: (newKey: string) => string | undefined;
-  /** Called when note changes */
   onNoteChange: (note: string) => void;
-  /** Called when effects change */
   onEffectsChange: (effects: EffectEntry[]) => void;
-  /** Called when this subcategory should be removed */
   onRemove?: () => void;
-  /** Called to move this subcategory up */
   onMoveUp?: () => void;
-  /** Called to move this subcategory down */
   onMoveDown?: () => void;
-  /** Whether move up is disabled */
   canMoveUp?: boolean;
-  /** Whether move down is disabled */
   canMoveDown?: boolean;
-  /** Prefix for input IDs */
   idPrefix: string;
-  /** Index for accessibility */
   index: number;
 }
 
@@ -99,9 +80,7 @@ export function SubcategoryEditor({
       {index > 0 ? (
         <div className="theme-gradient-divider h-px" />
       ) : null}
-      {/* Header row with heading, move buttons, and delete */}
       <div className="flex items-start gap-3">
-        {/* Move buttons */}
         {(onMoveUp || onMoveDown) && (
           <div className="flex flex-col gap-1 pt-1">
             <Button
@@ -131,7 +110,6 @@ export function SubcategoryEditor({
           </div>
         )}
 
-        {/* Heading and note */}
         <div className="min-w-0 flex-1 space-y-3">
           <EditorField
             htmlFor={`${idPrefix}-subcat-${index}-heading`}
@@ -182,7 +160,6 @@ export function SubcategoryEditor({
           </EditorField>
         </div>
 
-        {/* Delete button */}
         {onRemove && (
           <Button
             type="button"
@@ -197,7 +174,6 @@ export function SubcategoryEditor({
         )}
       </div>
 
-      {/* Effects list */}
       <div className="space-y-2">
         <p className="theme-text-muted text-sm font-medium leading-5">
           Effects ({effects.length})

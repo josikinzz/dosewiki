@@ -20,7 +20,6 @@ export function requireArticleChangeId(changeId: string): void {
   }
 }
 
-/** The accepted patch and journal always commit together, including evidence invalidation. */
 export async function commitArticleChange(ctx: MutationCtx, input: RevisionInput & { row: Doc<"substanceIndex"> }) {
   assertDataWritesNotFrozen("articleWrite:commit");
   if (await articleBaseHash(ctx, articleDocument(input.row)) !== input.baseHash) articleConflict();

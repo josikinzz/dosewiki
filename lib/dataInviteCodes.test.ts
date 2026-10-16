@@ -35,10 +35,6 @@ type InviteRow = {
 
 type Row = MembershipRow | InviteRow;
 
-/**
- * In-memory two-table db: `memberships` (by_email, by_username) and
- * `inviteCodes` (by_code_hash).
- */
 function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRow[] }) {
   const tables = {
     memberships: new Map((seed.memberships ?? []).map((row) => [row._id, { ...row }])),
@@ -81,7 +77,7 @@ function createCtx(seed: { memberships?: MembershipRow[]; inviteCodes?: InviteRo
     ctx: {
       auth: { getUserIdentity: vi.fn(async () => null) },
       db: {
-        normalizeId: () => null, // Neither invite codes nor memberships are source tables.
+        normalizeId: () => null,
         query: vi.fn(query),
         get: vi.fn(async (id: string) => tableOf(id).get(id) ?? null),
         patch: vi.fn(async (id: string, patch: Record<string, unknown>) => {

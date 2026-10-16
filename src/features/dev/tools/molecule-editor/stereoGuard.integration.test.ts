@@ -9,7 +9,6 @@ import {
 } from "@/features/dev/tools/molecule-editor/stereoGuard";
 import { mirrorMoleculeCoordinates } from "@/features/dev/tools/molecule-editor/moleculeTransforms";
 
-// LSD (two stereocenters) and an inverted-stereocenter diastereomer.
 const LSD_SMILES = "CCN(CC)C(=O)[C@H]1CN([C@@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";
 const LSD_INVERTED = "CCN(CC)C(=O)[C@H]1CN([C@H]2Cc3c[nH]c4cccc(c34)C2=C1)C";
 
@@ -32,7 +31,6 @@ beforeAll(async () => {
 
 describe("compareInchi (stereo guard)", () => {
   it("treats a re-depicted molecule as the SAME chemistry (match)", () => {
-    // A fresh 2D depiction of LSD: different coords/wedges, identical molecule.
     const editedMolblock = molblockFromSmiles(LSD_SMILES);
     const result = compareInchi(rdkit, LSD_SMILES, editedMolblock);
     expect(result.match).toBe(true);
@@ -45,7 +43,6 @@ describe("compareInchi (stereo guard)", () => {
     const result = compareInchi(rdkit, LSD_SMILES, editedMolblock);
     expect(result.match).toBe(false);
     expect(result.inchiOriginal).not.toBe(result.inchiEdited);
-    // both are real LSD-formula InChIs, differing only in the /t stereo layer
     expect(result.inchiEdited).toContain("InChI=1S/C20H25N3O");
   });
 

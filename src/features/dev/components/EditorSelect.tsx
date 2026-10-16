@@ -12,13 +12,8 @@ export interface EditorSelectOption {
 
 export interface EditorSelectProps
   extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> {
-  /** Visual state. `error` swaps to the danger border/ring recipe. */
   variant?: "default" | "error";
   selectSize?: "default" | "sm";
-  /**
-   * Convenience option list. Children still render normally if supplied; pass
-   * a `placeholder` to add a leading disabled option.
-   */
   options?: EditorSelectOption[];
   placeholder?: string;
 }
@@ -35,13 +30,6 @@ const selectVariantClasses: Record<NonNullable<EditorSelectProps["variant"]>, st
     "border-[color:var(--theme-danger-border)] focus:border-[color:var(--theme-danger-border-strong)]",
 };
 
-/**
- * Themed native `<select>` built on the shared Input recipe: appearance-none
- * with a chevron overlay, --theme-field-surface fill, --theme-border-subtle
- * rim, neutral focus border, and --theme-menu-surface
- * option backgrounds (so the popped list reads as a frosted menu, never a
- * baked slate hex). Reverso-safe in both themes.
- */
 export const EditorSelect = forwardRef<HTMLSelectElement, EditorSelectProps>(
   (
     {

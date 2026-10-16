@@ -59,9 +59,6 @@ describe("DosageDurationSection inline dose editing", () => {
     );
     renderEditing(article);
 
-    // The page renders a threshold as `~2 mg` and a max-only range as a bare
-    // `30 mg`; seeding the editor from either would round-trip a threshold into
-    // an exact dose and a ceiling into `{min: 30, max: 30}`.
     expect(screen.getByText("~2 mg")).toBeInTheDocument();
     expect(screen.getByText("30 mg")).toBeInTheDocument();
 
@@ -84,7 +81,6 @@ describe("DosageDurationSection inline dose editing", () => {
       "Enter a dose like 10-20 mg",
     );
     expect(commit).not.toHaveBeenCalled();
-    // The stored dose is untouched and the rejected draft is still recoverable.
     expect(screen.getByRole("textbox", { name: "Edit Oral light dose" })).toHaveValue(
       "a fair bit",
     );
@@ -99,8 +95,6 @@ describe("DosageDurationSection inline dose editing", () => {
       ),
     );
 
-    // The tab is canonical ("Insufflated"); the field label names the raw route
-    // entry it actually writes to.
     const field = await openEditor(user, "Snorted light dose");
     await user.clear(field);
     await user.type(field, "6-12 mg{Enter}");

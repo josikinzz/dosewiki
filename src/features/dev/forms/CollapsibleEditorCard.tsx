@@ -11,49 +11,21 @@ import { EditorStatusPill } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 
 export interface CollapsibleEditorCardProps extends PropsWithChildren {
-  /** Accent-tinted leading icon (Lucide / Iconify node). */
   icon?: ReactNode;
-  /** Section title, rendered in the accent heading tier. */
   title: string;
-  /** Optional helper copy shown under the header once expanded. */
   description?: string;
-  /** Optional count chip (e.g. number of entries) shown next to the title. */
   count?: number;
-  /** Optional badge node rendered after the title (status, hint, etc.). */
   badge?: ReactNode;
-  /** Start expanded. Defaults to collapsed. */
   defaultExpanded?: boolean;
-  /** Mark and reveal the section when it contains resolver errors. */
   hasError?: boolean;
-  /** Smaller header/body spacing for nested subsections. */
   density?: "default" | "compact";
-  /** Use the reading surface's redundant disclosure cue and touch target. */
   pairedIndicator?: boolean;
-  /** Preserve local input buffers while the section is collapsed. */
   keepMounted?: boolean;
-  /**
-   * Heading tag wrapping the disclosure trigger. Defaults to `h3` — these cards
-   * sit inside an already-headed editor tab, so `h2` would duplicate that tier.
-   */
   headingLevel?: "h2" | "h3" | "h4";
-  /** Colour for the leading icon when the section carries a meaning of its own (a severity); defaults to the accent. */
   iconClassName?: string;
   className?: string;
 }
 
-/**
- * Free-floating collapsible section for the dev article forms.
- *
- * Mirrors the public `ArticleSection` / dev `EditorSection` DNA — an accent
- * header row (`.theme-accent-heading` + `theme-icon-accent`) followed by a
- * `--theme-horizontal-divider-image` hairline that fills toward a trailing
- * chevron — with the body flowing directly on the page. No card border, fill,
- * or blur: cards are the exception, and a stack of form sections should read
- * as headed page regions, not a column of identical pills.
- *
- * `density="compact"` is the nested sub-section variant (smaller heading and
- * tighter spacing) for collapsibles inside an already-headed section.
- */
 export function CollapsibleEditorCard({
   icon,
   title,

@@ -42,32 +42,6 @@ const DESCRIPTION_FALLBACK = msg(
   "Browse the replication gallery: image and video recreations of the sensory experiences produced by subjective effects, grouped by artist and effect.",
 );
 
-/**
- * The gallery index is served by two routes that render the same page:
- *
- *  - `/replications` — statically prerendered on the hourly ISR window shared
- *    by the other index pages. Its filters live in query params
- *    (?view/?q/?type/?sort) that only the client reads, so the HTML never
- *    varies on the URL and the route never touches `searchParams` (doing so
- *    would opt the whole route into per-request rendering).
- *  - `/replications/viewer/[slug]` — the middleware's rewrite target for a
- *    `?viewer=` deep-link *document* request. A shared immersive-view URL must
- *    unfurl with the active replication's social card, and that is the one
- *    piece of the page a static shell cannot vary; per-slug ISR keeps that cost
- *    to one render per shared work per window. Client-side navigations carry
- *    the `RSC` header and are never rewritten, so the explorer stays mounted
- *    across browse-state changes regardless of which route served the document.
- *
- * The prerendered body is the default artist view computed against the
- * complete corpus: the first rail page of artists in their true video-first
- * order, each rail carrying exactly its preview works, plus the archive's real
- * stats. After hydration the explorer fetches bounded continuation pages and
- * complete grouping/filter metadata, never an idle full-corpus download.
- *
- * A locale mirror renders the same page over the localized corpus, so the
- * prerendered rails carry translated titles and effect names. Continuation
- * requests retain the same locale as the server-rendered page.
- */
 export async function getReplicationsGalleryMetadata(
   viewerSlug: string | null,
   locale: LiveLocale | null = null,

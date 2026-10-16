@@ -11,10 +11,6 @@ import {
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
 import { publicReadIndexReady } from "./publicReadIndexes";
 
-/** Indexed compact candidates run through the canonical policy before only
- * winners are hydrated. Until a complete backfill is certified, the adapter
- * uses the existing shared paged corpus instead of any per-slug table scan.
- */
 export type PublicSubstanceGalleryReplication = Omit<
   Doc<"replications">,
   "url" | "thumbnail_url"
@@ -39,7 +35,6 @@ async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-/** Canonical membership without hydrating media; shared by public reads and orders. */
 export async function getSubstanceGalleryMembers(
   ctx: QueryCtx,
   substance: Doc<"substanceIndex">,

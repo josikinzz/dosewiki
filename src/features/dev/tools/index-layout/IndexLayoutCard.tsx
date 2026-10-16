@@ -13,7 +13,6 @@ import {
 import type { BoardCategory, BoardSection } from "./boardModel";
 import { LayoutDrugRow, rowId } from "./LayoutDrugRow";
 
-/** The substances of one slot: a drop target, its rows, and the add row. */
 function SlotList({
   category,
   section,
@@ -82,28 +81,14 @@ function SlotList({
 
 export interface IndexLayoutCardProps {
   category: BoardCategory;
-  /** The sections this panel carries, in render order. */
   sections: readonly BoardSection[];
   title: string;
   hideIcon?: boolean;
-  /**
-   * "category" draws the whole category: the header menu edits the category and
-   * every section keeps its heading. "section" draws one section as its own
-   * panel, the way a single-class tab does on the site, so the header menu
-   * edits that section instead.
-   */
   chrome: "category" | "section";
-  /** Panel-order siblings, so a section knows what it can trade places with. */
   siblings?: readonly BoardSection[];
   actions: BoardActions;
 }
 
-/**
- * An index panel as the public page draws it, editable in place. The resting
- * composition is the reader's — icon, title, count, section labels, rows — and
- * the editing handles fade in on hover, on focus, or wherever the pointer is
- * coarse.
- */
 export function IndexLayoutCard({
   category,
   sections,

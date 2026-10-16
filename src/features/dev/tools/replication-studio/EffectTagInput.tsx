@@ -11,7 +11,6 @@ import type { StudioEffectOption } from "./replicationStudioModel";
 
 export type EffectTagInputProps = {
   id: string;
-  /** Effect slugs already on the row. */
   value: readonly string[];
   onChange: (next: string[]) => void;
   options: readonly StudioEffectOption[];
@@ -21,14 +20,6 @@ export type EffectTagInputProps = {
 
 const MAX_SUGGESTIONS = 8;
 
-/**
- * Chip input over the published subjective-effect list.
- *
- * Chips store effect slugs (what Postgres keeps) but show effect names (what the
- * editor reads), so the stored value stays joinable while the control stays
- * legible. Free text is deliberately not accepted: a tag that names no effect
- * could never be joined back to one, and the column exists to be joined.
- */
 export function EffectTagInput({
   id,
   value,
@@ -100,7 +91,6 @@ export function EffectTagInput({
             setOpen(true);
           }}
           onBlur={() => {
-            // Late enough for a suggestion's mousedown to land first.
             window.setTimeout(() => setOpen(false), 120);
           }}
           onKeyDown={(event) => {

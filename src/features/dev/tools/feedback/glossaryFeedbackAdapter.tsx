@@ -17,7 +17,6 @@ export type GlossaryFeedbackItem = FeedbackQueueItem & {
 export function glossaryFeedbackAdapter(
   locale: string,
 ): FeedbackSourceAdapter<GlossaryFeedbackItem> {
-  // The glossary queue is per locale; the shared client validates its shape.
   const requests = createFeedbackRequests<GlossaryFeedbackItem>(
     "/api/glossary-feedback",
     { listUrl: `/api/glossary-feedback/queue?locale=${encodeURIComponent(locale)}` },
@@ -63,7 +62,6 @@ export function glossaryFeedbackAdapter(
               }
             : null,
           { label: "Received", value: formatReceived(row.created_at) },
-          // Using the reader's wording is an edit in Terms; the decision here changes none.
           { label: "Term in the workbench", value: `Open ${row.term} in Terms`, href: glossaryTermHref(row.locale, row.term), hint: ", opens in a new tab" },
           { label: "Term version", value: <span className="theme-text-muted break-all text-xs">{row.version}</span>, wide: true },
         ]}

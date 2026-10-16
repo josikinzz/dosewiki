@@ -56,10 +56,6 @@ const EXCLUDED_FIELD_REGISTRY_PATHS = new Set([
   "harm_potential.toxicity.ld50",
 ]);
 
-/**
- * Compatibility defaults are intentional additions for generated article
- * helpers that are not fully represented by direct Zod default extraction.
- */
 function applyArticleCompatibilityDefaults(
   defaults: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -104,16 +100,10 @@ export function generateArticleDefaults(schema: ZodType): Record<string, unknown
   );
 }
 
-/**
- * Get the Zod type name from a schema.
- */
 function getZodTypeName(schema: ZodType): string {
   return (schema as { type?: string }).type ?? "unknown";
 }
 
-/**
- * Unwrap nullable/optional/default types to get the inner type.
- */
 function unwrapType(schema: ZodType): ZodType {
   const typeName = getZodTypeName(schema);
   const def = (schema as { def?: { innerType?: ZodType } }).def;
@@ -133,16 +123,10 @@ function unwrapType(schema: ZodType): ZodType {
   return schema;
 }
 
-/**
- * Check if a schema represents a nullable type.
- */
 function isNullable(schema: ZodType): boolean {
   return getZodTypeName(schema) === "nullable";
 }
 
-/**
- * Get the element type for array schemas.
- */
 function getArrayElement(schema: ZodType): ZodType | undefined {
   const def = (schema as { def?: { element?: ZodType } }).def;
   return def?.element;
@@ -157,18 +141,12 @@ function getUnionObjectOption(schema: ZodType): ZodType | undefined {
   return getUnionOptions(schema).map((option) => unwrapType(option)).find((option) => getZodTypeName(option) === "object");
 }
 
-/**
- * Get the shape of an object schema.
- */
 function getObjectShape(
   schema: ZodType,
 ): Record<string, ZodType> | undefined {
   return (schema as { shape?: Record<string, ZodType> }).shape;
 }
 
-/**
- * Generate a default value for a Zod schema type.
- */
 export function generateDefault(schema: ZodType): unknown {
   const typeName = getZodTypeName(schema);
   const def = (

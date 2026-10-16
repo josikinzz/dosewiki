@@ -6,23 +6,12 @@ import {
 } from "@/data/substanceWarningBanners";
 
 type ToneCoverage = {
-  /** Substances a live preset of this tone names on its list. */
   listed: ReadonlySet<string>;
-  /** Live presets of this tone that reach every substance article. */
   sitewide: number;
 }
 
-/**
- * The rollout readout, split the way an editor asks about it: which tone
- * reaches which substances. A sitewide preset is counted as a preset, never as
- * every slug in the corpus, because "every article carries a caution notice"
- * says nothing about how many articles carry a death warning, and folding the
- * two together is what made the old headline read 100% no matter what.
- */
 export type BannerCoverage = {
-  /** Substances named on the list of at least one live preset, any tone. */
   listed: ReadonlySet<string>;
-  /** Live presets that reach every substance article. */
   sitewide: number;
   byTone: Record<WarningBannerTone, ToneCoverage>;
 };
@@ -55,12 +44,6 @@ export function summarizeBannerCoverage(
   return { listed, sitewide, byTone };
 }
 
-/**
- * Where the two-banner cap hides a preset that applies: for each preset key,
- * how many of `slugs` it is enabled on but does not render on, and how many
- * articles hit the cap at all. The readout and the preset list say this, so
- * a count never promises a banner a reader does not see.
- */
 export type CapSuppression = { byKey: ReadonlyMap<string, number>; articles: number };
 
 export function summarizeCapSuppression(
@@ -78,11 +61,6 @@ export function summarizeCapSuppression(
   return { byKey, articles };
 }
 
-/**
- * The slugs of `slugs` on which `preset`, with `enabledSlugs` as its list,
- * would be enabled but hidden by the cap: the question an Enable confirm has
- * to answer before a banner is promised to readers who will not see it.
- */
 export function slugsHiddenByCap(
   presets: readonly WarningBannerPreset[],
   preset: WarningBannerPreset,

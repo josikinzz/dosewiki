@@ -1,21 +1,3 @@
-/**
- * Native validators for substance article data.
- *
- * Validation layers for substance writes (see src/schema/substance/contract.ts
- * for the full tier overview):
- *
- * 1. `substanceArticleLightValidator` (this file) — the handler *arg* layer.
- *    It only pins the identity fields (id/title/slug/priority/index_categories)
- *    so malformed payloads fail fast at the function boundary while staying
- *    permissive about nested section content.
- * 2. `validateArticleForIngestion` (this file) — the *contract* layer. Every
- *    substance-writing mutation handler runs the shared Zod contract
- *    (`validateSubstanceArticleContract`) before any insert/patch.
- *
- * The Zod schema in src/schema/substance/ is the single source of truth; the
- * old hand-written strict v.object validator that shadowed it has been retired.
- */
-
 import { v } from "../../lib/postgres/runtime/values"
 import {
   formatSubstanceArticleContractIssues,
@@ -23,11 +5,6 @@ import {
   type SubstanceArticleStorage,
 } from "../../src/schema/substance/contract";
 
-/**
- * Light arg validator for substance write mutations.
- * Only validates the identity essentials at the native function boundary;
- * full structural validation happens via `validateArticleForIngestion`.
- */
 export const substanceArticleLightValidator = v.object({
   id: v.union(v.number(), v.null()),
   title: v.string(),
@@ -42,7 +19,6 @@ export const substanceArticleLightValidator = v.object({
     )
   ),
   index_categories: v.array(v.string()),
-  // Allow any additional fields
   identification: v.any(),
   classification: v.any(),
   summary: v.any(),
@@ -63,10 +39,6 @@ export const substanceArticleLightValidator = v.object({
   citations: v.any(),
 });
 
-/**
- * Index layout arg validator, shared by `indexLayouts.save` and the change
- * proposal submit path so a proposed layout is checked exactly like a saved one.
- */
 export const indexLayoutValidator = v.object({
   type: v.union(v.literal("psychoactive"), v.literal("chemical"), v.literal("mechanism")),
   version: v.number(),
@@ -100,11 +72,6 @@ export const indexLayoutValidator = v.object({
   ),
 });
 
-/**
- * Validate the complete article contract before writing to Postgres.
- * The storage schema remains permissive for rollout/migrations, but
- * ingestion uses the same Zod contract as frontend article rendering.
- */
 export function validateArticleForIngestion(article: unknown):
   | { ok: true; article: SubstanceArticleStorage }
   | { ok: false; message: string; issues: string[] } {

@@ -6,9 +6,7 @@ interface EditorListRowSlots {
   active?: boolean;
   title?: ReactNode;
   subtitle?: ReactNode;
-  /** Trailing slot (badge, count, status pill). */
   badge?: ReactNode;
-  /** Leading slot (icon, avatar, drag handle). */
   leading?: ReactNode;
 }
 
@@ -56,18 +54,6 @@ function RowContent({ active = false, title, subtitle, badge, leading, children 
   );
 }
 
-/**
- * Selectable queue/list row. Idle rows sit quietly on the panel; the active row
- * lights up through the nested --theme-frosted-control-on-panel-* tokens (with
- * a real visible state, fixing the inert data-active selection bug where the
- * previous markup styled an attribute that never resolved to a token). Renders
- * as a real <button> with the standard accent focus-visible ring, so keyboard
- * selection works. data-active is also reflected for any consumer CSS hooks.
- *
- * Use this for standalone rows. Inside an `EditorList` (a listbox that owns
- * focus and selection) render `EditorListRow` instead, so the list stays one
- * tab stop with no interactive element nested in an option.
- */
 export const EditorListItem = forwardRef<HTMLButtonElement, EditorListItemProps>(
   (
     { active = false, title, subtitle, badge, leading, onSelect, onClick, className, children, ...props },
@@ -96,12 +82,6 @@ export const EditorListItem = forwardRef<HTMLButtonElement, EditorListItemProps>
 
 EditorListItem.displayName = "EditorListItem";
 
-/**
- * Presentational twin of `EditorListItem` for `EditorList` rows: the same look,
- * but a plain element that takes no focus and carries no role, because the
- * surrounding `role="option"` wrapper owns the click and the listbox owns the
- * keyboard through aria-activedescendant.
- */
 export const EditorListRow = forwardRef<HTMLDivElement, EditorListRowProps>(
   ({ active = false, title, subtitle, badge, leading, className, children, ...props }, ref) => (
     <div ref={ref} data-active={active || undefined} className={rowClassName(active, className)} {...props}>

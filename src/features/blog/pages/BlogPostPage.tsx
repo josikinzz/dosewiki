@@ -10,11 +10,6 @@ interface BlogPostPageProps {
   post: BlogPostViewModel;
 }
 
-/**
- * One archived Effect Index post. The bodies are plain Markdown (the archive predates
- * VCode) and are link-heavy, so they render through the shared public Markdown prose
- * component rather than the VCode renderer the articles pages use.
- */
 export function BlogPostPage({ post }: BlogPostPageProps) {
   return (
     <PublicContentShell width="narrow" focusTarget>

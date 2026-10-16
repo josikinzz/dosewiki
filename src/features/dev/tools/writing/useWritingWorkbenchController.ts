@@ -38,25 +38,14 @@ const writingSaveResult = z.object({
 });
 
 const API_PATH = "/api/dev/writing-article";
-/** The revision a row that does not exist yet is saved against. */
 const NEW_ROW_REVISION = contentHash(null);
-/** How long typing pauses before the browser recovery copy is rewritten. */
 const CHECKPOINT_DELAY_MS = 400;
 
-/** A recovery copy found for the open record, waiting on the editor's choice. */
 export type WritingRecoveryOffer = {
   checkpoint: DraftCheckpoint<WritingDraft>;
-  /** The copy was made against an older saved version than the one now loaded. */
   stale: boolean;
 };
 
-/**
- * The local draft meeting a newer saved version: a recovered copy made against
- * an older version, or the editor's open edits after "Load the latest saved
- * version". `base` is the version the local draft was edited from, or null
- * for a copy kept before copies recorded it, where every differing field is
- * the editor's to choose.
- */
 export type WritingMergeReview = {
   source: "recovery" | "reload";
   base: WritingDraft | null;
@@ -65,20 +54,13 @@ export type WritingMergeReview = {
   choices: Record<string, MergeSide>;
 };
 
-/** The proposed draft and what overlaps, for one review and its choices. */
 export function writingMerge(review: WritingMergeReview): ThreeWayMerge<WritingDraft> {
   return mergeThreeWay<WritingDraft>(review.base ?? {}, review.mine, review.theirs, { choices: review.choices });
 }
 
-/** A reviewed command binds the exact key, baseline, payload and resource intent. */
 export type WritingSaveCommand = { body: string; intent: "save-unpublished" | "publish" };
 
 type SaveState = EditorActionStatusState | "idle";
-/**
- * Why the last save or submission did not land, when the route said: someone
- * saved the row after it was opened (409), or the write freeze refused it
- * (503 with the freeze code). Anything else is `other`.
- */
 export type WritingSaveFailure = "conflict" | "frozen" | "other";
 export type WritingSelection =
   | { type: "pinned" }
@@ -86,7 +68,6 @@ export type WritingSelection =
   | { type: "row"; slug: string };
 
 type WritingControllerOptions = {
-  /** The kind filter the rail opens on; what a new row is saved as. */
   initialKind?: WritingKind;
   pinnedEntryId?: string;
   initialSelection?: string;
@@ -99,9 +80,6 @@ export function useWritingWorkbenchController({
   initialSelection,
   contextual = false,
 }: WritingControllerOptions) {
-  // The rail's kind filter. A deep link can open a row of the other kind
-  // (`/dev/writing/<blog slug>`): loading such a row moves the filter to the
-  // row's kind; the row itself is never relabelled to match the filter.
   const [kind, setKind] = useState<WritingKind>(initialKind);
   const [entries, setEntries] = useState<WritingListEntry[] | null>(null);
   const [selection, setSelection] = useState<WritingSelection>(() =>
@@ -112,7 +90,6 @@ export function useWritingWorkbenchController({
         : { type: "new" },
   );
   const [draft, setDraft] = useState<WritingDraft>(emptyWritingDraft);
-  // The draft as it was loaded or last saved; `isDirty` is the distance from it.
   const [baseline, setBaseline] = useState<WritingDraft>(() => draft);
   const [loadedRow, setLoadedRow] = useState<WritingArticleRow | null>(null);
   const [isLoadingRow, setIsLoadingRow] = useState(false);
@@ -122,19 +99,12 @@ export function useWritingWorkbenchController({
   const [listError, setListError] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [saveFailure, setSaveFailure] = useState<WritingSaveFailure | null>(null);
-  // The open row's read: a failure the pane shows with Try again, a slug no
-  // row carries (a stale deep link), and the counter Try again bumps.
   const [rowError, setRowError] = useState<string | null>(null);
   const [missingSlug, setMissingSlug] = useState<string | null>(null);
   const [rowAttempt, setRowAttempt] = useState(0);
-  // A date input holding a half-typed day reports an empty value; the editor
-  // says so here rather than saving no date without a word.
   const [dateIncomplete, setDateIncomplete] = useState(false);
   const slugTouchedRef = useRef(false);
   const operationRef = useRef<{ body: string; id: string } | null>(null);
-  // Draft recovery (see `draftRecovery.ts`): a browser copy of the open
-  // record's unsaved work, scoped to the signed-in account. Absent outside the
-  // /dev shell, where nothing is kept.
   const recoveryStore = useDraftRecoveryStore();
   const [recoveryOffer, setRecoveryOffer] = useState<WritingRecoveryOffer | null>(null);
   const [mergeReview, setMergeReview] = useState<WritingMergeReview | null>(null);
@@ -142,8 +112,6 @@ export function useWritingWorkbenchController({
   const [checkpointSavedAt, setCheckpointSavedAt] = useState<number | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const checkedRecordRef = useRef<string | null>(null);
-  // The copy not yet written when typing last paused; written on unmount and
-  // page hide so a reload keeps the last keystrokes.
   const flushRef = useRef<(() => void) | null>(null);
 
   const refreshList = useCallback(async () => {
@@ -203,9 +171,6 @@ export function useWritingWorkbenchController({
         if (cancelled) return;
         if (!payload.article) {
           setLoadedRow(null);
-          // In the workbench a slug nothing carries (a stale link) warns at
-          // the list and falls back to the pinned entry; the contextual panel
-          // has nowhere to fall back to, so it says so where it is.
           if (pinnedEntryId) {
             setMissingSlug(selectedSlug);
             setSelection({ type: "pinned" });
@@ -236,15 +201,12 @@ export function useWritingWorkbenchController({
     };
   }, [selectedSlug, rowAttempt, pinnedEntryId]);
 
-  /** Reads the open row again after its read failed. */
   const retryRow = useCallback(() => {
     setNotice(null);
     setRowAttempt((value) => value + 1);
   }, []);
 
   const slugAvailability = checkSlugAvailability(draft.slug, entries ?? [], selectedSlug);
-  // A recovery choice holds the form still, so nothing typed can land under
-  // (or be overwritten by) the copy the editor is deciding about.
   const readOnly = isLoadingRow || saveState === "saving" || uncertain || (selectedSlug !== null && loadedRow === null)
     || recoveryOffer !== null || mergeReview !== null;
   const parsedBody = useMemo(() => {
@@ -254,7 +216,6 @@ export function useWritingWorkbenchController({
   }, [draft.body, draft.bodyFormat, loadedRow]);
   const isDirty = uncertain || !isSameDraft(draft, baseline);
 
-  // The recovery record: the open row, or the one unsaved new draft.
   const recordKey = selection.type === "row" ? `row:${selection.slug}` : selection.type === "new" ? "new" : null;
   const baselineRevision = loadedRow?.baseRevision ?? NEW_ROW_REVISION;
   const recordReady = selection.type === "new"
@@ -263,7 +224,6 @@ export function useWritingWorkbenchController({
 
   useEffect(() => {
     if (!recoveryStore || !recordKey || !recordReady) return;
-    // The first look at a record reads its copy before anything can write one.
     const checkKey = `${recoveryStore.actor}|${recordKey}`;
     if (checkedRecordRef.current !== checkKey) {
       checkedRecordRef.current = checkKey;
@@ -273,7 +233,6 @@ export function useWritingWorkbenchController({
         return;
       }
     }
-    // An open choice keeps the copy as it is; an unconfirmed save owns it.
     if (recoveryOffer || mergeReview || uncertain) return;
     if (isSameDraft(draft, baseline)) {
       flushRef.current = null;
@@ -300,7 +259,6 @@ export function useWritingWorkbenchController({
     };
   }, []);
 
-  /** Drops the open record's copy: the editor discarded it or moved on after being asked. */
   const forgetRecovery = useCallback(() => {
     flushRef.current = null;
     if (recoveryStore && recordKey) recoveryStore.clear("writing", recordKey);
@@ -336,10 +294,6 @@ export function useWritingWorkbenchController({
     resetDraft();
   }, [forgetRecovery, resetDraft, uncertain, saveState]);
 
-  // The kind filter. A loaded row of the other kind cannot stay open under a
-  // rail that no longer lists it, so the editor drops to a fresh draft of the
-  // new kind; an unsaved draft has no kind yet and follows the filter, and the
-  // pinned entry belongs to no kind at all.
   const selectKind = useCallback(
     (next: WritingKind) => {
       if (uncertain || saveState === "saving") return;
@@ -351,8 +305,6 @@ export function useWritingWorkbenchController({
     [loadedRow, selection.type, startNew, uncertain, saveState],
   );
 
-  // The pinned entry edits its own document, so the writing draft it replaces
-  // is dropped rather than kept dirty behind it.
   const selectPinned = useCallback(() => {
     if (uncertain || saveState === "saving") return;
     forgetRecovery();
@@ -411,13 +363,9 @@ export function useWritingWorkbenchController({
       setSaveFailure(null);
       const savingRecord = recordKey;
       try {
-        // An unconfirmed operation is replayed exactly as it first left, with
-        // its own id, so the server answers with the outcome it recorded.
         const document = JSON.parse(serialized) as WritingDraft & { expectedRevision: string; kind: WritingKind; originalSlug?: string; intent?: WritingSaveCommand["intent"] };
         const status = document.status;
         if (operationRef.current?.body !== serialized) operationRef.current = { body: serialized, id: crypto.randomUUID() };
-        // The operation's identity is kept before it leaves, so a lost answer
-        // survives a reload and is reconciled rather than sent again.
         if (recoveryStore && savingRecord) {
           flushRef.current = null;
           recoveryStore.write<WritingDraft>({
@@ -434,11 +382,7 @@ export function useWritingWorkbenchController({
         if (!response.ok) {
           const frozen = isWriteFreezeRefusal(response.status, payload);
           setSaveFailure(response.status === 409 ? "conflict" : frozen ? "frozen" : "other");
-          // The freeze answers before any statement runs, so it is as definite
-          // as a 4xx: nothing was written and nothing waits on confirmation.
           if (!retry && (response.status < 500 || frozen)) {
-            // Only the first attempt can establish that this operation never ran.
-            // A retry refusal says nothing about the earlier unknown outcome.
             setUncertain(false);
             if (recoveryStore && savingRecord) {
               recoveryStore.write<WritingDraft>({ tool: "writing", record: savingRecord, baseline: document.expectedRevision, base: baseline, draft });
@@ -495,14 +439,8 @@ export function useWritingWorkbenchController({
   const retrySave = useCallback((): Promise<boolean> => {
     return uncertain && operationRef.current ? executeSave(operationRef.current.body, true) : Promise.resolve(false);
   }, [executeSave, uncertain]);
-  /**
-   * An editor's save: the same document the admin's save posts, held as a
-   * proposal for an admin to approve. The proposal holds the edit now, so the
-   * editor returns to the saved version and a resubmit needs a new edit.
-   */
   const submitForReview = useCallback(async (): Promise<boolean> => {
     if (!canSave) return false;
-    // A proposal never renames: the slug is the saved row's key.
     if (loadedRow && draft.slug.trim() !== loadedRow.slug) return false;
     setSaveState("saving");
     setNotice(null);
@@ -523,7 +461,6 @@ export function useWritingWorkbenchController({
         summary: `${loadedRow ? "Update" : "New"} ${label} “${title}”`,
         baselines: [{ kind: "writing", key: draft.slug.trim(), document: loadedRow }],
       });
-      // The proposal holds the edit now; the browser copy has done its job.
       forgetRecovery();
       if (loadedRow) {
         setDraft(baseline);
@@ -555,14 +492,6 @@ export function useWritingWorkbenchController({
     setSaveFailure(null);
   }, [baseline, forgetRecovery, uncertain, saveState]);
 
-  /**
-   * Puts a recovery copy back. A copy of the loaded version replaces the
-   * draft. A copy made against an older version is merged with the newer
-   * saved version: what only one side changed is kept, and each field both
-   * changed holds the saved value until the editor picks a version. A copy
-   * holding an unconfirmed save brings that exact operation back, so the next
-   * write is its confirmation, not a new save.
-   */
   const restoreRecovery = useCallback(() => {
     if (!recoveryOffer) return;
     const { checkpoint, stale } = recoveryOffer;
@@ -586,17 +515,12 @@ export function useWritingWorkbenchController({
     if (!recoveryOffer) return;
     forgetRecovery();
   }, [forgetRecovery, recoveryOffer]);
-  /** Picks one side for a field both changed; the proposed draft follows at once. */
   const chooseMerge = useCallback((path: string, side: MergeSide) => {
     if (!mergeReview) return;
     const next = { ...mergeReview, choices: { ...mergeReview.choices, [path]: side } };
     setMergeReview(next);
     setDraft(writingMerge(next).merged);
   }, [mergeReview]);
-  /**
-   * Ends the review once every overlap has a chosen version; the merged draft
-   * then becomes the working draft and the browser copy.
-   */
   const finishMergeReview = useCallback(() => {
     if (!merge || merge.unresolved.length > 0) return;
     setMergeReview(null);
@@ -610,9 +534,6 @@ export function useWritingWorkbenchController({
       const payload = await response.json() as { article?: WritingArticleRow; error?: string };
       if (!response.ok || !payload.article) throw new Error(payload.error ?? "Unable to load the latest saved version.");
       const latest = draftFromRow(payload.article);
-      // The edits were made from `baseline`; the newer version is merged into
-      // them rather than laid beside them, and the save that follows is
-      // checked against this newer revision.
       const review: WritingMergeReview = { source: "reload", base: baseline, mine: draft, theirs: latest, choices: {} };
       const merged = writingMerge(review);
       setLoadedRow(payload.article);

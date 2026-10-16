@@ -1,14 +1,5 @@
-/**
- * View model for the Inbox (`/dev/inbox`): every item that waits on an admin,
- * from every intake tool, as one list. Each source adapter maps its own rows
- * to `InboxItem`; this module decides order, filters and claim state, so no
- * source has to know about the others.
- *
- * Pure: the tab owns fetching and React state.
- */
 import type { IntakeStatus } from "@/features/intake/intakeStatus";
 
-/** One owning tool's queue, as the Inbox reads it. */
 export type InboxSourceId =
   | "trip-reports"
   | "article-feedback"
@@ -18,11 +9,6 @@ export type InboxSourceId =
   | "proposals"
   | "review-recommendations";
 
-/**
- * The chips above the list. Feedback folds article and site together the way
- * the Feedback tool does; Change Review holds proposals and review
- * recommendations the way its tab does.
- */
 export type InboxChip = "trip-reports" | "feedback" | "glossary" | "citations" | "change-review";
 
 export const INBOX_CHIPS: readonly { value: InboxChip; label: string }[] = [
@@ -43,7 +29,6 @@ export const CHIP_OF_SOURCE: Record<InboxSourceId, InboxChip> = {
   "review-recommendations": "change-review",
 };
 
-/** The label each row carries as its source chip. */
 export const SOURCE_LABEL: Record<InboxSourceId, string> = {
   "trip-reports": "Trip report",
   "article-feedback": "Article feedback",
@@ -54,12 +39,6 @@ export const SOURCE_LABEL: Record<InboxSourceId, string> = {
   "review-recommendations": "Review recommendation",
 };
 
-/**
- * How soon an item needs a person. Feedback carries the reader's own
- * importance; citation articles with blocking rows are high; everything else
- * is normal, and a review recommendation the article has moved past is low
- * (it can only be dismissed, not approved).
- */
 export type InboxUrgency = "critical" | "high" | "normal" | "low";
 
 const URGENCY_RANK: Record<InboxUrgency, number> = { critical: 3, high: 2, normal: 1, low: 0 };
@@ -72,26 +51,16 @@ export const URGENCY_LABEL: Record<InboxUrgency, string> = {
 };
 
 export type InboxItem = {
-  /** Unique across sources: `<source>:<id>`. */
   key: string;
   source: InboxSourceId;
-  /** The owning tool's id for the row (submission id, feedback id, slug, proposal id). */
   id: string;
   title: string;
   subtitle: string;
-  /** The shared intake word (docs/glossary.md, Intake Status). */
   status: IntakeStatus;
   urgency: InboxUrgency;
-  /** When the item started waiting; the age the list sorts by. */
   receivedAt: string;
-  /** The admin working the item; null when nobody has claimed it. */
   claimedBy: string | null;
-  /**
-   * Who held a claim that expired untouched; the item reads as unclaimed and
-   * anyone may claim it. Absent when there is no expired claim.
-   */
   expiredClaimBy?: string;
-  /** The owning tool's view of this item. */
   href: string;
 };
 
@@ -112,10 +81,6 @@ function time(value: string): number {
   return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
 }
 
-/**
- * Most urgent first; within one urgency the item that has waited longest
- * comes first. Ties fall back to the key so the order is stable across loads.
- */
 export function sortInboxItems(items: readonly InboxItem[]): InboxItem[] {
   return [...items].sort(
     (left, right) =>
@@ -140,11 +105,6 @@ export function matchesAssignment(item: InboxItem, assignment: InboxAssignment, 
   }
 }
 
-/**
- * Whether a row belongs under a source chip. Under All, citation rows can be
- * held back: they outnumber everything a person sent in many times over and
- * bury it. Picking the Citations chip always shows them.
- */
 function matchesChip(item: InboxItem, chip: InboxChip | null, hideCitations: boolean): boolean {
   const itemChip = CHIP_OF_SOURCE[item.source];
   return chip === null ? !(hideCitations && itemChip === "citations") : itemChip === chip;
@@ -174,7 +134,6 @@ export function countByChip(items: readonly InboxItem[]): Record<InboxChip, numb
   return counts;
 }
 
-/** How many items each assignment view would show under the current source chip. */
 export function countByAssignment(
   items: readonly InboxItem[],
   { chip, actor, hideCitations = false }: { chip: InboxChip | null; actor: string | null; hideCitations?: boolean },
@@ -189,11 +148,6 @@ export function countByAssignment(
   return counts;
 }
 
-/**
- * The pill tone for an urgency, one rule for rows and the pane: critical is
- * danger, high is caution (the Feedback tool's own tones), low steps back.
- * Normal draws no pill.
- */
 export function urgencyTone(urgency: InboxUrgency): "danger" | "caution" | "neutral" | null {
   switch (urgency) {
     case "critical":
@@ -207,22 +161,15 @@ export function urgencyTone(urgency: InboxUrgency): "danger" | "caution" | "neut
   }
 }
 
-/** What one part of the Inbox read said when it failed. */
 export type InboxLoadFailure = { source: string; message: string };
 
 const TRAILING_TRY_AGAIN = /\s*Try again\.?\s*$/i;
 
-/** "A", "A and B", "A, B and C". */
 export function joinWords(words: readonly string[]): string {
   if (words.length <= 1) return words[0] ?? "";
   return `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;
 }
 
-/**
- * One error for one read: the Inbox loads every queue at once, so every
- * failure folds into a single title and message with a single retry.
- * `everyQueueFailed` is true when no queue answered at all.
- */
 export function describeLoadFailures(
   failures: readonly InboxLoadFailure[],
   everyQueueFailed: boolean,

@@ -93,10 +93,7 @@ export const create = mutation({
   },
   returns: feedbackRowValidator,
   handler: async (ctx, args) => {
-    // Public intake relays an unauthenticated submitter: the server acts as
-    // itself, so no actor is delegated.
     await requireRole(ctx, { apiKey: args.apiKey, adminIntent: "publicIntakeCreate" }, "editor");
-    // New feedback has had no decisions; the log starts with the first transition.
     const { decision_log: _decisionLog, ...feedback } = args.feedback;
     validateCreatedFeedback(feedback);
 
@@ -142,16 +139,10 @@ export const list = query({
   },
 });
 
-/**
- * One page of the review queue with status and search applied on the server,
- * in a stable keyset order, and the per-status counts of every row the search
- * matches. Unlike `list`, no row falls outside the queue's reach.
- */
 export const queuePage = query({
   args: {
     apiKey: v.string(),
     actorEmail: v.optional(v.string()),
-    // `unresolved` is New and Reviewing together, the work still waiting.
     status: v.optional(v.union(statusValidator, v.literal("unresolved"))),
     search: v.optional(v.string()),
     order: v.optional(feedbackQueueOrderValidator),
@@ -179,10 +170,6 @@ export const queuePage = query({
   },
 });
 
-/**
- * One item by its public id, for a task link that names it. Null when no row
- * has that id, so the queue can say the item is gone rather than guess.
- */
 export const get = query({
   args: {
     apiKey: v.string(),
@@ -202,10 +189,6 @@ export const get = query({
   },
 });
 
-/**
- * Count feedback rows in the given statuses with an uncapped native aggregate.
- * The caller receives only the total, without the cap applied by `list`.
- */
 export const countByStatus = query({
   args: {
     apiKey: v.string(),
@@ -256,7 +239,6 @@ export const transition = mutation({
     }
 
     const timestamp = new Date().toISOString();
-    // The resolved actor, never a caller-supplied name.
     const reviewer = auditStampFor(actor, undefined);
     const note = args.note?.trim() ? args.note : undefined;
     const patch = {
@@ -311,7 +293,6 @@ function toFeedbackQueueItem(row: FeedbackRow): FeedbackQueueItem {
     review_notes: row.review_notes,
     reviewed_by: row.reviewed_by,
     reviewed_at: row.reviewed_at,
-    // A row decided before the log existed reads its review note back as the first entry.
     decision_log: decisionLogOf(row),
     created_at: row.created_at,
   };

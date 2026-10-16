@@ -10,18 +10,12 @@ import {
 } from "@/components/ui/dialog";
 import type { DevShortcut } from "../components/devShortcuts";
 
-/** Keys the shell answers to in every tool. */
 export const SHELL_SHORTCUTS: readonly DevShortcut[] = [
   { keys: "Cmd+K or Ctrl+K", label: "Open any tool or record" },
   { keys: "?", label: "Show these keys" },
   { keys: "Esc", label: "Close a dialog, menu or sheet" },
 ];
 
-/**
- * One key string as keycaps: "Cmd+K or Ctrl+K" becomes two caps joined by
- * "or", "j / k" two caps joined by "/". A tool registers keys as plain text
- * and the sheet draws them.
- */
 function Keys({ keys }: { keys: string }) {
   const alternatives = keys.split(/\s+or\s+/);
   return (
@@ -57,12 +51,6 @@ function ShortcutList({ shortcuts }: { shortcuts: readonly DevShortcut[] }) {
   );
 }
 
-/**
- * The one `?` sheet in /dev: the open tool's keys, as the tool registered
- * them through `useDevShortcuts`, then the keys the shell answers to
- * everywhere. It opens from `?`, from the account menu and from the Cmd+K
- * palette, so a member who never guesses `?` still finds it.
- */
 export function DevShortcutSheet({
   open,
   onOpenChange,
@@ -74,7 +62,6 @@ export function DevShortcutSheet({
   onOpenChange: (open: boolean) => void;
   toolLabel: string;
   shortcuts: readonly DevShortcut[];
-  /** How this machine writes the palette key ("⌘K", "Ctrl K"), for the lead line. */
   paletteKey?: string;
 }) {
   return (

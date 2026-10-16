@@ -361,7 +361,7 @@ if (!url && !isPlaceholderStorageId(rep.storage_id)) {
 if (!url && rep.url) url = rep.url;
 ```
 
-The resolver comment and implementation agree: a valid content-addressed R2 key
+In the resolver, a valid content-addressed R2 key
 wins when `REPLICATION_MEDIA_BASE_URL` is configured, followed by the old
 `storage_id` through native identity rows, then the stored `url`. Runtime
 startup requires the media base. Section 5 preserves historical recovery

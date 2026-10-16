@@ -1,20 +1,3 @@
-/**
- * The wire contract between an editorial write and the public deployments that
- * serve its content.
- *
- * A Next cache invalidation is project-local: the editor deployment expiring
- * its own tags does nothing to the two public projects, which keep serving the
- * previous revision until their own interval elapses. The publication signal
- * closes that gap, and this module is the part both ends must agree on.
- *
- * The receiver never accepts a caller-supplied tag or an arbitrary URL. It
- * accepts content identities in the shapes below, and derives the tags itself
- * from the same table the editor uses, so a compromised or buggy caller cannot
- * expire unrelated caches or aim a revalidation at an unknown route.
- *
- * Pure and dependency-free: the dispatcher, the receiver route and their tests
- * all import it, and it must stay usable outside a request scope.
- */
 import {
   PUBLIC_CHANGELOG_LISTS_TAG,
   PUBLIC_DATA_CACHE_TAGS,
@@ -40,22 +23,13 @@ import {
 
 import type { PublicationTarget } from "./publicationWire";
 
-/** What one target expires on a receiving deployment. */
 export type PublicationEffect = {
-  /** Route paths to revalidate, with the segment type Next needs. */
   paths: { path: string; type?: "page" | "layout" }[];
-  /** Data cache tags to expire. */
   tags: string[];
 };
 
-/** The showcase API feeds every replication carousel, so ordering edits expire it. */
 const REPLICATION_SHOWCASE_PATH = "/api/replications/showcase";
 
-/**
- * The single mapping from content identity to cache effect. The editor applies
- * it locally and each public deployment applies it again to the identities it
- * receives, so both ends expire the same things without transmitting tags.
- */
 function resolvePublicationEffect(
   target: PublicationTarget,
 ): PublicationEffect {
@@ -141,8 +115,6 @@ function resolvePublicationEffect(
         tags: [PUBLIC_DATA_CACHE_TAGS.reports],
       };
     case "library":
-      // One long-form article: its own page, the index that lists it, and the
-      // locale mirrors of both. The tag is the one every writing read shares.
       return {
         paths: [
           { path: `/articles/${target.slug}` },
@@ -153,10 +125,6 @@ function resolvePublicationEffect(
         tags: [PUBLIC_DATA_CACHE_TAGS.articles],
       };
     case "replication":
-      // One work: its permalink, the per-slug viewer document, the gallery
-      // index whose prerendered rails carry its title, and the locale mirrors
-      // of all three. The showcase feed and every collection share the
-      // corpus tag, so a title edit reaches the carousels too.
       return {
         paths: [
           { path: `/replications/${target.slug}` },
@@ -230,8 +198,6 @@ function resolvePublicationEffect(
         tags: [PUBLIC_DATA_CACHE_TAGS.contributors],
       };
     case "writing-articles":
-      // Writing prose is read by list and detail routes alike, so the tag is
-      // the whole effect and the route paths follow from it.
       return { paths: [], tags: [PUBLIC_DATA_CACHE_TAGS.articles] };
     case "changelog":
       return {
@@ -244,7 +210,6 @@ function resolvePublicationEffect(
         tags: [PUBLIC_DATA_CACHE_TAGS.about],
       };
     case "copy":
-      // Copy blocks are read by every page, so the tag is the whole effect.
       return { paths: [], tags: [PUBLIC_DATA_CACHE_TAGS.copy] };
     case "banners":
       return { paths: [], tags: [PUBLIC_DATA_CACHE_TAGS.banners] };
@@ -253,7 +218,6 @@ function resolvePublicationEffect(
   }
 }
 
-/** Union of the effects of many targets, deduplicated and stably ordered. */
 export function resolvePublicationEffects(
   targets: readonly PublicationTarget[],
 ): PublicationEffect {
@@ -268,11 +232,6 @@ export function resolvePublicationEffects(
   return { paths: [...paths.values()], tags: [...tags] };
 }
 
-/**
- * The saved-path vocabulary the editor already speaks, translated into content
- * identities. `null` means the path is not a known public surface: the local
- * caller keeps its global-expiry escape hatch, while the receiver refuses it.
- */
 export function publicationTargetForSavedPath(
   path: string,
 ): PublicationTarget | null {

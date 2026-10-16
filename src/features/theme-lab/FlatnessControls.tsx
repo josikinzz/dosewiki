@@ -17,28 +17,11 @@ import {
 import { BLUR_TOKEN_ID } from "./themeLabStorage";
 import styles from "./ThemeLab.module.css";
 
-/**
- * The flat↔deep axis, as four one-tap rows under the Essentials catalog: shadow
- * depth, ambient glow, corner roundness, and the backdrop-blur switch. Depth,
- * glow, and corners write ordinary per-token overrides computed from the look's
- * own sampled baselines (so "Soft" fades *what is on screen*, not a hardcoded
- * palette); blur writes the sentinel token the appliers translate into
- * `html[data-blur="off"]`.
- *
- * No step highlighted means the visitor's own per-token edits are in charge —
- * the axis never fights the catalog.
- */
-
 interface FlatnessControlsProps {
-  /** The value a token resolves to for the live look, with no user edits. */
   baselineValue: (id: string) => string;
-  /** The visitor's own override for a token id, if any. */
   overrideValue: (id: string) => string | undefined;
-  /** Write a map of per-token values (delete-on-equal against baselines). */
   onApplyMap: (map: Record<string, string>) => void;
-  /** Remove the visitor's overrides for these ids. */
   onResetIds: (ids: string[]) => void;
-  /** Write the blur sentinel into both themes (or clear it). */
   onSetBlur: (off: boolean) => void;
   blurOff: boolean;
 }
@@ -68,8 +51,6 @@ function AxisRow({
   );
 }
 
-/** Utility-class layout on purpose: the panel stylesheet is capped to its
- *  bespoke instruments, and these rows are plain kit-era flex layout. */
 const AXIS_ROW = "flex flex-wrap items-center justify-between gap-2 px-1.5 py-1";
 const AXIS_LABEL = "theme-text-muted text-[0.78125rem]";
 

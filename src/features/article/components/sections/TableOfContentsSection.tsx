@@ -9,12 +9,10 @@ import { PublicTocStrip } from "@/components/common/PublicTocStrip";
 
 export interface TableOfContentsSectionProps {
   items: PublicTableOfContentsItem[];
-  /** "strip" renders the sticky mobile chip strip instead of the panel/rail. */
   variant?: "panel" | "bare" | "strip";
   className?: string;
 }
 
-/** The hydrated TOC island receives labels and presence already projected. */
 export const TableOfContentsSection = memo(function TableOfContentsSection({
   items,
   variant,
