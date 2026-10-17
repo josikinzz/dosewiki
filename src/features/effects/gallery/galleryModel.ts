@@ -11,7 +11,12 @@ import {
   isWithheldFromArtistViews,
   UNATTRIBUTED_KEY,
 } from "./galleryArtistIdentity";
-import { sortWithinGroup, sortWorksByDate, workDateMs } from "./galleryOrdering";
+import {
+  sortWithinGroup,
+  sortWorksByDate,
+  sortWorksByTitle,
+  workDateMs,
+} from "./galleryOrdering";
 import {
   UNDATED_YEAR_FILTER,
   type GalleryCounts,
@@ -104,10 +109,9 @@ export function groupByArtist(
 
   const groups = Array.from(buckets.values()).map((group) => {
     const profile = profileByBucket.get(group.key);
-    const items = sortWorksByDate(
-      group.items,
-      order === "oldest" ? "oldest" : "newest",
-    );
+    const items = order === "alphabetical"
+      ? sortWorksByTitle(group.items)
+      : sortWorksByDate(group.items, order === "oldest" ? "oldest" : "newest");
     const { imageCount, videoCount, audioCount } = tally(items);
     return {
       ...group,
@@ -203,7 +207,9 @@ export function groupByEffect(
             curatedPrefixOf(group),
             (replication) => replication.slug,
           )
-        : sortWorksByDate(group.items, order);
+        : order === "alphabetical"
+          ? sortWorksByTitle(group.items)
+          : sortWorksByDate(group.items, order);
     const { imageCount, videoCount, audioCount } = tally(items);
     return { ...group, items, count: items.length, imageCount, videoCount, audioCount };
   });
@@ -271,7 +277,9 @@ export function groupByYear(
     const span = [...bucket.years].sort((a, b) => a - b);
     const first = span[0];
     const last = span[span.length - 1];
-    const items = sortWorksByDate(bucket.items, direction);
+    const items = order === "alphabetical"
+      ? sortWorksByTitle(bucket.items)
+      : sortWorksByDate(bucket.items, direction);
     const { imageCount, videoCount, audioCount } = tally(items);
     return {
       key: first === last ? `${first}` : `${first}-${last}`,
@@ -293,7 +301,9 @@ export function groupByYear(
   );
 
   if (undated.length) {
-    const items = sortWorksByDate(undated, direction);
+    const items = order === "alphabetical"
+      ? sortWorksByTitle(undated)
+      : sortWorksByDate(undated, direction);
     const { imageCount, videoCount, audioCount } = tally(items);
     groups.push({
       key: UNDATED_YEAR_FILTER,
