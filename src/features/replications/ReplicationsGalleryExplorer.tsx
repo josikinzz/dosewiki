@@ -64,6 +64,7 @@ import {
 import {
   sortWithinGroup,
   sortWorksByDate,
+  sortWorksByTitle,
 } from "@/features/effects/gallery/galleryOrdering";
 import {
   ARTIST_RAIL_PAGE,
@@ -135,21 +136,23 @@ const MODE_LABEL: Record<GalleryMode, string> = {
 const MODES: ReadonlyArray<GalleryMode> = ["artist", "effect", "year"];
 
 const ORDER_ICON: Record<GalleryOrder, IconName> = {
+  alphabetical: "lucide:arrow-down-a-z",
   curated: "lucide:list-ordered",
   newest: "lucide:arrow-down-wide-narrow",
   oldest: "lucide:arrow-up-narrow-wide",
 };
 
 const ORDER_LABEL: Record<GalleryOrder, string> = {
+  alphabetical: msg("A to Z"),
   curated: msg("Curated"),
   newest: msg("Newest"),
   oldest: msg("Oldest"),
 };
 
 const ORDER_OPTIONS: Record<GalleryMode, ReadonlyArray<GalleryOrder>> = {
-  artist: ["newest", "oldest"],
-  effect: ["curated", "newest", "oldest"],
-  year: ["newest", "oldest"],
+  artist: ["newest", "oldest", "alphabetical"],
+  effect: ["curated", "newest", "oldest", "alphabetical"],
+  year: ["newest", "oldest", "alphabetical"],
 };
 
 const MEDIA_BROWSE_LABEL: Record<"image" | "video", Record<GalleryMode, string>> = {
@@ -586,7 +589,11 @@ function GalleryExplorer({
   const searchResults = useMemo(() => searching ? sortWithinGroup(filtered) : [], [filtered, searching]);
 
   const yearItems = useMemo(
-    () => singleYear ? sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest") : [],
+    () => singleYear
+      ? order === "alphabetical"
+        ? sortWorksByTitle(filtered)
+        : sortWorksByDate(filtered, order === "oldest" ? "oldest" : "newest")
+      : [],
     [filtered, order, singleYear],
   );
 

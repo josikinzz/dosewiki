@@ -87,3 +87,12 @@ export function sortWorksByDate<
   });
 }
 
+export function sortWorksByTitle<
+  T extends Pick<PublicGalleryReplicationPreview, "title" | "artist" | "slug">,
+>(items: readonly T[]): T[] {
+  return [...items].sort((a, b) =>
+    a.title.localeCompare(b.title) ||
+    a.artist.localeCompare(b.artist) ||
+    a.slug.localeCompare(b.slug),
+  );
+}

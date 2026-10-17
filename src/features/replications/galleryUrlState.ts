@@ -88,7 +88,7 @@ export function parseGalleryBrowseState(
     type:
       type === "image" || type === "video" || type === "audio" ? type : "all",
     sort:
-      sort === "newest" || sort === "oldest" || (sort === "curated" && view === "effect")
+      sort === "newest" || sort === "oldest" || sort === "alphabetical" || (sort === "curated" && view === "effect")
         ? sort
         : defaultGalleryOrder(view),
     year: year && YEAR_FILTER_PATTERN.test(year) ? year : "all",
