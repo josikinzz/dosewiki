@@ -3,10 +3,10 @@ import { SUBSTANCE_INDEX_VIEW_PARAMS } from "../../src/utils/indexViewRoutes";
 import {
   PUBLIC_LOCALES,
   type LocaleIdentity,
-  type TranslationLocaleCode,
+  type PublicLocaleCode,
 } from "../../src/i18n/localeRegistry.mjs";
 
-export type LiveLocale = Pick<LocaleIdentity<TranslationLocaleCode>, "code"> & {
+export type LiveLocale = Pick<LocaleIdentity<PublicLocaleCode>, "code"> & {
   pathPrefix: string;
   htmlLang: string;
 };
@@ -18,7 +18,7 @@ export const LIVE_LOCALES: Readonly<Record<string, LiveLocale>> = Object.freeze(
   ])),
 );
 
-export const LIVE_LOCALE_CODES: readonly TranslationLocaleCode[] = Object.freeze(
+export const LIVE_LOCALE_CODES: readonly PublicLocaleCode[] = Object.freeze(
   Object.values(LIVE_LOCALES).map((locale) => locale.code),
 );
 
