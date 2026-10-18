@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { parseRawVCodeContent } from "../../src/features/effects/vcode/normalize";
-import { CORPORA } from "../../scripts/translation/corpora.mjs";
+import { CORPORA, type CorpusDescriptor } from "../../scripts/translation/corpora.mjs";
 import { DEFAULT_MODEL, planBatches, translateBatchWithRetries, type SegmentVerdict, type WorkUnit } from "../../scripts/translation/engine.mjs";
 import { LOCALES, glossaryTermPattern, resolveLocale, type TranslationLocale } from "../../scripts/translation/locales.mjs";
 import { assembleLocaleDataset, buildWorkUnits, extractSegments, type Segment } from "../../scripts/translation/segment-manifest.mjs";
@@ -57,7 +57,7 @@ const LIVE_PROFILE_CORPUS = {
   markupFields: {},
 };
 
-const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> = {
+const LIVE_CORPORA: Record<TranslationRecordKind, CorpusDescriptor> = {
   article: LIVE_SUBSTANCE_CORPUS,
   effect: { ...CORPORA.effects, excludedKeys: [...CORPORA.effects.excludedKeys] },
   report: { ...CORPORA.reports, excludedKeys: [...CORPORA.reports.excludedKeys] },
@@ -66,7 +66,7 @@ const LIVE_CORPORA: Record<TranslationRecordKind, typeof LIVE_SUBSTANCE_CORPUS> 
   profile: LIVE_PROFILE_CORPUS,
 };
 
-const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<Parameters<typeof assembleLocaleDataset>[3]["parse"]>>> = {
+const CORPUS_PARSE: Partial<Record<TranslationRecordKind, NonNullable<NonNullable<Parameters<typeof assembleLocaleDataset>[3]>["parse"]>>> = {
   effect: parseRawVCodeContent,
   library: parseRawVCodeContent,
 };
@@ -302,7 +302,7 @@ export async function localizeRecords<T extends { slug: string }>(
 
 export async function localizeDataset<T extends Record<string, unknown>>(
   dataset: { items: readonly T[] },
-  corpus: typeof LIVE_SUBSTANCE_CORPUS,
+  corpus: CorpusDescriptor,
   localeCode: string,
 ): Promise<{ dataset: { items: T[] }; applied: number; missing: number }> {
   const items = dataset.items as T[];

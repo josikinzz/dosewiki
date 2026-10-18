@@ -2,6 +2,7 @@
 node_modules/
 
 # Generated build and test outputs
+*.tsbuildinfo
 dist/
 dist-inline/
 # The DoseWiki-owned OpenChemLib fork commits browser-ready artifacts so app

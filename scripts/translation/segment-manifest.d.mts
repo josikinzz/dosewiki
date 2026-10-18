@@ -1,4 +1,4 @@
-import type { WorkUnit } from "./engine";
+import type { WorkUnit } from "./engine.mjs";
 
 export type Segment = {
   slug: string;
