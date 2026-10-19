@@ -125,7 +125,7 @@
     "label": "Official collaboration one-liners",
     "group": "About",
     "items": [
-      "Dose journal for iPhone",
+      "Dose journal for iPhone and Android",
       "Dangerous combination data",
       "Reagent test results"
     ]
@@ -149,7 +149,7 @@
     "kind": "markdown",
     "label": "Official collaboration: Piru",
     "group": "About",
-    "body": "Piru is an iPhone app for logging doses and writing trip reports. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your phone, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). It is in beta on TestFlight and coming to the App Store."
+    "body": "Piru is an app for logging doses and writing trip reports, on iPhone, Android and Mac, with an Apple Watch companion. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report, and can fill in dose.wiki's trip report form.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your device, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). The iPhone beta is on [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki); the [Android app](https://kagerou.glass/get/piru/android?from=dosewiki) and the [Mac app](https://kagerou.glass/get/piru/mac?from=dosewiki) are free downloads from GitHub."
   },
   {
     "key": "effect-index-home-intro-lead",
