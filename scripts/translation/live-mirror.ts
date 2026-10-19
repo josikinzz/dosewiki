@@ -279,7 +279,7 @@ async function retranslateStale() {
       contextClass: known?.contextClass ?? "prose",
       hash: row.hash, words: row.source.trim().split(/\s+/).length, source: row.source,
     };
-  })).map((unit) => ({ ...unit, contextKind: segmentByHash.get(unit.hash)?.kind ?? "any" }));
+  })).map((unit): WorkUnit => ({ ...unit, contextKind: segmentByHash.get(unit.hash)?.kind ?? "any" }));
   const chunks: (typeof units)[] = [];
   for (let start = 0; start < units.length; start += STALE_CHUNK) chunks.push(units.slice(start, start + STALE_CHUNK));
   let cursor = 0;

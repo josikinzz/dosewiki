@@ -101,7 +101,7 @@ export function summarizeTranslationCoverage(input: {
   queue: TranslationQueueCoverage;
 }): TranslationCoverageResponse {
   const { inventory, context, stored, rejections, queue } = input;
-  const termsIn: (text: string) => Array<{ term: string; target: string }> = termFinder(Object.entries(context.glossary).map(([term, target]) => ({ term, target })), (entry: { term: string }) => entry.term);
+  const termsIn = termFinder(Object.entries(context.glossary).map(([term, target]) => ({ term, target })), (entry) => entry.term);
   const latinNames = inventory.records.filter((record) => record.kind === "article").map((record) => record.slug);
   const chinese = context.locale.scriptGate === "simplified";
   const summary = emptyCounts();

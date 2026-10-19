@@ -3,7 +3,7 @@ import { parseArgs } from "node:util";
 import {
   collectSitemapUrls,
   warmUrls,
-  type WarmResult,
+  type WarmRepresentationReceipt,
 } from "../deploy/warm-public-routes.lib.mjs";
 
 const { values } = parseArgs({
@@ -79,12 +79,16 @@ async function main(): Promise<number> {
     headers: { host, "user-agent": "dosewiki-warm-mirror/1.0 (+scripts/translation/warm-mirror.ts)" },
   });
   const totalMs = Date.now() - startedAt;
+  const receipts = results.flatMap((result) => Object.values(result.representations).map((receipt) => ({
+    ...receipt,
+    url: result.url,
+  })));
 
   const byStatus: Record<string, number> = {};
   const byCache: Record<string, number> = {};
-  const failures: WarmResult[] = [];
-  const unserved: WarmResult[] = [];
-  for (const result of results) {
+  const failures: Array<WarmRepresentationReceipt & { url: string }> = [];
+  const unserved: Array<WarmRepresentationReceipt & { url: string }> = [];
+  for (const result of receipts) {
     const status = result.status === null ? (result.error ?? "error") : String(result.status);
     byStatus[status] = (byStatus[status] ?? 0) + 1;
     byCache[result.cache] = (byCache[result.cache] ?? 0) + 1;
@@ -93,30 +97,30 @@ async function main(): Promise<number> {
   }
   const counts = (table: Record<string, number>) =>
     Object.keys(table).sort().map((key) => `${key} x${table[key]}`).join(", ");
-  const durations = results.map((result) => result.durationMs).sort((a, b) => a - b);
+  const durations = receipts.map((result) => result.durationMs).sort((a, b) => a - b);
   const lines = [
     `Warmed ${results.length} path(s) in ${(totalMs / 1000).toFixed(1)}s`,
-    `Status: ${counts(byStatus)}`,
-    `Cache: ${counts(byCache)}`,
+    `Representation status: ${counts(byStatus)}`,
+    `Representation cache: ${counts(byCache)}`,
     `Latency: p50 ${percentile(durations, 50)}ms, p95 ${percentile(durations, 95)}ms, max ${percentile(durations, 100)}ms`,
   ];
-  const slow = [...results].sort((a, b) => b.durationMs - a.durationMs).slice(0, slowest);
+  const slow = [...receipts].sort((a, b) => b.durationMs - a.durationMs).slice(0, slowest);
   if (slow.length > 0) {
     lines.push(`Slowest ${slow.length}:`);
     for (const entry of slow) {
-      lines.push(`  ${String(entry.durationMs).padStart(6)}ms  ${entry.cache.padEnd(7)} ${entry.status ?? "ERR"}  ${entry.url.slice(base.length)}`);
+      lines.push(`  ${String(entry.durationMs).padStart(6)}ms  ${entry.cache.padEnd(7)} ${entry.status ?? "ERR"}  ${entry.representation} ${entry.url.slice(base.length)}`);
     }
   }
   if (unserved.length > 0) {
     lines.push("Not served (4xx):");
     for (const entry of unserved) {
-      lines.push(`  ${entry.status}  ${entry.url.slice(base.length)}`);
+      lines.push(`  ${entry.status}  ${entry.representation} ${entry.url.slice(base.length)}`);
     }
   }
   if (failures.length > 0) {
     lines.push("Failed:");
     for (const failure of failures) {
-      lines.push(`  ${failure.url.slice(base.length)}  ${failure.error ?? failure.status}`);
+      lines.push(`  ${failure.representation} ${failure.url.slice(base.length)}  ${failure.error ?? failure.status}`);
     }
   }
   console.log(lines.join("\n"));

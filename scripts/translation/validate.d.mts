@@ -1,8 +1,9 @@
-import type { TranslationLocale } from "./locales";
+import type { TranslationLocale } from "./locales.mjs";
 
 export const DEFECT_CODES: Readonly<Record<string, string>>;
 export const BLOCKING_DEFECTS: readonly string[];
 export function isBlocking(defects: readonly string[]): boolean;
+export function hasChinese(text: string): boolean;
 export function validateSegment(input: {
   source: string;
   target: unknown;

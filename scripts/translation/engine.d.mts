@@ -1,4 +1,4 @@
-import type { PromptContextKind, TranslationLocale } from "./locales";
+import type { PromptContextKind, TranslationLocale } from "./locales.mjs";
 import type { OpenRouterChatResult } from "../lib/openrouter-sdk.mjs";
 import type { PromptStyleGuide } from "./style-guide.mjs";
 

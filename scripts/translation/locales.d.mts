@@ -18,7 +18,7 @@ export function glossaryPath(code: string): string;
 
 export function glossaryTermPattern(term: string): RegExp;
 
-export type PromptContextKind = "article" | "effect" | "report" | "library" | "replication" | "any";
+export type PromptContextKind = "article" | "effect" | "report" | "library" | "replication" | "profile" | "any";
 
 export const GLOSS_CAP: number;
 
