@@ -222,7 +222,7 @@
       "producer": "scripts/contributors/generate-avatars-from-replications.ts",
       "consumers": [
         "avatar provenance review",
-        "scripts/contributors/generate-avatars-from-replications.test.ts"
+        "scripts/contributors/import-avatars-from-the-wild.ts"
       ],
       "inputs": [
         "production contributorProfiles and publishable replication rows",
@@ -1150,7 +1150,7 @@
         "legacy effectindex.com featured flags",
         "current replication slugs and data/effects/replicationSlugAliases.json"
       ],
-      "freshnessRule": "The siteConfig document edited in /dev is the live source; this list is the never-curated fallback. Repoint slugs when a rename lands so effectIndexFeaturedReplications.test.ts stays green.",
+      "freshnessRule": "The siteConfig document edited in /dev is the live source; this list is the never-curated fallback. Repoint slugs when a rename lands (data/effects/replicationSlugAliases.json lists renames). No test checks these slugs, so confirm each one still names a published replication.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "explicit Postgres target selected by the guarded featured-replications seed",
       "schemaVersion": "{ slugs: string[] }",
