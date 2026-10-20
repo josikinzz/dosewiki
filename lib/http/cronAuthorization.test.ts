@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataWriteFrozenError } from "../runtime/dataWriteFreeze";
 import { authorizeCronRequest, cronRoute, withCronWriteFreeze } from "./cronAuthorization";
 
@@ -83,12 +83,19 @@ describe("withCronWriteFreeze", () => {
 });
 
 describe("cronRoute", () => {
+  beforeEach(() => {
+    vi.stubEnv("CRON_SECRET", "s3cret");
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   const request = (authorization?: string) =>
     new Request("https://editor.dose.wiki/api/cron/x", { headers: authorization ? { authorization } : {} });
 
   it("runs the handler only for the configured bearer secret", async () => {
     const handler = vi.fn(async () => Response.json({ ran: true }));
-    const route = cronRoute(handler, { env: () => ({ CRON_SECRET: "s3cret" }) });
+    const route = cronRoute(handler);
 
     expect((await route(request("Bearer wrong"))).status).toBe(401);
     expect(handler).not.toHaveBeenCalled();
@@ -97,7 +104,7 @@ describe("cronRoute", () => {
   });
 
   it("reports a write freeze from the handler as a deliberate 503", async () => {
-    const route = cronRoute(async () => { throw new DataWriteFrozenError("x"); }, { env: () => ({ CRON_SECRET: "s3cret" }) });
+    const route = cronRoute(async () => { throw new DataWriteFrozenError("x"); });
     const response = await route(request("Bearer s3cret"));
     expect(response.status).toBe(503);
     expect(await response.json()).toMatchObject({ frozen: true });

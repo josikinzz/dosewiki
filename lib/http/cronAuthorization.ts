@@ -1,6 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
+import { enforceRateLimit } from "./nextRateLimit";
+import type { RateLimitPolicyName } from "./rateLimitPolicy";
 
 export type CronAuthEnv = {
   CRON_SECRET?: string;
@@ -48,19 +50,14 @@ export function withCronWriteFreeze(
   };
 }
 
-type CronRouteOptions = {
-  rateLimit?: (request: Request) => Promise<Response | null>;
-  env?: () => CronAuthEnv;
-};
-
 export function cronRoute(
   handler: (request: Request) => Promise<Response>,
-  { rateLimit, env = () => ({ CRON_SECRET: process.env.CRON_SECRET }) }: CronRouteOptions = {},
+  { rateLimit }: { rateLimit?: RateLimitPolicyName } = {},
 ): (request: Request) => Promise<Response> {
   return withCronWriteFreeze(async (request) => {
-    const limited = await rateLimit?.(request);
+    const limited = rateLimit ? await enforceRateLimit(request, rateLimit) : null;
     if (limited) return limited;
-    const decision = authorizeCronRequest(request.headers.get("authorization"), env());
+    const decision = authorizeCronRequest(request.headers.get("authorization"), { CRON_SECRET: process.env.CRON_SECRET });
     if (!decision.allowed) {
       return NextResponse.json({ error: decision.reason }, { status: decision.status });
     }
