@@ -80,6 +80,15 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
     },
     {
+      name: 'the test-env production gate around a floored wrapper',
+      filename: 'src/app/api/test-env/route.ts',
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        import { testEnvRoute } from "./testEnvRoute";
+        export const POST = testEnvRoute(protectedRouteOperation({ auth: "editor", rateLimit: "editorHeavyWrite", unexpectedErrorLabel: "x", operation: () => ok() }));
+      `,
+    },
+    {
       name: 'a raw handler named in the method-specific exceptions',
       filename: publicRoute,
       options: [{ exceptions }],
@@ -231,6 +240,15 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       code,
       errors: [{ messageId: 'unsupportedBinding', data: { method: 'POST' } }],
     })),
+    {
+      name: 'the test-env production gate around a raw handler',
+      filename: 'src/app/api/test-env/route.ts',
+      code: `
+        import { testEnvRoute } from "./testEnvRoute";
+        export const POST = testEnvRoute(async () => Response.json({ privateData: true }));
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    },
     {
       name: 'a host gate around a raw handler',
       filename: devRoute,

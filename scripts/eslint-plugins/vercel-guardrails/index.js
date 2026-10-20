@@ -469,6 +469,7 @@ const ROUTE_GUARD_FACTORIES = new Map([
   ['src/app/api/glossary-feedback/reviewRoutes#glossaryReviewRead', 'fixedFloor'],
   ['lib/http/cronAuthorization#cronRoute', 'fixedFloor'],
   ['lib/next/replicationViewerEditorPolicy#replicationViewerEditorRoute', 'wrapsHandler'],
+  ['src/app/api/test-env/testEnvRoute#testEnvRoute', 'wrapsHandler'],
 ]);
 
 const MODULE_ALIASES = [
@@ -477,7 +478,7 @@ const MODULE_ALIASES = [
   ['@lib/', 'lib/'],
 ];
 
-const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'delegates-to-guard'];
+const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'temporary-until-pr-17'];
 
 const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
 const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
