@@ -116,7 +116,9 @@ changing build keys, hosts, or flavors.
 Every pull request runs the CI verification job in
 `.github/workflows/vercel-policy-checks.yml`. Its two graph steps call
 `bun run verify:checkout` and `bun run verify:drift`, and its first step scans
-tracked files for secrets before install. `bun run verify` runs all three. The
+tracked files for secrets before install. `bun run verify` runs all three.
+All three set the job's `DATA_BACKEND=postgres` and `DATA_WRITES_FROZEN=1`
+themselves, overriding whatever your shell holds. The
 job's inline Vercel configuration, `.env`, and API-route pattern steps stay in
 the workflow. Pull request CI does not build. Locally, run the tests that cover your change and
 the type check, or the whole graph with `bun run verify`.
