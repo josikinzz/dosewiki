@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { appendFile, mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 
 export const OPERATION = "publish-social-cards";
 export const DEFAULT_CDN_BASE = "https://dosewiki-media.gremblinzuwu.workers.dev";
@@ -182,11 +183,12 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
   };
 }
 
-export async function writeAtomic(filename, content) {
+export async function writeAtomic(filename, content, beforeReplace = () => {}) {
   const resolved = path.resolve(filename);
   await mkdir(path.dirname(resolved), { recursive: true });
   const temporary = `${resolved}.${process.pid}.${Date.now()}.tmp`;
   await writeFile(temporary, content);
+  beforeReplace();
   await rename(temporary, resolved);
 }
 
@@ -293,6 +295,7 @@ export async function processObjects({
   resume = true,
 }) {
   if (!new Set(["preflight", "canary-apply", "full-apply"]).has(mode)) throw new Error(`Invalid object phase: ${mode}`);
+  if (mode !== "preflight") assertDataWritesNotFrozen(`${OPERATION}:${mode}`);
   const records = await readJsonLines(ledgerPath);
   const prior = resume
     ? mode === "preflight"
@@ -336,6 +339,7 @@ export async function processObjects({
       absent += 1;
       return;
     }
+    assertDataWritesNotFrozen(`${OPERATION}:${mode}:write`);
     await storage.write(object);
     const actual = await storage.digest(object.key);
     try {
@@ -366,6 +370,7 @@ export async function installCandidateManifest({
   publisherLedgerPath,
   verificationLedgerPath,
 }) {
+  assertDataWritesNotFrozen(`${OPERATION}:install-candidate`);
   const publisherRecords = await readJsonLines(publisherLedgerPath);
   if (!hasCompletedFullRun(publisherRecords, plan.planDigest, plan.objects.length)) {
     throw new Error("Refusing manifest install without a complete object-publication ledger");
@@ -384,8 +389,10 @@ export async function installCandidateManifest({
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
   }
-  await writeAtomic(rollbackPath, currentText);
-  await writeAtomic(targetPath, candidateText);
+  const assertWritesAllowed = () => assertDataWritesNotFrozen(`${OPERATION}:install-candidate:write`);
+  assertWritesAllowed();
+  await writeAtomic(rollbackPath, currentText, assertWritesAllowed);
+  await writeAtomic(targetPath, candidateText, assertWritesAllowed);
   const append = createLedgerWriter(publisherLedgerPath);
   await append({
     type: "manifest-installed",

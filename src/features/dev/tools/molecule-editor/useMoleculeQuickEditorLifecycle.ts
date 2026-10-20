@@ -7,17 +7,15 @@ import { smilesToMolblock } from "./smilesToMolblock";
 import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
 import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
-
-interface MoleculeOverride {
-  slug: string;
-  molblock: string;
-  svg: string;
-  smiles?: string;
-  boldBonds?: number[];
-  source?: "seeded" | "editor" | "template";
-  updatedAt: string;
-  updatedBy?: string;
-}
+import {
+  DEPICTION_LOADING,
+  depictionLoaded,
+  knownDepiction,
+  readMoleculeOverride,
+  settleDepictionRead,
+  type DepictionRead,
+} from "./moleculeEditorRequests";
+import type { MoleculeOverride } from "./moleculeEditorTypes";
 
 interface SaveResult {
   tone: "success" | "danger";
@@ -43,8 +41,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
   const [canvasError, setCanvasError] = useState<string | null>(null);
   const [confirmRevert, setConfirmRevert] = useState(false);
   const [loadTimedOut, setLoadTimedOut] = useState(false);
-  const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
-  const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
+  const [overrideRead, setOverrideRead] = useState<DepictionRead<MoleculeOverride>>(DEPICTION_LOADING);
   const [refreshToken, setRefreshToken] = useState(0);
   const loadedSlugRef = useRef<string | null>(null);
 
@@ -57,36 +54,22 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     setSaveResult(null);
     setCanvasError(null);
     setConfirmRevert(false);
-    setOverrideLoadError(null);
   }, [slug]);
 
   useEffect(() => {
     if (!slug) {
-      setOverrideDoc(undefined);
-      setOverrideLoadError(null);
+      setOverrideRead(DEPICTION_LOADING);
       return;
     }
     const slugChanged = loadedSlugRef.current !== slug;
     loadedSlugRef.current = slug;
     let cancelled = false;
-    if (slugChanged) setOverrideDoc(undefined);
-    setOverrideLoadError(null);
-    void fetch(`${SAVE_API}?slug=${encodeURIComponent(slug)}`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          override?: MoleculeOverride | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Molecule load failed (${response.status})`);
-        }
-        if (!cancelled) setOverrideDoc(body.override ?? null);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setOverrideDoc(null);
-        setOverrideLoadError(error instanceof Error ? error.message : String(error));
-      });
+    setOverrideRead((current) =>
+      slugChanged || current.status === "failed" ? DEPICTION_LOADING : current,
+    );
+    void settleDepictionRead(readMoleculeOverride(slug)).then((next) => {
+      if (!cancelled) setOverrideRead(next);
+    });
     return () => {
       cancelled = true;
     };
@@ -100,10 +83,18 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
       setComputing(false);
       return;
     }
-    if (overrideDoc === undefined) {
+    if (overrideRead.status === "loading") {
       setComputing(true);
       return;
     }
+    if (overrideRead.status === "failed") {
+      setSource(null);
+      setEdited(null);
+      setNoStructure(false);
+      setComputing(false);
+      return;
+    }
+    const overrideDoc = overrideRead.value;
     if (variant === "saved" && overrideDoc) {
       setSource(overrideDoc.molblock);
       setEdited(overrideDoc.molblock);
@@ -142,7 +133,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     return () => {
       cancelled = true;
     };
-  }, [slug, variant, overrideDoc, moleculeSource, smiles]);
+  }, [slug, variant, overrideRead, moleculeSource, smiles]);
 
   useEffect(() => {
     if (!ocl || !edited) {
@@ -158,7 +149,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
   }, [ocl, rdkit, edited, smiles, boldBonds]);
 
   const dataPending =
-    overrideDoc === undefined ||
+    overrideRead.status === "loading" ||
     moleculeSource === undefined ||
     (!ocl && !oclError) ||
     (!rdkit && !rdkitError);
@@ -179,10 +170,12 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
 
   const dirty = edited !== source;
   const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
-  const canSave = dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
+  const snapshotLoaded = overrideRead.status === "loaded";
+  const canSave =
+    snapshotLoaded && dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
 
   const save = useCallback(async () => {
-    if (!slug || !edited || !ocl) return;
+    if (!slug || !edited || !ocl || !snapshotLoaded) return;
     setSaving(true);
     setSaveResult(null);
     const svg = renderMoleculeSvg(ocl, edited, undefined, boldBonds);
@@ -209,15 +202,17 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
       });
       const body = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) throw new Error(body.error ?? `Save failed (${response.status})`);
-      setOverrideDoc({
-        slug,
-        molblock: edited,
-        svg,
-        ...(smiles ? { smiles } : {}),
-        ...(boldBonds.length > 0 ? { boldBonds } : {}),
-        source: "editor",
-        updatedAt: new Date().toISOString(),
-      });
+      setOverrideRead(
+        depictionLoaded({
+          slug,
+          molblock: edited,
+          svg,
+          ...(smiles ? { smiles } : {}),
+          ...(boldBonds.length > 0 ? { boldBonds } : {}),
+          source: "editor",
+          updatedAt: new Date().toISOString(),
+        }),
+      );
       setVariant("saved");
       setSaveResult({
         tone: "success",
@@ -233,7 +228,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     } finally {
       setSaving(false);
     }
-  }, [slug, edited, ocl, smiles, boldBonds, invalidateEditorReads]);
+  }, [slug, edited, ocl, snapshotLoaded, smiles, boldBonds, invalidateEditorReads]);
 
   const applyRevert = useCallback(() => {
     setVariant("auto");
@@ -271,11 +266,12 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     confirmRevert,
     dismissRevert: () => setConfirmRevert(false),
     loadTimedOut,
-    overrideLoadError,
+    overrideRead,
+    retryOverrideLoad: () => setRefreshToken((token) => token + 1),
     dirty,
     renderBlocked,
     canSave,
-    loadedFromOverride: variant === "saved" && !!overrideDoc,
+    loadedFromOverride: variant === "saved" && !!knownDepiction(overrideRead),
     save,
     applyRevert,
     revertToAuto,

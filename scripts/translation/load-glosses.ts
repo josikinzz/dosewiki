@@ -5,10 +5,12 @@ import { fileURLToPath } from "node:url";
 
 import { getPublicDataReadAdapter } from "../../lib/data/publicData.reads";
 import { GLOSS_MAX_LENGTH, GlossaryGlossError, knownGlossaryTerms, loadGlosses, upsertGlosses } from "../../lib/translation/glossaryGloss";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 
 const GLOSSES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "../../data/i18n/glossary/glosses");
 const SEEDED_BY = "seed:load-glosses";
+const OPERATION = "load-glosses";
 
 const { values } = parseArgs({
   args: process.argv.slice(2),
@@ -16,14 +18,23 @@ const { values } = parseArgs({
     target: { type: "string" },
     force: { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false },
+    write: { type: "boolean", default: false },
+    "confirm-write": { type: "string" },
+    "expected-deployment": { type: "string" },
     "allow-remote": { type: "boolean", default: false },
   },
 });
 
-const dryRun = values["dry-run"];
-const target = values.target ?? process.env.TARGET_POSTGRES_URL;
+const command = createProductionWriteCommand({
+  operation: OPERATION,
+  env: values.write ? process.env : { ...process.env, DATA_BACKEND: "postgres" },
+  loadsEnvLocal: false,
+});
+const dryRun = !values.write;
+const target = command.targetUrl;
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
-if (!dryRun) guardTarget(target, values["allow-remote"]);
+if (values.write) authorizeProductionWrite(command);
+else guardTarget(target, values["allow-remote"]);
 
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
@@ -91,7 +102,7 @@ async function main() {
 
   let written = 0;
   if (dryRun) {
-    console.log("Dry run: drop --dry-run to write.");
+    console.log(`Dry run: write with DATA_BACKEND=postgres --write --confirm-write=${OPERATION} --expected-deployment=${command.deploymentFingerprint}.`);
   } else if (pending.length > 0) {
     try {
       written = await upsertGlosses(pending, SEEDED_BY);

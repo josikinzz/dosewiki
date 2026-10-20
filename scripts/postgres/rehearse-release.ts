@@ -19,12 +19,11 @@ import { getDataBackend, getPostgresClient } from "../../lib/postgres/runtime/ba
 import { PostgresClient, resolveFunction } from "../../lib/postgres/runtime/client";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
 import { getSiteFlavorConfig, isEffectIndex } from "../../src/config/siteFlavor";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const argv = process.argv.slice(2);
-const target = resolveTarget(argv);
-guardTarget(target, argv.includes("--allow-remote"));
+const target = resolveLocalRehearsalTarget(argv);
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
 const checks: Check[] = [];
@@ -220,7 +219,6 @@ async function main(): Promise<void> {
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
-  delete process.env.DATA_WRITES_FROZEN;
 
   const apiKey = process.env.DATA_ADMIN_KEY;
   if (!apiKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
@@ -295,6 +293,18 @@ async function main(): Promise<void> {
     const unsupportedAction = await attempt(() => runtime.action(recoveryAsAction, { actorEmail: adminActor.actorEmail }));
     expect("liveness", "the native runtime refuses action invocation while writes are enabled", !unsupportedAction.ok && !refusedByFreeze(unsupportedAction), errorMessage(unsupportedAction.error));
 
+    const memberUsername = `${run}-member`;
+    const memberEmail = `${run}-member@rehearsal.invalid`;
+    const memberPassword = `${run} member passphrase`;
+    await seed("memberships", {
+      username: memberUsername,
+      email: memberEmail,
+      role: "editor",
+      passwordHash: await hashPassword(memberPassword),
+      createdAt: now,
+      updatedAt: now,
+    });
+
     const readsBefore: Record<string, string> = {};
     for (const probe of READ_PROBES) readsBefore[probe.name] = JSON.stringify(await probe.read());
     const countsBefore = await countRows();
@@ -364,17 +374,6 @@ async function main(): Promise<void> {
       body: blockDuringFreeze?.body,
     });
 
-    const memberUsername = `${run}-member`;
-    const memberEmail = `${run}-member@rehearsal.invalid`;
-    const memberPassword = `${run} member passphrase`;
-    await seed("memberships", {
-      username: memberUsername,
-      email: memberEmail,
-      role: "editor",
-      passwordHash: await hashPassword(memberPassword),
-      createdAt: now,
-      updatedAt: now,
-    });
     const frozenSignIn = await attempt(() => authorizeCredentials({ username: memberUsername, password: memberPassword }));
     expect("freeze", "a new sign-in refuses while frozen because auth.ts awaits touchSignIn", refusedByFreeze(frozenSignIn), frozenSignIn.ok ? "signed in" : errorMessage(frozenSignIn.error));
     const frozenRefresh = await attempt(async () => await authOptions.callbacks!.jwt!({ token: { email: memberEmail }, user: undefined, account: null } as never));

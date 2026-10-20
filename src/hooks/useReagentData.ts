@@ -9,21 +9,19 @@ const reagentCache = new Map<string, NormalizedReagentData | null>();
 const pendingRequests = new Map<string, Promise<NormalizedReagentData | null>>();
 
 async function fetchReagentData(slug: string): Promise<NormalizedReagentData | null> {
-  try {
-    const response = await fetch(`/api/reagent-proxy?slug=${encodeURIComponent(slug)}`);
-    if (response.status === 204 || response.status === 404 || response.status === 429) {
-      return null;
-    }
-    if (!response.ok) {
-      return null;
-    }
-
-    const validation = validateProtestKitResponse(await response.json());
-    return validation.ok ? normalizeProtestKitResponse(validation.data) : null;
-  } catch (error) {
-    console.warn("Reagent snapshot read error:", error);
+  const response = await fetch(`/api/reagent-proxy?slug=${encodeURIComponent(slug)}`);
+  if (response.status === 204) {
     return null;
   }
+  if (!response.ok) {
+    throw new Error(`Reagent data read failed with status ${response.status}.`);
+  }
+
+  const validation = validateProtestKitResponse(await response.json());
+  if (!validation.ok) {
+    throw new Error(validation.error);
+  }
+  return normalizeProtestKitResponse(validation.data);
 }
 
 async function fetchCachedReagentData(slug: string): Promise<NormalizedReagentData | null> {

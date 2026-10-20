@@ -16,6 +16,7 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/migrate/migrate-binding-sites.mjs",
     "scripts/migrate/migrate-pharmacology-schema.mjs",
     "scripts/postgres/import-document-snapshot.ts",
+    "scripts/postgres/migrate.ts",
     "scripts/postgres/rebuild-derived-tables.ts",
     "scripts/remove-contributor.mjs",
     "scripts/replications/apply-artist-license.mjs",
@@ -75,6 +76,13 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/review/apply-review-flags.ts",
   ]),
   delegatedModule: Object.freeze([
+    {
+      path: "scripts/postgres/lib/articlePublicationHarness.ts",
+      guardedEntrypoints: [
+        "scripts/postgres/rehearse-article-publication.ts",
+        "scripts/postgres/rehearse-citation-publication.ts",
+      ],
+    },
     {
       path: "scripts/replications/lib/r2-upload.mjs",
       guardedEntrypoints: [
@@ -147,16 +155,27 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/create-gallery-order.mjs",
     "scripts/replications/repoint-renditions.mjs",
     "scripts/translation/import-glossary-drafts.ts",
+    "scripts/translation/live-mirror.ts",
+    "scripts/translation/load-glosses.ts",
   ]),
   localRehearsal: Object.freeze([
     "scripts/postgres/rehearse-article-lifecycle.ts",
+    "scripts/postgres/rehearse-article-publication.ts",
     "scripts/postgres/rehearse-auth.ts",
+    "scripts/postgres/rehearse-citation-publication.ts",
+    "scripts/postgres/rehearse-commands.ts",
     "scripts/postgres/rehearse-content-tools.ts",
+    "scripts/postgres/rehearse-effects.ts",
     "scripts/postgres/rehearse-http-surface.ts",
     "scripts/postgres/rehearse-release.ts",
     "scripts/postgres/rehearse-replications-identity.ts",
     "scripts/postgres/rehearse-reports-feedback.ts",
     "scripts/postgres/rehearse-storage-fallbacks.ts",
+  ]),
+  storageUploadEntrypoint: Object.freeze([
+    "scripts/build/publishSocialCardsToR2.mjs",
+    "scripts/replications/prepare-r2-image-renditions.ts",
+    "scripts/replications/run-local-r2-upload-batches.mjs",
   ]),
   detectorExemption: Object.freeze([
     {

@@ -27,7 +27,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - `lib/auth/devScreenshotViewer.ts` lets a local `next dev` render `/dev` documents without an account. It never admits an API call, a mutation, or a production build.
 - `server/lib/articleWrite.ts` owns editorial article patches and their revision journal. `server/saveArticleBatch.ts` owns atomic staged publication and durable batch receipts. Other article writers are listed in [runtime and data](docs/architecture/runtime-and-data.md#article-write-owners).
 - The public `/api/v1` surface serves public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints, and [docs/api.md](docs/api.md) is the consumer contract.
-- Local JSON and Markdown under `data/` and `content/` are seeds, exports, prompts, and generated artifacts. They are runtime truth only where active source reads them.
+- Local JSON and Markdown under `data/` and `content/` are seeds, exports, prompts, and generated artifacts. Code that imports one compiles it in as a static input, so editing it changes what that code renders. It never changes a Postgres record, and Postgres stays the editorial source of truth.
 
 ## Repository layout
 

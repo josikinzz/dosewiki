@@ -38,10 +38,13 @@ export const ArticleTableOfContents = memo(function ArticleTableOfContents({
   );
   const hasServerResolvedData = externalReagentData !== undefined;
   const lookupSlug = substanceSlug ?? slugify(article.title);
-  const { data: clientReagentData, isLoading: isLoadingClientData } =
-    useReagentData(
-      hasStaticReagentEntries || hasServerResolvedData ? "" : lookupSlug,
-    );
+  const {
+    data: clientReagentData,
+    isLoading: isLoadingClientData,
+    isError: isClientReagentDataUnavailable,
+  } = useReagentData(
+    hasStaticReagentEntries || hasServerResolvedData ? "" : lookupSlug,
+  );
   const reagentData = hasServerResolvedData
     ? externalReagentData
     : clientReagentData;
@@ -50,6 +53,9 @@ export const ArticleTableOfContents = memo(function ArticleTableOfContents({
     isLoadingExternalReagentData: hasServerResolvedData
       ? false
       : isLoadingClientData,
+    isExternalReagentDataUnavailable: hasServerResolvedData
+      ? false
+      : isClientReagentDataUnavailable,
     hasTripReports,
   });
 

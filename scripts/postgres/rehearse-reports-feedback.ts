@@ -26,7 +26,7 @@ import {
   type TripReportSubmissionInput,
   type TripReportSubmissionRow,
 } from "../../src/features/reports/submissions/tripReportSubmissions";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const INTAKE_URL = "http://localhost/api/trip-report-submissions";
@@ -137,8 +137,7 @@ function submissionInput(title: string, authorName: string, contactEmail: string
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
 
   process.env.DATA_BACKEND = "postgres";
