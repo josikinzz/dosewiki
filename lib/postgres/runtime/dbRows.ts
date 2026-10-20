@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { decodeDocumentValue, encodeDocumentValue, documentToRow, rowToDocument, type DataDocument } from "../documentCodec";
 import { tableNames, type TableName } from "../schema.generated";
+import type { Doc as TableDoc, TableNames } from "./dataModel";
 
 export type Doc = Record<string, unknown> & { _id: string; _creationTime: number };
 
@@ -47,4 +48,8 @@ export function toRow(table: TableName, doc: Doc) {
 
 export function fromRow(table: TableName, row: Record<string, unknown>): Doc {
   return decodeDocumentValue(rowToDocument(table, row)) as Doc;
+}
+
+export function fromTableRow<Table extends TableName & TableNames>(table: Table, row: Record<string, unknown>): TableDoc<Table> {
+  return fromRow(table, row) as unknown as TableDoc<Table>;
 }

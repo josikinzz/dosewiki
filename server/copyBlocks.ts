@@ -12,12 +12,7 @@ export const getByKey = query({
 
 export const getByKeys = query({
   args: { keys: v.array(v.string()) },
-  handler: async (ctx, { keys }) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicCopyBlocksByKeys: (keys: readonly string[]) => Promise<unknown[]>;
-    };
-    return db.getPublicCopyBlocksByKeys(keys);
-  },
+  handler: async (ctx, { keys }) => ctx.db.getPublicCopyBlocksByKeys(keys),
 });
 
 export const getForEditor = query({

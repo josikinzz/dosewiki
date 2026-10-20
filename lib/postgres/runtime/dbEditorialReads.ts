@@ -3,7 +3,9 @@ import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "..
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import { articleReviewRevision } from "../../../server/lib/articleReviewRevision";
 import { PublicProjectionReader } from "./dbPublicReads";
-import { fromRow, quote, type Doc } from "./dbRows";
+import { fromRow, fromTableRow, quote, type Doc } from "./dbRows";
+import type { Doc as TableDoc } from "./dataModel";
+import type { EditorialProjectionReads, MoleculePickerPage } from "./projectionReads";
 import {
   readFeedbackQueueCounts,
   readFeedbackQueuePage,
@@ -11,7 +13,7 @@ import {
   type FeedbackQueueTable,
 } from "./feedbackQueuePage";
 
-export class EditorialProjectionReader extends PublicProjectionReader {
+export class EditorialProjectionReader extends PublicProjectionReader implements EditorialProjectionReads {
   async getStudioReplicationTotal(): Promise<number> {
     const result = await this.client.query(
       'SELECT count(*)::int AS "totalCount" FROM "replications"',
@@ -108,7 +110,7 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     };
   }
 
-  async getMoleculePickerPage(args: { numItems: number; cursor: string | null }) {
+  async getMoleculePickerPage(args: { numItems: number; cursor: string | null }): Promise<MoleculePickerPage> {
     const after = args.cursor
       ? decodeDocumentValue(JSON.parse(args.cursor)) as { _creationTime: number; _id: string }
       : null;
@@ -134,7 +136,7 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     const last = rows[rows.length - 1];
     return {
       page: rows.map((row) => ({
-        article: fromRow("substanceIndex", row),
+        article: fromTableRow("substanceIndex", row),
         hasOverride: row.hasOverride === true,
       })),
       continueCursor: last
@@ -144,7 +146,7 @@ export class EditorialProjectionReader extends PublicProjectionReader {
     };
   }
 
-  async getMoleculeSourceBySlug(slug: string): Promise<Doc | null> {
+  async getMoleculeSourceBySlug(slug: string): Promise<TableDoc<"substanceIndex"> | null> {
     const result = await this.client.query(
       `SELECT ${losslessSelectList("substanceIndex", [
         "_id", "_creationTime", "slug", "title", "identification",
@@ -156,10 +158,10 @@ export class EditorialProjectionReader extends PublicProjectionReader {
       [slug],
     );
     if (result.rows.length !== 1) return null;
-    return fromRow("substanceIndex", result.rows[0]);
+    return fromTableRow("substanceIndex", result.rows[0]);
   }
 
-  async getMoleculeEditSourceBySlug(slug: string): Promise<Doc | null> {
+  async getMoleculeEditSourceBySlug(slug: string): Promise<TableDoc<"moleculeOverrides"> | null> {
     const result = await this.client.query(
       `SELECT ${losslessSelectList("moleculeOverrides", [
         "_id", "_creationTime", "slug", "molblock", "boldBonds", "source", "updatedAt",
@@ -171,7 +173,7 @@ export class EditorialProjectionReader extends PublicProjectionReader {
       [slug],
     );
     if (result.rows.length !== 1) return null;
-    return fromRow("moleculeOverrides", result.rows[0]);
+    return fromTableRow("moleculeOverrides", result.rows[0]);
   }
 
   async getGlossaryRendering(locale: string, term: string) {

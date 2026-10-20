@@ -1,25 +1,20 @@
 import { losslessSelectList } from "../documentCodec";
-import { fromRow, type Doc } from "./dbRows";
+import { fromRow, fromTableRow, type Doc } from "./dbRows";
+import type { Doc as TableDoc } from "./dataModel";
+import type { PublicOverviewCounts, PublicProjectionReads } from "./projectionReads";
 import { SubstanceProjectionReader } from "./dbSubstanceReads";
 
-export class PublicProjectionReader extends SubstanceProjectionReader {
-  async getPublicCopyBlocksByKeys(keys: readonly string[]): Promise<Doc[]> {
+export class PublicProjectionReader extends SubstanceProjectionReader implements PublicProjectionReads {
+  async getPublicCopyBlocksByKeys(keys: readonly string[]): Promise<TableDoc<"copyBlocks">[]> {
     if (keys.length === 0) return [];
     const result = await this.client.query(
       `SELECT ${losslessSelectList("copyBlocks")} FROM "copyBlocks" WHERE "key" = ANY($1::text[]) ORDER BY "_creationTime" ASC, "_id" ASC`,
       [keys],
     );
-    return result.rows.map((row) => fromRow("copyBlocks", row));
+    return result.rows.map((row) => fromTableRow("copyBlocks", row));
   }
 
-  async getPublicOverviewCounts(): Promise<{
-    substanceCount: number;
-    effectCount: number;
-    reportCount: number;
-    replicationCount: number;
-    aboutConfigured: boolean;
-    psychoactiveCategoryCount: number;
-  }> {
+  async getPublicOverviewCounts(): Promise<PublicOverviewCounts> {
     const result = await this.client.query(
       `SELECT
          (SELECT count(*)::int FROM "substanceIndex"

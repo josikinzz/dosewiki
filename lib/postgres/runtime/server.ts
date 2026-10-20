@@ -2,6 +2,7 @@ import type { Doc, Id, TableNames } from "./dataModel";
 import type { FunctionReference, FunctionReturnType, FunctionVisibility, OptionalRestArgs } from "./api";
 import { v, type ObjectType, type PropertyValidators, type Validator } from "./values";
 import type { ValidatorJson } from "./validate";
+import type { EditorialProjectionReads } from "./projectionReads";
 
 export interface IndexRange {
   eq(field: string, value: unknown): IndexRange;
@@ -55,7 +56,7 @@ export interface QueryInitializer<T> extends Query<T> {
   fullTableScan(): Query<T>;
   withIndex(name: string, range?: (q: IndexRange) => IndexRange): Query<T>;
 }
-export interface DatabaseReader {
+export interface DatabaseReader extends EditorialProjectionReads {
   getGlossaryRendering(locale: string, term: string): Promise<{ term: string; kind: string; target: string; status: "draft" | "approved"; updated_at: number } | null>;
   isKnownGlossaryTerm(term: string): Promise<boolean>;
   getGlossaryReactionTotals(locale: string): Promise<Array<{ term: string; target: string; version: string; right: number; improve: number }>>;
