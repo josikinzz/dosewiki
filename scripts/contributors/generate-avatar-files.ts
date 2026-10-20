@@ -50,10 +50,13 @@ function isWithin(parent: string, child: string): boolean {
 
 export function writePreviewAvatarFile(previewDir: string, key: string, bytes: Buffer): string {
   const filePath = path.resolve(previewDir, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
-  if (isWithin(physicalPath(AVATAR_ROOT), physicalPath(filePath))) {
-    throw new Error(`--preview-dir must be disposable, not inside ${path.relative(ROOT, AVATAR_ROOT)}.`);
+  if (isWithin(physicalPath(ROOT), physicalPath(filePath))) {
+    throw new Error("--preview-dir must be disposable, outside the repository checkout.");
   }
-  writeFileCreatingDirectory(filePath, bytes, true);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(temporary, bytes, { flag: "wx" });
+  fs.renameSync(temporary, filePath);
   return filePath;
 }
 

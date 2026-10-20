@@ -174,6 +174,7 @@ describe("avatar persistence under a freeze raised mid-run", () => {
   it.each([
     ["the public avatar tree itself", () => PUBLIC_AVATARS],
     ["a public child named ..preview", () => path.join(PUBLIC_AVATARS, "..preview")],
+    ["the public directory", () => path.dirname(PUBLIC_AVATARS)],
     [
       "a symlink to the public avatar tree",
       () => {
@@ -198,6 +199,19 @@ describe("avatar persistence under a freeze raised mid-run", () => {
     expect(sinks.files).toEqual([]);
   });
 
+  it("replaces a hard-linked preview file without writing through the link", async () => {
+    process.env.DATA_WRITES_FROZEN = "1";
+    const previewDir = path.join(scratch, "linked-file-preview");
+    const original = path.join(scratch, "linked-original.webp");
+    fs.mkdirSync(path.join(previewDir, "exampleartist"), { recursive: true });
+    fs.writeFileSync(original, "original");
+    fs.linkSync(original, path.join(previewDir, "exampleartist/avatar.webp"));
+    invoke("generate-contributor-avatars", [`--preview-dir=${previewDir}`], { write: false });
+    await generateFromReplications();
+    expect(fs.readFileSync(original, "utf8")).toBe("original");
+    expect(fs.readFileSync(path.join(previewDir, "exampleartist/avatar.webp"), "utf8")).not.toBe("original");
+  });
+
   it("the wild importer installs and records avatars when writes stay open", async () => {
     const extra = wildArguments();
     const wildManifest = path.join(scratch, "wild-manifest.json");
@@ -220,6 +234,13 @@ describe("avatar persistence under a freeze raised mid-run", () => {
     expect(persistentSinks(wildManifest)).toEqual([]);
     expect(fs.existsSync(wildManifest)).toBe(false);
     expect(sinks.mutations).toEqual([]);
+  });
+
+  it("the wild importer refuses a frozen preview into the public directory", async () => {
+    process.env.DATA_WRITES_FROZEN = "1";
+    invoke("import-wild-avatars", [...wildArguments(), `--preview-dir=${path.dirname(PUBLIC_AVATARS)}`], { write: false });
+    await expect(importFromTheWild()).rejects.toThrow(/disposable/);
+    expect(sinks.files).toEqual([]);
   });
 
   it("the wild importer still renders a disposable preview while frozen", async () => {
