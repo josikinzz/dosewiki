@@ -183,11 +183,12 @@ export async function buildPlan({ manifestPath, assetsRoot, cdnBase = DEFAULT_CD
   };
 }
 
-export async function writeAtomic(filename, content) {
+export async function writeAtomic(filename, content, beforeReplace = () => {}) {
   const resolved = path.resolve(filename);
   await mkdir(path.dirname(resolved), { recursive: true });
   const temporary = `${resolved}.${process.pid}.${Date.now()}.tmp`;
   await writeFile(temporary, content);
+  beforeReplace();
   await rename(temporary, resolved);
 }
 
@@ -388,9 +389,10 @@ export async function installCandidateManifest({
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
   }
-  assertDataWritesNotFrozen(`${OPERATION}:install-candidate:write`);
-  await writeAtomic(rollbackPath, currentText);
-  await writeAtomic(targetPath, candidateText);
+  const assertWritesAllowed = () => assertDataWritesNotFrozen(`${OPERATION}:install-candidate:write`);
+  assertWritesAllowed();
+  await writeAtomic(rollbackPath, currentText, assertWritesAllowed);
+  await writeAtomic(targetPath, candidateText, assertWritesAllowed);
   const append = createLedgerWriter(publisherLedgerPath);
   await append({
     type: "manifest-installed",

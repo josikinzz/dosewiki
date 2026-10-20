@@ -173,6 +173,37 @@ describe("social-card R2 publication under the write freeze", () => {
     await assert.rejects(stat(fixture.rollbackPath), { code: "ENOENT" });
   });
 
+  async function installFreezingAfter(fsName, freezesAfter) {
+    process.env.DATA_WRITES_FROZEN = "0";
+    const fixture = await installFixture();
+    const real = fsPromises[fsName];
+    fsPromises[fsName] = async (...args) => {
+      const result = await real(...args);
+      if (freezesAfter(fixture, ...args)) process.env.DATA_WRITES_FROZEN = "1";
+      return result;
+    };
+    syncBuiltinESMExports();
+    try {
+      await assert.rejects(installCandidateManifest(fixture), { code: "DATA_WRITES_FROZEN" });
+    } finally {
+      fsPromises[fsName] = real;
+      syncBuiltinESMExports();
+    }
+    assert.equal(process.env.DATA_WRITES_FROZEN, "1");
+    assert.equal(await readFile(fixture.targetPath, "utf8"), "{\"cards\":{}}\n");
+    assert.equal(await readFile(fixture.rollbackPath, "utf8"), "{\"cards\":{}}\n");
+    const ledgerTypes = (await readFile(fixture.publisherLedgerPath, "utf8")).split("\n").filter(Boolean).map((line) => JSON.parse(line).type);
+    assert.deepEqual(ledgerTypes, ["full-complete"]);
+  }
+
+  it("refuses manifest replacement when the freeze activates after the rollback snapshot is installed", async () => {
+    await installFreezingAfter("rename", (fixture, _from, to) => to === path.resolve(fixture.rollbackPath));
+  });
+
+  it("refuses manifest replacement when the freeze activates after the target is staged", async () => {
+    await installFreezingAfter("writeFile", (fixture, filename) => String(filename).startsWith(`${path.resolve(fixture.targetPath)}.`));
+  });
+
   async function bunAdapterWrites() {
     const writes = [];
     const previousBun = globalThis.Bun;
