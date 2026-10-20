@@ -64,40 +64,25 @@ type ArticleLoad =
   | { status: "idle" | "loading" | "failed"; article: null }
   | { status: "ready"; article: SubstanceArticle };
 
-const articleCache = new Map<string, SubstanceArticle>();
-
-export function clearArticlePreviewCache() {
-  articleCache.clear();
-}
-
 function usePreviewArticle(slug: string | null): ArticleLoad & { retry: () => void } {
   const [attempt, setAttempt] = useState(0);
-  const [load, setLoad] = useState<ArticleLoad>(() => {
-    const cached = slug ? articleCache.get(slug) : undefined;
-    return cached ? { status: "ready", article: cached } : { status: "idle", article: null };
-  });
+  const [load, setLoad] = useState<ArticleLoad>({ status: "idle", article: null });
 
   useEffect(() => {
     if (!slug) {
       setLoad({ status: "idle", article: null });
       return;
     }
-    const cached = articleCache.get(slug);
-    if (cached) {
-      setLoad({ status: "ready", article: cached });
-      return;
-    }
     let active = true;
     setLoad({ status: "loading", article: null });
     Promise.resolve()
-      .then(() => fetch(`/api/dev/editor-library?slug=${encodeURIComponent(slug)}`))
+      .then(() => fetch(`/api/dev/editor-library?slug=${encodeURIComponent(slug)}`, { cache: "no-store" }))
       .then((response) =>
         response.ok ? (response.json() as Promise<{ article?: SubstanceArticle }>) : null,
       )
       .then((payload) => {
         if (!active) return;
         if (payload?.article) {
-          articleCache.set(slug, payload.article);
           setLoad({ status: "ready", article: payload.article });
         } else {
           setLoad({ status: "failed", article: null });
