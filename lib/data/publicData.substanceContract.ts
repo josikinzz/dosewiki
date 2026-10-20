@@ -408,47 +408,74 @@ function normalizePublicSubstanceRecord(input: unknown): unknown {
   };
 }
 
-export function parsePublicSubstanceRecord(input: unknown): PublicSubstanceArticleRecord | null {
-  const parsed = publicSubstanceArticleRecordSchema.safeParse(normalizePublicSubstanceRecord(input));
+const MAX_REPORTED_CONTRACT_ISSUES = 10;
 
-  if (!parsed.success) {
-    return null;
+export class PublicSubstanceContractError extends Error {
+  readonly slug: string;
+  readonly issuePaths: readonly string[];
+
+  constructor(contract: string, slug: string, issues: readonly z.core.$ZodIssue[]) {
+    const reported = issues.slice(0, MAX_REPORTED_CONTRACT_ISSUES).map((issue) => ({
+      path: issue.path.map(String).join(".") || "(root)",
+      message: issue.message,
+    }));
+    const omitted = issues.length - reported.length;
+    super(
+      `Invalid ${contract} record for slug "${slug}": ${reported
+        .map(({ path, message }) => `${path} (${message})`)
+        .join("; ")}${omitted > 0 ? `; ${omitted} more issue(s)` : ""}`,
+    );
+    this.name = "PublicSubstanceContractError";
+    this.slug = slug;
+    this.issuePaths = reported.map(({ path }) => path);
   }
+}
 
+function recordSlug(input: unknown): string {
+  return isRecord(input) && typeof input.slug === "string" && input.slug.length > 0
+    ? input.slug
+    : "(missing slug)";
+}
+
+function parseContract<Output>(
+  schema: z.ZodType<Output>,
+  contract: string,
+  input: unknown,
+): Output {
+  const parsed = schema.safeParse(normalizePublicSubstanceRecord(input));
+  if (!parsed.success) {
+    throw new PublicSubstanceContractError(contract, recordSlug(input), parsed.error.issues);
+  }
+  return parsed.data;
+}
+
+export function parsePublicSubstanceRecord(input: unknown): PublicSubstanceArticleRecord {
+  const data = parseContract(publicSubstanceArticleRecordSchema, "public substance article", input);
   const expertReviewed =
-    parsed.data.expert_reviewed === true ||
-    (parsed.data.editorial_review as { status?: unknown } | undefined)?.status === "completed";
-  const publicArticle = projectPublicArticle(parsed.data);
+    data.expert_reviewed === true ||
+    (data.editorial_review as { status?: unknown } | undefined)?.status === "completed";
+  const publicArticle = projectPublicArticle(data);
   return {
     ...publicArticle,
-    slug: parsed.data.slug,
-    priority: parsed.data.priority ?? "normal",
-    publicRevision: parsed.data.publicRevision,
+    slug: data.slug,
+    priority: data.priority ?? "normal",
+    publicRevision: data.publicRevision,
     expert_reviewed: expertReviewed,
   };
 }
 
 export function parsePublicSubstanceRecords(inputs: unknown[]): PublicSubstanceArticleRecord[] {
-  return inputs.flatMap((input) => {
-    const parsed = parsePublicSubstanceRecord(input);
-    return parsed ? [parsed] : [];
-  });
+  return inputs.map(parsePublicSubstanceRecord);
 }
 
 export function parsePublicSubstanceLibraryInputRecord(
   input: unknown,
-): PublicSubstanceLibraryInputRecord | null {
-  const parsed = publicSubstanceLibraryInputSchema.safeParse(
-    normalizePublicSubstanceRecord(input),
-  );
-  return parsed.success ? parsed.data : null;
+): PublicSubstanceLibraryInputRecord {
+  return parseContract(publicSubstanceLibraryInputSchema, "public substance library input", input);
 }
 
 export function parsePublicSubstanceLibraryInputRecords(
   inputs: unknown[],
 ): PublicSubstanceLibraryInputRecord[] {
-  return inputs.flatMap((input) => {
-    const parsed = parsePublicSubstanceLibraryInputRecord(input);
-    return parsed ? [parsed] : [];
-  });
+  return inputs.map(parsePublicSubstanceLibraryInputRecord);
 }

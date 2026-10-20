@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { normalizeProfileKey } from "../../lib/contributorProfileIdentity";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import type { Dimensions, PlanEntry } from "./generate-avatar-candidates";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -17,17 +18,51 @@ export function avatarFilePathForKey(key: string): string {
   return path.join(AVATAR_ROOT, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
 }
 
-export function previewAvatarFilePath(previewDir: string, key: string): string {
-  return path.join(previewDir, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
-}
-
 export function avatarFileExists(key: string): boolean {
   return fs.existsSync(avatarFilePathForKey(key));
 }
 
-export function writeAvatarFile(filePath: string, bytes: Buffer, overwrite: boolean): void {
+function writeFileCreatingDirectory(filePath: string, bytes: Buffer, overwrite: boolean): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, bytes, { flag: overwrite ? "w" : "wx" });
+}
+
+export function installAvatarFile(key: string, bytes: Buffer, { overwrite }: { overwrite: boolean }): void {
+  const filePath = avatarFilePathForKey(key);
+  assertDataWritesNotFrozen(`profile-avatars:${path.relative(AVATAR_ROOT, filePath)}`);
+  writeFileCreatingDirectory(filePath, bytes, overwrite);
+}
+
+function physicalPath(target: string): string {
+  const missing: string[] = [];
+  let current = path.resolve(target);
+  while (!fs.lstatSync(current, { throwIfNoEntry: false })) {
+    missing.unshift(path.basename(current));
+    current = path.dirname(current);
+  }
+  return path.join(fs.realpathSync(current), ...missing);
+}
+
+function isWithin(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative === "" || (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
+export function writePreviewAvatarFile(previewDir: string, key: string, bytes: Buffer): string {
+  const filePath = path.resolve(previewDir, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
+  if (isWithin(physicalPath(ROOT), physicalPath(filePath))) {
+    throw new Error("--preview-dir must be disposable, outside the repository checkout.");
+  }
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const temporary = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(temporary, bytes, { flag: "wx" });
+  fs.renameSync(temporary, filePath);
+  return filePath;
+}
+
+export function writeProvenanceManifest(filePath: string, manifest: object): void {
+  assertDataWritesNotFrozen(`avatar-provenance:${path.relative(ROOT, path.resolve(filePath))}`);
+  fs.writeFileSync(filePath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 export interface AvatarFrame {
@@ -146,8 +181,4 @@ export function buildAvatarManifest(
     generatedAt,
     avatars: manifestEntries.sort((left, right) => left.profileKey.localeCompare(right.profileKey)),
   };
-}
-
-export function writeAvatarManifest(manifest: AvatarManifest): void {
-  fs.writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`);
 }

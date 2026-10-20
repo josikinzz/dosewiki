@@ -119,7 +119,7 @@ These separate write contracts remain in place:
 
 | Owner | Contract and reason |
 | --- | --- |
-| `server/lib/generatedPublication.ts` and `lib/postgres/articlePublication.ts` | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. |
+| `publishReviewedSectionHandler` in `server/lib/substanceReviewHandlers.ts`, on the `server/lib/generatedPublication.ts` engine | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. The raw-Pool adapter in `scripts/postgres/lib/articlePublicationHarness.ts` serves only the publication rehearsals and skips the handler's token and editor checks. |
 | `server/moleculeOverrides.ts` | Molecule overrides and depictions are separate entities with chemistry-specific comparison and seed rules. |
 | `server/lib/substanceReviewHandlers.ts` | Human review, flags, and recommendations retain their role and published-content revision checks. Content editing cannot set this authority. |
 | `server/lib/substanceProvenanceHandlers.ts` | Bounded reference-author and metadata repairs retain source-identity and provenance checks. |
@@ -259,8 +259,10 @@ then caution) and then key; there is no priority field, and two same-tone
 banners on one substance are resolved by an editor disabling one.
 
 `lib/next/warningBanners.ts` reads presets under
-`PUBLIC_DATA_CACHE_TAGS.banners` and deliberately degrades to an empty list
-with a logged warning when the read fails; there is no checked-in fallback.
+`PUBLIC_DATA_CACHE_TAGS.banners`. A failed read or a malformed preset row
+rejects, so the article render fails instead of caching a page without its
+banners. A successful read with no presets returns an empty list. There is no
+checked-in fallback.
 The Banner Studio save route revalidates that tag plus every affected slug.
 Glyph size is one sitewide `safety-banner-display` siteConfig value shared by
 every banner, never a per-preset setting. `/dev/banners` is admin-gated.

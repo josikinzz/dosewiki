@@ -15,11 +15,11 @@ import {
   readArticlePublicationState,
   readPublicArticleBySlug,
   type PublishReviewedSectionResult,
-} from "../../lib/postgres/articlePublication";
+} from "./lib/articlePublicationHarness";
 import { documentHash } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { minimalArticle } from "../../src/test/fixtures/articles";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const FINGERPRINT = "postgres-rehearsal";
@@ -81,8 +81,7 @@ async function cleanup(pool: Pool, slug: string): Promise<void> {
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
   const pool = new Pool({ connectionString: target, max: 4 });
   const slug = `rehearsal-${mintDocumentId().slice(0, 8)}`;

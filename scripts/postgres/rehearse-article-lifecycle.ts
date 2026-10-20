@@ -11,7 +11,7 @@ import { insertDocument, selectDocuments, withTransaction, type SqlClient } from
 import type { TableName } from "../../lib/postgres/schema.generated";
 import { projectEditorArticle } from "../../src/data/projections/substanceReadProjections";
 import { minimalArticle } from "../../src/test/fixtures/articles";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -120,8 +120,7 @@ function baselineFor(article: Article) {
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
   const apiKey = process.env.DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE || process.env.DATA_ADMIN_KEY;
   if (!apiKey) throw new Error("DATA_ADMIN_TOKEN_EDITOR_ARTICLE_WRITE or DATA_ADMIN_KEY must be set");

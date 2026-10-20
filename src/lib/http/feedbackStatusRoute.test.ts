@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { roleSessionFor } from "@/test/routeSession";
 
 const authMocks = vi.hoisted(() => ({ requireRoleSession: vi.fn(), enforceRateLimit: vi.fn() }));
@@ -90,5 +91,17 @@ describe("feedbackStatusRoute", () => {
     expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
     expect(getStore).not.toHaveBeenCalled();
     expect(transition).not.toHaveBeenCalled();
+  });
+
+  it("reports a frozen transition as the shared 503 freeze refusal", async () => {
+    authMocks.requireRoleSession.mockImplementation(roleSessionFor("admin"));
+    transition.mockRejectedValue(new DataWriteFrozenError("siteFeedback:transition"));
+
+    const response = await POST(statusRequest({ status: "resolved" }), context);
+
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({ code: "DATA_WRITES_FROZEN" });
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(authMocks.requireRoleSession).toHaveBeenCalledWith("admin");
   });
 });

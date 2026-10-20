@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFile as execFileCallback, spawn } from "node:child_process";
 import { promisify } from "node:util";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 import {
   CACHE_CONTROL,
@@ -101,6 +102,7 @@ export function createBunR2Storage(config) {
       return digestStream(client.file(key).stream());
     },
     async write(object) {
+      assertDataWritesNotFrozen(`${OPERATION}:bun-s3-write`);
       await client.file(object.key).write(Bun.file(object.filename), {
         type: CONTENT_TYPE,
         cacheControl: CACHE_CONTROL,
@@ -168,6 +170,7 @@ export function createRcloneStorage(remote) {
       return result;
     },
     async write(object) {
+      assertDataWritesNotFrozen(`${OPERATION}:rclone-write`);
       await execFile("rclone", ["copyto", object.filename, rcloneObject(remote, object.key), "--immutable"], { maxBuffer: 4 * 1024 * 1024 });
     },
   };

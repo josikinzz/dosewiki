@@ -94,7 +94,7 @@ const MONTH_NAMES = [
   "December",
 ];
 
-export function formatFeaturedArticleDate(publicationDate: string | undefined): string | undefined {
+function formatFeaturedArticleDate(publicationDate: string | undefined): string | undefined {
   if (!publicationDate) {
     return undefined;
   }

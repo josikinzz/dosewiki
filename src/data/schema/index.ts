@@ -9,4 +9,4 @@ export {
   durationStageTransformer,
 } from "./transformers";
 
-export { createEmptyArticle } from "./pathUtils";
+export { createEmptyArticle } from "./defaults.generated";

@@ -10,9 +10,6 @@ import { editTerm } from "./glossaryModel";
 export type CorrectionDraft = { kind: CorrectionReasonKind | null; note: string; segment: string; exceptions: string[] };
 export const EMPTY_CORRECTION: CorrectionDraft = { kind: null, note: "", segment: "", exceptions: [] };
 
-export function correctionReason(draft: CorrectionDraft): ReviewReason | null {
-  return draft.kind ? { kind: draft.kind, note: draft.note.trim() } : null;
-}
 export function exceptionsFor(draft: CorrectionDraft, segment: string): string[] {
   return draft.segment === segment ? draft.exceptions : [];
 }

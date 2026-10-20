@@ -5,6 +5,7 @@ import { Icon } from "@/components/common/Icon";
 import { Button, Input } from "@/components/ui";
 import { EditorField, LoadErrorState, Notice } from "@/features/dev/components";
 import type { MoleculePickerItem } from "./moleculePickerOrdering";
+import type { DepictionRead } from "./moleculeEditorRequests";
 import type { EditorMode } from "./moleculeEditorTypes";
 import { SubstanceCombobox } from "./MoleculeEditorPickers";
 
@@ -145,18 +146,20 @@ export function MoleculeStartingPoints({
 
 export function MoleculeLoadNotices({
   mode,
-  templateLoadError,
-  overrideLoadError,
+  templateRead,
+  overrideRead,
   onRetryOverride,
+  onRetryTemplate,
   sourceError,
   onRetrySource,
   membersError,
   onRetryMembers,
 }: {
   mode: EditorMode;
-  templateLoadError: string | null;
-  overrideLoadError: string | null;
+  templateRead: DepictionRead<unknown>;
+  overrideRead: DepictionRead<unknown>;
   onRetryOverride: () => void;
+  onRetryTemplate: () => void;
   sourceError: string | null;
   onRetrySource: () => void;
   membersError: string | null;
@@ -164,12 +167,18 @@ export function MoleculeLoadNotices({
 }) {
   return (
     <>
-      {mode === "templates" && templateLoadError ? (
-        <Notice tone="danger" title="Couldn't load template" message={templateLoadError} />
-      ) : null}
-      {mode !== "templates" && overrideLoadError ? (
+      {mode === "templates" && templateRead.status === "failed" ? (
         <div className="space-y-2">
-          <Notice tone="danger" title="Couldn't load depiction" message={overrideLoadError} />
+          <Notice tone="danger" title="Couldn't load template" message={templateRead.error} />
+          <Button type="button" variant="outline" size="sm" onClick={onRetryTemplate}>
+            <Icon icon="lucide:rotate-cw" size={14} />
+            Try again
+          </Button>
+        </div>
+      ) : null}
+      {overrideRead.status === "failed" ? (
+        <div className="space-y-2">
+          <Notice tone="danger" title="Couldn't load depiction" message={overrideRead.error} />
           <Button type="button" variant="outline" size="sm" onClick={onRetryOverride}>
             <Icon icon="lucide:rotate-cw" size={14} />
             Try again

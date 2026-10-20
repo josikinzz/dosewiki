@@ -1,8 +1,7 @@
 import type { GlossaryCollision, GlossaryStatus } from "@server/translation/glossary";
 import type { GlossaryGloss } from "@server/translation/glossaryGloss";
 import type { ReviewReason } from "@server/translation/reviewReason";
-import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch } from "@/app/api/dev/translation-glossary/glossaryRoutes";
-import type { RetranslateResponse } from "@/app/api/dev/translation-glossary/retranslate/route";
+import type { GlossaryListResponse, GlossaryProgressResponse, GlossaryRowPatch, RetranslateResponse } from "@/lib/glossary/glossaryApiTypes";
 import { glossaryLanguage } from "@/features/language-glossary/languageGlossary";
 import { devFetch } from "@/features/dev/tools/devFetch";
 import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreezeRefusal";

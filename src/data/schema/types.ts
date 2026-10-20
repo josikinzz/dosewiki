@@ -55,15 +55,3 @@ export interface SectionMeta {
   routeDependent?: boolean;
   defaultCollapsed?: boolean;
 }
-
-export type FormState = Record<string, unknown>;
-
-export interface FieldError {
-  path: string;
-  message: string;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  errors: FieldError[];
-}

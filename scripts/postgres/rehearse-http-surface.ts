@@ -7,7 +7,7 @@ import { deleteDocument, insertDocument, mintDocumentId, patchDocument, selectDo
 import { GET as publicationDeliveryGet } from "../../src/app/api/cron/publication-delivery/route";
 import { OPTIONS as subscribeOptions, POST as subscribePost } from "../../src/app/api/subscribe/route";
 import { SUBSCRIBE_RATE_LIMITS, createSubscribeRateLimiter, hashClientIp } from "../../src/app/api/subscribe/subscribePolicy";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ORIGIN = "https://dose.wiki";
@@ -62,8 +62,7 @@ function dueRows(pool: Pool, now: number): Promise<DataDocument[]> {
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, false);
+  const target = resolveLocalRehearsalTarget(argv);
 
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;

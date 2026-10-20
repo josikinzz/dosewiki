@@ -12,16 +12,9 @@ import type { ContributorDirectory } from "../contributorDirectory";
 import { getPublicDataReadAdapter } from "./publicData.reads";
 import { queryData } from "./serverClient";
 import { getServerDataAdminIntentToken } from "./serverWriteHealth";
-import {
-  collapseContributorProfiles,
-  resolveReportContributorProfile,
-} from "./publicData.reportProfileProjection";
+import { collapseContributorProfiles } from "./publicData.reportProfileProjection";
 
 export { collapseContributorProfiles };
-
-export const resolveContributorProfile = resolveReportContributorProfile;
-
-
 
 export const getPublicContributorProfiles = cache(
   publicDataCache(async (): Promise<NormalizedUserProfile[]> => {
