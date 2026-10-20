@@ -16,6 +16,27 @@ export const ARTIFACT_LINEAGE_RUN_DIR = "data/.lineage";
 const ARTIFACT_LINEAGE_DOC_PATHS = ["README.md", "AGENTS.md", "scripts/README.md"]
 const REFERENCES_ERA_SUBSTANCE_SCHEMA_PATH = "src/schema/substance.schema.ts";
 const REFERENCES_ERA_BACKUP_ARTIFACT_IDS = new Set(["substance-index-export", "substance-index-backups"]);
+const GENERATED_OUTPUT_NAME = /\.generated[./]/;
+const GENERATED_OUTPUT_GLOBS = [
+  "content/i18n/messages/*.json",
+  "content/sources/psychonautwiki-2015/articles/*.md",
+  "data/chemistry/*.json",
+  "data/contributors/contributorAvatarSources.json",
+  "data/effects/subjectiveEffectsProvenance.json",
+  "lib/postgres/runtime/dataModel.ts",
+  "public/SubstanceIndex.json",
+  "public/appearance-chroma.css",
+  "public/dosewiki-molecules.*",
+  "public/favicons/*",
+  "public/mantras/*",
+  "public/pro-theme.css",
+  "public/theme-light-mode.css",
+  "src/data/config/sourceFavicons.ts",
+  "src/i18n/catalogPublication.json",
+  "vendor/openchemlib/artifact-manifest.json",
+  "vendor/openchemlib/dist/*",
+];
+const REPOSITORY_PATH = /^[\w.@[\]-]+(?:\/[\w.@[\]*-]+)+$/;
 
 function toRelativePath(pathname, rootDir) {
   const absolutePath = isAbsolute(pathname) ? pathname : resolve(rootDir, pathname);
@@ -236,6 +257,12 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
       errors.push(`${entry.id} producer target does not exist: ${entry.producer}`);
     }
 
+    for (const consumer of entry.consumers ?? []) {
+      if (REPOSITORY_PATH.test(consumer) && listArtifactLineagePathMatches(consumer, { rootDir }).length === 0) {
+        errors.push(`${entry.id} consumer does not exist: ${consumer}`);
+      }
+    }
+
     if (
       REFERENCES_ERA_BACKUP_ARTIFACT_IDS.has(entry.id) &&
       entry.schemaVersion !== REFERENCES_ERA_SUBSTANCE_SCHEMA_PATH
@@ -293,11 +320,16 @@ function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) { 
   return [];
 } }
 
+function listTrackedFiles(rootDir) {
+  return execFileSync("git", ["ls-files"], { cwd: rootDir, encoding: "utf-8" }).split(/\r?\n/).filter(Boolean);
+}
+
 export function collectArtifactLineageVerification({
   rootDir = process.cwd(),
   manifest,
   docsPaths = ARTIFACT_LINEAGE_DOC_PATHS,
   trackedGeneratedExports = collectTrackedGeneratedExportPaths({ rootDir }),
+  trackedFiles = listTrackedFiles(rootDir),
 } = {}) {
   const sourceManifest = manifest ?? readArtifactLineageManifest({ rootDir });
   const errors = validateArtifactLineageManifest({ rootDir, manifest: sourceManifest });
@@ -318,6 +350,16 @@ export function collectArtifactLineageVerification({
     const entry = findArtifactLineageEntry(documentedPath, { rootDir, manifest: sourceManifest });
     if (!entry) {
       warnings.push(`documented data artifact is not represented in lineage manifest: ${documentedPath}`);
+    }
+  }
+
+  const generatedOutputPatterns = [GENERATED_OUTPUT_NAME, ...GENERATED_OUTPUT_GLOBS.map(pathPatternToRegex)];
+  for (const filePath of trackedFiles) {
+    if (
+      generatedOutputPatterns.some((pattern) => pattern.test(filePath)) &&
+      !findArtifactLineageEntry(filePath, { rootDir, manifest: sourceManifest })
+    ) {
+      errors.push(`tracked generated output has no lineage entry: ${filePath}`);
     }
   }
 
