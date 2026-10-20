@@ -326,10 +326,21 @@ DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 bun --preload ./scripts/postgres/prel
 ```
 
 Add `--allow-remote` only for a separately authorized non-local target.
-Write-capable commands (`import`, `backfill`, `enqueue`, `run`, and `stale`)
-require the complete intent-scoped credential, explicit target, role, freeze,
-review, confirmation phrase, and `--write` ceremony documented in the
-credentials runbook. `--write` alone is not authorization.
+Every command reports only by default, and `status` never writes. A write
+by `import`, `backfill`, `enqueue`, `run`, or `stale` repeats the reviewed
+report under `DATA_BACKEND=postgres` with `--write`,
+`--confirm-write=live-mirror-<command>` (for example
+`--confirm-write=live-mirror-enqueue`), and
+`--expected-deployment=<host/database>`. The script refuses before connecting
+when any of these is missing or wrong, or while `DATA_WRITES_FROZEN` is set.
+`--write` alone is not authorization: the owner approves each production
+write as described in the credentials runbook.
+
+`bun run translate:glosses` seeds `translationGlossaryTerms` from
+`data/i18n/glossary/glosses/*.json`. It reports the pending glosses by
+default. A write adds `--write --confirm-write=load-glosses
+--expected-deployment=<host/database>` under the same ceremony, and `--force`
+also overwrites glosses that already exist.
 
 `stale --term` prints the rows it selects (`Matched rows  29 mentioning
 "Entactogen"` on 2026-09-12), marks them stale and replays the marked rows. It does not restamp unrelated old digests without evidence of unchanged prompt dependencies. The `/dev/glossary` workbench's **Retranslate** (in the admin Runs drawer in Articles) does

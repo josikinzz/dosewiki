@@ -147,6 +147,8 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/replications/create-gallery-order.mjs",
     "scripts/replications/repoint-renditions.mjs",
     "scripts/translation/import-glossary-drafts.ts",
+    "scripts/translation/live-mirror.ts",
+    "scripts/translation/load-glosses.ts",
   ]),
   localRehearsal: Object.freeze([
     "scripts/postgres/rehearse-article-lifecycle.ts",

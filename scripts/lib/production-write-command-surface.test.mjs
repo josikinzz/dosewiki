@@ -82,7 +82,7 @@ function unclassifiedRawSqlWriters(detections) {
 function hasStrongBoundary(source) {
   return (
     (source.includes("production-write-command.mjs") &&
-      /assertProductionWriteAllowed|executeProductionWrite/.test(source)) ||
+      /authorizeProductionWrite|assertProductionWriteAllowed|executeProductionWrite/.test(source)) ||
     (source.includes("assertDataOpsWriteAllowed") &&
       source.includes("data-ops-run-context.mjs")) ||
     source.includes("createBatchTargetClient")
