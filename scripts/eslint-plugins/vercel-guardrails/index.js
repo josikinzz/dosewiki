@@ -580,11 +580,26 @@ function resolveRelativeModule(fromFile, source) {
 }
 
 function hasInlineAuthFloor(optionsNode) {
-  return optionsNode?.type === 'ObjectExpression' && optionsNode.properties.some(property =>
+  if (optionsNode?.type !== 'ObjectExpression') return false;
+  const authIndex = optionsNode.properties.findLastIndex(property =>
     property.type === 'Property' &&
+    property.kind === 'init' &&
     !property.computed &&
     (property.key.name === 'auth' || property.key.value === 'auth'),
   );
+  return authIndex !== -1 && !optionsNode.properties.slice(authIndex + 1).some(property => property.type === 'SpreadElement');
+}
+
+function hasDeferredAccessor(node) {
+  if (!node || typeof node.type !== 'string') return false;
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return hasDeferredAccessor(node.expression);
+  if (node.type === 'ObjectExpression') {
+    return node.properties.some(property =>
+      property.type === 'Property' && (property.kind !== 'init' || hasDeferredAccessor(property.value)),
+    );
+  }
+  if (node.type === 'ArrayExpression') return node.elements.some(hasDeferredAccessor);
+  return false;
 }
 
 function resolveModuleId(root, fromFile, source) {
@@ -654,7 +669,7 @@ function createRouteGuardClassifier(root, parseModule) {
     if (kind === 'wrapsHandler') {
       return node.arguments.length === 1 ? classifyHandler(module, node.arguments[0], scope) : unguarded;
     }
-    if (!kind || (scope.perRequest && !node.arguments.every(isInertExpression))) return unguarded;
+    if (!kind || node.arguments.some(hasDeferredAccessor) || (scope.perRequest && !node.arguments.every(isInertExpression))) return unguarded;
     if (kind === 'fixedFloor') return { guarded: true };
     return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
   }

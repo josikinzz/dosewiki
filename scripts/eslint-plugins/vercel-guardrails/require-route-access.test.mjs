@@ -186,6 +186,22 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
       errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
     })),
+    ...[
+      ['a rateLimit getter', '{ auth: "editor", get rateLimit() { doWriteBeforeAuth(); return "editorSmallWrite" as const; }, unexpectedErrorLabel: "x", operation: () => ok() }'],
+      ['an auth getter', '{ get auth() { doWriteBeforeAuth(); return "editor" as const; }, rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() }'],
+      ['a nested getter', '{ auth: "editor", rateLimit: "editorSmallWrite", limits: { get key() { return doWriteBeforeAuth(); } }, unexpectedErrorLabel: "x", operation: () => ok() }'],
+      ['a spread after the auth floor', '{ auth: "editor", ...overrides, rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() }'],
+    ].map(([shape, options]) => ({
+      name: `a module-scope wrapper with ${shape} in its options`,
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        export const POST = protectedRouteOperation(${options});
+      `,
+      errors: [/spread/.test(shape)
+        ? { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } }
+        : { messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    })),
     {
       name: 'a forwarding function whose parameter shadows the wrapper',
       filename: devRoute,
