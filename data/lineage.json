@@ -1007,7 +1007,6 @@
       "consumers": [
         "src/app/effects/category/[categorySlug]/page.tsx",
         "src/features/effects/pages/EffectCategoryPage.tsx",
-        "src/features/effects/effectGuideClass.ts",
         "src/features/effects/articleSectionModel.ts",
         "src/features/effects/pages/replicationSubject.ts"
       ],
