@@ -68,6 +68,7 @@ export type SubstanceEditorFormAdapter =
 export interface SubstanceSectionPresenceContext {
   hasExternalReagentData?: boolean;
   isLoadingExternalReagentData?: boolean;
+  isExternalReagentDataUnavailable?: boolean;
   hasTripReports?: boolean;
 }
 
@@ -366,7 +367,8 @@ export const ARTICLE_SECTION_CATALOG = [
       isPresent: (article, context) =>
         hasStaticReagentData(article) ||
         Boolean(context?.hasExternalReagentData) ||
-        Boolean(context?.isLoadingExternalReagentData),
+        Boolean(context?.isLoadingExternalReagentData) ||
+        Boolean(context?.isExternalReagentDataUnavailable),
     },
   },
   {
