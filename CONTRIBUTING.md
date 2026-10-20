@@ -132,7 +132,7 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run typecheck` | Application type check, with strict null checks on |
 | `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
 | `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
-| `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`; writes nothing |
+| `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
 | `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and both `check:` entries |

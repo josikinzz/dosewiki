@@ -137,7 +137,45 @@ function listCheckedInOutputs(): string[] {
   return [...FIXED_OUTPUTS.filter((file) => fs.existsSync(path.join(OUTPUT_DIR, file))), ...shards];
 }
 
-function checkOutputs(outputs: Map<string, string>): void {
+const INTENTIONAL_OVERRIDE_ONLY_PATHS: ReadonlySet<string> = new Set([
+  "subjective_effects.sensory.visual",
+  "subjective_effects.sensory.auditory",
+  "subjective_effects.sensory.tactile",
+  "subjective_effects.sensory.olfactory",
+  "subjective_effects.sensory.gustatory",
+  "subjective_effects.sensory.multisensory",
+]);
+
+async function checkRegistryComposition(): Promise<boolean> {
+  const { composeRegistry } = await import("../../src/data/schema/registryComposition");
+  const { diagnostics } = composeRegistry();
+  const problems = [
+    ...diagnostics.fieldPathDiagnostics
+      .filter((d) => !(d.operation === "override" && d.code === "unknown_registry_path" && INTENTIONAL_OVERRIDE_ONLY_PATHS.has(d.path)))
+      .map((d) => `${d.severity} (${d.operation}, ${d.code}) at "${d.path}": ${d.message}`),
+    ...diagnostics.overrideOnlyPaths
+      .filter((overridePath) => !INTENTIONAL_OVERRIDE_ONLY_PATHS.has(overridePath))
+      .map((overridePath) => `Override names no generated field: "${overridePath}"`),
+    ...[...INTENTIONAL_OVERRIDE_ONLY_PATHS]
+      .filter((allowed) => !diagnostics.overrideOnlyPaths.includes(allowed))
+      .map((allowed) => `Allowed override-only path is no longer override-only, drop it from the allowance: "${allowed}"`),
+    ...diagnostics.sectionFieldsMissingFromRegistry.map(
+      ({ section, path: fieldPath }) => `Section "${section}" lists a field the registry does not have: "${fieldPath}"`,
+    ),
+  ];
+
+  for (const problem of problems) console.error(`Registry composition: ${problem}`);
+  if (problems.length > 0) {
+    console.error("\nFix the override in src/data/schema/fieldOverrides/ or the section list in src/schema/substance/sectionCatalog.");
+    return false;
+  }
+  console.log(
+    `Registry composition is clean (${INTENTIONAL_OVERRIDE_ONLY_PATHS.size} allowed override-only paths; ${diagnostics.unmatchedGeneratedPaths.length} generated fields sit in no presentation section, which is allowed).`,
+  );
+  return true;
+}
+
+function checkOutputs(outputs: Map<string, string>): boolean {
   const drifted = [...outputs]
     .filter(([file, content]) => {
       const target = path.join(OUTPUT_DIR, file);
@@ -151,10 +189,10 @@ function checkOutputs(outputs: Map<string, string>): void {
 
   if (drifted.length > 0 || unexpected.length > 0) {
     console.error("\nSchema helpers drifted from src/schema/substance.schema.ts. Run: bun run generate:schema");
-    process.exitCode = 1;
-    return;
+    return false;
   }
   console.log(`Schema helpers are current (${outputs.size} files).`);
+  return true;
 }
 
 function writeOutputs(outputs: Map<string, string>): void {
@@ -167,7 +205,7 @@ function writeOutputs(outputs: Map<string, string>): void {
   }
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const unknown = args.filter((arg) => arg !== "--check");
   if (unknown.length > 0) {
@@ -177,11 +215,11 @@ function main() {
   }
 
   const outputs = renderOutputs();
-  if (args.includes("--check")) {
-    checkOutputs(outputs);
-  } else {
+  if (!args.includes("--check")) {
     writeOutputs(outputs);
+    return;
   }
+  if (!checkOutputs(outputs) || !(await checkRegistryComposition())) process.exitCode = 1;
 }
 
-main();
+await main();
