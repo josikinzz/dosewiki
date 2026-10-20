@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { ReactNode } from "react";
 
 import { StateCard } from "@/components/common/StateCard";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import {
 } from "./DevModePageChrome";
 import type { DevModePageControllerState } from "./devModePageTypes";
 import { LIBRARY_DEPENDENT_TABS } from "./devModePageUtils";
-import { findDevTab } from "./devTabRegistry";
+import { findDevTab, isShellDevTab, type DevShellTab } from "./devTabRegistry";
 import { LoadErrorState } from "../components";
 import { DevWriteStatus } from "./DevToolSaveLine";
 import { StagedArticlesRecoveryNotice } from "./StagedArticlesRecoveryNotice";
@@ -98,6 +99,113 @@ const MyReportsTab = dynamic(
   () => import("../tools/my-reports/MyReportsTab").then((m) => m.MyReportsTab),
   { ssr: false, loading },
 );
+
+type ToolRenderer = (controller: DevModePageControllerState) => ReactNode;
+
+const TOOL_RENDERERS: Record<DevShellTab, ToolRenderer> = {
+  "change-log": (controller) => (
+    <DevModeChangeLogTab
+      controller={controller.changeLog}
+      contributorProfiles={controller.contributorDirectory.profiles}
+    />
+  ),
+  "index-layout": (controller) => (
+    <IndexLayoutTab
+      {...controller.indexLayoutTabProps}
+      commitPanel={controller.commitPanel}
+    />
+  ),
+  "writing": (controller) => (
+    <WritingTab
+      contributorProfiles={controller.contributorDirectory.profiles}
+      profilesLoading={controller.contributorDirectory.isLoading}
+      initialSlug={controller.writingInitialSlug}
+      initialKind={controller.initialFilter}
+      canApprove={controller.canApprove}
+    />
+  ),
+  "copy-studio": (controller) => (
+    <CopyStudioTab initialKey={controller.copyStudioInitialKey} canApprove={controller.canApprove} />
+  ),
+  "queue": (controller) => (
+    <QueueTab
+      viewerRole={controller.role}
+      canApprove={controller.canApprove}
+      onLoadIntoEditor={controller.onLoadProposal}
+      initialProposalId={controller.queueInitialId}
+      actorEmail={controller.userEmail ?? null}
+    />
+  ),
+  "home": (controller) => (
+    <HomeTab role={controller.role} profileKey={controller.sessionProfileKey} />
+  ),
+  "inbox": (controller) => (
+    <InboxTab actorEmail={controller.userEmail ?? null} />
+  ),
+  "contributors": (controller) => (
+    <ContributorsTab
+      profiles={controller.contributorDirectory.profiles}
+      isDirectoryLoading={controller.contributorDirectory.isLoading}
+      canEdit={controller.canDraft}
+      canApprove={controller.canApprove}
+      sessionProfileKey={controller.sessionProfileKey}
+      viewerEmail={controller.userEmail}
+      initialScope={controller.initialFilter}
+      initialKey={controller.contributorsInitialKey}
+    />
+  ),
+  "playlists": (controller) => (
+    <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />
+  ),
+  "citation-review": (controller) => (
+    <CitationReviewTab
+      initialSlug={controller.citationReviewInitialSlug}
+      actorEmail={controller.userEmail ?? null}
+    />
+  ),
+  "trip-report-submissions": (controller) => (
+    <TripReportPortalTab
+      initialSubmissionId={controller.tripReportsInitialId}
+      actorEmail={controller.userEmail ?? null}
+    />
+  ),
+  "article-feedback": (controller) => (
+    <FeedbackTab
+      initialSource={controller.initialFilter}
+      initialId={controller.feedbackInitialId}
+      actorEmail={controller.userEmail ?? null}
+    />
+  ),
+  "tag-editor": (controller) => (
+    <TagEditorTab {...controller.tagEditorTabProps} />
+  ),
+  "molecule-editor": (controller) => (
+    <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
+  ),
+  "replications": (controller) => (
+    <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
+  ),
+  "banners": (controller) => (
+    <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
+  ),
+  "people": (controller) => (
+    <PeopleTab
+      profiles={controller.contributorDirectory.profiles}
+      isDirectoryLoading={controller.contributorDirectory.isLoading}
+      sessionProfileKey={controller.sessionProfileKey}
+      initialPerson={controller.peopleInitialKey}
+    />
+  ),
+  "glossary": (controller) => (
+    <GlossaryTab viewerRole={controller.role} />
+  ),
+  "my-reports": (controller) => (
+    <MyReportsTab canApprove={controller.canApprove} />
+  ),
+  "articles": (controller) => (
+    <SubstanceEditorTab initialSlug={controller.articlesInitialSlug} />
+  ),
+};
 
 type DevModePageViewProps = {
   controller: DevModePageControllerState;
@@ -194,88 +302,8 @@ export function DevModePageView({ controller }: DevModePageViewProps) {
           <LoadErrorState what="the articles" message={controller.libraryError} onRetry={controller.retryLibrary} />
         ) : isWaitingOnLibrary ? (
           <DevToolLoadingPanel label="Loading articles" />
-        ) : controller.activeTab === "change-log" ? (
-          <DevModeChangeLogTab
-            controller={controller.changeLog}
-            contributorProfiles={controller.contributorDirectory.profiles}
-          />
-        ) : controller.activeTab === "index-layout" ? (
-          <IndexLayoutTab
-            {...controller.indexLayoutTabProps}
-            commitPanel={controller.commitPanel}
-          />
-        ) : controller.activeTab === "writing" ? (
-          <WritingTab
-            contributorProfiles={controller.contributorDirectory.profiles}
-            profilesLoading={controller.contributorDirectory.isLoading}
-            initialSlug={controller.writingInitialSlug}
-            initialKind={controller.initialFilter}
-            canApprove={controller.canApprove}
-          />
-        ) : controller.activeTab === "copy-studio" ? (
-          <CopyStudioTab initialKey={controller.copyStudioInitialKey} canApprove={controller.canApprove} />
-        ) : controller.activeTab === "queue" ? (
-          <QueueTab
-            viewerRole={controller.role}
-            canApprove={controller.canApprove}
-            onLoadIntoEditor={controller.onLoadProposal}
-            initialProposalId={controller.queueInitialId}
-            actorEmail={controller.userEmail ?? null}
-          />
-        ) : controller.activeTab === "home" ? (
-          <HomeTab role={controller.role} profileKey={controller.sessionProfileKey} />
-        ) : controller.activeTab === "inbox" ? (
-          <InboxTab actorEmail={controller.userEmail ?? null} />
-        ) : controller.activeTab === "contributors" ? (
-          <ContributorsTab
-            profiles={controller.contributorDirectory.profiles}
-            isDirectoryLoading={controller.contributorDirectory.isLoading}
-            canEdit={controller.canDraft}
-            canApprove={controller.canApprove}
-            sessionProfileKey={controller.sessionProfileKey}
-            viewerEmail={controller.userEmail}
-            initialScope={controller.initialFilter}
-            initialKey={controller.contributorsInitialKey}
-          />
-        ) : controller.activeTab === "playlists" ? (
-          <PlaylistsTab isAdmin={controller.canApprove} initialKey={controller.playlistsInitialKey} />
-        ) : controller.activeTab === "citation-review" ? (
-          <CitationReviewTab
-            initialSlug={controller.citationReviewInitialSlug}
-            actorEmail={controller.userEmail ?? null}
-          />
-        ) : controller.activeTab === "trip-report-submissions" ? (
-          <TripReportPortalTab
-            initialSubmissionId={controller.tripReportsInitialId}
-            actorEmail={controller.userEmail ?? null}
-          />
-        ) : controller.activeTab === "article-feedback" ? (
-          <FeedbackTab
-            initialSource={controller.initialFilter}
-            initialId={controller.feedbackInitialId}
-            actorEmail={controller.userEmail ?? null}
-          />
-        ) : controller.activeTab === "tag-editor" ? (
-          <TagEditorTab {...controller.tagEditorTabProps} />
-        ) : controller.activeTab === "molecule-editor" ? (
-          <MoleculeEditorTab initialSlug={controller.moleculeEditorInitialSlug} />
-        ) : controller.activeTab === "replications" ? (
-          <ReplicationStudioTab initialSubstanceSlug={controller.replicationsInitialSlug} />
-        ) : controller.activeTab === "banners" ? (
-          <WarningBannersTab initialSubstanceSlug={controller.bannersInitialSlug} />
-        ) : controller.activeTab === "people" ? (
-          <PeopleTab
-            profiles={controller.contributorDirectory.profiles}
-            isDirectoryLoading={controller.contributorDirectory.isLoading}
-            sessionProfileKey={controller.sessionProfileKey}
-            initialPerson={controller.peopleInitialKey}
-          />
-        ) : controller.activeTab === "glossary" ? (
-          <GlossaryTab viewerRole={controller.role} />
-        ) : controller.activeTab === "my-reports" ? (
-          <MyReportsTab canApprove={controller.canApprove} />
-        ) : controller.activeTab === "articles" ? (
-          <SubstanceEditorTab initialSlug={controller.articlesInitialSlug} />
+        ) : isShellDevTab(controller.activeTab) ? (
+          TOOL_RENDERERS[controller.activeTab](controller)
         ) : null}
       </div>
     </main>
