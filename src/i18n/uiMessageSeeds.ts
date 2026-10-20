@@ -57,7 +57,6 @@ const BASE_UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, str
     "languageGlossary.status.missing": "尚未翻译",
     "languageGlossary.example.source": "在网站上查看此句",
     "translationCredits.title": "翻译贡献者",
-    "tripReport.approximateDate": "约 {{date}}",
     "Dose journal for iPhone and Android": "适用于 iPhone 和 Android 的剂量日志",
     "Piru is an app for logging doses and writing trip reports, on iPhone, Android and Mac, with an Apple Watch companion. It records what you took, how much, and when, draws estimated effect curves from duration data, and lets you check in on mood and effects as a session goes. A finished session exports as a report, and can fill in dose.wiki's trip report form.\n\nIts substance library works offline, draws on dose.wiki's data, and shows where each field came from. Everything stays on your device, with no account, ads, or analytics, and it can import journals from the PsychonautWiki app.\n\nPiru is made by [kageroumado](https://github.com/kageroumado) and [pharmacykitty](https://github.com/pharmacykitty). The iPhone beta is on [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki); the [Android app](https://kagerou.glass/get/piru/android?from=dosewiki) and the [Mac app](https://kagerou.glass/get/piru/mac?from=dosewiki) are free downloads from GitHub.": "Piru 是一款记录剂量和撰写体验报告的应用，支持 iPhone、Android 和 Mac，另有 Apple Watch 配套应用。它会记录你用了什么、用了多少、何时使用，根据持续时间数据绘制预估的效应曲线，并让你在场次进行中随时记录情绪和效应。场次结束后可以导出为报告，也可以直接填写 dose.wiki 的体验报告表单。\n\n它的物质库可离线使用，数据来自 dose.wiki，并标明每个字段的来源。所有内容都保存在你的设备上，无需账号，没有广告，也不收集统计数据。它还可以导入 PsychonautWiki 应用中的日志。\n\nPiru 由 [kageroumado](https://github.com/kageroumado) 和 [pharmacykitty](https://github.com/pharmacykitty) 开发。iPhone 测试版可在 [TestFlight](https://kagerou.glass/get/piru/ios?from=dosewiki) 获取；[Android 版](https://kagerou.glass/get/piru/android?from=dosewiki)和 [Mac 版](https://kagerou.glass/get/piru/mac?from=dosewiki)可在 GitHub 免费下载。",
   },
@@ -77,7 +76,6 @@ const BASE_UI_MESSAGE_SEEDS: Readonly<Record<string, Readonly<Record<string, str
     "languageGlossary.status.missing": "Ещё не переведено",
     "languageGlossary.example.source": "Открыть это предложение на сайте",
     "translationCredits.title": "Участники перевода",
-    "tripReport.approximateDate": "примерно {{date}}",
   },
 };
 

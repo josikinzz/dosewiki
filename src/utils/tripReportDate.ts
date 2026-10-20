@@ -1,4 +1,4 @@
-import { formattingLocale, type Translate, type UiLocale } from "@/i18n/messages";
+import { formattingLocale, type UiLocale } from "@/i18n/messages";
 
 const MONTH_NAMES = [
   "January",
@@ -188,7 +188,6 @@ export function parseTripDate(raw: string | null | undefined): TripDateParts | n
 export function formatTripDateLabel(
   raw: string | null | undefined,
   locale: UiLocale,
-  t: Translate,
 ): string | null {
   if (!raw) {
     return null;
@@ -208,7 +207,11 @@ export function formatTripDateLabel(
 
   const precise = locale === "en" ? englishTripDateLabel(parts) : localizedTripDateLabel(parts, locale);
 
-  return parts.approximate ? t("tripReport.approximateDate", { date: precise }) : precise;
+  if (!parts.approximate) {
+    return precise;
+  }
+
+  return locale === "en" ? `around ${precise}` : `约 ${precise}`;
 }
 
 function englishTripDateLabel(parts: TripDateParts): string {

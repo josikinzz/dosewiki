@@ -232,7 +232,7 @@ function TripReportCardTitleBlock({
 }) {
   const t = useT();
   const locale = useUiLocale();
-  const dateLabel = formatTripDateLabel(report.tripDate, locale, t);
+  const dateLabel = formatTripDateLabel(report.tripDate, locale);
   const byLabel = t("by");
 
   return (
