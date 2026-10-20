@@ -651,6 +651,20 @@
       "refreshCommand": "npm run postgres:migrate:generate"
     },
     {
+      "id": "localized-publication-trigger-creation",
+      "path": "lib/postgres/migrations/0013_localized_publication_index_triggers.sql",
+      "role": "versioned-sql-migrations",
+      "producer": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+      "consumers": ["npm run postgres:migrate"],
+      "inputs": ["scripts/postgres/localizedPublicationIndexTriggers.ts"],
+      "freshnessRule": "Append-only. Never rewrite after application; a change to these trigger functions requires a new custom Drizzle migration written by the same script.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "TARGET_POSTGRES_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0013_localized_publication_index_triggers.sql"
+    },
+    {
       "id": "localized-publication-trigger-restoration",
       "path": "lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql",
       "role": "versioned-sql-migrations",

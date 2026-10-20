@@ -49,7 +49,10 @@ const FILES_NEEDING_THEIR_OWN_ENTRY = {
     "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
     "public/favicons/{bluelight,dancesafe,disregardeverythingisay,drugbank,drugs-forum,drugusersbible,erowid,isomerdesign,mindstate-design,protestkit,psychonautwiki,pubchem,pubmed,reddit,thedrugclassroom,tripsit,wikipedia}.png",
   ],
-  "separately produced": ["lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql"],
+  "separately produced": [
+    "lib/postgres/migrations/0013_localized_publication_index_triggers.sql",
+    "lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql",
+  ],
 };
 const REPOSITORY_PATH = /^(?:[\w.@[\]()-]+(?:\/[\w.@[\]()*-]+)+|[\w.@-]+\.[A-Za-z]\w*)$/;
 const PATH_WILDCARD = /[*{]/;
