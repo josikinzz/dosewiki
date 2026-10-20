@@ -6,6 +6,10 @@ import { Icon } from "@/components/common/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { DosageRoute, SubstanceArticle } from "@/schema";
+import {
+  shownPlateauTiers,
+  type PlateauTierKey,
+} from "@/schema/substance/dosageDurationProjection";
 import { useT } from "@/i18n/client";
 import { msg } from "@/i18n/messages";
 
@@ -13,17 +17,13 @@ import { DoseTiersTable } from "./dosageDurationPanels.client";
 import { ArticleDisclaimer } from "./ArticleDisclaimer";
 import { DOSAGE_PANEL_DISCLAIMER_FALLBACK } from "./articleDisclaimerCopy";
 
-const PLATEAU_TIERS: Array<{
-  key: string;
-  label: string;
-  isSigma?: boolean;
-}> = [
-  { key: "first_plateau", label: msg("Plateau 1") },
-  { key: "second_plateau", label: msg("Plateau 2") },
-  { key: "third_plateau", label: msg("Plateau 3") },
-  { key: "fourth_plateau", label: msg("Plateau 4") },
-  { key: "fifth_plateau", label: msg("Plateau Sigma"), isSigma: true },
-];
+const PLATEAU_TIER_LABELS: Record<PlateauTierKey, string> = {
+  first_plateau: msg("Plateau 1"),
+  second_plateau: msg("Plateau 2"),
+  third_plateau: msg("Plateau 3"),
+  fourth_plateau: msg("Plateau 4"),
+  fifth_plateau: msg("Plateau Sigma"),
+};
 
 function PlateauTiersTable({
   plateauDosing,
@@ -42,17 +42,13 @@ function PlateauTiersTable({
   };
 
   const hasNotes = !!plateauDosing.notes?.trim();
+  const tiers = shownPlateauTiers(plateauDosing);
 
   return (
     <>
       <div className="space-y-1.5">
-        {PLATEAU_TIERS.map(({ key, label, isSigma }) => {
-          const plateau = plateauDosing[key as keyof typeof plateauDosing];
-          if (!plateau || typeof plateau === "string") return null;
-
-          const hasDoseRange = plateau.min !== null || plateau.max !== null;
-          if (!isSigma && !hasDoseRange) return null;
-
+        {tiers.map(({ key, isSigma, hasDoseRange, plateau }) => {
+          const label = PLATEAU_TIER_LABELS[key];
           const doseText = hasDoseRange
             ? plateau.max !== null
               ? plateau.min === plateau.max

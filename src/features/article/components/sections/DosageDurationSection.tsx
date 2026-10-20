@@ -1,12 +1,6 @@
 import { memo, type ReactNode } from "react";
-import type { DosageRoute, DurationRoute, SubstanceArticle } from "@/schema";
-import {
-  hasDosageContent,
-  hasDurationContent,
-  routeHasDosageContent,
-  routeHasDurationContent,
-} from "@/schema/substance/dosageDurationPresence";
-import { normalizeRouteName } from "../../../../../lib/article/normalization.mjs";
+import type { SubstanceArticle } from "@/schema";
+import { projectDosageDurationRoutes } from "@/schema/substance/dosageDurationProjection";
 import { CitedText, CitationMarker } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 import { DosagePanel } from "./dosageDurationPlateau";
@@ -21,16 +15,6 @@ interface DosageDurationSectionProps {
   article: SubstanceArticle;
   dosageDisclaimer?: string;
   piruSlug?: string;
-}
-
-interface RouteGroup {
-  dosage: Array<{ route: DosageRoute; index: number }>;
-  duration: Array<{ route: DurationRoute; index: number }>;
-}
-
-function getCanonicalRouteName(route: string | null | undefined): string {
-  const raw = typeof route === "string" ? route : "";
-  return normalizeRouteName(raw) || raw.trim();
 }
 
 function renderNoteLines(
@@ -65,83 +49,24 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   piruSlug,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
-  const groups = new Map<string, RouteGroup>();
-  const groupFor = (rawRoute: string) => {
-    const canonicalRoute = getCanonicalRouteName(rawRoute);
-    if (!canonicalRoute) return null;
-    const existing = groups.get(canonicalRoute);
-    if (existing) return existing;
-    const created: RouteGroup = { dosage: [], duration: [] };
-    groups.set(canonicalRoute, created);
-    return created;
-  };
-  dosage.routes.forEach((route, index) =>
-    groupFor(route.route)?.dosage.push({ route, index }),
-  );
-  duration.routes.forEach((route, index) =>
-    groupFor(route.route)?.duration.push({ route, index }),
+  const panels = projectDosageDurationRoutes(
+    dosage.routes,
+    duration.routes,
+    dosage.plateau_dosing,
   );
 
-  const projected = new Map<
-    string,
-    {
-      dosage?: DosageRoute;
-      dosageIndex?: number;
-      duration?: DurationRoute;
-      durationIndex?: number;
-    }
-  >();
-  groups.forEach((group, canonicalRoute) => {
-    const dosageEntry = group.dosage.find((entry) =>
-      routeHasDosageContent(entry.route),
-    );
-    const durationEntry = group.duration.find((entry) =>
-      routeHasDurationContent(entry.route),
-    );
-    projected.set(canonicalRoute, {
-      dosage: dosageEntry?.route,
-      dosageIndex: dosageEntry?.index,
-      duration: durationEntry?.route,
-      durationIndex: durationEntry?.index,
-    });
-  });
-
-  const hasDosage = hasDosageContent(dosage);
-  const hasDuration = hasDurationContent(duration);
-  const plateauNeedsHost =
-    hasDosageContent({ routes: [], plateau_dosing: dosage.plateau_dosing }) &&
-    !Array.from(projected.values()).some((entry) => entry.dosage);
-  let routeKeys = Array.from(projected.entries())
-    .filter(([, entry]) => entry.dosage || entry.duration)
-    .map(([key]) => key);
-  if (routeKeys.length === 0 && plateauNeedsHost) {
-    routeKeys = Array.from(groups.entries())
-      .filter(([, group]) => group.dosage.length > 0)
-      .map(([key]) => key);
-  }
-
-  if ((!hasDosage && !hasDuration) || routeKeys.length === 0) {
+  if (panels.length === 0) {
     return <ArticleGapNotice article={article} section="dosage_duration" />;
   }
 
-  const firstWithContent = routeKeys.find((key) => {
-    const entry = projected.get(key);
-    return Boolean(entry?.dosage || entry?.duration);
-  });
-  const initialRoute = firstWithContent ?? routeKeys[0] ?? "oral";
-  const routes: DosageDurationRouteView[] = routeKeys.map((key) => {
-    const entry = projected.get(key);
-    const plateauHost = plateauNeedsHost
-      ? groups.get(key)?.dosage[0]
-      : undefined;
-    const dosageRoute = entry?.dosage ?? plateauHost?.route;
-    const dosageIndex = entry?.dosage ? entry.dosageIndex : plateauHost?.index;
-    const durationRoute = entry?.duration;
+  const routes: DosageDurationRouteView[] = panels.map((panel) => {
+    const dosageRoute = panel.dosage?.route;
+    const durationRoute = panel.duration?.route;
     const hasBothPanels = Boolean(dosageRoute && durationRoute);
     return {
-      key,
-      label: getRouteLabelKey(key),
-      icon: ROUTE_ICONS[key.toLowerCase()],
+      key: panel.key,
+      label: getRouteLabelKey(panel.key),
+      icon: ROUTE_ICONS[panel.key.toLowerCase()],
       panel: (
         <div
           className={`relative grid items-start gap-4 ${hasBothPanels ? "md:grid-cols-2" : "md:grid-cols-1"}`}
@@ -149,7 +74,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
           {dosageRoute ? (
             <DosagePanel
               route={dosageRoute}
-              routeIndex={dosageIndex}
+              routeIndex={panel.dosage?.index}
               plateauDosing={dosage.plateau_dosing}
               disclaimer={dosageDisclaimer}
               citationMarker={
@@ -196,7 +121,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
           {durationRoute ? (
             <DurationPanel
               route={durationRoute}
-              routeIndex={entry?.durationIndex}
+              routeIndex={panel.duration?.index}
               citationMarker={
                 <CitationMarker
                   article={article}
@@ -223,7 +148,7 @@ export const DosageDurationSection = memo(function DosageDurationSection({
   return (
     <DosageDurationSectionView
       routes={routes}
-      initialRoute={initialRoute}
+      initialRoute={panels[0].key}
       piruSlug={piruSlug}
     />
   );
