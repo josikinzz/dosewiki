@@ -7,8 +7,8 @@ import {
   getPublicRecentChanges,
   PUBLIC_CHANGES_PAGE_LIMIT,
 } from "@server/data/publicData.changelog";
-import { getPublicSubstanceLookupBySlug } from "@server/data/publicData.substances";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
+import { resolveChangeHistoryTarget, type ChangeHistorySearchParams } from "@server/next/changeHistoryTarget";
 import { buildPublicPageMetadata } from "@server/next/publicSite";
 
 export const dynamic = "force-dynamic";
@@ -16,20 +16,12 @@ export const dynamic = "force-dynamic";
 const LOCALE = LIVE_LOCALES["ru.dose.wiki"];
 
 type ChangesRouteProps = {
-  searchParams: Promise<{ article?: string | string[] }>;
+  searchParams: ChangeHistorySearchParams;
 };
-
-async function resolveArticle(searchParams: ChangesRouteProps["searchParams"]) {
-  const { article } = await searchParams;
-  const slug = (Array.isArray(article) ? article[0] : article)?.trim().toLowerCase() ?? "";
-  if (!slug) return null;
-  const substance = await getPublicSubstanceLookupBySlug(slug);
-  return substance ? { slug: substance.slug, title: substance.name } : null;
-}
 
 export async function generateMetadata({ searchParams }: ChangesRouteProps) {
   setRequestLocale(LOCALE.code);
-  const article = await resolveArticle(searchParams);
+  const article = await resolveChangeHistoryTarget(searchParams);
   return buildPublicPageMetadata({
     title: article ? t("Changes to {{name}}", { name: article.title }) : t("Recent changes"),
     description: article
@@ -43,7 +35,7 @@ export async function generateMetadata({ searchParams }: ChangesRouteProps) {
 export default async function ChangesRoute({ searchParams }: ChangesRouteProps) {
   setRequestLocale(LOCALE.code);
   const directory = getPublicContributorDirectory();
-  const article = await resolveArticle(searchParams);
+  const article = await resolveChangeHistoryTarget(searchParams);
   const changes = await (article
     ? getPublicArticleHistory(article.slug, directory, PUBLIC_CHANGES_PAGE_LIMIT)
     : getPublicRecentChanges(directory));
