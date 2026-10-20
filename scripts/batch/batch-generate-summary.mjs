@@ -4,12 +4,11 @@ import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
-import { assertDataOpsWriteAllowed } from "../lib/data-ops-run-context.mjs";
+import { assertDataOpsWriteAllowed, loadEnvFiles } from "../lib/data-ops-run-context.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { getArticleSlug } from "./summary/articles.mjs";
 import { parseArgs, printHelp } from "./summary/cli.mjs";
 import { CONFIG, INPUT_BOUNDS, PROJECT_ROOT } from "./summary/config.mjs";
-import { loadEnvLocal } from "./summary/env.mjs";
 import { processAll, processArticle, createOpenRouterCaller, createPersistSuccessfulUpdate } from "./summary/pipeline.mjs";
 import {
   createRunArtifacts,
@@ -28,7 +27,7 @@ import {
 } from "./summary/source-material.mjs";
 import { selectArticles } from "./summary/articles.mjs";
 
-loadEnvLocal(PROJECT_ROOT);
+loadEnvFiles({ rootDir: PROJECT_ROOT });
 let activeRunArtifacts = null;
 
 async function main(options) {

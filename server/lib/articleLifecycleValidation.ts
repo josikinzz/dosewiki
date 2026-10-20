@@ -7,7 +7,7 @@ import { durationRouteSchema, durationSchema } from "../../src/schema/substance/
 import { legalitySchema, usStateLegalitySchema } from "../../src/schema/substance/legality";
 import { countryLegalitySchema, referenceSchema, type CountryLegality, type Reference } from "../../src/schema/substance/shared";
 import { contentHash } from "../../lib/proposals/contentHash";
-import { extractCitationTokens } from "../../lib/citations/citationPlacement.mjs";
+import { extractCitationTokens } from "../../lib/citations/citationTokens.mjs";
 import { haveCompatibleReferenceIdentity, referenceIdentitiesOverlap } from "../../lib/citations/referenceIdentity.mjs";
 import { MAX_ARTICLE_REFERENCES, normalizeIncomingReference } from "./articleReferenceWrites";
 import { isProjectionRecord as isRecord } from "../../src/data/projections/substanceProjectionCore";

@@ -20,10 +20,8 @@ import {
   glossaryLocaleAccess,
   parseLocale,
   parsePromptVersion,
-  type GlossaryListResponse,
-  type GlossaryLocaleOption,
-  type GlossaryProgressResponse,
 } from "./glossaryRoutes";
+import type { GlossaryListResponse, GlossaryLocaleOption, GlossaryProgressResponse } from "@/lib/glossary/glossaryApiTypes";
 
 export const runtime = "nodejs";
 

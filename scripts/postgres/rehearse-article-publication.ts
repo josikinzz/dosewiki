@@ -15,7 +15,7 @@ import {
   readArticlePublicationState,
   readPublicArticleBySlug,
   type PublishReviewedSectionResult,
-} from "../../lib/postgres/articlePublication";
+} from "./lib/articlePublicationHarness";
 import { documentHash } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { minimalArticle } from "../../src/test/fixtures/articles";

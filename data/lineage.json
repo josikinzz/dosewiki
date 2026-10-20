@@ -583,11 +583,11 @@
       "producer": "scripts/postgres/generateDrizzleSchema.ts",
       "consumers": [
         "drizzle.config.ts",
-        "lib/postgres/articlePublication.ts",
         "lib/postgres/documentCodec.ts",
         "lib/postgres/documentStore.ts",
         "lib/postgres/migrations/*.sql",
         "scripts/postgres/import-document-snapshot.ts",
+        "scripts/postgres/lib/articlePublicationHarness.ts",
         "scripts/postgres/synthesizeDocumentSnapshot.ts"
       ],
       "inputs": [
