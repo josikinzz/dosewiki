@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,7 +41,11 @@ function schemaDrift(): void {
   const result = spawnSync("bunx", ["drizzle-kit", "generate", "--config", path.relative(ROOT, configPath)], {
     cwd: ROOT,
     encoding: "utf8",
-    env: { ...process.env, POSTGRES_DIRECT_URL: process.env.POSTGRES_DIRECT_URL ?? "postgres://localhost:5432/dosewiki" },
+    env: {
+      ...process.env,
+      DOTENV_CONFIG_PATH: os.devNull,
+      POSTGRES_DIRECT_URL: process.env.POSTGRES_DIRECT_URL ?? "postgres://localhost:5432/dosewiki",
+    },
   });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
   expect("drizzle-kit generate ran against the scratch copy", result.status === 0, result.status === 0 ? undefined : output.trim().split("\n").slice(-10));
