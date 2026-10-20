@@ -32,7 +32,6 @@ const allowlistedScripts = [
   "scripts/translation/ui-catalog.ts",
   "scripts/translation/live-mirror.ts",
   "scripts/translation/mirror-coverage.ts",
-  "scripts/util/recolorMolecules.mjs",
   "scripts/lib/workflow-command-surface.mjs",
 ];
 
