@@ -69,6 +69,7 @@ interface MoleculeEditorWorkbenchProps {
   lead?: ReactNode;
   startingPoints: ReactNode;
   noStructure: boolean;
+  snapshotFailed: boolean;
   oclReady: boolean;
   oclError: string | null;
   rdkitError: string | null;
@@ -134,6 +135,7 @@ export function MoleculeEditorWorkbench({
   lead,
   startingPoints,
   noStructure,
+  snapshotFailed,
   oclReady,
   oclError,
   rdkitError,
@@ -192,7 +194,7 @@ export function MoleculeEditorWorkbench({
   const guardMismatch = guard != null && !guard.match;
   const coarsePointer = useMediaQuery("(pointer: coarse)");
   const [drawingOn, setDrawingOn] = useState(false);
-  const hasCanvas = !noStructure && !!record.slug;
+  const hasCanvas = !noStructure && !snapshotFailed && !!record.slug;
   const drawingEnabled = hasCanvas && (!coarsePointer || drawingOn);
   const pickModes = drawingEnabled;
 
@@ -402,7 +404,7 @@ export function MoleculeEditorWorkbench({
               <div
                 className={cn(
                   "relative w-full overflow-hidden rounded-card border border-dose-border bg-dose-body",
-                  noStructure ? "h-64" : coarsePointer ? "h-[min(64dvh,30rem)]" : "h-[clamp(24rem,calc(100dvh-23rem),44rem)]",
+                  noStructure || snapshotFailed ? "h-64" : coarsePointer ? "h-[min(64dvh,30rem)]" : "h-[clamp(24rem,calc(100dvh-23rem),44rem)]",
                 )}
                 onDragOver={(event) => {
                   if (drawingEnabled) event.preventDefault();
@@ -450,6 +452,7 @@ export function MoleculeEditorWorkbench({
                   </ErrorBoundary>
                 ) : null}
                 {noStructure ? <NoStructureCanvas mode={mode} /> : null}
+                {snapshotFailed ? <UnreadableSnapshotCanvas mode={mode} /> : null}
                 {hasCanvas && computing ? (
                   <div className="theme-text-muted absolute inset-0 grid place-items-center bg-dose-surface-muted/70 text-sm">
                     <span role="status" className="inline-flex items-center gap-2">
@@ -712,6 +715,24 @@ function CanvasKeyLegend() {
         </div>
       </details>
     </section>
+  );
+}
+
+function UnreadableSnapshotCanvas({ mode }: { mode: EditorMode }) {
+  return (
+    <div className="absolute inset-0 grid place-items-center bg-dose-surface-muted p-6">
+      <div className="max-w-xs text-center">
+        <div className="theme-danger-text mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-dose-body">
+          <Icon icon="lucide:circle-alert" size={22} />
+        </div>
+        <p className="theme-text-primary font-medium">
+          {mode === "templates" ? "Saved template unreadable" : "Saved depiction unreadable"}
+        </p>
+        <p className="theme-text-muted mt-1 text-sm">
+          Editing and saving stay off so nothing replaces a record that couldn&apos;t be read. Try again above.
+        </p>
+      </div>
+    </div>
   );
 }
 

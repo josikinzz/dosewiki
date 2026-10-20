@@ -11,6 +11,7 @@ import { minimalArticle } from "../../src/test/fixtures/articles";
 import { DRAFT_SCHEMA_VERSION, buildPairId, contentHash } from "../citations/verdict-lib.mjs";
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { resolveAdminIntentToken } from "../lib/data-ops-run-context.mjs";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const WRONG_DEPLOYMENT = "wrong-deployment-000";
@@ -459,7 +460,8 @@ async function merge(r: Rehearsal, client: ReturnType<typeof createDataClient>["
 async function main() {
   const argv = process.argv.slice(2);
   const keep = argv.includes("--keep");
-  const created = createDataClient({ env: { ...process.env, DATA_BACKEND: "postgres" }, argv });
+  const target = resolveLocalRehearsalTarget(argv);
+  const created = createDataClient({ target, env: { ...process.env, DATA_BACKEND: "postgres" }, argv });
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-commands`);
   const r = new Rehearsal(created.target, runDirectory);
   const started = performance.now();
