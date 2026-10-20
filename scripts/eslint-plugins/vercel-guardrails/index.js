@@ -460,16 +460,22 @@ const requireRateLimit = {
 const HTTP_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
 
 const ROUTE_GUARD_FACTORIES = new Map([
-  ['protectedRouteOperation', 'authOption'],
-  ['editorReadRoute', 'authOption'],
-  ['citationEvidenceRouteOperation', 'fixedFloor'],
-  ['feedbackItemRoute', 'fixedFloor'],
-  ['feedbackQueueRoute', 'fixedFloor'],
-  ['feedbackStatusRoute', 'fixedFloor'],
-  ['glossaryReviewRead', 'fixedFloor'],
-  ['cronRoute', 'fixedFloor'],
-  ['replicationViewerEditorRoute', 'wrapsHandler'],
+  ['src/lib/http/protectedRouteOperation#protectedRouteOperation', 'authOption'],
+  ['src/app/api/editor/editorReadRoute#editorReadRoute', 'authOption'],
+  ['src/app/api/citation-evidence/_shared#citationEvidenceRouteOperation', 'fixedFloor'],
+  ['src/lib/http/feedbackItemRoute#feedbackItemRoute', 'fixedFloor'],
+  ['src/lib/http/feedbackQueueRoute#feedbackQueueRoute', 'fixedFloor'],
+  ['src/lib/http/feedbackStatusRoute#feedbackStatusRoute', 'fixedFloor'],
+  ['src/app/api/glossary-feedback/reviewRoutes#glossaryReviewRead', 'fixedFloor'],
+  ['lib/http/cronAuthorization#cronRoute', 'fixedFloor'],
+  ['lib/next/replicationViewerEditorPolicy#replicationViewerEditorRoute', 'wrapsHandler'],
 ]);
+
+const MODULE_ALIASES = [
+  ['@/', 'src/'],
+  ['@server/', 'lib/'],
+  ['@lib/', 'lib/'],
+];
 
 const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'delegates-to-guard'];
 
@@ -537,7 +543,18 @@ function hasInlineAuthFloor(optionsNode) {
   );
 }
 
-function createRouteGuardClassifier(parseModule) {
+function resolveModuleId(root, fromFile, source) {
+  const alias = MODULE_ALIASES.find(([prefix]) => source.startsWith(prefix));
+  const absolute = source.startsWith('.')
+    ? path.resolve(path.dirname(fromFile), source)
+    : alias
+      ? path.resolve(root, alias[1], source.slice(alias[0].length))
+      : null;
+  if (!absolute) return null;
+  return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
+}
+
+function createRouteGuardClassifier(root, parseModule) {
   function classifyBinding(module, binding, canFollowImport) {
     if (!binding) return { guarded: false };
     if (binding.kind === 'value') return classifyHandler(module, binding.node, canFollowImport);
@@ -550,8 +567,9 @@ function createRouteGuardClassifier(parseModule) {
 
   function classifyFactoryCall(module, node, canFollowImport) {
     const callee = node.callee.type === 'Identifier' ? module.locals.get(node.callee.name) : null;
-    const factory = callee?.kind === 'import' ? callee.imported : null;
-    const kind = ROUTE_GUARD_FACTORIES.get(factory);
+    const moduleId = callee?.kind === 'import' ? resolveModuleId(root, module.file, callee.source) : null;
+    const factory = moduleId ? callee.imported : null;
+    const kind = ROUTE_GUARD_FACTORIES.get(`${moduleId}#${factory}`);
     if (kind === 'fixedFloor') return { guarded: true };
     if (kind === 'authOption') {
       return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
@@ -640,7 +658,7 @@ const requireRouteAccess = {
       return parsedModules.get(file);
     }
 
-    const { classifyBinding } = createRouteGuardClassifier(parseModule);
+    const { classifyBinding } = createRouteGuardClassifier(context.cwd, parseModule);
 
     return {
       Program(program) {

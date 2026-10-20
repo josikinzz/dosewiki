@@ -60,6 +60,14 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
     },
     {
+      name: 'a factory imported from its canonical module by a relative path',
+      filename: 'src/app/api/editor/example/route.ts',
+      code: `
+        import { editorReadRoute } from "../editorReadRoute";
+        export const GET = editorReadRoute({ auth: "viewer", label: "example", read: async () => null });
+      `,
+    },
+    {
       name: 'a raw handler named in the method-specific exceptions',
       filename: publicRoute,
       options: [{ exceptions }],
@@ -107,6 +115,33 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
         { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
         { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
       ],
+    },
+    {
+      name: 'a fixed-floor factory name exported by an unrelated module',
+      filename: devRoute,
+      code: `
+        import { feedbackQueueRoute } from "./fake";
+        export const POST = feedbackQueueRoute(async () => Response.json({ ok: true }));
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    },
+    {
+      name: 'protectedRouteOperation exported by an unrelated module, even with an auth option',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/fakeProtectedRouteOperation";
+        export const POST = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    },
+    {
+      name: 'a canonical factory name imported from the wrong canonical module',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/feedbackQueueRoute";
+        export const POST = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
     },
     {
       name: 'a host gate around a raw handler',
