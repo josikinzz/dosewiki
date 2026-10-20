@@ -107,7 +107,7 @@ function parseNote(value: unknown): string | undefined {
 function mapStatusRouteError<Status extends string>(
   error: unknown,
   options: FeedbackStatusRouteOptions<Status>,
-): NextResponse {
+): NextResponse | null {
   if (error instanceof JsonBodyError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
@@ -124,6 +124,5 @@ function mapStatusRouteError<Status extends string>(
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  console.error(options.unexpectedErrorLabel, error);
-  return NextResponse.json({ error: options.unexpectedErrorMessage }, { status: 500 });
+  return null;
 }

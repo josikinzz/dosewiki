@@ -131,6 +131,7 @@ describe("production writer command surface", () => {
     const classified = new Set([
       ...classifiedDirectProductionWriterPaths,
       ...productionWriterClassifications.guardedIndirectEntrypoint,
+      ...productionWriterClassifications.storageUploadEntrypoint,
     ]);
     const unclassified = activeScriptDetections.filter(({ path, detection }) => {
       const kinds = detection.kinds;
@@ -185,5 +186,19 @@ describe("production writer command surface", () => {
       expect(hasStrongBoundary(source)).toBe(true);
     },
   );
+
+  it.each(productionWriterClassifications.storageUploadEntrypoint)(
+    "%s asserts the write freeze behind its storage write confirmation",
+    (path) => {
+      const source = readFileSync(resolve(repoRoot, path), "utf8");
+      expect(source).toMatch(/\bassertDataWritesNotFrozen\(/);
+      expect(source).toContain("--confirm-write");
+    },
+  );
+
+  it("never exempts a storage writer as a detector false positive", () => {
+    const exempt = new Set(productionWriterClassifications.detectorExemption.map(({ path }) => path));
+    expect(productionWriterClassifications.storageUploadEntrypoint.filter((path) => exempt.has(path))).toEqual([]);
+  });
 
 });

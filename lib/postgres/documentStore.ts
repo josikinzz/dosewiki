@@ -4,7 +4,7 @@ import { documentToRow, encodeField, losslessSelectList, rowToDocument, type Dat
 import { tableColumns, type TableName } from "./schema.generated";
 import { beginWithTimeouts } from "./transactionTimeouts";
 import { lockLocalizedPublicationIndexes, refreshLocalizedPublicationIndexes } from "../translation/publicationIndexStore";
-import { isDataWriteFreezeActive } from "../runtime/dataWriteFreeze";
+import { assertDataWritesNotFrozen, isDataWriteFreezeActive } from "../runtime/dataWriteFreeze";
 
 export type SqlClient = Pick<PoolClient, "query">;
 
@@ -54,6 +54,7 @@ export async function selectDocumentById(client: SqlClient, table: TableName, id
 }
 
 export async function insertDocument(client: SqlClient, table: TableName, value: DataDocument): Promise<string> {
+  assertDataWritesNotFrozen(`insertDocument:${table}`);
   const document = { _id: mintDocumentId(), _creationTime: Date.now(), ...value };
   const encoded = documentToRow(table, document);
   if (encoded.unknownFields.length) {
@@ -72,6 +73,7 @@ export async function insertDocument(client: SqlClient, table: TableName, value:
 }
 
 export async function patchDocument(client: SqlClient, table: TableName, id: string, patch: DataDocument): Promise<boolean> {
+  assertDataWritesNotFrozen(`patchDocument:${table}`);
   const fields = Object.keys(patch);
   if (fields.length === 0) return (await selectDocumentById(client, table, id)) !== null;
   const specs = tableColumns[table] as Record<string, { kind: string; optional: boolean }>;
@@ -99,6 +101,7 @@ export async function patchDocument(client: SqlClient, table: TableName, id: str
 }
 
 export async function deleteDocument(client: SqlClient, table: TableName, id: string): Promise<boolean> {
+  assertDataWritesNotFrozen(`deleteDocument:${table}`);
   const result = await client.query(`DELETE FROM ${quoteIdentifier(table)} WHERE "_id" = $1`, [id]);
   await client.query('DELETE FROM "documentIds" WHERE "_id" = $1', [id]);
   return (result.rowCount ?? 0) === 1;
