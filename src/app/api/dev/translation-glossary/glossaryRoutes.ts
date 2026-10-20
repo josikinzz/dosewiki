@@ -6,16 +6,12 @@ import {
   canAccessGlossaryLocale,
 } from "@/lib/auth/roles";
 import type { RoleSessionGranted } from "@/lib/auth/requireEditorSession";
-import {
-  GlossaryCollisionError,
-  pendingRetranslation,
-  type GlossaryLocaleSummary,
-} from "@server/translation/glossary";
+import { GlossaryCollisionError, pendingRetranslation } from "@server/translation/glossary";
 import { TranslationReviewError } from "@server/translation/reviewStore";
 import { parseReviewReason, type ReviewReason } from "@server/translation/reviewReason";
 import type { GlossaryReviewRow } from "@server/translation/glossaryReview";
 import { TRANSLATION_LOCALE_CODES } from "@server/translation/liveTranslation";
-import type { TranslationJobCounts } from "@server/translation/segmentStore";
+import type { GlossaryRowPatch } from "@/lib/glossary/glossaryApiTypes";
 
 export const GLOSSARY_BODY_MAX_BYTES = 64 * 1024;
 
@@ -148,26 +144,6 @@ export function glossaryCollisionResponse(error: unknown): NextResponse | null {
     { status: 409 },
   );
 }
-
-export type GlossaryLocaleOption = GlossaryLocaleSummary & { live: boolean };
-
-export type GlossaryListResponse = {
-  ok: true;
-  generatedAt: number;
-  locale: string;
-  promptVersion: string;
-  segments: { total: number; current: number };
-  jobs: TranslationJobCounts;
-  locales: GlossaryLocaleOption[];
-  rows: GlossaryReviewRow[];
-  usages?: import("@/lib/glossary/glossaryUsage").GlossaryUsageMap;
-  pending: string[];
-  glosses: Record<string, string>;
-};
-
-export type GlossaryProgressResponse = Pick<GlossaryListResponse, "ok" | "generatedAt" | "locale" | "promptVersion" | "segments" | "jobs">;
-
-export type GlossaryRowPatch = Pick<GlossaryListResponse, "rows" | "pending">;
 
 export function glossaryRowPatch(rows: readonly GlossaryReviewRow[], terms: readonly string[]): GlossaryRowPatch {
   const written = new Set(terms);

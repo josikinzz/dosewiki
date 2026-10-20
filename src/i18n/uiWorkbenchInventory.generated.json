@@ -1114,9 +1114,7 @@
     "source": "Search Results for \"{{query}}\"",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/ru/search/page.tsx",
       "src/app/search/_components/searchIndexMetadata.ts",
-      "src/app/zh/search/page.tsx",
       "src/utils/routeChrome.ts"
     ],
     "glossaryTerms": [
@@ -7739,9 +7737,7 @@
     "source": "Search",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/ru/search/page.tsx",
-      "src/app/search/_components/searchIndexMetadata.ts",
-      "src/app/zh/search/page.tsx"
+      "src/app/search/_components/searchIndexMetadata.ts"
     ],
     "glossaryTerms": [
       "Search"
@@ -13085,9 +13081,7 @@
     "source": "Search {{siteName}} for substances, effects, reports, and profiles matching {{query}}.",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/ru/search/page.tsx",
-      "src/app/search/_components/searchIndexMetadata.ts",
-      "src/app/zh/search/page.tsx"
+      "src/app/search/_components/searchIndexMetadata.ts"
     ],
     "glossaryTerms": [
       "Search {{siteName}} for substances, effects, reports, and profiles matching {{query}}."
@@ -16096,8 +16090,8 @@
     "source": "{{name}} replications",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
+      "lib/replications/showcaseCollections.ts",
       "src/app/_components/public-routes/EffectReplicationsSection.tsx",
-      "src/app/_components/public-routes/showcaseCollections.ts",
       "src/features/replications/components/useShowcaseViewerController.ts"
     ],
     "glossaryTerms": [
@@ -23045,9 +23039,7 @@
     "source": "Search {{siteName}} for substances, effects, reports, and profiles.",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/ru/search/page.tsx",
-      "src/app/search/_components/searchIndexMetadata.ts",
-      "src/app/zh/search/page.tsx"
+      "src/app/search/_components/searchIndexMetadata.ts"
     ],
     "glossaryTerms": [
       "Search {{siteName}} for substances, effects, reports, and profiles."

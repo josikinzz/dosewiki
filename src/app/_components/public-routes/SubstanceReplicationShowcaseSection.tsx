@@ -1,7 +1,7 @@
 import { ReplicationShowcase } from "@/features/replications/components/ReplicationShowcase";
 import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWork";
 import { getRequestLocale } from "@/i18n/server";
-import { getSubstanceShowcaseWorks } from "./showcaseCollections";
+import { getSubstanceShowcaseWorks } from "@server/replications/showcaseCollections";
 
 export async function SubstanceReplicationShowcaseSection({
   slug,

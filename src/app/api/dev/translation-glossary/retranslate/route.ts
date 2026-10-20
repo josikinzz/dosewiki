@@ -5,8 +5,9 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getPublicDataReadAdapter } from "@server/data/publicData.reads";
 import { getDataBackend } from "@server/postgres/runtime/backend";
 import { markRetranslationRequested } from "@server/translation/glossary";
-import { loadTranslationContext, recordsMentioning, translationJobSlug, type TranslationRecordKind } from "@server/translation/liveTranslation";
+import { loadTranslationContext, recordsMentioning, translationJobSlug } from "@server/translation/liveTranslation";
 import { enqueueTranslationJobs, readTranslationsMentioning, scopeStaleTranslations } from "@server/translation/segmentStore";
+import type { RetranslateResponse } from "@/lib/glossary/glossaryApiTypes";
 import { GLOSSARY_BODY_MAX_BYTES, glossaryLocaleAccess, parseLocale, parseTerms } from "../glossaryRoutes";
 
 export const runtime = "nodejs";
@@ -14,19 +15,6 @@ export const maxDuration = 300;
 
 type RetranslateBody = { locale?: unknown; terms?: unknown };
 type ParsedRetranslate = { locale: string; terms: string[] };
-
-export type RetranslateResponse = {
-  ok: true;
-  status: "queued";
-  requestedAt: number;
-  locale: string;
-  terms: string[];
-  promptVersion: string;
-  segments: number;
-  restamped: number;
-  runId: string;
-  jobs: Partial<Record<TranslationRecordKind, number>>;
-};
 
 export const POST = protectedRouteOperation<RetranslateBody, ParsedRetranslate>({
   auth: "admin",
