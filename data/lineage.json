@@ -133,10 +133,11 @@
       "producer": "scripts/data/sanitize-public-substance-archive.mjs",
       "consumers": [
         "external consumers with legacy /SubstanceIndex.json links",
-        "About page archival download"
+        "scripts/data/cacheProtestKitReagentTests.mjs",
+        "scripts/translation/ui-catalog-sources.ts"
       ],
       "inputs": ["historical local substance export retained in private recovery storage"],
-      "freshnessRule": "Do not treat as live runtime data. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
+      "freshnessRule": "Do not treat as live runtime data. The About page download is /open-data/SubstanceIndex.json, rendered from Postgres by src/app/open-data/; this file is only the compatibility archive served at /SubstanceIndex.json. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
       "sourceDeployment": "archival local working tree snapshot",
       "targetDeployment": null,
       "schemaVersion": "historical SubstanceIndex.json shape",
@@ -221,7 +222,7 @@
       "producer": "scripts/contributors/generate-avatars-from-replications.ts",
       "consumers": [
         "avatar provenance review",
-        "scripts/contributors/generate-avatars-from-replications.test.ts"
+        "scripts/contributors/import-avatars-from-the-wild.ts"
       ],
       "inputs": [
         "production contributorProfiles and publishable replication rows",
@@ -634,20 +635,34 @@
     },
     {
       "id": "postgres-migrations",
-      "path": "lib/postgres/migrations/",
+      "path": "lib/postgres/migrations/**",
       "role": "versioned-sql-migrations",
-      "producer": "drizzle-kit generate",
+      "producer": "drizzle-kit generate writes the schema DDL; data backfills are SQL written by hand into the migration, either inside a generated file (the documentIds copies in 0002) or in a drizzle-kit generate --custom file (0010)",
       "consumers": [
         "npm run postgres:migrate",
         "PlanetScale Postgres release steps (dossier W2)"
       ],
-      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts"],
-      "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
+      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts", "hand-written backfill SQL in the migration file"],
+      "freshnessRule": "Append-only history. Never rewrite or regenerate an applied migration. A schema change adds a new file via npm run postgres:migrate:generate; a data backfill adds a new file via npm run postgres:migrate:generate -- --custom and its SQL is written by hand.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "POSTGRES_DIRECT_URL",
       "schemaVersion": "drizzle-kit 0.31",
-      "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run postgres:migrate:generate"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of existing files; new migrations come from npm run postgres:migrate:generate"
+    },
+    {
+      "id": "localized-publication-trigger-creation",
+      "path": "lib/postgres/migrations/0013_localized_publication_index_triggers.sql",
+      "role": "versioned-sql-migrations",
+      "producer": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+      "consumers": ["npm run postgres:migrate"],
+      "inputs": ["scripts/postgres/localizedPublicationIndexTriggers.ts"],
+      "freshnessRule": "Append-only. Never rewrite after application; a change to these trigger functions requires a new custom Drizzle migration written by the same script.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": "TARGET_POSTGRES_URL",
+      "schemaVersion": "drizzle-kit 0.31",
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> writes its contents"
     },
     {
       "id": "localized-publication-trigger-restoration",
@@ -660,8 +675,8 @@
       "sourceDeployment": "local working tree",
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
-      "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql --restore"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> --restore writes its contents"
     },
     {
       "id": "guarded-responsive-media-renditions",
@@ -1006,7 +1021,6 @@
       "consumers": [
         "src/app/effects/category/[categorySlug]/page.tsx",
         "src/features/effects/pages/EffectCategoryPage.tsx",
-        "src/features/effects/effectGuideClass.ts",
         "src/features/effects/articleSectionModel.ts",
         "src/features/effects/pages/replicationSubject.ts"
       ],
@@ -1149,7 +1163,7 @@
         "legacy effectindex.com featured flags",
         "current replication slugs and data/effects/replicationSlugAliases.json"
       ],
-      "freshnessRule": "The siteConfig document edited in /dev is the live source; this list is the never-curated fallback. Repoint slugs when a rename lands so effectIndexFeaturedReplications.test.ts stays green.",
+      "freshnessRule": "The siteConfig document edited in /dev is the live source; this list is the never-curated fallback. Repoint slugs when a rename lands (data/effects/replicationSlugAliases.json lists renames). No test checks these slugs, so confirm each one still names a published replication.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "explicit Postgres target selected by the guarded featured-replications seed",
       "schemaVersion": "{ slugs: string[] }",
@@ -1180,19 +1194,21 @@
       "id": "dev-change-log",
       "path": "data/changelog/devChangeLog*.json",
       "role": "editorial-history",
-      "producer": "Dev Tools change log commit workflow",
+      "producer": "retired GitHub-commit change log that predates the Postgres changelog table; nothing writes these files now",
       "consumers": [
-        "src/data/changelog/changeLog.ts"
+        "src/data/changelog/changeLog.ts",
+        "lib/data/publicData.changelog.ts",
+        "src/features/dev/pages/useDevChangelogFeed.ts"
       ],
       "inputs": [
-        "editor saves committed through the Dev Tools GitHub workflow"
+        "editor saves recorded before the Postgres changelog table existed"
       ],
-      "freshnessRule": "Appended by the Dev Tools workflow; roll entries from devChangeLog.json into devChangeLog.archive.json before the writable file nears GitHub's 1 MB contents limit.",
-      "sourceDeployment": "GitHub repository contents",
+      "freshnessRule": "Frozen static history. Postgres changelog rows are the live record, written by server/changelog.ts, server/lib/articleRevisionJournal.ts and server/saveArticleBatch.ts. Readers merge these static entries with the Postgres rows. Do not append new entries here.",
+      "sourceDeployment": "historical GitHub repository contents",
       "targetDeployment": null,
       "schemaVersion": "src/data/changelog/changeLog.ts (ChangeLogEntry)",
-      "editPolicy": "append-through-dev-tools",
-      "refreshCommand": "edit through the Dev Tools change log; no local generator"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No routine refresh; new change log entries are Postgres changelog rows written by the save path"
     },
     {
       "id": "tripsit-combos",
@@ -1242,15 +1258,33 @@
         "glossary review diffs"
       ],
       "inputs": [
-        "Postgres translationGlossary rows per locale",
-        "hand-drafted term renderings awaiting native review (zh-Hans.drafts-2026-09-12.json)"
+        "Postgres translationGlossary rows per locale"
       ],
-      "freshnessRule": "Snapshot of the Postgres glossary table for review and diffing; never read at runtime. Re-export after approving terms in /dev/glossary.",
+      "freshnessRule": "Snapshot of the Postgres glossary table for review and diffing; never read at runtime. Re-export after approving terms in /dev/glossary. zh-Hans.drafts-2026-09-12.json in the same directory is hand-drafted and has its own entry, translation-glossary-hand-drafts.",
       "sourceDeployment": "explicitly selected Postgres source",
       "targetDeployment": null,
       "schemaVersion": "{ locale, exportedAt, terms }",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run translate:glossary -- --locale <code> --export"
+    },
+    {
+      "id": "translation-glossary-hand-drafts",
+      "path": "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
+      "role": "authored-draft-record",
+      "producer": "hand-drafted zh-Hans renderings written without a model call on 2026-09-12",
+      "consumers": [
+        "native zh-Hans glossary reviewers"
+      ],
+      "inputs": [
+        "the 298 glossary terms the 2026-09-12 drafter expansion added",
+        "conventions of the approved zh-Hans glossary rows"
+      ],
+      "freshnessRule": "Point-in-time record. The file's note says these renderings were loaded as Postgres translationGlossary draft rows, so review and approve them in /dev/glossary. No script reads this file, and editing it changes no row.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ locale, note, terms: Record<term, rendering> }",
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh; drafted once by hand"
     },
     {
       "id": "translation-glosses",
@@ -1331,6 +1365,267 @@
       "schemaVersion": "SourceConfig[] and source display name lookup",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
+    },
+    {
+      "id": "source-favicon-images",
+      "path": "public/favicons/*.png",
+      "role": "derived-static-assets",
+      "producer": "scripts/data/generate-further-reading-favicons.mjs",
+      "consumers": [
+        "src/data/config/sourceFavicons.ts"
+      ],
+      "inputs": [
+        "further-reading host inventory from an input export or explicitly selected Postgres read source, minus hosts that BASE_SOURCE_CONFIGS in the producer already covers",
+        "icons fetched from each remaining host: icon links in its pages, then /favicon.ico, /favicon.png and /apple-touch-icon.png",
+        "Google's favicon service (https://www.google.com/s2/favicons?domain=<host>&sz=64) when the host serves no usable icon",
+        "a lettered fallback icon drawn by the producer when neither source resolves"
+      ],
+      "freshnessRule": "Written in the same run as src/data/config/sourceFavicons.ts; commit both together. Existing icons are kept unless the run passes --force. The 17 source logos in this directory are not written by this producer, even with --force; they have their own entry, source-favicon-logos.",
+      "sourceDeployment": "further-reading hosts and www.google.com over the network, plus the source-favicon-config read source",
+      "targetDeployment": null,
+      "schemaVersion": "32x32 PNG per host slug",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
+    },
+    {
+      "id": "source-favicon-logos",
+      "path": "public/favicons/{bluelight,dancesafe,disregardeverythingisay,drugbank,drugs-forum,drugusersbible,erowid,isomerdesign,mindstate-design,protestkit,psychonautwiki,pubchem,pubmed,reddit,thedrugclassroom,tripsit,wikipedia}.png",
+      "role": "captured-static-assets",
+      "producer": "added by hand: the 15 base source logos and protestkit.png on 2026-01-10, mindstate-design.png on 2026-09-02",
+      "consumers": [
+        "scripts/data/generate-further-reading-favicons.mjs",
+        "src/data/config/sourceFavicons.ts",
+        "src/features/article/components/sections/ReagentSectionView.client.tsx",
+        "src/styles/utilities-theme.css"
+      ],
+      "inputs": [
+        "each source's own site logo or favicon"
+      ],
+      "freshnessRule": "Replace a logo by hand when its source changes its mark. BASE_SOURCE_CONFIGS in generate-further-reading-favicons.mjs names the 15 base logos, but the producer skips the hosts they cover and never downloads them, even with --force. protestkit.png and mindstate-design.png are referenced directly by the reagent section and the theme stylesheet. mindstate-design.png is also the slug the producer would give mindstate.design, so a --force run would overwrite it if an article ever cited that host.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "PNG logo per source, mostly 32x32",
+      "editPolicy": "editable-by-hand",
+      "refreshCommand": "No refresh command; replace the PNG by hand"
+    },
+    {
+      "id": "molecule-pack",
+      "path": "public/dosewiki-molecules.*",
+      "role": "published-static-assets",
+      "producer": "scripts/data/buildMoleculePack.ts",
+      "consumers": [
+        "src/components/pages/AboutArchivePreview.tsx",
+        "src/app/china/page.tsx",
+        "lib/open-data/downloadStats.ts",
+        "scripts/build/generatePageSocialCards.ts",
+        "scripts/translation/build-offline.mjs"
+      ],
+      "inputs": [
+        "Postgres moleculeOverrides rows and the substance index lookup",
+        "data/chemistry/generatedSmiles.json"
+      ],
+      "freshnessRule": "Repack after molecule depictions or the substance list change, and commit the JSON manifest and ZIP together. Add --check to compare the committed manifest with the read source without writing.",
+      "sourceDeployment": "Postgres read source opened by createDataClient in scripts/lib/data-client.ts: --target <url>, else TARGET_POSTGRES_URL, POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL. The package script runs bun with --env-file=/dev/null, so no .env file is loaded and every variable must be set in the shell. DATA_BACKEND=postgres is required. REPLICATION_MEDIA_BASE_URL must be the approved https media origin (assertDeploymentEnv in lib/postgres/runtime/deploymentEnv.ts). A non-loopback host also needs --allow-remote and POSTGRES_IMPORT_CONFIRM equal to its hostname (guardTarget in scripts/postgres/targetGuard.ts), even though the run only reads. No admin-intent token is needed.",
+      "targetDeployment": null,
+      "schemaVersion": "scripts/data/buildMoleculePack.ts (pack manifest)",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "DATA_BACKEND=postgres REPLICATION_MEDIA_BASE_URL=https://<media-origin> POSTGRES_IMPORT_CONFIRM=<postgres-hostname> npm run molecules:pack -- --target <postgres-read-url> --allow-remote"
+    },
+    {
+      "id": "mantra-spiral-sheet",
+      "path": "public/mantras/spiral-sheet.svg",
+      "role": "derived-static-asset",
+      "producer": "scripts/data/generate-mantra-spiral.ts",
+      "consumers": [
+        "src/features/mantras/MantraGlyphs.tsx"
+      ],
+      "inputs": [
+        "src/features/mantras/spiralSheet.ts"
+      ],
+      "freshnessRule": "Regenerate after changing buildSpiralSheetSvg in src/features/mantras/spiralSheet.ts. The producer is offline and reads no data.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/features/mantras/spiralSheet.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run generate:mantra-spiral"
+    },
+    {
+      "id": "openchemlib-dist",
+      "path": "vendor/openchemlib/dist/*",
+      "role": "vendored-build-output",
+      "producer": "npm --prefix vendor/openchemlib run build",
+      "consumers": [
+        "vendor/openchemlib/package.json",
+        "src/features/dev/tools/molecule-editor/loadOcl.ts",
+        "scripts/data/buildMoleculePack.ts"
+      ],
+      "inputs": [
+        "vendor/openchemlib/src/",
+        "vendor/openchemlib/lib/ except the gitignored lib/java/ build intermediate; esbuild bundles lib/index.js and lib/index.debug.js, and the build copies lib/index.d.ts to dist",
+        "vendor/openchemlib/scripts/",
+        "vendor/openchemlib/package.json",
+        "vendor/openchemlib/tsconfig.json",
+        "vendor/openchemlib/LICENSE",
+        "vendor/openchemlib/PROVENANCE.md",
+        "vendor/openchemlib/LOCAL_MODIFICATIONS.md",
+        "vendor/openchemlib/README.dosewiki.md"
+      ],
+      "freshnessRule": "Rebuild only after changing fork source, then review source, dist, types, resources and artifact-manifest diffs together. npm run openchemlib:verify fails in CI when dist drifts from the recorded fingerprints. docs/architecture/openchemlib-fork.md owns the toolchain.",
+      "sourceDeployment": "local working tree with JDK 21 and GWT 2.13.0",
+      "targetDeployment": null,
+      "schemaVersion": "vendor/openchemlib/dist/openchemlib.d.ts",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run openchemlib:build"
+    },
+    {
+      "id": "openchemlib-artifact-manifest",
+      "path": "vendor/openchemlib/artifact-manifest.json",
+      "role": "derived-manifest",
+      "producer": "scripts/chemistry/verify-openchemlib-fork.mjs",
+      "consumers": [
+        "scripts/chemistry/verify-openchemlib-fork.mjs"
+      ],
+      "inputs": [
+        "file fingerprints of the source inputs SOURCE_ROOTS and SOURCE_FILES name in scripts/chemistry/verify-openchemlib-fork.mjs: vendor/openchemlib/src/, lib/ except lib/java/, scripts/, package.json, tsconfig.json, LICENSE, PROVENANCE.md, LOCAL_MODIFICATIONS.md and README.dosewiki.md",
+        "file fingerprints of vendor/openchemlib/dist/openchemlib.js, openchemlib.debug.js, openchemlib.d.ts and resources.json"
+      ],
+      "freshnessRule": "Written by verify-openchemlib-fork.mjs --write at the end of npm run openchemlib:build. Never rewrite it alone to silence an openchemlib:verify failure.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "schemaVersion field in the manifest",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "npm run openchemlib:build"
+    },
+    {
+      "id": "psychonautwiki-2015-captures",
+      "path": "content/sources/psychonautwiki-2015/articles/*.md",
+      "role": "historical-source-capture",
+      "producer": "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
+      "consumers": [
+        "content/sources/psychonautwiki-2015/json/*.json"
+      ],
+      "inputs": [
+        "web.archive.org captures of psychonautwiki.org pages taken no later than 2016-08-31, selected by PW_LAST_ALLOWED_TIMESTAMP=20160831235959; the collector's default cutoff is 20151231235959",
+        "a substance inventory under content/sources/psychonautwiki-2015/.cache/: live-missing-subjective-effects.json, or live-dosewiki-substances.json filtered to articles without subjective effects. Neither file is tracked, so a clean checkout cannot run the collector",
+        "content/sources/psychonautwiki-2015/.cache/collection-results.json, the untracked per-slug result log the collector resumes from"
+      ],
+      "freshnessRule": "One-time capture, not a routine refresh. The collector skips every slug already in .cache/collection-results.json unless the run passes --force or names that slug's status in --retry-statuses=<status,...>; a forced or retried slug is fetched again from web.archive.org and its Markdown overwritten. Each slug a run processes also rewrites README.md and not-found-2015.md from the collector's template, which would discard the hand-written August 2016 notes in README.md.",
+      "sourceDeployment": "web.archive.org",
+      "targetDeployment": null,
+      "schemaVersion": "Markdown subjective effects section with capture metadata",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+    },
+    {
+      "id": "psychonautwiki-2015-not-found-list",
+      "path": "content/sources/psychonautwiki-2015/not-found-2015.md",
+      "role": "historical-source-capture",
+      "producer": "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
+      "consumers": [
+        "readers of the recovered corpus checking which substances had no recoverable section"
+      ],
+      "inputs": [
+        "the collector's per-slug results for substances where no capture before the cutoff had a subjective effects section"
+      ],
+      "freshnessRule": "Rewritten by writeIndexFiles, alongside README.md, after each slug a collector run processes. Same one-time capture and resume rules as psychonautwiki-2015-captures.",
+      "sourceDeployment": "web.archive.org",
+      "targetDeployment": null,
+      "schemaVersion": "Markdown list of title (slug): status",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+    },
+    {
+      "id": "psychonautwiki-2015-subjective-effects-drafts",
+      "path": "content/sources/psychonautwiki-2015/json/*.json",
+      "role": "historical-import-input",
+      "producer": "per-article conversion of the captured Markdown, recorded in content/sources/psychonautwiki-2015/subjective-effects-integration-tracker.md",
+      "consumers": [
+        "scripts/data-ops/apply-subjective-effects-import.ts"
+      ],
+      "inputs": [
+        "content/sources/psychonautwiki-2015/articles/*.md",
+        "src/schema/substance/subjective-effects.ts"
+      ],
+      "freshnessRule": "Record of the import completed on 2026-06-18. Postgres holds the imported sections; editing these files changes no article.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/schema/substance/subjective-effects.ts",
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No routine refresh; the import is complete"
+    },
+    {
+      "id": "extraction-prompts",
+      "path": "content/prompts/extraction/*.md",
+      "role": "prompt-source",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "src/app/docs/how/page.tsx",
+        "scripts/batch/extract-quotes/cli.mjs"
+      ],
+      "inputs": [
+        "editorial prompt source edits"
+      ],
+      "freshnessRule": "Not named in content/prompts/registry.json and not migrated to Postgres. These files are the live source for /docs/how and the quote extraction batch.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "Markdown prompt text",
+      "editPolicy": "editable-by-prompt-authors",
+      "refreshCommand": "edit content/prompts/extraction/*.md by hand; no generator"
+    },
+    {
+      "id": "prompt-registry",
+      "path": "content/prompts/registry.json",
+      "role": "prompt-registry",
+      "producer": "editorial prompt authors",
+      "consumers": [
+        "src/data/config/promptRegistry.ts",
+        "scripts/lib/prompt-registry.mjs"
+      ],
+      "inputs": [
+        "seed paths and data keys for the generator, formal-citation and section prompts"
+      ],
+      "freshnessRule": "Update when a registered prompt is added, renamed or retired. Each seedPath must name a tracked prompt file, and each dataKey is the Postgres prompt key the guarded prompt migration writes.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/config/promptRegistry.ts",
+      "editPolicy": "editable-by-prompt-authors",
+      "refreshCommand": "edit by hand, then compare against Postgres with node scripts/migrate/compare-prompts.mjs"
+    },
+    {
+      "id": "drug-class-content",
+      "path": "content/taxonomy/drug-classes.json",
+      "role": "authored-taxonomy-config",
+      "producer": "drug class taxonomy maintainers",
+      "consumers": [
+        "src/data/drugClassContent.ts"
+      ],
+      "inputs": [
+        "hand-written drug class prose"
+      ],
+      "freshnessRule": "Update deliberately when a drug class is added, renamed or redescribed; the code compiles this file in directly.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/data/drugClassContent.ts (DrugClassContent)",
+      "editPolicy": "editable-by-drug-class-maintainers",
+      "refreshCommand": "edit content/taxonomy/drug-classes.json by hand; no generator"
+    },
+    {
+      "id": "psychoactive-summaries",
+      "path": "content/taxonomy/psychoactive-summaries.json",
+      "role": "authored-taxonomy-config",
+      "producer": "psychoactive taxonomy maintainers",
+      "consumers": [
+        "src/features/psychoactive-summaries/summaryDefinitions.ts"
+      ],
+      "inputs": [
+        "hand-written psychoactive class summary prose"
+      ],
+      "freshnessRule": "Update deliberately when a summary is added or rewritten; the code compiles this file in directly.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "src/features/psychoactive-summaries/summaryDefinitions.ts (PsychoactiveSummaryDefinition)",
+      "editPolicy": "editable-by-psychoactive-taxonomy-maintainers",
+      "refreshCommand": "edit content/taxonomy/psychoactive-summaries.json by hand; no generator"
     }
   ]
 }

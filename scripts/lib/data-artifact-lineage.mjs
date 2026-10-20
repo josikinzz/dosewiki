@@ -16,34 +16,65 @@ export const ARTIFACT_LINEAGE_RUN_DIR = "data/.lineage";
 const ARTIFACT_LINEAGE_DOC_PATHS = ["README.md", "AGENTS.md", "scripts/README.md"]
 const REFERENCES_ERA_SUBSTANCE_SCHEMA_PATH = "src/schema/substance.schema.ts";
 const REFERENCES_ERA_BACKUP_ARTIFACT_IDS = new Set(["substance-index-export", "substance-index-backups"]);
+const GENERATED_OUTPUT_NAME = /\.generated[./]/;
+const GENERATED_OUTPUT_GLOBS = [
+  "content/i18n/messages/*.json",
+  "content/sources/psychonautwiki-2015/articles/*.md",
+  "content/sources/psychonautwiki-2015/json/*.json",
+  "content/sources/psychonautwiki-2015/not-found-2015.md",
+  "data/changelog/devChangeLog*.json",
+  "data/chemistry/*.json",
+  "data/contributors/contributorAvatarSources.json",
+  "data/contributors/userProfiles.json",
+  "data/effects/replicationSlugAliases.json",
+  "data/effects/subjectiveEffectsProvenance.json",
+  "data/i18n/glossary/*.json",
+  "data/third-party/tripsit/*.json",
+  "lib/postgres/migrations/**",
+  "lib/postgres/runtime/dataModel.ts",
+  "public/SubstanceIndex.json",
+  "public/appearance-chroma.css",
+  "public/dosewiki-molecules.*",
+  "public/favicons/*",
+  "public/mantras/*",
+  "public/pro-theme.css",
+  "public/theme-light-mode.css",
+  "src/data/config/sourceFavicons.ts",
+  "src/i18n/catalogPublication.json",
+  "vendor/openchemlib/artifact-manifest.json",
+  "vendor/openchemlib/dist/*",
+];
+const FILES_NEEDING_THEIR_OWN_ENTRY = {
+  authored: [
+    "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
+    "public/favicons/{bluelight,dancesafe,disregardeverythingisay,drugbank,drugs-forum,drugusersbible,erowid,isomerdesign,mindstate-design,protestkit,psychonautwiki,pubchem,pubmed,reddit,thedrugclassroom,tripsit,wikipedia}.png",
+  ],
+  "separately produced": [
+    "lib/postgres/migrations/0013_localized_publication_index_triggers.sql",
+    "lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql",
+  ],
+};
+const REPOSITORY_PATH = /^(?:[\w.@[\]()-]+(?:\/[\w.@[\]()*-]+)+|[\w.@-]+\.[A-Za-z]\w*)$/;
+const PATH_WILDCARD = /[*{]/;
 
 function toRelativePath(pathname, rootDir) {
   const absolutePath = isAbsolute(pathname) ? pathname : resolve(rootDir, pathname);
   return relative(rootDir, absolutePath).replaceAll("\\", "/");
 }
 
-function matchesArtifactPath(entry, artifactPath) {
-  if (entry.path === artifactPath) {
-    return true;
-  }
-
-  if (!entry.path.includes("*")) {
-    return false;
-  }
-
-  const escaped = entry.path
-    .split("*")
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("[^/]*");
-  return new RegExp(`^${escaped}$`).test(artifactPath);
+function pathPatternToRegex(pathPattern) {
+  const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const source = pathPattern.replace(/\*\*|\*|\{([^{}]*)\}|[.+?^${}()|[\]\\]/g, (token, alternatives) => {
+    if (token === "**") return ".*";
+    if (token === "*") return "[^/]*";
+    if (alternatives !== undefined) return `(?:${alternatives.split(",").map(escape).join("|")})`;
+    return `\\${token}`;
+  });
+  return new RegExp(`^${source}$`);
 }
 
-function pathPatternToRegex(pathPattern) {
-  const escaped = pathPattern
-    .split("*")
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("[^/]*");
-  return new RegExp(`^${escaped}$`);
+function matchesArtifactPath(entry, artifactPath) {
+  return entry.path === artifactPath || (PATH_WILDCARD.test(entry.path) && pathPatternToRegex(entry.path).test(artifactPath));
 }
 
 function walkFiles(dir, matches = []) {
@@ -72,12 +103,12 @@ function walkFiles(dir, matches = []) {
 export function listArtifactLineagePathMatches(pathPattern, { rootDir = process.cwd() } = {}) {
   const relativePattern = toRelativePath(pathPattern, rootDir);
 
-  if (!relativePattern.includes("*")) {
+  if (!PATH_WILDCARD.test(relativePattern)) {
     const absolutePath = resolve(rootDir, relativePattern);
     return existsSync(absolutePath) ? [relativePattern] : [];
   }
 
-  const firstWildcardIndex = relativePattern.indexOf("*");
+  const firstWildcardIndex = relativePattern.search(PATH_WILDCARD);
   const searchRoot = relativePattern.slice(0, firstWildcardIndex).split("/").slice(0, -1).join("/");
   const absoluteSearchRoot = resolve(rootDir, searchRoot || ".");
   const patternRegex = pathPatternToRegex(relativePattern);
@@ -94,7 +125,8 @@ return JSON.parse(readFileSync(manifestPath, "utf-8")); }
 export function findArtifactLineageEntry(artifactPath, { rootDir = process.cwd(), manifest } = {}) {
   const relativePath = toRelativePath(artifactPath, rootDir);
   const sourceManifest = manifest ?? readArtifactLineageManifest({ rootDir });
-  return sourceManifest.artifacts.find((entry) => matchesArtifactPath(entry, relativePath)) ?? null;
+  const matches = sourceManifest.artifacts.filter((entry) => matchesArtifactPath(entry, relativePath));
+  return matches.find((entry) => !entry.path.includes("*")) ?? matches[0] ?? null;
 }
 
 function hashFile(pathname) { return createHash("sha256").update(readFileSync(pathname)).digest("hex"); }
@@ -181,7 +213,8 @@ export function tryWriteArtifactLineageSidecar(options = {}, { logger = console 
 }
 
 function commandTargetExists(command, rootDir) {
-  const parts = command.split(/\s+/).filter(Boolean);
+  const words = command.split(/\s+/).filter(Boolean);
+  const parts = words.slice(words.findIndex((word) => !/^[A-Z_][A-Z0-9_]*=/.test(word)));
   const scriptArgIndex = parts.findIndex((part) => part.endsWith(".mjs") || part.endsWith(".ts"));
 
   if (scriptArgIndex >= 0) {
@@ -234,6 +267,12 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
       listArtifactLineagePathMatches(entry.producer, { rootDir }).length === 0
     ) {
       errors.push(`${entry.id} producer target does not exist: ${entry.producer}`);
+    }
+
+    for (const consumer of entry.consumers ?? []) {
+      if (REPOSITORY_PATH.test(consumer) && listArtifactLineagePathMatches(consumer, { rootDir }).length === 0) {
+        errors.push(`${entry.id} consumer does not exist: ${consumer}`);
+      }
     }
 
     if (
@@ -293,11 +332,16 @@ function collectTrackedGeneratedExportPaths({ rootDir = process.cwd() } = {}) { 
   return [];
 } }
 
+function listTrackedFiles(rootDir) {
+  return execFileSync("git", ["ls-files"], { cwd: rootDir, encoding: "utf-8" }).split(/\r?\n/).filter(Boolean);
+}
+
 export function collectArtifactLineageVerification({
   rootDir = process.cwd(),
   manifest,
   docsPaths = ARTIFACT_LINEAGE_DOC_PATHS,
   trackedGeneratedExports = collectTrackedGeneratedExportPaths({ rootDir }),
+  trackedFiles = listTrackedFiles(rootDir),
 } = {}) {
   const sourceManifest = manifest ?? readArtifactLineageManifest({ rootDir });
   const errors = validateArtifactLineageManifest({ rootDir, manifest: sourceManifest });
@@ -318,6 +362,22 @@ export function collectArtifactLineageVerification({
     const entry = findArtifactLineageEntry(documentedPath, { rootDir, manifest: sourceManifest });
     if (!entry) {
       warnings.push(`documented data artifact is not represented in lineage manifest: ${documentedPath}`);
+    }
+  }
+
+  const generatedOutputPatterns = [GENERATED_OUTPUT_NAME, ...GENERATED_OUTPUT_GLOBS.map(pathPatternToRegex)];
+  const ownEntryPatterns = Object.entries(FILES_NEEDING_THEIR_OWN_ENTRY).flatMap(([kind, patterns]) =>
+    patterns.map((pattern) => ({ kind, regex: pathPatternToRegex(pattern) })));
+  for (const filePath of trackedFiles) {
+    const ownEntryKind = ownEntryPatterns.find(({ regex }) => regex.test(filePath))?.kind;
+    if (!ownEntryKind && !generatedOutputPatterns.some((pattern) => pattern.test(filePath))) {
+      continue;
+    }
+    const entry = findArtifactLineageEntry(filePath, { rootDir, manifest: sourceManifest });
+    if (ownEntryKind && (!entry || entry.path.includes("*"))) {
+      errors.push(`${ownEntryKind} file inside a generated output glob needs its own lineage entry: ${filePath}`);
+    } else if (!entry) {
+      errors.push(`tracked generated output has no lineage entry: ${filePath}`);
     }
   }
 
