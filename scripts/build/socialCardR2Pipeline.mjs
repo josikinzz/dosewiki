@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { appendFile, mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 
 export const OPERATION = "publish-social-cards";
 export const DEFAULT_CDN_BASE = "https://dosewiki-media.gremblinzuwu.workers.dev";
@@ -293,6 +294,7 @@ export async function processObjects({
   resume = true,
 }) {
   if (!new Set(["preflight", "canary-apply", "full-apply"]).has(mode)) throw new Error(`Invalid object phase: ${mode}`);
+  if (mode !== "preflight") assertDataWritesNotFrozen(`${OPERATION}:${mode}`);
   const records = await readJsonLines(ledgerPath);
   const prior = resume
     ? mode === "preflight"
@@ -366,6 +368,7 @@ export async function installCandidateManifest({
   publisherLedgerPath,
   verificationLedgerPath,
 }) {
+  assertDataWritesNotFrozen(`${OPERATION}:install-candidate`);
   const publisherRecords = await readJsonLines(publisherLedgerPath);
   if (!hasCompletedFullRun(publisherRecords, plan.planDigest, plan.objects.length)) {
     throw new Error("Refusing manifest install without a complete object-publication ledger");
