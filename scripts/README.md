@@ -54,6 +54,7 @@ For nightly molecule operations, follow [nightly molecule reads](../docs/operati
 - Legality research and application: [legality workflow](../docs/workflows/legality.md)
 - Replication intake: [replication intake runbook](../docs/workflows/replication-intake.md)
 - Locale mirrors: [locale mirrors runbook](../docs/operations/locale-mirrors.md)
+- Social-card generation and R2 publication: [social cards runbook](../docs/operations/social-cards.md)
 - Deployment and artifact separation: [deployment](../docs/operations/deployment.md)
 - Credentials, targets, confirmations, and recovery: [data credentials](../docs/operations/data-credentials.md)
 
@@ -115,4 +116,4 @@ node scripts/lint/check-css-comments.mjs --fix
 bun run generate:appearance-sheets
 ```
 
-`bun run lint:all` enforces both comment checks. The CSS fixer uses PostCSS comment positions. Regenerate appearance sheets after their authored CSS changes so the public copies and cache hashes match.
+`bun run lint` enforces both comment checks. The CSS fixer uses PostCSS comment positions. Regenerate appearance sheets after their authored CSS changes so the public copies and cache hashes match.

@@ -1,13 +1,18 @@
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 
 const scriptPath = resolve(process.cwd(), "scripts/admin/data-admin.mjs");
 const target = "postgresql://localhost/dosewiki";
+const isolatedCwd = mkdtempSync(join(tmpdir(), "data-admin-test-"));
+
+afterAll(() => rmSync(isolatedCwd, { recursive: true, force: true }));
 
 function run(args, env = {}) {
   return spawnSync(process.execPath, [scriptPath, ...args], {
-    cwd: process.cwd(),
+    cwd: isolatedCwd,
     encoding: "utf8",
     env: {
       PATH: process.env.PATH,

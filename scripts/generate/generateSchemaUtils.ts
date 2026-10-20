@@ -112,39 +112,114 @@ export type FieldPath = (typeof FIELD_PATHS)[number];
 `;
 }
 
-function main() {
-  console.log("Generating schema utilities...\n");
+const SHARD_DIR = "fieldRegistry.generated";
+const FIXED_OUTPUTS = ["defaults.generated.ts", "fieldRegistry.generated.ts"];
 
-  const defaultsContent = generateDefaultsFile();
-  const defaultsPath = path.join(OUTPUT_DIR, "defaults.generated.ts");
-  fs.writeFileSync(defaultsPath, defaultsContent, "utf-8");
-  console.log(`✓ Generated: ${path.relative(process.cwd(), defaultsPath)}`);
+function renderOutputs(): Map<string, string> {
+  const outputs = new Map<string, string>();
+  outputs.set("defaults.generated.ts", generateDefaultsFile());
 
   const fields = extractFieldPaths(substanceArticleSchema);
-  const registryShardDir = path.join(OUTPUT_DIR, "fieldRegistry.generated");
-  fs.rmSync(registryShardDir, { recursive: true, force: true });
-  fs.mkdirSync(registryShardDir, { recursive: true });
-
   for (const section of FIELD_REGISTRY_SECTION_ORDER) {
     const sectionFields = fields.filter((field) => inferFieldRegistrySection(field.path) === section);
-    if (sectionFields.length === 0) {
-      continue;
+    if (sectionFields.length > 0) {
+      outputs.set(`${SHARD_DIR}/${section}.ts`, generateFieldRegistryShardFile(section, sectionFields));
     }
-
-    const shardContent = generateFieldRegistryShardFile(section, sectionFields);
-    const shardPath = path.join(registryShardDir, `${section}.ts`);
-    fs.writeFileSync(shardPath, shardContent, "utf-8");
   }
 
-  const registryContent = generateFieldRegistryFile();
-  const registryPath = path.join(OUTPUT_DIR, "fieldRegistry.generated.ts");
-  fs.writeFileSync(registryPath, registryContent, "utf-8");
-  console.log(`✓ Generated: ${path.relative(process.cwd(), registryPath)}`);
-  console.log(`✓ Generated shards: ${path.relative(process.cwd(), registryShardDir)}`);
-
-  console.log(`\n📊 Generated ${fields.length} field entries`);
-
-  console.log("\nDone! Now update fieldRegistry.ts to use generated + overrides.");
+  outputs.set("fieldRegistry.generated.ts", generateFieldRegistryFile());
+  return outputs;
 }
 
-main();
+function listCheckedInOutputs(): string[] {
+  const shardDir = path.join(OUTPUT_DIR, SHARD_DIR);
+  const shards = fs.existsSync(shardDir) ? fs.readdirSync(shardDir).map((name) => `${SHARD_DIR}/${name}`) : [];
+  return [...FIXED_OUTPUTS.filter((file) => fs.existsSync(path.join(OUTPUT_DIR, file))), ...shards];
+}
+
+const INTENTIONAL_OVERRIDE_ONLY_PATHS: ReadonlySet<string> = new Set([
+  "subjective_effects.sensory.visual",
+  "subjective_effects.sensory.auditory",
+  "subjective_effects.sensory.tactile",
+  "subjective_effects.sensory.olfactory",
+  "subjective_effects.sensory.gustatory",
+  "subjective_effects.sensory.multisensory",
+]);
+
+async function checkRegistryComposition(): Promise<boolean> {
+  const { composeRegistry } = await import("../../src/data/schema/registryComposition");
+  const { diagnostics } = composeRegistry();
+  const problems = [
+    ...diagnostics.fieldPathDiagnostics
+      .filter((d) => !(d.operation === "override" && d.code === "unknown_registry_path" && INTENTIONAL_OVERRIDE_ONLY_PATHS.has(d.path)))
+      .map((d) => `${d.severity} (${d.operation}, ${d.code}) at "${d.path}": ${d.message}`),
+    ...diagnostics.overrideOnlyPaths
+      .filter((overridePath) => !INTENTIONAL_OVERRIDE_ONLY_PATHS.has(overridePath))
+      .map((overridePath) => `Override names no generated field: "${overridePath}"`),
+    ...[...INTENTIONAL_OVERRIDE_ONLY_PATHS]
+      .filter((allowed) => !diagnostics.overrideOnlyPaths.includes(allowed))
+      .map((allowed) => `Allowed override-only path is no longer override-only, drop it from the allowance: "${allowed}"`),
+    ...diagnostics.sectionFieldsMissingFromRegistry.map(
+      ({ section, path: fieldPath }) => `Section "${section}" lists a field the registry does not have: "${fieldPath}"`,
+    ),
+  ];
+
+  for (const problem of problems) console.error(`Registry composition: ${problem}`);
+  if (problems.length > 0) {
+    console.error("\nFix the override in src/data/schema/fieldOverrides/ or the section list in src/schema/substance/sectionCatalog.");
+    return false;
+  }
+  console.log(
+    `Registry composition is clean (${INTENTIONAL_OVERRIDE_ONLY_PATHS.size} allowed override-only paths; ${diagnostics.unmatchedGeneratedPaths.length} generated fields sit in no presentation section, which is allowed).`,
+  );
+  return true;
+}
+
+function checkOutputs(outputs: Map<string, string>): boolean {
+  const drifted = [...outputs]
+    .filter(([file, content]) => {
+      const target = path.join(OUTPUT_DIR, file);
+      return !fs.existsSync(target) || fs.readFileSync(target, "utf-8") !== content;
+    })
+    .map(([file]) => file);
+  const unexpected = listCheckedInOutputs().filter((file) => !outputs.has(file));
+
+  for (const file of drifted) console.error(`Out of date: src/data/schema/${file}`);
+  for (const file of unexpected) console.error(`Not produced by the generator: src/data/schema/${file}`);
+
+  if (drifted.length > 0 || unexpected.length > 0) {
+    console.error("\nSchema helpers drifted from src/schema/substance.schema.ts. Run: bun run generate:schema");
+    return false;
+  }
+  console.log(`Schema helpers are current (${outputs.size} files).`);
+  return true;
+}
+
+function writeOutputs(outputs: Map<string, string>): void {
+  const shardDir = path.join(OUTPUT_DIR, SHARD_DIR);
+  fs.rmSync(shardDir, { recursive: true, force: true });
+  fs.mkdirSync(shardDir, { recursive: true });
+  for (const [file, content] of outputs) {
+    fs.writeFileSync(path.join(OUTPUT_DIR, file), content, "utf-8");
+    console.log(`✓ Generated: src/data/schema/${file}`);
+  }
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const unknown = args.filter((arg) => arg !== "--check");
+  if (unknown.length > 0) {
+    console.error(`Unknown argument: ${unknown.join(" ")}. Usage: generateSchemaUtils.ts [--check]`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const outputs = renderOutputs();
+  if (!args.includes("--check")) {
+    writeOutputs(outputs);
+    return;
+  }
+  if (!checkOutputs(outputs) || !(await checkRegistryComposition())) process.exitCode = 1;
+}
+
+await main();

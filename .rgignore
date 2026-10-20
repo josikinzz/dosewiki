@@ -1,0 +1,11 @@
+/public/SubstanceIndex.json
+/vendor/openchemlib/dist/
+/vendor/openchemlib/src/
+/vendor/openchemlib/lib/
+/vendor/openchemlib/tests/
+/content/i18n/messages/
+/content/sources/psychonautwiki-2015/articles/
+/content/sources/psychonautwiki-2015/json/
+/src/data/*SocialCardManifest.generated.json
+/src/data/publicRouteAvailability.generated.json
+/src/i18n/uiWorkbenchInventory.generated.json

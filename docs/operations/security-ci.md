@@ -10,6 +10,7 @@ This document owns the repository's automated secret and dependency reporting po
 
 - CI runs `node scripts/security/scan-secrets.mjs --tracked` and scans every path returned by `git ls-files`, without an extension allowlist.
 - `.husky/check-secrets.sh` runs the scanner with `--staged`, reading the exact Git index blobs rather than potentially different working-tree content.
+- `bun run security:check` runs the same `--tracked` scan as CI.
 - A finding prints only a stable rule ID and escaped filename. Matched values and matching lines are never printed.
 - Synthetic CLI tests build temporary Git repositories and construct non-working credential-shaped fixtures at runtime. No real credential or complete fixture value is stored in the repository.
 

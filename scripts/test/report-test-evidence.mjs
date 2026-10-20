@@ -5,9 +5,6 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
 
-export const SAFETY_LIST = [
-];
-
 export const SETUP_COST_PATTERN = /initRDKitModule|@rdkit|openchemlib|wasm|OclEditor/;
 export const SETUP_COST_TAG = "setup:rdkit-or-wasm";
 
@@ -99,14 +96,8 @@ export function tagSetupCost(file, source) {
   return SETUP_COST_PATTERN.test(source) ? [SETUP_COST_TAG] : [];
 }
 
-export function computeExitCode(merged, safetyList = SAFETY_LIST) {
-  const safety = new Set(safetyList);
-  const safetySkipped = merged.files.some(
-    (row) => safety.has(row.file) && (row.status === "skipped" || row.skippedCases.length > 0),
-  );
-  if (safetySkipped) return 2;
-  if (merged.deterministic.length > 0) return 1;
-  return 0;
+export function computeExitCode(merged) {
+  return merged.deterministic.length > 0 || merged.flaky.length > 0 ? 1 : 0;
 }
 
 
@@ -134,7 +125,11 @@ function runVitestLane(lane, outFile, extraArgs) {
   } catch (error) {
     throw new Error(`${lane}: vitest wrote no JSON report (exit ${result.status}).\n${result.stderr}`, { cause: error });
   }
-  return summarizeVitestJson(json, lane);
+  const rows = summarizeVitestJson(json, lane);
+  if (result.status !== 0 && !rows.some((row) => row.status === "failed")) {
+    rows.push({ file: `(${lane} process)`, lane, durationMs: 0, status: "failed", skippedCases: [] });
+  }
+  return rows;
 }
 
 export function summarizeNodeSpec(file, lane, output, durationMs, exitStatus) {
@@ -216,7 +211,6 @@ export function buildReport(merged, { runs, command, generatedAt }) {
     failed: failed.map((row) => ({ file: row.file, lane: row.lane, status: row.status, outcomes: row.outcomes })),
     flaky: merged.flaky,
     deterministic: merged.deterministic,
-    safetyList: SAFETY_LIST,
   };
 }
 
@@ -268,9 +262,6 @@ export function renderMarkdown(report) {
     lines.push("");
   }
 
-  lines.push("## Safety list", "");
-  for (const file of report.safetyList) lines.push(`- ${file}`);
-  lines.push("");
   return lines.join("\n");
 }
 

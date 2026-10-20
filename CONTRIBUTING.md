@@ -113,17 +113,35 @@ changing build keys, hosts, or flavors.
 
 ## Verify
 
-CI runs the full graph on every pull request. Locally, run the tests that
-cover your change and the type check, or the whole graph with `bun run verify`.
+Every pull request runs the CI verification job in
+`.github/workflows/vercel-policy-checks.yml`. Its two graph steps call
+`bun run verify:checkout` and `bun run verify:drift`, and its first step scans
+tracked files for secrets before install. `bun run verify` runs all three.
+All three set the job's `DATA_BACKEND=postgres` and `DATA_WRITES_FROZEN=1`
+themselves, overriding whatever your shell holds. The
+job's inline Vercel configuration, `.env`, and API-route pattern steps stay in
+the workflow. Pull request CI does not build. Locally, run the tests that cover your change and
+the type check, or the whole graph with `bun run verify`.
 
 | Command | Covers |
 | --- | --- |
 | `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/` |
-| `bun run test:workflow` | Script and tool tests under `scripts/` |
+| `bun run test:workflow` | Every script and tool test under `scripts/` |
+| `bun run test:workflow -- <path>...` | Only the named `scripts/` test files, each through its own runner (`node:test` or Vitest); an unknown path fails before anything runs |
+| `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed in any run |
 | `bun run typecheck` | Application type check, with strict null checks on |
-| `bun run lint:all` | ESLint for `src/`, `lib/`, `server/`, and `scripts/`, then `scripts/lint/check-em-dashes.mjs` |
-| `bun run verify` | The checkout-safe CI graph plus migration and schema drift checks |
+| `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
+| `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
+| `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
+| `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
+| `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and both `check:` entries |
+| `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
+| `bun run security:check` | CI's secret scan over every tracked file |
+| `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |
 
 `package.json` lists every other command. The pre-commit hook in `.husky/`
-runs `scripts/security/scan-secrets.mjs --staged` and ESLint on staged `.ts`
-and `.tsx` files, and it blocks a commit that stages a secret or a `.env` file.
+runs `scripts/security/scan-secrets.mjs --staged` on the exact staged blobs,
+then `scripts/security/check-staged-files.mjs`. That script blocks any staged
+file named `.env*` other than `.env.example`, renames included, and runs ESLint
+on the staged JavaScript and TypeScript files as they are in the working tree.
