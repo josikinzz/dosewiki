@@ -7,17 +7,8 @@ import { smilesToMolblock } from "./smilesToMolblock";
 import { useOcl } from "./useOcl";
 import { useRdkit } from "./useRdkit";
 import { useMoleculeSourceRead } from "./useMoleculeSourceRead";
-
-interface MoleculeOverride {
-  slug: string;
-  molblock: string;
-  svg: string;
-  smiles?: string;
-  boldBonds?: number[];
-  source?: "seeded" | "editor" | "template";
-  updatedAt: string;
-  updatedBy?: string;
-}
+import { readMoleculeOverride } from "./moleculeEditorRequests";
+import type { MoleculeOverride } from "./moleculeEditorTypes";
 
 interface SaveResult {
   tone: "success" | "danger";
@@ -71,16 +62,9 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     let cancelled = false;
     if (slugChanged) setOverrideDoc(undefined);
     setOverrideLoadError(null);
-    void fetch(`${SAVE_API}?slug=${encodeURIComponent(slug)}`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          override?: MoleculeOverride | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Molecule load failed (${response.status})`);
-        }
-        if (!cancelled) setOverrideDoc(body.override ?? null);
+    void readMoleculeOverride(slug)
+      .then((override) => {
+        if (!cancelled) setOverrideDoc(override);
       })
       .catch((error: unknown) => {
         if (cancelled) return;

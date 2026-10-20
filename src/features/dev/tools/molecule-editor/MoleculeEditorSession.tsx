@@ -37,6 +37,7 @@ import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
 import { useMoleculeSourceReadState } from "./useMoleculeSourceRead";
+import { readMoleculeOverride, readMoleculeTemplate } from "./moleculeEditorRequests";
 import { useMoleculePickerReadState } from "./useMoleculePickerRead";
 import { matchesTypedName } from "./chemistryDiff";
 import { MoleculeLoadNotices, MoleculeStartingPoints } from "./MoleculeEditorModePanel";
@@ -316,16 +317,9 @@ export function MoleculeEditorSession({
     let cancelled = false;
     setOverrideDoc(undefined);
     setOverrideLoadError(null);
-    void fetch(`${SAVE_API}?slug=${encodeURIComponent(slug)}`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          override?: MoleculeOverride | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Molecule load failed (${response.status})`);
-        }
-        if (!cancelled) setOverrideDoc(body.override ?? null);
+    void readMoleculeOverride(slug)
+      .then((override) => {
+        if (!cancelled) setOverrideDoc(override);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -346,16 +340,9 @@ export function MoleculeEditorSession({
     let cancelled = false;
     setTemplateDoc(undefined);
     setTemplateLoadError(null);
-    void fetch(`${TEMPLATE_API}?classKey=${encodeURIComponent(selected)}`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          template?: MoleculeClassTemplate | null;
-        };
-        if (!response.ok) {
-          throw new Error(body.error ?? `Template load failed (${response.status})`);
-        }
-        if (!cancelled) setTemplateDoc(body.template ?? null);
+    void readMoleculeTemplate(selected)
+      .then((template) => {
+        if (!cancelled) setTemplateDoc(template);
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -541,28 +528,9 @@ export function MoleculeEditorSession({
       try {
         let molblock: string | undefined;
         if (importSlug.startsWith("template:")) {
-          const classKey = importSlug.slice("template:".length);
-          const response = await fetch(
-            `${TEMPLATE_API}?classKey=${encodeURIComponent(classKey)}`,
-          );
-          const body = (await response.json().catch(() => ({}))) as {
-            error?: string;
-            template?: MoleculeClassTemplate | null;
-          };
-          if (!response.ok) {
-            throw new Error(body.error ?? `Import load failed (${response.status})`);
-          }
-          molblock = body.template?.molblock;
+          molblock = (await readMoleculeTemplate(importSlug.slice("template:".length)))?.molblock;
         } else {
-          const response = await fetch(`${SAVE_API}?slug=${encodeURIComponent(importSlug)}`);
-          const body = (await response.json().catch(() => ({}))) as {
-            error?: string;
-            override?: MoleculeOverride | null;
-          };
-          if (!response.ok) {
-            throw new Error(body.error ?? `Import load failed (${response.status})`);
-          }
-          molblock = body.override?.molblock;
+          molblock = (await readMoleculeOverride(importSlug))?.molblock;
         }
         if (!molblock) {
           throw new Error("That structure has no saved depiction to import.");
