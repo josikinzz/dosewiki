@@ -662,7 +662,7 @@
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh of the applied file; a new migration of this kind comes from bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/<next>_<name>.sql"
+      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> writes its contents"
     },
     {
       "id": "localized-publication-trigger-restoration",
@@ -676,7 +676,7 @@
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh of the applied file; a new migration of this kind comes from bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/<next>_<name>.sql --restore"
+      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> --restore writes its contents"
     },
     {
       "id": "guarded-responsive-media-renditions",
