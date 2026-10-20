@@ -72,7 +72,7 @@ describe("dosage and duration citation render order", () => {
     const ids = collectCitationIdsFromPublicRenderOrder(
       article(
         [dosageRoute("Insufflated", { bioavailability: "About half [cite:b] [cite:s]." })],
-        [durationRoute("snorted", { half_life_notes: "Short [cite:h]." })],
+        [durationRoute("snorted", { half_life: "Two hours", half_life_notes: "Short [cite:h]." })],
       ),
     );
 
