@@ -637,18 +637,18 @@
       "id": "postgres-migrations",
       "path": "lib/postgres/migrations/**",
       "role": "versioned-sql-migrations",
-      "producer": "drizzle-kit generate",
+      "producer": "drizzle-kit generate writes the schema DDL; data backfills are SQL written by hand into the migration, either inside a generated file (the documentIds copies in 0002) or in a drizzle-kit generate --custom file (0010)",
       "consumers": [
         "npm run postgres:migrate",
         "PlanetScale Postgres release steps (dossier W2)"
       ],
-      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts"],
-      "freshnessRule": "Append-only. Never rewrite an applied migration; schema changes add a new file via npm run postgres:migrate:generate.",
+      "inputs": ["lib/postgres/schema.generated.ts", "lib/postgres/schema.runtime.ts", "hand-written backfill SQL in the migration file"],
+      "freshnessRule": "Append-only history. Never rewrite or regenerate an applied migration. A schema change adds a new file via npm run postgres:migrate:generate; a data backfill adds a new file via npm run postgres:migrate:generate -- --custom and its SQL is written by hand.",
       "sourceDeployment": "local working tree",
       "targetDeployment": "POSTGRES_DIRECT_URL",
       "schemaVersion": "drizzle-kit 0.31",
-      "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run postgres:migrate:generate"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of existing files; new migrations come from npm run postgres:migrate:generate"
     },
     {
       "id": "localized-publication-trigger-creation",
@@ -661,8 +661,8 @@
       "sourceDeployment": "local working tree",
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
-      "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0013_localized_publication_index_triggers.sql"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of the applied file; a new migration of this kind comes from bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/<next>_<name>.sql"
     },
     {
       "id": "localized-publication-trigger-restoration",
@@ -675,8 +675,8 @@
       "sourceDeployment": "local working tree",
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
-      "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql --restore"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh of the applied file; a new migration of this kind comes from bun scripts/postgres/localizedPublicationIndexTriggers.ts lib/postgres/migrations/<next>_<name>.sql --restore"
     },
     {
       "id": "guarded-responsive-media-renditions",
