@@ -40,6 +40,7 @@ Act on reversible work without asking. Ask before deleting data, force-pushing, 
 - [ARCHITECTURE.md](ARCHITECTURE.md) maps the repository and its generated code.
 - [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, local tools, and verification.
 - `package.json` is the command catalog.
+- `.rgignore` hides bulk generated and archived payloads from `rg`. Search one on purpose with `rg --no-ignore <pattern> <path>`. `data/lineage.json` names the producer of each generated one.
 - [docs/README.md](docs/README.md) indexes every runbook and workflow.
 - [docs/glossary.md](docs/glossary.md) defines the domain vocabulary.
 - [docs/operations/data-credentials.md](docs/operations/data-credentials.md) is the production write ceremony.
