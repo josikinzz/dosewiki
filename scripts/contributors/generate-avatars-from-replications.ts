@@ -60,7 +60,7 @@ import {
   selectVideoFrame,
 } from "./generate-avatar-media";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -82,6 +82,8 @@ function log(message = "") {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
+  const writeCredential = command.writeRequested ? requireProductionWriteCredential("profileMediaWrite") : null;
 
   const previewDir = process.argv
     .slice(2)
@@ -346,8 +348,7 @@ async function main() {
   log();
   log(`Wrote ${path.relative(ROOT, MANIFEST_PATH)} (${manifestEntries.length} entries).`);
 
-  assertProductionWriteAllowed(command);
-  const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
+  const apiKey = writeCredential.token;
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   const rawProfiles = (await writeClient.query(api.contributorProfiles.getForBulkImport, {

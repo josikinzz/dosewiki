@@ -39,7 +39,7 @@ import {
   renderAvatarAttention,
 } from "./generate-avatar-media";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -56,6 +56,8 @@ function log(message = "") {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
+  const writeCredential = command.writeRequested ? requireProductionWriteCredential("profileMediaWrite") : null;
 
   const argv = process.argv.slice(2);
   const flag = (name: string) =>
@@ -295,9 +297,7 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
-  const { token: apiKey } =
-    requireProductionWriteCredential("profileMediaWrite");
+  const apiKey = writeCredential.token;
 
   for (const entry of installable) {
     writeAvatarFile(
