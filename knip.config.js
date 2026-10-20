@@ -43,7 +43,6 @@ const appEntries = [
   "src/styles/pro-theme.css",
   "src/styles/theme-light-mode.css",
   "src/features/theme-lab/themeLabBootstrap.ts",
-  "src/features/effects/effectGuideClass.ts",
   "src/components/{common,layout}/index.ts",
 ];
 
