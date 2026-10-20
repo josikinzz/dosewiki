@@ -164,12 +164,12 @@
     "typecheck:handlers": "tsc --noEmit -p scripts/config/tsconfig.handlers.json",
     "lint": "eslint . && node scripts/lint/check-css-comments.mjs && node scripts/lint/check-em-dashes.mjs",
     "prepare": "husky || true",
-    "security:check": "./.husky/check-secrets.sh",
+    "security:check": "node scripts/security/scan-secrets.mjs --tracked",
     "check:function-references": "node scripts/build/check-function-references.mjs",
     "check:build-wiring": "node scripts/deploy/check-build-command-wiring.mjs",
     "verify:checkout": "bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run check:function-references && bun run check:build-wiring",
     "verify:drift": "bun run postgres:verify-migrations && bun run postgres:check-schema",
-    "verify": "bun run verify:checkout && bun run verify:drift"
+    "verify": "bun run security:check && bun run verify:checkout && bun run verify:drift"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
