@@ -148,8 +148,6 @@ export function MoleculeEditorSession({
   const [overrideReload, setOverrideReload] = useState(0);
   const templateDoc = knownDepiction(templateRead);
   const overrideDoc = knownDepiction(overrideRead);
-  const templateLoadError = templateRead.status === "failed" ? templateRead.error : null;
-  const overrideLoadError = overrideRead.status === "failed" ? overrideRead.error : null;
   const snapshotStatus = (mode === "templates" ? templateRead : overrideRead).status;
   const forceNextLoad = useRef(false);
   const freeze = useWriteFreeze();
@@ -1144,8 +1142,8 @@ export function MoleculeEditorSession({
             ) : null}
             <MoleculeLoadNotices
               mode={mode}
-              templateLoadError={templateLoadError}
-              overrideLoadError={overrideLoadError}
+              templateRead={templateRead}
+              overrideRead={overrideRead}
               onRetryOverride={() => setOverrideReload((key) => key + 1)}
               onRetryTemplate={() => setTemplateReload((key) => key + 1)}
               sourceError={moleculeSourceRead.error}
@@ -1153,7 +1151,7 @@ export function MoleculeEditorSession({
               membersError={classMembershipRead.error}
               onRetryMembers={classMembershipRead.retry}
             />
-            {mode === "templates" && templateDoc === null && !source && !templateLoadError ? (
+            {mode === "templates" && templateDoc === null && !source ? (
               <TemplateInitialization
                 onUseClassStructure={() => void initializeTemplateFromClassStructure()}
                 smiles={templateSmilesInput}

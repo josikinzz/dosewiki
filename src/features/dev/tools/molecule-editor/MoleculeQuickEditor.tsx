@@ -43,7 +43,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     confirmRevert,
     dismissRevert,
     loadTimedOut,
-    overrideLoadError,
+    overrideRead,
     retryOverrideLoad,
     dirty,
     canSave,
@@ -53,13 +53,14 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     revertToAuto,
   } = useMoleculeQuickEditorLifecycle({ slug });
   const guardMismatch = guard != null && !guard.match;
+  const overrideFailed = overrideRead.status === "failed";
 
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="theme-text-faint text-xs">
           <span className="theme-text-muted font-mono">{slug}</span>
-          {!noStructure && !overrideLoadError ? (
+          {!noStructure && !overrideFailed ? (
             <>
               {" · "}
               <span>{loadedFromOverride ? "saved depiction" : "unsaved auto layout"}</span>
@@ -93,11 +94,11 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         />
       ) : null}
 
-      {overrideLoadError ? (
+      {overrideRead.status === "failed" ? (
         <Notice
           tone="danger"
           title="Couldn't load depiction"
-          message={overrideLoadError}
+          message={overrideRead.error}
           actions={(
             <Button variant="outline" size="sm" onClick={retryOverrideLoad}>
               <Icon icon="lucide:rotate-cw" size={14} />
@@ -109,7 +110,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
 
       <div className="space-y-4 lg:flex lg:items-start lg:gap-5 lg:space-y-0">
         <div className="relative h-[24rem] min-h-[20rem] w-full overflow-hidden rounded-xl border border-dose-border bg-dose-body lg:min-w-0 lg:flex-1">
-          {overrideLoadError ? (
+          {overrideFailed ? (
             <UnreadableDepiction />
           ) : noStructure ? (
             <NoStructure />
@@ -163,7 +164,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
               <Button
                 variant="outline"
                 onClick={revertToAuto}
-                disabled={noStructure || saving || !!overrideLoadError}
+                disabled={noStructure || saving || overrideFailed}
                 title="Regenerate from SMILES in the canvas; the public page changes only after Save"
               >
                 <Icon icon="lucide:rotate-ccw" size={15} />

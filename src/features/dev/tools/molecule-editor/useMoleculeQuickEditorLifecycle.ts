@@ -171,7 +171,6 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
   const dirty = edited !== source;
   const renderBlocked = !!oclError || !!rdkitError || !!canvasError;
   const snapshotLoaded = overrideRead.status === "loaded";
-  const overrideLoadError = overrideRead.status === "failed" ? overrideRead.error : null;
   const canSave =
     snapshotLoaded && dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
 
@@ -267,7 +266,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     confirmRevert,
     dismissRevert: () => setConfirmRevert(false),
     loadTimedOut,
-    overrideLoadError,
+    overrideRead,
     retryOverrideLoad: () => setRefreshToken((token) => token + 1),
     dirty,
     renderBlocked,
