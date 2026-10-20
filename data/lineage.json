@@ -1447,7 +1447,14 @@
       ],
       "inputs": [
         "vendor/openchemlib/src/",
-        "vendor/openchemlib/LOCAL_MODIFICATIONS.md"
+        "vendor/openchemlib/lib/ except the gitignored lib/java/ build intermediate; esbuild bundles lib/index.js and lib/index.debug.js, and the build copies lib/index.d.ts to dist",
+        "vendor/openchemlib/scripts/",
+        "vendor/openchemlib/package.json",
+        "vendor/openchemlib/tsconfig.json",
+        "vendor/openchemlib/LICENSE",
+        "vendor/openchemlib/PROVENANCE.md",
+        "vendor/openchemlib/LOCAL_MODIFICATIONS.md",
+        "vendor/openchemlib/README.dosewiki.md"
       ],
       "freshnessRule": "Rebuild only after changing fork source, then review source, dist, types, resources and artifact-manifest diffs together. npm run openchemlib:verify fails in CI when dist drifts from the recorded fingerprints. docs/architecture/openchemlib-fork.md owns the toolchain.",
       "sourceDeployment": "local working tree with JDK 21 and GWT 2.13.0",
@@ -1465,8 +1472,8 @@
         "scripts/chemistry/verify-openchemlib-fork.mjs"
       ],
       "inputs": [
-        "vendor/openchemlib/src/ file fingerprints",
-        "vendor/openchemlib/dist/* file fingerprints"
+        "file fingerprints of the source inputs SOURCE_ROOTS and SOURCE_FILES name in scripts/chemistry/verify-openchemlib-fork.mjs: vendor/openchemlib/src/, lib/ except lib/java/, scripts/, package.json, tsconfig.json, LICENSE, PROVENANCE.md, LOCAL_MODIFICATIONS.md and README.dosewiki.md",
+        "file fingerprints of vendor/openchemlib/dist/openchemlib.js, openchemlib.debug.js, openchemlib.d.ts and resources.json"
       ],
       "freshnessRule": "Written by verify-openchemlib-fork.mjs --write at the end of npm run openchemlib:build. Never rewrite it alone to silence an openchemlib:verify failure.",
       "sourceDeployment": "local working tree",
