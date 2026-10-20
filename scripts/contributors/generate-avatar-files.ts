@@ -33,10 +33,24 @@ export function installAvatarFile(key: string, bytes: Buffer, { overwrite }: { o
   writeFileCreatingDirectory(filePath, bytes, overwrite);
 }
 
+function physicalPath(target: string): string {
+  const missing: string[] = [];
+  let current = path.resolve(target);
+  while (!fs.lstatSync(current, { throwIfNoEntry: false })) {
+    missing.unshift(path.basename(current));
+    current = path.dirname(current);
+  }
+  return path.join(fs.realpathSync(current), ...missing);
+}
+
+function isWithin(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative === "" || (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
 export function writePreviewAvatarFile(previewDir: string, key: string, bytes: Buffer): string {
   const filePath = path.resolve(previewDir, normalizeProfileKey(key).toLowerCase(), "avatar.webp");
-  const fromPublicTree = path.relative(AVATAR_ROOT, filePath);
-  if (!fromPublicTree.startsWith("..") && !path.isAbsolute(fromPublicTree)) {
+  if (isWithin(physicalPath(AVATAR_ROOT), physicalPath(filePath))) {
     throw new Error(`--preview-dir must be disposable, not inside ${path.relative(ROOT, AVATAR_ROOT)}.`);
   }
   writeFileCreatingDirectory(filePath, bytes, true);

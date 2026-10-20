@@ -93,12 +93,12 @@ beforeEach(() => {
   const writeFileSync = fs.writeFileSync;
   vi.spyOn(fs, "writeFileSync").mockImplementation((file, ...rest) => {
     const filePath = path.resolve(String(file));
-    if (filePath.startsWith(scratch)) return writeFileSync(file, ...rest);
+    if (physicallyInScratch(filePath)) return writeFileSync(file, ...rest);
     sinks.files.push(filePath);
   });
   const mkdirSync = fs.mkdirSync;
   vi.spyOn(fs, "mkdirSync").mockImplementation((dir, options) =>
-    path.resolve(String(dir)).startsWith(scratch) ? mkdirSync(dir, options) : undefined,
+    physicallyInScratch(path.resolve(String(dir))) ? mkdirSync(dir, options) : undefined,
   );
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -110,6 +110,12 @@ afterEach(() => {
   process.env = savedEnv;
   fs.rmSync(scratch, { recursive: true, force: true });
 });
+
+function physicallyInScratch(target: string): boolean {
+  let existing = target;
+  while (!fs.existsSync(existing)) existing = path.dirname(existing);
+  return fs.realpathSync(existing).startsWith(fs.realpathSync(scratch));
+}
 
 function invoke(operation: string, extra: string[], { write = true } = {}) {
   const ceremony = write
@@ -165,10 +171,31 @@ describe("avatar persistence under a freeze raised mid-run", () => {
     expect(persistentSinks()).toEqual([]);
   });
 
-  it("refuses a preview directory inside the public avatar tree", async () => {
-    invoke("generate-contributor-avatars", [`--preview-dir=${PUBLIC_AVATARS}`], { write: false });
+  it.each([
+    ["the public avatar tree itself", () => PUBLIC_AVATARS],
+    ["a public child named ..preview", () => path.join(PUBLIC_AVATARS, "..preview")],
+    [
+      "a symlink to the public avatar tree",
+      () => {
+        const alias = path.join(scratch, "alias");
+        fs.symlinkSync(PUBLIC_AVATARS, alias);
+        return alias;
+      },
+    ],
+    [
+      "a preview whose profile child links into the public tree",
+      () => {
+        const previewDir = path.join(scratch, "linked-preview");
+        fs.mkdirSync(previewDir, { recursive: true });
+        fs.symlinkSync(PUBLIC_AVATARS, path.join(previewDir, "exampleartist"));
+        return previewDir;
+      },
+    ],
+  ])("refuses a frozen preview into %s", async (_shape, previewDir) => {
+    process.env.DATA_WRITES_FROZEN = "1";
+    invoke("generate-contributor-avatars", [`--preview-dir=${previewDir()}`], { write: false });
     await expect(generateFromReplications()).rejects.toThrow(/disposable/);
-    expect(persistentSinks()).toEqual([]);
+    expect(sinks.files).toEqual([]);
   });
 
   it("the wild importer installs and records avatars when writes stay open", async () => {
