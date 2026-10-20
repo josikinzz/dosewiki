@@ -135,21 +135,25 @@ export const ReagentSectionFallback = memo(function ReagentSectionFallback({
   intro: ReactNode;
 }) {
   const t = useT();
-  const { data, isLoading } = useReagentData(
+  const { data, isLoading, isError } = useReagentData(
     staticEntries.length === 0 ? lookupIdentifier : "",
   );
-  if (staticEntries.length === 0 && isLoading) {
+  if (staticEntries.length === 0 && (isLoading || isError)) {
     return (
       <ArticleSection
         id="reagent-testing"
         icon={SUBSTANCE_SECTION_ICONS["reagent-testing"]}
         heading={t("Reagent Testing")}
       >
-        <ArticleSection.State
-          kind="loading"
-          title={t("Loading reagent data")}
-          description={t("Expected colorimetric results are being prepared.")}
-        />
+        {isError ? (
+          <ArticleSection.State kind="error" />
+        ) : (
+          <ArticleSection.State
+            kind="loading"
+            title={t("Loading reagent data")}
+            description={t("Expected colorimetric results are being prepared.")}
+          />
+        )}
       </ArticleSection>
     );
   }
