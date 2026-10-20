@@ -8,7 +8,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const script = "scripts/postgres/migrate.ts";
 
 function run(args, env = {}) {
-  return spawnSync("bun", [script, ...args], {
+  return spawnSync("bun", ["--no-env-file", script, ...args], {
     cwd: repoRoot,
     encoding: "utf8",
     env: {
