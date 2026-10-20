@@ -188,6 +188,49 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
       errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
     },
+    ...[
+      ['an uninitialized export assigned later', `
+        export let POST;
+        POST = async () => Response.json({ ok: true });
+      `],
+      ['a destructured export', `
+        export const { POST } = { POST: async () => Response.json({ ok: true }) };
+      `],
+      ['a guarded let export reassigned to a raw handler', `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        export let POST = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        POST = async () => Response.json({ ok: true });
+      `],
+      ['a guarded var export with no reassignment', `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        export var POST = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+      `],
+      ['a guarded function declaration reassigned to a raw handler', `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const guarded = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        export function POST(request: Request) { return guarded(request); }
+        POST = async () => Response.json({ ok: true });
+      `],
+      ['an export list naming a let reassigned inside a function', `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        let handler = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        function swap() { handler = async () => Response.json({ ok: true }); }
+        export { handler as POST };
+      `],
+      ['a forwarding function whose guard binding is a let', `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        let guarded = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        export const POST = (request: Request) => guarded(request);
+      `],
+      ['a class export', `
+        export class POST {}
+      `],
+    ].map(([shape, code]) => ({
+      name: `${shape} is rejected`,
+      filename: devRoute,
+      code,
+      errors: [{ messageId: 'unsupportedBinding', data: { method: 'POST' } }],
+    })),
     {
       name: 'a host gate around a raw handler',
       filename: devRoute,

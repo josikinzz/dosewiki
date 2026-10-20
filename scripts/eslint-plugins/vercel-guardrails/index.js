@@ -479,15 +479,66 @@ const MODULE_ALIASES = [
 
 const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'delegates-to-guard'];
 
+const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
+const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
+const TYPE_ONLY_DECLARATIONS = new Set(['TSTypeAliasDeclaration', 'TSInterfaceDeclaration', 'TSDeclareFunction']);
+const unsupportedBinding = { kind: 'unsupported' };
+
+function collectPatternNames(pattern, names = []) {
+  if (!pattern) return names;
+  if (TYPE_ONLY_WRAPPERS.has(pattern.type)) return collectPatternNames(pattern.expression, names);
+  if (pattern.type === 'Identifier') names.push(pattern.name);
+  if (pattern.type === 'ObjectPattern') {
+    for (const property of pattern.properties) collectPatternNames(property.type === 'RestElement' ? property : property.value, names);
+  }
+  if (pattern.type === 'ArrayPattern') for (const element of pattern.elements) collectPatternNames(element, names);
+  if (pattern.type === 'RestElement') collectPatternNames(pattern.argument, names);
+  if (pattern.type === 'AssignmentPattern') collectPatternNames(pattern.left, names);
+  return names;
+}
+
+function collectWrittenNames(node, written = new Set()) {
+  if (!node || typeof node.type !== 'string') return written;
+  const target =
+    node.type === 'AssignmentExpression' ? node.left
+      : node.type === 'UpdateExpression' ? node.argument
+        : ['ForInStatement', 'ForOfStatement'].includes(node.type) && node.left.type !== 'VariableDeclaration' ? node.left
+          : null;
+  for (const name of collectPatternNames(target)) written.add(name);
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'parent' || !value || typeof value !== 'object') continue;
+    for (const child of Array.isArray(value) ? value : [value]) collectWrittenNames(child, written);
+  }
+  return written;
+}
+
+function declaredBindings(declaration) {
+  if (!declaration || TYPE_ONLY_DECLARATIONS.has(declaration.type)) return [];
+  if (declaration.type === 'FunctionDeclaration') {
+    return declaration.id ? [[declaration.id.name, { kind: 'value', node: declaration }, declaration]] : [];
+  }
+  if (declaration.type === 'VariableDeclaration') {
+    return declaration.declarations.flatMap(declarator => {
+      const isConstValue = declaration.kind === 'const' && !declaration.declare && declarator.id.type === 'Identifier' && declarator.init;
+      return isConstValue
+        ? [[declarator.id.name, { kind: 'value', node: declarator.init }, declarator]]
+        : collectPatternNames(declarator.id).map(name => [name, unsupportedBinding, declarator]);
+    });
+  }
+  return declaration.id?.type === 'Identifier' ? [[declaration.id.name, unsupportedBinding, declaration]] : [];
+}
+
 function readModuleBindings(program) {
   const locals = new Map();
   const exports = new Map();
   let hasStarExport = false;
+  const declareLocal = (name, binding) => locals.set(name, locals.has(name) ? unsupportedBinding : binding);
+  const declareExport = (name, binding) => exports.set(name, exports.has(name) ? unsupportedBinding : binding);
 
   for (const statement of program.body) {
     if (statement.type === 'ImportDeclaration') {
       for (const specifier of statement.specifiers) {
-        locals.set(specifier.local.name, {
+        declareLocal(specifier.local.name, {
           kind: 'import',
           source: statement.source.value,
           imported: specifier.type === 'ImportSpecifier' ? specifier.imported.name : 'default',
@@ -500,32 +551,24 @@ function readModuleBindings(program) {
       continue;
     }
 
-    const declaration = statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
-    if (declaration?.type === 'FunctionDeclaration' && declaration.id) {
-      locals.set(declaration.id.name, { kind: 'value', node: declaration });
-      if (statement !== declaration) exports.set(declaration.id.name, { kind: 'value', node: declaration });
+    const exported = statement.type === 'ExportNamedDeclaration';
+    for (const [name, binding, node] of declaredBindings(exported ? statement.declaration : statement)) {
+      declareLocal(name, binding);
+      if (exported) declareExport(name, { kind: 'local', name, node });
     }
-    if (declaration?.type === 'VariableDeclaration') {
-      for (const declarator of declaration.declarations) {
-        if (declarator.id.type !== 'Identifier' || !declarator.init) continue;
-        locals.set(declarator.id.name, { kind: 'value', node: declarator.init });
-        if (statement !== declaration) exports.set(declarator.id.name, { kind: 'value', node: declarator.init });
-      }
-    }
-    if (statement.type === 'ExportNamedDeclaration' && !statement.declaration) {
+    if (exported && !statement.declaration) {
       for (const specifier of statement.specifiers) {
-        const exportedName = specifier.exported.name ?? specifier.exported.value;
-        exports.set(
-          exportedName,
+        declareExport(
+          specifier.exported.name ?? specifier.exported.value,
           statement.source
-            ? { kind: 'import', source: statement.source.value, imported: specifier.local.name }
-            : { kind: 'local', name: specifier.local.name },
+            ? { kind: 'import', source: statement.source.value, imported: specifier.local.name, node: specifier }
+            : { kind: 'local', name: specifier.local.name, node: specifier },
         );
       }
     }
   }
 
-  return { locals, exports, hasStarExport };
+  return { locals, exports, hasStarExport, written: collectWrittenNames(program) };
 }
 
 function resolveRelativeModule(fromFile, source) {
@@ -553,9 +596,6 @@ function resolveModuleId(root, fromFile, source) {
   if (!absolute) return null;
   return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
 }
-
-const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
-const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
 
 function isInertExpression(node) {
   if (TYPE_ONLY_WRAPPERS.has(node.type)) return isInertExpression(node.expression);
@@ -589,11 +629,15 @@ function forwardsRouteArguments(params, args) {
 
 function createRouteGuardClassifier(root, parseModule) {
   const unguarded = { guarded: false };
+  const unsupported = { guarded: false, unsupported: true };
 
   function classifyBinding(module, binding, canFollowImport) {
     if (!binding) return unguarded;
+    if (binding.kind === 'unsupported') return unsupported;
     if (binding.kind === 'value') return classifyHandler(module, binding.node, { canFollowImport });
-    if (binding.kind === 'local') return classifyBinding(module, module.locals.get(binding.name), canFollowImport);
+    if (binding.kind === 'local') {
+      return module.written.has(binding.name) ? unsupported : classifyBinding(module, module.locals.get(binding.name), canFollowImport);
+    }
     if (!canFollowImport) return unguarded;
     const target = parseModule(module.file, binding.source);
     if (!target) return unguarded;
@@ -633,7 +677,7 @@ function createRouteGuardClassifier(root, parseModule) {
   function classifyHandler(module, node, scope) {
     if (!node) return unguarded;
     if (node.type === 'Identifier') {
-      return scope.shadowed?.has(node.name) ? unguarded : classifyBinding(module, module.locals.get(node.name), scope.canFollowImport);
+      return scope.shadowed?.has(node.name) ? unguarded : classifyBinding(module, { kind: 'local', name: node.name }, scope.canFollowImport);
     }
     if (node.type === 'CallExpression') return classifyFactoryCall(module, node, scope);
     if (!scope.perRequest && FUNCTION_TYPES.has(node.type)) return classifyForwardingFunction(module, node, scope);
@@ -653,6 +697,8 @@ const requireRouteAccess = {
     messages: {
       unguardedHandler:
         'Exported {{method}} handler does not reach protectedRouteOperation({ auth, ... }) or a recognized guard factory. Wrap it in protectedRouteOperation. The route access exceptions in eslint.config.mjs name only handlers that predate this rule.',
+      unsupportedBinding:
+        'Exported {{method}} handler goes through a binding the rule cannot check. Export a single const initialized to the guard, or a function whose only statement returns one, and never reassign it.',
       missingFloor: '{{factory}} needs an inline `auth` floor in its options object.',
       staleException:
         'The route access exceptions list {{method}} for this file, but that handler is guarded or no longer exported. Remove the exception.',
@@ -721,7 +767,7 @@ const requireRouteAccess = {
           } else if (verdict.missingFloor) {
             context.report({ node: reportNode, messageId: 'missingFloor', data: { factory: verdict.missingFloor } });
           } else if (!exceptedMethods.has(method)) {
-            context.report({ node: reportNode, messageId: 'unguardedHandler', data: { method } });
+            context.report({ node: reportNode, messageId: verdict.unsupported ? 'unsupportedBinding' : 'unguardedHandler', data: { method } });
           }
         }
         for (const method of exceptedMethods) {
