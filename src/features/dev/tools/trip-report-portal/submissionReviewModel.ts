@@ -36,12 +36,6 @@ export function submissionHoldOf(
   return { kind, status: row.status, by: actor, at, mine: sameActor(actor, viewer) };
 }
 
-export function holderWord(hold: SubmissionHold, nameOf: (email: string) => string): string | null {
-  if (hold.kind === "mine") return "You";
-  if (hold.kind === "other") return `Claimed by ${nameOf(hold.by)}`;
-  return null;
-}
-
 export type WriteRefusal =
   | { kind: "frozen"; message: string }
   | { kind: "conflict"; message: string }

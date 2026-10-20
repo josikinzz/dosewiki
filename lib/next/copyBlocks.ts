@@ -73,29 +73,6 @@ function reportDegradedCopyRead(error: unknown, operation = "copyBlocks:getAll")
   );
 }
 
-export const getCopyBlocks = cache(
-  publicDataCache(async (): Promise<CopyBlockRecord[]> => {
-    try {
-      const rows = await getPublicDataReadAdapter().getPublicCopyBlocks();
-      if (!Array.isArray(rows)) {
-        return [];
-      }
-      return rows.flatMap((row) => {
-        const parsed = parseCopyBlockRecord(row);
-        return parsed ? [parsed] : [];
-      });
-    } catch (error) {
-      reportDegradedCopyRead(error);
-      return [];
-    }
-  },
-  ["data-public-copy-blocks"],
-  {
-    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.copy],
-  },),
-);
-
 const getCopyBlocksByKeysCached = publicDataCache(
   async (keys: string[]): Promise<CopyBlockRecord[]> => {
     try {
@@ -177,10 +154,6 @@ export function createCopyResolver(rows: readonly CopyBlockRecord[]): CopyResolv
     },
   };
 }
-
-export const getCopy = cache(async (): Promise<CopyResolver> => {
-  return createCopyResolver(await getCopyBlocks());
-});
 
 const FLAVOR_KEY_SUFFIX: Record<SiteFlavor, string | null> = {
   dosewiki: null,

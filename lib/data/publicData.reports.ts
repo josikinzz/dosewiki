@@ -84,10 +84,6 @@ export const getPublicReports = cache(async (): Promise<PublicReportPreview[]> =
   return projectPublicReportPreviews(reports, profiles);
 });
 
-export const getFeaturedReports = cache(async (limit = 8) => {
-  return (await getPublicReports()).slice(0, limit);
-});
-
 export const getPublicReportDetails = cache(async (): Promise<TripReportDetailRecord[]> => {
   const [reports, profiles] = await Promise.all([
     getPublicTripReportDetailRecords(),
@@ -107,20 +103,6 @@ export const getPublicReportBySlug = cache(async (slug: string): Promise<TripRep
 
   return projectPublicReportDetail(report, profiles);
 });
-
-export const getReportsByAuthor = cache(async (authorName: string): Promise<PublicReportPreview[]> => {
-  const [reports, profiles] = await Promise.all([
-    getPublicTripReportPreviewRecords(),
-    getPublicContributorIdentities(),
-  ]);
-  const lowerName = authorName.toLowerCase();
-
-  return projectPublicReportPreviews(
-    reports.filter((report) => report.subject.name.toLowerCase() === lowerName),
-    profiles,
-  );
-});
-
 
 const getPublicContributorReportRecords = cache(publicDataCache(
   async (profileKey: string, names: string[]) =>

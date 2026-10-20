@@ -53,7 +53,6 @@
     "generate:subjective-effects-provenance": "bun scripts/data-ops/generate-subjective-effects-provenance.mjs",
     "provenance:check": "node scripts/data/verifyGeneratedDataProvenance.mjs --strict",
     "parse:sources": "bun scripts/parse-sources.ts --stats",
-    "parse:sources:verbose": "bun scripts/parse-sources.ts --verbose --stats",
     "audit:iupac-names": "bun --env-file=/dev/null scripts/chemistry/audit-iupac-names.ts",
     "hygiene:check": "node scripts/util/clean-local-artifacts.mjs",
     "hygiene:clean": "node scripts/util/clean-local-artifacts.mjs --clean",

@@ -225,11 +225,6 @@ const CITATION_SEVERITY_TONE: Record<CitationEvidenceSeverity, EditorStatusPillT
   non_blocking: "neutral",
 }
 
-export const CITATION_SEVERITY_LABEL: Record<CitationEvidenceSeverity, string> = {
-  blocking: "Blocking",
-  non_blocking: "Non-blocking",
-};
-
 const CITATION_CHECKLIST_TONE: Record<CitationReviewChecklistTone, EditorStatusPillTone> = {
   complete: "success",
   pending: "caution",
