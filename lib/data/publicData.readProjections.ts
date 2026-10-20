@@ -161,9 +161,8 @@ function omitPublicArticleReferenceProvenance(
 
 export function parsePublicSubstanceRecordWithoutProvenance(
   record: unknown,
-): PublicSubstanceArticleRecord | null {
-  const parsed = parsePublicSubstanceRecord(record);
-  return parsed ? omitPublicArticleReferenceProvenance(parsed) : null;
+): PublicSubstanceArticleRecord {
+  return omitPublicArticleReferenceProvenance(parsePublicSubstanceRecord(record));
 }
 
 export function parsePublicSubstanceRecordsWithoutProvenance(
