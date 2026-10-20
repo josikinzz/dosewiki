@@ -13,7 +13,7 @@ import { getDataBackend, getPostgresClient } from "../../lib/postgres/runtime/ba
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { prepareVCode } from "../../src/features/effects/vcode/editing";
 import type { VCodeNode } from "../../src/features/effects/vcode/types";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -72,8 +72,7 @@ const VCODE = [
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
 
   process.env.DATA_BACKEND = "postgres";

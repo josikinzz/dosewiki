@@ -6,7 +6,7 @@ import { api } from "../../lib/postgres/runtime/api";
 import { deleteDocument, insertDocument, mintDocumentId, patchDocument, withTransaction } from "../../lib/postgres/documentStore";
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { slideMotionSource, slidePosterSource } from "../../src/features/replications/viewer/qualityLadder";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -26,8 +26,7 @@ function resolvedOf(row: Record<string, unknown> | null): Resolved | null {
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
   const prefix = `t11-${mintDocumentId().slice(0, 8)}`;
   const runDirectory = path.join(ROOT, "runs", "postgres-import", `${new Date().toISOString().replace(/[:.]/g, "-")}-storage-fallbacks`);

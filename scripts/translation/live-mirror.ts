@@ -9,6 +9,7 @@ import * as live from "../../lib/translation/liveTranslation";
 import * as store from "../../lib/translation/segmentStore";
 import { CORPORA } from "./corpora.mjs";
 import type { WorkUnit } from "./engine.mjs";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 import { extractSegments, buildWorkUnits, type Segment } from "./segment-manifest.mjs";
 import { isBlocking } from "./validate.mjs";
@@ -30,13 +31,15 @@ const { values, positionals } = parseArgs({
     term: { type: "string", multiple: true, default: [] },
     target: { type: "string" },
     write: { type: "boolean", default: false },
+    "dry-run": { type: "boolean", default: false },
+    "confirm-write": { type: "string" },
+    "expected-deployment": { type: "string" },
     "allow-remote": { type: "boolean", default: false },
   },
 });
 
 const LOCALE = values.locale;
 const command = positionals[0];
-const target = values.target ?? process.env.TARGET_POSTGRES_URL;
 if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].includes(command)) {
   throw new Error(`Usage: bun scripts/translation/live-mirror.ts <command> [options]
   import --run=<batch run directory> [--corpus=<corpus>]
@@ -45,12 +48,22 @@ if (!command || !["import", "enqueue", "run", "backfill", "stale", "status"].inc
   backfill [--kind=<article|effect|report|library|replication>] (default: every kind)
   stale [--term=<term>] (repeat --term to select multiple terms)
   status
-Options: [--locale=<code>] [--target=<postgres-url>] [--allow-remote] [--write]
-Set TARGET_POSTGRES_URL instead of --target. Without --write, commands report only.
+Options: [--locale=<code>] [--target=<postgres-url>] [--allow-remote] [--dry-run]
+Set TARGET_POSTGRES_URL instead of --target. Every command reports only by default.
+A write needs DATA_BACKEND=postgres, --write, --confirm-write=live-mirror-<command>,
+and --expected-deployment=<host/database>; status never writes.
 Follow docs/operations/data-credentials.md for the Postgres write ceremony.`);
 }
+const writeCommand = createProductionWriteCommand({
+  operation: `live-mirror-${command}`,
+  env: values.write ? process.env : { ...process.env, DATA_BACKEND: "postgres" },
+  loadsEnvLocal: false,
+});
+const target = writeCommand.targetUrl;
 if (!target) throw new Error("Pass --target <url> or set TARGET_POSTGRES_URL");
-guardTarget(target, values["allow-remote"]);
+if (values.write && command === "status") throw new Error("status is read-only; drop --write.");
+if (values.write) authorizeProductionWrite(writeCommand);
+else guardTarget(target, values["allow-remote"]);
 
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;

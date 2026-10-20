@@ -12,7 +12,7 @@ import {
   SAFETY_BANNER_ICON_SIZE_DEFAULT,
   SAFETY_BANNER_ICON_SIZE_MAX,
 } from "../../src/data/substanceWarningBanners";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -55,8 +55,7 @@ async function count(pool: Pool, sql: string, params: unknown[] = []): Promise<n
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   const keep = argv.includes("--keep");
 
   process.env.DATA_BACKEND = "postgres";

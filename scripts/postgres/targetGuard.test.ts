@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { guardTarget, resolveLocalRehearsalTarget, resolveTarget } from "./targetGuard";
 
 const LOCAL = "postgres://localhost:5432/dosewiki";
 const REMOTE = "postgres://db.example.test:5432/dosewiki";
@@ -44,5 +44,22 @@ describe("guardTarget", () => {
     expect(() => guardTarget(REMOTE, false, {})).toThrow(/Refusing non-local target db\.example\.test/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "other.example.test" })).toThrow(/POSTGRES_IMPORT_CONFIRM must equal/);
     expect(() => guardTarget(REMOTE, true, { POSTGRES_IMPORT_CONFIRM: "db.example.test" })).not.toThrow();
+  });
+});
+
+describe("resolveLocalRehearsalTarget", () => {
+  it("refuses a remote host even with --allow-remote and the matching host confirmation", () => {
+    const argv = ["--target", REMOTE, "--allow-remote"];
+    expect(() => resolveLocalRehearsalTarget(argv, { POSTGRES_IMPORT_CONFIRM: "db.example.test" })).toThrow(/loopback Postgres; refusing db\.example\.test/);
+  });
+
+  it("refuses a caller that arrived frozen instead of clearing its freeze", () => {
+    const env = { TARGET_POSTGRES_URL: LOCAL, DATA_WRITES_FROZEN: "1" };
+    expect(() => resolveLocalRehearsalTarget([], env)).toThrow(/DATA_WRITES_FROZEN/);
+    expect(env.DATA_WRITES_FROZEN).toBe("1");
+  });
+
+  it("admits an unfrozen loopback target", () => {
+    expect(resolveLocalRehearsalTarget(["--target", "postgres://[::1]:5432/x"], { DATA_WRITES_FROZEN: "0" })).toBe("postgres://[::1]:5432/x");
   });
 });

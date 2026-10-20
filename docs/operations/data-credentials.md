@@ -60,7 +60,7 @@ The Postgres runtime needs `REPLICATION_MEDIA_BASE_URL` for correct replication 
 
 ## Schema migrations
 
-`bun run postgres:migrate` is the only production schema path. Its implementation must require an explicit `--target` or `TARGET_POSTGRES_URL`, preserve `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM` for non-loopback targets, use the fixed repository Drizzle config, reject arbitrary forwarded arguments, and support a no-write plan before execution.
+`bun run postgres:migrate` is the only production schema path. Its implementation must require an explicit `--target` or `TARGET_POSTGRES_URL`, preserve `--allow-remote` plus `POSTGRES_IMPORT_CONFIRM` for non-loopback targets, use the fixed repository Drizzle config, and reject arbitrary forwarded arguments. Without `--write` it only prints the plan (`--dry-run` names that mode explicitly) and never starts Drizzle. Applying migrations takes `DATA_BACKEND=postgres`, an open freeze, and `--write --confirm-write=postgres-migrate --expected-deployment=<host/database>`; the plan prints the exact deployment value.
 
 Preconditions: inspect generated migrations and `lib/postgres/migrations/meta/_journal.json`, run the migration's plan mode against the exact target, review pending migrations, and obtain production authorization. Expected result: only the reviewed pending migrations apply, followed by a clean schema verification. Recovery is the migration-specific forward repair or the owner-approved database recovery plan, never an ad hoc down migration.
 
