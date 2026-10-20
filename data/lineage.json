@@ -441,7 +441,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateSubstanceSocialCards.ts --expected-deployment=<source fingerprint>, then plan, canary, full apply, object verification, and install with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/generateSubstanceSocialCards.ts --allow-remote --expected-deployment=<host>/<database> with DATA_BACKEND=postgres, TARGET_POSTGRES_URL, POSTGRES_IMPORT_CONFIRM=<host>, and REPLICATION_MEDIA_BASE_URL set; then bun run publish:social-cards plan, canary (--canary-selector=<slug>:), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#substance-cards"
     },
     {
       "id": "substance-social-card-images",
@@ -464,7 +464,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateSubstanceSocialCards.ts --expected-deployment=<source fingerprint>; see docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<slug>:), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateSubstanceSocialCards.ts --allow-remote --expected-deployment=<host>/<database>. A human approves each phase. Exact commands: docs/operations/social-cards.md#substance-cards"
     },
     {
       "id": "page-social-card-manifest",
@@ -497,7 +497,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePageSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generatePageSocialCards.ts [--only=<key>], then plan, canary, full apply, object verification, and install with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/generatePageSocialCards.ts [--only=<key>], then bun run publish:social-cards plan, canary (--canary-selector=<key>:, for example home:), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#page-cards"
     },
     {
       "id": "page-social-card-images",
@@ -521,7 +521,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generatePageSocialCards.ts; see docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<key>:, for example home:), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generatePageSocialCards.ts [--only=<key>]. A human approves each phase. Exact commands: docs/operations/social-cards.md#page-cards"
     },
     {
       "id": "entity-social-card-manifest",
@@ -547,7 +547,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateEntitySocialCards.ts --expected-deployment=<source fingerprint>, then plan, canary, full apply, object verification, and install with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/generateEntitySocialCards.ts --allow-remote --expected-deployment=<host>/<database> with DATA_BACKEND=postgres, TARGET_POSTGRES_URL, POSTGRES_IMPORT_CONFIRM=<host>, and REPLICATION_MEDIA_BASE_URL set; then bun run publish:social-cards plan, canary (--canary-selector=<kind>:<slug> or a media/sha256/ digest key), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#entity-cards"
     },
     {
       "id": "entity-social-card-images",
@@ -574,7 +574,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateEntitySocialCards.ts --expected-deployment=<source fingerprint>; see docs/operations/social-cards.md"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<kind>:<slug> or a media/sha256/ digest key), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateEntitySocialCards.ts --allow-remote --expected-deployment=<host>/<database>. A human approves each phase. Exact commands: docs/operations/social-cards.md#entity-cards"
     },
     {
       "id": "postgres-drizzle-schema",
