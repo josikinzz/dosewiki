@@ -133,10 +133,11 @@
       "producer": "scripts/data/sanitize-public-substance-archive.mjs",
       "consumers": [
         "external consumers with legacy /SubstanceIndex.json links",
-        "About page archival download"
+        "scripts/data/cacheProtestKitReagentTests.mjs",
+        "scripts/translation/ui-catalog-sources.ts"
       ],
       "inputs": ["historical local substance export retained in private recovery storage"],
-      "freshnessRule": "Do not treat as live runtime data. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
+      "freshnessRule": "Do not treat as live runtime data. The About page download is /open-data/SubstanceIndex.json, rendered from Postgres by src/app/open-data/; this file is only the compatibility archive served at /SubstanceIndex.json. Preserve historical values and ordering, removing only editorial_review through the owned sanitizer after an explicit compatibility decision. Never restore an unsanitized public snapshot.",
       "sourceDeployment": "archival local working tree snapshot",
       "targetDeployment": null,
       "schemaVersion": "historical SubstanceIndex.json shape",
@@ -1180,19 +1181,21 @@
       "id": "dev-change-log",
       "path": "data/changelog/devChangeLog*.json",
       "role": "editorial-history",
-      "producer": "Dev Tools change log commit workflow",
+      "producer": "retired GitHub-commit change log that predates the Postgres changelog table; nothing writes these files now",
       "consumers": [
-        "src/data/changelog/changeLog.ts"
+        "src/data/changelog/changeLog.ts",
+        "lib/data/publicData.changelog.ts",
+        "src/features/dev/pages/useDevChangelogFeed.ts"
       ],
       "inputs": [
-        "editor saves committed through the Dev Tools GitHub workflow"
+        "editor saves recorded before the Postgres changelog table existed"
       ],
-      "freshnessRule": "Appended by the Dev Tools workflow; roll entries from devChangeLog.json into devChangeLog.archive.json before the writable file nears GitHub's 1 MB contents limit.",
-      "sourceDeployment": "GitHub repository contents",
+      "freshnessRule": "Frozen static history. Postgres changelog rows are the live record, written by server/changelog.ts, server/lib/articleRevisionJournal.ts and server/saveArticleBatch.ts. Readers merge these static entries with the Postgres rows. Do not append new entries here.",
+      "sourceDeployment": "historical GitHub repository contents",
       "targetDeployment": null,
       "schemaVersion": "src/data/changelog/changeLog.ts (ChangeLogEntry)",
-      "editPolicy": "append-through-dev-tools",
-      "refreshCommand": "edit through the Dev Tools change log; no local generator"
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No routine refresh; new change log entries are Postgres changelog rows written by the save path"
     },
     {
       "id": "tripsit-combos",

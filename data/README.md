@@ -31,10 +31,10 @@ Licenses: datasets authored by dose.wiki are released under CC0 1.0 as described
 | `i18n/glossary/glosses/{classes,effects,site}.json` | One-line English glosses per glossary term, split by topic, seeded into `translationGlossaryTerms` | CC0 1.0 |
 | `contributors/userProfiles.json` | Legacy contributor profile seed (key, display name, bio, links) used to backfill Postgres `contributorProfiles` | Not CC0: describes people; provenance and migration seed only |
 | `contributors/contributorAvatarSources.json` | Provenance for every avatar cropped from a contributor's own replication artwork | Not CC0: provenance record; artwork rights stay with the artist |
-| `changelog/devChangeLog.json`, `changelog/devChangeLog.archive.json` | Editor save history committed through the Dev Tools change log (recent entries and the rolled-over archive) | CC0 1.0 (edit history of CC0 article content) |
+| `changelog/devChangeLog.json`, `changelog/devChangeLog.archive.json` | Frozen editor save history from before the Postgres `changelog` table. Nothing appends here: `server/changelog.ts`, `server/lib/articleRevisionJournal.ts`, and `server/saveArticleBatch.ts` write new entries to Postgres, and readers merge these static entries with those rows | CC0 1.0 (edit history of CC0 article content) |
 | `third-party/tripsit/tripsit-combos.json` | TripSit drug-combination chart keyed by dose.wiki slug | TripSit's terms: non-commercial, attribution, link back, quick-reference note (`third-party/tripsit/LICENSE.md`) |
 | `third-party/tripsit/combo_definitions.json` | TripSit combination status legend (Dangerous, Unsafe, Caution, the three Low Risk variants, Unknown) | TripSit's terms (`third-party/tripsit/LICENSE.md`) |
-| `../public/SubstanceIndex.json` | Archival sanitized snapshot of the substance article corpus, the download linked from the About page; stays under `public/` because it is served at `/SubstanceIndex.json` | CC0 1.0 (article text) with the exceptions in `/docs/license` section 4 |
+| `../public/SubstanceIndex.json` | Archival sanitized snapshot of the substance article corpus, kept for legacy links; stays under `public/` because it is served at `/SubstanceIndex.json`. The About page links the live `/open-data/SubstanceIndex.json` instead | CC0 1.0 (article text) with the exceptions in `/docs/license` section 4 |
 
 The live open-data downloads (`/open-data/SubstanceIndex.json`, `/open-data/EffectIndex.json`, `/open-data/TripReports.json`) are rendered from Postgres by `src/app/open-data/` and are not tracked files.
 
