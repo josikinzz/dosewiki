@@ -55,6 +55,7 @@ jobs:
           bun run typecheck:scripts
           bun run typecheck:handlers
           bun run provenance:check
+          bun run schema:check
 
       - name: Check generated schema and migrations for drift
         run: |

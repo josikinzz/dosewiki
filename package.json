@@ -38,6 +38,7 @@
     "generate:favicons": "bun scripts/data/generate-further-reading-favicons.mjs",
     "generate:mantra-spiral": "bun scripts/data/generate-mantra-spiral.ts",
     "generate:schema": "bun scripts/generate/generateSchemaUtils.ts",
+    "schema:check": "bun --no-env-file scripts/generate/generateSchemaUtils.ts --check",
     "generate:postgres-schema": "bun scripts/postgres/generateDrizzleSchema.ts",
     "postgres:check-schema": "bun scripts/postgres/generateDrizzleSchema.ts --check",
     "generate:postgres-functions": "bun scripts/postgres/generateFunctionRegistry.ts",
@@ -164,7 +165,7 @@
     "lint": "eslint . && node scripts/lint/check-css-comments.mjs && node scripts/lint/check-em-dashes.mjs",
     "prepare": "husky || true",
     "security:check": "./.husky/check-secrets.sh",
-    "verify": "bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run postgres:verify-migrations && bun run postgres:check-schema"
+    "verify": "bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run postgres:verify-migrations && bun run postgres:check-schema"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

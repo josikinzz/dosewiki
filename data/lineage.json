@@ -245,7 +245,7 @@
         "src/schema/substance.schema.ts",
         "scripts/generate/schemaGenerationPolicy.ts"
       ],
-      "freshnessRule": "Refresh after article schema shape changes.",
+      "freshnessRule": "Refresh after article schema shape changes. bun run schema:check fails when these outputs drift from the producer.",
       "sourceDeployment": "src/schema/substance.schema.ts",
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",
@@ -265,7 +265,7 @@
         "src/schema/substance.schema.ts",
         "scripts/generate/schemaGenerationPolicy.ts"
       ],
-      "freshnessRule": "Refresh after article schema shape changes.",
+      "freshnessRule": "Refresh after article schema shape changes. bun run schema:check fails when these outputs drift from the producer.",
       "sourceDeployment": "src/schema/substance.schema.ts",
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",

@@ -17,6 +17,7 @@ import { pharmacologyGeneratedFieldRegistry } from "./fieldRegistry.generated/ph
 import { interactionsGeneratedFieldRegistry } from "./fieldRegistry.generated/interactions";
 import { toleranceGeneratedFieldRegistry } from "./fieldRegistry.generated/tolerance";
 import { harm_potentialGeneratedFieldRegistry } from "./fieldRegistry.generated/harm_potential";
+import { legalityGeneratedFieldRegistry } from "./fieldRegistry.generated/legality";
 import { citationsGeneratedFieldRegistry } from "./fieldRegistry.generated/citations";
 
 export interface GeneratedFieldMeta {
@@ -37,6 +38,7 @@ export const GENERATED_FIELD_REGISTRY: Record<string, GeneratedFieldMeta> = {
   ...interactionsGeneratedFieldRegistry,
   ...toleranceGeneratedFieldRegistry,
   ...harm_potentialGeneratedFieldRegistry,
+  ...legalityGeneratedFieldRegistry,
   ...citationsGeneratedFieldRegistry,
 };
 

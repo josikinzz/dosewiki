@@ -112,39 +112,76 @@ export type FieldPath = (typeof FIELD_PATHS)[number];
 `;
 }
 
-function main() {
-  console.log("Generating schema utilities...\n");
+const SHARD_DIR = "fieldRegistry.generated";
+const FIXED_OUTPUTS = ["defaults.generated.ts", "fieldRegistry.generated.ts"];
 
-  const defaultsContent = generateDefaultsFile();
-  const defaultsPath = path.join(OUTPUT_DIR, "defaults.generated.ts");
-  fs.writeFileSync(defaultsPath, defaultsContent, "utf-8");
-  console.log(`✓ Generated: ${path.relative(process.cwd(), defaultsPath)}`);
+function renderOutputs(): Map<string, string> {
+  const outputs = new Map<string, string>();
+  outputs.set("defaults.generated.ts", generateDefaultsFile());
 
   const fields = extractFieldPaths(substanceArticleSchema);
-  const registryShardDir = path.join(OUTPUT_DIR, "fieldRegistry.generated");
-  fs.rmSync(registryShardDir, { recursive: true, force: true });
-  fs.mkdirSync(registryShardDir, { recursive: true });
-
   for (const section of FIELD_REGISTRY_SECTION_ORDER) {
     const sectionFields = fields.filter((field) => inferFieldRegistrySection(field.path) === section);
-    if (sectionFields.length === 0) {
-      continue;
+    if (sectionFields.length > 0) {
+      outputs.set(`${SHARD_DIR}/${section}.ts`, generateFieldRegistryShardFile(section, sectionFields));
     }
-
-    const shardContent = generateFieldRegistryShardFile(section, sectionFields);
-    const shardPath = path.join(registryShardDir, `${section}.ts`);
-    fs.writeFileSync(shardPath, shardContent, "utf-8");
   }
 
-  const registryContent = generateFieldRegistryFile();
-  const registryPath = path.join(OUTPUT_DIR, "fieldRegistry.generated.ts");
-  fs.writeFileSync(registryPath, registryContent, "utf-8");
-  console.log(`✓ Generated: ${path.relative(process.cwd(), registryPath)}`);
-  console.log(`✓ Generated shards: ${path.relative(process.cwd(), registryShardDir)}`);
+  outputs.set("fieldRegistry.generated.ts", generateFieldRegistryFile());
+  return outputs;
+}
 
-  console.log(`\n📊 Generated ${fields.length} field entries`);
+function listCheckedInOutputs(): string[] {
+  const shardDir = path.join(OUTPUT_DIR, SHARD_DIR);
+  const shards = fs.existsSync(shardDir) ? fs.readdirSync(shardDir).map((name) => `${SHARD_DIR}/${name}`) : [];
+  return [...FIXED_OUTPUTS.filter((file) => fs.existsSync(path.join(OUTPUT_DIR, file))), ...shards];
+}
 
-  console.log("\nDone! Now update fieldRegistry.ts to use generated + overrides.");
+function checkOutputs(outputs: Map<string, string>): void {
+  const drifted = [...outputs]
+    .filter(([file, content]) => {
+      const target = path.join(OUTPUT_DIR, file);
+      return !fs.existsSync(target) || fs.readFileSync(target, "utf-8") !== content;
+    })
+    .map(([file]) => file);
+  const unexpected = listCheckedInOutputs().filter((file) => !outputs.has(file));
+
+  for (const file of drifted) console.error(`Out of date: src/data/schema/${file}`);
+  for (const file of unexpected) console.error(`Not produced by the generator: src/data/schema/${file}`);
+
+  if (drifted.length > 0 || unexpected.length > 0) {
+    console.error("\nSchema helpers drifted from src/schema/substance.schema.ts. Run: bun run generate:schema");
+    process.exitCode = 1;
+    return;
+  }
+  console.log(`Schema helpers are current (${outputs.size} files).`);
+}
+
+function writeOutputs(outputs: Map<string, string>): void {
+  const shardDir = path.join(OUTPUT_DIR, SHARD_DIR);
+  fs.rmSync(shardDir, { recursive: true, force: true });
+  fs.mkdirSync(shardDir, { recursive: true });
+  for (const [file, content] of outputs) {
+    fs.writeFileSync(path.join(OUTPUT_DIR, file), content, "utf-8");
+    console.log(`✓ Generated: src/data/schema/${file}`);
+  }
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  const unknown = args.filter((arg) => arg !== "--check");
+  if (unknown.length > 0) {
+    console.error(`Unknown argument: ${unknown.join(" ")}. Usage: generateSchemaUtils.ts [--check]`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const outputs = renderOutputs();
+  if (args.includes("--check")) {
+    checkOutputs(outputs);
+  } else {
+    writeOutputs(outputs);
+  }
 }
 
 main();

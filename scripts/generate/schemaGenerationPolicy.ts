@@ -44,8 +44,10 @@ const FIELD_REGISTRY_SECTION_BY_ROOT: Record<string, FieldRegistrySection> = {
   reagent_testing: "identification",
   tolerance: "tolerance",
   harm_potential: "harm_potential",
+  legality: "legality",
   history_culture: "meta",
   editorial_review: "meta",
+  section_gaps: "meta",
   references: "citations",
   source_citations: "citations",
   citations: "citations",
@@ -378,5 +380,11 @@ export function inferFieldRegistrySection(
   pathValue: string,
 ): FieldRegistrySection {
   const firstSegment = pathValue.split(".")[0].replace(/\[\]/g, "");
-  return FIELD_REGISTRY_SECTION_BY_ROOT[firstSegment] ?? "meta";
+  const section = FIELD_REGISTRY_SECTION_BY_ROOT[firstSegment];
+  if (!section) {
+    throw new Error(
+      `Article schema root "${firstSegment}" has no field registry section. Add it to FIELD_REGISTRY_SECTION_BY_ROOT in scripts/generate/schemaGenerationPolicy.ts.`,
+    );
+  }
+  return section;
 }
