@@ -168,7 +168,7 @@ export const productionWriterClassifications = Object.freeze({
       reason: "POST is a read-only SQL query against the Scry public corpus API.",
     },
   ]),
-  guardedStorageEntrypoint: Object.freeze([
+  storageUploadEntrypoint: Object.freeze([
     "scripts/replications/prepare-r2-image-renditions.ts",
     "scripts/replications/run-local-r2-upload-batches.mjs",
   ]),
