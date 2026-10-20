@@ -1,11 +1,6 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
 import { HighlightedText } from "@/components/common/HighlightedText";
-import { Icon } from "@/components/common/Icon";
 import { cn } from "@/lib/utils";
-import { JsonEditor } from "./JsonEditor";
-import { Notice } from "./Notice";
-import { EditorPanel, EditorPanelBody, EditorPanelHeader } from "./EditorPanel";
 
 type MaxHeightValue = number | string;
 
@@ -162,82 +157,5 @@ export function DiffSurface({
           ))
         : undefined}
     </CodeSurface>
-  );
-}
-
-export interface JsonEditorPanelProps {
-  id?: string;
-  title: ReactNode;
-  description?: ReactNode;
-  value: string;
-  error?: ReactNode;
-  readOnly?: boolean;
-  onChange?: (nextValue: string) => void;
-  onApply?: () => void;
-  applyLabel?: string;
-  actions?: ReactNode;
-  minHeight?: number;
-  className?: string;
-  editorClassName?: string;
-}
-
-export function JsonEditorPanel({
-  id,
-  title,
-  description,
-  value,
-  error,
-  readOnly = false,
-  onChange,
-  onApply,
-  applyLabel = "Apply JSON edits",
-  actions,
-  minHeight,
-  className,
-  editorClassName,
-}: JsonEditorPanelProps) {
-  const headerActions =
-    actions || onApply ? (
-      <>
-        {actions}
-        {onApply ? (
-          <Button
-            variant="accent"
-            size="icon"
-            onClick={onApply}
-            className="rounded-full"
-            aria-label={applyLabel}
-            disabled={readOnly}
-          >
-            <Icon icon="lucide:check" size={16} />
-          </Button>
-        ) : null}
-      </>
-    ) : undefined;
-
-  return (
-    <EditorPanel variant="subtle" className={className}>
-      <EditorPanelHeader
-        title={title}
-        description={description}
-        icon="lucide:braces"
-        actions={headerActions}
-      />
-      <EditorPanelBody className="space-y-4">
-        {error ? (
-          <Notice
-            tone="danger" message={error}
-          />
-        ) : null}
-        <JsonEditor
-          id={id}
-          value={value}
-          onChange={onChange}
-          readOnly={readOnly}
-          minHeight={minHeight}
-          className={editorClassName}
-        />
-      </EditorPanelBody>
-    </EditorPanel>
   );
 }

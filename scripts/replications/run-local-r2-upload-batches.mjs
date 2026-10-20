@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 
 const OPERATION = "upload-local-r2-media";
 const REMOTE_ROOT = "replications-r2:replications";
@@ -277,8 +278,10 @@ async function main() {
   const eligible = canaryPending ? [canaryBatch] : plan.batches.filter((batch) => batch.id !== canaryBatch.id);
   const pending = eligible.filter((batch) => ledger.batches[batch.id]?.status !== "verified").slice(0, limitBatches);
   for (const batch of pending) {
+    assertDataWritesNotFrozen(`${OPERATION}:${batch.id}`);
     const state = ledger.batches[batch.id];
     const sourceVerification = await validateBatchSources(plan, batch);
+    assertDataWritesNotFrozen(`${OPERATION}:${batch.id}:copy`);
     state.sourceVerification = { ...sourceVerification, verifiedAt: new Date().toISOString() };
     state.attempts += 1;
     state.status = "copying";

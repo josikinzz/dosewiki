@@ -426,7 +426,7 @@ const hashString = (value: string): string => {
   return (hash >>> 0).toString(36);
 };
 
-export const getSearchIndexInputHash = (input: SearchIndexInput): string =>
+const getSearchIndexInputHash = (input: SearchIndexInput): string =>
   hashString(stableStringify(input));
 
 export function createSearchIndexInput(
@@ -849,12 +849,4 @@ export function localizeSearchIndex(
 
 export function buildSearchIndexFromLibrary(library: LibraryData): SearchIndex {
   return buildSearchIndex(createSearchIndexInput(library));
-}
-
-export function querySearchWithData(
-  query: string,
-  library: LibraryData,
-  limit?: number,
-): SearchMatch[] {
-  return buildSearchIndexFromLibrary(library).query(query, { limit });
 }

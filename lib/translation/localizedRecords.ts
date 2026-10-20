@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import type { PublicEffectIndexArticle, PublicSubstanceRecord } from "@server/data/publicData.shared";
+import type { PublicEffectIndexArticle } from "@server/data/publicData.shared";
 import {
   getEffectArticlesByContributor,
   getPublicEffectBySlug,
@@ -28,7 +28,6 @@ import { projectPublicReportPreviews } from "../data/publicData.reportProfilePro
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { ContributorEffectCredit } from "../../src/types/effectCredits";
 import { getTripReportExcerpt } from "../../src/types/tripReport";
-import { getPublicSubstanceBySlug } from "@server/data/publicData.substances";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import type { PublicGalleryReplicationPreview, ReplicationWithUrl } from "../../src/types/replications";
 import { localizeRecord, localizeRecords } from "./liveTranslation";
@@ -60,17 +59,6 @@ export async function getLocalizedLeavesRevision(locale: string, hashes: readonl
   );
   return rows[0]?.revision ?? "empty";
 }
-
-export const getLocalizedPublicSubstanceBySlug = cache(async (
-  slug: string,
-  locale: string,
-): Promise<PublicSubstanceRecord | null> => {
-  const substance = await getPublicSubstanceBySlug(slug);
-  if (!substance) return null;
-  const localized = await localizeRecord({ ...substance, slug }, locale, "article");
-  return localized.record;
-});
-
 
 export const getLocalizedPublicEffectBySlug = cache(async (
   effectSlug: string,

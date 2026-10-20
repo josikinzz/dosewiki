@@ -11,13 +11,13 @@ import {
   computeOwnedSectionHash,
   type ReviewedPublicationProposal,
 } from "../../server/lib/generatedPublication";
-import { articlePublicationKey } from "../../lib/postgres/articlePublication";
+import { articlePublicationKey } from "./lib/articlePublicationHarness";
 import { documentHash, type DataDocument } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { parsePostgresTarget } from "../../lib/postgres/runtime/target";
 import { PostgresClient } from "../../lib/postgres/runtime/client";
 import { minimalArticle } from "../../src/test/fixtures/articles";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -96,8 +96,7 @@ function proposalFor(slug: string, baseArticle: Record<string, unknown>, summary
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT ||= parsePostgresTarget(target).identity;
   FINGERPRINT = process.env.GENERATED_PUBLICATION_DEPLOYMENT_FINGERPRINT;
   const keep = argv.includes("--keep");

@@ -27,13 +27,12 @@ import {
   MANIFEST_PATH,
   ROOT,
   avatarFileExists,
-  avatarFilePathForKey,
   avatarUrlForKey,
   buildAvatarManifest,
   buildAvatarManifestEntry,
-  previewAvatarFilePath,
-  writeAvatarFile,
-  writeAvatarManifest,
+  installAvatarFile,
+  writePreviewAvatarFile,
+  writeProvenanceManifest,
 } from "./generate-avatar-files";
 import type {
   AvatarFrame,
@@ -60,7 +59,7 @@ import {
   selectVideoFrame,
 } from "./generate-avatar-media";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -79,9 +78,11 @@ function log(message = "") {
   console.log(message);
 }
 
-async function main() {
+export async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
+  const writeCredential = command.writeRequested ? requireProductionWriteCredential("profileMediaWrite") : null;
 
   const previewDir = process.argv
     .slice(2)
@@ -260,15 +261,6 @@ async function main() {
     }
   }
 
-  const renderTargets = command.dryRun
-    ? previewDir
-      ? plan.map((entry) => ({
-          entry,
-          filePath: previewAvatarFilePath(previewDir, entry.key),
-        }))
-      : []
-    : plan.map((entry) => ({ entry, filePath: avatarFilePathForKey(entry.key) }));
-
   if (command.dryRun && !previewDir) {
     log();
     log("Dry run — no images rendered, no files written, no Postgres writes.");
@@ -277,11 +269,11 @@ async function main() {
   }
 
   log();
-  log(`Rendering ${renderTargets.length} avatar(s)...`);
+  log(`Rendering ${plan.length} avatar(s)...`);
 
   const manifestEntries: AvatarManifestEntry[] = [];
 
-  for (const { entry, filePath } of renderTargets) {
+  for (const entry of plan) {
     let source: Buffer;
     let dimensions = entry.dimensions;
     const frame: AvatarFrame = {};
@@ -315,7 +307,11 @@ async function main() {
     const rendered = await renderAvatar(source, dimensions);
     const luminance = await meanLuminance(rendered.bytes);
 
-    writeAvatarFile(filePath, rendered.bytes, command.dryRun);
+    if (command.dryRun) {
+      writePreviewAvatarFile(previewDir, entry.key, rendered.bytes);
+    } else {
+      installAvatarFile(entry.key, rendered.bytes, { overwrite: false });
+    }
 
     if (luminance < MIN_FRAME_LUMA) {
       console.warn(
@@ -342,12 +338,11 @@ async function main() {
   }
 
   const manifest = buildAvatarManifest(manifestEntries);
-  writeAvatarManifest(manifest);
+  writeProvenanceManifest(MANIFEST_PATH, manifest);
   log();
   log(`Wrote ${path.relative(ROOT, MANIFEST_PATH)} (${manifestEntries.length} entries).`);
 
-  assertProductionWriteAllowed(command);
-  const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
+  const apiKey = writeCredential.token;
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 
   const rawProfiles = (await writeClient.query(api.contributorProfiles.getForBulkImport, {

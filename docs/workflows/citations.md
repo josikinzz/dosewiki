@@ -77,8 +77,7 @@ location comes from `DOSEWIKI_CITATION_WORKBENCH` or an explicit path argument;
 | `bun run citations:audit-subsections` | Read-only audit of citation coverage per subsection |
 
 Run orchestration is `node scripts/tools/pi-citation-workflow/pi-run-manifest.mjs`
-(`$MANIFEST` below). `scripts/lib/citation-command-surface.mjs` is the
-machine-readable policy for every citation command.
+(`$MANIFEST` below).
 
 ## Run directory
 

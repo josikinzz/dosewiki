@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
+
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
@@ -17,23 +21,42 @@ import {
   requireProductionWriteCredential,
 } from "../lib/production-write-command.mjs";
 
-const args = process.argv.slice(2);
-const verbose = args.includes("--verbose");
 const chunkSize = 50;
-const command = createProductionWriteCommand({
-  operation: "migrate-pharmacology-schema",
-  argv: args,
-});
+const OPERATION = "migrate-pharmacology-schema";
 
-function getFlagValue(name) {
-  const prefix = `${name}=`;
-  return args.find((entry) => entry.startsWith(prefix))?.slice(prefix.length) ?? null;
+export function parseMigrationArgs(argv) {
+  const { values } = parseArgs({
+    args: argv,
+    strict: true,
+    allowPositionals: false,
+    options: {
+      slug: { type: "string" },
+      all: { type: "boolean", default: false },
+      verbose: { type: "boolean", default: false },
+      "source-url": { type: "string" },
+      target: { type: "string" },
+      "allow-remote": { type: "boolean", default: false },
+      "dry-run": { type: "boolean", default: false },
+      write: { type: "boolean", default: false },
+      "confirm-write": { type: "string" },
+      "expected-deployment": { type: "string" },
+    },
+  });
+  for (const flag of ["--confirm-write", "--expected-deployment"]) {
+    if (argv.includes(flag)) throw new Error(`Pass ${flag}=<value> as one argument.`);
+  }
+  const slug = values.slug?.trim() ?? null;
+  if (values.slug !== undefined && !slug) throw new Error("--slug requires a substance slug.");
+  if (slug && values.all) throw new Error("Pass either --slug <slug> or --all, not both.");
+  if (!slug && !values.all) {
+    throw new Error("Choose a scope: --slug <slug> for one article or --all for the whole corpus.");
+  }
+  return { slug, verbose: values.verbose, sourceUrl: values["source-url"] ?? null };
 }
 
-function requireReadUrl() {
+function requireReadUrl(command, sourceUrlFlag) {
   const sourceUrl =
-    getFlagValue("--source-url") ??
-    process.env.SOURCE_POSTGRES_URL ??
+    sourceUrlFlag ??
     process.env.SOURCE_POSTGRES_URL ??
     command.targetUrl;
   if (!sourceUrl) {
@@ -219,13 +242,15 @@ async function saveInChunks(client, apiKey, articles) {
   }
 }
 
-async function main() {
+async function main(argv) {
+  const { slug: onlySlug, verbose, sourceUrl } = parseMigrationArgs(argv);
+  const command = createProductionWriteCommand({ operation: OPERATION, argv });
   console.log("\nPharmacology Schema Migration");
   console.log("=".repeat(50));
   printProductionWriteCommand(command);
+  console.log(`Scope: ${onlySlug ? `article "${onlySlug}"` : "every article (--all)"}`);
 
-  const onlySlug = getFlagValue("--slug");
-  const sourceClient = createDataClient({ target: requireReadUrl() }).client;
+  const sourceClient = createDataClient({ target: requireReadUrl(command, sourceUrl) }).client;
   const targetedArticle = onlySlug
     ? await getUniqueSubstanceDocumentBySlug(
         sourceClient,
@@ -287,7 +312,9 @@ async function main() {
   });
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2)).catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

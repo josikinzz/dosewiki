@@ -24,6 +24,7 @@ type ProtectedRouteOperationContext = {
 type ProtectedRouteOperationOptions<RawBody, ParsedBody> = {
   auth: RoleFloor;
   rateLimit: RateLimitPolicyName;
+  rateLimitKeySuffix?: string;
   body?: {
     maxBytes: number;
     parse?: (body: RawBody, context: ProtectedRouteOperationContext) => ParsedBody;
@@ -58,7 +59,7 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
       const foreign = foreignOriginResponse(request, "editorWrite");
       if (foreign) return foreign;
     }
-    const rateLimited = await enforceRateLimit(request, options.rateLimit);
+    const rateLimited = await enforceRateLimit(request, options.rateLimit, { keySuffix: options.rateLimitKeySuffix });
     if (rateLimited) {
       return rateLimited;
     }

@@ -13,9 +13,9 @@ import {
 } from "../../lib/contributorProfileIdentity";
 import {
   MANIFEST_PATH as ARTWORK_MANIFEST_PATH,
-  avatarFilePathForKey,
-  previewAvatarFilePath,
-  writeAvatarFile,
+  installAvatarFile,
+  writePreviewAvatarFile,
+  writeProvenanceManifest,
 } from "./generate-avatar-files";
 import {
   avatarOnlyImportRow,
@@ -39,7 +39,7 @@ import {
   renderAvatarAttention,
 } from "./generate-avatar-media";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -53,9 +53,11 @@ function log(message = "") {
   console.log(message);
 }
 
-async function main() {
+export async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
+  const writeCredential = command.writeRequested ? requireProductionWriteCredential("profileMediaWrite") : null;
 
   const argv = process.argv.slice(2);
   const flag = (name: string) =>
@@ -254,8 +256,7 @@ async function main() {
 
   if (previewDir) {
     for (const entry of installable) {
-      const filePath = previewAvatarFilePath(previewDir, entry.key);
-      writeAvatarFile(filePath, rendered.get(entry.key)!.bytes, true);
+      writePreviewAvatarFile(previewDir, entry.key, rendered.get(entry.key)!.bytes);
     }
     log();
     log(
@@ -295,16 +296,12 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
-  const { token: apiKey } =
-    requireProductionWriteCredential("profileMediaWrite");
+  const apiKey = writeCredential.token;
 
   for (const entry of installable) {
-    writeAvatarFile(
-      avatarFilePathForKey(entry.key),
-      rendered.get(entry.key)!.bytes,
-      true,
-    );
+    installAvatarFile(entry.key, rendered.get(entry.key)!.bytes, {
+      overwrite: true,
+    });
   }
 
   const generatedAt = new Date().toISOString();
@@ -338,38 +335,31 @@ async function main() {
     };
   });
 
-  fs.writeFileSync(
-    wildManifestPath,
-    `${JSON.stringify(
-      {
-        note:
-          "Provenance for every contributor avatar taken from the picture the artist publishes " +
-          "of themselves, by scripts/contributors/import-avatars-from-the-wild.ts. Each entry " +
-          "names the account the image came from and the evidence that the account is the " +
-          "credited artist's, plus every credit line consolidated onto that one identity. " +
-          "Delivered at 256x256 WebP or the source's short side when smaller; nothing is " +
-          "upscaled. Off-square sources are cropped where the content is rather than dead " +
-          "centre, so a tall portrait keeps its face. The image remains the artist's; this " +
-          "file is the record of where each one came from and what to remove on request.",
-        generatedAt,
-        avatars: wildEntries.sort((left, right) =>
-          left.profileKey.localeCompare(right.profileKey),
-        ),
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  writeProvenanceManifest(wildManifestPath, {
+    note:
+      "Provenance for every contributor avatar taken from the picture the artist publishes " +
+      "of themselves, by scripts/contributors/import-avatars-from-the-wild.ts. Each entry " +
+      "names the account the image came from and the evidence that the account is the " +
+      "credited artist's, plus every credit line consolidated onto that one identity. " +
+      "Delivered at 256x256 WebP or the source's short side when smaller; nothing is " +
+      "upscaled. Off-square sources are cropped where the content is rather than dead " +
+      "centre, so a tall portrait keeps its face. The image remains the artist's; this " +
+      "file is the record of where each one came from and what to remove on request.",
+    generatedAt,
+    avatars: wildEntries.sort((left, right) =>
+      left.profileKey.localeCompare(right.profileKey),
+    ),
+  });
 
   const replacedKeys = new Set(installable.map((entry) => entry.key));
   const survivingArtwork = (artworkManifest.avatars ?? []).filter(
     (entry: { profileKey: string }) =>
       !replacedKeys.has(normalizeProfileKey(entry.profileKey)),
   );
-  fs.writeFileSync(
-    ARTWORK_MANIFEST_PATH,
-    `${JSON.stringify({ ...artworkManifest, avatars: survivingArtwork }, null, 2)}\n`,
-  );
+  writeProvenanceManifest(ARTWORK_MANIFEST_PATH, {
+    ...artworkManifest,
+    avatars: survivingArtwork,
+  });
 
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

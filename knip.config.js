@@ -32,8 +32,6 @@ const allowlistedScripts = [
   "scripts/translation/ui-catalog.ts",
   "scripts/translation/live-mirror.ts",
   "scripts/translation/mirror-coverage.ts",
-  "scripts/util/recolorMolecules.mjs",
-  "scripts/lib/workflow-command-surface.mjs",
 ];
 
 const appEntries = [
@@ -43,7 +41,6 @@ const appEntries = [
   "src/styles/pro-theme.css",
   "src/styles/theme-light-mode.css",
   "src/features/theme-lab/themeLabBootstrap.ts",
-  "src/features/effects/effectGuideClass.ts",
   "src/components/{common,layout}/index.ts",
 ];
 
