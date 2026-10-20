@@ -1,18 +1,29 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { test } from "node:test";
+import { after, test } from "node:test";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const script = "scripts/postgres/migrate.ts";
+const fakeBin = mkdtempSync(join(tmpdir(), "migrate-launcher-"));
+const launchLog = join(fakeBin, "bunx.log");
+writeFileSync(
+  join(fakeBin, "bunx"),
+  `#!/bin/sh\nprintf '%s\\n' "$@" > "${launchLog}"\nprintf 'POSTGRES_DIRECT_URL=%s\\n' "$POSTGRES_DIRECT_URL" >> "${launchLog}"\n`,
+);
+chmodSync(join(fakeBin, "bunx"), 0o755);
+after(() => rmSync(fakeBin, { recursive: true, force: true }));
 
 function run(args, env = {}) {
-  return spawnSync("bun", [script, ...args], {
+  rmSync(launchLog, { force: true });
+  return spawnSync("bun", ["--no-env-file", script, ...args], {
     cwd: repoRoot,
     encoding: "utf8",
     env: {
-      PATH: process.env.PATH,
+      PATH: `${fakeBin}:${process.env.PATH}`,
       ...env,
       POSTGRES_DIRECT_URL: "",
       POSTGRES_POOLED_URL: "",
@@ -22,10 +33,17 @@ function run(args, env = {}) {
   });
 }
 
+function assertNotLaunched(result, pattern) {
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, pattern);
+  assert.equal(existsSync(launchLog), false, "drizzle-kit must not start");
+}
+
 test("migration help is read-only and needs no target", () => {
   const result = run(["--help"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Target must be supplied by --target or TARGET_POSTGRES_URL/);
+  assert.match(result.stdout, /--confirm-write=postgres-migrate --expected-deployment=<host\/database>/);
 });
 
 test("migration refuses an implicit target and arbitrary drizzle flags", () => {
@@ -80,15 +98,44 @@ test("migration dry-run reports a redacted fixed plan without starting drizzle",
   assert.match(result.stdout, /bunx drizzle-kit migrate --config drizzle\.config\.ts/);
   assert.match(result.stdout, /drizzle-kit was not started/);
   assert.doesNotMatch(result.stdout, /synthetic-user|synthetic-secret-password/);
+  assert.equal(existsSync(launchLog), false);
 });
 
-test("migration freeze refuses execution but permits reviewing the dry-run plan", () => {
-  const args = ["--target", "postgres://127.0.0.1:1/frozen-migration"];
-  const env = { DATA_WRITES_FROZEN: "1" };
-  const refused = run(args, env);
-  assert.notEqual(refused.status, 0);
-  assert.match(refused.stderr, /DATA_WRITES_FROZEN/);
-  const plan = run([...args, "--dry-run"], env);
+test("a target alone only plans and never launches drizzle", () => {
+  const result = run(["--target", "postgres://localhost:5432/dosewiki"], { DATA_BACKEND: "postgres" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Plan only/);
+  assert.match(result.stdout, /--confirm-write=postgres-migrate --expected-deployment=localhost\/dosewiki/);
+  assert.equal(existsSync(launchLog), false);
+});
+
+test("migration write refuses every missing or wrong confirmation before launching drizzle", () => {
+  const target = ["--target", "postgres://127.0.0.1:1/migration-ceremony"];
+  const confirm = "--confirm-write=postgres-migrate";
+  const deployment = "--expected-deployment=127.0.0.1/migration-ceremony";
+  const backend = { DATA_BACKEND: "postgres" };
+  assertNotLaunched(run([...target, "--write", confirm, deployment]), /DATA_BACKEND=postgres/);
+  assertNotLaunched(run([...target, "--write"], backend), /requires --confirm-write=postgres-migrate/);
+  assertNotLaunched(run([...target, "--write", "--confirm-write=migrate", deployment], backend), /requires --confirm-write=postgres-migrate/);
+  assertNotLaunched(run([...target, "--write", confirm], backend), /requires --expected-deployment=127\.0\.0\.1\/migration-ceremony/);
+  assertNotLaunched(run([...target, "--write", confirm, "--expected-deployment=other/db"], backend), /does not match target deployment/);
+  assertNotLaunched(run([...target, "--write", "--dry-run", confirm, deployment], backend), /cannot be combined/);
+  assertNotLaunched(run([...target, "--write", "--confirm-write", "postgres-migrate", deployment], backend), /Unknown argument/);
+  assertNotLaunched(run([...target, "--write", confirm, deployment], { ...backend, DATA_WRITES_FROZEN: "1" }), /DATA_WRITES_FROZEN/);
+});
+
+test("migration freeze still permits reviewing the plan", () => {
+  const plan = run(["--target", "postgres://127.0.0.1:1/frozen-migration", "--dry-run"], { DATA_WRITES_FROZEN: "1" });
   assert.equal(plan.status, 0, plan.stderr);
   assert.match(plan.stdout, /127\.0\.0\.1\/frozen-migration/);
+});
+
+test("an authorized migration launches only the fixed drizzle command against the target", () => {
+  const target = "postgres://127.0.0.1:1/migration-authorized";
+  const result = run(
+    ["--target", target, "--write", "--confirm-write=postgres-migrate", "--expected-deployment=127.0.0.1/migration-authorized"],
+    { DATA_BACKEND: "postgres", DATA_WRITES_FROZEN: "0" },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(launchLog, "utf8"), `drizzle-kit\nmigrate\n--config\ndrizzle.config.ts\nPOSTGRES_DIRECT_URL=${target}\n`);
 });
