@@ -109,7 +109,3 @@ export function depictionSentence(state: DepictionState, mode: EditorMode): stri
       return `${page} shows this saved drawing.`;
   }
 }
-
-export function filterHiding(row: MoleculeListRow | undefined, filter: MoleculeListFilter): boolean {
-  return !!row && !matchesMoleculeFilter(row, filter);
-}
