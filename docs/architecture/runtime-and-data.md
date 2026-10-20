@@ -259,8 +259,10 @@ then caution) and then key; there is no priority field, and two same-tone
 banners on one substance are resolved by an editor disabling one.
 
 `lib/next/warningBanners.ts` reads presets under
-`PUBLIC_DATA_CACHE_TAGS.banners` and deliberately degrades to an empty list
-with a logged warning when the read fails; there is no checked-in fallback.
+`PUBLIC_DATA_CACHE_TAGS.banners`. A failed read or a malformed preset row
+rejects, so the article render fails instead of caching a page without its
+banners. A successful read with no presets returns an empty list. There is no
+checked-in fallback.
 The Banner Studio save route revalidates that tag plus every affected slug.
 Glyph size is one sitewide `safety-banner-display` siteConfig value shared by
 every banner, never a per-preset setting. `/dev/banners` is admin-gated.
