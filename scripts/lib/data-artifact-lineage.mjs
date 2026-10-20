@@ -37,34 +37,26 @@ const GENERATED_OUTPUT_GLOBS = [
   "vendor/openchemlib/dist/*",
 ];
 const REPOSITORY_PATH = /^(?:[\w.@[\]()-]+(?:\/[\w.@[\]()*-]+)+|[\w.@-]+\.[A-Za-z]\w*)$/;
+const PATH_WILDCARD = /[*{]/;
 
 function toRelativePath(pathname, rootDir) {
   const absolutePath = isAbsolute(pathname) ? pathname : resolve(rootDir, pathname);
   return relative(rootDir, absolutePath).replaceAll("\\", "/");
 }
 
-function matchesArtifactPath(entry, artifactPath) {
-  if (entry.path === artifactPath) {
-    return true;
-  }
-
-  if (!entry.path.includes("*")) {
-    return false;
-  }
-
-  const escaped = entry.path
-    .split("*")
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("[^/]*");
-  return new RegExp(`^${escaped}$`).test(artifactPath);
+function pathPatternToRegex(pathPattern) {
+  const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const source = pathPattern.replace(/\*\*|\*|\{([^{}]*)\}|[.+?^${}()|[\]\\]/g, (token, alternatives) => {
+    if (token === "**") return ".*";
+    if (token === "*") return "[^/]*";
+    if (alternatives !== undefined) return `(?:${alternatives.split(",").map(escape).join("|")})`;
+    return `\\${token}`;
+  });
+  return new RegExp(`^${source}$`);
 }
 
-function pathPatternToRegex(pathPattern) {
-  const escaped = pathPattern
-    .split("*")
-    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("[^/]*");
-  return new RegExp(`^${escaped}$`);
+function matchesArtifactPath(entry, artifactPath) {
+  return entry.path === artifactPath || (PATH_WILDCARD.test(entry.path) && pathPatternToRegex(entry.path).test(artifactPath));
 }
 
 function walkFiles(dir, matches = []) {
@@ -93,12 +85,12 @@ function walkFiles(dir, matches = []) {
 export function listArtifactLineagePathMatches(pathPattern, { rootDir = process.cwd() } = {}) {
   const relativePattern = toRelativePath(pathPattern, rootDir);
 
-  if (!relativePattern.includes("*")) {
+  if (!PATH_WILDCARD.test(relativePattern)) {
     const absolutePath = resolve(rootDir, relativePattern);
     return existsSync(absolutePath) ? [relativePattern] : [];
   }
 
-  const firstWildcardIndex = relativePattern.indexOf("*");
+  const firstWildcardIndex = relativePattern.search(PATH_WILDCARD);
   const searchRoot = relativePattern.slice(0, firstWildcardIndex).split("/").slice(0, -1).join("/");
   const absoluteSearchRoot = resolve(rootDir, searchRoot || ".");
   const patternRegex = pathPatternToRegex(relativePattern);
@@ -115,7 +107,8 @@ return JSON.parse(readFileSync(manifestPath, "utf-8")); }
 export function findArtifactLineageEntry(artifactPath, { rootDir = process.cwd(), manifest } = {}) {
   const relativePath = toRelativePath(artifactPath, rootDir);
   const sourceManifest = manifest ?? readArtifactLineageManifest({ rootDir });
-  return sourceManifest.artifacts.find((entry) => matchesArtifactPath(entry, relativePath)) ?? null;
+  const matches = sourceManifest.artifacts.filter((entry) => matchesArtifactPath(entry, relativePath));
+  return matches.find((entry) => !entry.path.includes("*")) ?? matches[0] ?? null;
 }
 
 function hashFile(pathname) { return createHash("sha256").update(readFileSync(pathname)).digest("hex"); }

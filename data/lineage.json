@@ -1343,15 +1343,38 @@
         "src/data/config/sourceFavicons.ts"
       ],
       "inputs": [
-        "favicons fetched from each further-reading host, or a lettered fallback icon when no favicon resolves",
-        "further-reading host inventory from an input export or explicitly selected Postgres read source"
+        "further-reading host inventory from an input export or explicitly selected Postgres read source, minus hosts that BASE_SOURCE_CONFIGS in the producer already covers",
+        "icons fetched from each remaining host: icon links in its pages, then /favicon.ico, /favicon.png and /apple-touch-icon.png",
+        "Google's favicon service (https://www.google.com/s2/favicons?domain=<host>&sz=64) when the host serves no usable icon",
+        "a lettered fallback icon drawn by the producer when neither source resolves"
       ],
-      "freshnessRule": "Written in the same run as src/data/config/sourceFavicons.ts; commit both together. Existing icons are kept unless the run passes --force.",
-      "sourceDeployment": "further-reading hosts over the network, plus the source-favicon-config read source",
+      "freshnessRule": "Written in the same run as src/data/config/sourceFavicons.ts; commit both together. Existing icons are kept unless the run passes --force. The 17 source logos in this directory are not written by this producer, even with --force; they have their own entry, source-favicon-logos.",
+      "sourceDeployment": "further-reading hosts and www.google.com over the network, plus the source-favicon-config read source",
       "targetDeployment": null,
       "schemaVersion": "32x32 PNG per host slug",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
+    },
+    {
+      "id": "source-favicon-logos",
+      "path": "public/favicons/{bluelight,dancesafe,disregardeverythingisay,drugbank,drugs-forum,drugusersbible,erowid,isomerdesign,mindstate-design,protestkit,psychonautwiki,pubchem,pubmed,reddit,thedrugclassroom,tripsit,wikipedia}.png",
+      "role": "captured-static-assets",
+      "producer": "added by hand: the 15 base source logos and protestkit.png on 2026-01-10, mindstate-design.png on 2026-09-02",
+      "consumers": [
+        "scripts/data/generate-further-reading-favicons.mjs",
+        "src/data/config/sourceFavicons.ts",
+        "src/features/article/components/sections/ReagentSectionView.client.tsx",
+        "src/styles/utilities-theme.css"
+      ],
+      "inputs": [
+        "each source's own site logo or favicon"
+      ],
+      "freshnessRule": "Replace a logo by hand when its source changes its mark. BASE_SOURCE_CONFIGS in generate-further-reading-favicons.mjs names the 15 base logos, but the producer skips the hosts they cover and never downloads them, even with --force. protestkit.png and mindstate-design.png are referenced directly by the reagent section and the theme stylesheet. mindstate-design.png is also the slug the producer would give mindstate.design, so a --force run would overwrite it if an article ever cited that host.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "PNG logo per source, mostly 32x32",
+      "editPolicy": "editable-by-hand",
+      "refreshCommand": "No refresh command; replace the PNG by hand"
     },
     {
       "id": "molecule-pack",
