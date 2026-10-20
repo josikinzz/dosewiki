@@ -19,64 +19,59 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function readStringArray(raw: unknown): string[] {
+function malformedPreset(index: number, field: string): Error {
+  return new Error(
+    `[banners] warningBanners:listPresets returned a malformed preset at index ${index}: invalid ${field}.`,
+  );
+}
+
+function readStringArray(raw: unknown, index: number, field: string): string[] {
   if (!Array.isArray(raw)) {
-    return [];
+    throw malformedPreset(index, field);
   }
   const entries: unknown[] = raw;
+  if (!entries.every((item) => typeof item === "string")) {
+    throw malformedPreset(index, field);
+  }
   return entries.filter((item): item is string => typeof item === "string" && item.length > 0);
 }
 
-function parseWarningBannerPreset(raw: unknown): WarningBannerPreset | null {
-  if (!isRecord(raw)) {
-    return null;
+function readNonEmptyString(record: Record<string, unknown>, field: string, index: number): string {
+  const value = record[field];
+  if (typeof value !== "string" || value.length === 0) {
+    throw malformedPreset(index, field);
   }
+  return value;
+}
 
-  const { key, icon, severityLabel, headline, tone } = raw;
-  if (
-    typeof key !== "string" ||
-    key.length === 0 ||
-    typeof icon !== "string" ||
-    icon.length === 0 ||
-    typeof severityLabel !== "string" ||
-    severityLabel.length === 0 ||
-    typeof headline !== "string" ||
-    headline.length === 0 ||
-    !isWarningBannerTone(tone)
-  ) {
-    return null;
+function parseWarningBannerPreset(raw: unknown, index: number): WarningBannerPreset {
+  if (!isRecord(raw)) {
+    throw malformedPreset(index, "row");
+  }
+  if (!isWarningBannerTone(raw.tone)) {
+    throw malformedPreset(index, "tone");
   }
 
   return {
-    key,
-    tone,
-    icon,
-    severityLabel,
-    headline,
-    points: readStringArray(raw.points),
+    key: readNonEmptyString(raw, "key", index),
+    tone: raw.tone,
+    icon: readNonEmptyString(raw, "icon", index),
+    severityLabel: readNonEmptyString(raw, "severityLabel", index),
+    headline: readNonEmptyString(raw, "headline", index),
+    points: readStringArray(raw.points, index, "points"),
     enabled: raw.enabled === true,
-    enabledSlugs: normalizeEnabledSlugs(readStringArray(raw.enabledSlugs)),
+    enabledSlugs: normalizeEnabledSlugs(readStringArray(raw.enabledSlugs, index, "enabledSlugs")),
   };
 }
 
 export const getWarningBannerPresets = cache(
   publicDataCache(async (): Promise<WarningBannerPreset[]> => {
-    try {
-      const rows = await getPublicDataReadAdapter().getPublicWarningBannerPresets();
-      if (!Array.isArray(rows)) {
-        return [];
-      }
-      return rows.flatMap((row: unknown) => {
-        const parsed = parseWarningBannerPreset(row);
-        return parsed ? [parsed] : [];
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(
-        `[banners] warningBanners:listPresets failed; no safety banners will render. Cause: ${message}`,
-      );
-      return [];
+    const rows = await getPublicDataReadAdapter().getPublicWarningBannerPresets();
+    if (!Array.isArray(rows)) {
+      throw new Error("[banners] warningBanners:listPresets did not return an array.");
     }
+    const entries: unknown[] = rows;
+    return entries.map(parseWarningBannerPreset);
   },
   ["data-public-warning-banners"],
   {

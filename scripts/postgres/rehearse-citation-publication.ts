@@ -11,7 +11,7 @@ import {
   computeOwnedSectionHash,
   type ReviewedPublicationProposal,
 } from "../../server/lib/generatedPublication";
-import { articlePublicationKey } from "../../lib/postgres/articlePublication";
+import { articlePublicationKey } from "./lib/articlePublicationHarness";
 import { documentHash, type DataDocument } from "../../lib/postgres/documentCodec";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments, withTransaction } from "../../lib/postgres/documentStore";
 import { parsePostgresTarget } from "../../lib/postgres/runtime/target";

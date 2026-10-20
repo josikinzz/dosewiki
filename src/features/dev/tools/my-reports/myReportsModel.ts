@@ -107,10 +107,6 @@ export function sortOwnedReports(rows: readonly OwnedReportRow[]): OwnedReportRo
   return [...rows].sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export function formatPublished(timestamp: number): string {
-  return new Date(timestamp).toISOString().slice(0, 10);
-}
-
 export function formatTripDate(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return value;

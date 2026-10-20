@@ -44,9 +44,6 @@ import {
 import {
   FEEDBACK_STATUS_LABELS,
   FREEZE_DECISION_COPY,
-  IMPORTANCE_PILL_TONE,
-  IMPORTANCE_WORD,
-  STATUS_PILL_TONE,
   describeEmptyQueue,
   holdOf,
   isFreezeRefusal,
@@ -1026,20 +1023,4 @@ export function formatFeedbackDate(value?: string): string | null {
     return value;
   }
   return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-}
-
-export function FeedbackStatusPill({ status, inline = false }: { status: FeedbackQueueStatus; inline?: boolean }) {
-  return (
-    <EditorStatusPill inline={inline} tone={STATUS_PILL_TONE[status] ?? "neutral"}>
-      {STATUS_LABELS[status] ?? status}
-    </EditorStatusPill>
-  );
-}
-
-export function FeedbackImportancePill({ importance, inline = false }: { importance: FeedbackImportance; inline?: boolean }) {
-  return (
-    <EditorStatusPill inline={inline} tone={IMPORTANCE_PILL_TONE[importance]}>
-      {IMPORTANCE_WORD[importance]}
-    </EditorStatusPill>
-  );
 }
