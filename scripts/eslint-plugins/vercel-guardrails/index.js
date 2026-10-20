@@ -478,7 +478,7 @@ const MODULE_ALIASES = [
   ['@lib/', 'lib/'],
 ];
 
-const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'temporary-until-pr-17'];
+const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture'];
 
 const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
 const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
