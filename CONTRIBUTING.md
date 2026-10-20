@@ -121,7 +121,8 @@ cover your change and the type check, or the whole graph with `bun run verify`.
 | `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/` |
 | `bun run test:workflow` | Script and tool tests under `scripts/` |
 | `bun run typecheck` | Application type check, with strict null checks on |
-| `bun run lint:all` | ESLint for `src/`, `lib/`, `server/`, and `scripts/`, then `scripts/lint/check-em-dashes.mjs` |
+| `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
+| `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
 | `bun run verify` | The checkout-safe CI graph plus migration and schema drift checks |
 
 `package.json` lists every other command. The pre-commit hook in `.husky/`

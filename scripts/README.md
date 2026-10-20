@@ -115,4 +115,4 @@ node scripts/lint/check-css-comments.mjs --fix
 bun run generate:appearance-sheets
 ```
 
-`bun run lint:all` enforces both comment checks. The CSS fixer uses PostCSS comment positions. Regenerate appearance sheets after their authored CSS changes so the public copies and cache hashes match.
+`bun run lint` enforces both comment checks. The CSS fixer uses PostCSS comment positions. Regenerate appearance sheets after their authored CSS changes so the public copies and cache hashes match.

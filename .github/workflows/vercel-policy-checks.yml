@@ -51,7 +51,7 @@ jobs:
           bun run test
           bun run test:workflow
           bun run typecheck
-          bun run lint:all
+          bun run lint
           bun run typecheck:scripts
           bun run typecheck:handlers
           bun run provenance:check
