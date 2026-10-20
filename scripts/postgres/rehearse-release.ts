@@ -293,6 +293,18 @@ async function main(): Promise<void> {
     const unsupportedAction = await attempt(() => runtime.action(recoveryAsAction, { actorEmail: adminActor.actorEmail }));
     expect("liveness", "the native runtime refuses action invocation while writes are enabled", !unsupportedAction.ok && !refusedByFreeze(unsupportedAction), errorMessage(unsupportedAction.error));
 
+    const memberUsername = `${run}-member`;
+    const memberEmail = `${run}-member@rehearsal.invalid`;
+    const memberPassword = `${run} member passphrase`;
+    await seed("memberships", {
+      username: memberUsername,
+      email: memberEmail,
+      role: "editor",
+      passwordHash: await hashPassword(memberPassword),
+      createdAt: now,
+      updatedAt: now,
+    });
+
     const readsBefore: Record<string, string> = {};
     for (const probe of READ_PROBES) readsBefore[probe.name] = JSON.stringify(await probe.read());
     const countsBefore = await countRows();
@@ -362,17 +374,6 @@ async function main(): Promise<void> {
       body: blockDuringFreeze?.body,
     });
 
-    const memberUsername = `${run}-member`;
-    const memberEmail = `${run}-member@rehearsal.invalid`;
-    const memberPassword = `${run} member passphrase`;
-    await seed("memberships", {
-      username: memberUsername,
-      email: memberEmail,
-      role: "editor",
-      passwordHash: await hashPassword(memberPassword),
-      createdAt: now,
-      updatedAt: now,
-    });
     const frozenSignIn = await attempt(() => authorizeCredentials({ username: memberUsername, password: memberPassword }));
     expect("freeze", "a new sign-in refuses while frozen because auth.ts awaits touchSignIn", refusedByFreeze(frozenSignIn), frozenSignIn.ok ? "signed in" : errorMessage(frozenSignIn.error));
     const frozenRefresh = await attempt(async () => await authOptions.callbacks!.jwt!({ token: { email: memberEmail }, user: undefined, account: null } as never));
