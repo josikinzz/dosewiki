@@ -167,14 +167,10 @@ export const productionWriterClassifications = Object.freeze({
       path: "scripts/lib/scry-client.mjs",
       reason: "POST is a read-only SQL query against the Scry public corpus API.",
     },
-    {
-      path: "scripts/replications/prepare-r2-image-renditions.ts",
-      reason: "Writes R2 media only, never Postgres. Each PUT asserts the write freeze behind --confirm-write, --bucket, and --confirm-plan.",
-    },
-    {
-      path: "scripts/replications/run-local-r2-upload-batches.mjs",
-      reason: "Writes R2 media only, never Postgres. Each rclone copy batch asserts the write freeze behind the plan SHA pin, --confirm-write, and the canary gate.",
-    },
+  ]),
+  guardedStorageEntrypoint: Object.freeze([
+    "scripts/replications/prepare-r2-image-renditions.ts",
+    "scripts/replications/run-local-r2-upload-batches.mjs",
   ]),
 });
 
