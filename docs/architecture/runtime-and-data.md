@@ -119,7 +119,7 @@ These separate write contracts remain in place:
 
 | Owner | Contract and reason |
 | --- | --- |
-| `server/lib/generatedPublication.ts` and `lib/postgres/articlePublication.ts` | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. |
+| `publishReviewedSectionHandler` in `server/lib/substanceReviewHandlers.ts`, on the `server/lib/generatedPublication.ts` engine | Reviewed, target-bound generated sections use section-CAS hashes and their own operation receipts. Whole-article editor baselines do not replace this authority. The raw-Pool adapter in `scripts/postgres/lib/articlePublicationHarness.ts` serves only the publication rehearsals and skips the handler's token and editor checks. |
 | `server/moleculeOverrides.ts` | Molecule overrides and depictions are separate entities with chemistry-specific comparison and seed rules. |
 | `server/lib/substanceReviewHandlers.ts` | Human review, flags, and recommendations retain their role and published-content revision checks. Content editing cannot set this authority. |
 | `server/lib/substanceProvenanceHandlers.ts` | Bounded reference-author and metadata repairs retain source-identity and provenance checks. |
