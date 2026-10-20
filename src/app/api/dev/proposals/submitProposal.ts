@@ -15,6 +15,7 @@ import { parseCopyBlockPayloads } from "../copy-block/parseCopyBlockBody";
 import { parseWritingPayload } from "../writing-article/parseWritingArticleBody";
 
 export const MAX_PROPOSAL_PAYLOAD_BYTES = 20 * 1024 * 1024;
+export const PROPOSAL_SUBMISSION_RATE_LIMIT_KEY = "/api/dev/proposals";
 
 export type ProposalBody = {
   payload?: {

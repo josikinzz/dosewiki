@@ -1,5 +1,5 @@
 import { PostgresError } from "@server/postgres/runtime/values";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   describeRoleFloor,
   grantWriteCapability,
@@ -35,6 +35,10 @@ function post(body: unknown = {}, origin = "https://dose.wiki") {
 describe("dev proposal resubmit route", () => {
   beforeEach(() => {
     resetRouteMocks("editor", { email: "editor@example.com" });
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("refuses a foreign origin privately before reading the body", async () => {
@@ -92,6 +96,38 @@ describe("dev proposal resubmit route", () => {
 
     expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({ code: "PROPOSAL_BASELINE_STALE" });
+  });
+
+  it("shares one submission allowance across submit and every resubmit path", async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    const limiter = await vi.importActual<typeof import("@server/http/nextRateLimit")>("@server/http/nextRateLimit");
+    routeMocks.enforceRateLimit.mockImplementation(limiter.enforceRateLimit);
+    const client = grantWriteCapability({ query: vi.fn(), mutation: vi.fn(async () => ({ proposalId: "cp_new" })) });
+    const { POST: resubmit } = await import("./route");
+    const { POST: submit } = await import("../../route");
+    const send = (path: string) =>
+      new Request(`https://dose.wiki${path}`, {
+        method: "POST",
+        headers: { Origin: "https://dose.wiki", "x-forwarded-for": "192.0.2.10" },
+        body: JSON.stringify({
+          payload: { articles: [{ id: 1, title: "LSD", slug: "lsd" }] },
+          summary: "Update",
+          baselines: [{ kind: "article", key: "lsd", document: null }],
+        }),
+      });
+
+    const statuses = [
+      (await resubmit(send("/api/dev/proposals/cp_a/resubmit"))).status,
+      (await submit(send("/api/dev/proposals"))).status,
+      (await resubmit(send("/api/dev/proposals/cp_b/resubmit"))).status,
+      (await resubmit(send("/api/dev/proposals/cp_c/resubmit"))).status,
+      (await submit(send("/api/dev/proposals"))).status,
+      (await resubmit(send("/api/dev/proposals/cp_d/resubmit"))).status,
+    ];
+
+    expect(statuses).toEqual([200, 200, 200, 200, 200, 429]);
+    expect(client.mutation).toHaveBeenCalledTimes(5);
   });
 });
 

@@ -3,7 +3,7 @@ import { api } from "@server/postgres/runtime/api";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { PROPOSAL_STATUSES, type ProposalStatus } from "../../../../../lib/proposals/proposalStatus";
 import { projectProposalSummary } from "../../../../../lib/proposals/proposalPublic";
-import { MAX_PROPOSAL_PAYLOAD_BYTES, submitProposal, type ProposalBody } from "./submitProposal";
+import { MAX_PROPOSAL_PAYLOAD_BYTES, PROPOSAL_SUBMISSION_RATE_LIMIT_KEY, submitProposal, type ProposalBody } from "./submitProposal";
 
 export const runtime = "nodejs";
 
@@ -40,6 +40,7 @@ export const GET = protectedRouteOperation({
 export const POST = protectedRouteOperation<ProposalBody>({
   auth: "editor",
   rateLimit: "editorHeavyWrite",
+  rateLimitKeySuffix: PROPOSAL_SUBMISSION_RATE_LIMIT_KEY,
   body: {
     maxBytes: MAX_PROPOSAL_PAYLOAD_BYTES,
   },
