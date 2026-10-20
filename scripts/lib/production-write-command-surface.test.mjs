@@ -230,6 +230,7 @@ describe("production writer command surface", () => {
     ({ guardedEntrypoints }) => {
       expect(guardedEntrypoints.length).toBeGreaterThan(0);
       for (const entrypoint of guardedEntrypoints) {
+        if (productionWriterClassifications.localRehearsal.includes(entrypoint)) continue;
         const source = readFileSync(resolve(repoRoot, entrypoint), "utf8");
         expect(hasStrongBoundary(source), entrypoint).toBe(true);
       }

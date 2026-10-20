@@ -77,6 +77,13 @@ export const productionWriterClassifications = Object.freeze({
   ]),
   delegatedModule: Object.freeze([
     {
+      path: "scripts/postgres/lib/articlePublicationHarness.ts",
+      guardedEntrypoints: [
+        "scripts/postgres/rehearse-article-publication.ts",
+        "scripts/postgres/rehearse-citation-publication.ts",
+      ],
+    },
+    {
       path: "scripts/replications/lib/r2-upload.mjs",
       guardedEntrypoints: [
         "scripts/replications/regenerate-missing-thumbnails.mjs",
