@@ -228,7 +228,7 @@ bun run publish:social-cards -- \
 
 Manifest `src/data/entitySocialCardManifest.generated.json`. Run directory `runs/social-card-r2-promotion/entity/`.
 
-Generate, with the remote Postgres read variables set. The generator also downloads card media over HTTPS. It renders replication cards only with `GENERATE_REPLICATION_SOCIAL_CARDS=1`, and otherwise keeps the existing replication entries whose slugs are still eligible. `ENTITY_SOCIAL_CARD_OUTPUT_ROOT` and `ENTITY_SOCIAL_CARD_MANIFEST_PATH` redirect its output. When they do, pass the redirected paths as `--assets-root`, `--input-manifest`, and `--target-manifest` below.
+Generate, with the remote Postgres read variables set. The generator also downloads card media over HTTPS. It renders replication cards only with `GENERATE_REPLICATION_SOCIAL_CARDS=1`, and otherwise keeps the existing replication entries whose slugs are still eligible. `ENTITY_SOCIAL_CARD_OUTPUT_ROOT` and `ENTITY_SOCIAL_CARD_MANIFEST_PATH` redirect its output. The output root holds the `entities/` level itself, so with `ENTITY_SOCIAL_CARD_OUTPUT_ROOT=<run>/social/entities` pass `--assets-root=<run>/social`, its parent, because the publisher appends the `entities/...` part of each manifest URL. Pass the redirected manifest path as `--input-manifest` and `--target-manifest` below.
 
 ```bash
 bun scripts/build/generateEntitySocialCards.ts --allow-remote \
@@ -307,6 +307,8 @@ bun run verify:social-cards -- \
   --run-id=<deployment identities>
 ```
 
-It rechecks every object. For each manifest entry whose top-level key is `replications` or `contributors`, it also checks the page's canonical URL, `og:image`, and `twitter:image` on `https://dose.wiki` and `https://effectindex.com`. `--host` replaces those hosts. The substance manifest has no such entries, so its run checks objects only. In the page manifest, the `replications` card is checked at `/replications/`.
+It rechecks every object. For each manifest entry whose top-level key is `replications` or `contributors`, it also checks the page's canonical URL, `og:image`, and `twitter:image` on `https://dose.wiki` and `https://effectindex.com`. `--host` replaces those hosts. The substance manifest has no such entries, so its run checks objects only. The page manifest is flat: its `replications` key is the gallery card, not a replication, so the verifier checks page objects only and no page route.
 
-If it fails, restore the previously committed manifest and redeploy.
+Check page tags by hand on `https://dose.wiki` only. Open `/` for `home` and `/<key>` for `substances`, `effects`, `replications`, `chemical-classes`, `about`, and `china` (no route uses the `languages` card yet), and confirm `og:image` and `twitter:image` name the manifest's URL for that key. Effect Index never serves page-manifest cards (`pageSocialCardUrl` returns null there) and shows its fallback image instead, which is correct.
+
+If the verifier or a manual page check fails, restore the previously committed manifest and redeploy.

@@ -75,7 +75,7 @@ export function buildVerificationPlan(manifest, deliveryBase = DEFAULT_CDN_BASE,
   const routes = [];
   for (const entry of entries) {
     const routeFamily = ROUTE_BY_CATEGORY[entry.category];
-    if (!routeFamily) continue;
+    if (!routeFamily || !entry.slug) continue;
     for (const host of normalizedHosts) {
       routes.push({
         id: `${host}|${entry.category}|${entry.slug}`,
