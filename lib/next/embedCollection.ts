@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getEffectShowcaseWorks, getSubstanceShowcaseWorks } from "@/app/_components/public-routes/showcaseCollections";
+import { getEffectShowcaseWorks, getSubstanceShowcaseWorks } from "@server/replications/showcaseCollections";
 import { buildEmbedCollection } from "@/features/replications/embed/embedModel";
 import type { EmbedSelection } from "@/features/replications/embed/embedModel";
 
