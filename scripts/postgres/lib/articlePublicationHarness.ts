@@ -4,14 +4,14 @@ import {
   type GeneratedPublicationDb,
   type ReviewedPublicationProposal,
   type ReviewedSectionPublishResult,
-} from "../../server/lib/generatedPublication";
-import { projectPublicArticle, type SubstancePublicArticleProjection } from "../../src/data/projections/substanceReadProjections";
-import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
-import { classifySubstancePublicationDependency } from "../../src/data/projections/substancePublicationDependencies";
-import { publicationOutboxKey } from "../next/publicationOutbox";
-import type { DataDocument } from "./documentCodec";
-import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "./documentStore";
-import { enqueuePublications } from "./publicationOutboxStore";
+} from "../../../server/lib/generatedPublication";
+import { projectPublicArticle, type SubstancePublicArticleProjection } from "../../../src/data/projections/substanceReadProjections";
+import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../../../src/data/projections/substanceProjectionCore";
+import { classifySubstancePublicationDependency } from "../../../src/data/projections/substancePublicationDependencies";
+import { publicationOutboxKey } from "../../../lib/next/publicationOutbox";
+import type { DataDocument } from "../../../lib/postgres/documentCodec";
+import { insertDocument, patchDocument, selectDocumentById, selectDocuments, withTransaction, type SqlClient } from "../../../lib/postgres/documentStore";
+import { enqueuePublications } from "../../../lib/postgres/publicationOutboxStore";
 
 export function articlePublicationKey(slug: string): string {
   return publicationOutboxKey({ kind: "article", slug });

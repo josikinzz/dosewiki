@@ -33,7 +33,7 @@ function hasTag(effect: CategoryEffect, tag: string): boolean {
   return (effect.tags ?? []).some((candidate) => candidate.toLowerCase() === tag.toLowerCase());
 }
 
-export function filterEffectsByTags(
+function filterEffectsByTags(
   effects: CategoryEffect[],
   requiredTags: string[],
   excludeTags?: string[],

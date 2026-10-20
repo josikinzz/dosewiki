@@ -69,18 +69,6 @@ export function formatArticleLabel(article: unknown, index: number): string {
   return parts.join(" · ");
 }
 
-export function mergeArticleWithOriginal(original: unknown, draft: ArticleRecord): ArticleRecord {
-  if (!original || typeof original !== "object") {
-    return draft;
-  }
-
-  const originalArticle = original as ArticleRecord;
-  return {
-    ...draft,
-    id: draft.id ?? originalArticle.id,
-  };
-}
-
 export function extractChangeLogSummary(record: unknown, index: number): ChangeLogArticleSummary | null {
   if (!record || typeof record !== "object") {
     return null;

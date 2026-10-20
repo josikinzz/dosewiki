@@ -8,6 +8,7 @@ import {
   getPublicContributorDirectory,
   getPublicArtistCreditRows,
   getPublicProfileHistory,
+  getReplicationsByContributor,
   getReportsByContributor,
   getReviewedArticlesByContributor,
 } from "@server/data/publicData";
@@ -26,7 +27,6 @@ import { buildMetadataDescription } from "./publicRouteViewModels";
 import { getPublicRoutePath, type PublicRouteIdentity } from "./publicSite";
 import type { OkRouteResult, RouteMetadataSource } from "./routeLoaderResults";
 import { mapArtistPageKeysByProfile } from "../../src/features/replications/galleryFocus";
-import { readContributorReplications } from "./routeLoaders.contributorReplications";
 import type { LiveLocale } from "./localeHostPolicy";
 import {
   getLocalizedEffectArticlesByContributor,
@@ -149,7 +149,7 @@ export const loadContributorRoute = cache(async (
         locale
           ? getLocalizedReportsByContributor(profile, locale.code)
           : getReportsByContributor(profile),
-        readContributorReplications(profile),
+        getReplicationsByContributor(profile),
         locale
           ? getLocalizedEffectArticlesByContributor(profile, locale.code)
           : getEffectArticlesByContributor(profile),

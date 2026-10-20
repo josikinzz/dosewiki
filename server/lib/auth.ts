@@ -184,27 +184,3 @@ export async function requireRegisteredDelegatedEditorWrite(
     adminIntent: args.adminIntent,
   };
 }
-
-export async function optionalAuth(
-  ctx: MutationCtx | QueryCtx,
-  apiKey?: string,
-  adminIntent?: AdminIntent
-): Promise<AuthenticatedUser | null> {
-  try {
-    return await requireAuth(ctx, apiKey, adminIntent);
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return null;
-    }
-    throw error;
-  }
-}
-
-export async function isAuthenticated(
-  ctx: MutationCtx | QueryCtx,
-  apiKey?: string,
-  adminIntent?: AdminIntent
-): Promise<boolean> {
-  const user = await optionalAuth(ctx, apiKey, adminIntent);
-  return user !== null;
-}

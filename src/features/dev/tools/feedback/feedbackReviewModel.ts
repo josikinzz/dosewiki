@@ -125,10 +125,6 @@ export function describeEmptyQueue(
   return { kind: "clear", message: `All clear. No ${noun} yet.` };
 }
 
-export function countsKnown(counts: StatusCounts | null): counts is StatusCounts {
-  return counts !== null && QUEUE_STATUSES.every((status) => Number.isInteger(counts[status]));
-}
-
 export function isFreezeRefusal(message: string): boolean {
   return /frozen|DATA_WRITES_FROZEN|writes are paused/i.test(message);
 }

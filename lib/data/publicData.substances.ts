@@ -111,10 +111,6 @@ export const getPublicSubstanceSlugsByCandidates = cache(publicDataCache(async (
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.substances, PUBLIC_SUBSTANCE_LISTS_TAG],
 }));
 
-export const getFeaturedSubstances = cache(async (limit = 8) => {
-  return (await getPublicSubstances()).slice(0, limit);
-});
-
 export const getReviewedArticlesByContributor = cache(publicDataCache(async (
   profileKey: string,
 ): Promise<ContributorReviewedArticle[]> => {

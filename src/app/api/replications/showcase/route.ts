@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   getEffectShowcaseWorks,
   getSubstanceShowcaseWorks,
-} from "@/app/_components/public-routes/showcaseCollections";
+} from "@server/replications/showcaseCollections";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { parseUiLocale } from "@/i18n/messages";
 import { getArtistViewerGroups } from "@server/next/artistViewerCollection";

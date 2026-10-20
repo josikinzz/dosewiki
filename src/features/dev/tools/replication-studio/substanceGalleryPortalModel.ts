@@ -138,25 +138,6 @@ export function moveCuratedSlug(
   return { ...state, curated };
 }
 
-export function curateSlugAt(
-  state: GalleryCurationState,
-  slug: string,
-  index: number,
-): GalleryCurationState {
-  const from = state.curated.indexOf(slug);
-  const limit = from === -1 ? state.curated.length : state.curated.length - 1;
-  const target = Math.min(Math.max(Math.trunc(index), 0), limit);
-  if (from === target && !state.removed.includes(slug)) {
-    return state;
-  }
-  const curated = [...state.curated];
-  if (from !== -1) {
-    curated.splice(from, 1);
-  }
-  curated.splice(target, 0, slug);
-  return { curated, removed: state.removed.filter((entry) => entry !== slug) };
-}
-
 export function moveCuratedSlugToEdge(
   state: GalleryCurationState,
   slug: string,

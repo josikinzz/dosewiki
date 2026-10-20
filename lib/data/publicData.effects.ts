@@ -35,10 +35,6 @@ export const getPublicEffectIndex = cache(publicDataCache(async (): Promise<Publ
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects],
 }));
 
-export const getFeaturedEffects = cache(async (limit = 8) => {
-  return (await getPublicEffects()).slice(0, limit);
-});
-
 export const getPublicEffectBySlug = cache(publicDataCache(async (slug: string): Promise<SubjectiveEffectDetailRecord | null> => {
   return await getPublicDataReadAdapter().getPublicEffectBySlug(slug);
 }, ["data-public-effect-by-slug"], {
@@ -77,13 +73,6 @@ export const getPublicEffectContributorCredits = cache(publicDataCache(
   ["data-public-effect-contributor-credits"],
   { revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS, tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects] },
 ));
-
-export const getEffectsByCategory = cache(publicDataCache(async (category: string): Promise<PublicEffectPreview[]> => {
-  return await getPublicDataReadAdapter().getPublicEffectsByCategory(category);
-}, ["data-public-effects-by-category"], {
-  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects],
-}));
 
 export const getEffectArticlesByContributor = cache(async (
   profile: NormalizedUserProfile,

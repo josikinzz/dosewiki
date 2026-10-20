@@ -209,16 +209,6 @@ function warnAboutPreviewShortfall(
   }
 }
 
-function isExplicitMissingPublicFunctionError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    error.message.toLowerCase().includes("could not find public function")
-  );
-}
-
-let hasWarnedAboutSubstanceGalleryRead = false;
-let hasWarnedAboutSubstanceSlugsRead = false;
-
 export function createDataPublicDataReadAdapter(query: QueryTransport = queryData): PublicDataReadAdapter {
   return {
     getPublicOverviewCounts: () =>
@@ -327,26 +317,10 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
     getPublicEffectSlugs: () =>
       query<string[]>(publicDataReadCatalog.publicEffectSlugs.functionName, {}),
     getPublicSubstanceSlugs: async () => {
-      let slugs: string[];
-      try {
-        slugs = await drainPublicCorpusPages<string>(
-          query,
-          publicDataReadCatalog.publicSubstanceSlugs,
-        );
-      } catch (error) {
-        if (!hasWarnedAboutSubstanceSlugsRead) {
-          hasWarnedAboutSubstanceSlugsRead = true;
-          console.warn(
-            "[publicData] substanceIndex:getPublicSlugsPage failed (not deployed?); substance slugs fall back to the preview drain.",
-            ...(isExplicitMissingPublicFunctionError(error) ? [] : [error]),
-          );
-        }
-        const previews = await drainPublicCorpusPages<PublicSubstancePreview>(
-          query,
-          publicDataReadCatalog.publicSubstancePreviews,
-        );
-        slugs = previews.map(({ slug }) => slug);
-      }
+      const slugs = await drainPublicCorpusPages<string>(
+        query,
+        publicDataReadCatalog.publicSubstanceSlugs,
+      );
       return [...new Set(slugs.filter((slug) => typeof slug === "string" && slug.length > 0))].sort();
     },
     getPublicSubstanceBySlug: async (slug) => {
@@ -361,40 +335,18 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         query,
         publicDataReadCatalog.publicSubstanceFullDocuments,
       ),
-    getPublicReviewedArticlesByContributor: async (profileKey) => {
-      try {
-        return await drainPublicCorpusPages<ContributorReviewedArticle>(query, {
-          functionName:
-            publicDataReadCatalog.publicReviewedArticlesByContributor.functionName,
-          args: (cursor) =>
-            publicDataReadCatalog.publicReviewedArticlesByContributor.args(profileKey, cursor),
-        });
-      } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          console.warn(
-            "[publicData] substanceIndex:getPublicReviewedArticlesPage is not deployed; contributor reviewed articles degraded to empty.",
-          );
-          return [];
-        }
-        throw error;
-      }
-    },
-    getPublicReviewedArticleCredits: async () => {
-      try {
-        return await drainPublicCorpusPages<ReviewedArticleCredit>(query, {
-          functionName: publicDataReadCatalog.publicReviewedArticleCredits.functionName,
-          args: (cursor) => publicDataReadCatalog.publicReviewedArticleCredits.args(cursor),
-        });
-      } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          console.warn(
-            "[publicData] substanceIndex:getPublicReviewedArticleCreditsPage is not deployed; review credits degraded to empty.",
-          );
-          return [];
-        }
-        throw error;
-      }
-    },
+    getPublicReviewedArticlesByContributor: (profileKey) =>
+      drainPublicCorpusPages<ContributorReviewedArticle>(query, {
+        functionName:
+          publicDataReadCatalog.publicReviewedArticlesByContributor.functionName,
+        args: (cursor) =>
+          publicDataReadCatalog.publicReviewedArticlesByContributor.args(profileKey, cursor),
+      }),
+    getPublicReviewedArticleCredits: () =>
+      drainPublicCorpusPages<ReviewedArticleCredit>(query, {
+        functionName: publicDataReadCatalog.publicReviewedArticleCredits.functionName,
+        args: (cursor) => publicDataReadCatalog.publicReviewedArticleCredits.args(cursor),
+      }),
     getPublicEffects: async () =>
       projectPublicEffectPreviews(
         await query<SubjectiveEffectRecord[]>(
@@ -513,43 +465,21 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
         publicDataReadCatalog.publicReplicationsBySlugs.args(slugs),
       );
     },
-    getPublicReplicationsByArtistNames: async (artistNames) => {
-      try {
-        return await drainPublicCorpusPages<ReplicationWithUrl>(query, {
-          functionName:
-            publicDataReadCatalog.publicReplicationsByArtistNamesPage.functionName,
-          args: (cursor) =>
-            publicDataReadCatalog.publicReplicationsByArtistNamesPage.args(
-              artistNames,
-              cursor,
-            ),
-        });
-      } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          console.warn(
-            "[publicData] replications:getByArtistNamesPage is not deployed; contributor replication credits degraded to empty.",
-          );
-          return [];
-        }
-        throw error;
-      }
-    },
-    getPublicMatchableReplicationPage: async (cursor) => {
-      try {
-        return await query<PublicMatchableReplicationPage, { cursor?: string; limit: number }>(
-          publicDataReadCatalog.publicMatchableReplicationsPage.functionName,
-          publicDataReadCatalog.publicMatchableReplicationsPage.args(cursor),
-        );
-      } catch (error) {
-        if (isExplicitMissingPublicFunctionError(error)) {
-          console.warn(
-            "[publicData] substanceGalleries:getPublicMatchableReplicationsPage is not deployed; substance showcases degraded to empty.",
-          );
-          return { items: [], cursor: "", isDone: true };
-        }
-        throw error;
-      }
-    },
+    getPublicReplicationsByArtistNames: (artistNames) =>
+      drainPublicCorpusPages<ReplicationWithUrl>(query, {
+        functionName:
+          publicDataReadCatalog.publicReplicationsByArtistNamesPage.functionName,
+        args: (cursor) =>
+          publicDataReadCatalog.publicReplicationsByArtistNamesPage.args(
+            artistNames,
+            cursor,
+          ),
+      }),
+    getPublicMatchableReplicationPage: (cursor) =>
+      query<PublicMatchableReplicationPage, { cursor?: string; limit: number }>(
+        publicDataReadCatalog.publicMatchableReplicationsPage.functionName,
+        publicDataReadCatalog.publicMatchableReplicationsPage.args(cursor),
+      ),
     getPublicSubstanceGalleryCuration: async (substanceSlug) => {
       const doc = await query<
         { curated_slugs: string[]; removed_slugs: string[]; carousel_order?: string[]; disabled?: boolean } | null,
@@ -578,15 +508,6 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
           typeof error.data === "object" && error.data !== null &&
           "code" in error.data && error.data.code === "SUBSTANCE_GALLERY_INDEX_NOT_READY"
         ) {
-          return null;
-        }
-        if (isExplicitMissingPublicFunctionError(error)) {
-          if (!hasWarnedAboutSubstanceGalleryRead) {
-            hasWarnedAboutSubstanceGalleryRead = true;
-            console.warn(
-              "[publicData] substanceGalleries:getPublicGalleryBySubstance is not deployed; substance showcases fall back to the paged matchable corpus.",
-            );
-          }
           return null;
         }
         throw error;
@@ -634,21 +555,11 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
     getPublicChangelogById: (entryId) => query("changelog:getByEntryId", { entryId }),
     getPublicAboutConfig: () => query<AboutConfigRecord | null>(publicDataReadCatalog.publicAboutConfig.functionName, {}),
     getPublicFeaturedReplicationSlugs: async () => {
-      try {
-        const config = await query<{ slugs: string[] } | null>(
-          publicDataReadCatalog.publicFeaturedReplications.functionName,
-          {},
-        );
-        return config?.slugs ?? null;
-      } catch (error) {
-        if (!isExplicitMissingPublicFunctionError(error)) {
-          console.warn(
-            "[replications] featured-slugs read failed; using the checked-in fallback.",
-            error,
-          );
-        }
-        return null;
-      }
+      const config = await query<{ slugs: string[] } | null>(
+        publicDataReadCatalog.publicFeaturedReplications.functionName,
+        {},
+      );
+      return config?.slugs ?? null;
     },
     getPublicIndexLayoutByType: (type) =>
       query<IndexLayoutRecord | null, { type: IndexLayoutType }>(
