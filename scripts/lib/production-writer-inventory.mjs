@@ -165,6 +165,11 @@ export const productionWriterClassifications = Object.freeze({
     "scripts/postgres/rehearse-reports-feedback.ts",
     "scripts/postgres/rehearse-storage-fallbacks.ts",
   ]),
+  storageUploadEntrypoint: Object.freeze([
+    "scripts/build/publishSocialCardsToR2.mjs",
+    "scripts/replications/prepare-r2-image-renditions.ts",
+    "scripts/replications/run-local-r2-upload-batches.mjs",
+  ]),
   detectorExemption: Object.freeze([
     {
       path: "scripts/chemistry/iupacNameProviders.ts",

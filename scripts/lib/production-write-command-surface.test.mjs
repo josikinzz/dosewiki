@@ -79,6 +79,26 @@ function unclassifiedRawSqlWriters(detections) {
     .sort();
 }
 
+const INDIRECT_WRITE_KINDS = ["data-cli-write", "http-write", "library-write", "subprocess-write"];
+
+function unclassifiedIndirectWriters(detections) {
+  const classified = new Set([
+    ...classifiedDirectProductionWriterPaths,
+    ...productionWriterClassifications.guardedIndirectEntrypoint,
+    ...productionWriterClassifications.localRehearsal,
+    ...productionWriterClassifications.storageUploadEntrypoint,
+  ]);
+  return detections
+    .filter(({ path, detection }) => {
+      const exemption = productionWriterClassifications.detectorExemption.some(
+        ({ path: exemptPath, reason }) => exemptPath === path && reason.length > 0,
+      );
+      return detection.kinds.some((kind) => INDIRECT_WRITE_KINDS.includes(kind)) && !classified.has(path) && !exemption;
+    })
+    .map(({ path }) => path)
+    .sort();
+}
+
 function hasStrongBoundary(source) {
   return (
     (source.includes("production-write-command.mjs") &&
@@ -144,24 +164,39 @@ describe("production writer command surface", () => {
     expect(activeScriptDetections.find((entry) => entry.path === path).detection.kinds).toEqual([]);
   });
 
-  it("classifies indirect Postgres CLI and HTTP mutation entrypoints", () => {
-    const classified = new Set([
-      ...classifiedDirectProductionWriterPaths,
-      ...productionWriterClassifications.guardedIndirectEntrypoint,
-    ]);
-    const unclassified = activeScriptDetections.filter(({ path, detection }) => {
-      const kinds = detection.kinds;
-      const exemption = productionWriterClassifications.detectorExemption.some(
-        ({ path: exemptPath, reason }) => exemptPath === path && reason.length > 0,
-      );
-      return (
-        (kinds.includes("data-cli-write") || kinds.includes("http-write")) &&
-        !classified.has(path) &&
-        !exemption
-      );
-    }).map(({ path }) => path);
+  it("classifies indirect library, subprocess, and HTTP write entrypoints", () => {
+    expect(unclassifiedIndirectWriters(activeScriptDetections)).toEqual([]);
+  });
 
-    expect(unclassified).toEqual([]);
+  it.each([
+    "scripts/postgres/migrate.ts",
+    "scripts/translation/live-mirror.ts",
+    "scripts/translation/load-glosses.ts",
+    ...productionWriterClassifications.storageUploadEntrypoint,
+  ])("%s produces a write signal the inventory must answer", (path) => {
+    const { detection } = activeScriptDetections.find((entry) => entry.path === path);
+    expect(detection.kinds.filter((kind) => INDIRECT_WRITE_KINDS.includes(kind))).not.toEqual([]);
+  });
+
+  it.each([
+    ["scripts/fixture/library-writer.ts", `import { upsertGlosses } from "../../lib/translation/glossaryGloss";\nawait upsertGlosses(rows, "fixture");`],
+    ["scripts/fixture/namespace-writer.ts", `import * as store from "../../lib/translation/segmentStore";\nawait store.enqueueTranslationJobs(["zh-Hans"], slugs);`],
+    ["scripts/fixture/rclone-upload.mjs", `const copy = ["copy", root, remote];\nspawnSync("rclone", copy);`],
+    ["scripts/fixture/schema-launch.ts", `const command = ["bunx", "drizzle-kit", "migrate"];\nspawnSync(command[0], command.slice(1));`],
+    ["scripts/fixture/parameterized-put.ts", `const send = (method, url) => fetch(url, { method });\nawait send("PUT", key);`],
+  ])("fails admission for an unclassified write in %s", (path, source) => {
+    const detection = detectProductionWriteSignals(source, path);
+    expect(unclassifiedIndirectWriters([...activeScriptDetections, { path, detection }])).toEqual([path]);
+  });
+
+  it.each([
+    ["scripts/fixture/library-reader.ts", `import { loadGlosses } from "../../lib/translation/glossaryGloss";\nawait loadGlosses();`],
+    ["scripts/fixture/script-guard.ts", `import { authorizeProductionWrite } from "../lib/production-write-command.mjs";\nauthorizeProductionWrite(command);`],
+    ["scripts/fixture/rclone-read.mjs", `execFile("rclone", ["lsjson", remote]);`],
+    ["scripts/fixture/schema-generate.ts", `spawnSync("bunx", ["drizzle-kit", "generate"]);`],
+    ["scripts/fixture/static-read.ts", `const head = (method, url) => fetch(url, { method: "HEAD" });\nawait head("PUT", key);`],
+  ])("raises no write signal for the read-only %s", (path, source) => {
+    expect(detectProductionWriteSignals(source, path).signals).toEqual([]);
   });
 
   it.each(productionWriterClassifications.productionBoundary)(
