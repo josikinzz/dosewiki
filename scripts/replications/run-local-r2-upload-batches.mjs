@@ -281,6 +281,7 @@ async function main() {
     assertDataWritesNotFrozen(`${OPERATION}:${batch.id}`);
     const state = ledger.batches[batch.id];
     const sourceVerification = await validateBatchSources(plan, batch);
+    assertDataWritesNotFrozen(`${OPERATION}:${batch.id}:copy`);
     state.sourceVerification = { ...sourceVerification, verifiedAt: new Date().toISOString() };
     state.attempts += 1;
     state.status = "copying";
