@@ -132,6 +132,43 @@ describe("protectedRouteOperation", () => {
     expect(operation).not.toHaveBeenCalled();
   });
 
+  it("reads its options once at construction, so a denied request runs no option accessor", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const optionReads: PropertyKey[] = [];
+    const options = new Proxy(
+      {
+        auth: "editor" as const,
+        rateLimit: "editorSmallWrite" as const,
+        rateLimitKeySuffix: "probe",
+        body: { maxBytes: 1024 },
+        capabilities: [{ type: "dataWrite" as const }],
+        unexpectedErrorLabel: "test:",
+        unexpectedErrorMessage: "failed",
+        mapError: () => null,
+        operation: () => NextResponse.json({ ok: true }),
+      },
+      {
+        get(target, key, receiver) {
+          optionReads.push(key);
+          return Reflect.get(target, key, receiver);
+        },
+      },
+    );
+    const handler = protectedRouteOperation(options);
+    optionReads.length = 0;
+
+    expect((await handler(request())).status).toBe(401);
+    expect((await handler(request())).status).toBe(401);
+
+    expect(optionReads).toEqual([]);
+  });
+
   it("gates every route through the role floor it declares, contributor included", async () => {
     const { protectedRouteOperation } = await import("./protectedRouteOperation");
     for (const floor of ["contributor", "editor", "admin"] as const) {

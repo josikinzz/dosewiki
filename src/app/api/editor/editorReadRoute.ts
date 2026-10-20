@@ -18,19 +18,19 @@ export function requireParam(params: URLSearchParams, name: string, pattern: Reg
   return value;
 }
 
-export function editorReadRoute(options: {
+export function editorReadRoute({ auth, label, read }: {
   auth: RoleFloor;
   label: string;
   read: EditorReadOperation;
 }) {
   const operation = protectedRouteOperation({
-    auth: options.auth,
+    auth,
     rateLimit: "editorPolledRead",
-    unexpectedErrorLabel: `Failed to load ${options.label} via Next route:`,
-    unexpectedErrorMessage: `The ${options.label} could not be loaded.`,
+    unexpectedErrorLabel: `Failed to load ${label} via Next route:`,
+    unexpectedErrorMessage: `The ${label} could not be loaded.`,
     operation: async ({ request }) => {
       const params = new URL(request.url).searchParams;
-      const result = await options.read({ params, client: getServerDataReadClient() });
+      const result = await read({ params, client: getServerDataReadClient() });
       return NextResponse.json(result ?? null);
     },
   });

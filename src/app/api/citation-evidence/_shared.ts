@@ -9,7 +9,13 @@ type CitationEvidenceOperationInput = {
   dataWrite: ServerDataWriteCapability;
 };
 
-export function citationEvidenceRouteOperation(options: {
+export function citationEvidenceRouteOperation({
+  rateLimit,
+  unexpectedErrorLabel,
+  unexpectedErrorMessage,
+  mapError,
+  operation,
+}: {
   rateLimit?: RateLimitPolicyName;
   unexpectedErrorLabel: string;
   unexpectedErrorMessage: string;
@@ -18,17 +24,17 @@ export function citationEvidenceRouteOperation(options: {
 }) {
   return protectedRouteOperation({
     auth: "editor",
-    rateLimit: options.rateLimit ?? "editorSmallWrite",
+    rateLimit: rateLimit ?? "editorSmallWrite",
     capabilities: [{ type: "dataWrite" }],
-    unexpectedErrorLabel: options.unexpectedErrorLabel,
-    unexpectedErrorMessage: options.unexpectedErrorMessage,
-    mapError: options.mapError,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+    mapError,
     operation: ({ request, actorEmail, dataWrite }) => {
       if (!dataWrite) {
         throw new Error("Postgres write capability is required.");
       }
 
-      return options.operation({
+      return operation({
         request,
         actorEmail,
         dataWrite,
