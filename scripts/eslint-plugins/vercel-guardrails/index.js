@@ -554,45 +554,90 @@ function resolveModuleId(root, fromFile, source) {
   return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
 }
 
+const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
+const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
+
+function isInertExpression(node) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isInertExpression(node.expression);
+  switch (node.type) {
+    case 'Literal':
+    case 'Identifier':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      return true;
+    case 'TemplateLiteral':
+      return node.expressions.length === 0;
+    case 'ArrayExpression':
+      return node.elements.every(element => element !== null && isInertExpression(element));
+    case 'ObjectExpression':
+      return node.properties.every(property =>
+        property.type === 'Property' && property.kind === 'init' && !property.computed && isInertExpression(property.value),
+      );
+    default:
+      return false;
+  }
+}
+
+function forwardsRouteArguments(params, args) {
+  return (
+    params.every(param => param.type === 'Identifier') &&
+    args.length > 0 &&
+    args.length <= params.length &&
+    args.every((arg, index) => arg.type === 'Identifier' && arg.name === params[index].name)
+  );
+}
+
 function createRouteGuardClassifier(root, parseModule) {
+  const unguarded = { guarded: false };
+
   function classifyBinding(module, binding, canFollowImport) {
-    if (!binding) return { guarded: false };
-    if (binding.kind === 'value') return classifyHandler(module, binding.node, canFollowImport);
+    if (!binding) return unguarded;
+    if (binding.kind === 'value') return classifyHandler(module, binding.node, { canFollowImport });
     if (binding.kind === 'local') return classifyBinding(module, module.locals.get(binding.name), canFollowImport);
-    if (!canFollowImport) return { guarded: false };
+    if (!canFollowImport) return unguarded;
     const target = parseModule(module.file, binding.source);
-    if (!target) return { guarded: false };
+    if (!target) return unguarded;
     return classifyBinding(target, target.exports.get(binding.imported), false);
   }
 
-  function classifyFactoryCall(module, node, canFollowImport) {
-    const callee = node.callee.type === 'Identifier' ? module.locals.get(node.callee.name) : null;
+  function classifyFactoryCall(module, node, scope) {
+    const calleeName = node.callee.type === 'Identifier' ? node.callee.name : null;
+    const callee = calleeName && !scope.shadowed?.has(calleeName) ? module.locals.get(calleeName) : null;
     const moduleId = callee?.kind === 'import' ? resolveModuleId(root, module.file, callee.source) : null;
     const factory = moduleId ? callee.imported : null;
     const kind = ROUTE_GUARD_FACTORIES.get(`${moduleId}#${factory}`);
-    if (kind === 'fixedFloor') return { guarded: true };
-    if (kind === 'authOption') {
-      return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
+    if (kind === 'wrapsHandler') {
+      return node.arguments.length === 1 ? classifyHandler(module, node.arguments[0], scope) : unguarded;
     }
-    if (kind === 'wrapsHandler') return classifyHandler(module, node.arguments[0], canFollowImport);
-    return { guarded: false };
+    if (!kind || (scope.perRequest && !node.arguments.every(isInertExpression))) return unguarded;
+    if (kind === 'fixedFloor') return { guarded: true };
+    return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
   }
 
-  function classifyHandler(module, node, canFollowImport) {
-    if (!node) return { guarded: false };
-    if (node.type === 'Identifier') return classifyBinding(module, module.locals.get(node.name), canFollowImport);
-    if (node.type === 'CallExpression') return classifyFactoryCall(module, node, canFollowImport);
-    if (['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type)) {
-      const body = node.body;
-      const delegated = body.type !== 'BlockStatement'
-        ? body
-        : body.body.length === 1 && body.body[0].type === 'ReturnStatement'
-          ? body.body[0].argument
-          : null;
-      if (delegated?.type !== 'CallExpression') return { guarded: false };
-      return classifyHandler(module, delegated.callee, canFollowImport);
+  function classifyForwardingFunction(module, node, scope) {
+    const body = node.body;
+    const delegated = body.type !== 'BlockStatement'
+      ? body
+      : body.body.length === 1 && body.body[0].type === 'ReturnStatement'
+        ? body.body[0].argument
+        : null;
+    if (node.generator || delegated?.type !== 'CallExpression') return unguarded;
+    if (!forwardsRouteArguments(node.params, delegated.arguments)) return unguarded;
+    return classifyHandler(module, delegated.callee, {
+      canFollowImport: scope.canFollowImport,
+      perRequest: true,
+      shadowed: new Set(node.params.map(param => param.name)),
+    });
+  }
+
+  function classifyHandler(module, node, scope) {
+    if (!node) return unguarded;
+    if (node.type === 'Identifier') {
+      return scope.shadowed?.has(node.name) ? unguarded : classifyBinding(module, module.locals.get(node.name), scope.canFollowImport);
     }
-    return { guarded: false };
+    if (node.type === 'CallExpression') return classifyFactoryCall(module, node, scope);
+    if (!scope.perRequest && FUNCTION_TYPES.has(node.type)) return classifyForwardingFunction(module, node, scope);
+    return unguarded;
   }
 
   return { classifyBinding };

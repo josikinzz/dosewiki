@@ -49,6 +49,18 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
     },
     {
+      name: 'a forwarding function that passes only the request and route context',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const guarded = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        export async function POST(request: Request, context: unknown) {
+          return guarded(request, context);
+        }
+        export const PUT = (request: Request) => guarded(request);
+      `,
+    },
+    {
       name: 'fixed-floor factory and a host gate around a floored wrapper',
       filename: devRoute,
       code: `
@@ -140,6 +152,39 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       code: `
         import { protectedRouteOperation } from "@/lib/http/feedbackQueueRoute";
         export const POST = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    },
+    ...[
+      ['an awaited call', 'guarded(await doWrite(request))'],
+      ['a sequence expression', 'guarded((await doWriteBeforeAuth(), request))'],
+      ['a plain call', 'guarded(parseBody(request))'],
+      ['an assignment', 'guarded(request = new Request("https://example.test"))'],
+      ['a method call on the request', 'guarded(request.clone())'],
+      ['arguments in the wrong order', 'guarded(context, request)'],
+      ['work in the inline wrapper options', 'protectedRouteOperation({ auth: "editor", rateLimit: await pickLimit(request), unexpectedErrorLabel: "x", operation: () => ok() })(request)'],
+      ['a getter in the inline wrapper options', 'protectedRouteOperation({ auth: "editor", get rateLimit() { return pickLimit(request); }, unexpectedErrorLabel: "x", operation: () => ok() })(request)'],
+      ['a spread in the inline wrapper options', 'protectedRouteOperation({ ...readOptions(request), auth: "editor" })(request)'],
+    ].map(([shape, call]) => ({
+      name: `a forwarding function that does work through ${shape}`,
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const guarded = protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        export async function POST(request: Request, context: unknown) {
+          return ${call};
+        }
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    })),
+    {
+      name: 'a forwarding function whose parameter shadows the wrapper',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        export async function POST(request: Request, protectedRouteOperation: (options: unknown) => (request: Request) => Response) {
+          return protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() })(request);
+        }
       `,
       errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
     },
