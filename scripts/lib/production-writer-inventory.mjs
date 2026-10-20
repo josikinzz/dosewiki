@@ -150,8 +150,12 @@ export const productionWriterClassifications = Object.freeze({
   ]),
   localRehearsal: Object.freeze([
     "scripts/postgres/rehearse-article-lifecycle.ts",
+    "scripts/postgres/rehearse-article-publication.ts",
     "scripts/postgres/rehearse-auth.ts",
+    "scripts/postgres/rehearse-citation-publication.ts",
+    "scripts/postgres/rehearse-commands.ts",
     "scripts/postgres/rehearse-content-tools.ts",
+    "scripts/postgres/rehearse-effects.ts",
     "scripts/postgres/rehearse-http-surface.ts",
     "scripts/postgres/rehearse-release.ts",
     "scripts/postgres/rehearse-replications-identity.ts",

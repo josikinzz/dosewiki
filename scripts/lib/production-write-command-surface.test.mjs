@@ -50,6 +50,7 @@ const SHARED_CLIENT_LIBRARIES = new Set([
 
 const POSTGRES_GUARDED_WRITER_PATTERN =
   /^scripts\/postgres\/(?:rehearse-[^/]+|parity[^/]*)\.ts$/;
+const REHEARSAL_PATTERN = /^scripts\/postgres\/rehearse-[^/]+\.ts$/;
 
 function activeDirectMutationWriters() {
   return activeScriptDetections
@@ -117,14 +118,30 @@ describe("production writer command surface", () => {
     expect(unclassifiedRawSqlWriters([...activeScriptDetections, { path, detection }])).toEqual([path]);
   });
 
-  it.each(productionWriterClassifications.localRehearsal)("%s is a local rehearsal behind the Postgres target guard", (path) => {
-    expect(POSTGRES_GUARDED_WRITER_PATTERN.test(path)).toBe(true);
-    expect(readFileSync(resolve(repoRoot, path), "utf8")).toMatch(/guardTarget\(/);
+  it.each(productionWriterClassifications.localRehearsal)("%s admits only an unfrozen loopback target", (path) => {
+    expect(path).toMatch(REHEARSAL_PATTERN);
+    const source = readFileSync(resolve(repoRoot, path), "utf8");
+    expect(source).toMatch(/resolveLocalRehearsalTarget\(/);
+    expect(source).not.toMatch(/guardTarget\(|resolveTarget\(/);
   });
 
-  it.each(postgresRehearsalWriters())("%s writes only behind the Postgres target guard", (path) => {
+  it.each(postgresRehearsalWriters())("%s writes only behind a Postgres target guard", (path) => {
+    if (REHEARSAL_PATTERN.test(path)) {
+      expect(productionWriterClassifications.localRehearsal).toContain(path);
+      return;
+    }
     const source = readFileSync(resolve(repoRoot, path), "utf8");
     expect(source).toMatch(/guardTarget\(|createDataClient\(/);
+  });
+
+  it.each(
+    activeScriptDetections
+      .map(({ path }) => path)
+      .filter((path) => REHEARSAL_PATTERN.test(path) && !productionWriterClassifications.localRehearsal.includes(path)),
+  )("%s is a read-only rehearsal outside the local rehearsal inventory", (path) => {
+    const source = readFileSync(resolve(repoRoot, path), "utf8");
+    expect(source).not.toMatch(/insertDocument|patchDocument|deleteDocument|withTransaction|spawnSync|\.mutation\(|\.sql\(/);
+    expect(activeScriptDetections.find((entry) => entry.path === path).detection.kinds).toEqual([]);
   });
 
   it("classifies indirect Postgres CLI and HTTP mutation entrypoints", () => {

@@ -19,12 +19,11 @@ import { getDataBackend, getPostgresClient } from "../../lib/postgres/runtime/ba
 import { PostgresClient, resolveFunction } from "../../lib/postgres/runtime/client";
 import { deleteDocument, insertDocument, mintDocumentId, selectDocuments } from "../../lib/postgres/documentStore";
 import { getSiteFlavorConfig, isEffectIndex } from "../../src/config/siteFlavor";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const argv = process.argv.slice(2);
-const target = resolveTarget(argv);
-guardTarget(target, argv.includes("--allow-remote"));
+const target = resolveLocalRehearsalTarget(argv);
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
 const checks: Check[] = [];
@@ -220,7 +219,6 @@ async function main(): Promise<void> {
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;
   delete process.env.POSTGRES_DIRECT_URL;
-  delete process.env.DATA_WRITES_FROZEN;
 
   const apiKey = process.env.DATA_ADMIN_KEY;
   if (!apiKey) throw new Error("DATA_ADMIN_KEY is required (Bun loads it from .env.local)");
