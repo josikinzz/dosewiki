@@ -338,6 +338,7 @@ export async function processObjects({
       absent += 1;
       return;
     }
+    assertDataWritesNotFrozen(`${OPERATION}:${mode}:write`);
     await storage.write(object);
     const actual = await storage.digest(object.key);
     try {
@@ -387,6 +388,7 @@ export async function installCandidateManifest({
   } catch (error) {
     if (error?.code !== "ENOENT") throw error;
   }
+  assertDataWritesNotFrozen(`${OPERATION}:install-candidate:write`);
   await writeAtomic(rollbackPath, currentText);
   await writeAtomic(targetPath, candidateText);
   const append = createLedgerWriter(publisherLedgerPath);
