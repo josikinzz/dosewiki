@@ -37,7 +37,15 @@ import { TemplateApplyDialog } from "./TemplateApplyDialog";
 import { useTracingLayer } from "./TracingLayer";
 import { useTemplateApplication } from "./useTemplateApplication";
 import { useMoleculeSourceReadState } from "./useMoleculeSourceRead";
-import { readMoleculeOverride, readMoleculeTemplate } from "./moleculeEditorRequests";
+import {
+  DEPICTION_LOADING,
+  depictionLoaded,
+  knownDepiction,
+  readMoleculeOverride,
+  readMoleculeTemplate,
+  settleDepictionRead,
+  type DepictionRead,
+} from "./moleculeEditorRequests";
 import { useMoleculePickerReadState } from "./useMoleculePickerRead";
 import { matchesTypedName } from "./chemistryDiff";
 import { MoleculeLoadNotices, MoleculeStartingPoints } from "./MoleculeEditorModePanel";
@@ -131,16 +139,18 @@ export function MoleculeEditorSession({
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const [canvasError, setCanvasError] = useState<string | null>(null);
   const { confirm: requestConfirm, dialog: confirmDialog } = useConfirm();
-  const [templateDoc, setTemplateDoc] = useState<MoleculeClassTemplate | null | undefined>(
-    undefined,
-  );
-  const [templateLoadError, setTemplateLoadError] = useState<string | null>(null);
+  const [templateRead, setTemplateRead] = useState<DepictionRead<MoleculeClassTemplate>>(DEPICTION_LOADING);
+  const [templateReload, setTemplateReload] = useState(0);
   const [templateSmilesInput, setTemplateSmilesInput] = useState("");
   const [templateMemberSlug, setTemplateMemberSlug] = useState<string | null>(null);
   const [initializingTemplate, setInitializingTemplate] = useState(false);
-  const [overrideDoc, setOverrideDoc] = useState<MoleculeOverride | null | undefined>(undefined);
-  const [overrideLoadError, setOverrideLoadError] = useState<string | null>(null);
+  const [overrideRead, setOverrideRead] = useState<DepictionRead<MoleculeOverride>>(DEPICTION_LOADING);
   const [overrideReload, setOverrideReload] = useState(0);
+  const templateDoc = knownDepiction(templateRead);
+  const overrideDoc = knownDepiction(overrideRead);
+  const templateLoadError = templateRead.status === "failed" ? templateRead.error : null;
+  const overrideLoadError = overrideRead.status === "failed" ? overrideRead.error : null;
+  const snapshotStatus = (mode === "templates" ? templateRead : overrideRead).status;
   const forceNextLoad = useRef(false);
   const freeze = useWriteFreeze();
   const saveKeyLabel = useModifierKeyLabel("S");
@@ -309,50 +319,28 @@ export function MoleculeEditorSession({
           : selected && mode === "templates" && templateDoc === null
             ? `class:${selected}`
             : null;
-    if (!slug) {
-      setOverrideDoc(undefined);
-      setOverrideLoadError(null);
-      return;
-    }
+    setOverrideRead(DEPICTION_LOADING);
+    if (!slug) return;
     let cancelled = false;
-    setOverrideDoc(undefined);
-    setOverrideLoadError(null);
-    void readMoleculeOverride(slug)
-      .then((override) => {
-        if (!cancelled) setOverrideDoc(override);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setOverrideDoc(null);
-        setOverrideLoadError(error instanceof Error ? error.message : String(error));
-      });
+    void settleDepictionRead(readMoleculeOverride(slug)).then((next) => {
+      if (!cancelled) setOverrideRead(next);
+    });
     return () => {
       cancelled = true;
     };
   }, [mode, selected, templateDoc, overrideReload]);
 
   useEffect(() => {
-    if (mode !== "templates" || !selected) {
-      setTemplateDoc(undefined);
-      setTemplateLoadError(null);
-      return;
-    }
+    setTemplateRead(DEPICTION_LOADING);
+    if (mode !== "templates" || !selected) return;
     let cancelled = false;
-    setTemplateDoc(undefined);
-    setTemplateLoadError(null);
-    void readMoleculeTemplate(selected)
-      .then((template) => {
-        if (!cancelled) setTemplateDoc(template);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-        setTemplateDoc(null);
-        setTemplateLoadError(error instanceof Error ? error.message : String(error));
-      });
+    void settleDepictionRead(readMoleculeTemplate(selected)).then((next) => {
+      if (!cancelled) setTemplateRead(next);
+    });
     return () => {
       cancelled = true;
     };
-  }, [mode, selected]);
+  }, [mode, selected, templateReload]);
 
   useEffect(() => {
     if (!selected) {
@@ -363,6 +351,12 @@ export function MoleculeEditorSession({
     }
     if (!ocl) {
       setComputing(true);
+      return;
+    }
+    if (snapshotStatus === "failed") {
+      loadSource(null);
+      setNoStructure(false);
+      setComputing(false);
       return;
     }
     if (variant === "imported" && importedMolblock) {
@@ -461,6 +455,7 @@ export function MoleculeEditorSession({
     selectedClass,
     generateClassMolblock,
     templateDoc,
+    snapshotStatus,
     loadSource,
   ]);
 
@@ -500,7 +495,7 @@ export function MoleculeEditorSession({
   }, [mode, templateMemberOverride, templateMemberSlug]);
 
   const initializeTemplateFromClassStructure = useCallback(async () => {
-    if (mode !== "templates" || !selectedClass) return;
+    if (mode !== "templates" || !selectedClass || overrideDoc === undefined) return;
     setInitializingTemplate(true);
     setSaveResult(null);
 
@@ -667,7 +662,9 @@ export function MoleculeEditorSession({
   const chemistryChanged = guard != null && !guard.match;
   const chemistryConfirmed =
     !chemistryChanged || !publishName || matchesTypedName(confirmName, publishName);
+  const snapshotLoaded = snapshotStatus === "loaded";
   const canSave =
+    snapshotLoaded &&
     enginesReady &&
     dirty &&
     !!edited &&
@@ -676,7 +673,8 @@ export function MoleculeEditorSession({
     !noStructure &&
     !renderBlocked &&
     chemistryConfirmed;
-  const canTransform = enginesReady && !!edited && !saving && !noStructure && !renderBlocked;
+  const canTransform =
+    snapshotLoaded && enginesReady && !!edited && !saving && !noStructure && !renderBlocked;
 
   useEffect(() => {
     if (!canTransform) {
@@ -760,7 +758,7 @@ export function MoleculeEditorSession({
   );
 
   const save = useCallback(async () => {
-    if (!selected || !edited || !ocl) return;
+    if (!selected || !edited || !ocl || !snapshotLoaded) return;
     setSaving(true);
     setSaveResult(null);
     const svg = renderMoleculeSvg(ocl, edited, previewAtomLabels, boldBonds);
@@ -801,7 +799,7 @@ export function MoleculeEditorSession({
           updatedAt: body.updatedAt ?? Date.now(),
           updatedBy: body.updatedBy,
         };
-        setTemplateDoc(savedTemplate);
+        setTemplateRead(depictionLoaded(savedTemplate));
         markSourceSaved(edited);
         setBoldBaseline(boldBonds);
         setSaveResult({
@@ -857,16 +855,18 @@ export function MoleculeEditorSession({
         return;
       }
       if (!res.ok) throw new Error(body.error ?? `Save failed (${res.status})`);
-      setOverrideDoc({
-        slug: saveSlug,
-        molblock: edited,
-        svg,
-        ...(smiles ? { smiles } : {}),
-        ...(boldBonds.length > 0 ? { boldBonds } : {}),
-        source: "editor",
-        updatedAt: body.updatedAt ?? new Date().toISOString(),
-        ...(body.updatedBy ? { updatedBy: body.updatedBy } : {}),
-      });
+      setOverrideRead(
+        depictionLoaded({
+          slug: saveSlug,
+          molblock: edited,
+          svg,
+          ...(smiles ? { smiles } : {}),
+          ...(boldBonds.length > 0 ? { boldBonds } : {}),
+          source: "editor",
+          updatedAt: body.updatedAt ?? new Date().toISOString(),
+          ...(body.updatedBy ? { updatedBy: body.updatedBy } : {}),
+        }),
+      );
       setBoldBaseline(boldBonds);
       setConfirmName("");
       setVariant("saved");
@@ -891,6 +891,7 @@ export function MoleculeEditorSession({
     selected,
     edited,
     ocl,
+    snapshotLoaded,
     smiles,
     mode,
     previewAtomLabels,
@@ -958,7 +959,7 @@ export function MoleculeEditorSession({
         return;
       }
       if (!res.ok) throw new Error(body.error ?? `Remove failed (${res.status})`);
-      setOverrideDoc(null);
+      setOverrideRead(depictionLoaded(null));
       setVariant("auto");
       void invalidateEditorReads([...OVERRIDE_READS]);
       setSaveResult({
@@ -977,7 +978,7 @@ export function MoleculeEditorSession({
   }, [selected, mode, invalidateEditorReads, freeze.frozen]);
 
   const requestRemove = useCallback(() => {
-    if (!selected) return;
+    if (!selected || !hasOverride) return;
     const name = publishName ?? selected;
     requestConfirm({
       title: `Remove the ${name} depiction?`,
@@ -990,7 +991,7 @@ export function MoleculeEditorSession({
         void performRemove();
       },
     });
-  }, [selected, dirty, performRemove, requestConfirm, publishName]);
+  }, [selected, hasOverride, dirty, performRemove, requestConfirm, publishName]);
 
   const liveNow = mode === "templates" ? null : overrideDoc?.svg ?? null;
   const changedParts = useMemo(() => {
@@ -1146,6 +1147,7 @@ export function MoleculeEditorSession({
               templateLoadError={templateLoadError}
               overrideLoadError={overrideLoadError}
               onRetryOverride={() => setOverrideReload((key) => key + 1)}
+              onRetryTemplate={() => setTemplateReload((key) => key + 1)}
               sourceError={moleculeSourceRead.error}
               onRetrySource={moleculeSourceRead.retry}
               membersError={classMembershipRead.error}
@@ -1170,7 +1172,7 @@ export function MoleculeEditorSession({
           </>
         }
         startingPoints={
-          mode === "templates" && templateDoc === null && !source ? null : <MoleculeStartingPoints
+          snapshotStatus === "failed" || (mode === "templates" && templateDoc === null && !source) ? null : <MoleculeStartingPoints
             mode={mode}
             importableMolecules={importableMolecules}
             importSlug={importSlug}
@@ -1187,6 +1189,7 @@ export function MoleculeEditorSession({
           />
         }
         noStructure={noStructure}
+        snapshotFailed={snapshotStatus === "failed"}
         oclReady={!!ocl}
         oclError={oclError}
         rdkitError={rdkitError}

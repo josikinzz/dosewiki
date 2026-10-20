@@ -148,6 +148,7 @@ export function MoleculeLoadNotices({
   templateLoadError,
   overrideLoadError,
   onRetryOverride,
+  onRetryTemplate,
   sourceError,
   onRetrySource,
   membersError,
@@ -157,6 +158,7 @@ export function MoleculeLoadNotices({
   templateLoadError: string | null;
   overrideLoadError: string | null;
   onRetryOverride: () => void;
+  onRetryTemplate: () => void;
   sourceError: string | null;
   onRetrySource: () => void;
   membersError: string | null;
@@ -165,9 +167,15 @@ export function MoleculeLoadNotices({
   return (
     <>
       {mode === "templates" && templateLoadError ? (
-        <Notice tone="danger" title="Couldn't load template" message={templateLoadError} />
+        <div className="space-y-2">
+          <Notice tone="danger" title="Couldn't load template" message={templateLoadError} />
+          <Button type="button" variant="outline" size="sm" onClick={onRetryTemplate}>
+            <Icon icon="lucide:rotate-cw" size={14} />
+            Try again
+          </Button>
+        </div>
       ) : null}
-      {mode !== "templates" && overrideLoadError ? (
+      {overrideLoadError ? (
         <div className="space-y-2">
           <Notice tone="danger" title="Couldn't load depiction" message={overrideLoadError} />
           <Button type="button" variant="outline" size="sm" onClick={onRetryOverride}>

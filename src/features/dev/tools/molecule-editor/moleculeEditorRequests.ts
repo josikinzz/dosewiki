@@ -6,6 +6,28 @@ export interface MoleculeTemplateSummary {
   updatedAt: number | null;
 }
 
+export type DepictionRead<T> =
+  | { status: "loading" }
+  | { status: "loaded"; value: T | null }
+  | { status: "failed"; error: string };
+
+export const DEPICTION_LOADING: DepictionRead<never> = { status: "loading" };
+
+export function depictionLoaded<T>(value: T | null): DepictionRead<T> {
+  return { status: "loaded", value };
+}
+
+export function settleDepictionRead<T>(request: Promise<T | null>): Promise<DepictionRead<T>> {
+  return request.then(depictionLoaded<T>, (error: unknown): DepictionRead<T> => ({
+    status: "failed",
+    error: error instanceof Error ? error.message : String(error),
+  }));
+}
+
+export function knownDepiction<T>(read: DepictionRead<T>): T | null | undefined {
+  return read.status === "loaded" ? read.value : undefined;
+}
+
 function nullableDepiction<T>(payload: DevFetchPayload, key: "override" | "template", label: string): T | null {
   const value = payload[key];
   if (value === null) {
