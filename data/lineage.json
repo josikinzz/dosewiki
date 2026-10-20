@@ -436,12 +436,12 @@
         "Postgres moleculeOverrides revisions",
         "lib/og/moleculeSocialCard.ts"
       ],
-      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "freshnessRule": "Refresh only through the phased workflow in docs/operations/social-cards.md; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
       "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/generateSubstanceSocialCards.ts --expected-deployment=<source fingerprint>, then plan, canary, full apply, object verification, and install with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
     },
     {
       "id": "substance-social-card-images",
@@ -464,7 +464,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateSubstanceSocialCards.ts --expected-deployment=<source fingerprint>; see docs/operations/social-cards.md"
     },
     {
       "id": "page-social-card-manifest",
@@ -492,12 +492,12 @@
         "public/fonts/Blinker-SemiBold.ttf",
         "@iconify-json/* devDependencies"
       ],
-      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "freshnessRule": "Refresh only through the phased workflow in docs/operations/social-cards.md; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
       "sourceDeployment": "local working tree and https://dose.wiki/api/replications/gallery",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePageSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/generatePageSocialCards.ts [--only=<key>], then plan, canary, full apply, object verification, and install with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
     },
     {
       "id": "page-social-card-images",
@@ -521,7 +521,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generatePageSocialCards.ts; see docs/operations/social-cards.md"
     },
     {
       "id": "entity-social-card-manifest",
@@ -542,12 +542,12 @@
         "lib/og/prototypes/tripReportSocialCard.ts",
         "lib/og/prototypes/userProfileSocialCard.ts"
       ],
-      "freshnessRule": "Refresh only through the explicit npm run refresh:social-cards workflow; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
+      "freshnessRule": "Refresh only through the phased workflow in docs/operations/social-cards.md; ordinary local, GitHub Actions, and Vercel builds consume the committed R2 manifest without regeneration.",
       "sourceDeployment": "Postgres fingerprint selected by createDataClient and matched by --expected-deployment; existing manifest records retain their original provenance",
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/generateEntitySocialCards.ts --expected-deployment=<source fingerprint>, then plan, canary, full apply, object verification, and install with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json and every --confirm-* flag the publisher names, per docs/operations/social-cards.md"
     },
     {
       "id": "entity-social-card-images",
@@ -574,7 +574,7 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run refresh:social-cards"
+      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary, full apply, object verification, and install with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateEntitySocialCards.ts --expected-deployment=<source fingerprint>; see docs/operations/social-cards.md"
     },
     {
       "id": "postgres-drizzle-schema",

@@ -20,7 +20,6 @@
     "prebuild": "node scripts/tools/copyRdkitAssets.mjs && bun run generate:theme-lab-bootstrap && bun run generate:icon-data",
     "generate:social-cards": "bun scripts/build/generateSocialCards.mjs",
     "publish:social-cards": "bun scripts/build/publishSocialCardsToR2.mjs",
-    "refresh:social-cards": "npm run generate:social-cards && npm run publish:social-cards",
     "verify:social-cards": "node scripts/build/verifySocialCardDelivery.mjs",
     "start": "next start",
     "generate:smiles": "bun scripts/data/generateSmilesMap.mjs",
