@@ -1,12 +1,11 @@
 import { Suspense } from "react";
 
 import { LiveSearchResultsPage } from "@/components/pages/LiveSearchResultsPage";
-import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
 import { UiLocaleProvider } from "@/i18n/client"
-import { setRequestLocale, t } from "@/i18n/server";
+import { setRequestLocale } from "@/i18n/server";
 import { LIVE_LOCALES } from "@server/next/localeHostPolicy";
-import { buildPageMetadata } from "@server/next/metadata";
 import { getPublicSearchSuggestions } from "@server/data/publicLibrary";
+import { getSearchIndexMetadata, searchQueryFromParam } from "../../search/_components/searchIndexMetadata";
 
 export const revalidate = 3600;
 
@@ -18,28 +17,10 @@ type LocalizedSearchPageProps = {
   }>;
 };
 
-const searchQueryFromParam = (value: string | string[] | undefined) => {
-  const raw = Array.isArray(value) ? value[0] : value;
-  return raw?.trim() ?? "";
-};
-
 export async function generateMetadata({ searchParams }: LocalizedSearchPageProps) {
   setRequestLocale(LOCALE.code);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const query = searchQueryFromParam(resolvedSearchParams?.q);
-  return buildPageMetadata({
-    title: query ? t('Search Results for "{{query}}"', { query }) : t("Search"),
-    description: query
-      ? t(
-          "Search {{siteName}} for substances, effects, reports, and profiles matching {{query}}.",
-          { siteName: SITE_FLAVOR_CONFIG.name, query },
-        )
-      : t("Search {{siteName}} for substances, effects, reports, and profiles.", {
-          siteName: SITE_FLAVOR_CONFIG.name,
-        }),
-    pathname: "/search",
-    noIndex: true,
-  });
+  return getSearchIndexMetadata(searchQueryFromParam(resolvedSearchParams?.q));
 }
 
 export default async function LocalizedSearchPage({ searchParams }: LocalizedSearchPageProps) {

@@ -11,7 +11,7 @@ import { SHOWCASE_WORK_CAP } from "@/features/replications/components/showcaseWo
 import { buildReplicationViewerUrl } from "@/features/replications/galleryUrlState";
 import { publicHref } from "@/utils/publicHref";
 import { getPublicReplicationsByEffect } from "@server/data/publicData";
-import { getEffectShowcaseWorks } from "./showcaseCollections";
+import { getEffectShowcaseWorks } from "@server/replications/showcaseCollections";
 
 export async function EffectReplicationsSection({
   effectSlug,

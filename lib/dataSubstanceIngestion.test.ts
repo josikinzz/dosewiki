@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   ingestSubstanceArticle,
   ingestSubstanceArticles,
-  prepareSubstanceReplacementArticles,
 } from "../server/lib/substanceIngestion";
 import { minimalArticle } from "../src/test/fixtures/articles";
 
@@ -65,78 +64,6 @@ function createFakeDb(initialArticles: Array<Partial<StoredArticle> & TestArticl
 }
 
 describe("substance ingestion", () => {
-  it("rejects bulk replacement when normalized incoming article ids are duplicated", () => {
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [
-        article({ id: 7, title: "First incoming", slug: "first-incoming" }),
-        article({ id: 7, title: "Second incoming", slug: "second-incoming" }),
-      ],
-      existing: [],
-    })).toThrow("Cannot prepare substance replacement: incoming article id 7 is duplicated.");
-  });
-
-  it("rejects bulk replacement when incoming explicit slugs are duplicated", () => {
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [
-        article({ id: 7, title: "First incoming", slug: "duplicate-incoming" }),
-        article({ id: 8, title: "Second incoming", slug: "duplicate-incoming" }),
-      ],
-      existing: [],
-    })).toThrow(
-      'Cannot prepare substance replacement: incoming explicit slug "duplicate-incoming" is duplicated.',
-    );
-  });
-
-  it("rejects bulk replacement when generated and effective slugs collide", () => {
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [
-        article({ id: 7, title: "Generated Collision", slug: undefined }),
-        article({ id: 8, title: "Different title", slug: "generated-collision" }),
-      ],
-      existing: [],
-    })).toThrow(
-      'Cannot prepare substance replacement: incoming effective slug "generated-collision" is duplicated.',
-    );
-  });
-
-  it("rejects bulk replacement when stored article ids are duplicated", () => {
-    const incoming = article({ id: 7, title: "Incoming", slug: "incoming" });
-
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [incoming],
-      existing: [
-        { ...article({ id: 7, title: "First", slug: "first" }), _id: "stored-1" },
-        { ...article({ id: 7, title: "Second", slug: "second" }), _id: "stored-2" },
-      ],
-    })).toThrow("Cannot prepare substance replacement: stored article id 7 is duplicated.");
-  });
-
-  it("rejects bulk replacement when stored article slugs are duplicated", () => {
-    const incoming = article({ id: 7, title: "Incoming", slug: "duplicate" });
-
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [incoming],
-      existing: [
-        { ...article({ id: 7, title: "First", slug: "duplicate" }), _id: "stored-1" },
-        { ...article({ id: 8, title: "Second", slug: "duplicate" }), _id: "stored-2" },
-      ],
-    })).toThrow('Cannot prepare substance replacement: stored article slug "duplicate" is duplicated.');
-  });
-
-  it("rejects bulk replacement when incoming id and slug resolve to different stored articles", () => {
-    const incoming = article({ id: 7, title: "Incoming", slug: "second" });
-
-    expect(() => prepareSubstanceReplacementArticles({
-      articles: [incoming],
-      existing: [
-        { ...article({ id: 7, title: "First", slug: "first" }), _id: "stored-1" },
-        { ...article({ id: 8, title: "Second", slug: "second" }), _id: "stored-2" },
-      ],
-    })).toThrow(
-      'Cannot prepare substance replacement for "Incoming": id 7 and slug "second" resolve to different stored articles.',
-    );
-  });
-
   it("skips slug collisions instead of overwriting another article", async () => {
     const { db, docs } = createFakeDb([
       article({ id: 1, title: "First", slug: "first" }),
