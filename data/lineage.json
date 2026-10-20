@@ -1491,14 +1491,16 @@
         "content/sources/psychonautwiki-2015/json/*.json"
       ],
       "inputs": [
-        "web.archive.org captures of psychonautwiki.org pages taken no later than 2016-08-31"
+        "web.archive.org captures of psychonautwiki.org pages taken no later than 2016-08-31, selected by PW_LAST_ALLOWED_TIMESTAMP=20160831235959; the collector's default cutoff is 20151231235959",
+        "a substance inventory under content/sources/psychonautwiki-2015/.cache/: live-missing-subjective-effects.json, or live-dosewiki-substances.json filtered to articles without subjective effects. Neither file is tracked, so a clean checkout cannot run the collector",
+        "content/sources/psychonautwiki-2015/.cache/collection-results.json, the untracked per-slug result log the collector resumes from"
       ],
-      "freshnessRule": "One-time capture, not a routine refresh. Re-running the collector fetches web.archive.org and overwrites the corpus.",
+      "freshnessRule": "One-time capture, not a routine refresh. The collector skips every slug already in .cache/collection-results.json unless the run passes --force or names that slug's status in --retry-statuses=<status,...>; a forced or retried slug is fetched again from web.archive.org and its Markdown overwritten. Each slug a run processes also rewrites README.md and not-found-2015.md from the collector's template, which would discard the hand-written August 2016 notes in README.md.",
       "sourceDeployment": "web.archive.org",
       "targetDeployment": null,
       "schemaVersion": "Markdown subjective effects section with capture metadata",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; captured once by node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
     },
     {
       "id": "psychonautwiki-2015-not-found-list",
