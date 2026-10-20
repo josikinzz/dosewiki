@@ -1411,11 +1411,11 @@
         "data/chemistry/generatedSmiles.json"
       ],
       "freshnessRule": "Repack after molecule depictions or the substance list change, and commit the JSON manifest and ZIP together. Add --check to compare the committed manifest with the read source without writing.",
-      "sourceDeployment": "explicit Postgres read source selected through scripts/lib/data-client.ts (DATA_BACKEND=postgres plus --target or a target URL variable)",
+      "sourceDeployment": "Postgres read source opened by createDataClient in scripts/lib/data-client.ts: --target <url>, else TARGET_POSTGRES_URL, POSTGRES_POOLED_URL or POSTGRES_DIRECT_URL. The package script runs bun with --env-file=/dev/null, so no .env file is loaded and every variable must be set in the shell. DATA_BACKEND=postgres is required. REPLICATION_MEDIA_BASE_URL must be the approved https media origin (assertDeploymentEnv in lib/postgres/runtime/deploymentEnv.ts). A non-loopback host also needs --allow-remote and POSTGRES_IMPORT_CONFIRM equal to its hostname (guardTarget in scripts/postgres/targetGuard.ts), even though the run only reads. No admin-intent token is needed.",
       "targetDeployment": null,
       "schemaVersion": "scripts/data/buildMoleculePack.ts (pack manifest)",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run molecules:pack -- --target <postgres-read-url>"
+      "refreshCommand": "DATA_BACKEND=postgres REPLICATION_MEDIA_BASE_URL=https://<media-origin> POSTGRES_IMPORT_CONFIRM=<postgres-hostname> npm run molecules:pack -- --target <postgres-read-url> --allow-remote"
     },
     {
       "id": "mantra-spiral-sheet",

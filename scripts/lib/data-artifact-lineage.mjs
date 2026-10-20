@@ -210,7 +210,8 @@ export function tryWriteArtifactLineageSidecar(options = {}, { logger = console 
 }
 
 function commandTargetExists(command, rootDir) {
-  const parts = command.split(/\s+/).filter(Boolean);
+  const words = command.split(/\s+/).filter(Boolean);
+  const parts = words.slice(words.findIndex((word) => !/^[A-Z_][A-Z0-9_]*=/.test(word)));
   const scriptArgIndex = parts.findIndex((part) => part.endsWith(".mjs") || part.endsWith(".ts"));
 
   if (scriptArgIndex >= 0) {
