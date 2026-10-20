@@ -84,7 +84,7 @@ function ReportIndexRow({
         : report.substances.map((substance) => substance.name).join(" + ");
   const metaParts = [
     substanceLabel,
-    formatTripDateLabel(report.subject.trip_date, locale),
+    formatTripDateLabel(report.subject.trip_date, locale, t),
     groupKind === "author" ? null : report.subject.name,
   ].filter((part): part is string => Boolean(part));
 

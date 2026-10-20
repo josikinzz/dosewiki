@@ -1,3 +1,5 @@
+import { formattingLocale, type Translate, type UiLocale } from "@/i18n/messages";
+
 const MONTH_NAMES = [
   "January",
   "February",
@@ -185,7 +187,8 @@ export function parseTripDate(raw: string | null | undefined): TripDateParts | n
 
 export function formatTripDateLabel(
   raw: string | null | undefined,
-  locale?: string,
+  locale: UiLocale,
+  t: Translate,
 ): string | null {
   if (!raw) {
     return null;
@@ -203,24 +206,26 @@ export function formatTripDateLabel(
     return trimmed;
   }
 
-  if (locale && locale !== "en") {
-    const formatter = new Intl.DateTimeFormat(locale, {
-      year: "numeric",
-      month: parts.day === undefined ? "long" : "short",
-      ...(parts.day === undefined ? {} : { day: "numeric" }),
-    });
-    const precise = formatter.format(
-      new Date(Date.UTC(parts.year, (parts.month ?? 1) - 1, parts.day ?? 1)),
-    );
-    return parts.approximate ? `约 ${precise}` : precise;
-  }
+  const precise = locale === "en" ? englishTripDateLabel(parts) : localizedTripDateLabel(parts, locale);
 
-  const precise =
-    parts.month === undefined
-      ? String(parts.year)
-      : `${MONTH_NAMES[parts.month - 1]} ${parts.year}`;
+  return parts.approximate ? t("tripReport.approximateDate", { date: precise }) : precise;
+}
 
-  return parts.approximate ? `around ${precise}` : precise;
+function englishTripDateLabel(parts: TripDateParts): string {
+  return parts.month === undefined
+    ? String(parts.year)
+    : `${MONTH_NAMES[parts.month - 1]} ${parts.year}`;
+}
+
+function localizedTripDateLabel(parts: TripDateParts, locale: UiLocale): string {
+  const formatter = new Intl.DateTimeFormat(formattingLocale(locale), {
+    timeZone: "UTC",
+    year: "numeric",
+    month: parts.month === undefined ? undefined : parts.day === undefined ? "long" : "short",
+    day: parts.day === undefined ? undefined : "numeric",
+  });
+
+  return formatter.format(new Date(Date.UTC(parts.year, (parts.month ?? 1) - 1, parts.day ?? 1)));
 }
 
 export function tripDateSortValue(raw: string | null | undefined): number | null {

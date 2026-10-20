@@ -121,6 +121,15 @@ export const UI_MESSAGE_DEFINITIONS = {
     ],
     glossaryTerms: [],
   },
+  "tripReport.approximateDate": {
+    source: "around {{date}}",
+    context: "Trip report date the author marked as approximate, shown in report cards and the report index. {{date}} is already formatted for the locale and may be a year, a month and year, or a full date. Keep the placeholder and keep the hedge short.",
+    locations: [
+      "src/features/reports/components/TripReportCard.tsx",
+      "src/features/reports/pages/TripReportsPresentation.tsx",
+    ],
+    glossaryTerms: [],
+  },
 } as const satisfies Record<string, UiMessageDefinition>;
 
 export type UiMessageId = keyof typeof UI_MESSAGE_DEFINITIONS;
