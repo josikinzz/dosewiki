@@ -20,9 +20,17 @@ const GENERATED_OUTPUT_NAME = /\.generated[./]/;
 const GENERATED_OUTPUT_GLOBS = [
   "content/i18n/messages/*.json",
   "content/sources/psychonautwiki-2015/articles/*.md",
+  "content/sources/psychonautwiki-2015/json/*.json",
+  "content/sources/psychonautwiki-2015/not-found-2015.md",
+  "data/changelog/devChangeLog*.json",
   "data/chemistry/*.json",
   "data/contributors/contributorAvatarSources.json",
+  "data/contributors/userProfiles.json",
+  "data/effects/replicationSlugAliases.json",
   "data/effects/subjectiveEffectsProvenance.json",
+  "data/i18n/glossary/*.json",
+  "data/third-party/tripsit/*.json",
+  "lib/postgres/migrations/**",
   "lib/postgres/runtime/dataModel.ts",
   "public/SubstanceIndex.json",
   "public/appearance-chroma.css",
@@ -36,6 +44,13 @@ const GENERATED_OUTPUT_GLOBS = [
   "vendor/openchemlib/artifact-manifest.json",
   "vendor/openchemlib/dist/*",
 ];
+const FILES_NEEDING_THEIR_OWN_ENTRY = {
+  authored: [
+    "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
+    "public/favicons/{bluelight,dancesafe,disregardeverythingisay,drugbank,drugs-forum,drugusersbible,erowid,isomerdesign,mindstate-design,protestkit,psychonautwiki,pubchem,pubmed,reddit,thedrugclassroom,tripsit,wikipedia}.png",
+  ],
+  "separately produced": ["lib/postgres/migrations/0014_restore_localized_publication_index_triggers.sql"],
+};
 const REPOSITORY_PATH = /^(?:[\w.@[\]()-]+(?:\/[\w.@[\]()*-]+)+|[\w.@-]+\.[A-Za-z]\w*)$/;
 const PATH_WILDCARD = /[*{]/;
 
@@ -347,11 +362,17 @@ export function collectArtifactLineageVerification({
   }
 
   const generatedOutputPatterns = [GENERATED_OUTPUT_NAME, ...GENERATED_OUTPUT_GLOBS.map(pathPatternToRegex)];
+  const ownEntryPatterns = Object.entries(FILES_NEEDING_THEIR_OWN_ENTRY).flatMap(([kind, patterns]) =>
+    patterns.map((pattern) => ({ kind, regex: pathPatternToRegex(pattern) })));
   for (const filePath of trackedFiles) {
-    if (
-      generatedOutputPatterns.some((pattern) => pattern.test(filePath)) &&
-      !findArtifactLineageEntry(filePath, { rootDir, manifest: sourceManifest })
-    ) {
+    const ownEntryKind = ownEntryPatterns.find(({ regex }) => regex.test(filePath))?.kind;
+    if (!ownEntryKind && !generatedOutputPatterns.some((pattern) => pattern.test(filePath))) {
+      continue;
+    }
+    const entry = findArtifactLineageEntry(filePath, { rootDir, manifest: sourceManifest });
+    if (ownEntryKind && (!entry || entry.path.includes("*"))) {
+      errors.push(`${ownEntryKind} file inside a generated output glob needs its own lineage entry: ${filePath}`);
+    } else if (!entry) {
       errors.push(`tracked generated output has no lineage entry: ${filePath}`);
     }
   }

@@ -635,7 +635,7 @@
     },
     {
       "id": "postgres-migrations",
-      "path": "lib/postgres/migrations/",
+      "path": "lib/postgres/migrations/**",
       "role": "versioned-sql-migrations",
       "producer": "drizzle-kit generate",
       "consumers": [
@@ -1244,15 +1244,33 @@
         "glossary review diffs"
       ],
       "inputs": [
-        "Postgres translationGlossary rows per locale",
-        "hand-drafted term renderings awaiting native review (zh-Hans.drafts-2026-09-12.json)"
+        "Postgres translationGlossary rows per locale"
       ],
-      "freshnessRule": "Snapshot of the Postgres glossary table for review and diffing; never read at runtime. Re-export after approving terms in /dev/glossary.",
+      "freshnessRule": "Snapshot of the Postgres glossary table for review and diffing; never read at runtime. Re-export after approving terms in /dev/glossary. zh-Hans.drafts-2026-09-12.json in the same directory is hand-drafted and has its own entry, translation-glossary-hand-drafts.",
       "sourceDeployment": "explicitly selected Postgres source",
       "targetDeployment": null,
       "schemaVersion": "{ locale, exportedAt, terms }",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "npm run translate:glossary -- --locale <code> --export"
+    },
+    {
+      "id": "translation-glossary-hand-drafts",
+      "path": "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
+      "role": "authored-draft-record",
+      "producer": "hand-drafted zh-Hans renderings written without a model call on 2026-09-12",
+      "consumers": [
+        "native zh-Hans glossary reviewers"
+      ],
+      "inputs": [
+        "the 298 glossary terms the 2026-09-12 drafter expansion added",
+        "conventions of the approved zh-Hans glossary rows"
+      ],
+      "freshnessRule": "Point-in-time record. The file's note says these renderings were loaded as Postgres translationGlossary draft rows, so review and approve them in /dev/glossary. No script reads this file, and editing it changes no row.",
+      "sourceDeployment": "local working tree",
+      "targetDeployment": null,
+      "schemaVersion": "{ locale, note, terms: Record<term, rendering> }",
+      "editPolicy": "historical-do-not-edit",
+      "refreshCommand": "No refresh; drafted once by hand"
     },
     {
       "id": "translation-glosses",
@@ -1474,6 +1492,24 @@
       "schemaVersion": "Markdown subjective effects section with capture metadata",
       "editPolicy": "do-not-edit-by-hand",
       "refreshCommand": "No routine refresh; captured once by node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+    },
+    {
+      "id": "psychonautwiki-2015-not-found-list",
+      "path": "content/sources/psychonautwiki-2015/not-found-2015.md",
+      "role": "historical-source-capture",
+      "producer": "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
+      "consumers": [
+        "readers of the recovered corpus checking which substances had no recoverable section"
+      ],
+      "inputs": [
+        "the collector's per-slug results for substances where no capture before the cutoff had a subjective effects section"
+      ],
+      "freshnessRule": "Rewritten by writeIndexFiles, alongside README.md, after each slug a collector run processes. Same one-time capture and resume rules as psychonautwiki-2015-captures.",
+      "sourceDeployment": "web.archive.org",
+      "targetDeployment": null,
+      "schemaVersion": "Markdown list of title (slug): status",
+      "editPolicy": "do-not-edit-by-hand",
+      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
     },
     {
       "id": "psychonautwiki-2015-subjective-effects-drafts",
