@@ -1,3 +1,6 @@
+const fs = require('node:fs');
+const path = require('node:path');
+
 const noHardcodedSecrets = {
   meta: {
     type: 'problem',
@@ -454,6 +457,218 @@ const requireRateLimit = {
   },
 };
 
+const HTTP_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
+
+const ROUTE_GUARD_FACTORIES = new Map([
+  ['protectedRouteOperation', 'authOption'],
+  ['editorReadRoute', 'authOption'],
+  ['citationEvidenceRouteOperation', 'fixedFloor'],
+  ['feedbackItemRoute', 'fixedFloor'],
+  ['feedbackQueueRoute', 'fixedFloor'],
+  ['feedbackStatusRoute', 'fixedFloor'],
+  ['glossaryReviewRead', 'fixedFloor'],
+  ['cronRoute', 'fixedFloor'],
+  ['replicationViewerEditorRoute', 'wrapsHandler'],
+]);
+
+const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture', 'delegates-to-guard'];
+
+function readModuleBindings(program) {
+  const locals = new Map();
+  const exports = new Map();
+  let hasStarExport = false;
+
+  for (const statement of program.body) {
+    if (statement.type === 'ImportDeclaration') {
+      for (const specifier of statement.specifiers) {
+        locals.set(specifier.local.name, {
+          kind: 'import',
+          source: statement.source.value,
+          imported: specifier.type === 'ImportSpecifier' ? specifier.imported.name : 'default',
+        });
+      }
+      continue;
+    }
+    if (statement.type === 'ExportAllDeclaration') {
+      hasStarExport = true;
+      continue;
+    }
+
+    const declaration = statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
+    if (declaration?.type === 'FunctionDeclaration' && declaration.id) {
+      locals.set(declaration.id.name, { kind: 'value', node: declaration });
+      if (statement !== declaration) exports.set(declaration.id.name, { kind: 'value', node: declaration });
+    }
+    if (declaration?.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
+        if (declarator.id.type !== 'Identifier' || !declarator.init) continue;
+        locals.set(declarator.id.name, { kind: 'value', node: declarator.init });
+        if (statement !== declaration) exports.set(declarator.id.name, { kind: 'value', node: declarator.init });
+      }
+    }
+    if (statement.type === 'ExportNamedDeclaration' && !statement.declaration) {
+      for (const specifier of statement.specifiers) {
+        const exportedName = specifier.exported.name ?? specifier.exported.value;
+        exports.set(
+          exportedName,
+          statement.source
+            ? { kind: 'import', source: statement.source.value, imported: specifier.local.name }
+            : { kind: 'local', name: specifier.local.name },
+        );
+      }
+    }
+  }
+
+  return { locals, exports, hasStarExport };
+}
+
+function resolveRelativeModule(fromFile, source) {
+  if (!source.startsWith('.')) return null;
+  const base = path.resolve(path.dirname(fromFile), source);
+  const candidates = [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts')];
+  return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null;
+}
+
+function hasInlineAuthFloor(optionsNode) {
+  return optionsNode?.type === 'ObjectExpression' && optionsNode.properties.some(property =>
+    property.type === 'Property' &&
+    !property.computed &&
+    (property.key.name === 'auth' || property.key.value === 'auth'),
+  );
+}
+
+function createRouteGuardClassifier(parseModule) {
+  function classifyBinding(module, binding, canFollowImport) {
+    if (!binding) return { guarded: false };
+    if (binding.kind === 'value') return classifyHandler(module, binding.node, canFollowImport);
+    if (binding.kind === 'local') return classifyBinding(module, module.locals.get(binding.name), canFollowImport);
+    if (!canFollowImport) return { guarded: false };
+    const target = parseModule(module.file, binding.source);
+    if (!target) return { guarded: false };
+    return classifyBinding(target, target.exports.get(binding.imported), false);
+  }
+
+  function classifyFactoryCall(module, node, canFollowImport) {
+    const callee = node.callee.type === 'Identifier' ? module.locals.get(node.callee.name) : null;
+    const factory = callee?.kind === 'import' ? callee.imported : null;
+    const kind = ROUTE_GUARD_FACTORIES.get(factory);
+    if (kind === 'fixedFloor') return { guarded: true };
+    if (kind === 'authOption') {
+      return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
+    }
+    if (kind === 'wrapsHandler') return classifyHandler(module, node.arguments[0], canFollowImport);
+    return { guarded: false };
+  }
+
+  function classifyHandler(module, node, canFollowImport) {
+    if (!node) return { guarded: false };
+    if (node.type === 'Identifier') return classifyBinding(module, module.locals.get(node.name), canFollowImport);
+    if (node.type === 'CallExpression') return classifyFactoryCall(module, node, canFollowImport);
+    if (['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type)) {
+      const body = node.body;
+      const delegated = body.type !== 'BlockStatement'
+        ? body
+        : body.body.length === 1 && body.body[0].type === 'ReturnStatement'
+          ? body.body[0].argument
+          : null;
+      if (delegated?.type !== 'CallExpression') return { guarded: false };
+      return classifyHandler(module, delegated.callee, canFollowImport);
+    }
+    return { guarded: false };
+  }
+
+  return { classifyBinding };
+}
+
+const requireRouteAccess = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Require every exported API route handler to reach protectedRouteOperation, a recognized guard factory, or a named exception',
+      category: 'Security',
+    },
+    messages: {
+      unguardedHandler:
+        'Exported {{method}} handler does not reach protectedRouteOperation({ auth, ... }) or a recognized guard factory. Wrap it in protectedRouteOperation. The route access exceptions in eslint.config.mjs name only handlers that predate this rule.',
+      missingFloor: '{{factory}} needs an inline `auth` floor in its options object.',
+      staleException:
+        'The route access exceptions list {{method}} for this file, but that handler is guarded or no longer exported. Remove the exception.',
+      starExport: 'API route modules must export handlers by name so route access can be checked.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          exceptions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                route: { type: 'string' },
+                methods: { type: 'array', items: { enum: [...HTTP_METHODS] }, minItems: 1 },
+                access: { enum: ROUTE_ACCESS_KINDS },
+              },
+              required: ['route', 'methods', 'access'],
+              additionalProperties: false,
+            },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  create(context) {
+    const filename = getContextFilename(context);
+    const route = path.relative(context.cwd, filename).replaceAll('\\', '/');
+    const exceptedMethods = new Set(
+      (context.options[0]?.exceptions ?? [])
+        .filter(exception => exception.route === route)
+        .flatMap(exception => exception.methods),
+    );
+    const parser = context.languageOptions.parser;
+    const parsedModules = new Map();
+
+    function parseModule(fromFile, source) {
+      const file = resolveRelativeModule(fromFile, source);
+      if (!file) return null;
+      if (!parsedModules.has(file)) {
+        const code = fs.readFileSync(file, 'utf8');
+        const options = { ecmaVersion: 'latest', sourceType: 'module', filePath: file, jsx: file.endsWith('.tsx') };
+        const program = parser.parseForESLint ? parser.parseForESLint(code, options).ast : parser.parse(code, options);
+        parsedModules.set(file, { file, ...readModuleBindings(program) });
+      }
+      return parsedModules.get(file);
+    }
+
+    const { classifyBinding } = createRouteGuardClassifier(parseModule);
+
+    return {
+      Program(program) {
+        const module = { file: filename, ...readModuleBindings(program) };
+        if (module.hasStarExport) context.report({ node: program, messageId: 'starExport' });
+
+        const handlerMethods = new Set();
+        for (const [method, binding] of module.exports) {
+          if (!HTTP_METHODS.has(method)) continue;
+          handlerMethods.add(method);
+          const verdict = classifyBinding(module, binding, true);
+          const reportNode = binding.node ?? program;
+          if (verdict.guarded) {
+            if (exceptedMethods.has(method)) context.report({ node: reportNode, messageId: 'staleException', data: { method } });
+          } else if (verdict.missingFloor) {
+            context.report({ node: reportNode, messageId: 'missingFloor', data: { factory: verdict.missingFloor } });
+          } else if (!exceptedMethods.has(method)) {
+            context.report({ node: reportNode, messageId: 'unguardedHandler', data: { method } });
+          }
+        }
+        for (const method of exceptedMethods) {
+          if (!handlerMethods.has(method)) context.report({ node: program, messageId: 'staleException', data: { method } });
+        }
+      },
+    };
+  },
+};
+
 module.exports = {
   meta: {
     name: 'eslint-plugin-vercel-guardrails',
@@ -464,6 +679,7 @@ module.exports = {
     'enforce-env-prefix': enforceEnvPrefix,
     'no-unsafe-api-patterns': noUnsafeApiPatterns,
     'require-rate-limit': requireRateLimit,
+    'require-route-access': requireRouteAccess,
   },
   configs: {
     recommended: {
