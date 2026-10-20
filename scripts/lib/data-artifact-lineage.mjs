@@ -36,7 +36,7 @@ const GENERATED_OUTPUT_GLOBS = [
   "vendor/openchemlib/artifact-manifest.json",
   "vendor/openchemlib/dist/*",
 ];
-const REPOSITORY_PATH = /^[\w.@[\]-]+(?:\/[\w.@[\]*-]+)+$/;
+const REPOSITORY_PATH = /^(?:[\w.@[\]()-]+(?:\/[\w.@[\]()*-]+)+|[\w.@-]+\.[A-Za-z]\w*)$/;
 
 function toRelativePath(pathname, rootDir) {
   const absolutePath = isAbsolute(pathname) ? pathname : resolve(rootDir, pathname);
