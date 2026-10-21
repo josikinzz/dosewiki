@@ -3,6 +3,7 @@
 node_modules/
 .next/
 .next-*/
+/next-env.d.ts
 dist/
 # The project-local Postgres cluster (scripts/postgres/local-db.mjs) and raw
 # database snapshots. `.gitignore` keeps them out of Git for the same reason:

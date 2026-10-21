@@ -11,6 +11,7 @@ dist-inline/
 !vendor/openchemlib/dist/**
 public/share/
 .next/
+/next-env.d.ts
 # Isolated flavor and verification builds must not enter Tailwind's source scan.
 /.next-*/
 .generated/
