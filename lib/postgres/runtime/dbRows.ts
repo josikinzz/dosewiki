@@ -64,3 +64,9 @@ export function fromProjectedRow<Table extends TableName & TableNames, Column ex
     Object.entries(fromRow(table, row)).filter(([field]) => selected.has(field)),
   ) as Pick<TableDoc<Table>, Column>;
 }
+
+export type StoredRow<Table extends TableNames, Column extends keyof TableDoc<Table>> = {
+  [Field in Column]: undefined extends TableDoc<Table>[Field]
+    ? Exclude<TableDoc<Table>[Field], undefined> | null
+    : TableDoc<Table>[Field];
+};

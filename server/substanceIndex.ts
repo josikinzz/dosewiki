@@ -61,7 +61,6 @@ import {
   rejectRetiredBulkReplacement,
   rejectRetiredRandomSample,
   rejectWholeCorpusProjection,
-  type CompactPublicSubstanceReader,
 } from "./lib/substanceCorpusPages";
 
 export { clampScriptCorpusPageSize, rejectRetiredRandomSample, rejectWholeCorpusProjection } from "./lib/substanceCorpusPages";
@@ -242,48 +241,44 @@ export const getPublicMechanismRouteInput = query({
 export const getPublicLookupPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstanceLookupPage(
+    const { rows, ...page } = await ctx.db.getPublicSubstanceLookupPage(
       args.cursor,
       clampPublicCorpusPageSize(args.limit),
     );
-    return { ...page, items: rows.map(projectLookup) };
+    return { ...page, items: rows.map((row) => projectLookup(row)) };
   },
 });
 
 export const getPublicPreviewsPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstancePreviewsPage(
+    const { rows, ...page } = await ctx.db.getPublicSubstancePreviewsPage(
       args.cursor,
       clampPublicCorpusPageSize(args.limit),
     );
-    return { ...page, items: rows.map(projectPublicPreview) };
+    return { ...page, items: rows.map((row) => projectPublicPreview(row)) };
   },
 });
 
 export const getPublicSearchSummariesPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstancePreviewsPage(
+    const { rows, ...page } = await ctx.db.getPublicSubstancePreviewsPage(
       args.cursor,
       clampPublicCorpusPageSize(args.limit),
     );
-    return { ...page, items: rows.map(projectSubstanceSearchSummary) };
+    return { ...page, items: rows.map((row) => projectSubstanceSearchSummary(row)) };
   },
 });
 
 export const getPublicSlugsPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstanceSlugsPage(
+    const { rows, ...page } = await ctx.db.getPublicSubstanceSlugsPage(
       args.cursor,
       clampPublicSlugPageSize(args.limit),
     );
-    return { ...page, items: rows.map(resolveSubstanceSlug) };
+    return { ...page, items: rows.map((row) => resolveSubstanceSlug(row)) };
   },
 });
 
@@ -292,10 +287,9 @@ export const getPublicSlugsByCandidates = query({
   handler: async (ctx, { candidates }) => {
     const unique = [...new Set(candidates.filter(Boolean))];
     if (unique.length === 0) return [];
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
     const candidateSet = new Set(unique);
-    return (await reader.getPublicSubstanceSlugsByCandidates(unique))
-      .map(resolveSubstanceSlug)
+    return (await ctx.db.getPublicSubstanceSlugsByCandidates(unique))
+      .map((row) => resolveSubstanceSlug(row))
       .filter((slug) => candidateSet.has(slug));
   },
 });
@@ -304,8 +298,7 @@ export const getPublicLookupBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
     if (!slug) return null;
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const rows = await reader.getPublicSubstanceSlugsByCandidates([slug]);
+    const rows = await ctx.db.getPublicSubstanceSlugsByCandidates([slug]);
     const match = rows.find((row) => resolveSubstanceSlug(row) === slug);
     return match ? { slug, name: match.title } : null;
   },
@@ -315,19 +308,17 @@ export const getPublicLibraryInputPage = query({
   args: { ...publicCorpusPageArgs, projection: v.optional(v.literal("effect-membership")) },
   handler: async (ctx, args) => {
     if (args.projection === "effect-membership") {
-      const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-      const { rows, ...page } = await reader.getPublicSubstanceEffectMembershipPage(
+      const { rows, ...page } = await ctx.db.getPublicSubstanceEffectMembershipPage(
         args.cursor,
         clampPublicCorpusPageSize(args.limit),
       );
-      return { ...page, items: rows.map(projectEffectMembershipInput) };
+      return { ...page, items: rows.map((row) => projectEffectMembershipInput(row)) };
     }
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstanceLibraryInputPage(
+    const { rows, ...page } = await ctx.db.getPublicSubstanceLibraryInputPage(
       args.cursor,
       clampPublicCorpusPageSize(args.limit),
     );
-    return { ...page, items: rows.map(projectLibraryInput) };
+    return { ...page, items: rows.map((row) => projectLibraryInput(row)) };
   },
 });
 
@@ -364,8 +355,7 @@ export const getPublicTranslationTextInputPage = query({
 export const getPublicCoverageInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
-    const { rows, ...page } = await reader.getPublicSubstanceCoveragePage(
+    const { rows, ...page } = await ctx.db.getPublicSubstanceCoveragePage(
       args.cursor,
       clampPublicCorpusPageSize(args.limit),
     );
@@ -378,9 +368,8 @@ export const getPublicCoverageInputPage = query({
 export const getPublicMechanismRouteInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx) => {
-    const reader = ctx.db as typeof ctx.db & CompactPublicSubstanceReader;
     return {
-      items: (await reader.getPublicSubstanceMechanismRows()).map(projectMechanismRouteInput),
+      items: (await ctx.db.getPublicSubstanceMechanismRows()).map((row) => projectMechanismRouteInput(row)),
       cursor: "",
       isDone: true,
     };
