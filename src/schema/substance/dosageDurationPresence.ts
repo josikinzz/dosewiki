@@ -29,6 +29,14 @@ function routeHasDurationValues(route: Partial<DurationRoute> | null | undefined
   return someBounded(route?.stages);
 }
 
+export function routeHasBioavailability(route: Partial<DosageRoute>): boolean {
+  return hasProse(route.bioavailability);
+}
+
+export function routeHasHalfLife(route: Partial<DurationRoute>): boolean {
+  return hasProse(route.half_life);
+}
+
 export function routeHasDosageContent(route: Partial<DosageRoute> | null | undefined): boolean {
   if (!route) return false;
   return (
