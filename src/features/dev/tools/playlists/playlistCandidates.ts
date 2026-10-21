@@ -1,4 +1,5 @@
 import { isShowcaseEligible, type SubstanceGalleryMatchableRow } from "@/data/substanceReplicationGallery";
+import { devFetch } from "../devFetch";
 
 export const CANDIDATE_SEARCH_LIMIT = 24;
 export const CANDIDATE_SLUG_LIMIT = 250;
@@ -59,17 +60,16 @@ export function resolveCandidates(rows: readonly CandidateSourceRow[], slugs: re
 const ENDPOINT = "/api/dev/replications/playlist-candidates";
 
 async function requestCandidates(params: URLSearchParams): Promise<PlaylistCandidate[]> {
-  let response: Response;
-  try {
-    response = await fetch(`${ENDPOINT}?${params.toString()}`);
-  } catch {
-    throw new Error("Network error while looking up works.");
+  const { candidates } = await devFetch(`${ENDPOINT}?${params.toString()}`, {
+    messages: {
+      network: "Network error while looking up works.",
+      failure: "Unable to look up works right now.",
+    },
+  });
+  if (!Array.isArray(candidates)) {
+    throw new Error("The server did not return the work list.");
   }
-  const payload: Record<string, unknown> = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(typeof payload.error === "string" ? payload.error : "Unable to look up works right now.");
-  }
-  return Array.isArray(payload.candidates) ? (payload.candidates as PlaylistCandidate[]) : [];
+  return candidates as PlaylistCandidate[];
 }
 
 export function fetchCandidateSearch(query: string): Promise<PlaylistCandidate[]> {
