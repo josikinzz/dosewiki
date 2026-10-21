@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export const FEEDBACK_QUEUE_ORDERS = ["oldest", "newest", "importance"] as const;
 export type FeedbackQueueOrder = (typeof FEEDBACK_QUEUE_ORDERS)[number];
@@ -59,7 +59,9 @@ export function feedbackQueueRoute<Status extends string>(options: FeedbackQueue
     unexpectedErrorLabel,
     unexpectedErrorMessage,
   } = plainGuardOptions(options, {
-    required: ["sourceLabel", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+    sourceLabel: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
   });
   return protectedRouteOperation({
     auth: "editor",

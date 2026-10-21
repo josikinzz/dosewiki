@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { foreignOriginResponse } from "@/lib/http/requestOrigin";
-import type { RoleFloor } from "@/lib/auth/roles";
+import { isRoleFloor, type RoleFloor } from "@/lib/auth/roles";
 import { getServerDataReadClient, type ServerReadClient } from "@server/data/serverClient";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type EditorReadOperation = (input: {
   params: URLSearchParams;
@@ -24,7 +24,7 @@ export function editorReadRoute(options: {
   label: string;
   read: EditorReadOperation;
 }) {
-  const { auth, label, read } = plainGuardOptions(options, { required: ["auth", "label"] });
+  const { auth, label, read } = plainGuardOptions(options, { auth: isRoleFloor, label: isGuardString });
   const operation = protectedRouteOperation({
     auth,
     rateLimit: "editorPolledRead",

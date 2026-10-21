@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackItemRouteContext = {
   params: Promise<{ id: string }>;
@@ -29,7 +29,9 @@ export function feedbackItemRoute(options: FeedbackItemRouteOptions) {
     unexpectedErrorLabel,
     unexpectedErrorMessage,
   } = plainGuardOptions(options, {
-    required: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+    notFoundMessage: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
   });
   return async function GET(request: Request, context: FeedbackItemRouteContext) {
     return protectedRouteOperation({

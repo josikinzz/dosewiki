@@ -1,17 +1,16 @@
-type GuardOptionStringKeys<Options> = {
-  required?: readonly (keyof Options & string)[];
-  optional?: readonly (keyof Options & string)[];
-};
+type GuardOptionCheck = (value: unknown) => boolean;
 
-function requireString(name: string, value: unknown): void {
-  if (typeof value !== "string") {
-    throw new TypeError(`Route guard option "${name}" must be a string.`);
-  }
+export function isGuardString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+export function optionalGuardOption(check: GuardOptionCheck): GuardOptionCheck {
+  return (value) => value === undefined || check(value);
 }
 
 export function plainGuardOptions<Options extends object>(
   options: Options,
-  strings: GuardOptionStringKeys<Options> = {},
+  checks: { [Key in keyof Options & string]?: GuardOptionCheck } = {},
 ): Options {
   const snapshot: Record<string, unknown> = Object.create(null);
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(options))) {
@@ -20,9 +19,10 @@ export function plainGuardOptions<Options extends object>(
     }
     snapshot[key] = descriptor.value;
   }
-  for (const key of strings.required ?? []) requireString(key, snapshot[key]);
-  for (const key of strings.optional ?? []) {
-    if (snapshot[key] !== undefined) requireString(key, snapshot[key]);
+  for (const [key, check] of Object.entries(checks) as [string, GuardOptionCheck][]) {
+    if (!check(snapshot[key])) {
+      throw new TypeError(`Route guard option "${key}" is invalid.`);
+    }
   }
   return snapshot as Options;
 }

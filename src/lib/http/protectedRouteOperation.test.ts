@@ -375,6 +375,56 @@ describe("protectedRouteOperation", () => {
     expect(mocks.requireRoleSession).not.toHaveBeenCalled();
   });
 
+  it("refuses an inherited policy or floor name without running the inherited getter", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const { cronRoute } = await import("@server/http/cronAuthorization");
+    const { getRateLimitPolicy } = await import("@server/http/rateLimitPolicy");
+    const operation = () => NextResponse.json({ ok: true });
+    const inheritedReads: string[] = [];
+    const inheritedKeys = ["reviewPolicy", "reviewFloor"];
+    for (const key of inheritedKeys) {
+      Object.defineProperty(Object.prototype, key, {
+        configurable: true,
+        get() {
+          inheritedReads.push(key);
+          return { windowMs: 60_000, max: 100 };
+        },
+      });
+    }
+
+    try {
+      expect(() =>
+        protectedRouteOperation({
+          auth: "editor",
+          rateLimit: "reviewPolicy" as "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation,
+        }),
+      ).toThrow(TypeError);
+      expect(() =>
+        protectedRouteOperation({
+          auth: "reviewFloor" as "editor",
+          rateLimit: "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation,
+        }),
+      ).toThrow(TypeError);
+      expect(() =>
+        cronRoute(async () => new Response(null), { rateLimit: "reviewPolicy" as "diagnosticRead" }),
+      ).toThrow(TypeError);
+      expect(() => getRateLimitPolicy("reviewPolicy" as "editorSmallWrite")).toThrow(TypeError);
+      expect(getRateLimitPolicy("editorSmallWrite")).toEqual({ name: "editorSmallWrite", windowMs: 60_000, max: 20 });
+    } finally {
+      for (const key of inheritedKeys) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+
+    expect(inheritedReads).toEqual([]);
+    expect(mocks.enforceRateLimit).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
+  });
+
   it("gates every route through the role floor it declares, contributor included", async () => {
     const { protectedRouteOperation } = await import("./protectedRouteOperation");
     for (const floor of ["contributor", "editor", "admin"] as const) {

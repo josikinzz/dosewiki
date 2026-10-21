@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackStatusRouteContext = {
   params: Promise<{ id: string }>;
@@ -45,7 +45,9 @@ export function feedbackStatusRoute<Status extends string>(options: FeedbackStat
     unexpectedErrorLabel,
     unexpectedErrorMessage,
   } = plainGuardOptions(options, {
-    required: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+    notFoundMessage: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
   });
   const mapError = (error: unknown): NextResponse | null => {
     if (error instanceof JsonBodyError) {

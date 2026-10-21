@@ -1,14 +1,14 @@
 import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { NextResponse } from "next/server";
 import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireEditorSession";
-import type { RoleFloor } from "@/lib/auth/roles";
+import { isRoleFloor, type RoleFloor } from "@/lib/auth/roles";
 import { dataRejectionResponse } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isRateLimitPolicyName, type RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isGuardString, optionalGuardOption, plainGuardOptions } from "@server/http/guardOptions";
 
 type DataWriteCapabilityPolicy = {
   type: "dataWrite";
@@ -64,8 +64,11 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
     mapError,
     operation,
   } = plainGuardOptions(options, {
-    required: ["auth", "rateLimit", "unexpectedErrorLabel"],
-    optional: ["rateLimitKeySuffix", "unexpectedErrorMessage"],
+    auth: isRoleFloor,
+    rateLimit: isRateLimitPolicyName,
+    rateLimitKeySuffix: optionalGuardOption(isGuardString),
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: optionalGuardOption(isGuardString),
   });
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {

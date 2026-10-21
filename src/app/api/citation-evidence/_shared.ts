@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import type { ServerDataWriteCapability } from "@server/data/serverWriteCapability";
-import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
-import { plainGuardOptions } from "@server/http/guardOptions";
+import { isRateLimitPolicyName, type RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isGuardString, optionalGuardOption, plainGuardOptions } from "@server/http/guardOptions";
 
 type CitationEvidenceOperationInput = {
   request: Request;
@@ -24,8 +24,9 @@ export function citationEvidenceRouteOperation(options: {
     mapError,
     operation,
   } = plainGuardOptions(options, {
-    required: ["unexpectedErrorLabel", "unexpectedErrorMessage"],
-    optional: ["rateLimit"],
+    rateLimit: optionalGuardOption(isRateLimitPolicyName),
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
   });
   return protectedRouteOperation({
     auth: "editor",
