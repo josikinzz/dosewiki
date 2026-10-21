@@ -118,10 +118,10 @@ Every pull request runs the CI verification job in
 `bun run verify:checkout` and `bun run verify:drift`, and its first step scans
 tracked files for secrets before install. `bun run verify` runs all three.
 All three set the job's `DATA_BACKEND=postgres` and `DATA_WRITES_FROZEN=1`
-themselves, overriding whatever your shell holds. The
-job's inline Vercel configuration, `.env`, and API-route pattern steps stay in
-the workflow. Pull request CI does not build. Locally, run the tests that cover your change and
-the type check, or the whole graph with `bun run verify`.
+themselves, overriding whatever your shell holds. The job has no inline
+checks, so `bun run verify` reproduces it. Pull request CI does not build.
+Locally, run the tests that cover your change and the type check, or the whole
+graph.
 
 | Command | Covers |
 | --- | --- |
@@ -136,7 +136,8 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
 | `bun run check:test-policy` | Fails when a first-party test file has no category in `scripts/test/test-policy.json`, or when the manifest names a file that no longer exists. Privacy tests count as secrets, publication-visibility tests as auth and roles, and a test that fits no category is a named exception with a reason |
-| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the three `check:` entries |
+| `bun run check:repository-policy` | Fails when a `vercel.json` function exceeds the Pro plan memory or duration limit, a tracked file other than `.env.example` is named `.env*`, or a non-test file under `src/app/api/` calls `eval`, `new Function`, or `exec`/`spawn` with an interpolated template |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the four `check:` entries |
 | `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
 | `bun run security:check` | CI's secret scan over every tracked file |
 | `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |
