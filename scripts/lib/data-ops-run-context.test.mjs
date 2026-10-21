@@ -45,6 +45,38 @@ describe("data ops run context", () => {
     expect(() => assertDataOpsWriteAllowed(context)).toThrow(/--confirm-write/);
   });
 
+  describe("write freeze and host guard", () => {
+    const REMOTE = "postgres://operator:private-password@db.example/dosewiki";
+    const LOCAL = "postgres://operator:private-password@127.0.0.1:5432/dosewiki";
+    const ceremony = (deployment) => ["--write", "--confirm-write=sync-fixture", `--expected-deployment=${deployment}`];
+    const context = (argv, env) => createDataOpsRunContext({
+      operation: "sync fixture", argv, loadsEnvLocal: false, env: { DATA_BACKEND: "postgres", ...env },
+    });
+
+    it("allows a complete loopback ceremony with writes open", () => {
+      expect(() => assertDataOpsWriteAllowed(context(ceremony("127.0.0.1/dosewiki"), { TARGET_POSTGRES_URL: LOCAL }))).not.toThrow();
+    });
+
+    it("refuses under the freeze before reporting any missing confirmation", () => {
+      const frozen = { TARGET_POSTGRES_URL: LOCAL, DATA_WRITES_FROZEN: "1" };
+      expect(() => assertDataOpsWriteAllowed(context(["--write"], frozen))).toThrow(/DATA_WRITES_FROZEN/);
+      expect(() => assertDataOpsWriteAllowed(context(ceremony("127.0.0.1/dosewiki"), frozen))).toThrow(/DATA_WRITES_FROZEN/);
+    });
+
+    it("holds a confirmed remote target to --allow-remote and POSTGRES_IMPORT_CONFIRM", () => {
+      expect(() => assertDataOpsWriteAllowed(context(ceremony("db.example/dosewiki"), { TARGET_POSTGRES_URL: REMOTE, POSTGRES_IMPORT_CONFIRM: "db.example" })))
+        .toThrow(/--allow-remote/);
+      const remote = [...ceremony("db.example/dosewiki"), "--allow-remote"];
+      expect(() => assertDataOpsWriteAllowed(context(remote, { TARGET_POSTGRES_URL: REMOTE, POSTGRES_IMPORT_CONFIRM: "other.example" })))
+        .toThrow(/POSTGRES_IMPORT_CONFIRM/);
+      expect(() => assertDataOpsWriteAllowed(context(remote, { TARGET_POSTGRES_URL: REMOTE, POSTGRES_IMPORT_CONFIRM: "db.example" }))).not.toThrow();
+    });
+
+    it("checks confirmation before the host guard, so a remote write names its missing phrase", () => {
+      expect(() => assertDataOpsWriteAllowed(context(["--write"], { TARGET_POSTGRES_URL: REMOTE }))).toThrow(/--confirm-write=sync-fixture/);
+    });
+  });
+
   it("rejects invalid explicit source and target selections without fallback", () => {
     for (const env of [
       { DATA_BACKEND: "postgres", TARGET_POSTGRES_URL: "https://legacy.example.invalid" },
