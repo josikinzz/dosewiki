@@ -22,7 +22,7 @@ import { createSubmissionForIntake } from "../../src/features/reports/submission
 import {
   createTripReportSubmission,
   IGNORED_PROFILE_KEY_WARNING,
-  slugify,
+  tripReportSlug,
   type TripReportSubmissionInput,
   type TripReportSubmissionRow,
 } from "../../src/features/reports/submissions/tripReportSubmissions";
@@ -310,7 +310,7 @@ async function main() {
     const acceptedRow = await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: submissionId, status: "accepted", notes: "looks fine" });
     expect("publish", "admin moves the submission to accepted", acceptedRow.status === "accepted" && acceptedRow.reviewed_by === members.admin && acceptedRow.review_notes === "looks fine" && (await submissionRow(submissionId))?.status === "accepted");
     const preview = await client.query(api.tripReportSubmissions.previewPromotion, { ...editorArgs, id: submissionId });
-    const expectedSlug = slugify(title);
+    const expectedSlug = tripReportSlug(title);
     expect("publish", "editor previews the promotion payload", preview.payload.slug === expectedSlug && preview.payload.license === "public-domain" && preview.row.id === submissionId, preview.payload.slug);
 
     const promoted = await client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: submissionId });
@@ -378,7 +378,7 @@ async function main() {
     scratch.submissionIds.push(failingRow.id);
     await client.mutation(api.tripReportSubmissions.create, { apiKey: intakeToken, submission: asSubmissionArg(failingRow) });
     await client.mutation(api.tripReportSubmissions.transition, { ...adminArgs, id: failingRow.id, status: "accepted" });
-    const failingSlug = slugify(failingTitle);
+    const failingSlug = tripReportSlug(failingTitle);
     const promoteFailure = await rejection(() => client.mutation(api.tripReportSubmissions.promote, { ...adminArgs, id: failingRow.id }));
     const failingSubmission = await submissionRow(failingRow.id);
     expect("publish", "promote whose association write fails surfaces the SQL error", sqlCodeOf(promoteFailure) === "54000", messageOf(promoteFailure).slice(0, 120));

@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { JSDOM } from "jsdom";
+import { slugify } from "../../src/utils/slug.ts";
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, process.env.PW_SUBJECTIVE_EFFECTS_OUT_DIR || "content/sources/psychonautwiki-2015");
@@ -132,7 +133,7 @@ function buildHintedCandidateMap(articles) {
     for (const substance of manifest.substances ?? []) {
       const source = substance.sources?.find((entry) => entry.id === "psychonautwiki");
       if (!source) continue;
-      const slug = slugify(substance.name);
+      const slug = pageSlug(substance.name);
       if (!bySlug.has(slug)) continue;
       addHint(candidates, slug, stripPsychonautWikiFileName(source.fileName), "articleSourceManifest");
     }
@@ -144,7 +145,7 @@ function buildHintedCandidateMap(articles) {
       const fileTitle = stripPsychonautWikiFileName(path.basename(filePath));
       const folderTitle = path.basename(path.dirname(filePath));
       for (const title of [fileTitle, folderTitle]) {
-        const slug = slugify(title);
+        const slug = pageSlug(title);
         if (!bySlug.has(slug)) continue;
         addHint(candidates, slug, fileTitle, "archiveSourceFile");
       }
@@ -680,15 +681,14 @@ function compareBySlug(left, right) {
   return left.slug.localeCompare(right.slug);
 }
 
-function slugify(value) {
-  return String(value ?? "")
-    .normalize("NFKD")
-    .replace(/[αΑ]/g, "alpha")
-    .replace(/[μµΜ]/g, "mu")
-    .replace(/&/g, "and")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function pageSlug(value) {
+  return slugify(
+    String(value ?? "")
+      .normalize("NFKD")
+      .replace(/[αΑ]/g, "alpha")
+      .replace(/[μµΜ]/g, "mu")
+      .replace(/&/g, "and"),
+  );
 }
 
 function sleep(ms) {

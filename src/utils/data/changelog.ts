@@ -1,5 +1,6 @@
 import { createPatch } from "diff";
 import type { ChangeLogArticleSummary } from "../../data/changelog/changeLog";
+import { slugify } from "../slug";
 
 export type DiffEntry = {
   path: string;
@@ -83,19 +84,7 @@ const stringifyForDiff = (value: unknown) => {
   }
 };
 
-const toDiffFileName = (heading: string) => {
-  const normalized = heading.trim().toLowerCase();
-  if (!normalized) {
-    return "article";
-  }
-
-  const slug = normalized
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return slug || "article";
-};
+const toDiffFileName = (heading: string) => slugify(heading) || "article";
 
 export const buildArticleChangelog = (heading: string, original: unknown, updated: unknown) => {
   const entries: DiffEntry[] = [];

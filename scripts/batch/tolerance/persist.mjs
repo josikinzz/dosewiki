@@ -11,7 +11,8 @@ import {
   resolveQuoteSourceMaterial,
 } from "../lib/source-material-resolver.mjs";
 import { CONFIG } from "./cli.mjs";
-import { buildUserMessage, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
+import { buildUserMessage, parseGeneratedYaml } from "./lib.mjs";
+import { slugify } from "../../../src/utils/slug.ts";
 import { loadToleranceQuotes } from "./loader.mjs";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 
@@ -20,7 +21,7 @@ export function createBackup() {
 }
 
 async function resolveToleranceSourceMaterial(article) {
-  const slug = titleToSlug(article.title);
+  const slug = slugify(article.title);
   return resolveQuoteSourceMaterial({
     slug,
     loadQuotes: loadToleranceQuotes,
@@ -31,7 +32,7 @@ async function resolveToleranceSourceMaterial(article) {
 }
 
 async function processArticle(apiKey, article, systemPrompt, verbose) {
-  const slug = titleToSlug(article.title);
+  const slug = slugify(article.title);
   const sourceMaterial = await resolveToleranceSourceMaterial(article);
   if (sourceMaterial.status !== "ready") {
     return { slug, status: "skipped", reason: sourceMaterial.reason, tokens: 0 };
@@ -70,11 +71,11 @@ function applyToleranceUpdate(article, update) {
   article.tolerance = update.tolerance;
   assertNoPublicProseArtifactLanguage(article, {
     sections: ["tolerance"],
-    sourcePath: `batch:tolerance:${update.slug || titleToSlug(article.title)}`,
+    sourcePath: `batch:tolerance:${update.slug || slugify(article.title)}`,
   });
   assertNoPublicProseNamedSourceAttribution(article, {
     sections: ["tolerance"],
-    sourcePath: `batch:tolerance:${update.slug || titleToSlug(article.title)}`,
+    sourcePath: `batch:tolerance:${update.slug || slugify(article.title)}`,
   });
   return article;
 }
@@ -105,7 +106,7 @@ export async function processAll(apiKey, articles, systemPrompt, options, persis
     const batch = articles.slice(index, index + concurrency);
     const results = await Promise.all(
       batch.map(async (article) => {
-        const slug = titleToSlug(article.title);
+        const slug = slugify(article.title);
         if (verbose) {
           console.log(`  Processing: ${article.title}`);
         }

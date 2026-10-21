@@ -8,6 +8,7 @@ import { spawnSync } from "node:child_process";
 import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../lib/postgres/runtime/api.ts"
+import { slugify } from "../../src/utils/slug.ts";
 import {
   buildCitationPromotionPlan,
   applyCitationPromotionPlan,
@@ -34,12 +35,8 @@ function stripDataMetadata(article) {
   return clean;
 }
 
-function slugify(value) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "source";
+function citationSlug(value) {
+  return slugify(String(value ?? "")) || "source";
 }
 
 function sourceHost(url) {
@@ -59,7 +56,7 @@ function stableSuffix(value) {
 }
 
 function referenceIdForSource(source, instrument) {
-  return `${slugify(sourceHost(source.url))}-${slugify(instrument)}`;
+  return `${citationSlug(sourceHost(source.url))}-${citationSlug(instrument)}`;
 }
 
 function referenceKeys(reference) {
@@ -103,7 +100,7 @@ function recordSourceJurisdictions(draft) {
       country,
       displayName: country,
       fieldPath: `legality.countries.${country}.instrument`,
-      claimKey: `legality:legality.countries.${slugify(country)}.instrument`,
+      claimKey: `legality:legality.countries.${citationSlug(country)}.instrument`,
       getLiveEntry: (legality) => legality.countries?.[country],
       setLiveEntry: (legality, entry) => {
         legality.countries[country] = entry;
@@ -118,7 +115,7 @@ function recordSourceJurisdictions(draft) {
       country: state,
       displayName: `${state} (US state)`,
       fieldPath: `legality.usStates.${state}.instrument`,
-      claimKey: `legality:legality.usStates.${slugify(state)}.instrument`,
+      claimKey: `legality:legality.usStates.${citationSlug(state)}.instrument`,
       getLiveEntry: (legality) => legality.usStates?.[state],
       setLiveEntry: (legality, liveEntry) => {
         legality.usStates[state] = liveEntry;
@@ -131,7 +128,7 @@ function recordSourceJurisdictions(draft) {
         country: state,
         displayName: `${city}, ${state} (US city)`,
         fieldPath: `legality.usStates.${state}.cities.${city}.instrument`,
-        claimKey: `legality:legality.usStates.${slugify(state)}.cities.${slugify(city)}.instrument`,
+        claimKey: `legality:legality.usStates.${citationSlug(state)}.cities.${citationSlug(city)}.instrument`,
         getLiveEntry: (legality) => legality.usStates?.[state]?.cities?.[city],
         setLiveEntry: (legality, liveEntry) => {
           legality.usStates[state].cities[city] = liveEntry;

@@ -18,6 +18,7 @@ import {
   parsePublicSubstanceRecords,
 } from "./publicData.substanceContract";
 import { normalizeVCodeContent } from "../../src/features/effects/vcode/normalize";
+import { slugify } from "../../src/utils/slug";
 import { normalizePublicEffectIndexArticle } from "./publicData.publicationProjection";
 import {
   normalizeSubstancePriority,
@@ -85,16 +86,10 @@ export function normalizePublicEffectArticle(effect: SubjectiveEffectDetailRecor
 export const normalizePublicEffectArticles = (effects: SubjectiveEffectDetailRecord[]): PublicEffectArticle[] =>
   effects.map(normalizePublicEffectArticle);
 
-const slugifySubstanceTitle = (title: string): string =>
-  title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
 const resolveSubstanceSlug = (substance: Pick<SubstanceRecord, "slug" | "title">): string =>
   typeof substance.slug === "string" && substance.slug.length > 0
     ? substance.slug
-    : slugifySubstanceTitle(substance.title);
+    : slugify(substance.title);
 
 
 function projectPublicSubstancePreview(substance: SubstanceRecord): PublicSubstancePreview {

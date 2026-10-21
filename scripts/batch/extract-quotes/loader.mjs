@@ -4,6 +4,7 @@ import { join } from "path";
 import { BackendClient } from "../../lib/data-client.ts";
 
 import { api } from "../../../lib/postgres/runtime/api.ts"
+import { slugify } from "../../../src/utils/slug.ts";
 import { CONFIG } from "./cli.mjs";
 import { CATEGORIES } from "./categories.mjs";
 import {
@@ -12,13 +13,6 @@ import {
   loadLocalArticleSourceDocument,
   normalizeArticleSourceDocument,
 } from "../../article-source-documents/contract.mjs";
-
-export function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export function loadPrompt(category) {
   const config = CATEGORIES[category];
@@ -37,7 +31,7 @@ export function getPrioritySlugs() {
   const articles = JSON.parse(readFileSync(CONFIG.articlesFile, "utf-8"));
   return articles
     .filter((article) => article.priority === "high" || article.priority === "normal")
-    .map((article) => titleToSlug(article.title))
+    .map((article) => slugify(article.title))
     .sort();
 }
 
