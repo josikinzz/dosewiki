@@ -57,8 +57,10 @@ Full resumable apply (requires completed canary in the same ledger):
       --confirm-operation=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
       --confirm-target=<endpoint-host-or-rclone-remote> --confirm-bucket=<bucket>
 
-Install an object-verified candidate locally and preserve the prior manifest.
-Deploy afterward, then run the full verifier to gate completion or rollback:
+Install an object-verified candidate locally. The rollback file copies the target
+as it was before install, which holds the generator's local paths, not the
+published URLs. To roll back a deploy, restore the manifest committed in Git.
+Deploy afterward, then run the full verifier to gate completion:
   ... --install-candidate --candidate-manifest=<candidate.json> \\
       --target-manifest=<target.json> --rollback-manifest=<rollback.json> \\
       --verification-ledger=<verification.jsonl> --apply \\

@@ -92,7 +92,16 @@ function main() {
   const startedAt = new Date();
   const status = run("bun", ["run", "build"]);
   writeBuildTiming({ startedAt, endedAt: new Date(), exitStatus: status });
-  if (status === 0) run("node", ["scripts/build/prerender-census.mjs"]);
+  if (status === 0) {
+    const censusStatus = run("node", ["scripts/build/prerender-census.mjs"]);
+    if (censusStatus !== 0) {
+      console.error(
+        `[vercel-build] WARNING: the prerender census exited ${censusStatus}, so this log has no page count. ` +
+          "The census only reports; the build succeeded and still deploys. " +
+          "Run bun run build:census -- <build directory> before recording this release.",
+      );
+    }
+  }
   process.exit(status);
 }
 

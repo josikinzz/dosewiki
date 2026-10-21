@@ -28,7 +28,7 @@ export interface SourceCatalogAdapter {
   listSubstances(): SourceCatalogEntry[] | Promise<SourceCatalogEntry[]>;
   loadSubstance(
     entry: SourceCatalogEntry,
-  ): SubstanceSourceDocument | null | Promise<SubstanceSourceDocument | null>;
+  ): SubstanceSourceDocument | Promise<SubstanceSourceDocument>;
 }
 
 export interface ParserRegistryAdapter {
@@ -270,11 +270,6 @@ export async function parseSourceCorpus(
     reporter?.substanceStarted?.(slug);
 
     const module = await catalog.loadSubstance(entry);
-    if (!module) {
-      reporter?.warning?.(`Skipping ${slug}; source module could not be loaded`);
-      continue;
-    }
-
     const parsed = parseSubstance(slug, module, parserRegistry, reporter);
     substances[slug] = parsed;
     stats.parsed++;

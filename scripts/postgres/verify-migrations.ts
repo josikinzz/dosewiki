@@ -44,7 +44,7 @@ function schemaDrift(): void {
     env: {
       ...process.env,
       DOTENV_CONFIG_PATH: os.devNull,
-      POSTGRES_DIRECT_URL: process.env.POSTGRES_DIRECT_URL ?? "postgres://localhost:5432/dosewiki",
+      POSTGRES_DIRECT_URL: "postgres://localhost:5432/dosewiki",
     },
   });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;

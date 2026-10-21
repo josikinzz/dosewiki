@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api";
 import { api } from "../../lib/postgres/runtime/api";
-import { createDataClient, postgresFingerprintFromUrl, type DataClient } from "../lib/data-client.ts";
+import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { authOptions, authorizeCredentials } from "../../lib/auth/authOptions";
 import { hashPassword } from "../../lib/auth/passwords";
 import { DATA_WRITES_FROZEN_CODE, isDataWriteFrozenError } from "../../lib/runtime/dataWriteFreeze";
@@ -24,6 +24,12 @@ import { resolveLocalRehearsalTarget } from "./targetGuard";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const argv = process.argv.slice(2);
 const target = resolveLocalRehearsalTarget(argv);
+const incomingFreeze = process.env.DATA_WRITES_FROZEN;
+
+function restoreIncomingFreeze(): void {
+  if (incomingFreeze === undefined) delete process.env.DATA_WRITES_FROZEN;
+  else process.env.DATA_WRITES_FROZEN = incomingFreeze;
+}
 
 type Check = { scenario: string; check: string; pass: boolean; detail?: unknown };
 const checks: Check[] = [];
@@ -382,7 +388,7 @@ async function main(): Promise<void> {
     const holder = await pool.connect();
     let drainWaitMs: number | null = null;
     try {
-      delete process.env.DATA_WRITES_FROZEN;
+      restoreIncomingFreeze();
       await holder.query("BEGIN");
       await holder.query('SELECT "_id" FROM "copyBlocks" WHERE "key" = $1 FOR UPDATE', [copyKey]);
       const inflight = operator.mutation(api.copyBlocks.upsert, {
@@ -444,7 +450,7 @@ async function main(): Promise<void> {
       operator.mutation(api.copyBlocks.upsert, { ...adminActor, key: copyKey, kind: "markdown", body: "reopened body", label: "Rehearsal", group: "rehearsal", operationId: `${run}-copy-reopened` }),
     );
     expect("liveness", "lifting the freeze by value reopens writes", reopened.ok && (await runtime.query(api.copyBlocks.getByKey, { key: copyKey }))?.body === "reopened body", reopened.ok ? reopened.value : errorMessage(reopened.error));
-    delete process.env.DATA_WRITES_FROZEN;
+    restoreIncomingFreeze();
 
     const reportSource = (await selectDocuments(pool, "tripReports", { limit: 1 }))[0];
     const reportSlug = `${run}-report`;
@@ -632,7 +638,7 @@ async function main(): Promise<void> {
     }
 
   } finally {
-    delete process.env.DATA_WRITES_FROZEN;
+    restoreIncomingFreeze();
     process.env.DATA_BACKEND = "postgres";
     if (!keep) {
       for (const { table, where, params } of purges) {
