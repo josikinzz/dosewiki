@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-21T03:23:25.931Z",
-    "catalogDigest": "384c56775211ba15bf7a38114045829bd957d9f63cca9e168cfdf4b60d591123",
+    "compiledAt": "2026-10-21T04:08:41.891Z",
+    "catalogDigest": "ebcdb8ff7d9e8030c140754c33263fa95ecd9484362ffc07ab2a42c8b59e60d2",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "e715dbd379d4a884a04d6de0af160c37a2176e3f72815f5aa0da3cef8d7e42b3",
+    "sourceInventoryDigest": "3ef0b7cb92b2b2185e2e2aafbd49bf9d7cddd145a6d83e8e9e343b04f7ae05d1",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
@@ -450,6 +450,11 @@
         "catalogKey": "Guides and resources for replicating specific subjective effects.",
         "term": "Replication",
         "expectedTarget": "体验再现"
+      },
+      {
+        "catalogKey": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+        "term": "Replication",
+        "expectedTarget": "体验再现"
       }
     ],
     "pendingRefreshStatus": "not-refreshed",
@@ -499,6 +504,12 @@
       {
         "catalogKey": "{{name}} Replications",
         "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+        "term": "Replication",
         "expectedTarget": "体验再现",
         "humanApproved": false
       },
@@ -1083,11 +1094,11 @@
     }
   },
   "ru": {
-    "compiledAt": "2026-10-13T00:53:42.785Z",
-    "catalogDigest": "15c91227a100725939692d631c5f21c255bef8147a897336bb0acbfdef021128",
+    "compiledAt": "2026-10-21T04:08:42.749Z",
+    "catalogDigest": "e631c681df83c140960fe8884747b2b305569780bc4c5a36e6e1f0d8e662d828",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
+    "sourceInventoryDigest": "3ef0b7cb92b2b2185e2e2aafbd49bf9d7cddd145a6d83e8e9e343b04f7ae05d1",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
