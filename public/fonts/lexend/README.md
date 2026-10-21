@@ -7,20 +7,6 @@ this committed WOFF2 through `next/font/local` as the non-preloaded `dyslexicFon
 picker and registers nothing from here. No build-time or runtime Google Fonts request is
 required.
 
-`lexend-dyslexic-label-preview.woff2` is an 8-glyph subset carrying exactly the
-"Dyslexic" option label, registered as `dyslexicPreviewFont`
-(`--font-dyslexic-preview`) so the appearance panel's picker can set that label in the
-face it selects without anyone downloading the full face for a preview. Regenerate with:
-
-```
-pyftsubset lexend-variable-normal-latin.woff2 --text="Dyslexic" \
-  --flavor=woff2 --output-file=lexend-dyslexic-label-preview.woff2 \
-  --layout-features='kern' --no-hinting --desubroutinize
-```
-
-If the picker's label copy ever changes, the subset must be regenerated with the new
-text or the label silently falls back to the body face.
-
 Obtained on the Titillium workflow (`../titillium-web/README.md`): the file is Google's
 `latin` split, downloaded from fonts.gstatic.com via
 `https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&display=swap` with a
