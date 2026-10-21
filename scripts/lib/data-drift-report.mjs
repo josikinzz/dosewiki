@@ -6,23 +6,25 @@ import {
   walkSourceFiles,
 } from "./data-function-inventory.mjs";
 
-const APP_SOURCE_DIRS = ["src", "lib"]
+const CALLSITE_SOURCE_DIRS = ["src", "lib", "server", "scripts"];
 
-function collectAppCallsitesFromRepo({ repoRoot, knownModules, dirs = APP_SOURCE_DIRS }) { const files = [];
-for (const dir of dirs) {
-  for (const absolutePath of walkSourceFiles(path.resolve(repoRoot, dir))) {
-    files.push({
-      filePath: path.relative(repoRoot, absolutePath),
-      source: readFileSync(absolutePath, "utf8"),
-    });
+function collectCallsitesFromRepo({ repoRoot, knownModules }) {
+  const files = [];
+  for (const dir of CALLSITE_SOURCE_DIRS) {
+    for (const absolutePath of walkSourceFiles(path.resolve(repoRoot, dir))) {
+      files.push({
+        filePath: path.relative(repoRoot, absolutePath),
+        source: readFileSync(absolutePath, "utf8"),
+      });
+    }
   }
+  return collectAppCallsites({ files, knownModules });
 }
-return collectAppCallsites({ files, knownModules }); }
 
 export function buildCallsiteIntegrityReport({ repoRoot }) {
   const checkout = collectCheckoutInventory({ repoRoot });
   const knownModules = new Set(checkout.map((entry) => entry.module));
-  const callsites = collectAppCallsitesFromRepo({ repoRoot, knownModules });
+  const callsites = collectCallsitesFromRepo({ repoRoot, knownModules });
   const checkoutIdentifiers = new Set(checkout.map((entry) => entry.identifier));
 
   return {
@@ -36,12 +38,12 @@ export function buildCallsiteIntegrityReport({ repoRoot }) {
 export function formatCallsiteIntegrityReport(report) {
   const lines = [
     "Postgres callable integrity: checkout only, no deployment contacted",
-    `  ${report.counts.checkout} defined in checkout   ${report.counts.callsites} called by the app`,
+    `  ${report.counts.checkout} defined in checkout   ${report.counts.callsites} called in src, lib, server and scripts`,
     "",
   ];
   listBlock(
     lines,
-    "DANGLING: called by the app but not defined anywhere in this checkout:",
+    "DANGLING: called in this checkout but not defined anywhere in it:",
     report.danglingCallsites,
     (entry) => `${entry.identifier}  [${entry.forms.join(",")}]  ${entry.files[0]}`,
   );
