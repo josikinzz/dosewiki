@@ -143,5 +143,6 @@ the type check, or the whole graph with `bun run verify`.
 `package.json` lists every other command. The pre-commit hook in `.husky/`
 runs `scripts/security/scan-secrets.mjs --staged` on the exact staged blobs,
 then `scripts/security/check-staged-files.mjs`. That script blocks any staged
-file named `.env*` other than `.env.example`, renames included, and runs ESLint
-on the staged JavaScript and TypeScript files as they are in the working tree.
+file named `.env*` other than `.env.example`, renames included, and runs
+the `lint:files` checks on the staged paths. Those checks read the working tree,
+not the staged blobs.

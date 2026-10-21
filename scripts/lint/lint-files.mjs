@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { commentScope } from "../lib/comment-scope.mjs";
 import { isScannedFile } from "./em-dash-policy.mjs";
 
@@ -30,14 +31,21 @@ const checks = [
   },
 ];
 
-let failed = false;
-for (const { name, command: [executable, ...args], accepts } of checks) {
-  const selected = files.filter(accepts);
-  if (selected.length === 0) continue;
-  const result = spawnSync(executable, [...args, ...selected], { cwd: repoRoot, stdio: "inherit" });
-  if (result.status !== 0) {
-    console.error(`${name} failed on ${selected.length} file(s).`);
-    failed = true;
-  }
+const run = promisify(execFile);
+const results = await Promise.all(
+  checks
+    .map((check) => ({ ...check, selected: files.filter(check.accepts) }))
+    .filter(({ selected }) => selected.length > 0)
+    .map(({ name, command: [executable, ...args], selected }) =>
+      run(executable, [...args, ...selected], { cwd: repoRoot, maxBuffer: 64 * 1024 * 1024 }).then(
+        ({ stdout, stderr }) => ({ name, selected, ok: true, output: stdout + stderr }),
+        (error) => ({ name, selected, ok: false, output: error.stdout + error.stderr || `${error.message}\n` }),
+      ),
+    ),
+);
+
+for (const { name, selected, ok, output } of results) {
+  process.stdout.write(output);
+  if (!ok) console.error(`${name} failed on ${selected.length} file(s).`);
 }
-if (failed) process.exit(1);
+if (results.some(({ ok }) => !ok)) process.exitCode = 1;
