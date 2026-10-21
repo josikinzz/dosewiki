@@ -131,7 +131,7 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed in any run |
 | `bun run typecheck` | Application type check, with strict null checks on |
 | `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
-| `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
+| `bun run lint:files -- <path>...` | The `lint` checks on only the named files: ESLint on JavaScript and TypeScript, and each scanner on the files inside its CI scope |
 | `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |

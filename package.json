@@ -162,6 +162,7 @@
     "typecheck:scripts": "tsc --noEmit -p scripts/config/tsconfig.scripts.json",
     "typecheck:handlers": "tsc --noEmit -p scripts/config/tsconfig.handlers.json",
     "lint": "eslint . && node scripts/lint/check-css-comments.mjs && node scripts/lint/check-em-dashes.mjs",
+    "lint:files": "node scripts/lint/lint-files.mjs",
     "prepare": "husky || true",
     "security:check": "node scripts/security/scan-secrets.mjs --tracked",
     "check:function-references": "node scripts/build/check-function-references.mjs",
