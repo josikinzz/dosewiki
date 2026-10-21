@@ -18,7 +18,7 @@
       "targetDeployment": null,
       "schemaVersion": "locale to SHA256 catalog digest map",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write"
+      "refresh": { "kind": "command", "command": { "script": "translate:ui", "args": ["--offline", "--write"] } }
     },
     {
       "id": "translation-ui-workbench-inventory",
@@ -39,7 +39,7 @@
       "targetDeployment": null,
       "schemaVersion": "lib/translation/uiWorkbenchDefinitions.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write"
+      "refresh": { "kind": "command", "command": { "script": "translate:ui", "args": ["--offline", "--write"] } }
     },
     {
       "id": "translation-ui-catalog",
@@ -62,7 +62,11 @@
       "targetDeployment": null,
       "schemaVersion": "lib/translation/uiCatalogPublication.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write (local seeds only); use --live-copy --write with an explicitly authorized Postgres read target for complete publication"
+      "refresh": {
+        "kind": "command",
+        "instructions": "Offline generation refreshes local seeds only. For complete publication, pass --live-copy --write instead of --offline --write, with an explicitly authorized Postgres read target.",
+        "command": { "script": "translate:ui", "args": ["--offline", "--write"] }
+      }
     },
     {
       "id": "translation-ui-catalog-publication",
@@ -85,7 +89,11 @@
       "targetDeployment": null,
       "schemaVersion": "lib/translation/uiCatalogPublication.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --offline --write (local seeds only); use --live-copy --write with an explicitly authorized Postgres read target for complete publication"
+      "refresh": {
+        "kind": "command",
+        "instructions": "Offline generation refreshes local seeds only. For complete publication, pass --live-copy --write instead of --offline --write, with an explicitly authorized Postgres read target.",
+        "command": { "script": "translate:ui", "args": ["--offline", "--write"] }
+      }
     },
     {
       "id": "substance-index-export",
@@ -107,7 +115,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "node scripts/data-ops/export-data-to-json.mjs"
+      "refresh": { "kind": "command", "command": { "script": "data:export" } }
     },
     {
       "id": "reagent-tests-snapshot",
@@ -124,7 +132,7 @@
       "targetDeployment": null,
       "schemaVersion": "ProtestKit API v1 response keyed by DoseWiki slug",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run reagents:cache"
+      "refresh": { "kind": "command", "command": { "script": "reagents:cache" } }
     },
     {
       "id": "public-substance-index-archive",
@@ -142,7 +150,14 @@
       "targetDeployment": null,
       "schemaVersion": "historical SubstanceIndex.json shape",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "node scripts/data/sanitize-public-substance-archive.mjs --recovery-copy <private-recovery-path>"
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "runtime": "node",
+          "file": "scripts/data/sanitize-public-substance-archive.mjs",
+          "args": ["--recovery-copy", "<private-recovery-path>"]
+        }
+      }
     },
     {
       "id": "generator-prompt",
@@ -156,7 +171,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
       "schemaVersion": "server/prompts.ts",
       "editPolicy": "editable-with-postgres-migration",
-      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then compare against Postgres before migrating.",
+        "commands": [{ "script": "prompts:compare" }]
+      }
     },
     {
       "id": "section-prompts",
@@ -176,7 +195,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
       "schemaVersion": "server/prompts.ts",
       "editPolicy": "editable-with-postgres-migration",
-      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then compare against Postgres before migrating.",
+        "commands": [{ "script": "prompts:compare" }]
+      }
     },
     {
       "id": "formal-citations-prompts",
@@ -196,7 +219,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded prompt migration",
       "schemaVersion": "server/prompts.ts",
       "editPolicy": "editable-with-postgres-migration",
-      "refreshCommand": "node scripts/migrate/compare-prompts.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then compare against Postgres before migrating.",
+        "commands": [{ "script": "prompts:compare" }]
+      }
     },
     {
       "id": "user-profiles-migration-seed",
@@ -213,7 +240,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded profile migration",
       "schemaVersion": "server/contributorProfiles.ts",
       "editPolicy": "migration-seed-only",
-      "refreshCommand": "node scripts/data-ops/migrate-user-profiles-to-data.mjs --dry-run"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Legacy seed. No refresh. The migration command reads it into Postgres contributorProfiles, and --dry-run previews that without writing.",
+        "commands": [{ "script": "migrate:user-profiles", "args": ["--dry-run"] }]
+      }
     },
     {
       "id": "contributor-avatar-sources",
@@ -234,7 +265,17 @@
       "targetDeployment": "explicit Postgres target selected by the guarded avatar generation command",
       "schemaVersion": "scripts/contributors/generate-avatar-files.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; generated only by a confirmed bun scripts/contributors/generate-avatars-from-replications.ts --write run"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "No routine refresh. Only a confirmed avatar generation run writes it.",
+        "commands": [
+          {
+            "runtime": "bun",
+            "file": "scripts/contributors/generate-avatars-from-replications.ts",
+            "args": ["--write"]
+          }
+        ]
+      }
     },
     {
       "id": "schema-generated-helpers",
@@ -251,7 +292,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:schema"
+      "refresh": { "kind": "command", "command": { "script": "generate:schema" } }
     },
     {
       "id": "schema-generated-field-registry",
@@ -271,7 +312,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance.schema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:schema"
+      "refresh": { "kind": "command", "command": { "script": "generate:schema" } }
     },
     {
       "id": "chemical-class-index",
@@ -293,7 +334,11 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/builders/chemicalClassTree.ts",
       "editPolicy": "editable-by-chemical-taxonomy-maintainers",
-      "refreshCommand": "npm run molecules:seed-classes"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then seed class drawings through the guarded Postgres workflow.",
+        "commands": [{ "script": "molecules:seed-classes" }]
+      }
     },
     {
       "id": "generated-smiles-overrides",
@@ -313,7 +358,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/data/mergeGeneratedSmiles.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run molecules:merge-smiles"
+      "refresh": { "kind": "command", "command": { "script": "molecules:merge-smiles" } }
     },
     {
       "id": "opsin-smiles-map",
@@ -330,7 +375,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/chemistry/identifier-provenance.mjs",
       "editPolicy": "generated-with-manual-preservation",
-      "refreshCommand": "npm run generate:smiles"
+      "refresh": { "kind": "command", "command": { "script": "generate:smiles" } }
     },
     {
       "id": "offline-icon-bundle",
@@ -349,7 +394,7 @@
       "targetDeployment": null,
       "schemaVersion": "IconifyJSON collections keyed by prefix (scripts/build/generateIconData.ts)",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:icon-data"
+      "refresh": { "kind": "command", "command": { "script": "generate:icon-data" } }
     },
     {
       "id": "offline-editor-icon-bundle",
@@ -368,7 +413,7 @@
       "targetDeployment": null,
       "schemaVersion": "IconifyJSON collections keyed by prefix",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateIconData.ts"
+      "refresh": { "kind": "command", "command": { "script": "generate:icon-data" } }
     },
     {
       "id": "theme-lab-prepaint-bootstrap",
@@ -386,7 +431,7 @@
       "targetDeployment": null,
       "schemaVersion": "{ script: string }",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
+      "refresh": { "kind": "command", "command": { "script": "generate:theme-lab-bootstrap" } }
     },
     {
       "id": "theme-lab-prepaint-csp-hash",
@@ -400,7 +445,7 @@
       "targetDeployment": null,
       "schemaVersion": "{ hash: string } with quoted SHA-256 CSP source",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateThemeLabBootstrap.ts"
+      "refresh": { "kind": "command", "command": { "script": "generate:theme-lab-bootstrap" } }
     },
     {
       "id": "home-tile-glyph-metrics",
@@ -421,7 +466,7 @@
       "targetDeployment": null,
       "schemaVersion": "Icon name to { scale, dx, dy } ink framing (scripts/build/generateHomeTileGlyphMetrics.ts)",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:home-tile-glyphs"
+      "refresh": { "kind": "command", "command": { "script": "generate:home-tile-glyphs" } }
     },
     {
       "id": "substance-social-card-manifest",
@@ -442,7 +487,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSubstanceSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateSubstanceSocialCards.ts --allow-remote --expected-deployment=<host>/<database> with DATA_BACKEND=postgres, TARGET_POSTGRES_URL, POSTGRES_IMPORT_CONFIRM=<host>, and REPLICATION_MEDIA_BASE_URL set; then bun run publish:social-cards plan, canary (--canary-selector=<slug>:), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#substance-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generateSubstanceSocialCards.ts writes candidate cards from an approved Postgres read target. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#substance-cards"
+      }
     },
     {
       "id": "substance-social-card-images",
@@ -465,7 +514,11 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<slug>:), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/substanceSocialCardManifest.generated.json --target-manifest=src/data/substanceSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateSubstanceSocialCards.ts --allow-remote --expected-deployment=<host>/<database>. A human approves each phase. Exact commands: docs/operations/social-cards.md#substance-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generateSubstanceSocialCards.ts writes candidate cards from an approved Postgres read target. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#substance-cards"
+      }
     },
     {
       "id": "page-social-card-manifest",
@@ -498,7 +551,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePageSocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generatePageSocialCards.ts [--only=<key>], then bun run publish:social-cards plan, canary (--canary-selector=<key>:, for example home:), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#page-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generatePageSocialCards.ts writes candidate cards. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#page-cards"
+      }
     },
     {
       "id": "page-social-card-images",
@@ -522,7 +579,11 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<key>:, for example home:), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/pageSocialCardManifest.generated.json --target-manifest=src/data/pageSocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generatePageSocialCards.ts [--only=<key>]. A human approves each phase. Exact commands: docs/operations/social-cards.md#page-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generatePageSocialCards.ts writes candidate cards. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#page-cards"
+      }
     },
     {
       "id": "entity-social-card-manifest",
@@ -548,7 +609,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateEntitySocialCards.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generateEntitySocialCards.ts --allow-remote --expected-deployment=<host>/<database> with DATA_BACKEND=postgres, TARGET_POSTGRES_URL, POSTGRES_IMPORT_CONFIRM=<host>, and REPLICATION_MEDIA_BASE_URL set; then bun run publish:social-cards plan, canary (--canary-selector=<kind>:<slug> or a media/sha256/ digest key), full apply (--resume), bun run verify:social-cards --objects-only, and install (--install-candidate) with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names. A human approves each phase. Exact commands: docs/operations/social-cards.md#entity-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generateEntitySocialCards.ts writes candidate cards from an approved Postgres read target. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#entity-cards"
+      }
     },
     {
       "id": "entity-social-card-images",
@@ -575,7 +640,11 @@
       "targetDeployment": "Cloudflare R2 media/sha256/",
       "schemaVersion": "scripts/build/publishSocialCardsToR2.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/publishSocialCardsToR2.mjs plan, canary (--canary-selector=<kind>:<slug> or a media/sha256/ digest key), full apply (--resume), object verification (bun run verify:social-cards --objects-only), and install (--install-candidate) with --input-manifest=src/data/entitySocialCardManifest.generated.json --target-manifest=src/data/entitySocialCardManifest.generated.json --assets-root=public/images/social and every --confirm-* flag the publisher names, after bun scripts/build/generateEntitySocialCards.ts --allow-remote --expected-deployment=<host>/<database>. A human approves each phase. Exact commands: docs/operations/social-cards.md#entity-cards"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Refresh only through the phased workflow in the runbook. scripts/build/generateEntitySocialCards.ts writes candidate cards from an approved Postgres read target. The R2 publisher then runs plan, canary, full apply, object verification and install. A human approves each phase, and the runbook has the exact flags and confirmations.",
+        "runbook": "docs/operations/social-cards.md#entity-cards"
+      }
     },
     {
       "id": "postgres-drizzle-schema",
@@ -604,7 +673,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:postgres-schema"
+      "refresh": { "kind": "command", "command": { "script": "generate:postgres-schema" } }
     },
     {
       "id": "postgres-native-data-model",
@@ -631,7 +700,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/postgres/generateDrizzleSchema.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:postgres-schema"
+      "refresh": { "kind": "command", "command": { "script": "generate:postgres-schema" } }
     },
     {
       "id": "postgres-migrations",
@@ -648,7 +717,11 @@
       "targetDeployment": "POSTGRES_DIRECT_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh of existing files; new migrations come from npm run postgres:migrate:generate"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "No refresh of existing files. A schema change adds a new migration with the first command. A data backfill adds one with the second, and its SQL is written by hand.",
+        "commands": [{ "script": "postgres:migrate:generate" }, { "script": "postgres:migrate:generate", "args": ["--custom"] }]
+      }
     },
     {
       "id": "localized-publication-trigger-creation",
@@ -662,7 +735,18 @@
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> writes its contents"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "No refresh of the applied file. A new migration of this kind takes two steps. The first command scaffolds the SQL file, journal entry and snapshot. The second writes the trigger SQL into the exact file Drizzle created.",
+        "commands": [
+          { "script": "postgres:migrate:generate", "args": ["--custom", "--name", "<name>"] },
+          {
+            "runtime": "bun",
+            "file": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+            "args": ["<sql-path-drizzle-created>"]
+          }
+        ]
+      }
     },
     {
       "id": "localized-publication-trigger-restoration",
@@ -676,7 +760,18 @@
       "targetDeployment": "TARGET_POSTGRES_URL",
       "schemaVersion": "drizzle-kit 0.31",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh of the applied file. A new migration of this kind takes two steps: npm run postgres:migrate:generate -- --custom --name <name> scaffolds the SQL file, journal entry and snapshot, then bun scripts/postgres/localizedPublicationIndexTriggers.ts <the exact SQL path Drizzle created> --restore writes its contents"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "No refresh of the applied file. A new migration of this kind takes two steps. The first command scaffolds the SQL file, journal entry and snapshot. The second writes the trigger SQL into the exact file Drizzle created.",
+        "commands": [
+          { "script": "postgres:migrate:generate", "args": ["--custom", "--name", "<name>"] },
+          {
+            "runtime": "bun",
+            "file": "scripts/postgres/localizedPublicationIndexTriggers.ts",
+            "args": ["<sql-path-drizzle-created>", "--restore"]
+          }
+        ]
+      }
     },
     {
       "id": "guarded-responsive-media-renditions",
@@ -696,7 +791,13 @@
       "targetDeployment": "private Cloudflare R2 replications/_renditions/v1/",
       "schemaVersion": "private WebP renditions v1, quality 75",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun run replications:prepare-image-renditions --keys <reviewed-keys.json> --out <local-directory>"
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "script": "replications:prepare-image-renditions",
+          "args": ["--keys", "<reviewed-keys.json>", "--out", "<local-directory>"]
+        }
+      }
     },
     {
       "id": "data-artifact-lineage-manifest",
@@ -719,7 +820,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/lib/data-artifact-lineage.mjs",
       "editPolicy": "editable-by-data-workflow-maintainers",
-      "refreshCommand": "npm run provenance:check"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then validate.",
+        "commands": [{ "script": "provenance:check" }]
+      }
     },
     {
       "id": "postgres-function-registry",
@@ -736,7 +841,7 @@
       "targetDeployment": null,
       "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:postgres-functions"
+      "refresh": { "kind": "command", "command": { "script": "generate:postgres-functions" } }
     },
     {
       "id": "postgres-native-api-types",
@@ -754,7 +859,7 @@
       "targetDeployment": null,
       "schemaVersion": "lib/postgres/runtime/functionOwnership.json",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:postgres-functions"
+      "refresh": { "kind": "command", "command": { "script": "generate:postgres-functions" } }
     },
     {
       "id": "postgres-function-ownership",
@@ -771,7 +876,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/postgres/generateFunctionRegistry.ts",
       "editPolicy": "editable-by-data-workflow-maintainers",
-      "refreshCommand": "edit ownership input, then npm run generate:postgres-functions"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then regenerate the function registry.",
+        "commands": [{ "script": "generate:postgres-functions" }]
+      }
     },
     {
       "id": "public-route-availability",
@@ -792,7 +901,14 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generatePublicRouteAvailability.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/build/generatePublicRouteAvailability.ts --expected-deployment <approved-source-fingerprint>"
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "runtime": "bun",
+          "file": "scripts/build/generatePublicRouteAvailability.ts",
+          "args": ["--expected-deployment", "<approved-source-fingerprint>"]
+        }
+      }
     },
     {
       "id": "surface-fun-tokens",
@@ -816,7 +932,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "surface-fun-token-fallbacks",
@@ -839,7 +955,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "accent-fun-tokens",
@@ -862,7 +978,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearancePaletteData.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "surface-token-stylesheet",
@@ -883,7 +999,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateSurfaceCss.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "accent-token-stylesheet",
@@ -902,7 +1018,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAccentCss.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "appearance-chroma-stylesheet",
@@ -928,7 +1044,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateChromaCss.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "appearance-chroma-manifest",
@@ -953,7 +1069,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateChromaCss.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-css"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-css" } }
     },
     {
       "id": "appearance-pro-stylesheet",
@@ -972,7 +1088,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-sheets"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-sheets" } }
     },
     {
       "id": "appearance-light-stylesheet",
@@ -991,7 +1107,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-sheets"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-sheets" } }
     },
     {
       "id": "appearance-sheets-manifest",
@@ -1011,7 +1127,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/build/generateAppearanceSheets.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:appearance-sheets"
+      "refresh": { "kind": "command", "command": { "script": "generate:appearance-sheets" } }
     },
     {
       "id": "effect-category-definitions",
@@ -1030,7 +1146,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/effectCategoryDefinitions.ts (EffectCategoryDefinition)",
       "editPolicy": "editable-by-effect-taxonomy-maintainers",
-      "refreshCommand": "edit content/taxonomy/effect-categories.json by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     },
     {
       "id": "psychoactive-class-index",
@@ -1052,7 +1168,11 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/builders/manualIndexLoader.ts",
       "editPolicy": "editable-by-psychoactive-taxonomy-maintainers",
-      "refreshCommand": "edit data/substances/psychoactiveIndexManual.json by hand, then npm run generate:icon-data"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then regenerate the icon catalog.",
+        "commands": [{ "script": "generate:icon-data" }]
+      }
     },
     {
       "id": "route-synonyms",
@@ -1070,7 +1190,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/builders/taxonomy.ts",
       "editPolicy": "editable-by-route-taxonomy-maintainers",
-      "refreshCommand": "edit data/substances/routeSynonyms.json by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     },
     {
       "id": "us-state-flag-mappings",
@@ -1089,7 +1209,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/utils/data/countryCodes.ts",
       "editPolicy": "editable-by-legality-maintainers",
-      "refreshCommand": "edit data/substances/usStateFlagMappings.json by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     },
     {
       "id": "title-iupac-smiles",
@@ -1108,7 +1228,7 @@
       "targetDeployment": null,
       "schemaVersion": "{ drugs: [{ title, iupac, smiles }] }",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; consumed by node scripts/data/resolveSmilesCoverage.mjs"
+      "refresh": { "kind": "manual", "instructions": "Frozen legacy map. No refresh." }
     },
     {
       "id": "smiles-gap-fill-batches",
@@ -1127,7 +1247,11 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/data/mergeGeneratedSmiles.mjs",
       "editPolicy": "reviewed-evidence-only",
-      "refreshCommand": "npm run molecules:merge-smiles"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Add a reviewed batch-N-input.json and batch-N-output.json pair by hand, then merge the outputs into data/chemistry/generatedSmiles.json.",
+        "commands": [{ "script": "molecules:merge-smiles" }]
+      }
     },
     {
       "id": "subjective-effects-provenance",
@@ -1147,7 +1271,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance/subjective-effects.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:subjective-effects-provenance"
+      "refresh": { "kind": "command", "command": { "script": "generate:subjective-effects-provenance" } }
     },
     {
       "id": "effect-index-featured-replications",
@@ -1168,7 +1292,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded featured-replications seed",
       "schemaVersion": "{ slugs: string[] }",
       "editPolicy": "editable-by-effect-index-editors",
-      "refreshCommand": "edit by hand, then seed the siteConfig document with node scripts/replications/seed-featured-replications.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then seed the siteConfig document.",
+        "commands": [{ "runtime": "node", "file": "scripts/replications/seed-featured-replications.mjs" }]
+      }
     },
     {
       "id": "replication-slug-aliases",
@@ -1188,7 +1316,7 @@
       "targetDeployment": null,
       "schemaVersion": "Record<oldSlug, newSlug>",
       "editPolicy": "generated-with-manual-preservation",
-      "refreshCommand": "node scripts/replications/normalize-slugs.mjs"
+      "refresh": { "kind": "command", "command": { "runtime": "node", "file": "scripts/replications/normalize-slugs.mjs" } }
     },
     {
       "id": "dev-change-log",
@@ -1208,7 +1336,10 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/changelog/changeLog.ts (ChangeLogEntry)",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No routine refresh; new change log entries are Postgres changelog rows written by the save path"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Frozen. No refresh. New change log entries are Postgres changelog rows written by the save path."
+      }
     },
     {
       "id": "tripsit-combos",
@@ -1227,7 +1358,10 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/parsers/tripsit-combos.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; re-download under TripSit's terms and re-key with scripts/parsers/tripsit-combos.ts"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "No routine refresh. Re-download under TripSit's terms, then re-key it with the parser in scripts/parsers/tripsit-combos.ts."
+      }
     },
     {
       "id": "tripsit-combo-definitions",
@@ -1246,7 +1380,7 @@
       "targetDeployment": null,
       "schemaVersion": "[{ status, emoji, color, definition, thumbnail }]",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; re-download under TripSit's terms"
+      "refresh": { "kind": "manual", "instructions": "No routine refresh. Re-download under TripSit's terms." }
     },
     {
       "id": "translation-glossary-snapshots",
@@ -1265,7 +1399,7 @@
       "targetDeployment": null,
       "schemaVersion": "{ locale, exportedAt, terms }",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run translate:glossary -- --locale <code> --export"
+      "refresh": { "kind": "command", "command": { "script": "translate:glossary", "args": ["--locale", "<code>", "--export"] } }
     },
     {
       "id": "translation-glossary-hand-drafts",
@@ -1284,7 +1418,7 @@
       "targetDeployment": null,
       "schemaVersion": "{ locale, note, terms: Record<term, rendering> }",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No refresh; drafted once by hand"
+      "refresh": { "kind": "manual", "instructions": "No refresh. Drafted once by hand." }
     },
     {
       "id": "translation-glosses",
@@ -1303,7 +1437,11 @@
       "targetDeployment": "explicit Postgres target selected by the guarded gloss loader",
       "schemaVersion": "Record<term, gloss>",
       "editPolicy": "editable-by-glossary-writers",
-      "refreshCommand": "npm run translate:glosses -- --dry-run"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then seed translationGlossaryTerms through the guarded loader. --dry-run previews the load without writing.",
+        "commands": [{ "script": "translate:glosses", "args": ["--dry-run"] }]
+      }
     },
     {
       "id": "smiles-coverage-resolution",
@@ -1325,7 +1463,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/data/resolveSmilesCoverage.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run molecules:smiles-coverage"
+      "refresh": { "kind": "command", "command": { "script": "molecules:smiles-coverage" } }
     },
     {
       "id": "smiles-gaps-report",
@@ -1343,7 +1481,7 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/data/resolveSmilesCoverage.mjs",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run molecules:smiles-coverage"
+      "refresh": { "kind": "command", "command": { "script": "molecules:smiles-coverage" } }
     },
     {
       "id": "source-favicon-config",
@@ -1364,7 +1502,7 @@
       "targetDeployment": null,
       "schemaVersion": "SourceConfig[] and source display name lookup",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
+      "refresh": { "kind": "command", "command": { "script": "generate:favicons", "args": ["--input=<article-export.json>"] } }
     },
     {
       "id": "source-favicon-images",
@@ -1385,7 +1523,7 @@
       "targetDeployment": null,
       "schemaVersion": "32x32 PNG per host slug",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "bun scripts/data/generate-further-reading-favicons.mjs --input=<article-export.json>"
+      "refresh": { "kind": "command", "command": { "script": "generate:favicons", "args": ["--input=<article-export.json>"] } }
     },
     {
       "id": "source-favicon-logos",
@@ -1406,7 +1544,7 @@
       "targetDeployment": null,
       "schemaVersion": "PNG logo per source, mostly 32x32",
       "editPolicy": "editable-by-hand",
-      "refreshCommand": "No refresh command; replace the PNG by hand"
+      "refresh": { "kind": "manual", "instructions": "Replace the PNG by hand. No generator." }
     },
     {
       "id": "molecule-pack",
@@ -1429,7 +1567,18 @@
       "targetDeployment": null,
       "schemaVersion": "scripts/data/buildMoleculePack.ts (pack manifest)",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "DATA_BACKEND=postgres REPLICATION_MEDIA_BASE_URL=https://<media-origin> POSTGRES_IMPORT_CONFIRM=<postgres-hostname> npm run molecules:pack -- --target <postgres-read-url> --allow-remote"
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "script": "molecules:pack",
+          "args": ["--target", "<postgres-read-url>", "--allow-remote"],
+          "env": {
+            "DATA_BACKEND": "postgres",
+            "REPLICATION_MEDIA_BASE_URL": "https://<media-origin>",
+            "POSTGRES_IMPORT_CONFIRM": "<postgres-hostname>"
+          }
+        }
+      }
     },
     {
       "id": "mantra-spiral-sheet",
@@ -1447,7 +1596,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/features/mantras/spiralSheet.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run generate:mantra-spiral"
+      "refresh": { "kind": "command", "command": { "script": "generate:mantra-spiral" } }
     },
     {
       "id": "openchemlib-dist",
@@ -1475,7 +1624,7 @@
       "targetDeployment": null,
       "schemaVersion": "vendor/openchemlib/dist/openchemlib.d.ts",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run openchemlib:build"
+      "refresh": { "kind": "command", "command": { "script": "openchemlib:build" } }
     },
     {
       "id": "openchemlib-artifact-manifest",
@@ -1494,7 +1643,7 @@
       "targetDeployment": null,
       "schemaVersion": "schemaVersion field in the manifest",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "npm run openchemlib:build"
+      "refresh": { "kind": "command", "command": { "script": "openchemlib:build" } }
     },
     {
       "id": "psychonautwiki-2015-captures",
@@ -1514,7 +1663,17 @@
       "targetDeployment": null,
       "schemaVersion": "Markdown subjective effects section with capture metadata",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "One-time capture. No routine refresh. The original capture ran this command. The freshness rule describes what a rerun overwrites.",
+        "commands": [
+          {
+            "runtime": "node",
+            "file": "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
+            "env": { "PW_LAST_ALLOWED_TIMESTAMP": "20160831235959" }
+          }
+        ]
+      }
     },
     {
       "id": "psychonautwiki-2015-not-found-list",
@@ -1532,7 +1691,17 @@
       "targetDeployment": null,
       "schemaVersion": "Markdown list of title (slug): status",
       "editPolicy": "do-not-edit-by-hand",
-      "refreshCommand": "No routine refresh; captured once by PW_LAST_ALLOWED_TIMESTAMP=20160831235959 node scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "One-time capture. No routine refresh. The original capture ran this command. The freshness rule describes what a rerun overwrites.",
+        "commands": [
+          {
+            "runtime": "node",
+            "file": "scripts/research/collect-psychonautwiki-2015-subjective-effects.mjs",
+            "env": { "PW_LAST_ALLOWED_TIMESTAMP": "20160831235959" }
+          }
+        ]
+      }
     },
     {
       "id": "psychonautwiki-2015-subjective-effects-drafts",
@@ -1551,7 +1720,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/schema/substance/subjective-effects.ts",
       "editPolicy": "historical-do-not-edit",
-      "refreshCommand": "No routine refresh; the import is complete"
+      "refresh": { "kind": "manual", "instructions": "No refresh. The import is complete." }
     },
     {
       "id": "extraction-prompts",
@@ -1570,7 +1739,7 @@
       "targetDeployment": null,
       "schemaVersion": "Markdown prompt text",
       "editPolicy": "editable-by-prompt-authors",
-      "refreshCommand": "edit content/prompts/extraction/*.md by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     },
     {
       "id": "prompt-registry",
@@ -1589,7 +1758,11 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/config/promptRegistry.ts",
       "editPolicy": "editable-by-prompt-authors",
-      "refreshCommand": "edit by hand, then compare against Postgres with node scripts/migrate/compare-prompts.mjs"
+      "refresh": {
+        "kind": "manual",
+        "instructions": "Edit by hand, then compare against Postgres.",
+        "commands": [{ "script": "prompts:compare" }]
+      }
     },
     {
       "id": "drug-class-content",
@@ -1607,7 +1780,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/data/drugClassContent.ts (DrugClassContent)",
       "editPolicy": "editable-by-drug-class-maintainers",
-      "refreshCommand": "edit content/taxonomy/drug-classes.json by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     },
     {
       "id": "psychoactive-summaries",
@@ -1625,7 +1798,7 @@
       "targetDeployment": null,
       "schemaVersion": "src/features/psychoactive-summaries/summaryDefinitions.ts (PsychoactiveSummaryDefinition)",
       "editPolicy": "editable-by-psychoactive-taxonomy-maintainers",
-      "refreshCommand": "edit content/taxonomy/psychoactive-summaries.json by hand; no generator"
+      "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
     }
   ]
 }

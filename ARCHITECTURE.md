@@ -54,7 +54,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 
 ## Generated code
 
-`data/lineage.json` records every generated artifact with its producer, inputs, `editPolicy`, and `refreshCommand`. `bun run provenance:check` validates the manifest paths and retention. It does not check that outputs are fresh. The generators with drift checks are:
+`data/lineage.json` records every generated artifact with its producer, inputs, `editPolicy`, and typed `refresh` instructions ([format](data/README.md)). `bun run provenance:check` validates the manifest paths, retention, and refresh commands. It does not check that outputs are fresh. The generators with drift checks are:
 
 - `bun run generate:postgres-schema` reads `server/schema.ts` and writes `lib/postgres/schema.generated.ts` and `lib/postgres/runtime/dataModel.ts`. `bun run postgres:check-schema` fails in CI when either is stale.
 - `bun run generate:postgres-functions` reads `lib/postgres/runtime/functionOwnership.json` and the owned `server/*.ts` modules, and writes `lib/postgres/runtime/functions.generated.ts` and `lib/postgres/runtime/api.generated.ts`. `scripts/build/check-function-references.mjs` fails in CI when a call site names a function the checkout does not define.

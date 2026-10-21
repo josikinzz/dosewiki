@@ -212,21 +212,94 @@ export function tryWriteArtifactLineageSidecar(options = {}, { logger = console 
   }
 }
 
-function commandTargetExists(command, rootDir) {
-  const words = command.split(/\s+/).filter(Boolean);
-  const parts = words.slice(words.findIndex((word) => !/^[A-Z_][A-Z0-9_]*=/.test(word)));
-  const scriptArgIndex = parts.findIndex((part) => part.endsWith(".mjs") || part.endsWith(".ts"));
+const REFRESH_FIELDS = {
+  command: { required: ["command"], optional: ["instructions"] },
+  manual: { required: ["instructions"], optional: ["commands", "runbook"] },
+};
+const COMMAND_FIELDS = {
+  script: ["script", "args", "env"],
+  file: ["runtime", "file", "args", "env"],
+};
+const COMMAND_RUNTIMES = new Set(["bun", "node"]);
+const ENV_NAME = /^[A-Z_][A-Z0-9_]*$/;
 
-  if (scriptArgIndex >= 0) {
-    return existsSync(resolve(rootDir, parts[scriptArgIndex]));
+function isPlainObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isNonEmptyString(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function commandProblems(command, { rootDir, packageScripts }) {
+  if (!isPlainObject(command)) return ["is not an object"];
+  const form = "script" in command ? "script" : "file";
+  const problems = Object.keys(command)
+    .filter((key) => !COMMAND_FIELDS[form].includes(key))
+    .map((key) => `has unknown field ${key}`);
+  if (form === "script" && !Object.hasOwn(packageScripts, command.script)) {
+    problems.push(`names an unknown package script: ${command.script}`);
   }
-
-  if (parts[0] === "npm" && parts[1] === "run" && parts[2]) {
-    const packageJson = JSON.parse(readFileSync(resolve(rootDir, "package.json"), "utf-8"));
-    return Boolean(packageJson.scripts?.[parts[2]]);
+  if (form === "file" && !COMMAND_RUNTIMES.has(command.runtime)) {
+    problems.push(`needs runtime bun or node, not ${command.runtime}`);
   }
+  if (form === "file" && !(isNonEmptyString(command.file) && existsSync(resolve(rootDir, command.file)))) {
+    problems.push(`names a file that does not exist: ${command.file}`);
+  }
+  if ("args" in command && !(Array.isArray(command.args) && command.args.every(isNonEmptyString))) {
+    problems.push("args must be an array of strings");
+  }
+  const envIsValid = isPlainObject(command.env)
+    && Object.entries(command.env).every(([name, value]) => ENV_NAME.test(name) && isNonEmptyString(value));
+  if ("env" in command && !envIsValid) {
+    problems.push("env must map variable names to strings");
+  }
+  return problems;
+}
 
-  return true;
+function markdownHeadingAnchors(markdown) {
+  return new Set([...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map(([, heading]) =>
+    heading.trim().toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s/g, "-")));
+}
+
+function runbookProblems(runbook, rootDir) {
+  if (!isNonEmptyString(runbook)) return ["refresh.runbook must be a path string"];
+  const [file, anchor] = runbook.split("#");
+  const runbookPath = resolve(rootDir, file);
+  if (!existsSync(runbookPath)) return [`refresh.runbook does not exist: ${runbook}`];
+  if (anchor && !markdownHeadingAnchors(readFileSync(runbookPath, "utf-8")).has(anchor)) {
+    return [`refresh.runbook anchor does not exist: ${runbook}`];
+  }
+  return [];
+}
+
+function refreshProblems(refresh, context) {
+  const fields = isPlainObject(refresh) && Object.hasOwn(REFRESH_FIELDS, refresh.kind) ? REFRESH_FIELDS[refresh.kind] : null;
+  if (!fields) return [`refresh.kind must be ${Object.keys(REFRESH_FIELDS).join(" or ")}`];
+  const allowed = ["kind", ...fields.required, ...fields.optional];
+  const problems = [
+    ...Object.keys(refresh).filter((key) => !allowed.includes(key)).map((key) => `refresh of kind ${refresh.kind} has unknown field ${key}`),
+    ...fields.required.filter((key) => !(key in refresh)).map((key) => `refresh of kind ${refresh.kind} needs ${key}`),
+  ];
+  if ("instructions" in refresh && !isNonEmptyString(refresh.instructions)) {
+    problems.push("refresh.instructions must be a non-empty string");
+  }
+  if ("command" in refresh) {
+    problems.push(...commandProblems(refresh.command, context).map((problem) => `refresh.command ${problem}`));
+  }
+  if ("commands" in refresh) {
+    if (!Array.isArray(refresh.commands) || refresh.commands.length === 0) {
+      problems.push("refresh.commands must be a non-empty array");
+    } else {
+      refresh.commands.forEach((command, index) => {
+        problems.push(...commandProblems(command, context).map((problem) => `refresh.commands[${index}] ${problem}`));
+      });
+    }
+  }
+  if ("runbook" in refresh) {
+    problems.push(...runbookProblems(refresh.runbook, context.rootDir));
+  }
+  return problems;
 }
 
 export function validateArtifactLineageManifest({ rootDir = process.cwd(), manifest } = {}) {
@@ -242,8 +315,9 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
     "inputs",
     "freshnessRule",
     "editPolicy",
-    "refreshCommand",
+    "refresh",
   ];
+  const packageScripts = JSON.parse(readFileSync(resolve(rootDir, "package.json"), "utf-8")).scripts ?? {};
 
   for (const entry of sourceManifest.artifacts ?? []) {
     for (const field of requiredFields) {
@@ -257,8 +331,12 @@ export function validateArtifactLineageManifest({ rootDir = process.cwd(), manif
     }
     ids.add(entry.id);
 
-    if (entry.refreshCommand && !commandTargetExists(entry.refreshCommand, rootDir)) {
-      errors.push(`${entry.id} refreshCommand target does not exist: ${entry.refreshCommand}`);
+    if ("refreshCommand" in entry) {
+      errors.push(`${entry.id} uses the retired refreshCommand string; describe it with a typed refresh object`);
+    }
+
+    if (entry.refresh) {
+      errors.push(...refreshProblems(entry.refresh, { rootDir, packageScripts }).map((problem) => `${entry.id} ${problem}`));
     }
 
     if (
