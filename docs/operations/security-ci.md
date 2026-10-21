@@ -49,18 +49,19 @@ What it can do:
 What it cannot do, by construction:
 
 - build on the runner or upload prebuilt output;
-- hold a database URL: the build reads the Vercel project's own read-only
+- hold a database URL: the build reads the Vercel project's own
   environment, never a GitHub secret;
 - assign a domain or promote: every production upload passes
   `--skip-domain`, and there is no `alias` or `promote` step;
-- run on push or on a schedule: `workflow_dispatch` only, gated by the
-  selected environment's required reviewers and its `RELEASE_BUILD_ENABLED`
-  variable.
+- run on push or on a schedule: `workflow_dispatch` only, so a dispatcher
+  needs write access, and the selected environment must set
+  `RELEASE_BUILD_ENABLED=true`. The environments have no required reviewer;
+  [data credentials](data-credentials.md#environment-protection) records the
+  live state.
 
-The Vercel token it uses is a team token: Vercel does not scope tokens below
+The Vercel token it uses is a team token. Vercel does not scope tokens below
 deploy capability, so the only thing keeping it from promoting is the absence
-of a step that would. Treat it as production-capable, keep it in a
-reviewer-gated environment, and record its scope in
+of a step that would. Treat it as production-capable and record its scope in
 [data credentials](data-credentials.md#remote-build-deploy-token). A dry run
 (`dry_run: true`) prints the commit, surface, target, and staged cron paths,
 and uploads nothing.
@@ -106,32 +107,15 @@ Remove an override when the consumer declares the patched line itself.
 
 Accepted advisories are dated reachability decisions, not fresh assertions about the checkout. Each keeps its rationale, review date, expiry, and exit condition until a new audit supplies current graph and call-site evidence. An exception may not suppress an entire severity class, and no exception is resolved merely because a declaration changed.
 
-### DEP-EXC-001: `uuid@8.3.2` through NextAuth
+No accepted advisory is open. The three accepted on 2026-08-11 expired on 2026-10-11. On 2026-10-20 a `bun audit` from a frozen install still reported two of them. A lockfile refresh inside each consumer's declared range closed those two, with no override:
 
-- **Advisory:** [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq), Moderate.
-- **Path:** `next-auth@4.24.14 -> uuid@8.3.2`.
-- **Reachability:** the advisory applies to UUID v3, v5, and v6 with a caller-supplied undersized buffer. NextAuth calls only `uuid.v4()` for the JWT `jti`; the app does not import `uuid` directly and request input cannot select a UUID method or buffer.
-- **Why no forced upgrade:** the patched line begins at `uuid@11.1.1` while NextAuth declares `^8.3.2`; a cross-major override would exceed the upstream contract for an authentication dependency.
-- **Review date / expiry:** 2026-08-11 / 2026-10-11.
-- **Exit condition:** an Auth.js release that declares `uuid >=11.1.1`, or a proven, regression-tested upstream-supported override.
+| Exception | Advisory | How it closed |
+| --- | --- | --- |
+| DEP-EXC-001 | `uuid` [GHSA-w5hq-g745-h8pq](https://github.com/advisories/GHSA-w5hq-g745-h8pq) | `next-auth@4.24.15` declares `uuid ^11.1.1`, and the lockfile resolves `uuid@11.1.1`. |
+| DEP-EXC-002 | `minimatch` and `brace-expansion` through `eslint-plugin-jsx-a11y` | `eslint-plugin-jsx-a11y`'s `minimatch ^3.1.2` resolves to `3.1.5`. Every `brace-expansion ^1.1.7` resolves to `1.1.21`. |
+| DEP-EXC-003 | `ajv` [GHSA-2g4f-4pwh-qvx6](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) through `raw-loader` | `schema-utils@3.3.0`'s `ajv ^6.12.5` resolves to the hoisted `ajv@6.15.0`. |
 
-### DEP-EXC-002: `minimatch@3.1.2` and `brace-expansion@1.1.12` through JSX accessibility linting
-
-- **Advisories:** [GHSA-3ppc-4f35-3m26](https://github.com/advisories/GHSA-3ppc-4f35-3m26), [GHSA-7r86-cg39-jmmj](https://github.com/advisories/GHSA-7r86-cg39-jmmj), [GHSA-23c5-xmqv-rm74](https://github.com/advisories/GHSA-23c5-xmqv-rm74), [GHSA-f886-m6hf-6m8v](https://github.com/advisories/GHSA-f886-m6hf-6m8v).
-- **Path:** `eslint-plugin-jsx-a11y@6.10.2 -> minimatch@3.1.2 -> brace-expansion@1.1.12`.
-- **Reachability:** the plugin's patterns are its fixed defaults; JSX component names are candidate strings, not patterns. The chain is absent from `bun audit --production` and runs only in an ephemeral, read-only lint job that already executes contributor-controlled source.
-- **Why no forced upgrade:** the plugin still declares `minimatch ^3.1.2`; a global minimatch 10 override would break its contract and displace ESLint's separate minimatch 10 line.
-- **Review date / expiry:** 2026-08-11 / 2026-10-11.
-- **Exit condition:** an upstream plugin release resolving minimatch `>=3.1.4` and brace-expansion `>=1.1.13`, or a replacement with proven equivalent accessibility coverage.
-
-### DEP-EXC-003: `ajv@6.12.6` through raw-loader schema validation
-
-- **Advisory:** [GHSA-2g4f-4pwh-qvx6](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6), Moderate.
-- **Path:** `raw-loader@4.0.2 -> schema-utils@3.3.0 -> ajv@6.12.6`.
-- **Reachability:** requires Ajv's optional `$data` feature and an attacker-controlled schema. raw-loader validates only its fixed loader options; the Next configuration supplies a static raw-loader rule for tracked Markdown and never passes article content as a schema. The chain is absent from the deployed production graph.
-- **Why no forced upgrade:** raw-loader has no newer stable release, and a global Ajv override would force Ajv 6 into consumers that declare Ajv 8.
-- **Review date / expiry:** 2026-08-11 / 2026-10-11.
-- **Exit condition:** migrate Markdown imports to a Next-native loader path, or an upstream loader/schema-utils release that resolves Ajv `>=6.14.0`.
+Bun 1.3.5 does not re-resolve a deleted nested `bun.lock` entry. It falls back to the hoisted version, even when that version breaks the declared range. To move one nested resolution, rewrite its entry with the registry version, dependencies and integrity. Then prove the result with `bun install --frozen-lockfile` into an empty `node_modules`, and check that a plain `bun install` leaves `bun.lock` unchanged.
 
 ### Review procedure
 

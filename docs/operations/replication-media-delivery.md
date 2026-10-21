@@ -1,6 +1,12 @@
 <a id="replication-media-delivery--transcode-archive-and-repoint"></a>
 # Replication Media Delivery: Transcode, Archive, and Repoint
 
+The current runbook is [Current media origin](#current-media-origin-cloudflare-r2),
+[Urgent media withdrawal](#urgent-media-withdrawal), section 1 (how a URL
+reaches the browser), section 7 (schema limits), and section 8 (preview
+renditions). Sections 2 to 6 record the completed 2026-08 rescue from the
+retired hosted storage. They are history, not operator instructions.
+
 The replication corpus contains 247 rows: 125 raw, never-transcoded video
 masters totalling 44.62 GB and 122 images totalling 235 MB. Video playback was
 slow, and **almost none of those bytes lived on production**. This document
@@ -52,24 +58,26 @@ existing Cloudflare R2 archive. The dual-read seam is live in code:
 - Writes: `replications.updateR2Keys`, compare-and-swap per variant: every
   key travels with the storage ID it was derived from and the batch fails if
   the row was repointed since the plan.
-- Tooling: the reviewed historical SHA-256 reconciliation ledger is kept
-  outside the repository; it retains digest identity, never filename or size. Its original hosted-source producers are retired.
-  `scripts/replications/backfill-r2-keys.mjs` remains the native guarded consumer
-  (dry-run default, canary via `--slugs`, existing production-write gates).
+- Tooling: `scripts/replications/backfill-r2-keys.mjs` attaches keys from a
+  reviewed SHA-256 reconciliation ledger (dry-run default, canary via
+  `--slugs`, existing production-write gates). The ledger is not in this
+  repository. Pass its path with `--ledger <ledger.json>`. Its producer was
+  retired with the hosted storage and removed from the tree, so a rerun needs
+  the owner's retained copy.
 
-The checked-in ledger reconciles 2,804 populated replication media fields with
-zero missing, ambiguous, or error results. Its R2 copy verification covers
+When it was built, the ledger reconciled 2,804 populated replication media
+fields with zero missing, ambiguous, or error results. Its R2 copy verification covers
 1,194 distinct objects copied from the retired hosted storage, including
 byte-range delivery. The larger unified archive remains independently verified
 at 10,150 objects and 215,107,472,061 bytes. Storage identities and direct URLs
 remain populated as rollback sources; deleting those objects was not part of
 this migration.
 
-Note for reruns of the repoint procedure below: on a row whose `r2_key` is set
-while `REPLICATION_MEDIA_BASE_URL` is configured, repointing `storage_id` no
-longer changes what the browser sees (`fieldThatWins()` in
-`repoint-renditions.mjs` predates the R2 tier). That observation describes the historical rescue tool, not permission to
-unset the required runtime media base.
+`scripts/replications/repoint-renditions.mjs` now uploads to R2 and writes
+`r2_key` and `thumbnail_r2_key` (`fieldThatWins()` returns `r2_key`) through
+`replications.updateMediaRenditions`. That handler refuses the write when the
+row's media identity changed since the reviewed plan. The `storage_id` writes
+in sections 5 and 6 describe the 2026-08 runs only.
 
 Urgent URL withdrawal is separate from gallery hiding and ordinary outage
 rollback. Follow [Urgent media withdrawal](#urgent-media-withdrawal) below.
@@ -277,18 +285,18 @@ Responsive still-image delivery is described above.
 
 | Step | Location |
 | --- | --- |
-| URL produced | `server/lib/replicationUrls.ts:6-52` `resolveReplicationUrls` |
-| Query entry points | `server/replications.ts:20-43`; handlers in `server/lib/replicationReads.ts:57-132` |
-| Transport | `lib/data/serverClient.ts:57-75` `queryData` |
-| Adapter | `lib/data/publicData.reads.ts:705-729` |
-| Cache | `lib/data/publicData.effects.ts:143-164`; 900 s and tags are defined in `lib/data/publicData.cache.ts:1-10` |
-| Route loader | `lib/next/routeLoaders.replications.ts:57-154` `loadReplicationRoute` |
-| Page | `src/app/replications/[slug]/page.tsx:9-99` (`revalidate = 3600`, `dynamicParams = false`) |
-| Element | `src/features/effects/pages/ReplicationDetailPage.tsx:155-181` |
+| URL produced | `resolveReplicationUrls` in `server/lib/replicationUrls.ts` |
+| Query entry points | `server/replications.ts`; handlers in `server/lib/replicationReads.ts` |
+| Transport | `queryData` in `lib/data/serverClient.ts` |
+| Adapter | `lib/data/publicData.reads.ts` |
+| Cache | `lib/data/publicData.effects.ts`; the 900 s window is in `lib/data/publicData.cache.ts` and the tags in `lib/data/publicData.cacheTags.ts` |
+| Route loader | `loadReplicationRoute` in `lib/next/routeLoaders.replications.ts` |
+| Page | `src/app/replications/[slug]/page.tsx` (`revalidate = 3600`, `dynamicParams = true`, `generateStaticParams` returns `[]`) |
+| Element | `src/features/effects/pages/ReplicationDetailPage.tsx` |
 
 Two more `<video>` elements consume the same shape:
-`src/features/effects/gallery/GalleryMediaTile.tsx:132-148` and
-`src/features/effect-index/home/FeaturedReplicationsPanel.tsx:149-163`. Both are
+`src/features/effects/gallery/GalleryMediaTile.tsx` and
+`src/features/effect-index/home/FeaturedReplicationsPanel.tsx`. Both are
 client components fed by a server read; no client `useQuery` reads replications.
 
 ### Immersive viewer playback
@@ -372,19 +380,20 @@ behavior, not a supported current backend switch.
 
 ### Consequences
 
-- **A null URL deletes the page.** `lib/next/routeLoaders.replications.ts:71-88`
-  returns `not-found` when `replication.url` is falsy, and
-  `lib/next/publicRoutePlan.ts:231-241` omits rows without resolved URLs from
-  static parameters. With `dynamicParams = false`, a row that fails to resolve
-  at build time has no page. The blast radius of a bad repoint is page removal,
-  not a broken video.
+- **A null URL deletes the page.** `loadReplicationRoute` returns `not-found`
+  when `replication.url` is falsy, and `lib/next/publicRoutePlan.ts` omits rows
+  without a resolved URL from the sitemap. Detail pages render on request, so
+  a row that stops resolving 404s on its next render. The blast radius of a
+  bad repoint is page removal, not a broken video.
 - **Resolved URLs are cached twice**: 900 s in
   `lib/data/publicData.effects.ts`, then ISR HTML at 3600 s.
-  `revalidateTag("data-public:replications")`, whose tag is defined in
-  `lib/data/publicData.cache.ts:3-10`, forces refresh.
-- **CSP already permits any HTTPS media host**:
-  `lib/next/cspObservationPolicy.ts:165-168`. No CSP change is needed.
-- **`next/image` is not in the path.** `src/components/common/AppImage.tsx:20-22`
+  `revalidateTag("data-public:replications")` forces a refresh. Public
+  freshness needs the evidence in
+  [deployment](deployment.md#build-and-release-sequence): elapsed time or an
+  editor-host response is not proof.
+- **CSP already permits any HTTPS media host**
+  (`lib/next/cspObservationPolicy.ts`). No CSP change is needed.
+- **`next/image` is not in the path.** `src/components/common/AppImage.tsx`
   treats only local paths as optimizable, so remote posters render through a
   plain `<img>`. The absent `images.remotePatterns` has never broken them.
 
@@ -599,7 +608,8 @@ long edge capped at 1920 with no upscaling, `-pix_fmt yuv420p`, AAC-LC 128 kbps
 stereo or `-an` when the master is silent, frame rate untouched,
 `-movflags +faststart`. Three actions per file: `transcode`, lossless `remux`
 (right codec, wrong container or trailing `moov`), or verbatim `copy` (already a
-faststart web MP4). Rationale for each setting is in the script header.
+faststart web MP4). `DEFAULT_OPTIONS` in
+`scripts/replications/video-transcode-planning.mjs` owns the defaults.
 
 **Projected corpus size after transcode: roughly 3–8 GB, central ~5 GB (~9:1).**
 Output size is bitrate × duration and is independent of source size; at 1080p
@@ -612,7 +622,9 @@ estimates with measured bytes as files land.
 ## 5. Step 2: upload to production and repoint
 
 `scripts/replications/repoint-renditions.mjs`. **This is a production database
-write.** Run against video on 2026-08-10 and against images on 2026-08-11.
+write.** Run against video on 2026-08-10 and against images on 2026-08-11. This
+section describes the script as it ran then. It now writes R2 keys instead
+(see [Current media origin](#current-media-origin-cloudflare-r2)).
 
 For the 2026-08-10 video run, this step fixed size and faststart while retiring
 both orphan sources and the thumbnails on now-retired development deployment
@@ -629,12 +641,9 @@ live `storage_id`. Those rows keep resolving through storage and keep serving th
 old file. A migration that did this and reported success would leave 60 videos
 untranscoded with no error anywhere.
 
-The script writes **`storage_id`**, the field that wins, through
-`api.replications.updateStorageIds` (`server/replications.ts`, implemented
-by `updateStorageIdsHandler` in `server/lib/replicationWrites.ts`). The tested
-`fieldThatWins()` function is at
-`scripts/replications/repoint-renditions.mjs:107-109`; a precedence change makes
-that test fail and forces the migration to be reconsidered.
+The script wrote **`storage_id`**, the field that won before R2, through
+`api.replications.updateStorageIds`. Its `fieldThatWins()` named that field.
+Today it returns `r2_key`, the field `resolveReplicationUrls` checks first.
 
 <a id="trap-2--the-blast-radius-is-page-removal"></a>
 ### Trap 2: the blast radius is page removal
@@ -661,12 +670,11 @@ website uses) immediately after its write:
 All failing clauses are reported together, not just the first. Any failure stops
 the run before the next row.
 
-Before each write, the script also does a **compare-and-swap check**: it re-reads
-the row and aborts if `storage_id` changed after the reviewed plan. This remains
-script-level because `updateStorageIds` has no `expectedStorageId` argument.
-`applySourceRecoveryHandler` shows the atomic server-side pattern in
-`server/lib/replicationRecovery.ts`; adding the same precondition remains
-an open decision before another large run.
+Before each write, the script also did a **compare-and-swap check**: it re-read
+the row and aborted if `storage_id` changed after the reviewed plan. That check
+was script-level because `updateStorageIds` has no `expectedStorageId`
+argument. The current writer, `updateMediaRenditions`, takes the expected
+media identity and compares it on the server.
 
 ### Batching and rollback
 
@@ -721,11 +729,12 @@ Run repository commands from the DoseWiki repository root.
    Continue only when the plan names the intended host/database. Never write
    credentials to a tracked file.
 5. Dry-run `repoint-renditions.mjs` against that target and read the plan.
-6. Repoint in batches with the full ceremony. Verify each batch at
-   `https://dosewiki-admin.vercel.app/replications/<slug>` before continuing.
-7. Call `revalidateTag("data-public:replications")`; otherwise the 900 s
-   `unstable_cache` and 3600 s ISR retain old resolved URLs. The authenticated
-   editor write routes trigger it; without one, wait for both caches to expire.
+6. Repoint in batches with the full ceremony. Verify each batch through the
+   script's own per-row readback before continuing.
+7. Run an authorized targeted revalidation of `data-public:replications`, or
+   redeploy, then verify the canonical public page. Elapsed cache time or an
+   editor-host response is not proof of public freshness
+   ([deployment](deployment.md#build-and-release-sequence)).
 8. Keep the orphan deployments for the defined rollback period.
 9. Remove any operation-scoped credentials from the shell.
 
@@ -746,41 +755,38 @@ muted low-res preview instead of pulling the full rendition on hover.
 since 2026-08-25 playback is hover-gated on a fine pointer, and touch or
 reduced-motion readers get fully static tiles.)
 
-- **Field**: `preview_storage_id` is optional beside `thumbnail_storage_id` in
-  `server/lib/effectMediaSchemaValidators.ts`. It applies to video rows
-  only. A row without it falls back to hover-playing the full `url`.
-- **Resolver**: `server/lib/replicationUrls.ts` resolves it to
-  `preview_url` through `ctx.storage.getUrl`, with no string-field fallback.
-  `server/lib/replicationReads.ts` threads it through the public
-  reads. `src/types/replications.ts:153-161` types `preview_url`, and
-  `lib/public-api/v1.ts:110-135` projects it into the public API.
-- **Write path**: `api.replications.updatePreviewStorageIds` is exposed in
-  `server/replications.ts` and implemented by
-  `updatePreviewStorageIdsHandler` in `server/lib/replicationRecovery.ts`. Its batch entries are
-  `{ id, previewStorageId, expectedStorageId }`; the handler compares the row's
-  current `storage_id`, rejects placeholder or malformed IDs, and leaves
-  `storage_id`, `url`, and thumbnail fields unchanged.
+- **Field**: `preview_r2_key`, with the legacy `preview_storage_id` beside it
+  in `server/lib/effectMediaSchemaValidators.ts`. It applies to video rows
+  only. A row without either falls back to hover-playing the full `url`.
+- **Resolver**: `server/lib/replicationUrls.ts` resolves `preview_r2_key`
+  first, then `preview_storage_id` through `ctx.storage.getUrl`, with no
+  string-field fallback. `server/lib/replicationReads.ts` threads it through
+  the public reads. `src/types/replications.ts` types `preview_url`, and
+  `lib/public-api/v1.ts` projects it into the public API.
+- **Write path**: `api.replications.updateMediaRenditions`, the same
+  identity-checked writer as the repoint script. It sets only
+  `preview_r2_key` and leaves `storage_id`, `url`, and thumbnail fields
+  unchanged.
 - **Script**: `scripts/replications/generate-preview-renditions.mjs`. Dry-run
   is the default. Writes require
   `--write --confirm-write=generate-preview-renditions
   --expected-deployment=<host>/<database>
   --target=postgresql://<host>/<database>`. Per row it downloads the
-  production rendition to scratch, encodes and uploads the preview, CAS-writes
-  `preview_storage_id`, flushes a ledger entry, then re-queries
-  `getPublicReplications`. It stops unless `preview_url` is non-null on
-  the expected production deployment and `url`/`thumbnail_url` are unchanged.
+  production rendition to scratch, encodes and uploads the preview to R2,
+  writes `preview_r2_key`, flushes a ledger entry, then re-reads the row with
+  `getResolvedById`. It stops unless the key persisted, `preview_url`
+  resolves inside the configured R2 media namespace, and `url`/`thumbnail_url`
+  are unchanged.
 - **Encode spec** (the gallery tile is written against exactly this): first 10s
   max · long edge 480px, never upscaled · H.264 High, yuv420p · CRF 30, preset
   veryfast · fps capped at 30 · no audio (`-an`) · `-movflags +faststart`.
 
 ## Open decisions for the owner
 
-1. **Whether to add `expectedStorageId` to `updateStorageIds`**, making the
-   compare-and-swap atomic rather than script-level. Still script-level today.
-2. **How long to leave the orphan deployments alive.** They are the only rollback
+1. **How long to leave the orphan deployments alive.** They are the only rollback
    for the 172 rows whose stored `url` still names them.
-3. **Whether to null the legacy `url` values** in a later cleanup pass, and when.
-4. **`shadow-people-figure-in-a-doorway` has the wrong thumbnail.** Its
+2. **Whether to null the legacy `url` values** in a later cleanup pass, and when.
+3. **`shadow-people-figure-in-a-doorway` has the wrong thumbnail.** Its
    `thumbnail_storage_id` now points at a production copy of
    `b877b211-…`, which is the *`shadow-people-figures-by-a-wall` picture*, not
    its own. The rescue preserved existing behaviour exactly and moved it to a

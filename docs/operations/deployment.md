@@ -246,6 +246,30 @@ production step halts the release; diagnosis does not authorize a retry.
 
 Expected result: each host serves only its intended flavor and artifact; public surfaces remain readable; editor documents and APIs remain protected; read-only projects have no write capability. A successful local build or source fix is not evidence that production changed.
 
+### Invalid substance records fail the build
+
+A public substance record that fails the article or library-input contract
+throws `PublicSubstanceContractError` (`lib/data/publicData.substanceContract.ts`).
+Before #11 it silently dropped out of the published corpus. The message names
+the slug and up to ten failing paths, for example
+`Invalid public substance article record for slug "lsd": dosage.routes.0.dose_ranges.light.min (...)`.
+A missing row still returns `null` and 404s.
+
+- One invalid present record fails every consumer of the bulk document and
+  library reads, not only its own article. That covers library and search, the
+  glossary usage index (and through it the DoseWiki home page, `/zh`, `/ru`,
+  `/glossary/languages`, and language glossary pages), category, mechanism,
+  and chemical-class pages, effect pages through effect membership, and
+  translation coverage tooling.
+- In a release build the error stops that deployment before promotion, and
+  readers keep the current production deployment. Fix the named record in the
+  editor, then rebuild. Do not restore a filtering fallback.
+- A passing build does not prove every record is valid. Only English high and
+  normal tier articles prerender. Editor, Effect Index, and locale substance
+  articles render on request, so a bad record there reaches the route error
+  boundary at request time. About previews check at most 12 non-low
+  candidates.
+
 ### Native completion release prerequisites
 
 Historical release receipts do not authorize a new release. Preserve compatible
