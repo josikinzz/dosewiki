@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createEmptyArticle } from "@/data/schema";
 import { createEmptyDosageRoute, createEmptyDurationRoute } from "@/data/schema/defaultFactories";
 import type { SubstanceArticle } from "@/schema";
+import { projectDosageDurationRoutes } from "@/schema/substance/dosageDurationProjection";
 import { pairRoutesByName, useArticleForm, type UseArticleFormReturn } from "./useArticleForm";
 
 function createArticle(): SubstanceArticle {
@@ -178,6 +179,28 @@ describe("pairRoutesByName", () => {
     expect(paired.duration.map((route) => route.route)).toEqual(["Oral", "Smoked"]);
     expect(paired.duration[0].half_life).toBe("4 hours");
     expect(paired.duration[1].half_life).toBe("30 minutes");
+  });
+
+  it("pairs routes exactly as the public dosage panels group them", () => {
+    const dosage = [
+      createEmptyDosageRoute("IV", { bioavailability: "100%" }),
+      createEmptyDosageRoute("Transdermal", { bioavailability: "40%" }),
+    ];
+    const duration = [
+      createEmptyDurationRoute("transdermal", { half_life: "12 hours" }),
+      createEmptyDurationRoute("Intravenous", { half_life: "5 minutes" }),
+    ];
+
+    const paired = pairRoutesByName(dosage, duration);
+    const panels = projectDosageDurationRoutes(dosage, duration, null);
+
+    expect(paired.dosage.map((route) => route.route)).toEqual(["IV", "Transdermal", "transdermal"]);
+    expect(paired.duration.map((route) => route.half_life)).toEqual(["5 minutes", "", "12 hours"]);
+    expect(panels.map((panel) => [panel.dosage?.route.route, panel.duration?.route.route])).toEqual([
+      ["IV", "Intravenous"],
+      ["Transdermal", undefined],
+      [undefined, "transdermal"],
+    ]);
   });
 });
 

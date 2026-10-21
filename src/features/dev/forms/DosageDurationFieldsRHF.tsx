@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorFieldRow, useConfirm } from "@/features/dev/components";
 import { formatDose } from "@/features/article/components/sections/dosageDurationModel";
+import { dosageDurationRouteKey } from "@/schema/substance/dosageDurationProjection";
 import { cn } from "@/lib/utils";
 
 import { useArticleFormContext } from "./ArticleFormContext";
@@ -59,9 +60,9 @@ function usePublishedRoute(index: number) {
   const published = usePublishedArticle();
   const routeName = useWatch<SubstanceArticle>({ name: `dosage.routes.${index}.route` });
   if (!published) return { known: false as const, dosage: null, duration: null };
-  const key = typeof routeName === "string" ? routeName.trim().toLowerCase() : "";
-  const dosage = published.dosage?.routes?.find((route) => (route.route ?? "").trim().toLowerCase() === key) ?? null;
-  const duration = published.duration?.routes?.find((route) => (route.route ?? "").trim().toLowerCase() === key) ?? null;
+  const key = dosageDurationRouteKey(typeof routeName === "string" ? routeName : "");
+  const dosage = published.dosage?.routes?.find((route) => dosageDurationRouteKey(route.route) === key) ?? null;
+  const duration = published.duration?.routes?.find((route) => dosageDurationRouteKey(route.route) === key) ?? null;
   return { known: true as const, dosage, duration };
 }
 

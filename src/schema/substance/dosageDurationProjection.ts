@@ -7,6 +7,10 @@ import {
   routeHasDurationContent,
 } from "./dosageDurationPresence.ts";
 
+export function dosageDurationRouteKey(routeName: string | null | undefined): string {
+  return normalizeRouteName(routeName ?? "");
+}
+
 export interface RouteRow<Route> {
   route: Route;
   index: number;
@@ -35,7 +39,7 @@ export function projectDosageDurationRoutes<
   >();
   const groupFor = (route: Partial<DosageRoute | DurationRoute> | null) => {
     if (!route || typeof route !== "object") return null;
-    const key = normalizeRouteName(route.route ?? "");
+    const key = dosageDurationRouteKey(route.route);
     if (!key) return null;
     const existing = groups.get(key);
     if (existing) return existing;
