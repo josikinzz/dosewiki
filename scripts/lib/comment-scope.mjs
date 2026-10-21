@@ -14,9 +14,13 @@ export function generatedCommentPaths(repoRoot) {
   return lineage.artifacts.map(({ path: artifactPath }) => artifactPath);
 }
 
-export function trackedCommentFiles(repoRoot, extension) {
+export function commentScope(repoRoot, extension) {
   const exclusions = [...commentExclusions, ...generatedCommentPaths(repoRoot)];
+  return (file) => extension.test(file) && !exclusions.some((pattern) => matchesGlob(file, pattern));
+}
+
+export function trackedCommentFiles(repoRoot, extension) {
   return execFileSync("git", ["ls-files", "-z"], { cwd: repoRoot, encoding: "utf8" })
     .split("\0")
-    .filter((file) => extension.test(file) && !exclusions.some((pattern) => matchesGlob(file, pattern)));
+    .filter(commentScope(repoRoot, extension));
 }

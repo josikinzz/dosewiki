@@ -4,7 +4,7 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
-import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.js';
+import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.mjs';
 import { codeCommentFiles, commentExclusions, generatedCommentPaths } from './scripts/lib/comment-scope.mjs';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';

@@ -131,7 +131,7 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed or had every test skipped in any run, or if a file in `scripts/test/test-policy.json` did not run |
 | `bun run typecheck` | Application type check, with strict null checks on |
 | `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
-| `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
+| `bun run lint:files -- <path>...` | The `lint` checks on only the named files: ESLint on JavaScript and TypeScript, and each scanner on the files inside its CI scope |
 | `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
@@ -144,5 +144,6 @@ the type check, or the whole graph with `bun run verify`.
 `package.json` lists every other command. The pre-commit hook in `.husky/`
 runs `scripts/security/scan-secrets.mjs --staged` on the exact staged blobs,
 then `scripts/security/check-staged-files.mjs`. That script blocks any staged
-file named `.env*` other than `.env.example`, renames included, and runs ESLint
-on the staged JavaScript and TypeScript files as they are in the working tree.
+file named `.env*` other than `.env.example`, renames included, and runs
+the `lint:files` checks on the staged paths. Those checks read the working tree,
+not the staged blobs.
