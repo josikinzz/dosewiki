@@ -816,8 +816,7 @@ export function MoleculeEditorSession({
       return;
     }
     const saveSlug = mode === "classes" ? `class:${selected}` : selected;
-    const expectedUpdatedAt =
-      overrideDoc === undefined ? undefined : overrideDoc ? overrideDoc.updatedAt : null;
+    const expectedUpdatedAt = overrideDoc?.updatedAt ?? null;
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
@@ -828,7 +827,7 @@ export function MoleculeEditorSession({
           svg,
           smiles,
           ...(boldBonds.length > 0 ? { boldBonds } : {}),
-          ...(expectedUpdatedAt !== undefined ? { expectedUpdatedAt } : {}),
+          expectedUpdatedAt,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {

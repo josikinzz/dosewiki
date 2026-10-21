@@ -44,7 +44,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     dismissRevert,
     loadTimedOut,
     overrideRead,
-    retryOverrideLoad,
+    reloadOverride,
     dirty,
     canSave,
     loadedFromOverride,
@@ -100,7 +100,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           title="Couldn't load depiction"
           message={overrideRead.error}
           actions={(
-            <Button variant="outline" size="sm" onClick={retryOverrideLoad}>
+            <Button variant="outline" size="sm" onClick={reloadOverride}>
               <Icon icon="lucide:rotate-cw" size={14} />
               Try again
             </Button>
@@ -193,11 +193,22 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
           {saveResult ? (
             <Notice
               className="w-full"
-              tone={saveResult.tone} title={saveResult.tone === "success" ? "Saved" : "Couldn't save"} message={saveResult.message} actions={(
+              tone={saveResult.tone}
+              title={saveResult.title ?? (saveResult.tone === "success" ? "Saved" : "Couldn't save")}
+              message={saveResult.message}
+              actions={(
+                <>
+                  {saveResult.kind === "conflict" ? (
+                    <Button variant="outline" size="sm" onClick={reloadOverride}>
+                      <Icon icon="lucide:refresh-cw" size={14} />
+                      Load the latest version
+                    </Button>
+                  ) : null}
                   <Button variant="outline" size="sm" onClick={dismissSaveResult}>
                     Dismiss
                   </Button>
-                )}
+                </>
+              )}
             />
           ) : null}
         </div>

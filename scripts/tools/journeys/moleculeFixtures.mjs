@@ -117,6 +117,9 @@ export function createMoleculeRoutes({ fixture, json, toolRead, toolWrite, epoch
     if (!/^(class:)?[a-z0-9][a-z0-9-]*$/.test(slug)) return json(400, { error: "A valid molecule slug is required." });
     if (typeof body.molblock !== "string" || !body.molblock) return json(400, { error: "A valid molecule MOL block is required." });
     if (typeof body.svg !== "string" || !body.svg.includes("<svg")) return json(400, { error: "A valid molecule SVG is required." });
+    if (body.expectedUpdatedAt !== null && (typeof body.expectedUpdatedAt !== "string" || !body.expectedUpdatedAt)) {
+      return json(400, { error: "expectedUpdatedAt must be the updatedAt the editor loaded, or null when it loaded no depiction." });
+    }
     let stored = overrides.get(slug) ?? null;
     if (fixture.state === "conflicted" && !contested.has(slug)) {
       contested.add(slug);
@@ -128,7 +131,7 @@ export function createMoleculeRoutes({ fixture, json, toolRead, toolWrite, epoch
       };
       overrides.set(slug, stored);
     }
-    if (body.expectedUpdatedAt !== undefined && body.expectedUpdatedAt !== (stored?.updatedAt ?? null)) {
+    if (body.expectedUpdatedAt !== (stored?.updatedAt ?? null)) {
       return json(409, {
         error: "Someone saved this depiction after you opened it. Reload it to see their version before saving.",
         conflict: { updatedAt: stored?.updatedAt ?? null, updatedBy: stored?.updatedBy ?? null },

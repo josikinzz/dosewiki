@@ -88,11 +88,13 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   dragging; off, the overlay is `pointer-events: none` and drawing goes straight through it.
   Fade and size are sliders. Session-only: the image lives in an object URL and is never
   uploaded or saved (`TracingLayer.tsx`).
-- **Persistence:** Save POSTs `{ slug, molblock, svg, smiles?, boldBonds?, expectedUpdatedAt? }`
-  to the editor-gated `/api/dev/molecule-override` route, which writes the Postgres
+- **Persistence:** Save POSTs `{ slug, molblock, svg, smiles?, boldBonds?, expectedUpdatedAt }`
+  to the admin-gated `/api/dev/molecule-override` route, which writes the Postgres
   `moleculeOverrides` table and revalidates the public substance page. `expectedUpdatedAt` is
-  the revision the editor loaded (`null` when none existed); when someone saved since, the route
-  answers 409, writes nothing, and the editor keeps the edit on the canvas with a notice. Save marks the row `source: "editor"`. The public
+  the revision the editor loaded (`null` when none existed), and the route refuses a save that
+  omits it. When someone saved since, the route answers 409 and writes nothing. The full editor
+  and the review-mode quick editor both keep the edit on the canvas with a notice that offers
+  **Load the latest version**. Save marks the row `source: "editor"`. The public
   article and chemical-class comparison panels serve the stored SVG through a URL versioned by
   `updatedAt`; the image response is immutable because every save creates a new URL. A short CDN
   revalidation propagation delay can remain. A save does not rewrite the committed
