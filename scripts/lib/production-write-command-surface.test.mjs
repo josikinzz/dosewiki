@@ -79,12 +79,6 @@ function unclassifiedRawSqlWriters(detections) {
     .sort();
 }
 
-const STORAGE_UPLOAD_CONFIRMATIONS = {
-  "scripts/build/publishSocialCardsToR2.mjs": ["--confirm-operation", "--confirm-plan", "--confirm-target", "--confirm-bucket"],
-  "scripts/replications/prepare-r2-image-renditions.ts": ["--confirm-write", "--confirm-plan"],
-  "scripts/replications/run-local-r2-upload-batches.mjs": ["--confirm-write"],
-};
-
 const INDIRECT_WRITE_KINDS =["data-cli-write", "http-write", "library-write", "subprocess-write"];
 
 function unclassifiedIndirectWriters(detections) {
@@ -278,20 +272,13 @@ describe("production writer command surface", () => {
     },
   );
 
-  it("names the native confirmation contract of every storage uploader", () => {
-    expect(Object.keys(STORAGE_UPLOAD_CONFIRMATIONS).sort()).toEqual(
-      [...productionWriterClassifications.storageUploadEntrypoint].sort(),
-    );
-  });
-
   it.each(productionWriterClassifications.storageUploadEntrypoint)(
-    "%s asserts the write freeze behind its storage write confirmation",
+    "%s calls authorizeStorageWrite and rechecks the freeze at its sinks",
     (path) => {
       const source = readFileSync(resolve(repoRoot, path), "utf8");
+      expect(source).toContain("storage-write-authorization.mjs");
+      expect(source).toMatch(/\bauthorizeStorageWrite\(/);
       expect(source).toMatch(/\bassertDataWritesNotFrozen\(/);
-      for (const flag of STORAGE_UPLOAD_CONFIRMATIONS[path]) {
-        expect(source, flag).toContain(flag);
-      }
     },
   );
 

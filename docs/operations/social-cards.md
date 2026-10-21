@@ -49,14 +49,14 @@ R2 phases read `CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY`,
 
 `--confirm-target` is the host of `CLOUDFLARE_R2_S3_ENDPOINT`, or the `--rclone-remote` value. `--confirm-bucket` is `CLOUDFLARE_R2_BUCKET`, or the `--bucket-label` value. The commands below write them as `<endpoint host>` and `<bucket>`.
 
-The publisher's gates are `--apply`, the four `--confirm-*` flags, the ledgers, and the human approval. This runbook never authorizes clearing a write freeze.
+The publisher's gates are `--write`, the four `--confirm-*` flags, the ledgers, and the human approval. The shared storage authorizer (`authorizeStorageWrite` in `scripts/lib/storage-write-authorization.mjs`) checks the write freeze, `--write`, and all four confirmations before any write or install. This runbook never authorizes clearing a write freeze.
 
 The publisher plans URLs on `--delivery-base`, else `SOCIAL_CARD_CDN_BASE`, which it can read from `.env.local`, else its built-in default. The verifier reads only `--delivery-base`. When a plan used a non-default base, pass the same `--delivery-base` to every verifier run for that plan.
 
 ## How each phase behaves
 
-1. **Plan.** Without `--preflight-r2`, `--apply`, or `--install-candidate` the publisher makes no network request, R2 write, or manifest change. It hashes every local card, carries entries already on the delivery base as published, prints `Plan <digest>`, and writes the candidate manifest with R2 URLs and `promotion.planDigest`. The input and target manifests default to the entity manifest, and the ledgers default to `runs/social-card-r2-promotion/`, so every command below names them. Adding `--preflight-r2` makes a credentialed read that classifies each object as reusable or absent and writes nothing.
-2. **Canary.** Repeat the plan arguments, add one or more `--canary-selector` values, and add `--apply` with the four confirmations. Only the selected objects are uploaded or confirmed as already present, and no manifest changes. Any confirmation that does not match the current plan and target refuses the run.
+1. **Plan.** Without `--preflight-r2`, `--write`, or `--install-candidate` the publisher makes no network request, R2 write, or manifest change. It hashes every local card, carries entries already on the delivery base as published, prints `Plan <digest>`, and writes the candidate manifest with R2 URLs and `promotion.planDigest`. The input and target manifests default to the entity manifest, and the ledgers default to `runs/social-card-r2-promotion/`, so every command below names them. Adding `--preflight-r2` makes a credentialed read that classifies each object as reusable or absent and writes nothing.
+2. **Canary.** Repeat the plan arguments, add one or more `--canary-selector` values, and add `--write` with the four confirmations. Only the selected objects are uploaded or confirmed as already present, and no manifest changes. Any confirmation that does not match the current plan and target refuses the run.
 3. **Full apply.** Repeat the canary command without any selector and add `--resume`. It refuses unless the same ledger records a completed canary for this exact plan digest. A selector left in the command runs another canary instead.
 4. **Verify objects.** The verifier fetches every unique object in the candidate from the delivery base and checks its digest, length, content type, cache policy, inline disposition, and byte-range support.
 5. **Install.** Repeat the plan arguments and the confirmations, and add `--install-candidate` with the target, rollback, and verification-ledger paths. It refuses without a completed full apply for this plan in the publisher ledger, complete object verification for this plan in the verification ledger, and a candidate carrying the same plan digest. It also refuses if the rollback file exists, so give each refresh a fresh run directory. It copies the current target to the rollback file, then writes the candidate over the target.
@@ -111,7 +111,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/substance/candidate.json \
   --ledger=runs/social-card-r2-promotion/substance/publisher.jsonl \
   --canary-selector=ketamine: \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -124,7 +124,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/substance/candidate.json \
   --ledger=runs/social-card-r2-promotion/substance/publisher.jsonl \
   --resume \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -149,7 +149,7 @@ bun run publish:social-cards -- \
   --target-manifest=src/data/substanceSocialCardManifest.generated.json \
   --rollback-manifest=runs/social-card-r2-promotion/substance/rollback.json \
   --verification-ledger=runs/social-card-r2-promotion/substance/verification.jsonl \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -182,7 +182,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/page/candidate.json \
   --ledger=runs/social-card-r2-promotion/page/publisher.jsonl \
   --canary-selector=home: \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -195,7 +195,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/page/candidate.json \
   --ledger=runs/social-card-r2-promotion/page/publisher.jsonl \
   --resume \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -220,7 +220,7 @@ bun run publish:social-cards -- \
   --target-manifest=src/data/pageSocialCardManifest.generated.json \
   --rollback-manifest=runs/social-card-r2-promotion/page/rollback.json \
   --verification-ledger=runs/social-card-r2-promotion/page/verification.jsonl \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -254,7 +254,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/entity/candidate.json \
   --ledger=runs/social-card-r2-promotion/entity/publisher.jsonl \
   --canary-selector=effects:<slug> \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -267,7 +267,7 @@ bun run publish:social-cards -- \
   --candidate-manifest=runs/social-card-r2-promotion/entity/candidate.json \
   --ledger=runs/social-card-r2-promotion/entity/publisher.jsonl \
   --resume \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
@@ -292,7 +292,7 @@ bun run publish:social-cards -- \
   --target-manifest=src/data/entitySocialCardManifest.generated.json \
   --rollback-manifest=runs/social-card-r2-promotion/entity/rollback.json \
   --verification-ledger=runs/social-card-r2-promotion/entity/verification.jsonl \
-  --apply --confirm-operation=publish-social-cards --confirm-plan=<plan digest> \
+  --write --confirm-write=publish-social-cards --confirm-plan=<plan digest> \
   --confirm-target=<endpoint host> --confirm-bucket=<bucket>
 ```
 
