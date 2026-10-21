@@ -8,6 +8,7 @@ import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { plainGuardOptions, requireStringGuardOption } from "@server/http/guardOptions";
 
 type DataWriteCapabilityPolicy = {
   type: "dataWrite";
@@ -51,17 +52,21 @@ function mapDefaultError(error: unknown): NextResponse | null {
   return null;
 }
 
-export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>({
-  auth: authFloor,
-  rateLimit,
-  rateLimitKeySuffix,
-  body,
-  capabilities,
-  unexpectedErrorLabel,
-  unexpectedErrorMessage,
-  mapError,
-  operation,
-}: ProtectedRouteOperationOptions<RawBody, ParsedBody>) {
+export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>(options: ProtectedRouteOperationOptions<RawBody, ParsedBody>) {
+  const {
+    auth: authFloor,
+    rateLimit,
+    rateLimitKeySuffix,
+    body,
+    capabilities,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+    mapError,
+    operation,
+  } = plainGuardOptions(options);
+  requireStringGuardOption("auth", authFloor);
+  requireStringGuardOption("rateLimit", rateLimit);
+  requireStringGuardOption("rateLimitKeySuffix", rateLimitKeySuffix, { optional: true });
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
       const foreign = foreignOriginResponse(request, "editorWrite");

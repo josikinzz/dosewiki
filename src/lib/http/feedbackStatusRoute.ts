@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackStatusRouteContext = {
   params: Promise<{ id: string }>;
@@ -33,16 +34,17 @@ export type FeedbackStatusRouteOptions<Status extends string> = {
 
 const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
-export function feedbackStatusRoute<Status extends string>({
-  isStatus,
-  isOutcome,
-  getStore,
-  NotFoundError,
-  StorageConfigurationError,
-  notFoundMessage,
-  unexpectedErrorLabel,
-  unexpectedErrorMessage,
-}: FeedbackStatusRouteOptions<Status>) {
+export function feedbackStatusRoute<Status extends string>(options: FeedbackStatusRouteOptions<Status>) {
+  const {
+    isStatus,
+    isOutcome,
+    getStore,
+    NotFoundError,
+    StorageConfigurationError,
+    notFoundMessage,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options);
   const mapError = (error: unknown): NextResponse | null => {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

@@ -613,12 +613,23 @@ function resolveModuleId(root, fromFile, source) {
   return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
 }
 
+const PRIMITIVE_LITERAL_TYPES = new Set(['string', 'number', 'boolean']);
+const PRIMITIVE_UNARY_OPERATORS = new Set(['-', '+', '!']);
+const PRIMITIVE_BINARY_OPERATORS = new Set(['+', '-', '*', '/', '%', '**']);
+
+function isPrimitiveLiteral(node) {
+  return node.type === 'Literal' && !node.regex && node.bigint === undefined &&
+    (node.value === null || PRIMITIVE_LITERAL_TYPES.has(typeof node.value));
+}
+
 function isConstantExpression(node) {
   if (TYPE_ONLY_WRAPPERS.has(node.type)) return isConstantExpression(node.expression);
-  if (node.type === 'Literal') return true;
+  if (node.type === 'Literal') return isPrimitiveLiteral(node);
   if (node.type === 'TemplateLiteral') return node.expressions.length === 0;
-  if (node.type === 'UnaryExpression') return ['-', '+', '!'].includes(node.operator) && isConstantExpression(node.argument);
-  if (node.type === 'BinaryExpression') return isConstantExpression(node.left) && isConstantExpression(node.right);
+  if (node.type === 'UnaryExpression') return PRIMITIVE_UNARY_OPERATORS.has(node.operator) && isConstantExpression(node.argument);
+  if (node.type === 'BinaryExpression') {
+    return PRIMITIVE_BINARY_OPERATORS.has(node.operator) && isConstantExpression(node.left) && isConstantExpression(node.right);
+  }
   return false;
 }
 

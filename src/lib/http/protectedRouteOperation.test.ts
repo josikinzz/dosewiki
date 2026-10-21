@@ -210,6 +210,68 @@ describe("protectedRouteOperation", () => {
     expect(nestedReads).toEqual([]);
   });
 
+  it("ignores inherited option accessors when built inside a request", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const inheritedReads: string[] = [];
+    const inherited = ["rateLimitKeySuffix", "capabilities", "mapError", "unexpectedErrorMessage"];
+    for (const key of inherited) {
+      Object.defineProperty(Object.prototype, key, {
+        configurable: true,
+        get() {
+          inheritedReads.push(key);
+          return undefined;
+        },
+      });
+    }
+    try {
+      const handle = (incoming: Request) =>
+        protectedRouteOperation({
+          auth: "editor",
+          rateLimit: "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation: () => NextResponse.json({ ok: true }),
+        })(incoming);
+
+      expect((await handle(request())).status).toBe(401);
+      expect((await handle(request())).status).toBe(401);
+    } finally {
+      for (const key of inherited) delete (Object.prototype as Record<string, unknown>)[key];
+    }
+
+    expect(inheritedReads).toEqual([]);
+  });
+
+  it("refuses accessor options and non-string pre-auth values at construction", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const operation = () => NextResponse.json({ ok: true });
+
+    expect(() =>
+      protectedRouteOperation({
+        auth: "editor",
+        get rateLimit() {
+          return "editorSmallWrite" as const;
+        },
+        unexpectedErrorLabel: "test:",
+        operation,
+      }),
+    ).toThrow(TypeError);
+    expect(() =>
+      protectedRouteOperation({
+        auth: "editor",
+        rateLimit: "editorSmallWrite",
+        rateLimitKeySuffix: /probe/ as unknown as string,
+        unexpectedErrorLabel: "test:",
+        operation,
+      }),
+    ).toThrow(TypeError);
+  });
+
   it("gates every route through the role floor it declares, contributor included", async () => {
     const { protectedRouteOperation } = await import("./protectedRouteOperation");
     for (const floor of ["contributor", "editor", "admin"] as const) {

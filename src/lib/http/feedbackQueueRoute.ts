@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { plainGuardOptions } from "@server/http/guardOptions";
 
 export const FEEDBACK_QUEUE_ORDERS = ["oldest", "newest", "importance"] as const;
 export type FeedbackQueueOrder = (typeof FEEDBACK_QUEUE_ORDERS)[number];
@@ -49,14 +50,15 @@ const MAX_CURSOR_LENGTH = 1024;
 
 class InvalidQueueRequestError extends Error {}
 
-export function feedbackQueueRoute<Status extends string>({
-  isStatus,
-  getStore,
-  StorageConfigurationError,
-  sourceLabel,
-  unexpectedErrorLabel,
-  unexpectedErrorMessage,
-}: FeedbackQueueRouteOptions<Status>) {
+export function feedbackQueueRoute<Status extends string>(options: FeedbackQueueRouteOptions<Status>) {
+  const {
+    isStatus,
+    getStore,
+    StorageConfigurationError,
+    sourceLabel,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options);
   return protectedRouteOperation({
     auth: "editor",
     rateLimit: "diagnosticRead",

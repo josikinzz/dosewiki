@@ -4,6 +4,7 @@ import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import type { RoleFloor } from "@/lib/auth/roles";
 import { getServerDataReadClient, type ServerReadClient } from "@server/data/serverClient";
+import { plainGuardOptions } from "@server/http/guardOptions";
 
 export type EditorReadOperation = (input: {
   params: URLSearchParams;
@@ -18,11 +19,12 @@ export function requireParam(params: URLSearchParams, name: string, pattern: Reg
   return value;
 }
 
-export function editorReadRoute({ auth, label, read }: {
+export function editorReadRoute(options: {
   auth: RoleFloor;
   label: string;
   read: EditorReadOperation;
 }) {
+  const { auth, label, read } = plainGuardOptions(options);
   const operation = protectedRouteOperation({
     auth,
     rateLimit: "editorPolledRead",

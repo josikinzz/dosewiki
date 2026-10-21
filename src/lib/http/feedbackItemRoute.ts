@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackItemRouteContext = {
   params: Promise<{ id: string }>;
@@ -20,13 +21,14 @@ export type FeedbackItemRouteOptions = {
 
 const MAX_ID_LENGTH = 200;
 
-export function feedbackItemRoute({
-  getStore,
-  StorageConfigurationError,
-  notFoundMessage,
-  unexpectedErrorLabel,
-  unexpectedErrorMessage,
-}: FeedbackItemRouteOptions) {
+export function feedbackItemRoute(options: FeedbackItemRouteOptions) {
+  const {
+    getStore,
+    StorageConfigurationError,
+    notFoundMessage,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options);
   return async function GET(request: Request, context: FeedbackItemRouteContext) {
     return protectedRouteOperation({
       auth: "editor",

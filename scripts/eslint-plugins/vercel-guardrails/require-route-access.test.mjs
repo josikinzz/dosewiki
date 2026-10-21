@@ -22,6 +22,17 @@ const exceptions = [{ route: publicRoute, methods: ['GET'], access: 'public' }];
 ruleTester.run('require-route-access', guardrails.rules['require-route-access'], {
   valid: [
     {
+      name: 'per-request construction whose options use primitive constant arithmetic',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const LIMIT = 16 * 1024 + 1;
+        export async function POST(request: Request) {
+          return protectedRouteOperation({ auth: "admin", rateLimit: "editorSmallWrite", rateLimitKeySuffix: "probe" + "-" + 2, body: { maxBytes: LIMIT }, unexpectedErrorLabel: \`x\`, operation: () => ok() })(request);
+        }
+      `,
+    },
+    {
       name: 'per-request construction whose options name only local constants and functions',
       filename: devRoute,
       code: `
@@ -285,6 +296,29 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
         import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
         function work() {}
         ${declaration}
+        export function POST(request: Request) {
+          return protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", ${option}, unexpectedErrorLabel: "x", operation: () => ok() })(request);
+        }
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    })),
+    ...[
+      ['a RegExp literal coerced to a string', 'rateLimitKeySuffix: /probe/ + ""'],
+      ['a RegExp literal value', 'rateLimitKeySuffix: /probe/'],
+      ['a BigInt literal', 'body: { maxBytes: 1024n }'],
+      ['an instanceof expression over literals', 'rateLimitKeySuffix: (1 instanceof 2) + ""'],
+      ['an in expression over literals', 'rateLimitKeySuffix: ("a" in "b") + ""'],
+      ['a tagged template', 'rateLimitKeySuffix: String.raw`probe`'],
+      ['a constant built from an interpolated template', 'rateLimitKeySuffix: SUFFIX'],
+      ['a constant holding a RegExp', 'rateLimitKeySuffix: PATTERN + ""'],
+    ].map(([shape, option]) => ({
+      name: `per-request construction with ${shape} in its options`,
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const PART = "p";
+        const SUFFIX = \`\${PART}robe\`;
+        const PATTERN = /probe/;
         export function POST(request: Request) {
           return protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", ${option}, unexpectedErrorLabel: "x", operation: () => ok() })(request);
         }
