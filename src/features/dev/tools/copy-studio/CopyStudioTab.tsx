@@ -33,14 +33,16 @@ import { devHref } from "@/utils/devHref";
 
 import { useModifierKeyLabel } from "../../pages/DevCommandPalette";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
-import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
-import { CopyIndexRefusal, useCopyIndexOperation } from "../useCopyIndexOperation";
+import { proposalSubmittedNotice } from "../proposalSubmission";
+import { CopyIndexRefusal } from "../useCopyIndexOperation";
 import { useCopyIndexSource } from "../useCopyIndexSource";
 import { COPY_PUBLISH_SAVE_COPY, CopyBlockPane } from "./CopyBlockPane";
+import { proposeCopyBlock, useCopyBlockWrites } from "./useCopyBlockWrites";
 import {
   blockCurrentText,
   buildCopyStudioBlocks,
   canResetToDefault,
+  copyBlockDocument,
   copyBlockFlavorLabel,
   copyBlockTwin,
   copyLengthGuide,
@@ -108,7 +110,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
   const [baselineRow, setBaselineRow] = useState<CopyBlockRow | null>(null);
   const [baselineRevision, setBaselineRevision] = useState(0);
   const [pendingKeys, setPendingKeys] = useState<ReadonlySet<string>>(() => new Set());
-  const { serialize: publicationBody, acknowledge, uncertain } = useCopyIndexOperation();
+  const { publish, remove, uncertain } = useCopyBlockWrites();
   const awaitingWrite = useRef<CopyStudioBlock | null>(null);
   const replaceOnNext = useRef<{ key: string; stale: unknown } | null>(null);
   const freeze = useWriteFreeze();
@@ -332,24 +334,11 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setSaveState("saving");
     setNotice(null);
 
-    const block = {
-      key: activeBlock.key,
-      flavor: activeBlock.flavor,
-      kind: activeBlock.kind,
-      label: activeBlock.label,
-      group: activeBlock.group,
-      ...(activeBlock.kind === "list"
-        ? { items: draft.items.map((item) => item.trim()).filter(Boolean) }
-        : { body: draft.body }),
-    };
+    const block = copyBlockDocument(activeBlock, draft);
 
     try {
       if (!canApprove) {
-        const { proposalId } = await submitToolProposal({
-          payload: { copyBlocks: [block] },
-          summary: `Update copy "${activeBlock.label}"`,
-          baselines: [{ kind: "copyBlock", key: activeBlock.key, document: baselineRow }],
-        });
+        const { proposalId } = await proposeCopyBlock(block, baselineRow, `Update copy "${activeBlock.label}"`);
         setPendingKeys((current) => new Set(current).add(activeBlock.key));
         setDraft(draftFromBlock(loadedBlock));
         setSaveState("idle");
@@ -357,14 +346,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         return true;
       }
 
-      const response = await fetch("/api/dev/copy-block", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: publicationBody({ ...block, expected: baselineRow, expectedRevision: baselineRevision }),
-      });
-
-      const payload = (await response.json()) as { error?: string };
-      const receipt = acknowledge(response, payload);
+      const receipt = await publish(block, baselineRow, baselineRevision);
       const savedBlock: CopyStudioBlock = {
         ...activeBlock,
         current: { body: "body" in block ? block.body : "", items: "items" in block ? block.items : [] },
@@ -394,7 +376,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       ));
       return false;
     }
-  }, [activeBlock, baselineRow, baselineRevision, canApprove, draft, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
+  }, [activeBlock, baselineRow, baselineRevision, canApprove, draft, publish, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
 
   const requestPublish = useCallback(() => {
     if (!activeBlock || !isDirty || saving || !ready) return;
@@ -459,14 +441,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     setNotice(null);
 
     try {
-      const response = await fetch("/api/dev/copy-block", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: publicationBody({ key: activeBlock.key, expected: baselineRow, expectedRevision: baselineRevision }),
-      });
-
-      const payload = (await response.json()) as { error?: string };
-      const receipt = acknowledge(response, payload);
+      const receipt = await remove(activeBlock.key, baselineRow, baselineRevision);
       setBaselineRevision(receipt.revision);
       awaitingWrite.current = null; setBaselineRow(null); detailSource.reload();
       void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
@@ -480,7 +455,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       setSaveState("idle");
       setNotice(failureNotice(error, "Revert failed", "The copy block could not be reverted.", FREEZE_REMOVE, activeBlock.key));
     }
-  }, [activeBlock, baselineRow, baselineRevision, publicationBody, acknowledge, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
+  }, [activeBlock, baselineRow, baselineRevision, remove, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
 
   const requestRemove = () => {
     if (!activeBlock) return;
