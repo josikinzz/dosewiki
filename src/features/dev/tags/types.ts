@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { SubstanceArticle } from "@/schema";
-import type { TagField } from "@/utils/data/tagRegistry";
+import type { TagField } from "@/data/tags/tagRegistry";
 import type { DevCommitControls } from "../pages/useDevModeSaveActions";
 
 export type NoticeSource = "rename" | "move" | "delete" | "diff";

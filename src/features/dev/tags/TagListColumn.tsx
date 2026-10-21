@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { TOUCH_HALO_Y, TOUCH_ICON } from "@/components/ui/touchTargets";
 import { EditorList, EditorListRow, Notice } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
-import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField, type TagUsage } from "@/utils/data/tagRegistry";
+import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField, type TagUsage } from "@/data/tags/tagRegistry";
 
 import { articleWord, usageKey } from "./tagEditorModel";
 

@@ -12,7 +12,7 @@ import {
   type TagMutationResult,
   type TagRegistry,
   type TagUsage,
-} from "@/utils/data/tagRegistry";
+} from "@/data/tags/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
 import type { TagNoticeState, NoticeSource, SelectedTag, TagUndo } from "./types";
 

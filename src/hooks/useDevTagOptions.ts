@@ -1,7 +1,7 @@
 import type { SubstanceArticle } from "@/schema";
 
 import type { TagOption } from "../data/config/tagOptions";
-import { buildTagRegistry, type TagField, type TagRegistry } from "../utils/data/tagRegistry";
+import { buildTagRegistry, type TagField, type TagRegistry } from "../data/tags/tagRegistry";
 
 export interface DevTagOptionsResult {
   registry: TagRegistry;
