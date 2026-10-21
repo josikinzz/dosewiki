@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { fullArticleWithDosage } from "../../src/test/fixtures/articles";
 import { getPublicTranslationTextInputPage } from "../../server/substanceIndex";

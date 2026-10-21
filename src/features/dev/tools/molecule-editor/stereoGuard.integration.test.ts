@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { createRequire } from "node:module";
 import { beforeAll, describe, expect, it } from "vitest";
 import initRDKitModule from "@rdkit/rdkit";

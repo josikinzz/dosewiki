@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { readFileSync, readdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import type { Pool } from "pg";
