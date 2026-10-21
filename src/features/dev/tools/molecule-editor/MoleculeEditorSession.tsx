@@ -15,6 +15,7 @@ import type { InchiComparison } from "./stereoGuard";
 import { compareCanonicalSmiles, compareInchi } from "./stereoGuard";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import { smilesToMolblock } from "./smilesToMolblock";
+import { loadLatestConfirm } from "./loadLatestConfirm";
 import type {
   MoleculeMirrorDirection,
   MoleculeSnapKind,
@@ -1057,13 +1058,7 @@ export function MoleculeEditorSession({
       setVariant("saved");
       setOverrideReload((key) => key + 1);
     };
-    requestConfirm({
-      title: "Load the latest version?",
-      description: "The canvas reloads the depiction someone else saved. Your edits on the canvas are dropped.",
-      confirmLabel: "Drop my edits and load",
-      destructive: true,
-      onConfirm: run,
-    });
+    requestConfirm(loadLatestConfirm(run));
   }, [requestConfirm]);
 
   const saveBlocker = useMemo(() => {

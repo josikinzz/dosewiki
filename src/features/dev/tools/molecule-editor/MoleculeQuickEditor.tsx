@@ -9,7 +9,9 @@ import {
   EditorActionStatus,
   Notice,
   EditorStatusPill,
+  useConfirm,
 } from "@/features/dev/components";
+import { loadLatestConfirm } from "./loadLatestConfirm";
 import { OclEditor } from "./OclEditor";
 import type { InchiComparison } from "./stereoGuard";
 import { useMoleculeQuickEditorLifecycle } from "./useMoleculeQuickEditorLifecycle";
@@ -52,6 +54,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
     applyRevert,
     revertToAuto,
   } = useMoleculeQuickEditorLifecycle({ slug });
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const guardMismatch = guard != null && !guard.match;
   const overrideFailed = overrideRead.status === "failed";
 
@@ -199,7 +202,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
               actions={(
                 <>
                   {saveResult.kind === "conflict" ? (
-                    <Button variant="outline" size="sm" onClick={reloadOverride}>
+                    <Button variant="outline" size="sm" onClick={() => confirm(loadLatestConfirm(reloadOverride))}>
                       <Icon icon="lucide:refresh-cw" size={14} />
                       Load the latest version
                     </Button>
@@ -228,6 +231,7 @@ export function MoleculeQuickEditor({ slug, className }: MoleculeQuickEditorProp
         }
         onClose={dismissRevert}
       />
+      {confirmDialog}
     </div>
   );
 }
