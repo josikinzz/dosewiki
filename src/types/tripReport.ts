@@ -104,10 +104,10 @@ export interface ReportCardModel {
   publishedAt?: string;
 }
 
-type TripReportExcerptInput = Pick<
+type TripReportExcerptInput = Partial<Pick<
   TripReport,
   "introduction" | "onset" | "peak" | "offset" | "conclusion"
->;
+>>;
 
 export const getTripReportExcerpt = (
   report: TripReportExcerptInput,

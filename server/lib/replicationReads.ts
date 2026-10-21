@@ -63,10 +63,7 @@ export async function getBySlugsHandler(
     throw new Error(`getBySlugs accepts at most ${PUBLIC_SLUG_BATCH_LIMIT} slugs`);
   }
 
-  const db = ctx.db as typeof ctx.db & {
-    getReplicationsBySlugs: (slugs: readonly string[]) => Promise<Doc<"replications">[]>;
-  };
-  const selected = await db.getReplicationsBySlugs(slugs);
+  const selected = await ctx.db.getReplicationsBySlugs(slugs);
   const bySlug = new Map(selected.map((row) => [row.slug, row]));
   const rows: Doc<"replications">[] = [];
   for (const slug of slugs) {

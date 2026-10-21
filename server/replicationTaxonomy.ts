@@ -219,17 +219,7 @@ export const getPublicArtistsByKeys = query({
       .filter(Boolean);
     if (requestedKeys.length === 0) return [];
     const predicateKeys = [...new Set(requestedKeys)];
-    const postgresDb = ctx.db as typeof ctx.db & {
-      getPublicArtistTaxonomyByKeys: (
-        requestedKeys: readonly string[],
-      ) => Promise<Array<
-        Pick<
-          Doc<"replicationArtistTaxonomy">,
-          "key" | "primary_type" | "artist_type_tags"
-        >
-      >>;
-    };
-    const matches = await postgresDb.getPublicArtistTaxonomyByKeys(predicateKeys);
+    const matches = await ctx.db.getPublicArtistTaxonomyByKeys(predicateKeys);
     const byKey = new Map<string, (typeof matches)[number]>();
     for (const row of matches) {
       if (byKey.has(row.key)) throw new Error("Duplicate artist taxonomy key.");

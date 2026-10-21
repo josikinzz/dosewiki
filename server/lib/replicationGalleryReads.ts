@@ -102,17 +102,9 @@ async function resolvePrimaryUrl(urls: StorageUrlReader, row: Doc<"replications"
 }
 
 export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
-  const db = ctx.db as typeof ctx.db & {
-    getPublicGalleryMembershipRows: () => Promise<Doc<"replications">[]>;
-    getPublicContributorIdentities: () => Promise<Doc<"contributorProfiles">[]>;
-    getPublicArtistTaxonomyByKeys: (keys: readonly string[]) => Promise<Array<{
-      key: string; artist_type_tags: unknown;
-    }>>;
-    getPublicEffectGalleryOrders: (slugs: readonly string[]) => Promise<Doc<"subjectiveEffects">[]>;
-  };
   const [storedRows, profiles] = await Promise.all([
-    db.getPublicGalleryMembershipRows(),
-    db.getPublicContributorIdentities(),
+    ctx.db.getPublicGalleryMembershipRows(),
+    ctx.db.getPublicContributorIdentities(),
   ]);
   const publishable = storedRows.filter(isPublishableReplication);
   const matchableProfiles = profiles.map((entry) => ({
@@ -126,8 +118,8 @@ export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
   const artistKeys = [...new Set(visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean))];
   const effectSlugs = [...new Set(visible.flatMap(depictedEffects))];
   const [artists, effects] = await Promise.all([
-    db.getPublicArtistTaxonomyByKeys(artistKeys),
-    db.getPublicEffectGalleryOrders(effectSlugs),
+    ctx.db.getPublicArtistTaxonomyByKeys(artistKeys),
+    ctx.db.getPublicEffectGalleryOrders(effectSlugs),
   ]);
   const artistByKey = new Map(artists.map((artist) => [artist.key, artist]));
   const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
@@ -248,20 +240,12 @@ export async function getPublicGalleryPageHandler(
     throw new Error("Invalid effect replication cursor.");
   }
   const limit = clampPublicGalleryPageSize(args.limit);
-  const db = ctx.db as typeof ctx.db & {
-    getPublicEffectReplicationPage: (args: {
-      effectSlug: string; cursor?: string; limit: number;
-    }) => Promise<{
-      page: Doc<"replications">[]; continueCursor: string; isDone: boolean;
-    }>;
-    getPublicEffectGalleryOrders: (slugs: readonly string[]) => Promise<Doc<"subjectiveEffects">[]>;
-  };
   const result = args.effectSlug === undefined
     ? await ctx.db.query("replications").paginate({
         cursor: args.cursor ?? null,
         numItems: limit,
       })
-    : await db.getPublicEffectReplicationPage({
+    : await ctx.db.getPublicEffectReplicationPage({
         effectSlug: args.effectSlug,
         cursor: args.cursor,
         limit,
@@ -270,7 +254,7 @@ export async function getPublicGalleryPageHandler(
   const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
 
   const effectSlugs = [...new Set(rows.flatMap(depictedEffects))];
-  const effects = effectSlugs.length ? await db.getPublicEffectGalleryOrders(effectSlugs) : [];
+  const effects = effectSlugs.length ? await ctx.db.getPublicEffectGalleryOrders(effectSlugs) : [];
   for (const effect of effects) {
     if (effect.gallery_order) {
       orderByEffect.set(

@@ -2,7 +2,17 @@ import { getTripReportExcerpt } from "../../src/types/tripReport";
 
 import type { Doc } from "../../lib/postgres/runtime/dataModel"
 
-export function publicTripReport(report: Doc<"tripReports">) {
+type TripReportPreviewInput =
+  Pick<Doc<"tripReports">, "_creationTime" | "slug" | "title" | "featured" | "subject" | "substances" | "attribution_review">
+  & Partial<Pick<Doc<"tripReports">, "introduction" | "onset" | "peak" | "offset" | "conclusion">>;
+
+export function publicTripReport(
+  report: Pick<
+    Doc<"tripReports">,
+    | "_creationTime" | "slug" | "title" | "featured" | "subject" | "substances" | "introduction"
+    | "onset" | "peak" | "offset" | "conclusion" | "tags" | "license" | "attribution_review"
+  >,
+) {
   return {
     slug: report.slug,
     title: report.title,
@@ -21,7 +31,7 @@ export function publicTripReport(report: Doc<"tripReports">) {
   };
 }
 
-export function publicTripReportPreview(report: Doc<"tripReports">) {
+export function publicTripReportPreview(report: TripReportPreviewInput) {
   return {
     slug: report.slug,
     title: report.title,

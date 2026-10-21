@@ -59,10 +59,7 @@ export async function getPublicAboutPreviewCandidatesHandler(
   }
   const requestedLimit = Math.floor(args.limit ?? ABOUT_PREVIEW_CANDIDATE_PAGE_SIZE);
   const limit = Math.min(Math.max(requestedLimit, 1), 12);
-  const db = ctx.db as typeof ctx.db & {
-    getPublicAboutPreviewRows: (limit: number) => Promise<Array<Parameters<typeof projectPublicArticle>[0]>>;
-  };
-  const articles = await db.getPublicAboutPreviewRows(limit);
+  const articles = await ctx.db.getPublicAboutPreviewRows(limit);
   return {
     items: articles.map(projectPublicArticle),
     cursor: "",

@@ -1,6 +1,5 @@
 import { v } from "../lib/postgres/runtime/values";
-import { paginationOptsValidator, query, type MutationCtx, type QueryCtx } from "../lib/postgres/runtime/server";
-import type { Doc } from "../lib/postgres/runtime/dataModel";
+import { paginationOptsValidator, query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { substanceArticleLightValidator } from "./lib/validators";
@@ -120,14 +119,6 @@ export const getEditorAll = query({
   handler: async () => rejectWholeCorpusProjection(),
 });
 
-type EditorLibraryDatabase = QueryCtx["db"] & {
-  getEditorLibraryPage(options: { numItems: number; cursor: string | null }): Promise<{
-    page: Array<{ article: Doc<"substanceIndex">; referenceCount: number }>;
-    continueCursor: string;
-    isDone: boolean;
-  }>;
-};
-
 export const getEditorLibraryPage = query({
   args: {
     paginationOpts: paginationOptsValidator,
@@ -141,7 +132,7 @@ export const getEditorLibraryPage = query({
       adminIntent: "editorArticleWrite",
     }, "editor");
 
-    const result = await (ctx.db as EditorLibraryDatabase).getEditorLibraryPage({
+    const result = await ctx.db.getEditorLibraryPage({
       ...args.paginationOpts,
       numItems: clampPublicCorpusPageSize(args.paginationOpts.numItems),
     });

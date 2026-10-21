@@ -97,8 +97,12 @@ function projectLibraryListSubjectiveEffects(
 }
 
 export function projectEditorLibraryEntry(
-  article: SubstanceArticleRecord,
-  referenceCount?: number,
+  article: Pick<
+    SubstanceArticleRecord,
+    | "id" | "slug" | "title" | "priority" | "index_categories" | "identification"
+    | "classification" | "pharmacology" | "subjective_effects" | "editorial_review"
+  >,
+  referenceCount: number,
 ): SubstanceEditorLibraryEntryProjection {
   const pharmacology = normalizePharmacologySection(article.pharmacology);
   return {
@@ -117,10 +121,6 @@ export function projectEditorLibraryEntry(
     },
     subjective_effects: projectLibraryListSubjectiveEffects(article.subjective_effects),
     editorial_review: article.editorial_review ?? getDefaultEditorialReview(),
-    reference_count: referenceCount ?? (
-      (article.references?.length ?? 0) +
-      (article.source_citations?.length ?? 0) +
-      (Array.isArray(article.citations) ? article.citations.length : 0)
-    ),
+    reference_count: referenceCount,
   };
 }

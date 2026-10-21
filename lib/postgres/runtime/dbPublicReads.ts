@@ -1,11 +1,31 @@
 import { losslessSelectList } from "../documentCodec";
-import { fromRow, fromTableRow, type Doc } from "./dbRows";
-import type { Doc as TableDoc } from "./dataModel";
-import type { PublicOverviewCounts, PublicProjectionReads } from "./projectionReads";
+import { fromProjectedRow, fromTableRow } from "./dbRows";
+import type { Doc } from "./dataModel";
+import {
+  publicArtistCreditColumns,
+  publicContributorIdentityColumns,
+  publicEffectGalleryOrderColumns,
+  publicEffectProjectionColumns,
+  publicGalleryMembershipColumns,
+  publicTripReportContributorColumns,
+  publicTripReportPreviewColumns,
+  type PublicArtistCreditRow,
+  type PublicArtistTaxonomyRow,
+  type PublicContributorIdentityRow,
+  type PublicEffectGalleryOrderRow,
+  type PublicEffectProjection,
+  type PublicEffectProjectionRow,
+  type PublicEffectReplicationPage,
+  type PublicGalleryMembershipRow,
+  type PublicOverviewCounts,
+  type PublicProjectionReads,
+  type PublicTripReportContributorRow,
+  type PublicTripReportPreviewRow,
+} from "./projectionReads";
 import { SubstanceProjectionReader } from "./dbSubstanceReads";
 
 export class PublicProjectionReader extends SubstanceProjectionReader implements PublicProjectionReads {
-  async getPublicCopyBlocksByKeys(keys: readonly string[]): Promise<TableDoc<"copyBlocks">[]> {
+  async getPublicCopyBlocksByKeys(keys: readonly string[]): Promise<Doc<"copyBlocks">[]> {
     if (keys.length === 0) return [];
     const result = await this.client.query(
       `SELECT ${losslessSelectList("copyBlocks")} FROM "copyBlocks" WHERE "key" = ANY($1::text[]) ORDER BY "_creationTime" ASC, "_id" ASC`,
@@ -51,9 +71,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     };
   }
 
-  async getPublicArtistTaxonomyByKeys(
-    keys: readonly string[],
-  ): Promise<Array<{ key: string; primary_type: unknown; artist_type_tags: unknown }>> {
+  async getPublicArtistTaxonomyByKeys(keys: readonly string[]): Promise<PublicArtistTaxonomyRow[]> {
     if (keys.length === 0) return [];
     const result = await this.client.query(
       'SELECT "key", "primary_type", "artist_type_tags" FROM "replicationArtistTaxonomy" WHERE "key" = ANY($1::text[])',
@@ -66,7 +84,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     }));
   }
 
-  async getPublicContributorIdentities(lookupKeys?: readonly string[]): Promise<Doc[]> {
+  async getPublicContributorIdentities(lookupKeys?: readonly string[]): Promise<PublicContributorIdentityRow[]> {
     if (lookupKeys?.length === 0) return [];
     const normalizedKeys = lookupKeys?.map((key) => key.trim().toUpperCase()).filter(Boolean);
     const where = normalizedKeys
@@ -79,25 +97,18 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
         )`
       : `WHERE "mergedIntoProfileId" IS NULL`;
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("contributorProfiles", ["_id", "_creationTime", "key", "displayName", "aliases", "avatarUrl", "avatarR2Key", "avatarStorageId", "exclude_from_gallery", "approved_replicator", "archival"])} FROM "contributorProfiles" ${where} ORDER BY "_creationTime" ASC, "_id" ASC`,
+      `SELECT ${losslessSelectList("contributorProfiles", publicContributorIdentityColumns)} FROM "contributorProfiles" ${where} ORDER BY "_creationTime" ASC, "_id" ASC`,
       normalizedKeys ? [normalizedKeys] : [],
     );
-    return result.rows.map((row) => fromRow("contributorProfiles", row));
+    return result.rows.map((row) => fromProjectedRow("contributorProfiles", publicContributorIdentityColumns, row));
   }
 
-  async getPublicEffectProjection(
-    projection: "preview" | "index" | "summary" | "slugs" | "audio" | "credits",
+  async getPublicEffectProjection<Projection extends PublicEffectProjection>(
+    projection: Projection,
     slugs?: readonly string[],
-  ): Promise<Doc[]> {
+  ): Promise<PublicEffectProjectionRow<Projection>[]> {
     if (slugs?.length === 0) return [];
-    const fields = {
-      preview: ["_id", "_creationTime", "slug", "name", "tags", "featured", "summary"],
-      index: ["_id", "_creationTime", "slug", "name", "tags", "featured"],
-      summary: ["_id", "_creationTime", "slug", "name", "long_summary_raw", "long_summary_ast", "citations", "subarticles"],
-      slugs: ["_id", "_creationTime", "slug", "name"],
-      audio: ["_id", "_creationTime", "slug", "name", "audio_replications"],
-      credits: ["_id", "_creationTime", "slug", "name", "contributors"],
-    }[projection];
+    const fields: (typeof publicEffectProjectionColumns)[Projection] = publicEffectProjectionColumns[projection];
     const predicates = [
       ...(slugs ? ['"slug" = ANY($1::text[])'] : []),
       ...(projection === "audio"
@@ -109,39 +120,29 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
       `SELECT ${losslessSelectList("subjectiveEffects", fields)} FROM "subjectiveEffects" ${where} ORDER BY "_creationTime" ASC, "_id" ASC`,
       slugs ? [slugs] : [],
     );
-    return result.rows.map((row) => fromRow("subjectiveEffects", row));
+    return result.rows.map((row) =>
+      fromProjectedRow<"subjectiveEffects", (typeof publicEffectProjectionColumns)[Projection][number]>("subjectiveEffects", fields, row));
   }
 
-  async getPublicTripReportBrowseRows(): Promise<Doc[]> {
-    const fields = [
-      "_id", "_creationTime", "slug", "title", "featured", "subject",
-      "substances", "attribution_review",
-    ];
+  async getPublicTripReportBrowseRows(): Promise<PublicTripReportPreviewRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("tripReports", fields)}
+      `SELECT ${losslessSelectList("tripReports", publicTripReportPreviewColumns)}
        FROM "tripReports"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
     );
-    return result.rows.map((row) => fromRow("tripReports", row));
+    return result.rows.map((row) => fromProjectedRow("tripReports", publicTripReportPreviewColumns, row));
   }
 
-  async getPublicGalleryMembershipRows(): Promise<Doc[]> {
-    const fields = [
-      "_id", "_creationTime", "slug", "title", "artist", "artist_url",
-      "type", "format", "effect_slug", "effect_tags", "viewing_mode_tags",
-      "title_drugs", "drug_classes", "content_family", "storage_id", "r2_key",
-      "url", "has_audio", "created_at", "date_info", "role",
-      "publication_state", "replication_status",
-    ];
+  async getPublicGalleryMembershipRows(): Promise<PublicGalleryMembershipRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("replications", fields)}
+      `SELECT ${losslessSelectList("replications", publicGalleryMembershipColumns)}
        FROM "replications"
        ORDER BY "_creationTime" ASC, "_id" ASC`,
     );
-    return result.rows.map((row) => fromRow("replications", row));
+    return result.rows.map((row) => fromProjectedRow("replications", publicGalleryMembershipColumns, row));
   }
 
-  async getReplicationsBySlugs(slugs: readonly string[]): Promise<Doc[]> {
+  async getReplicationsBySlugs(slugs: readonly string[]): Promise<Doc<"replications">[]> {
     if (slugs.length === 0) return [];
     const result = await this.client.query(
       `SELECT DISTINCT ON ("slug" COLLATE "C") ${losslessSelectList("replications")}
@@ -149,21 +150,21 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
        ORDER BY "slug" COLLATE "C", "_creationTime" ASC, "_id" COLLATE "C" ASC`,
       [slugs],
     );
-    return result.rows.map((row) => fromRow("replications", row));
+    return result.rows.map((row) => fromTableRow("replications", row));
   }
 
-  async getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<Doc[]> {
+  async getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<PublicEffectGalleryOrderRow[]> {
     if (slugs.length === 0) return [];
     const result = await this.client.query(
-      `SELECT DISTINCT ON ("slug" COLLATE "C") ${losslessSelectList("subjectiveEffects", ["_id", "_creationTime", "slug", "gallery_order"])}
+      `SELECT DISTINCT ON ("slug" COLLATE "C") ${losslessSelectList("subjectiveEffects", publicEffectGalleryOrderColumns)}
        FROM "subjectiveEffects" WHERE "slug" COLLATE "C" = ANY($1::text[])
        ORDER BY "slug" COLLATE "C", "_creationTime" ASC, "_id" COLLATE "C" ASC`,
       [slugs],
     );
-    return result.rows.map((row) => fromRow("subjectiveEffects", row));
+    return result.rows.map((row) => fromProjectedRow("subjectiveEffects", publicEffectGalleryOrderColumns, row));
   }
 
-  async getPublicEffectReplicationPage(args: { effectSlug: string; cursor?: string; limit: number }) {
+  async getPublicEffectReplicationPage(args: { effectSlug: string; cursor?: string; limit: number }): Promise<PublicEffectReplicationPage> {
     const prefix = "effect-replications:";
     let after: { effectSlug: string; _creationTime: number; _id: string } | null = null;
     if (args.cursor) {
@@ -193,7 +194,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     const page = result.rows.slice(0, limit);
     const last = page[page.length - 1];
     return {
-      page: page.map((row) => fromRow("replications", row)),
+      page: page.map((row) => fromTableRow("replications", row)),
       continueCursor: last
         ? prefix + JSON.stringify({ effectSlug: args.effectSlug, _creationTime: last._creationTime, _id: last._id })
         : (args.cursor ?? ""),
@@ -201,42 +202,42 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     };
   }
 
-  async getPublicEffectCreditsByNames(names: readonly string[]): Promise<Doc[]> {
+  async getPublicEffectCreditsByNames(names: readonly string[]): Promise<PublicEffectProjectionRow<"credits">[]> {
     if (names.length === 0) return [];
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("subjectiveEffects", ["_id", "_creationTime", "slug", "name", "contributors"])} FROM "subjectiveEffects"
+      `SELECT ${losslessSelectList("subjectiveEffects", publicEffectProjectionColumns.credits)} FROM "subjectiveEffects"
        WHERE EXISTS (SELECT 1 FROM jsonb_array_elements_text(COALESCE("contributors", '[]'::jsonb)) AS credit(name)
          WHERE lower(btrim(credit.name)) = ANY($1::text[]))
        ORDER BY "_creationTime" ASC, "_id" ASC`,
       [names],
     );
-    return result.rows.map((row) => fromRow("subjectiveEffects", row));
+    return result.rows.map((row) => fromProjectedRow("subjectiveEffects", publicEffectProjectionColumns.credits, row));
   }
 
-  async getPublicArtistCreditRows(): Promise<Doc[]> {
+  async getPublicArtistCreditRows(): Promise<PublicArtistCreditRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("replications", ["_id", "_creationTime", "artist", "artist_url", "effect_slug", "storage_id", "r2_key", "url"])} FROM "replications"
+      `SELECT ${losslessSelectList("replications", publicArtistCreditColumns)} FROM "replications"
        WHERE COALESCE(to_jsonb("role") #>> '{}', 'replication') = 'replication'
          AND COALESCE(to_jsonb("publication_state") #>> '{}', 'published') = 'published'
          AND (to_jsonb("replication_status") #>> '{}') IS DISTINCT FROM 'not-replication'
          AND (to_jsonb("type") #>> '{}') IN ('image', 'video', 'audio')
        ORDER BY "_creationTime" ASC, "_id" ASC`,
     );
-    return result.rows.map((row) => fromRow("replications", row));
+    return result.rows.map((row) => fromProjectedRow("replications", publicArtistCreditColumns, row));
   }
 
-  async getPublicTripReportsByContributor(profileKey: string, authorNames: readonly string[]): Promise<Doc[]> {
+  async getPublicTripReportsByContributor(profileKey: string, authorNames: readonly string[]): Promise<PublicTripReportContributorRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("tripReports", ["_id", "_creationTime", "slug", "title", "featured", "subject", "substances", "introduction", "onset", "peak", "offset", "conclusion", "tags", "license", "attribution_review"])} FROM "tripReports"
+      `SELECT ${losslessSelectList("tripReports", publicTripReportContributorColumns)} FROM "tripReports"
        WHERE upper(btrim("subject"->>'profile_key')) = $1
           OR ("attribution_review" IS NULL AND lower(btrim("subject"->>'name')) = ANY($2::text[]))
        ORDER BY "_creationTime" ASC, "_id" ASC`,
       [profileKey.trim().toUpperCase(), authorNames.map((name) => name.trim().toLowerCase()).filter(Boolean)],
     );
-    return result.rows.map((row) => fromRow("tripReports", row));
+    return result.rows.map((row) => fromProjectedRow("tripReports", publicTripReportContributorColumns, row));
   }
 
-  async getPublishedPublicationIndex(kind: "article" | "blog") {
+  async getPublishedPublicationIndex(kind: "article" | "blog"): Promise<Record<string, unknown>[]> {
     const kindPredicate = kind === "blog"
       ? `"kind" = 'blog'`
       : `"kind" IS DISTINCT FROM 'blog'`;
@@ -281,9 +282,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     return result.rows;
   }
 
-  async getPublicTripReportPreviewsBySubstanceNames(
-    names: readonly string[],
-  ): Promise<Doc[]> {
+  async getPublicTripReportPreviewsBySubstanceNames(names: readonly string[]): Promise<PublicTripReportPreviewRow[]> {
     if (names.length === 0) return [];
     const lowerNames = new Set(names.map((name) => name.toLowerCase()));
     const state = await this.client.query(
@@ -302,13 +301,11 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
       : await this.client.query(
           'SELECT "_id", "_creationTime", "slug", "title", "featured", "subject", "substances", "attribution_review" FROM "tripReports" ORDER BY "_creationTime" ASC, "_id" ASC',
         );
-    const rows = result.rows as Doc[];
+    const rows = result.rows as PublicTripReportPreviewRow[];
     return indexReady
       ? rows
       : rows.filter((report) =>
-          (report.substances as Array<{ name: string }>).some((substance) =>
-            lowerNames.has(substance.name.toLowerCase()),
-          ),
+          report.substances.some((substance) => lowerNames.has(substance.name.toLowerCase())),
         );
   }
 }

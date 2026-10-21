@@ -1,6 +1,5 @@
 import { v } from "../lib/postgres/runtime/values";
 import { query, internalQuery } from "../lib/postgres/runtime/server";
-import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { bulkRowFailure, duplicateSlugErrors } from "./lib/bulkImportFailures";
@@ -69,10 +68,7 @@ export const getPublicPreviewsPage = query({
 export const getPublicBrowseIndex = query({
   args: {},
   handler: async (ctx) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicTripReportBrowseRows: () => Promise<Doc<"tripReports">[]>;
-    };
-    return (await db.getPublicTripReportBrowseRows()).map(publicTripReportPreview);
+    return (await ctx.db.getPublicTripReportBrowseRows()).map((report) => publicTripReportPreview(report));
   },
 });
 
@@ -114,15 +110,8 @@ export const getBySubstance = query({
 export const getBySubstanceNames = query({
   args: { substanceNames: v.array(v.string()) },
   handler: async (ctx, args) => {
-    const postgresDb = ctx.db as typeof ctx.db & {
-      getPublicTripReportPreviewsBySubstanceNames: (
-        names: readonly string[],
-      ) => Promise<Doc<"tripReports">[]>;
-    };
-    const reports = await postgresDb.getPublicTripReportPreviewsBySubstanceNames(
-      args.substanceNames,
-    );
-    return reports.map(publicTripReportPreview);
+    const reports = await ctx.db.getPublicTripReportPreviewsBySubstanceNames(args.substanceNames);
+    return reports.map((report) => publicTripReportPreview(report));
   },
 });
 
@@ -144,10 +133,7 @@ export const getByContributor = query({
     authorNames: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicTripReportsByContributor: (profileKey: string, authorNames: string[]) => Promise<Doc<"tripReports">[]>;
-    };
-    const allReports = await db.getPublicTripReportsByContributor(args.profileKey, args.authorNames);
+    const allReports = await ctx.db.getPublicTripReportsByContributor(args.profileKey, args.authorNames);
     const normalizedProfileKey = args.profileKey.trim().toUpperCase();
     const lowerNames = new Set(
       args.authorNames.map((name) => name.trim().toLowerCase()).filter(Boolean),

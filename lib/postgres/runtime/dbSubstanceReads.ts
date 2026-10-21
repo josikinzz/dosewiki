@@ -1,5 +1,6 @@
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
-import { fromProjectedRow, fromRow, quote, type Doc, type SqlExecutor, type StoredRow } from "./dbRows";
+import type { Doc } from "./dataModel";
+import { fromProjectedRow, fromTableRow, quote, type SqlExecutor, type StoredRow } from "./dbRows";
 import {
   aboutAggregateSubstanceColumns,
   publicSubstanceCoverageColumns,
@@ -50,7 +51,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     return result.rows.map((row) => fromProjectedRow("substanceIndex", publicSubstanceMechanismColumns, row));
   }
 
-  async getPublicAboutPreviewRows(limit: number): Promise<Doc[]> {
+  async getPublicAboutPreviewRows(limit: number): Promise<Doc<"substanceIndex">[]> {
     const bounded = Math.min(Math.max(Math.floor(limit), 1), 12);
     const result = await this.client.query(
       `SELECT ${losslessSelectList("substanceIndex")}
@@ -60,7 +61,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
        LIMIT $1`,
       [bounded],
     );
-    return result.rows.map((row) => fromRow("substanceIndex", row));
+    return result.rows.map((row) => fromTableRow("substanceIndex", row));
   }
 
   async getPublicSubstanceLookupPage(cursor: string | undefined, limit: number): Promise<PublicSubstancePage<PublicSubstanceLookupRow>> {
