@@ -1,17 +1,17 @@
 "use client";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useCopyIndexSource } from "../useCopyIndexSource";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { PublicMarkdownBody } from "@/components/pages/PublicMarkdownBody";
 import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
-import { Notice, EditorSection, useConfirm } from "@/features/dev/components";
+import { Notice, EditorSection, useConfirm, type NoticeMessage } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { CopyBlockFields } from "./CopyBlockFields";
 import { buildCopyStudioBlocks, copyBlockDocument, draftFromBlock, draftToText, blockCurrentText, type CopyBlockRow } from "./copyStudioUtils";
 import { buildTextChangelog } from "@/data/changelog/diff";
-import { proposeCopyBlock, useCopyBlockWrites } from "./useCopyBlockWrites";
+import { CopyIndexRefusal } from "../useCopyIndexOperation";
+import { copyConflictNotice, LOADED_LATEST_NOTICE, proposeCopyBlock, useCopyBlockSource, useCopyBlockWrites, type CopyBlockSnapshot } from "./useCopyBlockWrites";
 import { proposalSubmittedNotice } from "../proposalSubmission";
 import { canDraft } from "@/lib/auth/roles";
 
@@ -22,19 +22,22 @@ export default function CopyBlock({ copyKey, children }: { copyKey: string; chil
   return <>{children}<Button variant="ghost" size="sm" aria-label={`Edit ${copyKey} copy`} onClick={() => setOpen(true)}>Edit copy</Button>{open && <CopySession key={copyKey} copyKey={copyKey} close={() => setOpen(false)} />}</>;
 }
 
+const blockFor = (key: string, document: CopyBlockRow | null) => buildCopyStudioBlocks(document ? [document] : []).find((row) => row.key === key);
+
 function CopySession({ copyKey, close }: { copyKey: string; close: () => void }) {
-  const source = useCopyIndexSource<{ document: CopyBlockRow | null; revision: number }>(`/api/dev/copy-block?key=${encodeURIComponent(copyKey)}`);
+  const source = useCopyBlockSource(copyKey);
   const live = source.data;
-  return live === undefined ? <ContextualEditorPanel title="Loading copy" open onOpenChange={close}>{source.error ? <><p role="alert">{source.error}</p><Button onClick={source.reload}>Retry loading</Button></> : <p role="status">Loading this block</p>}</ContextualEditorPanel> : <CopyBody copyKey={copyKey} initial={live.document} initialRevision={live.revision} close={close} />;
+  const loadFailure = source.error ? <><p role="alert">{source.error}</p><Button onClick={source.reload}>Retry loading</Button></> : null;
+  return live === undefined ? <ContextualEditorPanel title="Loading copy" open onOpenChange={close}>{loadFailure ?? <p role="status">Loading this block</p>}</ContextualEditorPanel> : <CopyBody copyKey={copyKey} live={live} reload={source.reload} loadFailure={loadFailure} close={close} />;
 }
-function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: string; initial: CopyBlockRow | null; initialRevision: number; close: () => void }) {
-  const [baseline, setBaseline] = useState(initial);
-  const [revision, setRevision] = useState(initialRevision);
+function CopyBody({ copyKey, live, reload, loadFailure, close }: { copyKey: string; live: CopyBlockSnapshot; reload: () => void; loadFailure: ReactNode; close: () => void }) {
+  const [baseline, setBaseline] = useState(live.document);
+  const [revision, setRevision] = useState(live.revision);
   const { publish: publishCopy, uncertain } = useCopyBlockWrites();
-  const block = useMemo(() => buildCopyStudioBlocks(baseline ? [baseline] : []).find((row) => row.key === copyKey), [baseline, copyKey]);
+  const block = useMemo(() => blockFor(copyKey, baseline), [baseline, copyKey]);
   const [draft, setDraft] = useState(() => block ? draftFromBlock(block) : { body: "", items: [] });
-  const [notice, setNotice] = useState("");
-  const [proposalId, setProposalId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<NoticeMessage | null>(null);
+  const replaceOnNext = useRef<CopyBlockSnapshot | null>(null);
   const [saving, setSaving] = useState(false);
   const { role, setDirty, registerDraftGuard } = useContextualEditing();
   const canApprove = role === "admin";
@@ -45,20 +48,34 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
   const dirty = !!block && text !== blockCurrentText(block);
   useEffect(() => { setDirty(`copy:${copyKey}`, dirty); return () => setDirty(`copy:${copyKey}`, false); }, [copyKey, dirty, setDirty]);
   useEffect(() => registerDraftGuard(`copy:${copyKey}`, { discard: close, canDiscard: !saving && !uncertain }), [close, copyKey, saving, uncertain, registerDraftGuard]);
+  useEffect(() => {
+    if (!replaceOnNext.current || replaceOnNext.current === live) return;
+    replaceOnNext.current = null;
+    const latest = blockFor(copyKey, live.document);
+    setBaseline(live.document); setRevision(live.revision); setDraft(latest ? draftFromBlock(latest) : { body: "", items: [] });
+  }, [copyKey, live]);
+  const loadLatest = () => { replaceOnNext.current = live; reload(); };
   const requestClose = () => saving || uncertain ? undefined : dirty ? confirm({ title: "Discard unpublished copy?", description: "Only this local draft will be discarded. Published copy is unchanged.", confirmLabel: "Discard draft", destructive: true, onConfirm: close }) : close();
   async function publish() {
     if (!block) return;
-    setSaving(true); setNotice(""); setProposalId(null);
+    setSaving(true); setNotice(null);
     const document = copyBlockDocument(block, draft);
     try {
       if (!canApprove) {
         const result = await proposeCopyBlock(document, baseline, `Update ${block.label}`);
-        setProposalId(result.proposalId);
+        setDraft(draftFromBlock(block));
+        setNotice(proposalSubmittedNotice(block.label, result.proposalId));
         return;
       }
       const receipt = await publishCopy(document, baseline, revision);
-      setRevision(receipt.revision); setBaseline({ ...document, revision: receipt.revision }); setNotice(receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication went through. Someone may have published changes since." : `Published “${block.label}”. The public pages reading this key are refreshing with it now.`); router.refresh();
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Publication failed. Your draft is preserved."); }
+      if (receipt.replayed) loadLatest();
+      else { setRevision(receipt.revision); setBaseline({ ...document, revision: receipt.revision }); }
+      setNotice({ tone: "success", message: receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication went through. Someone may have published changes since." : `Published “${block.label}”. The public pages reading this key are refreshing with it now.` }); router.refresh();
+    } catch (error) {
+      setNotice(error instanceof CopyIndexRefusal && error.conflict
+        ? copyConflictNotice(confirm, () => { loadLatest(); setNotice(LOADED_LATEST_NOTICE); })
+        : { tone: "danger", message: error instanceof Error ? error.message : "Publication failed. Your draft is preserved." });
+    }
     finally { setSaving(false); }
   }
   return <ContextualEditorPanel title={block?.label ?? "Copy unavailable"} description={`Shared block: ${copyKey}. Publication changes every page and publication that reads this exact key${block?.flavor ? ` (${block.flavor} only)` : ""}.`} open onOpenChange={requestClose}>
@@ -71,8 +88,8 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
       <EditorSection title="Changes" headingLevel="h3" animate={false} description={dirty ? "Removed lines begin with −; added lines begin with +." : undefined}>
         {dirty ? <DiffPreview diffText={buildTextChangelog(block.label, blockCurrentText(block), text).markdown} /> : <p className="theme-text-muted text-sm">No pending changes.</p>}
       </EditorSection>
-      {notice && <p role="status">{notice}</p>}
-      {proposalId && <Notice {...proposalSubmittedNotice(block.label, proposalId)} />}
+      {notice && <Notice {...notice} />}
+      {loadFailure}
       {uncertain && <p role="alert">The publication outcome is unconfirmed. Retry the same publication before closing.</p>}
       <div className="flex flex-wrap gap-2"><Button disabled={!dirty || saving} onClick={() => canApprove ? confirm({ title: `Publish “${block?.label ?? copyKey}”?`, description: `Every public page that reads ${copyKey} changes at once, not only this one. There is no draft step.`, confirmLabel: "Publish copy", onConfirm: publish }) : void publish()}>{saving ? (canApprove ? "Publishing" : "Submitting") : canApprove ? "Publish copy" : "Submit for review"}</Button><Button variant="secondary" disabled={saving} onClick={requestClose}>Cancel</Button></div>
     </div> : <p>No supported block exists for this key.</p>}{dialog}
