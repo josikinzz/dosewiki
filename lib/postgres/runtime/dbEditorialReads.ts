@@ -3,9 +3,16 @@ import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "..
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import { articleReviewRevision } from "../../../server/lib/articleReviewRevision";
 import { PublicProjectionReader } from "./dbPublicReads";
-import { fromRow, fromTableRow, quote, type Doc } from "./dbRows";
-import type { Doc as TableDoc } from "./dataModel";
-import type { EditorialProjectionReads, MoleculePickerPage } from "./projectionReads";
+import { fromProjectedRow, fromRow, quote, type Doc } from "./dbRows";
+import {
+  moleculeEditSourceColumns,
+  moleculePickerColumns,
+  moleculeSourceColumns,
+  type EditorialProjectionReads,
+  type MoleculeEditSourceRow,
+  type MoleculePickerPage,
+  type MoleculeSourceRow,
+} from "./projectionReads";
 import {
   readFeedbackQueueCounts,
   readFeedbackQueuePage,
@@ -121,9 +128,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "slug", "title", "priority", "index_categories", "classification",
-      ])}, EXISTS (
+      `SELECT ${losslessSelectList("substanceIndex", moleculePickerColumns)}, EXISTS (
          SELECT 1 FROM "moleculeOverrides" m
          WHERE m."slug" COLLATE "C" = s."slug" COLLATE "C"
        ) AS "hasOverride"
@@ -136,7 +141,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     const last = rows[rows.length - 1];
     return {
       page: rows.map((row) => ({
-        article: fromTableRow("substanceIndex", row),
+        article: fromProjectedRow("substanceIndex", moleculePickerColumns, row),
         hasOverride: row.hasOverride === true,
       })),
       continueCursor: last
@@ -146,11 +151,9 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     };
   }
 
-  async getMoleculeSourceBySlug(slug: string): Promise<TableDoc<"substanceIndex"> | null> {
+  async getMoleculeSourceBySlug(slug: string): Promise<MoleculeSourceRow | null> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "slug", "title", "identification",
-      ])}
+      `SELECT ${losslessSelectList("substanceIndex", moleculeSourceColumns)}
        FROM "substanceIndex"
        WHERE "slug" COLLATE "C" = $1::text COLLATE "C"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC
@@ -158,14 +161,12 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
       [slug],
     );
     if (result.rows.length !== 1) return null;
-    return fromTableRow("substanceIndex", result.rows[0]);
+    return fromProjectedRow("substanceIndex", moleculeSourceColumns, result.rows[0]);
   }
 
-  async getMoleculeEditSourceBySlug(slug: string): Promise<TableDoc<"moleculeOverrides"> | null> {
+  async getMoleculeEditSourceBySlug(slug: string): Promise<MoleculeEditSourceRow | null> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("moleculeOverrides", [
-        "_id", "_creationTime", "slug", "molblock", "boldBonds", "source", "updatedAt",
-      ])}
+      `SELECT ${losslessSelectList("moleculeOverrides", moleculeEditSourceColumns)}
        FROM "moleculeOverrides"
        WHERE "slug" COLLATE "C" = $1::text COLLATE "C"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC
@@ -173,7 +174,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
       [slug],
     );
     if (result.rows.length !== 1) return null;
-    return fromTableRow("moleculeOverrides", result.rows[0]);
+    return fromProjectedRow("moleculeOverrides", moleculeEditSourceColumns, result.rows[0]);
   }
 
   async getGlossaryRendering(locale: string, term: string) {

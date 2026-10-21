@@ -1,35 +1,53 @@
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
-import { fromRow, fromTableRow, type Doc, type SqlExecutor } from "./dbRows";
-import type { Doc as TableDoc } from "./dataModel";
-import type { SubstanceProjectionReads } from "./projectionReads";
+import { fromProjectedRow, fromRow, quote, type Doc, type SqlExecutor, type StoredRow } from "./dbRows";
+import {
+  aboutAggregateSubstanceColumns,
+  publicSubstanceCoverageColumns,
+  publicSubstanceEffectMembershipColumns,
+  publicSubstanceLibraryInputColumns,
+  publicSubstanceLibraryInputNarrowedColumns,
+  publicSubstanceLookupColumns,
+  publicSubstanceMechanismColumns,
+  publicSubstancePreviewColumns,
+  publicSubstanceSlugCandidateColumns,
+  publicSubstanceSlugColumns,
+  type AboutAggregateSubstanceRow,
+  type PublicSubstanceCoverageRow,
+  type PublicSubstanceEffectMembershipRow,
+  type PublicSubstanceLibraryInputRow,
+  type PublicSubstanceLookupRow,
+  type PublicSubstanceMechanismRow,
+  type PublicSubstancePage,
+  type PublicSubstancePreviewRow,
+  type PublicSubstanceSlugCandidateRow,
+  type PublicSubstanceSlugRow,
+  type SubstanceProjectionReads,
+} from "./projectionReads";
+
+const publicSubstanceLibraryInputDecodedColumns = [
+  ...publicSubstanceLibraryInputColumns,
+  ...publicSubstanceLibraryInputNarrowedColumns,
+] as const;
 
 export class SubstanceProjectionReader implements SubstanceProjectionReads {
   constructor(protected readonly client: SqlExecutor) {}
 
-  async getAboutAggregateSubstanceRows(): Promise<TableDoc<"substanceIndex">[]> {
-    const fields = [
-      "_id", "_creationTime", "id", "title", "slug", "priority",
-      "index_categories", "identification", "classification", "pharmacology",
-    ];
+  async getAboutAggregateSubstanceRows(): Promise<AboutAggregateSubstanceRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", fields)}
+      `SELECT ${losslessSelectList("substanceIndex", aboutAggregateSubstanceColumns)}
        FROM "substanceIndex"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
     );
-    return result.rows.map((row) => fromTableRow("substanceIndex", row));
+    return result.rows.map((row) => fromProjectedRow("substanceIndex", aboutAggregateSubstanceColumns, row));
   }
 
-  async getPublicSubstanceMechanismRows(): Promise<Doc[]> {
-    const fields = [
-      "_id", "_creationTime", "title", "slug", "priority",
-      "index_categories", "identification", "pharmacology",
-    ];
+  async getPublicSubstanceMechanismRows(): Promise<PublicSubstanceMechanismRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", fields)}
+      `SELECT ${losslessSelectList("substanceIndex", publicSubstanceMechanismColumns)}
        FROM "substanceIndex"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
     );
-    return result.rows.map((row) => fromRow("substanceIndex", row));
+    return result.rows.map((row) => fromProjectedRow("substanceIndex", publicSubstanceMechanismColumns, row));
   }
 
   async getPublicAboutPreviewRows(limit: number): Promise<Doc[]> {
@@ -45,7 +63,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     return result.rows.map((row) => fromRow("substanceIndex", row));
   }
 
-  async getPublicSubstanceLookupPage(cursor: string | undefined, limit: number) {
+  async getPublicSubstanceLookupPage(cursor: string | undefined, limit: number): Promise<PublicSubstancePage<PublicSubstanceLookupRow>> {
     const after = cursor ? (decodeDocumentValue(JSON.parse(cursor)) as { _creationTime: number; _id: string }) : null;
     const params: unknown[] = [];
     const where = after
@@ -53,10 +71,10 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT "_id", "_creationTime", "title", "slug", "priority" FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
+      `SELECT "_id", "_creationTime", ${publicSubstanceLookupColumns.map(quote).join(", ")} FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
       params,
     );
-    const page = result.rows.slice(0, limit);
+    const page = (result.rows as StoredRow<"substanceIndex", "_id" | "_creationTime" | keyof PublicSubstanceLookupRow>[]).slice(0, limit);
     const last = page[page.length - 1];
     return {
       rows: page.map((row) => ({ title: row.title, slug: row.slug ?? undefined, priority: row.priority })),
@@ -67,7 +85,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     };
   }
 
-  async getPublicSubstancePreviewsPage(cursor: string | undefined, limit: number) {
+  async getPublicSubstancePreviewsPage(cursor: string | undefined, limit: number): Promise<PublicSubstancePage<PublicSubstancePreviewRow>> {
     const after = cursor ? (decodeDocumentValue(JSON.parse(cursor)) as { _creationTime: number; _id: string }) : null;
     const params: unknown[] = [];
     const where = after
@@ -75,10 +93,10 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT "_id", "_creationTime", "title", "slug", "summary", "priority", "index_categories" FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
+      `SELECT "_id", "_creationTime", ${publicSubstancePreviewColumns.map(quote).join(", ")} FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
       params,
     );
-    const page = result.rows.slice(0, limit);
+    const page = (result.rows as StoredRow<"substanceIndex", "_id" | "_creationTime" | keyof PublicSubstancePreviewRow>[]).slice(0, limit);
     const last = page[page.length - 1];
     return {
       rows: page.map((row) => ({
@@ -95,7 +113,10 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     };
   }
 
-  async getPublicSubstanceEffectMembershipPage(cursor: string | undefined, limit: number) {
+  async getPublicSubstanceEffectMembershipPage(
+    cursor: string | undefined,
+    limit: number,
+  ): Promise<PublicSubstancePage<PublicSubstanceEffectMembershipRow>> {
     const decoded = cursor ? (decodeDocumentValue(JSON.parse(cursor)) as { _creationTime?: number; _id?: string }) : null;
     const after = decoded?._creationTime != null && decoded._id != null ? decoded : null;
     const params: unknown[] = [];
@@ -104,16 +125,13 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "id", "title", "slug", "priority",
-        "index_categories", "identification", "classification", "subjective_effects",
-      ])} FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
+      `SELECT ${losslessSelectList("substanceIndex", publicSubstanceEffectMembershipColumns)} FROM "substanceIndex" ${where} ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
       params,
     );
     const page = result.rows.slice(0, limit);
     const last = page[page.length - 1];
     return {
-      rows: page.map((row) => fromRow("substanceIndex", row)),
+      rows: page.map((row) => fromProjectedRow("substanceIndex", publicSubstanceEffectMembershipColumns, row)),
       cursor: last
         ? JSON.stringify(encodeDocumentValue({ _creationTime: last._creationTime, _id: last._id }))
         : (cursor || "{}"),
@@ -121,7 +139,10 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     };
   }
 
-  async getPublicSubstanceLibraryInputPage(cursor: string | undefined, limit: number) {
+  async getPublicSubstanceLibraryInputPage(
+    cursor: string | undefined,
+    limit: number,
+  ): Promise<PublicSubstancePage<PublicSubstanceLibraryInputRow>> {
     let after: { _creationTime: number; _id: string } | undefined;
     if (cursor) {
       try {
@@ -140,12 +161,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "id", "title", "slug", "priority",
-        "index_categories", "identification", "classification", "summary",
-        "dosage", "duration", "subjective_effects", "pharmacology", "interactions",
-        "reagent_testing", "tolerance", "references", "source_citations", "citations",
-      ])},
+      `SELECT ${losslessSelectList("substanceIndex", publicSubstanceLibraryInputColumns)},
        (CASE WHEN jsonb_typeof("harm_potential") = 'object'
          THEN jsonb_build_object('addiction_liability', "harm_potential"->'addiction_liability')
          ELSE "harm_potential" END)::text AS "harm_potential",
@@ -156,7 +172,8 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
       params,
     );
-    const page = result.rows.slice(0, limit).map((row) => fromRow("substanceIndex", row));
+    const page = result.rows.slice(0, limit)
+      .map((row) => fromProjectedRow("substanceIndex", publicSubstanceLibraryInputDecodedColumns, row));
     const last = page[page.length - 1] ?? after;
     return {
       rows: page,
@@ -167,22 +184,23 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     };
   }
 
-  async getPublicSubstanceSlugsPage(cursor: string | undefined, limit: number) {
+  async getPublicSubstanceSlugsPage(cursor: string | undefined, limit: number): Promise<PublicSubstancePage<PublicSubstanceSlugRow>> {
+    const columns = publicSubstanceSlugColumns.map(quote).join(", ");
     const unstored = cursor
       ? []
       : (await this.client.query(
-          'SELECT "title", "slug" FROM "substanceIndex" WHERE "slug" IS NULL ORDER BY "_creationTime" ASC, "_id" ASC',
+          `SELECT ${columns} FROM "substanceIndex" WHERE "slug" IS NULL ORDER BY "_creationTime" ASC, "_id" ASC`,
         )).rows;
     const params: unknown[] = [];
     const where = cursor ? (params.push(cursor), 'WHERE "slug" > $1') : 'WHERE "slug" IS NOT NULL';
     params.push(limit + 1);
     const stored = await this.client.query(
-      `SELECT "title", "slug" FROM "substanceIndex" ${where} ORDER BY "slug" ASC, "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
+      `SELECT ${columns} FROM "substanceIndex" ${where} ORDER BY "slug" ASC, "_creationTime" ASC, "_id" ASC LIMIT $${params.length}`,
       params,
     );
     const storedPage = stored.rows.slice(0, limit);
     return {
-      rows: [...unstored, ...storedPage].map((row) => ({
+      rows: ([...unstored, ...storedPage] as StoredRow<"substanceIndex", keyof PublicSubstanceSlugRow>[]).map((row) => ({
         title: row.title,
         slug: row.slug ?? undefined,
       })),
@@ -191,19 +209,19 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
     };
   }
 
-  async getPublicSubstanceSlugsByCandidates(candidates: readonly string[]): Promise<Doc[]> {
+  async getPublicSubstanceSlugsByCandidates(candidates: readonly string[]): Promise<PublicSubstanceSlugCandidateRow[]> {
     if (candidates.length === 0) return [];
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", ["_id", "_creationTime", "title", "slug"])}
+      `SELECT ${losslessSelectList("substanceIndex", publicSubstanceSlugCandidateColumns)}
        FROM "substanceIndex"
        WHERE "slug" = ANY($1::text[]) OR "slug" IS NULL OR "slug" = ''
        ORDER BY "_creationTime" ASC, "_id" ASC`,
       [candidates],
     );
-    return result.rows.map((row) => fromRow("substanceIndex", row));
+    return result.rows.map((row) => fromProjectedRow("substanceIndex", publicSubstanceSlugCandidateColumns, row));
   }
 
-  async getPublicSubstanceCoveragePage(cursor: string | undefined, limit: number) {
+  async getPublicSubstanceCoveragePage(cursor: string | undefined, limit: number): Promise<PublicSubstancePage<PublicSubstanceCoverageRow>> {
     const after = cursor ? (decodeDocumentValue(JSON.parse(cursor)) as { _creationTime: number; _id: string }) : null;
     const params: unknown[] = [];
     const where = after
@@ -211,19 +229,14 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "title", "slug", "priority", "index_categories",
-        "dosage", "duration", "subjective_effects", "pharmacology", "interactions",
-        "tolerance", "harm_potential", "history_culture", "legality",
-        "references", "source_citations", "citations", "editorial_review",
-      ])} FROM "substanceIndex" ${where}
+      `SELECT ${losslessSelectList("substanceIndex", publicSubstanceCoverageColumns)} FROM "substanceIndex" ${where}
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
       params,
     );
     const page = result.rows.slice(0, limit);
     const last = page[page.length - 1];
     return {
-      rows: page.map((row) => fromRow("substanceIndex", row)),
+      rows: page.map((row) => fromProjectedRow("substanceIndex", publicSubstanceCoverageColumns, row)),
       cursor: last
         ? JSON.stringify(encodeDocumentValue({ _creationTime: last._creationTime, _id: last._id }))
         : (cursor ?? ""),

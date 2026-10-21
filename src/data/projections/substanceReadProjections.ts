@@ -136,7 +136,11 @@ export type SubstanceEffectMembershipInput = Pick<SubstanceLibraryInputProjectio
   "id" | "title" | "slug" | "priority" | "index_categories" | "identification" | "classification" | "subjective_effects"
 >;
 
-export function projectEffectMembershipInput(article: SubstanceArticleRecord): SubstanceEffectMembershipInput {
+export function projectEffectMembershipInput(
+  article: Pick<SubstanceArticleRecord,
+    "id" | "title" | "slug" | "priority" | "index_categories" | "identification" | "classification" | "subjective_effects"
+  >,
+): SubstanceEffectMembershipInput {
   return omitUndefinedDeep({
     id: article.id,
     title: article.title,
@@ -168,7 +172,9 @@ export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
 };
 
 
-export function projectLookup(article: SubstanceArticleRecord): SubstanceLookupProjection {
+export function projectLookup(
+  article: Pick<SubstanceArticleRecord, "slug" | "title" | "priority">,
+): SubstanceLookupProjection {
   return {
     slug: resolveSubstanceSlug(article),
     name: article.title,
@@ -197,7 +203,9 @@ export function projectEditorLookup(
   };
 }
 
-export function projectPublicPreview(article: SubstanceArticleRecord): SubstancePublicPreviewProjection {
+export function projectPublicPreview(
+  article: Pick<SubstanceArticleRecord, "slug" | "title" | "summary" | "priority" | "index_categories">,
+): SubstancePublicPreviewProjection {
   return {
     title: article.title,
     slug: resolveSubstanceSlug(article),
@@ -213,7 +221,9 @@ export type SubstanceSearchSummaryProjection = {
   summary: string;
 };
 
-export function projectSubstanceSearchSummary(article: SubstanceArticleRecord): SubstanceSearchSummaryProjection {
+export function projectSubstanceSearchSummary(
+  article: Pick<SubstanceArticleRecord, "slug" | "title" | "summary">,
+): SubstanceSearchSummaryProjection {
   return {
     title: article.title,
     slug: resolveSubstanceSlug(article),
@@ -369,7 +379,14 @@ function projectLibraryPharmacology(
   } as LibraryPharmacologyProjection;
 }
 
-export function projectLibraryInput(article: SubstanceArticleRecord): SubstanceLibraryInputProjection {
+export function projectLibraryInput(
+  article: Pick<SubstanceArticleRecord,
+    | "id" | "title" | "slug" | "priority" | "index_categories" | "identification" | "classification"
+    | "summary" | "dosage" | "duration" | "subjective_effects" | "pharmacology" | "interactions"
+    | "reagent_testing" | "tolerance" | "harm_potential" | "references" | "source_citations"
+    | "citations" | "editorial_review"
+  >,
+): SubstanceLibraryInputProjection {
   const harmPotential = isRecord(article.harm_potential)
     ? article.harm_potential
     : {};
@@ -417,7 +434,7 @@ export function projectSearchInput(article: SubstanceArticleRecord): SubstanceSe
 }
 
 export function projectMechanismRouteInput(
-  article: SubstanceArticleRecord,
+  article: Pick<SubstanceArticleRecord, "title" | "identification" | "pharmacology" | "priority" | "index_categories">,
 ): SubstanceMechanismRouteInputProjection {
   const canonicalPharmacology = projectLibraryPharmacology(
     article.pharmacology,

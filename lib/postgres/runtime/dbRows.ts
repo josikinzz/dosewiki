@@ -53,3 +53,20 @@ export function fromRow(table: TableName, row: Record<string, unknown>): Doc {
 export function fromTableRow<Table extends TableName & TableNames>(table: Table, row: Record<string, unknown>): TableDoc<Table> {
   return fromRow(table, row) as unknown as TableDoc<Table>;
 }
+
+export function fromProjectedRow<Table extends TableName & TableNames, Column extends keyof TableDoc<Table> & string>(
+  table: Table,
+  columns: readonly Column[],
+  row: Record<string, unknown>,
+): Pick<TableDoc<Table>, Column> {
+  const selected = new Set<string>(columns);
+  return Object.fromEntries(
+    Object.entries(fromRow(table, row)).filter(([field]) => selected.has(field)),
+  ) as Pick<TableDoc<Table>, Column>;
+}
+
+export type StoredRow<Table extends TableNames, Column extends keyof TableDoc<Table>> = {
+  [Field in Column]: undefined extends TableDoc<Table>[Field]
+    ? Exclude<TableDoc<Table>[Field], undefined> | null
+    : TableDoc<Table>[Field];
+};

@@ -1,6 +1,6 @@
 import { PostgresError, v } from "../../lib/postgres/runtime/values";
-import type { Doc } from "../../lib/postgres/runtime/dataModel";
-import { normalizeSubstancePriority, resolveSubstanceSlug, type SubstanceArticleRecord } from "../../src/data/projections/substanceProjectionCore";
+import type { PublicSubstanceCoverageRow } from "../../lib/postgres/runtime/projectionReads";
+import { normalizeSubstancePriority, resolveSubstanceSlug } from "../../src/data/projections/substanceProjectionCore";
 import {
   buildCoverageRow,
   type getCoverageColumns,
@@ -73,41 +73,6 @@ export function clampPublicCorpusPageSize(requested: number | undefined): number
   const normalized = Math.floor(requested ?? PUBLIC_CORPUS_PAGE_SIZE);
   return Math.min(Math.max(normalized, 1), PUBLIC_CORPUS_MAX_PAGE_SIZE);
 }
-type CompactPublicSubstancePage = {
-  rows: SubstanceArticleRecord[];
-  cursor: string;
-  isDone: boolean;
-};
-export type CompactPublicSubstanceReader = {
-  getPublicSubstanceLookupPage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstancePreviewsPage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstanceSlugsPage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstanceSlugsByCandidates: (
-    candidates: readonly string[],
-  ) => Promise<Doc<"substanceIndex">[]>;
-  getPublicSubstanceEffectMembershipPage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstanceLibraryInputPage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstanceCoveragePage: (
-    cursor: string | undefined,
-    limit: number,
-  ) => Promise<CompactPublicSubstancePage>;
-  getPublicSubstanceMechanismRows: () => Promise<Doc<"substanceIndex">[]>;
-};
 
 const PUBLIC_SLUG_PAGE_SIZE = 160;
 const PUBLIC_SLUG_PAGE_MAX_SIZE = 400;
@@ -118,7 +83,7 @@ export function clampPublicSlugPageSize(requested: number | undefined): number {
 }
 
 export function projectPublicCoverageRow(
-  row: SubstanceArticleRecord,
+  row: PublicSubstanceCoverageRow,
   columns: ReturnType<typeof getCoverageColumns>,
 ): CoverageRow {
   const review = row.editorial_review;
@@ -127,7 +92,7 @@ export function projectPublicCoverageRow(
     review !== null &&
     "status" in review &&
     review.status === "completed";
-  const coverageInput: CoverageArticleInput = {
+  const coverageInput = {
     ...row,
     pharmacology: normalizePharmacologySection(row.pharmacology),
     slug: resolveSubstanceSlug(row),
@@ -135,6 +100,6 @@ export function projectPublicCoverageRow(
     expert_reviewed: expertReviewed,
     editorial_review: row.editorial_review ?? EDITORIAL_REVIEW_DEFAULT,
     references: row.references ?? [],
-  };
+  } as unknown as CoverageArticleInput;
   return buildCoverageRow(coverageInput, columns);
 }
