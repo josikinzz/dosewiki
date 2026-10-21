@@ -110,15 +110,7 @@ export const getPublicProfileHistory = cache(
       ...new Set([...submitterKeys].flatMap((key) => [key, key.toLowerCase()])),
     ].sort();
 
-    let liveEntries: PublicProfileHistoryEntry[] = [];
-    try {
-      liveEntries = await readChangelogBySubmitters(submitters);
-    } catch (error) {
-      console.warn(
-        `[publicData] live changelog unavailable for ${profile.key}; falling back to the static snapshot.`,
-        error,
-      );
-    }
+    const liveEntries = await readChangelogBySubmitters(submitters);
 
     const liveIds = new Set(liveEntries.map((entry) => entry.id));
     const staticEntries = initialChangeLogEntries
@@ -199,12 +191,7 @@ export const getPublicArticleHistory = cache(
     directory: ContributorDirectory | Promise<ContributorDirectory>,
     limit: number = PUBLIC_ARTICLE_HISTORY_LIMIT,
   ): Promise<ArticleRecentChange[]> => {
-    try {
-      return resolveContributors(await readChangelogByArticleSlug(slug, limit), await directory);
-    } catch (error) {
-      console.warn(`[publicData] article changelog unavailable for ${slug}; hiding recent changes.`, error);
-      return [];
-    }
+    return resolveContributors(await readChangelogByArticleSlug(slug, limit), await directory);
   },
 );
 
@@ -213,12 +200,7 @@ export const getPublicRecentChanges = cache(
     directory: ContributorDirectory | Promise<ContributorDirectory>,
     limit: number = PUBLIC_CHANGES_PAGE_LIMIT,
   ): Promise<ArticleRecentChange[]> => {
-    try {
-      return resolveContributors(await readRecentChangelog(limit), await directory);
-    } catch (error) {
-      console.warn("[publicData] site changelog unavailable; /changes shows nothing.", error);
-      return [];
-    }
+    return resolveContributors(await readRecentChangelog(limit), await directory);
   },
 );
 

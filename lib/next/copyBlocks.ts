@@ -33,26 +33,35 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function parseCopyBlockRecord(raw: unknown): CopyBlockRecord | null {
+function malformedCopyBlock(index: number, field: string): Error {
+  return new Error(
+    `[copy] copyBlocks:getByKeys returned a malformed copy block at index ${index}: invalid ${field}.`,
+  );
+}
+
+function readString(record: Record<string, unknown>, field: string, index: number): string {
+  const value = record[field];
+  if (typeof value !== "string") {
+    throw malformedCopyBlock(index, field);
+  }
+  return value;
+}
+
+function parseCopyBlockRecord(raw: unknown, index: number): CopyBlockRecord {
   if (!isRecord(raw)) {
-    return null;
+    throw malformedCopyBlock(index, "row");
   }
 
   const kind = raw.kind;
-  if (
-    typeof raw.key !== "string" ||
-    typeof raw.label !== "string" ||
-    typeof raw.group !== "string" ||
-    (kind !== "markdown" && kind !== "plain" && kind !== "list")
-  ) {
-    return null;
+  if (kind !== "markdown" && kind !== "plain" && kind !== "list") {
+    throw malformedCopyBlock(index, "kind");
   }
 
   const record: CopyBlockRecord = {
-    key: raw.key,
+    key: readString(raw, "key", index),
     kind,
-    label: raw.label,
-    group: raw.group,
+    label: readString(raw, "label", index),
+    group: readString(raw, "group", index),
   };
 
   if (typeof raw.flavor === "string" && raw.flavor.length > 0) record.flavor = raw.flavor;
@@ -66,28 +75,14 @@ function parseCopyBlockRecord(raw: unknown): CopyBlockRecord | null {
   return record;
 }
 
-function reportDegradedCopyRead(error: unknown, operation = "copyBlocks:getAll"): void {
-  const message = error instanceof Error ? error.message : String(error);
-  console.warn(
-    `[copy] ${operation} failed; site copy degraded to the checked-in defaults. Cause: ${message}`,
-  );
-}
-
 const getCopyBlocksByKeysCached = publicDataCache(
   async (keys: string[]): Promise<CopyBlockRecord[]> => {
-    try {
-      const rows = await getPublicDataReadAdapter().getPublicCopyBlocksByKeys(keys);
-      if (!Array.isArray(rows)) {
-        return [];
-      }
-      return rows.flatMap((row) => {
-        const parsed = parseCopyBlockRecord(row);
-        return parsed ? [parsed] : [];
-      });
-    } catch (error) {
-      reportDegradedCopyRead(error, "copyBlocks:getByKeys");
-      return [];
+    const rows = await getPublicDataReadAdapter().getPublicCopyBlocksByKeys(keys);
+    if (!Array.isArray(rows)) {
+      throw new Error("[copy] copyBlocks:getByKeys did not return an array.");
     }
+    const entries: unknown[] = rows;
+    return entries.map(parseCopyBlockRecord);
   },
   ["data-public-copy-blocks-by-keys"],
   {

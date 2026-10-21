@@ -10,8 +10,16 @@ import { getPublicDataReadAdapter } from "./publicData.reads";
 export const getPublicReagentTestBySlug = cache(
   publicDataCache(async (slug: string): Promise<ProtestKitResponse | null> => {
     const value = await getPublicDataReadAdapter().getPublicReagentTestBySlug(slug);
+    if (value === null) {
+      return null;
+    }
     const validation = validateProtestKitResponse(value);
-    return validation.ok ? validation.data : null;
+    if (!validation.ok) {
+      throw new Error(
+        `[reagents] reagentTests:getBySlug returned an invalid record for slug "${slug}": ${validation.error}`,
+      );
+    }
+    return validation.data;
   },
   ["data-public-reagent-test-by-slug"],
   {

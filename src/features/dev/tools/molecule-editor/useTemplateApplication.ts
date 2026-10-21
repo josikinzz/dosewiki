@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { devFetch } from "../devFetch";
 import type { OclModuleLike } from "./renderMoleculeSvg";
 import { renderMoleculeSvg } from "./renderMoleculeSvg";
 import type { RdkitModuleLike } from "./stereoGuard";
@@ -77,15 +78,16 @@ export function useTemplateApplication({
         chunkTemplateApplyMembers(members).map(async (batch) => {
           const params = new URLSearchParams();
           for (const member of batch) params.append("slug", member.slug);
-          const response = await fetch(`${TEMPLATE_APPLY_API}?${params.toString()}`);
-          const body = (await response.json().catch(() => ({}))) as {
-            error?: string;
-            depictions?: CurrentTemplateDepiction[];
-          };
-          if (!response.ok) {
-            throw new Error(body.error ?? `Preview input load failed (${response.status})`);
+          const { depictions } = await devFetch(`${TEMPLATE_APPLY_API}?${params.toString()}`, {
+            messages: {
+              network: "Network error while loading the current molecule depictions.",
+              failure: "Preview input load failed.",
+            },
+          });
+          if (!Array.isArray(depictions)) {
+            throw new Error("The server did not return the current molecule depictions.");
           }
-          return body.depictions ?? [];
+          return depictions as CurrentTemplateDepiction[];
         }),
       );
       if (previewRequestId.current !== requestId) return;
