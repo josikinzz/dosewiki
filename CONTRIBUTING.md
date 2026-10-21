@@ -128,7 +128,7 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/` |
 | `bun run test:workflow` | Every script and tool test under `scripts/` |
 | `bun run test:workflow -- <path>...` | Only the named `scripts/` test files, each through its own runner (`node:test` or Vitest); an unknown path fails before anything runs |
-| `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed in any run |
+| `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed or had every test skipped in any run, or if a file in `scripts/test/test-policy.json` did not run |
 | `bun run typecheck` | Application type check, with strict null checks on |
 | `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
 | `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
