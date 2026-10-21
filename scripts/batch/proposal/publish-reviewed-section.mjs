@@ -272,7 +272,6 @@ function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
   });
   return {
     ...context,
-    env: envWithCliOverrides,
     targetUrlKey: targetUrlFlag ? "--target" : context.targetUrlKey,
   };
 }
