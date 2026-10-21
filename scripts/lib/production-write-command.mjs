@@ -96,11 +96,11 @@ export function authorizeProductionWrite(command, { env = process.env } = {}) {
   return command.targetUrl;
 }
 
-export async function executeProductionWrite(command, mutation) {
+export async function executeProductionWrite(command, mutation, { env = process.env } = {}) {
   if (command.dryRun && !command.writeRequested) {
     return { status: "dry-run", wrote: false };
   }
-  assertProductionWriteAllowed(command);
+  authorizeProductionWrite(command, { env });
   return await mutation();
 }
 
