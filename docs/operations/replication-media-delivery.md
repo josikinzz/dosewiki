@@ -104,11 +104,14 @@ reads the public Worker and writes local files, verifies source digests, records
 missing or withdrawn sources explicitly, and writes a pinned `plan.json`.
 Unavailable originals retain their 404 or 410 status rather than receiving a
 substitute image. Upload requires the explicit
-`--write --confirm-write=upload-r2-image-renditions --bucket=replications
---confirm-plan=<printed-sha256>` flags with the same `--out`. The uploader checks
-the write freeze, exact account/bucket, source markers, local hashes, create-only
-destinations, and remote size/digest metadata. It never edits article content or
-originals. Retain the plan and upload receipts. Verify the public variant URLs
+`--write --confirm-write=upload-r2-image-renditions --confirm-plan=<printed-sha256>
+--confirm-target=<CLOUDFLARE_R2_S3_ENDPOINT host> --confirm-bucket=replications`
+flags with the same `--out`. The shared storage authorizer
+(`scripts/lib/storage-write-authorization.mjs`) checks the write freeze and all
+four confirmations before any request. The uploader then checks the exact
+account/bucket, source markers, local hashes, create-only destinations, and
+remote size/digest metadata, and rechecks the freeze before every PUT. It never
+edits article content or originals. Retain the plan and upload receipts. Verify the public variant URLs
 before publishing references to new images.
 
 Animated WebP inputs retain their animation: preparation reads all frames,

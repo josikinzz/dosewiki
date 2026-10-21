@@ -74,6 +74,10 @@ const limit = Number(values.limit);
 const context = await live.loadTranslationContext(LOCALE);
 const promptVersion = context.promptVersion;
 
+function printWriteHint(action: string, note = "") {
+  console.log(`Dry run: to ${action}, add DATA_BACKEND=postgres --write --confirm-write=${writeCommand.operation} --expected-deployment=${writeCommand.deploymentFingerprint}.${note}`);
+}
+
 function requireApiKey(): string {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY is required to call the model");
@@ -118,7 +122,7 @@ async function importRun() {
   console.log(`Checkpoint    ${rows.size} usable, ${rejected} rejected, ${unknown} without a source segment`);
   console.log(`Prompt        ${promptVersion} (stamped on every imported row)`);
   if (!write) {
-    console.log("Dry run: pass --write to import.");
+    printWriteHint("import");
     return;
   }
 
@@ -156,7 +160,7 @@ async function enqueue() {
   const slugs = bare.map((slug) => live.translationJobSlug(kind, slug));
   console.log(`Enqueue       ${slugs.length} ${kind}(s) for ${LOCALE}`);
   if (!write) {
-    console.log("Dry run: pass --write to enqueue.");
+    printWriteHint("enqueue");
     return;
   }
   await store.enqueueTranslationJobs([LOCALE], slugs);
@@ -172,7 +176,7 @@ async function runQueue() {
       [LOCALE],
     );
     console.log(`Due jobs      ${due[0]?.n ?? 0}`);
-    console.log("Dry run: pass --write to process them.");
+    printWriteHint("process them");
     return;
   }
   while (processed < limit) {
@@ -231,7 +235,7 @@ async function backfill() {
   console.log(`Units         ${unitsByHash.size} unique, ${pending.length} missing`);
   if (pending.length === 0) return;
   if (!write) {
-    console.log("Dry run: pass --write to translate.");
+    printWriteHint("translate");
     return;
   }
   const apiKey = requireApiKey();
@@ -254,7 +258,7 @@ async function retranslateStale() {
     console.log(`Matched rows  ${mentioning.length} mentioning ${terms.map((term) => JSON.stringify(term)).join(", ")}`);
     if (mentioning.length === 0) return;
     if (!write) {
-      console.log("Dry run: pass --write to mark matched rows stale and retranslate. Other old digests remain stale.");
+      printWriteHint("mark matched rows stale and retranslate", " Other old digests remain stale.");
       return;
     }
     const scoped = await store.scopeStaleTranslations(LOCALE, mentioning.map((row) => row.hash), promptVersion);
@@ -264,7 +268,7 @@ async function retranslateStale() {
   console.log(`Stale rows    ${hashes.length} (prompt digest != ${promptVersion})`);
   if (hashes.length === 0) return;
   if (!write) {
-    console.log("Dry run: pass --write to retranslate.");
+    printWriteHint("retranslate");
     return;
   }
   const apiKey = requireApiKey();
