@@ -9,7 +9,7 @@ import {
 } from "@/hooks/useEditorServerConfigHealth";
 import { useSaveArticleMutation, useSubmitProposalMutation } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
-import type { DatasetChangelogResult } from "@/utils/data/changelog";
+import type { DatasetChangelogResult } from "@/data/changelog/diff";
 import type { DevCommitRebase } from "../components/DevCommitCard";
 import { useConfirm } from "../components/ConfirmDialog";
 import { EditorServerHealthIndicator } from "../components/EditorServerHealthIndicator";

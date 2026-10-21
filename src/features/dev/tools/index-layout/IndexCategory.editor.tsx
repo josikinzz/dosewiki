@@ -9,7 +9,7 @@ import { useContextualEditing } from "@/features/contextual-editing/context";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
 import { Notice, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import type { BoardActions } from "./IndexLayoutCardMenus";
 import { IndexLayoutBoard } from "./IndexLayoutBoard";
 import { buildBoard, listDestinations, type BoardRecord } from "./boardModel";

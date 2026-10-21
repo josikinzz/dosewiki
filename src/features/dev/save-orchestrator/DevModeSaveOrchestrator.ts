@@ -1,4 +1,4 @@
-import type { DatasetChangelogResult } from "@/utils/data/changelog";
+import type { DatasetChangelogResult } from "@/data/changelog/diff";
 import type { DevSaveCommandResult, DevSaveCredentials } from "../pages/devSaveCommand";
 
 type MarkdownChange = {

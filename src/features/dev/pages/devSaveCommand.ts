@@ -8,7 +8,7 @@ import type {
 import type { EditorServerConfigHealth } from "@/hooks/useEditorServerConfigHealth";
 import type { SubstanceArticle } from "@/schema";
 import type { DevCommitDestination } from "../components/DevCommitCard";
-import type { DatasetChangelogResult } from "@/utils/data/changelog";
+import type { DatasetChangelogResult } from "@/data/changelog/diff";
 import {
   buildCommitMarkdown,
   buildDataSavePayload,

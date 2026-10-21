@@ -1,6 +1,6 @@
 import { createPatch } from "diff";
-import type { ChangeLogArticleSummary } from "../../data/changelog/changeLog";
-import { slugify } from "../slug";
+import type { ChangeLogArticleSummary } from "./changeLog";
+import { slugify } from "../../utils/slug";
 
 export type DiffEntry = {
   path: string;

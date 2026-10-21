@@ -25,7 +25,7 @@ import {
   type NoticeMessage,
 } from "@/features/dev/components";
 import { useWriteFreeze } from "@/features/dev/components/writeFreeze";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import { viewToPath } from "@/utils/routing";
 import { useEditorReadState, useInvalidateEditorReads } from "@/hooks/useEditorRead";
 import { cn } from "@/lib/utils";

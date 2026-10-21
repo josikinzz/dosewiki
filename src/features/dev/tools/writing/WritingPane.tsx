@@ -27,7 +27,7 @@ import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { useWriteFreeze } from "@/features/dev/components/writeFreeze";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import { formatCheckpointTime } from "@/features/dev/recovery/draftRecovery";
 
 import { useModifierKeyLabel } from "../../pages/DevCommandPalette";

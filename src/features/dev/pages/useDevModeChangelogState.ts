@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import type { SubstanceArticle } from "@/schema";
-import { buildArticleChangelog, buildDatasetChangelog } from "@/utils/data/changelog";
+import { buildArticleChangelog, buildDatasetChangelog } from "@/data/changelog/diff";
 import {
   buildCombinedChangelogMarkdown,
   extractChangeLogSummary,
