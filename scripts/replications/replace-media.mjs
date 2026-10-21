@@ -5,7 +5,7 @@ import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -42,6 +42,7 @@ async function main() {
   if (!contentType) throw new Error(`Unsupported file extension: ${path.extname(file)}`);
 
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const bytes = fs.readFileSync(file);
   console.log(`\nRow  : ${id}`);
@@ -53,7 +54,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const client = createDataClient({ target: command.targetUrl }).client;
 

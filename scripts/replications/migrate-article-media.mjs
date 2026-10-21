@@ -5,7 +5,7 @@ import { uploadReplicationFile, replicationImportReceipts } from "./lib/r2-uploa
 import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -178,6 +178,7 @@ async function readExistingDigests(existingRows, readUrl, client) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const argv = process.argv.slice(2);
   const inventoryPath = getFlagValue(argv, "--inventory");
@@ -264,7 +265,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   if (!hasFlag(argv, CONFIRM_FLAG)) {
     throw new Error(`Refusing to write without ${CONFIRM_FLAG}.`);
   }

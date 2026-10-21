@@ -2,7 +2,7 @@
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -12,6 +12,7 @@ const operation = "align-embed-artist-credits";
 const command = createProductionWriteCommand({ operation });
 if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command);
 
 const mediaFields = [
   "description_raw", "description_ast", "long_summary_raw", "long_summary_ast",
@@ -151,7 +152,6 @@ if (command.dryRun) {
   process.exit(0);
 }
 
-assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 
 for (const plan of plans) {

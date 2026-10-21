@@ -10,7 +10,7 @@ import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { uploadReplicationBytes, updateReplicationMedia } from "./lib/r2-upload.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -44,13 +44,13 @@ async function main() {
     startDir: ROOT,
   });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
   if (!audit.sources?.target_selected || audit.sources.postgres_target !== command.deploymentFingerprint) throw new Error("Audit must match the explicitly selected Postgres write target.");
   const records = audit.records.filter((record) => record.current.type === "video" && record.health.media === "ok" && record.health.thumbnail === "missing");
   const payloadDigest = digest(records.map((record) => ({ id: record.live_id, storage_id: record.current.storage_id ?? null, r2_key: record.current.r2_key ?? null, url: record.current.url })));
   console.log(JSON.stringify({ mode: command.dryRun ? "dry-run" : "write", thumbnails: records.length, payload_digest: payloadDigest }, null, 2));
   if (command.dryRun) return;
-  assertProductionWriteAllowed(command);
   if (!WRITE || !CONFIRMED || requestedDigest !== payloadDigest) throw new Error(`Write requires --write --confirm-thumbnail-write --digest=${payloadDigest}`);
   const apiKey = requireProductionWriteCredential("replicationMaintenance").token;
   const client = createDataClient({ target: command.targetUrl }).client;

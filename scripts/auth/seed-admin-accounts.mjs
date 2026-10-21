@@ -5,7 +5,7 @@ import { createInterface } from "node:readline/promises";
 import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -70,11 +70,11 @@ async function main() {
 
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   if (command.dryRun) {
     console.log("Dry run: pass --write to seed accounts.");
     return;
   }
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("legacyAdmin");
 
   const client = createDataClient({ target: command.targetUrl }).client;

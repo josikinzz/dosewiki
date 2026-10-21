@@ -6,7 +6,7 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -19,6 +19,7 @@ const command = createProductionWriteCommand({ operation: "seed-category-layout"
 
 async function main() {
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log("🌱 Seeding category layout to Postgres...\n");
 
   const indexPath = join(__dirname, "../../data/substances/psychoactiveIndexManual.json");
@@ -62,7 +63,6 @@ async function main() {
   }
 
   try {
-    assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-category-layout");
     const client = createDataClient({ target: command.targetUrl }).client;
     const result = await client.mutation(api.categoryLayout.save, {

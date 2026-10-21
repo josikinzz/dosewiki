@@ -5,7 +5,7 @@ import path from "node:path";
 import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -17,6 +17,7 @@ const CONFIG_PATH = "data/effects/effectIndexFeaturedReplications.json";
 async function seedFeaturedReplications() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
@@ -65,7 +66,6 @@ async function seedFeaturedReplications() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("editorArticleWrite");
 
   const result = await client.mutation(api.siteConfig.saveFeaturedReplications, {

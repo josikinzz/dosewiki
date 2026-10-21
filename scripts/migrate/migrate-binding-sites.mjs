@@ -7,6 +7,7 @@ import { createDataClient } from "../lib/data-client.ts";
 
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
+  authorizeProductionWrite,
   createProductionWriteCommand,
   executeProductionWrite,
   printProductionWriteCommand,
@@ -250,6 +251,7 @@ async function main() {
   console.log("\nBinding Sites Migration");
   console.log("=".repeat(50));
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const readClient = createDataClient({ target: sourceUrl() }).client;
   const articles = await auditArticles(readClient);

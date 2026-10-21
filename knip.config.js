@@ -12,6 +12,7 @@ const lineageProducers = JSON.parse(readFileSync("data/lineage.json", "utf8"))
 const allowlistedScripts = [
   "scripts/security/scan-secrets.mjs",
   "scripts/security/check-staged-files.mjs",
+  "scripts/util/authorize-production-writers.mjs",
   "scripts/deploy/check-build-command-wiring.mjs",
   "scripts/build/build-surface-cli.mjs",
   "scripts/replications/archive-replication-masters.mjs",

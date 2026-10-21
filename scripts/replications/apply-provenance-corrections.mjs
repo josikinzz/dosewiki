@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -53,6 +53,7 @@ async function main() {
     startDir: ROOT,
   });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   const audit = JSON.parse(fs.readFileSync(AUDIT_PATH, "utf8"));
   if (!audit.sources?.target_selected || audit.sources.postgres_target !== command.deploymentFingerprint) {
     throw new Error("Audit was not generated against the configured write target. Re-run with --target.");
@@ -61,7 +62,6 @@ async function main() {
   const payloadDigest = digest(proposals.map((record) => ({ id: record.live_id, expected: expected(record), updates: updates(record), evidence: record.evidence })));
   console.log(JSON.stringify({ mode: command.dryRun ? "dry-run" : "write", proposals: proposals.length, payload_digest: payloadDigest }, null, 2));
   if (command.dryRun) return;
-  assertProductionWriteAllowed(command);
   if (!WRITE || !CONFIRMED || requestedDigest !== payloadDigest) {
     throw new Error(`Write requires --write --confirm-provenance-write --digest=${payloadDigest}`);
   }

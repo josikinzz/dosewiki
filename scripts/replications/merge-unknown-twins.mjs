@@ -2,7 +2,7 @@
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -12,6 +12,7 @@ import { planHighConfidenceDuplicateMerges } from "./lib/duplicate-merge-plan.mj
 const command = createProductionWriteCommand({ operation: "merge-replication-unknown-twins" });
 if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command);
 
 const client = createDataClient({ target: command.targetUrl }).client;
 const before = await client.query(api.replications.getAll, {});
@@ -25,7 +26,6 @@ if (command.dryRun) {
   process.exit(0);
 }
 
-assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 let merged = 0;
 for (const merge of plan.merges) {

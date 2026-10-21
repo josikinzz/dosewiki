@@ -8,7 +8,7 @@ import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { getAllSubstanceDocuments } from "../lib/data-pagination.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -225,6 +225,7 @@ function summarize(plans) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   if (!command.targetUrl) {
     throw new Error("Set TARGET_POSTGRES_URL explicitly for the regeneration audit.");
   }
@@ -255,7 +256,6 @@ async function main() {
   console.log(JSON.stringify({ report: path.relative(ROOT, REPORT_PATH), payload_digest: payloadDigest, ...report.summary }, null, 2));
   if (command.dryRun) return;
 
-  assertProductionWriteAllowed(command);
   const requestedDigest = process.argv.find((arg) => arg.startsWith("--digest="))?.slice("--digest=".length);
   if (!process.argv.includes("--confirm-gallery-regeneration") || requestedDigest !== payloadDigest) {
     throw new Error(`Write requires --confirm-gallery-regeneration --digest=${payloadDigest}`);

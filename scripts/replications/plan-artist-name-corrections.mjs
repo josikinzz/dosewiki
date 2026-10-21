@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -256,6 +256,7 @@ function printPlan(plan, slugPlan) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const readUrl = command.writeRequested ? command.targetUrl : resolvePostgresSource({}).url;
 
@@ -299,7 +300,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

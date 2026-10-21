@@ -144,7 +144,7 @@ Application rollback restores a previous compatible Postgres artifact and config
 - Script catalog: [scripts README](../../scripts/README.md)
 - Backend and target selection: `scripts/lib/data-client.ts`
 - Remote Postgres guard: `scripts/postgres/targetGuard.ts` (the one explicit target resolver and loopback list: `--target` or `TARGET_POSTGRES_URL` only, a blank value is refused; guarded writer package entries run with `bun --no-env-file`)
-- Write confirmation boundary: `scripts/lib/production-write-command.mjs`; `authorizeProductionWrite` runs the freeze, the confirmation and deployment match, then the remote-host guard, in that order, and returns the target a script builds its pool from
+- Write confirmation boundary: `scripts/lib/production-write-command.mjs`; `authorizeProductionWrite` runs the freeze, the confirmation and deployment match, then the remote-host guard, in that order, and returns the target a script builds its pool from. Every `productionBoundary` writer calls it with `--write` right after printing its command, before any upload, file write, or mutation, and `executeProductionWrite` calls it before its mutation. `scripts/lib/production-write-command-surface.test.mjs` fails a writer that only asserts the ceremony, and `node scripts/util/authorize-production-writers.mjs` adds the call
 - Operator-write inventory: `scripts/lib/production-writer-inventory.mjs`
 - Global freeze: `lib/runtime/dataWriteFreeze.ts`
 - Deployment topology: [deployment](deployment.md)

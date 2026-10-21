@@ -10,7 +10,7 @@ import {
   assertNoPublicProseNamedSourceAttribution,
 } from "../analyze/public-prose-artifact-language-core.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -236,6 +236,7 @@ async function syncToPostgres(changedArticles, batchSize, writeCommand) {
 async function main() {
   const options = parseArgs();
   printProductionWriteCommand(options.writeCommand);
+  if (options.writeCommand.writeRequested) authorizeProductionWrite(options.writeCommand);
   const results = loadLatestResults(options.results);
   requireAllSuccessful(results);
 
@@ -344,7 +345,6 @@ async function main() {
   writeFileSync(summaryMdPath, mdLines.join("\n") + "\n");
 
   if (!options.dryRun) {
-    assertProductionWriteAllowed(options.writeCommand);
     const backupPath = join(
       PROJECT_ROOT,
       "src/data/backups",

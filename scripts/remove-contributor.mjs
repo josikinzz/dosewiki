@@ -3,7 +3,7 @@
 import { createDataClient } from "./lib/data-client.ts";
 import { api } from "../lib/postgres/runtime/api.ts";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -42,6 +42,7 @@ async function main() {
   
   const nameToRemove = contributorName.toLowerCase();
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log(`Planning removal of contributor "${contributorName}" from all effect articles...`);
   
   const sourceClient = createDataClient({ target: requireReadUrl() }).client;
@@ -52,7 +53,6 @@ async function main() {
     let targetClient = null;
     let writeCredential = null;
     if (!command.dryRun) {
-      assertProductionWriteAllowed(command);
       writeCredential = requireProductionWriteCredential("editorArticleWrite");
       targetClient = createDataClient({ target: command.targetUrl }).client;
     }

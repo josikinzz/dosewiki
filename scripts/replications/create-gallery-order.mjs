@@ -15,7 +15,7 @@ import {
   planGalleryOrderMutations,
 } from "./lib/workspace.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -53,6 +53,7 @@ async function main() {
   console.log(`\n${"=".repeat(60)}`);
   console.log("Create Gallery Order for Effects");
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command, { env });
   console.log(`${"=".repeat(60)}\n`);
 
   const currentEffects = await sourceClient.query(api.subjectiveEffects.getAll, {});
@@ -99,7 +100,6 @@ async function main() {
 
   let updated = 0;
   const errors = [];
-  assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("replicationMaintenance", { env });
   const replicationMedia = createReplicationMediaAdapter({
     client: createDataClient({ target: command.targetUrl, env }).client,

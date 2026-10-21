@@ -5,7 +5,7 @@ import { api } from "../../lib/postgres/runtime/api.ts"
 import { verifyProfileAvatarForImport } from "../../lib/runtime/r2MediaStorage.ts";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -130,6 +130,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const planFile = getFlagValue(argv, "--plan");
   if (!planFile) {
@@ -160,7 +161,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const { client: writeClient, fingerprint } = createDataClient({ target: command.targetUrl });
 

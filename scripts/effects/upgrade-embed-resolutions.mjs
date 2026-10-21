@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -16,6 +16,7 @@ const operation = "upgrade-embed-resolutions";
 const command = createProductionWriteCommand({ operation });
 if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command);
 
 const args = process.argv.slice(2);
 const reportDir = getFlagValue(args, "--report-dir") ??
@@ -398,7 +399,6 @@ if (command.dryRun) {
   process.exit(0);
 }
 
-assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 
 const swapsByArticle = new Map();

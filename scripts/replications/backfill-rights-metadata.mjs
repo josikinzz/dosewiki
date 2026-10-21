@@ -12,7 +12,7 @@ import {
   withDefaultReplicationRights,
 } from "./lib/workspace.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -86,6 +86,7 @@ const desiredBySlug = new Map(
 );
 
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command, { env });
 const existing = await sourceClient.query(api.replications.getAll, {});
 const candidates = existing
   .filter((replication) => desiredBySlug.has(replication.slug))
@@ -112,7 +113,6 @@ if (command.dryRun) {
 }
 
 let updated = 0;
-assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance", { env });
 const targetClient = createDataClient({ target: command.targetUrl, env }).client;
 for (const replication of toProcess) {

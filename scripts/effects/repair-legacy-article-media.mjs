@@ -5,7 +5,7 @@ import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { uploadReplicationBytes, r2MediaPublicUrl } from "../replications/lib/r2-upload.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -22,6 +22,7 @@ const operation = "repair-legacy-article-media";
 const command = createProductionWriteCommand({ operation });
 if (!command.targetUrl) throw new Error("Pass an explicit --target for dry runs and writes.");
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command);
 
 const recoveryDir = getFlagValue(process.argv.slice(2), "--recovery-dir");
 if (!recoveryDir) throw new Error("Pass --recovery-dir containing a verified manifest.json.");
@@ -113,7 +114,6 @@ if (command.dryRun) {
   process.exit(0);
 }
 
-assertProductionWriteAllowed(command);
 const credential = requireProductionWriteCredential("replicationMaintenance");
 for (const key of recoverable) {
   const { body, contentType, file } = mediaForKey(key);

@@ -28,14 +28,26 @@ describe("production Postgres write boundary", () => {
   it("ignores application fallback targets for privileged writes", async () => {
     const mutation = vi.fn();
     const selected = command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki"], { TARGET_POSTGRES_URL: undefined, POSTGRES_POOLED_URL: TARGET });
-    await expect(executeProductionWrite(selected, mutation)).rejects.toThrow(/TARGET_POSTGRES_URL/);
+    await expect(executeProductionWrite(selected, mutation, { env: {} })).rejects.toThrow(/TARGET_POSTGRES_URL/);
     expect(mutation).not.toHaveBeenCalled();
   });
 
-  it("runs only the exact operation and database confirmation", async () => {
+  it("runs only the exact operation, database confirmation, and host guard", async () => {
     const mutation = vi.fn(async () => ({ updated: 3 }));
-    await expect(executeProductionWrite(command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki"]), mutation)).resolves.toEqual({ updated: 3 });
+    const confirmed = command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki", "--allow-remote"]);
+    await expect(executeProductionWrite(confirmed, mutation, { env: { POSTGRES_IMPORT_CONFIRM: "db.example" } })).resolves.toEqual({ updated: 3 });
     expect(mutation).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["the write freeze", [], { DATA_WRITES_FROZEN: "1", POSTGRES_IMPORT_CONFIRM: "db.example" }, /DATA_WRITES_FROZEN/],
+    ["a remote host without --allow-remote", [], { POSTGRES_IMPORT_CONFIRM: "db.example" }, /--allow-remote/],
+    ["a remote host without POSTGRES_IMPORT_CONFIRM", ["--allow-remote"], {}, /POSTGRES_IMPORT_CONFIRM/],
+  ])("refuses a confirmed mutation under %s", async (_label, extraArgv, env, expected) => {
+    const mutation = vi.fn();
+    const confirmed = command(["--write", `--confirm-write=${operation}`, "--expected-deployment=db.example/dosewiki", ...extraArgv]);
+    await expect(executeProductionWrite(confirmed, mutation, { env })).rejects.toThrow(expected);
+    expect(mutation).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid explicit CLI target rather than using the valid environment", () => {

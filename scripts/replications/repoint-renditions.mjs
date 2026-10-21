@@ -4,7 +4,7 @@ import path from "node:path";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -173,7 +173,6 @@ export function chunk(items, size) {
 }
 
 export function assertRepointAllowed(command, argv) {
-  assertProductionWriteAllowed(command);
   if (!hasFlag(argv, "--confirm-repoint")) {
     throw new Error(`${OPERATION} requires --confirm-repoint alongside the standard write ceremony.`);
   }
@@ -239,6 +238,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const mediaType = assertMediaType(getFlagValue(argv, "--media-type") ?? DEFAULT_MEDIA_TYPE);
   const manifestPath = getFlagValue(argv, "--manifest");

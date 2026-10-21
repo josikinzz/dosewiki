@@ -9,7 +9,7 @@ import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -191,6 +191,7 @@ async function probeAll(candidates, knownAnalyses) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const apiBase = (
     getFlagValue(argv, "--api-base") ?? DEFAULT_API_BASE
@@ -283,7 +284,6 @@ async function main() {
 
   if (command.dryRun) return;
 
-  assertProductionWriteAllowed(command);
   if (!hasFlag(argv, "--confirm-production-write")) {
     throw new Error("Write requires --confirm-production-write.");
   }
