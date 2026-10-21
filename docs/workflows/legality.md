@@ -36,12 +36,30 @@ packet or tracker vocabulary, research-scope disclaimers, editorial to-dos, and
 machine tokens (a canonical status key written into `status`) are process
 language and must not be published.
 
-Enforcement lives in code rather than in prompts:
+Two controls keep process language out of reader fields. The first is a
+workflow requirement that no check enforces. The second is a set of checks in
+code.
 
-- **Context boundary.** Research and writing are separate steps: the
-  researcher returns a `facts` block and an `editor` block; the writer receives
-  only `facts` and returns reader fields. Text about the previous entry cannot
-  appear because the writer never saw it.
+### Facts-only writers (workflow requirement)
+
+No script enforces these steps. Whoever runs a Legality Research Run keeps them.
+
+1. A researcher works from the `legality:export` packet and returns a `facts`
+   block and an `editor` block. The packet carries the stored `legality`
+   record, so the researcher sees the previous entry.
+2. A writer starts in a fresh context and receives only the `facts` block. The
+   writer never sees the packet, the previous entry, or the `editor` block.
+3. The writer returns the reader fields. The `editor` block never becomes
+   reader text. A draft entry's optional `editorialNote` is not published,
+   because `entryForArticle` in `scripts/legality/apply-draft.mjs` leaves it
+   out of the entry it writes.
+
+Text about the previous entry stays out of reader fields only because the
+writer never saw it. `legality:validate` cannot tell what context a writer
+received, and it does not check that a legal claim is accurate.
+
+### Checks in code
+
 - **Single pattern.** `scripts/legality/voice.mjs` exports `READER_FIELDS`,
   `voiceMatch(field, value, mode)`, and `voiceHits`. Blocking mode carries
   the phrases that always indicate process language; audit mode adds advisory

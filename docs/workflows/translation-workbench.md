@@ -4,20 +4,23 @@ The `/dev/glossary` workbench separates terminology review, exact UI wording,
 source coverage, and publication evidence. Its locale capability is independent
 of the editor role. Every read and write checks the assigned locale on the server.
 
-## Layout: Terms, Interface text, Articles, Waiting, Style guide
+## Layout: Terms, Waiting, Suggestions, Interface text, Articles, Style guide
 
 One tab strip, **Workbench view**, sits under a labeled **Language** picker
 that names each language in its own script (for example "Deutsch (German)");
 a Translator with one assigned language sees it as a fact rather than a
-picker. Its five tabs map onto three internal views: **Terms**, **Interface
-text**, and **Style guide** are the Words view's lists (`terms`, `labels`,
-`style`), **Articles** is the Pages view, and **Waiting** is the Inbox view (`inbox` in links and code).
-Tabs carry counts when they are known (items in Waiting, terms and
-interface text still needing a person), and every view stays mounted once
+picker. Its six tabs, in order, are **Terms**, **Waiting**, **Suggestions**,
+**Interface text**, **Articles**, and **Style guide** (`workbenchSections.tsx`).
+They map onto four internal views: **Terms**, **Interface text**, and **Style
+guide** are the Words view's lists (`terms`, `labels`, `style`), **Waiting** is
+the Inbox view (`inbox` in links and code), **Suggestions** is the Suggestions
+view, and **Articles** is the Pages view.
+Tabs carry counts when they are known (items in Waiting and Suggestions, terms
+and interface text still needing a person), and every view stays mounted once
 opened, so switching never drops typed work.
 
-The workbench opens on Waiting. Terms opens with its categories closed and
-all review states included.
+The workbench opens on Terms unless a deep link (below) names another view.
+Terms opens with its categories closed and all review states included.
 
 - **Waiting** is a triage workspace: the items that need a person on the left,
   the item under review on the right with its English, the wording readers
@@ -25,6 +28,9 @@ all review states included.
   here**, **Edit** and **Skip** (key caps on each). See
   [Waiting](#waiting). When nothing waits it says **All clear** and
   folds away what it checked.
+- **Suggestions** is the queue of what readers of the public glossary suggested
+  for this language. Marking one resolved changes no wording. To use a
+  suggestion, open its term and edit it there.
 - **Terms** starts with the language's review progress: how many terms are
   approved, unreviewed, and live but never checked, with one bar. **Continue
   reviewing** opens the first category (in site order) with work left and
@@ -46,8 +52,8 @@ all review states included.
 - **Articles** has five sections: **Reader** (the article reader, see
   [Substance narrative review](#substance-narrative-review)), **Coverage**
   (per-page coverage and the release evidence import), **Recent changes**
-  (recorded automatic changes, grouped by day), and **Reader feedback**
-  (reactions, website readiness and the reader suggestion queue). Admins also
+  (recorded automatic changes, grouped by day), and **Reactions** (reactions
+  and website readiness). Admins also
   see **Runs** with the latest run's progress and every control that calls
   the model for a whole locale: start the main translation, **Retranslate**
   pending terms, and retry failed pages; their results show in Runs. A
@@ -88,7 +94,7 @@ locations only when opened. `includeUsage=1` explicitly requests the complete
 usage payload; normal entry, saves, and progress polls omit that work.
 
 Deep links keep working across the layout change. `translationView=inbox`,
-`words`, and `pages` name the internal views; with `words`, `translationWords=terms`,
+`suggestions`, `words`, and `pages` name the internal views; with `words`, `translationWords=terms`,
 `labels`, or `style` opens that list (so `translationWords=style` opens the
 style guide). Older values map onto them: `glossary`
 (with `translationTerm`) and `labels` (with `translationLabel`) open Terms or
@@ -262,7 +268,7 @@ refuses a changed revision (409, nothing written), obeys the write freeze
 
 **Resolve** (key A) on a reader suggestion sets its feedback status to
 resolved through the existing `/api/glossary-feedback/<id>/status` mutation,
-the same one the reader feedback queue in Articles uses. To adopt the
+the same one the Suggestions tab uses. To adopt the
 reader's wording, use Edit to open the term first.
 
 #### Model fluency suggestions
@@ -457,9 +463,12 @@ Do not delete recovery history to roll back a translation.
 - Stale revision, wrong locale, cross-origin mutation, and frozen writes fail.
 - Counts include missing source units and never equate an empty queue with
   complete translation, human review, or deployment.
-- Actual SQL tests cover draft, approve, conflict, restore, rollback, and retained
-  effective glossary wording, queue generation races, and segment history.
-  Browser tests cover the reviewer interactions.
+- The route tests under `src/app/api/dev/translation-*` cover role and locale
+  checks, origin checks, expected-revision conflicts, and the write freeze.
+  The `translation-workbench/approve-many`, `translation-glossary/confirm`,
+  and `translation-inbox` tests run against PGlite. No automated test covers
+  restore, rollback, queue generation races, segment history, or the reviewer
+  interactions in a browser, so check those by hand.
 
 Cantonese activation is outside this release. Choose written language and script
 with its reviewers before adding a locale; script conversion alone is not a new

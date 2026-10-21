@@ -155,7 +155,7 @@ After images 68, and Tracers 135. The mixed-effect inline union matched too.
 | `GET`  | `/replications`                    | Cursor-paginated image/video replication gallery                      |
 | `GET`  | `/replications/{slug}`             | One replication and its rights metadata                               |
 | `GET`  | `/effects/{slug}/replications`     | All replications associated with one subjective-effect slug           |
-| `GET`  | `/molecules/{slug}.svg`            | Sandboxed molecule SVG in either visual scheme                        |
+| `GET`  | `/molecules/{slug}.svg`            | Sandboxed molecule SVG in one of three visual schemes                 |
 | `GET`  | `/openapi.json`                    | Machine-readable OpenAPI 3.1 contract                                 |
 
 Substance and effect slugs use lowercase letters, numbers, and hyphens, for example `mdma` or `2c-b`.
@@ -632,7 +632,7 @@ Reagent reactions are presumptive identification aids, not proof of identity, pu
 
 ## Molecules
 
-A complete article supplies both depiction resources:
+A complete article supplies a depiction URL for each of the three schemes:
 
 ```json
 {
@@ -646,6 +646,9 @@ A complete article supplies both depiction resources:
       "dosewiki": { "url": "/api/v1/molecules/mdma.svg?scheme=dosewiki" },
       "effect-index": {
         "url": "/api/v1/molecules/mdma.svg?scheme=effect-index"
+      },
+      "effect-index-dark": {
+        "url": "/api/v1/molecules/mdma.svg?scheme=effect-index-dark"
       }
     }
   }
@@ -657,9 +660,10 @@ Direct request:
 ```http
 GET /molecules/mdma.svg?scheme=dosewiki
 GET /molecules/mdma.svg?scheme=effect-index
+GET /molecules/mdma.svg?scheme=effect-index-dark
 ```
 
-The response is `image/svg+xml`, not JSON, and carries a sandbox Content Security Policy. `scheme` defaults to `dosewiki`. Resolve relative URLs against the deployment origin:
+The response is `image/svg+xml`, not JSON, and carries a sandbox Content Security Policy. `scheme` is `dosewiki`, `effect-index` (Effect Index light), or `effect-index-dark` (Effect Index dark), and defaults to `dosewiki`. Any other value returns `400`. Resolve relative URLs against the deployment origin:
 
 ```ts
 const absoluteMoleculeUrl = new URL(
@@ -668,7 +672,7 @@ const absoluteMoleculeUrl = new URL(
 ).toString();
 ```
 
-A depiction may come from the canonical Postgres override or a static publication fallback. A missing depiction returns `404`; chemical identifiers may still be present in the article.
+Every depiction comes from the substance's `moleculeOverrides` row in Postgres. There is no static fallback. A substance without a row returns `404`, although the article may still carry chemical identifiers. A failed read returns `503`.
 
 ## Replication collections
 

@@ -61,7 +61,7 @@ Non-local production hosts also include `upgrade-insecure-requests`. Local HTTP 
 
 ## Host policy
 
-- `dose.wiki` and `www.dose.wiki`: construction gate plus the approved analytics client attachment; its same-origin proxy request is covered by `'self'`.
+- `dose.wiki` and `www.dose.wiki`: the approved analytics client attachment (`lib/next/analyticsHostPolicy.ts`); its same-origin proxy request is covered by `'self'`.
 - `dosewiki-admin.vercel.app`, Vercel previews, localhost, and every other host: no analytics client attachment. CSP does not need a separate analytics source on any host.
 
 ## Verification contract

@@ -269,7 +269,7 @@ every banner, never a per-preset setting. `/dev/banners` is admin-gated.
 
 ### Public read-only API flow
 
-The versioned `/api/v1` Route Handlers read through the same server-side public data adapters as public pages. The API exposes explicit public projections rather than raw stored documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored. The construction-host middleware allows only the `/api/v1` prefix while the rest of the public application remains gated.
+The versioned `/api/v1` Route Handlers read through the same server-side public data adapters as public pages. The API exposes explicit public projections rather than raw stored documents, applies opaque cursor pagination to collection responses, permits cross-origin read requests, and uses CDN cache headers plus the `publicContentApiRead` rate-limit policy. During the binding-sites migration, v1 alone derives the legacy `receptor_profile`/`receptor` response shape from canonical `binding_sites`/`target` data; no duplicate legacy fields are stored.
 
 ### Public classification/search flow
 
@@ -638,10 +638,12 @@ floor and lives in `server/changeProposalReview.ts`, reached through
   `readProposalTarget`, and if any `contentHash` differs from the recorded
   `baseHash` the proposal flips to `changes_requested` with the drifted targets
   in `conflictReason` and nothing else is written. On a clean match the live
-  documents are kept as `snapshotBefore`. Existing articles use contextual
-  changed-unit patches and the article revision journal; new articles use
-  `saveSubstancesHandler`. Layouts use `saveIndexLayoutHandler`, which mirrors
-  into `categoryLayout`. Then
+  documents are kept as `snapshotBefore`. Articles go through `writeArticle` in
+  `server/lib/articleWrite.ts`. An existing article uses
+  `kind: "replace-existing"`, which patches the changed units against its
+  `baseHash` and records an article revision. A new article uses
+  `kind: "create"`, which refuses a slug or ID that already exists. Layouts use
+  `saveIndexLayoutHandler`, which mirrors into `categoryLayout`. Then
   a changelog entry stamped "proposed by / approved by" is upserted through
   `addEntryHandler` with the proposer's submitter key, the post-apply hashes
   are stored as `appliedHashes`, and the mutation returns the public paths the
@@ -758,48 +760,13 @@ stale-while-revalidate behavior.
 
 ## Auth and Authorization
 
-### Auth.js
-
-Auth.js configuration lives in `lib/auth/authOptions.ts`.
-
-Sign-in is a single credentials provider: username + password. Accounts live in
-the Postgres `memberships` table with a scrypt password hash
-(`lib/auth/passwords.ts`); nothing about an account lives in env.
-
-Session model:
-
-- JWT session strategy
-- session user object enriched with role
-- role re-read from Postgres `memberships` on every JWT refresh; a banned member
-  degrades to `viewer` on the next request
-- sign-in records the membership's password revision in the JWT. A password
-  reset or admin password rotation changes that revision. On the next JWT
-  refresh, an older session loses its role and glossary access.
-- existing sessions have no password revision until users sign in again after
-  this release. They resolve to `viewer` for accounts with a password revision.
-
-### Membership lookup
-
-- `lib/auth/memberships.ts` wraps the server-key Postgres calls
-- `server/memberships.ts` exposes `getCredentialsByUsername`, `touchSignIn`,
-  `getByEmail`, and the seed/migration mutations `setAdminAccount` and
-  `retireViewerMemberships`
-
-Role resolution:
-
-- the stored membership role is the session role; nothing in env grants admin
-- the first admin accounts are seeded with `scripts/auth/seed-admin-accounts.mjs`
-- roles are `admin`, `editor`, `contributor`; `viewer` survives only as a legacy
-  stored value and grants nothing
-
-### Route protection
-
-Public route protection layers:
-
-- `src/middleware.ts` protects `/dev`
-- `src/lib/auth/requireEditorSession.ts` protects sensitive route handlers
-
-This creates a consistent server-side authorization boundary for protected write actions.
+[Auth and roles](auth.md) owns sign-in, sessions, the six roles that
+`src/lib/auth/roles.ts` defines, protected routes, and the token-checked
+exceptions. It does not describe one session rule. Sign-in stores the
+membership's `passwordUpdatedAt` in the JWT, and the `jwt` callback in
+`lib/auth/authOptions.ts` resolves the session to `viewer` when the stored
+value no longer matches. A password reset or admin password rotation therefore
+removes the role from every older session on its next refresh.
 
 ## External Integrations
 

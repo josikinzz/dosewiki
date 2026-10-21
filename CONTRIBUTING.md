@@ -69,9 +69,9 @@ Roles are `admin`, `editor_translator`, `editor`, `translator` and
 `conflicted` (someone else saves just before your first save, so it answers
 409), `frozen` (writes answer 503 with the write-freeze code) and
 `session-expired` (tool reads and writes answer 401). Shell-wide reads such as
-rail counts stay loaded in every state. Tools the fixture does not cover yet,
-such as Substances, still show their loading or error state; add a route to
-`fixtures.mjs` and a case to its test to cover one.
+rail counts stay loaded in every state. A tool the fixture does not cover
+still shows its loading or error state. To cover one, add its routes to
+`fixtures.mjs`.
 
 ### Browser journeys
 
@@ -105,7 +105,7 @@ Each journey runs on a 1440px desktop in the light theme with a mouse and on a
 the touch variant fails on a tapped control under 24px. Steps wait on
 specific locators, and assertions cover the selected record, the retained
 draft, focus, and each request's result. A failure writes a screenshot to
-`tmp/journeys/`. The fixtures' own unit tests run with `bun run test:workflow`.
+`tmp/journeys/`.
 
 `NEXT_PUBLIC_SITE_FLAVOR=effectindex` builds the Effect Index publication;
 unset builds dose.wiki. See [deployment](docs/operations/deployment.md) before

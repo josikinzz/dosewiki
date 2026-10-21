@@ -150,26 +150,21 @@ credential tiers. Retain the additive tables and submitted feedback on applicati
 rollback. Remove a release ledger record or set `released` false to withdraw a
 website destination; this preserves its glossary.
 
-Verification seams: `src/app/api/glossary-feedback/route.test.ts` runs the real
-POST, service allowlist, native callables and SQL against isolated PGlite with
-all migrations. UI tests cover bilingual filtering, failed drafts/retries and
-menu focus. Readiness fixtures cover missing terms, drafts, missing checks,
-expired evidence and a complete release. Public routing also needs a
+Two tests cover this feature. `src/app/api/glossary-feedback/route.test.ts`
+runs the real `POST` route and the glossary feedback handlers against isolated
+PGlite with every migration applied. It
+checks that approved wording stays public over a pending draft, that feedback
+on stale wording is refused, that wrong credentials, unassigned reviewers and
+frozen writes are denied, and that foreign origins and rate-limited requests
+are rejected. `src/features/language-glossary/languageGlossary.test.ts` checks
+that the public projection lists missing translations and exposes only reader
+fields.
+
+No automated test covers the glossary UI or website readiness. Check these by
+hand in a browser: bilingual filtering, failed drafts and retries, menu focus,
+and each readiness state (missing terms, drafts, missing checks, expired
+evidence, and a complete release). Public routing also needs a
 production-shaped build and browser checks.
-
-## Local verification, 2026-09-21
-
-The focused suite passed 91 tests. A production-shaped public build against an
-isolated Postgres fixture passed, and its artifact audit found no editorial
-browser modules or browser Postgres clients. Chromium checks passed Arabic
-search, reaction restoration across tabs, clearing, mobile overflow, language
-menu destinations and Escape focus, unknown-locale 404, and the English glossary.
-Mobile light and dark screenshots were inspected.
-
-The broader suite recorded 6,147 passing tests and no failures before the
-existing `MoleculeQuickEditor.test.tsx` hung. That hang reproduced in the original
-checkout, so the full suite is not reported as complete. No production migration
-or deployment was performed.
 
 
 ## Glossary interface languages
@@ -194,5 +189,6 @@ not term definitions or records of human review. `uiMessageSeeds.ts` includes
 these in the existing catalog producer. Regenerate each affected locale with
 `bun --preload ./scripts/postgres/preload-server-only.ts scripts/translation/ui-catalog.ts --locale <code> --offline --write`.
 Offline compilation changes local artifacts only and does not establish current
-workbench approval. The glossary coverage test checks every supported language,
-page control and placeholder; route tests exercise localized forms and badges.
+workbench approval. No automated test checks the localized glossary pages, so
+open each affected locale's page and check its controls, placeholders, forms
+and badges.

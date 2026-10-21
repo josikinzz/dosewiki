@@ -303,7 +303,7 @@
         <a href="#sources">Sources</a>
       </div>
       <button class="theme-toggle" type="button" aria-label="Change color theme">Theme: system</button>
-      <p class="nav-note">Use this guide for gallery membership and taxonomy. Use the visual tagging field guide for individual subjective-effect mechanisms.</p>
+      <p class="nav-note">Use this guide for gallery membership and taxonomy. The visual tagging field guide for individual subjective-effect mechanisms is retired, and the repository has no maintained copy. See Sources.</p>
     </nav>
 
     <main>
@@ -492,7 +492,7 @@
           <div class="pipeline" aria-label="Classification promotion pipeline">
             <div><strong>1 · Produce</strong>Build the ID-keyed local manifest from attributable source data and reviewed media.</div>
             <div><strong>2 · Validate</strong>Parse JSON, check exact coverage, unique IDs, allowed enums, required modes, and referenced media.</div>
-            <div><strong>3 · Plan</strong>Run the importer dry. Review counts, expected identities, source digest, collisions, and target URL.</div>
+            <div><strong>3 · Plan</strong>Run the writer dry. Review counts, expected identities, source digest, collisions, and target URL.</div>
             <div><strong>4 · Canary</strong>Write a tiny representative set, read it back, and record verification in the new ledger.</div>
             <div><strong>5 · Resume</strong>Use a previous ledger only when it verified the exact row and still owns the live digest.</div>
             <div><strong>6 · Complete</strong>Write pending rows and artists, read back every batch, rebuild both public sites, and inspect served behavior.</div>
@@ -533,16 +533,14 @@
         <header class="section-head">
           <div class="section-kicker">Plate 10 · provenance</div>
           <h2>Implementation sources for this guide.</h2>
-          <p>This document owns the classification procedure. The existing visual tagging field guide owns subjective-effect mechanism evidence.</p>
+          <p>This document owns the classification procedure. The three scripts and the companion guide that this document was written against were removed in commit <code>ad98a7812</code> (2026-09-17), which prepared the tree for open-source release. They are not current tools.</p>
         </header>
         <div class="section-body">
           <ul class="source-list">
-            <li><code>scripts/replications/reconcile-current-library-context.mjs</code>: source-context precedence and restored mode policy.</li>
-            <li><code>scripts/replications/finalize-current-library-review-results.mjs</code>: multi-pass review, history, exact coverage, and final status rules.</li>
-            <li><code>scripts/replications/import-current-library-taxonomy.mjs</code>: dry run, expected identity, digest, canary, previous-ledger bridge, and readback.</li>
-            <li><code>src/types/replications.ts</code>: canonical status, mode, drug class, content family, artist type, and publication enums.</li>
-            <li><code>scripts/replications/VisualTaggingGuideForAgents.html</code>: companion field guide for subjective-effect tags, video/audio evidence, and neighboring-effect confusions.</li>
-            <li><code>Data/current-library-taxonomy-reviewed.json</code> in the Media Review workspace, reviewed manifest and campaign summary.</li>
+            <li><code>src/types/replications.ts</code>: canonical status, mode, drug class, content family, artist type, and publication enums. This is the only source on this list that is in the repository.</li>
+            <li><code>Data/current-library-taxonomy-reviewed.json</code> in the Media Review workspace, outside this repository: reviewed manifest and campaign summary.</li>
+            <li>Retired in <code>ad98a7812</code>: <code>scripts/replications/reconcile-current-library-context.mjs</code> (source-context precedence and restored mode policy), <code>scripts/replications/finalize-current-library-review-results.mjs</code> (multi-pass review, history, exact coverage, and final status rules), and <code>scripts/replications/import-current-library-taxonomy.mjs</code> (dry run, expected identity, digest, canary, previous-ledger bridge, and readback). No checked-in script replaces them. A taxonomy write needs a writer that follows the <a href="../operations/data-credentials.md">data credentials</a> ceremony.</li>
+            <li>Retired in <code>ad98a7812</code>: <code>scripts/replications/VisualTaggingGuideForAgents.html</code>, the companion field guide for subjective-effect tags, video and audio evidence, and neighboring-effect confusions. Intake that needs subjective-effect mechanism tags stops until a maintained guide is available.</li>
           </ul>
         </div>
         <footer>Prepared 2026-08-25 · source baseline <code>main@d614d137</code> · self-contained HTML · no production write performed by this guide.</footer>
