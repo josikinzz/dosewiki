@@ -3,11 +3,12 @@ import { PostgresError, v, type Infer, type ObjectType } from "../lib/postgres/r
 import { internalQuery, query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
+import type { PublishedArticleIndexRow, PublishedBlogIndexRow } from "../lib/postgres/runtime/projectionReads";
 import { requireRole } from "./lib/auth";
 import { contentHash } from "../lib/proposals/contentHash";
 import { prepareVCode } from "../src/features/effects/vcode/editing";
 import { currentNarrativeRevision, narrativeRevision, recordNarrativeMaintenance, recordNarrativeRevision } from "./lib/narrativeRevisions";
-import { articleReadMinutes, deriveDescription } from "../src/features/articles/domain/articlesIndex";
+import { deriveDescription } from "../src/features/articles/domain/articlesIndex";
 import { buildBlogPostExcerpt } from "../src/features/blog/domain/blogPostModel";
 
 function isPublicallyReadable(article: Doc<"effectIndexArticles">): boolean {
@@ -29,27 +30,35 @@ export const getAllDocumentsForBackup = internalQuery({
   handler: async (ctx) => await ctx.db.query("effectIndexArticles").collect(),
 });
 
+const presentFields = (entry: Record<string, unknown>) =>
+  Object.fromEntries(Object.entries(entry).filter(([, value]) => value !== undefined && value !== null));
+
+function publishedArticleIndexEntry(row: PublishedArticleIndexRow) {
+  const description = row.shortDescription;
+  return presentFields({
+    slug: row.slug, title: row.title, tags: row.tags, publication_status: row.publication_status,
+    featured: row.featured, publicationDate: row.publicationDate, authors: row.authors,
+    kind: row.kind, bodyFormat: row.bodyFormat,
+    shortDescription: description,
+    indexDescription: description?.trim() ? description : deriveDescription(row.description_source ?? undefined),
+    readMinutes: row.readMinutes,
+    excerpt: "",
+  });
+}
+
+function publishedBlogIndexEntry(row: PublishedBlogIndexRow) {
+  return presentFields({
+    slug: row.slug, title: row.title, publication_status: row.publication_status,
+    publicationDate: row.publicationDate, kind: row.kind, teaser: row.teaser, coverImageUrl: row.coverImageUrl,
+    excerpt: buildBlogPostExcerpt(row.excerpt_source ?? ""),
+  });
+}
+
 export const getPublishedIndex = query({
   args: { kind: v.union(v.literal("article"), v.literal("blog")) },
-  handler: async (ctx, { kind }) => {
-    const rows = await ctx.db.getPublishedPublicationIndex(kind);
-    return rows.map((row) => {
-      const body = typeof row.body_raw === "string" ? row.body_raw : undefined;
-      const description = typeof row.shortDescription === "string" ? row.shortDescription : undefined;
-      return Object.fromEntries(Object.entries({
-        slug: row.slug, title: row.title, tags: row.tags, publication_status: row.publication_status,
-        featured: row.featured, publicationDate: row.publicationDate,
-        authors: row.authors, authorProfileKeys: row.authorProfileKeys,
-        kind: row.kind, bodyFormat: row.bodyFormat, teaser: row.teaser, coverImageUrl: row.coverImageUrl,
-        shortDescription: description,
-        indexDescription: description?.trim() ? description : deriveDescription(
-          typeof row.description_source === "string" ? row.description_source : body,
-        ),
-        readMinutes: typeof row.readMinutes === "number" ? row.readMinutes : articleReadMinutes(body),
-        excerpt: buildBlogPostExcerpt(typeof row.excerpt_source === "string" ? row.excerpt_source : body ?? ""),
-      }).filter(([, value]) => value !== undefined && value !== null));
-    });
-  },
+  handler: async (ctx, { kind }) => kind === "blog"
+    ? (await ctx.db.getPublishedBlogIndex()).map(publishedBlogIndexEntry)
+    : (await ctx.db.getPublishedArticleIndex()).map(publishedArticleIndexEntry),
 });
 
 export const getBySlug = query({
