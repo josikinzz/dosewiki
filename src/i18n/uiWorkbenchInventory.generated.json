@@ -4048,6 +4048,17 @@
       "Sort order, {{order}}"
     ]
   },
+  "legacy.26082e730c4a2f8c09ac565971e65ab5d500c593d70fd8da424caed3a83309b4": {
+    "catalogKey": "A keyed piece of editable site text. `getCopyByKeys()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent.",
+    "source": "A keyed piece of editable site text. `getCopyByKeys()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "A keyed piece of editable site text. `getCopyByKeys()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent."
+    ]
+  },
   "legacy.2625cdae886f1e6152b5518fdd6ea880ce7bcbf60eef4d1eb1a1a6d27fb615ae": {
     "catalogKey": "Legacy trip reports, where rights remain with the author.",
     "source": "Legacy trip reports, where rights remain with the author.",
@@ -4733,17 +4744,6 @@
       "App Router **server components** fetch data and render mostly static HTML, prerendered at build time where possible. **Vercel** hosts the app."
     ]
   },
-  "legacy.2c4afaf2c865422fb5740d89c7e1068a193eceba9036e866f6bb64883e67f7e3": {
-    "catalogKey": "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points.",
-    "source": "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points.",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points."
-    ]
-  },
   "legacy.2c5b669bcdeb51bffbcb9fb4feb1c3aa8b6b73aa79c3aeef41a188624c68e143": {
     "catalogKey": "Routes",
     "source": "Routes",
@@ -5392,6 +5392,17 @@
     ],
     "glossaryTerms": [
       "Russia"
+    ]
+  },
+  "legacy.33a6ce090a8b4112f24a5aeb5999a22237f1c39598760d799869752f0dad7cd3": {
+    "catalogKey": "`lib/auth/authOptions.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7).",
+    "source": "`lib/auth/authOptions.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7).",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "`lib/auth/authOptions.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7)."
     ]
   },
   "legacy.33a9bf60fc20be0ac478ce8fd765f3eb933d3a0a5b80808ef00f22eaf5182ab0": {
@@ -10987,6 +10998,17 @@
       "Colombia"
     ]
   },
+  "legacy.6b66345b902c994fad370cc5082fd5186981e39988112575491f3dc7921cc616": {
+    "catalogKey": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+    "source": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points."
+    ]
+  },
   "legacy.6b7408cd7d2e2a04704f2be46e896d1b83cfc9e4564782de81f2ea2f2070ae31": {
     "catalogKey": "Benzhydryl",
     "source": "Benzhydryl",
@@ -11726,17 +11748,6 @@
     ],
     "glossaryTerms": [
       "Loading reagent data"
-    ]
-  },
-  "legacy.74147170351ac6ade5e5a8053000d686ab82c995b65e436f670eee17f5d536b9": {
-    "catalogKey": "`scripts/lib/workflow-command-surface.mjs` and its sibling `citation-command-surface.mjs` index runnable commands; `package.json` defines the `npm run` entry points.",
-    "source": "`scripts/lib/workflow-command-surface.mjs` and its sibling `citation-command-surface.mjs` index runnable commands; `package.json` defines the `npm run` entry points.",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "`scripts/lib/workflow-command-surface.mjs` and its sibling `citation-command-surface.mjs` index runnable commands; `package.json` defines the `npm run` entry points."
     ]
   },
   "legacy.7429c9b87585a0600bf29f0f860c2568424e018e5aba910539c1fd0f51c2501a": {
@@ -12609,17 +12620,6 @@
     ],
     "glossaryTerms": [
       "Poland"
-    ]
-  },
-  "legacy.7f7d9909c6aa435e93c388d66463cbbfa258f0850b531e0f7f451096620bffea": {
-    "catalogKey": "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
-    "source": "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`."
     ]
   },
   "legacy.7fafeea1529914eb0fe91b9a762313228ab06244020742b7f82e0796087bc124": {
@@ -15755,6 +15755,17 @@
       "by {{name}}"
     ]
   },
+  "legacy.9f3d26eaed29707a858637cef9a87d208a426499f01cd5f494a431bda46993e7": {
+    "catalogKey": "**`src/middleware.ts`, `lib/auth/authOptions.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
+    "source": "**`src/middleware.ts`, `lib/auth/authOptions.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "**`src/middleware.ts`, `lib/auth/authOptions.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`."
+    ]
+  },
   "legacy.9f4ffbc37f046ce5d92e30e4d167eaae9b2e0bb258e09c8eee3aa0de5c3e5e1f": {
     "catalogKey": "Your translation",
     "source": "Your translation",
@@ -18627,17 +18638,6 @@
       "The general effect descriptions for each psychoactive class: what its substances have in common, with no single substance in view."
     ]
   },
-  "legacy.bafab752ffc8a6678cfe2db9539fb63e118d89fed882809fa693f28fbf02f9b0": {
-    "catalogKey": "`auth.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7).",
-    "source": "`auth.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7).",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "`auth.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7)."
-    ]
-  },
   "legacy.bb450aa9092192ffe1d25b0aa6dc4c39466f1c893aae51e6dea77e889be93de8": {
     "catalogKey": "25x-NBOH",
     "source": "25x-NBOH",
@@ -20533,6 +20533,17 @@
       "Something else"
     ]
   },
+  "legacy.cc7ea14c1a55659e27366c1890ad3f65f484d84b42acdba435cf55d69900ef31": {
+    "catalogKey": "`package.json` indexes runnable commands and defines the `npm run` entry points; `scripts/README.md` links the guide for each workflow.",
+    "source": "`package.json` indexes runnable commands and defines the `npm run` entry points; `scripts/README.md` links the guide for each workflow.",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "copyBlocks"
+    ],
+    "glossaryTerms": [
+      "`package.json` indexes runnable commands and defines the `npm run` entry points; `scripts/README.md` links the guide for each workflow."
+    ]
+  },
   "legacy.cc8eb4f674ad971e3ba7690fb3084a3edb8b83d8959e412c684fa4d4aa766346": {
     "catalogKey": "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license).",
     "source": "Writing by dose.wiki editors, data schemas, and data normalization efforts are licensed [CC0](/docs/license): they are in the public domain. You are free to use and improve CC0 content without permission or attribution. Our code is [MIT licensed](/docs/license).\n\nThird-party content such as quoted text, [reagent test data](https://protestkit.eu), [TripSit interaction data](https://wiki.tripsit.me/wiki/Drug_combinations), legacy trip reports, or replications may be subject to other terms. Datasets downloaded from dose.wiki are not necessarily licensed CC0.\n\nYou can use our datasets on effects, substances, and/or trip reports in your own datasets, harm reduction efforts, or to build your own encyclopedia as described [here](/docs/license).",
@@ -21349,17 +21360,6 @@
     ],
     "glossaryTerms": [
       "Antipsychotic"
-    ]
-  },
-  "legacy.d4d988e757e41fd7aa05a1719a8afaa6a803c6205cfd1d55e9812d2108dbd633": {
-    "catalogKey": "A keyed piece of editable site text. `getCopy()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent.",
-    "source": "A keyed piece of editable site text. `getCopy()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent.",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "copyBlocks"
-    ],
-    "glossaryTerms": [
-      "A keyed piece of editable site text. `getCopy()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent."
     ]
   },
   "legacy.d4f20af48adade495153245988129c86e9ae83b828e0cd14ee22e09859a21d24": {
@@ -25672,6 +25672,16 @@
       "src/app/zh/glossary/page.tsx",
       "src/features/language-glossary/LanguageGlossaryPage.tsx",
       "src/features/language-glossary/TranslationCredits.tsx"
+    ],
+    "glossaryTerms": []
+  },
+  "tripReport.approximateDate": {
+    "catalogKey": "tripReport.approximateDate",
+    "source": "around {{date}}",
+    "context": "Hedge on a trip report date the author marked as approximate, shown in report cards and report index rows. {{date}} is already formatted for the locale and may be a year, a month and year, or a full date, so the hedge must read naturally before each without changing the date's grammatical case. Keep the placeholder.",
+    "locations": [
+      "src/features/reports/components/TripReportCard.tsx",
+      "src/features/reports/pages/TripReportsPresentation.tsx"
     ],
     "glossaryTerms": []
   }

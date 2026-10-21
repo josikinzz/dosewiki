@@ -108,6 +108,12 @@ export const UI_MESSAGE_DEFINITIONS = {
     locations: ["src/features/language-glossary/LanguageGlossaryPage.tsx"],
     glossaryTerms: [],
   },
+  "tripReport.approximateDate": {
+    source: "around {{date}}",
+    context: "Hedge on a trip report date the author marked as approximate, shown in report cards and report index rows. {{date}} is already formatted for the locale and may be a year, a month and year, or a full date, so the hedge must read naturally before each without changing the date's grammatical case. Keep the placeholder.",
+    locations: ["src/features/reports/components/TripReportCard.tsx", "src/features/reports/pages/TripReportsPresentation.tsx"],
+    glossaryTerms: [],
+  },
   "translationCredits.title": {
     source: "Translation contributors",
     context: "Heading above the people credited for translating and reviewing this language edition of the site. Each entry below is a person's name and one line on what they contributed.",

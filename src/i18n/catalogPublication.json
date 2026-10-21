@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-21T03:23:25.931Z",
-    "catalogDigest": "384c56775211ba15bf7a38114045829bd957d9f63cca9e168cfdf4b60d591123",
+    "compiledAt": "2026-10-21T04:10:09.968Z",
+    "catalogDigest": "5037a68bbe87d542fa84e86917127d1014a7aae4c7256e8ed985ddf7d7c5ec4d",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "e715dbd379d4a884a04d6de0af160c37a2176e3f72815f5aa0da3cef8d7e42b3",
+    "sourceInventoryDigest": "e4edfcb2da03944a844bbb8299680883087c4db8c308db4b8ea996d69095fc38",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
@@ -450,6 +450,11 @@
         "catalogKey": "Guides and resources for replicating specific subjective effects.",
         "term": "Replication",
         "expectedTarget": "体验再现"
+      },
+      {
+        "catalogKey": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+        "term": "Replication",
+        "expectedTarget": "体验再现"
       }
     ],
     "pendingRefreshStatus": "not-refreshed",
@@ -499,6 +504,12 @@
       {
         "catalogKey": "{{name}} Replications",
         "term": "Replications",
+        "expectedTarget": "体验再现",
+        "humanApproved": false
+      },
+      {
+        "catalogKey": "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points.",
+        "term": "Replication",
         "expectedTarget": "体验再现",
         "humanApproved": false
       },
@@ -1075,6 +1086,11 @@
         "target": "在网站上查看此句",
         "targetDigest": "6c4d7560af522a33e2ae511034a4f99c712d5ae6bd0c8c160e12f3d668b02be6"
       },
+      "tripReport.approximateDate": {
+        "source": "around {{date}}",
+        "target": "约 {{date}}",
+        "targetDigest": "d6d041f4170e23fca50808984690e1bd71ef90516109bd6426a6ddd8d3824d27"
+      },
       "translationCredits.title": {
         "source": "Translation contributors",
         "target": "翻译贡献者",
@@ -1083,11 +1099,11 @@
     }
   },
   "ru": {
-    "compiledAt": "2026-10-13T00:53:42.785Z",
-    "catalogDigest": "15c91227a100725939692d631c5f21c255bef8147a897336bb0acbfdef021128",
+    "compiledAt": "2026-10-21T04:10:10.296Z",
+    "catalogDigest": "f0593edf023b8fe9806fee0bd9fa3fd85f55c0a83f3a861d491d6a17dbb1e9ec",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "9935eaec27d36347802848e48f238263531cee025c1e5de0a337495e344d7730",
+    "sourceInventoryDigest": "e4edfcb2da03944a844bbb8299680883087c4db8c308db4b8ea996d69095fc38",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1176,6 +1192,11 @@
         "source": "See this sentence on the site",
         "target": "Открыть это предложение на сайте",
         "targetDigest": "54f6dfc8cf2b3ff4d0150ed3ea78a8200912aa849cc66383c33daf3c3ee23666"
+      },
+      "tripReport.approximateDate": {
+        "source": "around {{date}}",
+        "target": "примерно {{date}}",
+        "targetDigest": "6949630c952f923a5d28f47637c8f589b9c794e49f828b27f2b82ff317507297"
       },
       "translationCredits.title": {
         "source": "Translation contributors",

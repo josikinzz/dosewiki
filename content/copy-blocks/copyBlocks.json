@@ -1258,7 +1258,7 @@
     "kind": "markdown",
     "label": "03 · Tech stack · Auth: body",
     "group": "Docs · Code",
-    "body": "`auth.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7)."
+    "body": "`lib/auth/authOptions.ts` configures a username-and-password credentials provider backed by `memberships`. Passwords are stored as scrypt hashes, not environment-variable passwords. Middleware keeps protected routes on the editor hosts; [roles determine access](#s7)."
   },
   {
     "key": "docs-code-s3-ai-label",
@@ -1844,7 +1844,7 @@
     "kind": "markdown",
     "label": "08 · Scripts · command registry",
     "group": "Docs · Code",
-    "body": "`scripts/lib/workflow-command-surface.mjs` and its sibling `citation-command-surface.mjs` index runnable commands; `package.json` defines the `npm run` entry points."
+    "body": "`package.json` indexes runnable commands and defines the `npm run` entry points; `scripts/README.md` links the guide for each workflow."
   },
   {
     "key": "docs-code-s8-deferral",
@@ -2201,7 +2201,7 @@
     "kind": "markdown",
     "label": "11 · Vocabulary · Copy block: definition",
     "group": "Docs · Code",
-    "body": "A keyed piece of editable site text. `getCopy()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent."
+    "body": "A keyed piece of editable site text. `getCopyByKeys()` reads it from `copyBlocks`, falling back to the checked-in JSON when absent."
   },
   {
     "key": "docs-code-s12-intro",
@@ -2219,10 +2219,10 @@
       "**`README.md`, `ARCHITECTURE.md`**: orientation, routes, package commands, and system layout.",
       "**`server/schema.ts`**: the data model; start with `substanceIndex`.",
       "**`src/app/[slug]/page.tsx` → `lib/next/routeLoaders.substances.tsx` → `lib/data/publicData.*` → `src/features/article/`**: follow the public read path in Flow A.",
-      "**`src/middleware.ts`, `auth.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
+      "**`src/middleware.ts`, `lib/auth/authOptions.ts`**: host routing, sign-in, and roles. Verify deployment routing with a production-shaped build, not just `next dev`.",
       "**`src/lib/http/protectedRouteOperation.ts`, `lib/http/rateLimitPolicy.ts`**: protected API handling, session roles, named rate limits, and payload caps. Public intake uses separate controls.",
       "**`src/features/dev/save-orchestrator/`, `src/app/api/save-article/`**: follow Flow B's saves and audit trail.",
-      "**`scripts/lib/workflow-command-surface.mjs`**: find batch, citation, replication, migration, and sync entry points."
+      "**`package.json`, `scripts/README.md`**: find batch, citation, replication, migration, and sync entry points."
     ]
   },
   {
