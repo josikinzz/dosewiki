@@ -70,10 +70,7 @@ export async function getStudioTotalHandler(
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
     "editor",
   );
-  const db = ctx.db as typeof ctx.db & {
-    getStudioReplicationTotal: () => Promise<number>;
-  };
-  return { totalCount: await db.getStudioReplicationTotal() };
+  return { totalCount: await ctx.db.getStudioReplicationTotal() };
 }
 
 export async function getStudioRowsHandler(

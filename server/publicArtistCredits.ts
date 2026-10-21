@@ -1,14 +1,10 @@
 import { query } from "../lib/postgres/runtime/server";
-import type { Doc } from "../lib/postgres/runtime/dataModel";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./lib/replicationUrls";
 
 export const getRows = query({
   args: {},
   handler: async (ctx) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicArtistCreditRows: () => Promise<Doc<"replications">[]>;
-    };
-    const rows = await db.getPublicArtistCreditRows();
+    const rows = await ctx.db.getPublicArtistCreditRows();
     const urls = memoizedStorageUrls(ctx);
     const resolved = await Promise.all(rows.map(async (row) => {
       const { url } = await resolveReplicationUrls(urls, {

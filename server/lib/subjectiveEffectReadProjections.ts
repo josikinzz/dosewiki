@@ -62,7 +62,7 @@ export const subjectiveEffectCategoryTags: Record<string, string[]> = {
   hallucinatory: ["hallucinatory state"],
 };
 
-export function projectPublicEffectPreview(effect: SubjectiveEffectRecord) {
+export function projectPublicEffectPreview(effect: Pick<SubjectiveEffectRecord, "name" | "slug" | "summary" | "featured" | "tags">) {
   return {
     name: effect.name,
     slug: effect.slug,
@@ -72,7 +72,7 @@ export function projectPublicEffectPreview(effect: SubjectiveEffectRecord) {
   };
 }
 
-export function projectPublicEffectIndexEntry(effect: SubjectiveEffectRecord) {
+export function projectPublicEffectIndexEntry(effect: Pick<SubjectiveEffectRecord, "name" | "slug" | "tags" | "featured">) {
   return {
     name: effect.name,
     slug: effect.slug,
@@ -109,7 +109,7 @@ export function projectPublicEffectArticle(effect: SubjectiveEffectRecord) {
   };
 }
 
-export function matchesSubjectiveEffectCategory(effect: SubjectiveEffectRecord, category: string): boolean {
+export function matchesSubjectiveEffectCategory(effect: Pick<SubjectiveEffectRecord, "tags">, category: string): boolean {
   const tagsToMatch = subjectiveEffectCategoryTags[category];
 
   if (!tagsToMatch) {
