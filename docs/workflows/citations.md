@@ -175,7 +175,7 @@ survive sanitization. A later repair invalidates every downstream gate.
 Only after reconciliation passes, one worker writes
 `runs/<run-id>/article-wide.json` from the sanitized packet and accepted
 section output. It preserves accepted markers, adds only marker-only work, and
-in a scoped run adds markers only inside `scopedSections`. Verify the handoff,
+in a scoped run adds markers only inside `selectedSections`. Verify the handoff,
 then:
 
 ```bash
