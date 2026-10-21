@@ -1,18 +1,12 @@
 import yaml from "yaml";
+import { slugify } from "../../../src/utils/slug.ts";
 
 const VALID_RISK_LEVELS = ["extremely_low", "low", "moderate", "high", "extremely_high", null];
 const VALID_CARCINOGENICITY_LEVELS = ["confirmed", "probable", "possible", "no_evidence", "unknown", null];
 const VALID_EVIDENCE_LEVELS = ["none", "negative", "limited", "positive", null];
 
-export function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function getArticleSlug(article) {
-  return article.slug || titleToSlug(article.title);
+  return article.slug || slugify(article.title);
 }
 
 function normalizeEnumValue(value, validValues, aliases = {}) {

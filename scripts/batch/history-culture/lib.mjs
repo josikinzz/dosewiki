@@ -1,14 +1,8 @@
 import yaml from "yaml";
-
-function titleToSlug(title) {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import { slugify } from "../../../src/utils/slug.ts";
 
 export function getArticleSlug(article) {
-  return article.slug || titleToSlug(article.title);
+  return article.slug || slugify(article.title);
 }
 
 export function hasExistingHistoryCulture(article) {

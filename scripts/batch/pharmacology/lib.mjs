@@ -2,6 +2,7 @@ import yaml from "yaml";
 
 import { normalizePharmacologySection } from "../../../lib/article/normalization.mjs";
 import { parseBatchCliArgs } from "../lib/cli-options.mjs";
+import { slugify } from "../../../src/utils/slug.ts";
 
 export const COMPLETE_PHARMACOLOGY_FIELD_THRESHOLD = 5;
 
@@ -49,13 +50,8 @@ export function parseArgs(args, config, inputBounds = INPUT_BOUNDS) {
   });
 }
 
-function titleToSlug(title) { return title
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-+|-+$/g, ""); }
-
 export function getArticleSlug(article) {
-  return article.slug || titleToSlug(article.title);
+  return article.slug || slugify(article.title);
 }
 
 export function stripDataMetadata(article) {

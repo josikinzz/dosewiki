@@ -1,3 +1,5 @@
+import { slugify } from "../../src/utils/slug.ts";
+
 const DEFAULT_SNIPPET_RADIUS = 54;
 const DEFAULT_VALUE_LIMIT = 360;
 
@@ -258,14 +260,8 @@ function formatPublicProseLanguageFindings(findings, options = {}) {
   return lines.join("\n");
 }
 
-function slugify(value) {
-  return String(value ?? "")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function titleSlug(value) {
+  return slugify(String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/&/g, " and "));
 }
 
 function extractRecordsFromValue(value, context) {
@@ -393,7 +389,7 @@ function createFieldRecord(value, context) {
   }
 
   const title = value.title ?? context.fallbackTitle ?? null;
-  const slug = value.slug ?? context.fallbackSlug ?? slugify(title) ?? "unknown";
+  const slug = value.slug ?? context.fallbackSlug ?? titleSlug(title) ?? "unknown";
   return {
     kind: "field",
     slug: slug || "unknown",
@@ -408,7 +404,7 @@ function createFieldRecord(value, context) {
 
 function createArticleRecord(article, context) {
   const title = article.title ?? context.fallbackTitle ?? null;
-  const slug = article.slug ?? article.articleSlug ?? context.fallbackSlug ?? slugify(title) ?? "unknown";
+  const slug = article.slug ?? article.articleSlug ?? context.fallbackSlug ?? titleSlug(title) ?? "unknown";
   return {
     kind: "article",
     slug: slug || "unknown",

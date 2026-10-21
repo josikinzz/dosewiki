@@ -13,7 +13,8 @@ import {
 } from "../lib/source-material-resolver.mjs";
 import { CONFIG } from "./cli.mjs";
 import { loadHarmPotentialQuotes } from "./loader.mjs";
-import { buildUserMessage, getArticleSlug, parseGeneratedYaml, titleToSlug } from "./lib.mjs";
+import { buildUserMessage, getArticleSlug, parseGeneratedYaml } from "./lib.mjs";
+import { slugify } from "../../../src/utils/slug.ts";
 import { callOpenRouter, callWithRetry } from "./openrouter.mjs";
 
 export function createBackup() {
@@ -126,7 +127,7 @@ export async function processAll(apiKey, articles, systemPrompt, options) {
 
 export function applyHarmPotentialUpdate(article, update) {
   article.harm_potential = update.harm_potential;
-  const sourceSlug = update.slug || titleToSlug(update.title || article.title);
+  const sourceSlug = update.slug || slugify(update.title || article.title);
   assertNoPublicProseArtifactLanguage(article, {
     sections: ["harm_potential"],
     sourcePath: `batch:harm_potential:${sourceSlug}`,
@@ -163,7 +164,7 @@ function assertSuccessfulSync(slug, syncResult) {
 export async function applyAndSyncUpdates(results, _allArticles, postgresClient, adminKey) {
   const targetArticles = await getAllSubstanceDocuments(postgresClient, api.substanceIndex.getFullDocumentPage);
   const targetArticlesBySlug = new Map(
-    targetArticles.map((article) => [article.slug || titleToSlug(article.title), article]),
+    targetArticles.map((article) => [article.slug || slugify(article.title), article]),
   );
   const aggregate = {
     created: 0,
@@ -175,7 +176,7 @@ export async function applyAndSyncUpdates(results, _allArticles, postgresClient,
   };
 
   for (const update of results.successfulUpdates) {
-    const slug = update.slug || titleToSlug(update.title);
+    const slug = update.slug || slugify(update.title);
     const baseArticle = targetArticlesBySlug.get(slug);
     if (!baseArticle) {
       throw new Error(`No target Postgres article found for slug "${slug}"`);

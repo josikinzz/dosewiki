@@ -1,4 +1,5 @@
 import { normalizeRouteName } from "../../lib/article/normalization.mjs";
+import { slugify } from "../../src/utils/slug.ts";
 
 
 const DEFAULT_SECTIONS = Object.freeze(["dosage", "duration"])
@@ -354,7 +355,7 @@ function complementSection(section) {
 }
 
 function articleSlug(article) {
-  return article?.slug || String(article?.title ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return article?.slug || slugify(String(article?.title ?? ""));
 }
 
 function buildCandidate({

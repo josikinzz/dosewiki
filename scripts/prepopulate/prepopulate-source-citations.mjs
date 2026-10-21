@@ -39,7 +39,7 @@ const runContext = createDataOpsRunContext({
   localArtifacts: [path.relative(repoRoot, articlesPath), "src/data/article-sources"],
 });
 
-import { slugify } from "../lib/slug.mjs";
+import { slugify } from "../../src/utils/slug.ts";
 
 const SOURCE_DISPLAY_NAMES = {
   "disregardeverythingisay": "Disregard Everything I Say",
