@@ -118,9 +118,9 @@ supporting code goes. `src/app/api/dev/translation-note/route.ts` is a
 complete example of a guarded read and write.
 
 1. Put the handler in `src/app/api/<path>/route.ts`. On the editor
-   deployment, `src/middleware.ts` requires a session for every path except
-   sign-in, invite, password reset, the article revalidation POST, and the
-   service crons. On public hosts it redirects `/api/auth`, `/api/dev`,
+   deployment, `src/middleware.ts` requires a session for every API path
+   except the sign-in, invite, and password-reset APIs, the article
+   revalidation POST, and the service crons. On public hosts it redirects `/api/auth`, `/api/dev`,
    `/api/invite`, and `/api/reset-password` to the home page.
 2. Export each method as `protectedRouteOperation({ ... })` from
    `src/lib/http/protectedRouteOperation.ts`. Give it an `auth` floor
