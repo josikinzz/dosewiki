@@ -92,8 +92,9 @@ function createFileSystemSourceCatalog(sourcesDir: string): SourceCatalogAdapter
           { adapter: "local-file" },
         ) as SubstanceSourceDocument;
       } catch (error) {
-        console.error(`Error loading ${filePath}:`, error);
-        return null;
+        throw new Error(`Could not load the source module for ${entry.slug} (${filePath}); no output was written.`, {
+          cause: error,
+        });
       }
     },
   };
