@@ -125,7 +125,7 @@ graph.
 
 | Command | Covers |
 | --- | --- |
-| `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/` |
+| `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/`. Files run in Node. A test that renders or reads `document`, `window`, or `localStorage` starts with `// @vitest-environment jsdom`, and without it fails with `document is not defined` |
 | `bun run test:workflow` | Every script and tool test under `scripts/` |
 | `bun run test:workflow -- <path>...` | Only the named `scripts/` test files, each through its own runner (`node:test` or Vitest); an unknown path fails before anything runs |
 | `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed or had every test skipped in any run, or if a file in `scripts/test/test-policy.json` did not run |
