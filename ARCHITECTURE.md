@@ -33,15 +33,16 @@ Public DoseWiki and Effect Index carry no admin or editorial credential. Public 
 
 | Path | Contents |
 | --- | --- |
-| `src/app/` | App Router pages, layouts, metadata routes, and API route handlers (`src/app/api/`) |
-| `src/features/` | Feature UI and editor workflows; the editor kit is `src/features/dev/components/` |
+| `src/app/` | App Router pages, layouts, metadata routes, and API route handlers (`src/app/api/`). `src/app/_components/` is private to the routes |
+| `src/features/` | Feature UI and editor workflows. The editor kit is `src/features/dev/components/`, and the appearance controls are `src/features/appearance/` |
 | `src/components/` | Shared UI: `ui/` primitives, `common/` recipes, `layout/` page chrome, `pages/` route-owned public pages ([UI kit](docs/design/ui-kit.md)) |
 | `src/schema/` | Canonical Zod schemas. The article schema and its adapter `contract.ts` live in `substance/`, and `substance.schema.ts` re-exports them |
-| `src/data/` | Content loaders, static configuration, and generated schema helpers (`src/data/schema/`) |
-| `src/lib/`, `src/utils/`, `src/hooks/` | Client and shared helpers: auth roles, HTTP route wrappers, routing, SEO, slugs, hooks |
+| `src/data/` | Content loaders, static configuration, domain models with their transforms (`tags/`, `changelog/`), and generated schema helpers (`schema/`) |
+| `src/lib/` | Shared helpers and server-only route code. `auth/roles.ts` is shared. `auth/requireEditorSession.ts` and the `http/` route wrappers run only on the server |
+| `src/utils/`, `src/hooks/` | URL, routing, SEO, slug, and date helpers, and React hooks with their API clients |
 | `src/styles/`, `src/theme/` | Global CSS partials, theme tokens, and the appearance palette sources ([visual style guide](docs/design/visual-style-guide.md)) |
 | `src/i18n/` | Locale registry, message providers, and generated catalog manifests |
-| `lib/` | Server-side runtime: `postgres/` (runtime, schema, migrations), `data/` (public reads), `auth/`, `http/`, `next/`, `runtime/` |
+| `lib/` | Server runtime (`postgres/`, `data/`, `auth/`, `http/`, `next/`, `runtime/`) and the pure contracts that browser code imports. `@lib/*` and `@server/*` both resolve to `lib/`, so neither alias means server-only |
 | `server/` | Authored Postgres handlers, the document schema `schema.ts`, and `lib/` domain helpers |
 | `scripts/` | Operator, generation, migration, build, deploy, lint, and security tooling ([scripts README](scripts/README.md)) |
 | `data/` | Tracked open datasets, third-party inputs, and the generated-data manifest `lineage.json` ([data README](data/README.md)) |
@@ -49,6 +50,20 @@ Public DoseWiki and Effect Index carry no admin or editorial credential. Public 
 | `public/` | Static assets, fonts, icons, the molecule pack, and the archival `SubstanceIndex.json` |
 | `vendor/openchemlib/` | The repository-owned OpenChemLib fork ([fork contract](docs/architecture/openchemlib-fork.md)) |
 | `docs/` | Contributor documentation ([index](docs/README.md)) |
+
+## Where new code goes
+
+- Domain models and their transforms go in `src/data/<domain>/`. Tags live in `src/data/tags/`. The changelog models and their diff builder, `diff.ts`, live in `src/data/changelog/`.
+- URL, string-format, and route helpers go in `src/utils/`. React state goes in a hook or in the feature that owns it.
+- UI that more than one route uses goes in `src/components/` or `src/features/`. ESLint fails an import of `src/app/_components/` from either directory.
+- Postgres handlers go in `server/`, and their transaction and domain helpers in `server/lib/`. A new handler module needs an entry in `lib/postgres/runtime/functionOwnership.json`, then `bun run generate:postgres-functions`.
+- A root `lib/` module that browser code imports is a pure contract. List it in the pure-contract block of `eslint.config.mjs`, which already covers all of `lib/article/`, `lib/citations/`, `lib/generatedPublication/`, and `lib/proposals/`. That block fails `bun run lint` when a listed file imports `server-only`, a Node built-in, a Next or Auth.js adapter, a database client, a Postgres module other than `postgres/runtime/values`, a session or role check, or React. Nothing adds a new file to the list for you.
+
+## Shared contracts
+
+- **Slugs.** `slugify` in `src/utils/slug.ts` is the one label-to-slug rule: lowercase, collapse each run of characters outside `[a-z0-9]` to `-`, and strip edge dashes. A caller that needs a fallback word, Unicode folding, or value coercion applies it before or after `slugify`, and scripts import the same file. A helper with a different output, such as `generateReplicationSlug`, has its own name.
+- **Projection readers.** A Postgres reader that selects only some columns declares them as a tuple in `lib/postgres/runtime/projectionReads.ts` and returns a `Pick` of the document type over that tuple, so reading an unselected column fails the type check. `fromProjectedRow` in `lib/postgres/runtime/dbRows.ts` keeps only the selected columns of the decoded row. Every reader a handler reaches through `ctx.db` is declared on `SubstanceProjectionReads`, `PublicProjectionReads`, or `EditorialProjectionReads`, which `DatabaseReader` in `lib/postgres/runtime/server.ts` extends. Call readers through `ctx.db` without a cast, so renaming or retyping one fails the type check.
+- **Projections.** A function that projects reader rows takes a `Pick` of the fields it reads. Call it as `rows.map((row) => project(row))`. `tsconfig.json` sets `strict: false`, which leaves `strictFunctionTypes` off, and a point-free `rows.map(project)` would not catch a projection that reads an unselected column.
 
 `package.json` is the command catalog. `scripts/lib/local-artifact-hygiene-policy.mjs` decides which ignored local artifacts `bun run hygiene:clean` may remove.
 
