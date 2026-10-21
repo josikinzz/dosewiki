@@ -22,6 +22,18 @@ const exceptions = [{ route: publicRoute, methods: ['GET'], access: 'public' }];
 ruleTester.run('require-route-access', guardrails.rules['require-route-access'], {
   valid: [
     {
+      name: 'per-request construction whose options name only local constants and functions',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        const MAX_BYTES = 16 * 1024;
+        function mapError(error: unknown) { return null; }
+        export async function POST(request: Request, context: unknown) {
+          return protectedRouteOperation({ auth: "admin", rateLimit: "editorSmallWrite", body: { maxBytes: MAX_BYTES }, unexpectedErrorLabel: "x", mapError, operation: () => ok(context) })(request);
+        }
+      `,
+    },
+    {
       name: 'protectedRouteOperation with an inline auth floor',
       filename: devRoute,
       code: `
@@ -201,6 +213,46 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       errors: [/spread/.test(shape)
         ? { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } }
         : { messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    })),
+    ...[
+      [
+        'an options identifier bound to a getter object',
+        `const options = { getStore: async () => ({ get: async () => null }), StorageConfigurationError: Error, notFoundMessage: "missing", get unexpectedErrorLabel() { work(); return "probe"; }, unexpectedErrorMessage: "failed" };
+        export function GET(request: Request, context: FeedbackItemRouteContext) {
+          return feedbackItemRoute(options)(request, context);
+        }`,
+      ],
+      [
+        'an imported options object',
+        `import { itemOptions } from "./options";
+        export function GET(request: Request, context: FeedbackItemRouteContext) {
+          return feedbackItemRoute(itemOptions)(request, context);
+        }`,
+      ],
+      [
+        'an imported value inside inline options',
+        `import { labels } from "./options";
+        export function GET(request: Request, context: FeedbackItemRouteContext) {
+          return feedbackItemRoute({ getStore: async () => ({ get: async () => null }), StorageConfigurationError: Error, notFoundMessage: "missing", unexpectedErrorLabel: labels, unexpectedErrorMessage: "failed" })(request, context);
+        }`,
+      ],
+      [
+        'a local object constant inside inline options',
+        `const body = { get maxBytes() { work(); return 1; } };
+        export async function POST(request: Request, context: FeedbackItemRouteContext) {
+          return protectedRouteOperation({ auth: "admin", rateLimit: "editorSmallWrite", body, unexpectedErrorLabel: "x", operation: () => ok(context) })(request);
+        }`,
+      ],
+    ].map(([shape, source]) => ({
+      name: `per-request construction with ${shape}`,
+      filename: devRoute,
+      code: `
+        import { feedbackItemRoute, type FeedbackItemRouteContext } from "@/lib/http/feedbackItemRoute";
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        function work() {}
+        ${source}
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: /POST/.test(source) ? 'POST' : 'GET' } }],
     })),
     {
       name: 'a forwarding function whose parameter shadows the wrapper',

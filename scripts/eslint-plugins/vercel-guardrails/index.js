@@ -613,25 +613,44 @@ function resolveModuleId(root, fromFile, source) {
   return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
 }
 
-function isInertExpression(node) {
-  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isInertExpression(node.expression);
+function isConstantExpression(node) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isConstantExpression(node.expression);
+  if (node.type === 'Literal') return true;
+  if (node.type === 'TemplateLiteral') return node.expressions.length === 0;
+  if (node.type === 'UnaryExpression') return ['-', '+', '!'].includes(node.operator) && isConstantExpression(node.argument);
+  if (node.type === 'BinaryExpression') return isConstantExpression(node.left) && isConstantExpression(node.right);
+  return false;
+}
+
+function isPlainLocalValue(module, name, shadowed) {
+  if (shadowed?.has(name) || module.written.has(name)) return false;
+  const binding = module.locals.get(name);
+  if (binding?.kind !== 'value') return false;
+  return binding.node.type === 'FunctionDeclaration' || isConstantExpression(binding.node);
+}
+
+function isPlainOptionValue(module, node, shadowed) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isPlainOptionValue(module, node.expression, shadowed);
   switch (node.type) {
-    case 'Literal':
     case 'Identifier':
+      return isPlainLocalValue(module, node.name, shadowed);
     case 'FunctionExpression':
     case 'ArrowFunctionExpression':
       return true;
-    case 'TemplateLiteral':
-      return node.expressions.length === 0;
     case 'ArrayExpression':
-      return node.elements.every(element => element !== null && isInertExpression(element));
+      return node.elements.every(element => element !== null && isPlainOptionValue(module, element, shadowed));
     case 'ObjectExpression':
-      return node.properties.every(property =>
-        property.type === 'Property' && property.kind === 'init' && !property.computed && isInertExpression(property.value),
-      );
+      return isPlainOptionsLiteral(module, node, shadowed);
     default:
-      return false;
+      return isConstantExpression(node);
   }
+}
+
+function isPlainOptionsLiteral(module, node, shadowed) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isPlainOptionsLiteral(module, node.expression, shadowed);
+  return node.type === 'ObjectExpression' && node.properties.every(property =>
+    property.type === 'Property' && property.kind === 'init' && !property.computed && isPlainOptionValue(module, property.value, shadowed),
+  );
 }
 
 function forwardsRouteArguments(params, args) {
@@ -669,7 +688,8 @@ function createRouteGuardClassifier(root, parseModule) {
     if (kind === 'wrapsHandler') {
       return node.arguments.length === 1 ? classifyHandler(module, node.arguments[0], scope) : unguarded;
     }
-    if (!kind || node.arguments.some(hasDeferredAccessor) || (scope.perRequest && !node.arguments.every(isInertExpression))) return unguarded;
+    if (!kind || node.arguments.some(hasDeferredAccessor)) return unguarded;
+    if (scope.perRequest && !node.arguments.every(argument => isPlainOptionsLiteral(module, argument, scope.shadowed))) return unguarded;
     if (kind === 'fixedFloor') return { guarded: true };
     return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
   }
