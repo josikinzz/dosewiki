@@ -115,6 +115,7 @@ async function main() {
   }
 
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   console.log(`Slug: ${options.slug}`);
   console.log(`Approved evidence policy: ${describeApprovedWriteMode(options.approvedWriteMode)}`);
   console.log(`Model: ${options.model || DEFAULT_FORMAL_CITATIONS_MODEL}`);

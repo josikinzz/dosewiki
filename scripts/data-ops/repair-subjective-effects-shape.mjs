@@ -89,6 +89,7 @@ async function main() {
     destructive: true,
   });
   printDataOpsRunContext(context);
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const onlySlug = getFlagValue(context.argv, "--slug");
   const targetUrl = requireTargetUrl(context);
@@ -125,8 +126,6 @@ async function main() {
     return;
   }
   if (work.length === 0) return;
-
-  assertDataOpsWriteAllowed(context);
 
   const backup = await backupBeforeWrite({
     sourceClient: client,

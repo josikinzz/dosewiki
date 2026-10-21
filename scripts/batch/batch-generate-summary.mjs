@@ -49,6 +49,7 @@ async function main(options) {
     operation: "batch summary generation",
     argv: process.argv.slice(2),
   });
+  if (targetContext.writeEnabled) assertDataOpsWriteAllowed(targetContext);
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {

@@ -101,6 +101,7 @@ async function main() {
 
   const targetUrl = assertExplicitCitationPromotionTarget(runContext);
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   console.log(`Slug: ${options.slug}`);
   console.log(`Workbench draft: ${options.draftPath}`);
   console.log("");

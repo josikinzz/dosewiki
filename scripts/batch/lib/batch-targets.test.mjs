@@ -111,6 +111,34 @@ describe("batch Postgres target policy", () => {
     );
   });
 
+  it.each([
+    ["the write freeze", "postgresql://localhost/cli-target", [], { DATA_WRITES_FROZEN: "1" }, /DATA_WRITES_FROZEN/],
+    ["a remote host without --allow-remote", "postgresql://db.example/cli-target", [], {}, /--allow-remote/],
+    ["a remote host without POSTGRES_IMPORT_CONFIRM", "postgresql://db.example/cli-target", ["--allow-remote"], {}, /POSTGRES_IMPORT_CONFIRM/],
+  ])("constructs no batch write client under %s", (_label, target, extraArgv, env, expected) => {
+    const context = createBatchTargetRunContext({
+      operation: "batch test",
+      argv: [
+        "--write",
+        `--target=${target}`,
+        "--confirm-write=batch-test",
+        `--expected-deployment=${target.replace("postgresql://", "")}`,
+        ...extraArgv,
+      ],
+      loadsEnvLocal: false,
+      env: { DATA_BACKEND: "postgres", ...env },
+    });
+    const constructed = [];
+    class FakeClient {
+      constructor(url) {
+        constructed.push(url);
+      }
+    }
+
+    expect(() => createBatchTargetClient(context, { Client: FakeClient })).toThrow(expected);
+    expect(constructed).toEqual([]);
+  });
+
   it("continues to reject browser-derived batch write targets", () => {
     const context = createBatchTargetRunContext({
       operation: "batch test",

@@ -113,6 +113,7 @@ async function main() {
     : requireSourceUrl(runContext, "configured Postgres read target");
 
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   const client = createDataClient({ target: dataUrl }).client;
   const slugRows = await client.query(api.moleculeOverrides.listSlugs, {});
   const selected = slugRows

@@ -4,6 +4,7 @@ import { postgresFingerprintFromUrl } from "../lib/data-client.ts";
 import { createDataClient } from "../lib/data-client.ts";
 
 import { createBatchTargetClient, createBatchTargetRunContext, requireBatchArticleWriteToken } from "./lib/batch-targets.mjs";
+import { assertDataOpsWriteAllowed } from "../lib/data-ops-run-context.mjs";
 import { printBatchBanner, printBatchSummary, runBatchGenerator } from "./lib/generator-runner.mjs";
 import { CONFIG, parseArgs, printHelp } from "./tolerance/cli.mjs";
 import {
@@ -30,6 +31,7 @@ async function main(options) {
     operation: "batch tolerance generation",
     argv: process.argv.slice(2),
   });
+  if (targetContext.writeEnabled) assertDataOpsWriteAllowed(targetContext);
   const sourceUrl = targetContext.sourceUrl;
   const targetUrl = targetContext.targetUrl;
   if (!sourceUrl) {

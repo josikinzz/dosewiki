@@ -116,6 +116,7 @@ if (!options.write) {
 
 async function main() {
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   const targetUrl = requireTargetUrl(runContext);
 
   const { client, fingerprint: reached } = createDataClient({ target: targetUrl });

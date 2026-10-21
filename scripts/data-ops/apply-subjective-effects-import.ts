@@ -725,6 +725,7 @@ async function main() {
   }
 
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   const targetUrl = requireTargetUrl(runContext, "Postgres subjective effects target URL");
   const client = createDataClient({ target: targetUrl }).client;
 

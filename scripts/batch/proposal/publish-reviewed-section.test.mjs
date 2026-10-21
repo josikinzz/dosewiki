@@ -143,6 +143,41 @@ describe("reviewed section publication command", () => {
     expect(mutation).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["the write freeze", "postgresql://localhost/target-test", [], { DATA_WRITES_FROZEN: "1" }, /DATA_WRITES_FROZEN/],
+    ["a remote host without --allow-remote", "postgresql://db.example/target-test", [], {}, /--allow-remote/],
+  ])("refuses a confirmed publication under %s before opening a client", async (_label, target, extraArgv, env, expected) => {
+    const { root, proposal, proposalPath } = makeArtifact();
+    const constructed = [];
+    class RecordingClient {
+      constructor(url) {
+        constructed.push(url);
+      }
+    }
+
+    await expect(publishReviewedPublication({
+      argv: [
+        `--proposal=${relative(root, proposalPath)}`,
+        `--target=${target}`,
+        "--write",
+        "--confirm-reviewed-publication",
+        "--confirm-write=publish-reviewed-section",
+        `--expected-deployment=${target.replace("postgresql://", "")}`,
+        "--actor-email=editor@example.com",
+        "--reviewed-by=Editor Example",
+        "--reviewed-at=2026-07-15T15:00:00.000Z",
+        `--approve-artifact=${proposal.artifactDigest}`,
+        ...extraArgv,
+      ],
+      env: { DATA_BACKEND: "postgres", DATA_ADMIN_TOKEN_GENERATED_PUBLICATION_WRITE: "scoped-token", ...env },
+      repoRoot: root,
+      Client: RecordingClient,
+      postgresApi,
+      logger: { log: vi.fn() },
+    })).rejects.toThrow(expected);
+    expect(constructed).toEqual([]);
+  });
+
   it("refuses a stale owned section before invoking the mutation", async () => {
     const { root, proposal, proposalPath } = makeArtifact();
     const staleArticle = { ...proposal.baseArticle, summary: "concurrent summary edit" };
