@@ -39,7 +39,7 @@ type ParsedSaveOverride = {
   molblock: string;
   smiles?: string;
   boldBonds?: number[];
-  expectedUpdatedAt?: string | null;
+  expectedUpdatedAt: string | null;
 };
 
 const MAX_BOLD_BONDS = 1024;
@@ -87,12 +87,12 @@ function parseSaveBody(body: SaveOverrideBody): ParsedSaveOverride {
   };
 }
 
-function parseExpectedUpdatedAt(value: unknown): string | null | undefined {
-  if (value === undefined || value === null) return value;
+function parseExpectedUpdatedAt(value: unknown): string | null {
+  if (value === null) return value;
   if (typeof value !== "string" || value.length === 0) {
     throw new JsonBodyError(
       400,
-      "expectedUpdatedAt must be the stored updatedAt string, null, or omitted.",
+      "expectedUpdatedAt must be the updatedAt the editor loaded, or null when it loaded no depiction.",
     );
   }
   return value;

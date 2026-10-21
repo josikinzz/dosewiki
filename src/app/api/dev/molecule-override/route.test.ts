@@ -106,6 +106,14 @@ describe("molecule override route", () => {
     expect(publishMocks.publishPublicCache).not.toHaveBeenCalled();
   });
 
+  it("refuses a save that omits the revision the editor loaded before touching Postgres", async () => {
+    const response = await POST(postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />" }));
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toMatch(/expectedUpdatedAt/);
+    expect(mocks.mutation).not.toHaveBeenCalled();
+  });
+
   it("refuses an empty expected revision before touching Postgres", async () => {
     const response = await POST(
       postRequest({ slug: "2c-b", molblock: "mol", svg: "<svg />", expectedUpdatedAt: "" }),

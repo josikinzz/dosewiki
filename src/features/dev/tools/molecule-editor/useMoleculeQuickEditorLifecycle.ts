@@ -15,11 +15,13 @@ import {
   settleDepictionRead,
   type DepictionRead,
 } from "./moleculeEditorRequests";
-import type { MoleculeOverride } from "./moleculeEditorTypes";
+import type { MoleculeOverride, SaveResult } from "./moleculeEditorTypes";
 
-interface SaveResult {
-  tone: "success" | "danger";
-  message: string;
+interface SaveResponse {
+  error?: string;
+  updatedAt: string;
+  updatedBy?: string;
+  conflict?: { updatedBy?: string | null };
 }
 
 const SAVE_API = "/api/dev/molecule-override";
@@ -64,9 +66,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     const slugChanged = loadedSlugRef.current !== slug;
     loadedSlugRef.current = slug;
     let cancelled = false;
-    setOverrideRead((current) =>
-      slugChanged || current.status === "failed" ? DEPICTION_LOADING : current,
-    );
+    if (slugChanged) setOverrideRead(DEPICTION_LOADING);
     void settleDepictionRead(readMoleculeOverride(slug)).then((next) => {
       if (!cancelled) setOverrideRead(next);
     });
@@ -175,7 +175,8 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     snapshotLoaded && dirty && !!edited && !!previewSvg && !saving && !noStructure && !renderBlocked;
 
   const save = useCallback(async () => {
-    if (!slug || !edited || !ocl || !snapshotLoaded) return;
+    if (!slug || !edited || !ocl || overrideRead.status !== "loaded") return;
+    const expectedUpdatedAt = overrideRead.value?.updatedAt ?? null;
     setSaving(true);
     setSaveResult(null);
     const svg = renderMoleculeSvg(ocl, edited, undefined, boldBonds);
@@ -198,9 +199,20 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
           svg,
           smiles,
           ...(boldBonds.length > 0 ? { boldBonds } : {}),
+          expectedUpdatedAt,
         }),
       });
-      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      const body = (await response.json().catch(() => ({}))) as SaveResponse;
+      if (response.status === 409) {
+        const who = body.conflict?.updatedBy || "Someone";
+        setSaveResult({
+          tone: "danger",
+          kind: "conflict",
+          title: "Someone saved first",
+          message: `${who} saved this depiction after you opened it, so nothing was published. Your edit is still on the canvas. Load the latest version to see theirs before saving again; that drops your edit.`,
+        });
+        return;
+      }
       if (!response.ok) throw new Error(body.error ?? `Save failed (${response.status})`);
       setOverrideRead(
         depictionLoaded({
@@ -210,7 +222,8 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
           ...(smiles ? { smiles } : {}),
           ...(boldBonds.length > 0 ? { boldBonds } : {}),
           source: "editor",
-          updatedAt: new Date().toISOString(),
+          updatedAt: body.updatedAt,
+          ...(body.updatedBy ? { updatedBy: body.updatedBy } : {}),
         }),
       );
       setVariant("saved");
@@ -228,7 +241,16 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     } finally {
       setSaving(false);
     }
-  }, [slug, edited, ocl, snapshotLoaded, smiles, boldBonds, invalidateEditorReads]);
+  }, [slug, edited, ocl, overrideRead, smiles, boldBonds, invalidateEditorReads]);
+
+  const reloadOverride = useCallback(() => {
+    setSaveResult(null);
+    setVariant("saved");
+    setSource(null);
+    setEdited(null);
+    setOverrideRead(DEPICTION_LOADING);
+    setRefreshToken((token) => token + 1);
+  }, []);
 
   const applyRevert = useCallback(() => {
     setVariant("auto");
@@ -267,7 +289,7 @@ export function useMoleculeQuickEditorLifecycle({ slug }: { slug: string }) {
     dismissRevert: () => setConfirmRevert(false),
     loadTimedOut,
     overrideRead,
-    retryOverrideLoad: () => setRefreshToken((token) => token + 1),
+    reloadOverride,
     dirty,
     renderBlocked,
     canSave,

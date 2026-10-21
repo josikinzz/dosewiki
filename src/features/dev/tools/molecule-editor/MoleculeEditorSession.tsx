@@ -471,7 +471,7 @@ export function MoleculeEditorSession({
     loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
-  }, [mode, templateSmilesInput]);
+  }, [loadSource, mode, templateSmilesInput]);
 
   const initializeTemplateFromMember = useCallback(async () => {
     if (mode !== "templates" || !templateMemberSlug) return;
@@ -490,7 +490,7 @@ export function MoleculeEditorSession({
     loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
-  }, [mode, templateMemberOverride, templateMemberSlug]);
+  }, [loadSource, mode, templateMemberOverride, templateMemberSlug]);
 
   const initializeTemplateFromClassStructure = useCallback(async () => {
     if (mode !== "templates" || !selectedClass || overrideDoc === undefined) return;
@@ -511,7 +511,7 @@ export function MoleculeEditorSession({
     loadSource(plainMolblock, { force: true });
     setNoStructure(false);
     setInitializingTemplate(false);
-  }, [generateClassMolblock, mode, overrideDoc, selectedClass]);
+  }, [generateClassMolblock, loadSource, mode, overrideDoc, selectedClass]);
 
   const importFromSubstance = useCallback(async () => {
     if (!selected || !importSlug) return;
@@ -816,8 +816,7 @@ export function MoleculeEditorSession({
       return;
     }
     const saveSlug = mode === "classes" ? `class:${selected}` : selected;
-    const expectedUpdatedAt =
-      overrideDoc === undefined ? undefined : overrideDoc ? overrideDoc.updatedAt : null;
+    const expectedUpdatedAt = overrideDoc?.updatedAt ?? null;
     try {
       const res = await fetch(SAVE_API, {
         method: "POST",
@@ -828,7 +827,7 @@ export function MoleculeEditorSession({
           svg,
           smiles,
           ...(boldBonds.length > 0 ? { boldBonds } : {}),
-          ...(expectedUpdatedAt !== undefined ? { expectedUpdatedAt } : {}),
+          expectedUpdatedAt,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as {
@@ -897,6 +896,7 @@ export function MoleculeEditorSession({
     overrideDoc,
     invalidateEditorReads,
     freeze.frozen,
+    markSourceSaved,
   ]);
 
   const revertToAuto = useCallback(() => {
