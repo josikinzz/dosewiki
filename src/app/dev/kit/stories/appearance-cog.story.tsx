@@ -1,4 +1,4 @@
-import { AppearanceCog } from "@/app/_components/AppearanceCog";
+import { AppearanceCog } from "@/features/appearance/AppearanceCog";
 
 import type { StoryDef } from "../registry/types";
 
@@ -9,9 +9,9 @@ export const appearanceCogStory: StoryDef = {
   status: "stable",
   summary:
     "The reader's single appearance control: a 44px settings gear opens a narrow, permanently dark panel on the Colour tab. Background and Accent use ellipsis-and-chevron disclosures on mobile and stay expanded on desktop. One bare icon swaps to the Font tab with its face picker, reading-type sliders, and reset.",
-  source: "src/app/_components/AppearanceCog.tsx",
+  source: "src/features/appearance/AppearanceCog.tsx",
   importLine:
-    'import { AppearanceControls } from "@/app/_components/AppearanceControls";',
+    'import { AppearanceControls } from "@/features/appearance/AppearanceControls";',
   exports: [],
   examples: [
     {

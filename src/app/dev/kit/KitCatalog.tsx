@@ -3,7 +3,7 @@
 import { EditorBackLink } from "@/features/dev/components";
 import { useMemo, useState } from "react";
 
-import { AppearanceControls } from "@/app/_components/AppearanceControls";
+import { AppearanceControls } from "@/features/appearance/AppearanceControls";
 import { Surface } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
