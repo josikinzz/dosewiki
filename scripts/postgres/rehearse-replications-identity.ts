@@ -17,7 +17,7 @@ import type { TableName } from "../../lib/postgres/schema.generated";
 import { contributorMatchNames } from "../../lib/contributorProfileIdentity";
 import { buildEffectShowcaseWorks, buildShowcaseWorks } from "../../src/features/replications/components/showcaseModel";
 import { minimalArticle } from "../../src/test/fixtures/articles";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const RUN = mintDocumentId().slice(0, 8);
@@ -131,8 +131,7 @@ function shapeCheck(scenario: string, label: string, rows: readonly object[], fi
 
 async function main() {
   const argv = process.argv.slice(2);
-  const target = resolveTarget(argv);
-  guardTarget(target, argv.includes("--allow-remote"));
+  const target = resolveLocalRehearsalTarget(argv);
   if (!API_KEY) throw new Error("DATA_ADMIN_KEY is required (Bun loads .env.local)");
   process.env.DATA_BACKEND = "postgres";
   process.env.POSTGRES_POOLED_URL = target;

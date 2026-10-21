@@ -47,6 +47,7 @@ source disagree, the source is right.
 | [operations/data-credentials.md](operations/data-credentials.md) | Production targets, credential tiers, the literal write ceremony, migrations, and freeze |
 | [operations/locale-mirrors.md](operations/locale-mirrors.md) | Machine-translated locale mirrors: storage, refresh cron, and operator work |
 | [operations/replication-media-delivery.md](operations/replication-media-delivery.md) | R2 and Worker media delivery, image renditions, and urgent withdrawal |
+| [operations/social-cards.md](operations/social-cards.md) | Social-card generation, R2 publication phases, verification, and manifest install |
 | [operations/security-ci.md](operations/security-ci.md) | Secret scanning, the remote build workflow, dependency audit reporting, overrides, and accepted advisories |
 | [operations/browser-security-policy.md](operations/browser-security-policy.md) | Enforced browser security headers and their review contract |
 

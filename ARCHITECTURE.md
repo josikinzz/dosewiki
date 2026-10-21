@@ -27,7 +27,7 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - `lib/auth/devScreenshotViewer.ts` lets a local `next dev` render `/dev` documents without an account. It never admits an API call, a mutation, or a production build.
 - `server/lib/articleWrite.ts` owns editorial article patches and their revision journal. `server/saveArticleBatch.ts` owns atomic staged publication and durable batch receipts. Other article writers are listed in [runtime and data](docs/architecture/runtime-and-data.md#article-write-owners).
 - The public `/api/v1` surface serves public-safe, cursor-paginated projections. Its OpenAPI document is authoritative for endpoints, and [docs/api.md](docs/api.md) is the consumer contract.
-- Local JSON and Markdown under `data/` and `content/` are seeds, exports, prompts, and generated artifacts. They are runtime truth only where active source reads them.
+- Local JSON and Markdown under `data/` and `content/` are seeds, exports, prompts, and generated artifacts. Code that imports one compiles it in as a static input, so editing it changes what that code renders. It never changes a Postgres record, and Postgres stays the editorial source of truth.
 
 ## Repository layout
 
@@ -60,4 +60,4 @@ Public DoseWiki and Effect Index are read-only and carry no admin credential. On
 - `bun run generate:postgres-functions` reads `lib/postgres/runtime/functionOwnership.json` and the owned `server/*.ts` modules, and writes `lib/postgres/runtime/functions.generated.ts` and `lib/postgres/runtime/api.generated.ts`. `scripts/build/check-function-references.mjs` fails in CI when a call site names a function the checkout does not define.
 - `bun run postgres:verify-migrations` fails in CI when `lib/postgres/migrations/` drifts from the schema.
 
-`bun run generate:schema` writes `src/data/schema/` from `src/schema/substance.schema.ts`. Nothing checks it for drift. `vendor/openchemlib/dist/` is rebuilt from the fork source, never edited by hand.
+`bun run generate:schema` writes `src/data/schema/` from the article schema. `src/schema/substance.schema.ts` is a one-line facade over `src/schema/substance/`. `substanceArticleSchema` is defined in `src/schema/substance/article.ts` from the section modules beside it. `bun run schema:check` fails in CI when the generated helpers drift, or when a field override or section list names a path the registry does not have. `vendor/openchemlib/dist/` is rebuilt from the fork source, never edited by hand.

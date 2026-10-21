@@ -32,7 +32,7 @@ export async function devFetch(url: string, options: DevFetchOptions): Promise<D
   const record = asRecord(await response.json().catch(() => null));
   if (!response.ok) {
     const payload = record ?? {};
-    const message = typeof payload.error === "string" ? payload.error : messages.failure;
+    const message = typeof payload.error === "string" && payload.error.trim() ? payload.error : messages.failure;
     throw onError?.(response.status, payload, message) ?? new Error(message);
   }
   if (!record) {

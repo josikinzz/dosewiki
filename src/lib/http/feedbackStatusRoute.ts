@@ -43,7 +43,7 @@ export function feedbackStatusRoute<Status extends string>({
   unexpectedErrorLabel,
   unexpectedErrorMessage,
 }: FeedbackStatusRouteOptions<Status>) {
-  const mapError = (error: unknown): NextResponse => {
+  const mapError = (error: unknown): NextResponse | null => {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
@@ -60,8 +60,7 @@ export function feedbackStatusRoute<Status extends string>({
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    console.error(unexpectedErrorLabel, error);
-    return NextResponse.json({ error: unexpectedErrorMessage }, { status: 500 });
+    return null;
   };
 
   return async function POST(request: Request, context: FeedbackStatusRouteContext) {

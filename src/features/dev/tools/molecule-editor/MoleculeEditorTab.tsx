@@ -21,6 +21,7 @@ import {
   type MoleculeEditorSelection,
 } from "./moleculeEditorRoute";
 import { MoleculeEditorSession } from "./MoleculeEditorSession";
+import { readMoleculeTemplateList } from "./moleculeEditorRequests";
 import { MoleculeListColumn } from "./MoleculeListColumn";
 import type { MoleculePaneRecord } from "./MoleculeEditorWorkbench";
 import {
@@ -30,8 +31,6 @@ import {
   type OverrideSummary,
 } from "./moleculeListModel";
 import type { EditorMode } from "./moleculeEditorTypes";
-
-const TEMPLATE_API = "/api/dev/molecule-class-template";
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -135,15 +134,10 @@ export function MoleculeEditorTab({ initialSlug }: { initialSlug?: string } = {}
   useEffect(() => {
     let cancelled = false;
     setTemplateListError(null);
-    void fetch(`${TEMPLATE_API}?list=1`)
-      .then(async (response) => {
-        const body = (await response.json().catch(() => ({}))) as {
-          error?: string;
-          templates?: Array<{ classKey: string; updatedAt?: number }>;
-        };
-        if (!response.ok) throw new Error(body.error ?? `The template list could not be read (${response.status}).`);
+    void readMoleculeTemplateList()
+      .then((templates) => {
         if (!cancelled) {
-          setTemplateSummaries(new Map((body.templates ?? []).map((row) => [row.classKey, { source: "saved", updatedAt: row.updatedAt ?? null }])));
+          setTemplateSummaries(new Map(templates.map((row) => [row.classKey, { source: "saved", updatedAt: row.updatedAt }])));
         }
       })
       .catch((error: unknown) => {

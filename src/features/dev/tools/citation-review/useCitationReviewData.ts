@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isWriteFreezeRefusal } from "@/features/dev/components/writeFreeze";
+import { devFetch, type DevFetchOptions, type DevFetchPayload } from "@/features/dev/tools/devFetch";
 import { invalidateDevRailBadge } from "@/features/dev/pages/useDevRailBadges";
 import type { ProposalClaim } from "@/features/dev/tools/queue/queueModel";
 import {
@@ -26,23 +27,23 @@ class QueueLoadError extends Error {
   }
 }
 
-async function readJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, init);
-  const result = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    const failure = result as Partial<CitationReviewQueueLoadFailure>;
-    throw new QueueLoadError(
-      {
-        error: typeof failure.error === "string" ? failure.error : "Request failed.",
-        cause: failure.cause === "query" ? failure.cause : undefined,
-        requestId: typeof failure.requestId === "string" ? failure.requestId : undefined,
-      },
-      isWriteFreezeRefusal(response.status, result),
-    );
-  }
-
-  return result as T;
+function readJson(
+  url: string,
+  init: Omit<DevFetchOptions, "messages" | "onError"> = {},
+): Promise<DevFetchPayload> {
+  return devFetch(url, {
+    ...init,
+    messages: { network: "Network error while contacting the server.", failure: "Request failed." },
+    onError: (status, payload, message) =>
+      new QueueLoadError(
+        {
+          error: message,
+          cause: payload.cause === "query" ? "query" : undefined,
+          requestId: typeof payload.requestId === "string" ? payload.requestId : undefined,
+        },
+        isWriteFreezeRefusal(status, payload),
+      ),
+  });
 }
 
 function loadFailure(error: unknown, fallback: string): CitationReviewQueueLoadFailure {
@@ -64,21 +65,23 @@ async function postStatus(body: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    emptyBodyOk: true,
   });
 }
 
 async function readRows(slug: string): Promise<CitationEvidenceRow[]> {
   const searchParams = new URLSearchParams({ slug });
-  const result = await readJson<{ rows?: CitationEvidenceRow[] }>(
-    `/api/citation-evidence?${searchParams.toString()}`,
-  );
-  return Array.isArray(result.rows) ? result.rows : [];
+  const result = await readJson(`/api/citation-evidence?${searchParams.toString()}`);
+  if (!Array.isArray(result.rows)) {
+    throw new Error("The server did not return the citation evidence.");
+  }
+  return result.rows as CitationEvidenceRow[];
 }
 
 const CLAIMS_PATH = "/api/dev/inbox/claims";
 
 async function readClaims(): Promise<Map<string, ProposalClaim>> {
-  const payload = await readJson<{ claims?: unknown }>(CLAIMS_PATH);
+  const payload = await readJson(CLAIMS_PATH);
   if (!Array.isArray(payload.claims)) {
     throw new Error("The server did not return the claims.");
   }
@@ -150,10 +153,11 @@ export function useCitationReviewData(initialSlug?: string) {
 
     try {
       const searchParams = new URLSearchParams({ status: queueFilter });
-      const result = await readJson<{ queue?: CitationReviewQueueSummary[] }>(
-        `/api/citation-evidence/queue?${searchParams.toString()}`,
-      );
-      const nextQueue = Array.isArray(result.queue) ? result.queue : [];
+      const result = await readJson(`/api/citation-evidence/queue?${searchParams.toString()}`);
+      if (!Array.isArray(result.queue)) {
+        throw new Error("The server did not return the citation review queue.");
+      }
+      const nextQueue = result.queue as CitationReviewQueueSummary[];
       const firstLoad = !hasLoadedQueueRef.current;
       hasLoadedQueueRef.current = true;
       setQueue(nextQueue);
@@ -322,13 +326,13 @@ export function useCitationReviewData(initialSlug?: string) {
   }, [clearUndo, refreshDetail, refreshQueue, selectedSlug, undoableDecision]);
 
   const writeClaim = useCallback(async (slug: string, action: "claim" | "release") => {
-    const payload = await readJson<{ claim?: Record<string, unknown> }>(CLAIMS_PATH, {
+    const payload = await readJson(CLAIMS_PATH, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, source: "citations", id: slug }),
     });
     if (action === "claim") {
-      const claim = payload.claim;
+      const claim = payload.claim as Record<string, unknown> | undefined;
       if (!claim || typeof claim.claimed_by !== "string") {
         throw new Error("The server did not confirm the claim. Refresh to check who holds this article.");
       }

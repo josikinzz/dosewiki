@@ -201,7 +201,7 @@ test("CLI write path can never run against fixtures and demands the guard stack"
     `--draft-file=${draftPath}`,
     `--article-file=${articlePath}`,
     "--write",
-  ], { encoding: "utf8", env: cliEnv() });
+  ], { cwd: dir, encoding: "utf8", env: cliEnv() });
   assert.equal(fixtureWrite.status, 1);
   assert.match(fixtureWrite.stderr, /never valid with --write/);
 
@@ -211,6 +211,6 @@ test("CLI write path can never run against fixtures and demands the guard stack"
     `--draft-file=${draftPath}`,
     "--write",
     "--confirm-citation-write",
-  ], { encoding: "utf8", env: cliEnv() });
+  ], { cwd: dir, encoding: "utf8", env: cliEnv() });
   assert.equal(bareWrite.status, 1);
 });

@@ -1,18 +1,24 @@
 #!/usr/bin/env bun
 
 import { spawnSync } from "node:child_process";
-import { guardTarget } from "./targetGuard.ts";
-import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
+import { guardTarget, normalizeHostname } from "./targetGuard.ts";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 
 const CONFIG_PATH = "drizzle.config.ts";
+const OPERATION = "postgres-migrate";
 const HELP = `Usage: bun scripts/postgres/migrate.ts --target <postgres-url> [--allow-remote] [--dry-run]
+       bun scripts/postgres/migrate.ts --target <postgres-url> [--allow-remote] --write \\
+         --confirm-write=${OPERATION} --expected-deployment=<host/database>
 
 Target must be supplied by --target or TARGET_POSTGRES_URL.
 Remote targets additionally require --allow-remote and
 POSTGRES_IMPORT_CONFIRM=<hostname>.
 
---dry-run validates the target and prints the fixed migration plan without
-starting drizzle-kit or opening a database connection.`;
+Without --write the command only validates the target and prints the fixed
+migration plan, without starting drizzle-kit or opening a database
+connection; --dry-run names that mode explicitly. Applying migrations takes
+--write, DATA_BACKEND=postgres, both confirmations, and an open
+DATA_WRITES_FROZEN.`;
 
 function argumentValue(argv: string[], name: string): string | null {
   const index = argv.indexOf(name);
@@ -22,10 +28,13 @@ function argumentValue(argv: string[], name: string): string | null {
   return value;
 }
 function validateArguments(argv: string[]): void {
-  const accepted = ["--target", "--allow-remote", "--dry-run", "--help", "-h"];
+  const accepted = ["--target", "--allow-remote", "--dry-run", "--write", "--help", "-h"];
+  const acceptedValues = ["--confirm-write=", "--expected-deployment="];
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
-    if (!accepted.includes(argument)) throw new Error("Unknown argument. Run with --help for supported options.");
+    if (!accepted.includes(argument) && !acceptedValues.some((prefix) => argument.startsWith(prefix))) {
+      throw new Error("Unknown argument. Run with --help for supported options.");
+    }
     if (argument === "--target") index += 1;
   }
 }
@@ -60,7 +69,7 @@ export function migrationPlan(argv: string[], env: NodeJS.ProcessEnv = process.e
   guardTarget(target, argv.includes("--allow-remote"), env);
   const database = decodeURIComponent(parsed.pathname.replace(/^\/+/, ""));
   return {
-    target: `${parsed.hostname}/${database}`,
+    target: `${normalizeHostname(parsed.hostname)}/${database}`,
     command: ["bunx", "drizzle-kit", "migrate", "--config", CONFIG_PATH],
   };
 }
@@ -75,14 +84,13 @@ function main(): void {
   const plan = migrationPlan(argv);
   console.log(`Migration target: ${plan.target}`);
   console.log(`Migration command: ${plan.command.join(" ")}`);
-  if (argv.includes("--dry-run")) {
-    console.log("Dry run: drizzle-kit was not started and no database connection was opened.");
+  if (!argv.includes("--write")) {
+    console.log("Plan only: drizzle-kit was not started and no database connection was opened.");
+    console.log(`Apply with --write --confirm-write=${OPERATION} --expected-deployment=${plan.target} after approval.`);
     return;
   }
 
-  assertDataWritesNotFrozen("postgres:migrate");
-
-  const target = targetFrom(argv, process.env);
+  const target = authorizeProductionWrite(createProductionWriteCommand({ operation: OPERATION, argv, loadsEnvLocal: false }));
   const result = spawnSync(plan.command[0], plan.command.slice(1), {
     stdio: "inherit",
     env: { ...process.env, POSTGRES_DIRECT_URL: target },

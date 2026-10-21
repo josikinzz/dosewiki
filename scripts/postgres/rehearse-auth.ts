@@ -4,11 +4,10 @@ import { createHash, randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
-import { guardTarget, resolveTarget } from "./targetGuard";
+import { resolveLocalRehearsalTarget } from "./targetGuard";
 
 const argv = process.argv.slice(2);
-const target = resolveTarget(argv);
-guardTarget(target, argv.includes("--allow-remote"));
+const target = resolveLocalRehearsalTarget(argv);
 process.env.DATA_BACKEND = "postgres";
 process.env.POSTGRES_POOLED_URL = target;
 

@@ -8,6 +8,7 @@ import {
 export interface ArticleTocPresence {
   hasExternalReagentData?: boolean;
   isLoadingExternalReagentData?: boolean;
+  isExternalReagentDataUnavailable?: boolean;
   hasTripReports?: boolean;
 }
 

@@ -1,4 +1,5 @@
 import { parsePostgresTarget } from "../../lib/postgres/runtime/target.ts";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 
 export const MISSING_TARGET_MESSAGE =
   "Postgres target is required: pass --target <url> or set TARGET_POSTGRES_URL. POSTGRES_DIRECT_URL and POSTGRES_POOLED_URL never select a write target.";
@@ -50,4 +51,14 @@ export function guardTarget(target: string, allowRemote: boolean, env: Record<st
   if (env.POSTGRES_IMPORT_CONFIRM !== hostname) {
     throw new Error(`POSTGRES_IMPORT_CONFIRM must equal ${hostname} to write to a remote target`);
   }
+}
+
+export function resolveLocalRehearsalTarget(argv: string[], env: Record<string, string | undefined> = process.env): string {
+  const target = resolveTarget(argv, env);
+  const hostname = normalizeHostname(new URL(target).hostname);
+  if (!isLoopbackHostname(hostname)) {
+    throw new Error(`Rehearsals write scratch rows and run only against a loopback Postgres; refusing ${hostname} even with --allow-remote.`);
+  }
+  assertDataWritesNotFrozen("local rehearsal", env);
+  return target;
 }
