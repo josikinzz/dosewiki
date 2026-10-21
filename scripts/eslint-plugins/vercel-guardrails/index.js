@@ -479,6 +479,7 @@ const MODULE_ALIASES = [
 ];
 
 const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture'];
+const ROLE_FLOORS = new Set(['admin', 'editor', 'translator', 'contributor']);
 
 const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
 const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
@@ -587,7 +588,9 @@ function hasInlineAuthFloor(optionsNode) {
     !property.computed &&
     (property.key.name === 'auth' || property.key.value === 'auth'),
   );
-  return authIndex !== -1 && !optionsNode.properties.slice(authIndex + 1).some(property => property.type === 'SpreadElement');
+  if (authIndex === -1 || optionsNode.properties.slice(authIndex + 1).some(property => property.type === 'SpreadElement')) return false;
+  const floor = optionsNode.properties[authIndex].value;
+  return floor.type === 'Literal' && ROLE_FLOORS.has(floor.value);
 }
 
 function hasDeferredAccessor(node) {
@@ -779,7 +782,7 @@ const requireRouteAccess = {
         'Exported {{method}} handler does not reach protectedRouteOperation({ auth, ... }) or a recognized guard factory. Wrap it in protectedRouteOperation. The route access exceptions in eslint.config.mjs name only handlers that predate this rule.',
       unsupportedBinding:
         'Exported {{method}} handler goes through a binding the rule cannot check. Export a single const initialized to the guard, or a function whose only statement returns one, and never reassign it.',
-      missingFloor: '{{factory}} needs an inline `auth` floor in its options object.',
+      missingFloor: `{{factory}} needs an inline \`auth\` role floor string (${[...ROLE_FLOORS].join(', ')}) in its options object.`,
       staleException:
         'The route access exceptions list {{method}} for this file, but that handler is guarded or no longer exported. Remove the exception.',
       starExport: 'API route modules must export handlers by name so route access can be checked.',
