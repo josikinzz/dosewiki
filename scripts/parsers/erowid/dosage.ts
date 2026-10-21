@@ -3,6 +3,7 @@ import type { DoseRange, ParsedDosageRoute } from "../types";
 import { cleanMarkdown } from "../base";
 
 import { extractErowidMarkdownSection, extractErowidSubsection } from "./sections";
+import { normalizeErowidRouteName } from "./routes";
 
 const KNOWN_ROUTES = [
   "oral",
@@ -23,29 +24,6 @@ const KNOWN_ROUTES = [
   "vaporized",
   "vapourised",
 ];
-
-const ROUTE_MAP: Record<string, string> = {
-  oral: "Oral",
-  insufflated: "Insufflated",
-  nasal: "Insufflated",
-  smoked: "Smoked",
-  vapourised: "Smoked",
-  vaporized: "Smoked",
-  im: "Intramuscular",
-  intramuscular: "Intramuscular",
-  iv: "Intravenous",
-  intravenous: "Intravenous",
-  sublingual: "Sublingual",
-  buccal: "Buccal",
-  rectal: "Rectal",
-  plugged: "Rectal",
-  transdermal: "Transdermal",
-};
-
-function normalizeRouteName(route: string): string {
-  const normalized = route.toLowerCase().trim();
-  return ROUTE_MAP[normalized] || route;
-}
 
 function normalizeUnit(unit: string): string {
   const normalized = unit.toLowerCase().trim();
@@ -121,7 +99,7 @@ function normalizeRouteHeader(routeName: string): string | undefined {
     return undefined;
   }
 
-  return normalizeRouteName(normalizedRoute);
+  return normalizeErowidRouteName(normalizedRoute);
 }
 
 function parseErowidDoseRanges(content: string): ParsedDosageRoute["ranges"] {
