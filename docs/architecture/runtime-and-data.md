@@ -638,10 +638,12 @@ floor and lives in `server/changeProposalReview.ts`, reached through
   `readProposalTarget`, and if any `contentHash` differs from the recorded
   `baseHash` the proposal flips to `changes_requested` with the drifted targets
   in `conflictReason` and nothing else is written. On a clean match the live
-  documents are kept as `snapshotBefore`. Existing articles use contextual
-  changed-unit patches and the article revision journal; new articles use
-  `saveSubstancesHandler`. Layouts use `saveIndexLayoutHandler`, which mirrors
-  into `categoryLayout`. Then
+  documents are kept as `snapshotBefore`. Articles go through `writeArticle` in
+  `server/lib/articleWrite.ts`. An existing article uses
+  `kind: "replace-existing"`, which patches the changed units against its
+  `baseHash` and records an article revision. A new article uses
+  `kind: "create"`, which refuses a slug or ID that already exists. Layouts use
+  `saveIndexLayoutHandler`, which mirrors into `categoryLayout`. Then
   a changelog entry stamped "proposed by / approved by" is upserted through
   `addEntryHandler` with the proposer's submitter key, the post-apply hashes
   are stored as `appliedHashes`, and the mutation returns the public paths the
