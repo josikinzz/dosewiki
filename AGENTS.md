@@ -39,7 +39,7 @@ Act on reversible work without asking. Ask before deleting data, force-pushing, 
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) maps the repository and its generated code.
 - [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, local tools, and verification.
-- `package.json` is the command catalog.
+- `package.json` is the command catalog. [scripts/README.md](scripts/README.md#command-catalog) groups every command by task and names the runbook to read first.
 - `.rgignore` hides bulk generated and archived payloads from `rg`. Search one on purpose with `rg --no-ignore <pattern> <path>`. `data/lineage.json` names the producer of each generated one.
 - ripgrep 15.0.0 applies `.rgignore` unreliably when one invocation names several roots: `rg -l dosage data content vendor public` leaked about 60 bulk paths in 18 of 20 runs. Pass no path or one root per invocation, or add explicit `--glob '!<path>/**'` exclusions. Each of those forms leaked nothing in 20 runs.
 - [docs/README.md](docs/README.md) indexes every runbook and workflow.

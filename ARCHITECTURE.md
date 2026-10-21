@@ -65,7 +65,7 @@ Public DoseWiki and Effect Index carry no admin or editorial credential. Public 
 - **Projection readers.** A Postgres reader that selects only some columns declares them as a tuple in `lib/postgres/runtime/projectionReads.ts` and returns a `Pick` of the document type over that tuple, so reading an unselected column fails the type check. `fromProjectedRow` in `lib/postgres/runtime/dbRows.ts` keeps only the selected columns of the decoded row. Every reader a handler reaches through `ctx.db` is declared on `SubstanceProjectionReads`, `PublicProjectionReads`, or `EditorialProjectionReads`, which `DatabaseReader` in `lib/postgres/runtime/server.ts` extends. Call readers through `ctx.db` without a cast, so renaming or retyping one fails the type check.
 - **Projections.** A function that projects reader rows takes a `Pick` of the fields it reads. Call it as `rows.map((row) => project(row))`. `tsconfig.json` sets `strict: false`, which leaves `strictFunctionTypes` off, and a point-free `rows.map(project)` would not catch a projection that reads an unselected column.
 
-`package.json` is the command catalog. `scripts/lib/local-artifact-hygiene-policy.mjs` decides which ignored local artifacts `bun run hygiene:clean` may remove.
+`package.json` is the command catalog, and the [scripts README](scripts/README.md#command-catalog) groups it by task. `scripts/lib/local-artifact-hygiene-policy.mjs` decides which ignored local artifacts `bun run hygiene:clean` may remove.
 
 ## Generated code
 

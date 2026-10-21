@@ -169,7 +169,8 @@ graph.
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
 | `bun run check:test-policy` | Fails when a first-party test file has no category in `scripts/test/test-policy.json`, or when the manifest names a file that no longer exists. Privacy tests count as secrets, publication-visibility tests as auth and roles, and a test that fits no category is a named exception with a reason |
 | `bun run check:repository-policy` | Fails when a `vercel.json` function exceeds the Pro plan memory or duration limit, a tracked file other than `.env.example` is named `.env*`, or a non-test file under `src/app/api/` calls `eval`, `new Function`, or `exec`/`spawn` with an interpolated template |
-| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the four `check:` entries |
+| `bun run check:command-catalog` | Fails when the command catalog in `scripts/README.md` misses a `package.json` script, lists one twice, or names one that does not exist |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the five `check:` entries |
 | `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
 | `bun run security:check` | CI's secret scan over every tracked file |
 | `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |
