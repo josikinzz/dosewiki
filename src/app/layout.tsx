@@ -19,6 +19,7 @@ import {
   PRO_THEME_STYLESHEET_LINK_ID,
 } from "@/theme/appearanceSheets";
 import { DocumentRuntime } from "./_components/DocumentRuntime";
+import { LocaleHtml } from "./_components/LocaleHtml";
 import { bodyFont, bodyItalicFace, dyslexicFont, proFont, siteFont } from "./fonts";
 import "@site-styles";
 import themeLabBootstrap from "@/features/theme-lab/themeLabBootstrap.generated.json";
@@ -77,8 +78,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
+    <LocaleHtml
       data-site={SITE_FLAVOR}
       data-theme={initialAppearance.colorScheme}
       data-visual-style={initialAppearance.visualStyle}
@@ -110,6 +110,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="app-container theme-page-shell relative">
         <DocumentRuntime>{children}</DocumentRuntime>
       </body>
-    </html>
+    </LocaleHtml>
   );
 }

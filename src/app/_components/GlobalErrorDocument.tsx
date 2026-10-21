@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { SITE_FLAVOR } from "@/config/siteFlavor";
 import { UiLocaleProvider, useUiLocale } from "@/i18n/client";
-import { localeForPathname } from "@/i18n/messages";
+import { htmlLanguage, localeForPathname } from "@/i18n/messages";
 import { getInitialAppearance } from "@/theme";
 import { RouteErrorPage } from "./RouteErrorPage";
 
@@ -25,7 +25,7 @@ export function GlobalErrorDocument({
 
   return (
     <html
-      lang={locale}
+      lang={htmlLanguage(locale)}
       data-site={SITE_FLAVOR}
       data-theme={initialAppearance.colorScheme}
       data-visual-style={initialAppearance.visualStyle}

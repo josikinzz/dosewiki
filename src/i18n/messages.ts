@@ -34,6 +34,10 @@ export function formattingLocale(locale: UiLocale): string {
   return LOCALE_REGISTRY[locale].formattingLocale;
 }
 
+export function htmlLanguage(locale: UiLocale): string {
+  return LOCALE_REGISTRY[locale].htmlLanguage;
+}
+
 export function isolateLocaleIdentifier(locale: UiLocale, identifier: string): string {
   return LOCALE_REGISTRY[locale].direction === "rtl" ? `\u2068${identifier}\u2069` : identifier;
 }
