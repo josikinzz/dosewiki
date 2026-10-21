@@ -254,6 +254,43 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       `,
       errors: [{ messageId: 'unguardedHandler', data: { method: /POST/.test(source) ? 'POST' : 'GET' } }],
     })),
+    ...[
+      [
+        'a local function carrying an accessor as the body record',
+        `function body() {}
+        Object.defineProperty(body, "maxBytes", { get() { work(); return 1024; } });`,
+        'body',
+      ],
+      [
+        'a local function given an expando property as the body record',
+        `function body() {}
+        body.maxBytes = 1024;`,
+        'body',
+      ],
+      [
+        'an exported local function as the body record',
+        `export function body() {}`,
+        'body',
+      ],
+      [
+        'a local function as a capability record',
+        `function policy() {}
+        Object.defineProperty(policy, "type", { get() { work(); return "dataWrite"; } });`,
+        'capabilities: [policy]',
+      ],
+    ].map(([shape, declaration, option]) => ({
+      name: `per-request construction with ${shape}`,
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        function work() {}
+        ${declaration}
+        export function POST(request: Request) {
+          return protectedRouteOperation({ auth: "editor", rateLimit: "editorSmallWrite", ${option}, unexpectedErrorLabel: "x", operation: () => ok() })(request);
+        }
+      `,
+      errors: [{ messageId: 'unguardedHandler', data: { method: 'POST' } }],
+    })),
     {
       name: 'a forwarding function whose parameter shadows the wrapper',
       filename: devRoute,

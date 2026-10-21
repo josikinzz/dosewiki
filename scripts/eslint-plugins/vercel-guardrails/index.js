@@ -569,7 +569,7 @@ function readModuleBindings(program) {
     }
   }
 
-  return { locals, exports, hasStarExport, written: collectWrittenNames(program) };
+  return { locals, exports, hasStarExport, written: collectWrittenNames(program), program };
 }
 
 function resolveRelativeModule(fromFile, source) {
@@ -622,11 +622,44 @@ function isConstantExpression(node) {
   return false;
 }
 
+function isCallableReference(node, parent) {
+  switch (parent?.type) {
+    case 'FunctionDeclaration':
+      return parent.id === node;
+    case 'CallExpression':
+      return parent.callee === node;
+    case 'Property':
+      return parent.value === node || (parent.key === node && !parent.computed);
+    case 'MemberExpression':
+      return parent.property === node && !parent.computed;
+    case 'TSTypeQuery':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function usedOnlyAsCallback(program, name) {
+  const pending = [[program, null]];
+  while (pending.length > 0) {
+    const [node, parent] = pending.pop();
+    if (node.type === 'Identifier' && node.name === name && !isCallableReference(node, parent)) return false;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'parent' || !value || typeof value !== 'object') continue;
+      for (const child of Array.isArray(value) ? value : [value]) {
+        if (child && typeof child.type === 'string') pending.push([child, node]);
+      }
+    }
+  }
+  return true;
+}
+
 function isPlainLocalValue(module, name, shadowed) {
-  if (shadowed?.has(name) || module.written.has(name)) return false;
+  if (shadowed?.has(name) || module.written.has(name) || module.exports.has(name)) return false;
   const binding = module.locals.get(name);
   if (binding?.kind !== 'value') return false;
-  return binding.node.type === 'FunctionDeclaration' || isConstantExpression(binding.node);
+  if (binding.node.type === 'FunctionDeclaration') return usedOnlyAsCallback(module.program, name);
+  return isConstantExpression(binding.node);
 }
 
 function isPlainOptionValue(module, node, shadowed) {
