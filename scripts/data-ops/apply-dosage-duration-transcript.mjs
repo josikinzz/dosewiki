@@ -127,6 +127,7 @@ function planArticle({ article, transcript, slug, allowOverwrite }) {
 async function main() {
   const context = createDataOpsRunContext({ operation: OPERATION, intent: INTENT, destructive: true });
   printDataOpsRunContext(context);
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const runDirectory = getFlagValue(context.argv, "--run-dir");
   if (!runDirectory) throw new Error(`${OPERATION} requires --run-dir=<dir>`);
@@ -181,7 +182,6 @@ async function main() {
   if (!context.argv.includes("--confirm-dosage-duration-merge")) {
     throw new Error(`${OPERATION} requires --confirm-dosage-duration-merge to write.`);
   }
-  assertDataOpsWriteAllowed(context);
   const adminKey = requireAdminIntentToken(INTENT).token;
   if (work.length === 0) {
     console.log("\nNothing to merge.");

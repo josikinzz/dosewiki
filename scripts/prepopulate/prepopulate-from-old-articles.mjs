@@ -168,6 +168,7 @@ console.log("PRE-POPULATION FROM OLD ARTICLES SUMMARY");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
 printDataOpsRunContext(runContext);
+if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 console.log(`\nArticles matched: ${stats.articlesProcessed} / ${articles.length}`);
 console.log(`Articles modified: ${stats.articlesModified}`);
 console.log(`Unmatched articles: ${stats.unmatched.length}`);

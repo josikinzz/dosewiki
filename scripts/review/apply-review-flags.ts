@@ -195,6 +195,7 @@ export async function runReviewApply(
   }
   const plan = loadReviewApplyPlan(context.repoRoot, options.runId);
   printDataOpsRunContext(context, { logger });
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
   printReviewApplyPlan(plan, logger);
   if (!options.write) {
     logger.log(`No writes performed. Re-run with --write ${CONFIRMATION_FLAG} --confirm-write=${context.operationName} --expected-deployment=<deployment>.`);

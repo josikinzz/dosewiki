@@ -32,6 +32,7 @@ const runContext = createDataOpsRunContext({
   sourceUrlKeys: [],
   requiresExecute: true,
 });
+if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 const client = createDataClient({ target: requireTargetUrl(runContext) }).client;
 
 const METADATA_FILE = path.join(

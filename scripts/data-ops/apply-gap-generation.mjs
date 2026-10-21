@@ -247,6 +247,7 @@ async function main() {
     localArtifacts: [opts.draftPath],
   });
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
   const targetUrl = requireTargetUrl(runContext);
   const client = createDataClient({ target: targetUrl }).client;

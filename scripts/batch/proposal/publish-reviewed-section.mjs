@@ -335,6 +335,7 @@ export async function publishReviewedPublication({
     repoRoot,
     localArtifacts: [relative(repoRoot, verified.proposalPath)],
   });
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
   const targetUrl = requireBatchProposalTargetUrl(context);
 
   if (verified.proposal.targetDeploymentFingerprint !== context.deploymentFingerprint) {

@@ -146,6 +146,7 @@ export async function runNormalizeDoseUnits(
     context.writeEnabled = false;
   }
   printDataOpsRunContext(context, { logger });
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const readUrl = write
     ? context.targetUrl

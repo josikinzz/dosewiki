@@ -474,6 +474,7 @@ export async function main(argv = process.argv.slice(2)) {
     runContext.dryRun = true;
     runContext.writeEnabled = false;
   }
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
   const draft = JSON.parse(readFileSync(draftPath, "utf8"));
   const { errors } = validateVerdictDraft(draft);

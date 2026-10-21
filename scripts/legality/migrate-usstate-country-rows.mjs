@@ -71,6 +71,7 @@ export async function main(argv = process.argv.slice(2)) {
     runContext.dryRun = true;
     runContext.writeEnabled = false;
   }
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
   const targetUrl = requireTargetUrl(runContext, "Postgres legality target URL");
   const client = createDataClient({ target: targetUrl }).client;

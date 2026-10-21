@@ -130,6 +130,7 @@ async function main() {
   const category = options.category;
   const config = CATEGORIES[category];
   const context = createQuoteExtractionRunContext(options);
+  if (options.save === "postgres" && !options.dryRun) assertDataOpsWriteAllowed(context);
   const sourceClient = options.source === "postgres"
     ? createPostgresClient(requireSourceUrl(context, "quote extraction source Postgres URL"))
     : null;
@@ -196,10 +197,6 @@ async function main() {
       console.log(`  ... and ${slugs.length - 20} more`);
     }
     return;
-  }
-
-  if (options.save === "postgres") {
-    assertDataOpsWriteAllowed(context);
   }
 
   const mode = options.sequential ? "sequential" : `${options.concurrency} concurrent`;

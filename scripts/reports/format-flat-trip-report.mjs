@@ -73,6 +73,7 @@ async function main() {
   const { planPath, plan } = loadPlan(runContext.repoRoot, slug, getFlagValue(argv, "--plan"));
   runContext.localArtifacts = [planPath];
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
   const targetUrl = requireTargetUrl(runContext);
   const client = createDataClient({ target: targetUrl }).client;
@@ -110,7 +111,6 @@ async function main() {
     return;
   }
 
-  assertDataOpsWriteAllowed(runContext);
   const apiKey = requireAdminIntentToken("editorArticleWrite").token;
 
   const snapshotPath = path.join(

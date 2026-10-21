@@ -151,6 +151,7 @@ async function main() {
     destructive: true,
   });
   printDataOpsRunContext(context);
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const planPath = getFlagValue(context.argv, "--plan");
   if (!planPath) {
@@ -201,8 +202,6 @@ async function main() {
     );
     return;
   }
-
-  assertDataOpsWriteAllowed(context);
 
   const backup = await backupBeforeWrite({
     sourceClient: client,

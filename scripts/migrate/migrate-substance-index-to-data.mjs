@@ -106,6 +106,7 @@ async function main() {
 
   console.log("Reading SubstanceIndex.json...\n");
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   
   const articlesContent = readFileSync(SUBSTANCE_INDEX_PATH, "utf-8");
   const articles = JSON.parse(articlesContent);
