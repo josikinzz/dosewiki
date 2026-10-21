@@ -6,9 +6,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
+import { authorizeStorageWrite } from "../lib/storage-write-authorization.mjs";
 
 const OPERATION = "upload-local-r2-media";
-const REMOTE_ROOT = "replications-r2:replications";
+const BUCKET = "replications";
+const REMOTE_ROOT = `replications-r2:${BUCKET}`;
 const SHA256 = /^[0-9a-f]{64}$/;
 
 async function sha256FileStreaming(filename) {
@@ -228,7 +230,7 @@ async function main() {
   const planPath = flagValue(argv, "--plan");
   const expectedPlanSha = flagValue(argv, "--expected-plan-sha");
   if (!planPath || !expectedPlanSha) {
-    throw new Error(`Usage: --plan <plan.json> --expected-plan-sha <sha256> [--write --confirm-write=${OPERATION}]`);
+    throw new Error(`Usage: --plan <plan.json> --expected-plan-sha <sha256> [--write --confirm-write=${OPERATION} --confirm-plan=<sha256> --confirm-target=${REMOTE_ROOT} --confirm-bucket=${BUCKET}]`);
   }
   const actualPlanSha = sha256File(planPath);
   if (actualPlanSha !== expectedPlanSha) {
@@ -254,12 +256,10 @@ async function main() {
   }
   console.log(JSON.stringify({ plan: plan.summary, progress: ledger.summary, r2WritesAuthorized: hasFlag(argv, "--write") }, null, 2));
   if (!hasFlag(argv, "--write")) {
-    console.log(`Dry run only. Re-run with --write --confirm-write=${OPERATION}.`);
+    console.log(`Dry run only. Re-run with --write --confirm-write=${OPERATION} --confirm-plan=${actualPlanSha} --confirm-target=${REMOTE_ROOT} --confirm-bucket=${BUCKET}.`);
     return;
   }
-  if (flagValue(argv, "--confirm-write") !== OPERATION) {
-    throw new Error(`Refusing R2 writes without --confirm-write=${OPERATION}`);
-  }
+  authorizeStorageWrite(argv, { operation: OPERATION, plan: actualPlanSha, target: REMOTE_ROOT, bucket: BUCKET });
   if (!Number.isInteger(limitBatches) || limitBatches < 1) throw new Error("--limit-batches must be a positive integer");
 
   fs.mkdirSync(logsRoot, { recursive: true });

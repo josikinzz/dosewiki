@@ -12,7 +12,7 @@ import { PostgresDatabaseReader, serialExecutor } from "../../lib/postgres/runti
 import { POOL_ACQUISITION_TIMEOUT_MS, setTransactionTimeouts } from "../../lib/postgres/transactionTimeouts";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze";
 import { requireAdminIntentToken } from "../lib/data-ops-run-context.mjs";
-import { createProductionWriteCommand, assertProductionWriteAllowed } from "../lib/production-write-command.mjs";
+import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
 import { guardTarget } from "../postgres/targetGuard";
 import { glossaryPath, resolveLocale } from "./locales.mjs";
 
@@ -134,8 +134,7 @@ async function main() {
   const inputs = await loadInputs(locales);
   const actorEmail = values["actor-email"]?.trim().toLowerCase();
   if (values.write) {
-    assertProductionWriteAllowed(command);
-    assertDataWritesNotFrozen(OPERATION);
+    authorizeProductionWrite(command);
     requireAdminIntentToken(INTENT, { allowLegacy: false });
     if (!actorEmail || !values["recovery-out"] || !/^[a-f0-9]{64}$/.test(values["confirm-plan"] ?? "")) {
       throw new Error("Writes require --actor-email, --recovery-out, and the dry-run --confirm-plan digest");
@@ -185,9 +184,7 @@ async function main() {
       await appendJournal(journal, { state: "prepared", planDigest, plan, actorEmail, updatedAt, candidates: missing });
       const directory = await open(path.dirname(path.resolve(values["recovery-out"]!)), "r");
       try { await directory.sync(); } finally { await directory.close(); }
-      assertProductionWriteAllowed(command);
-      guardTarget(command.targetUrl, values["allow-remote"]);
-      assertDataWritesNotFrozen(OPERATION);
+      authorizeProductionWrite(command);
       const inserted = missing.length === 0 ? [] : (await client.query<Stored>(
         `INSERT INTO "public"."translationGlossary" (${columns})
          SELECT locale, term, target, kind, 'draft', 'model', NULL, NULL, NULL, $5
