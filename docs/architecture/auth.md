@@ -6,7 +6,7 @@ Auth.js owns browser identity and sessions. The Postgres `memberships` table own
 
 - `lib/auth/authOptions.ts` configures Auth.js. Its credentials provider checks a username and password against `memberships`, and its `jwt` callback re-reads the stored role on every refresh.
 - `lib/auth/passwords.ts` hashes and verifies passwords with scrypt.
-- `lib/auth/runtimePolicy.ts` owns the active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
+- `lib/auth/runtimePolicy.ts` resolves the Auth.js secret from `AUTH_SECRET`, then `NEXTAUTH_SECRET`, then a fallback under `NODE_ENV=development` only, and reports whether sessions are available.
 - `src/lib/auth/roles.ts` defines the roles and what each one may do.
 - `src/middleware.ts` gates `/dev` and other protected routes.
 - `src/lib/http/protectedRouteOperation.ts` wraps each session-protected API route.
