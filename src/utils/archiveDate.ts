@@ -1,18 +1,28 @@
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
+import { formattingLocale, UI_LOCALES, type UiLocale } from "@/i18n/messages";
 
-export function formatArchiveDate(timestamp: string | null | undefined): string | null {
+const DATE_FORMATTERS = Object.fromEntries(
+  UI_LOCALES.map((locale) => [
+    locale,
+    new Intl.DateTimeFormat(formattingLocale(locale), {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }),
+  ]),
+) as Record<UiLocale, Intl.DateTimeFormat>;
+
+export function formatArchiveDate(
+  timestamp: string | null | undefined,
+  locale: UiLocale = "en",
+): string | null {
   if (!timestamp) {
     return null;
   }
 
   const parsed = new Date(timestamp);
 
-  return Number.isNaN(parsed.getTime()) ? null : DATE_FORMATTER.format(parsed);
+  return Number.isNaN(parsed.getTime()) ? null : DATE_FORMATTERS[locale].format(parsed);
 }
 
 export function isValidPublicationDate(value: string): boolean {

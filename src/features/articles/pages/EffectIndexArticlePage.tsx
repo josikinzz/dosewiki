@@ -14,7 +14,8 @@ import { createVCodeHeadingIdAssigner } from "@/features/effects/vcode/headings"
 import type { VCodeContent } from "@/features/effects/vcode/types";
 import { cn } from "@/lib/utils";
 import { icons } from "@/utils/iconNames";
-import { formattingLocale, type Translate, type UiLocale } from "@/i18n/messages";
+import type { Translate, UiLocale } from "@/i18n/messages";
+import { formatArchiveDate } from "@/utils/archiveDate";
 import {
   buildEffectIndexArticleModel,
   type ArticleBodyContent,
@@ -101,16 +102,7 @@ export function EffectIndexArticlePage({
   t,
   embedded = false,
 }: EffectIndexArticlePageProps) {
-  const publishedDate = article.publicationDate ? new Date(article.publicationDate) : null;
-  const publishedLabel =
-    publishedDate && !Number.isNaN(publishedDate.getTime())
-      ? new Intl.DateTimeFormat(formattingLocale(locale), {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-          timeZone: "UTC",
-        }).format(publishedDate)
-      : null;
+  const publishedLabel = formatArchiveDate(article.publicationDate, locale);
   const publishedDateTime = article.publicationDate?.slice(0, 10);
 
   const model = buildEffectIndexArticleModel(article);
