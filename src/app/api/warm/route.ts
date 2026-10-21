@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPublicSubstanceLookup } from "@server/data/publicData";
 import { PUBLIC_SITE } from "@server/next/publicSite";
-import { enforceRateLimit } from "@server/http/nextRateLimit";
 import { cronRoute } from "@server/http/cronAuthorization";
 import {
   summarizeWarmResults,
@@ -59,5 +58,5 @@ export const GET = cronRoute(async function GET(request: Request) {
     { headers: { "cache-control": "no-store" } },
   );
 }, {
-  rateLimit: (request) => enforceRateLimit(request, "diagnosticRead"),
+  rateLimit: "diagnosticRead",
 });

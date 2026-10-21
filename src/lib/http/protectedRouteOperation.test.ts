@@ -22,6 +22,10 @@ vi.mock("@server/data/serverWriteCapability", () => ({
   getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
+vi.mock("@server/data/serverClient", () => ({
+  getServerDataReadClient: vi.fn(),
+}));
+
 const editorSession = {
   ok: true,
   role: "editor",
@@ -130,6 +134,295 @@ describe("protectedRouteOperation", () => {
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "Editor access required." });
     expect(operation).not.toHaveBeenCalled();
+  });
+
+  it("reads its options once at construction, so a denied request runs no option accessor", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const optionReads: PropertyKey[] = [];
+    const recordReads = <T extends object>(target: T, label: string) =>
+      new Proxy(target, {
+        get(record, key, receiver) {
+          optionReads.push(`${label}.${String(key)}`);
+          return Reflect.get(record, key, receiver);
+        },
+      });
+    const options = new Proxy(
+      {
+        auth: "editor" as const,
+        rateLimit: "editorSmallWrite" as const,
+        rateLimitKeySuffix: "probe",
+        body: recordReads({ maxBytes: 1024 }, "body"),
+        capabilities: recordReads([recordReads({ type: "dataWrite" as const }, "policy")], "capabilities"),
+        unexpectedErrorLabel: "test:",
+        unexpectedErrorMessage: "failed",
+        mapError: () => null,
+        operation: () => NextResponse.json({ ok: true }),
+      },
+      {
+        get(target, key, receiver) {
+          optionReads.push(key);
+          return Reflect.get(target, key, receiver);
+        },
+      },
+    );
+    const handler = protectedRouteOperation(options);
+    optionReads.length = 0;
+
+    expect((await handler(request())).status).toBe(401);
+    expect((await handler(request())).status).toBe(401);
+
+    expect(optionReads).toEqual([]);
+  });
+
+  it("reads no nested option record before auth when built inside a request", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const nestedReads: string[] = [];
+    const recordReads = <T extends object>(target: T, label: string) =>
+      new Proxy(target, {
+        get(record, key, receiver) {
+          nestedReads.push(`${label}.${String(key)}`);
+          return Reflect.get(record, key, receiver);
+        },
+      });
+    const body = recordReads({ maxBytes: 1024 }, "body");
+    const capabilities = recordReads([recordReads({ type: "dataWrite" as const }, "policy")], "capabilities");
+    const handle = (incoming: Request) =>
+      protectedRouteOperation({
+        auth: "editor",
+        rateLimit: "editorSmallWrite",
+        body,
+        capabilities,
+        unexpectedErrorLabel: "test:",
+        operation: () => NextResponse.json({ ok: true }),
+      })(incoming);
+
+    expect((await handle(request())).status).toBe(401);
+    expect((await handle(request())).status).toBe(401);
+
+    expect(nestedReads).toEqual([]);
+  });
+
+  it("ignores inherited option accessors when built inside a request", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const inheritedReads: string[] = [];
+    const inherited = ["rateLimitKeySuffix", "capabilities", "mapError", "unexpectedErrorMessage"];
+    for (const key of inherited) {
+      Object.defineProperty(Object.prototype, key, {
+        configurable: true,
+        get() {
+          inheritedReads.push(key);
+          return undefined;
+        },
+      });
+    }
+    try {
+      const handle = (incoming: Request) =>
+        protectedRouteOperation({
+          auth: "editor",
+          rateLimit: "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation: () => NextResponse.json({ ok: true }),
+        })(incoming);
+
+      expect((await handle(request())).status).toBe(401);
+      expect((await handle(request())).status).toBe(401);
+    } finally {
+      for (const key of inherited) delete (Object.prototype as Record<string, unknown>)[key];
+    }
+
+    expect(inheritedReads).toEqual([]);
+  });
+
+  it("refuses accessor options and non-string pre-auth values at construction", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const operation = () => NextResponse.json({ ok: true });
+
+    expect(() =>
+      protectedRouteOperation({
+        auth: "editor",
+        get rateLimit() {
+          return "editorSmallWrite" as const;
+        },
+        unexpectedErrorLabel: "test:",
+        operation,
+      }),
+    ).toThrow(TypeError);
+    expect(() =>
+      protectedRouteOperation({
+        auth: "editor",
+        rateLimit: "editorSmallWrite",
+        rateLimitKeySuffix: /probe/ as unknown as string,
+        unexpectedErrorLabel: "test:",
+        operation,
+      }),
+    ).toThrow(TypeError);
+  });
+
+  it("refuses every coercible string option of every guard factory without coercing it", async () => {
+    const operation = () => NextResponse.json({ ok: true });
+    const getStore = async () => ({});
+    const isStatus = (value: unknown): value is string => typeof value === "string";
+    const strings = { unexpectedErrorLabel: "test:", unexpectedErrorMessage: "Failed." };
+    const factories: Array<{
+      name: string;
+      build: (options: Record<string, unknown>) => unknown;
+      options: Record<string, unknown>;
+      stringKeys: string[];
+    }> = [
+      {
+        name: "protectedRouteOperation",
+        build: (options) =>
+          import("./protectedRouteOperation").then((module) => module.protectedRouteOperation(options as never)),
+        options: { auth: "editor", rateLimit: "editorSmallWrite", rateLimitKeySuffix: "x", operation, ...strings },
+        stringKeys: ["auth", "rateLimit", "rateLimitKeySuffix", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "editorReadRoute",
+        build: (options) =>
+          import("@/app/api/editor/editorReadRoute").then((module) => module.editorReadRoute(options as never)),
+        options: { auth: "editor", label: "probe", read: async () => null },
+        stringKeys: ["auth", "label"],
+      },
+      {
+        name: "feedbackItemRoute",
+        build: (options) => import("./feedbackItemRoute").then((module) => module.feedbackItemRoute(options as never)),
+        options: { getStore, StorageConfigurationError: Error, notFoundMessage: "Missing.", ...strings },
+        stringKeys: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "feedbackStatusRoute",
+        build: (options) =>
+          import("./feedbackStatusRoute").then((module) => module.feedbackStatusRoute(options as never)),
+        options: {
+          isStatus,
+          getStore,
+          NotFoundError: Error,
+          StorageConfigurationError: Error,
+          notFoundMessage: "Missing.",
+          ...strings,
+        },
+        stringKeys: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "feedbackQueueRoute",
+        build: (options) => import("./feedbackQueueRoute").then((module) => module.feedbackQueueRoute(options as never)),
+        options: { isStatus, getStore, StorageConfigurationError: Error, sourceLabel: "feedback", ...strings },
+        stringKeys: ["sourceLabel", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "citationEvidenceRouteOperation",
+        build: (options) =>
+          import("@/app/api/citation-evidence/_shared").then((module) =>
+            module.citationEvidenceRouteOperation(options as never),
+          ),
+        options: { rateLimit: "editorSmallWrite", operation, ...strings },
+        stringKeys: ["rateLimit", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "cronRoute",
+        build: (options) =>
+          import("@server/http/cronAuthorization").then((module) =>
+            module.cronRoute(async () => new Response(null), options as never),
+          ),
+        options: { rateLimit: "diagnosticRead" },
+        stringKeys: ["rateLimit"],
+      },
+    ];
+
+    for (const factory of factories) {
+      await expect(factory.build(factory.options), factory.name).resolves.toBeTypeOf("function");
+      for (const key of factory.stringKeys) {
+        const coercions: string[] = [];
+        const coercible = {
+          toString() {
+            coercions.push("toString");
+            return "probe";
+          },
+          valueOf() {
+            coercions.push("valueOf");
+            return "probe";
+          },
+          [Symbol.toPrimitive]() {
+            coercions.push("toPrimitive");
+            return "probe";
+          },
+        };
+        await expect(factory.build({ ...factory.options, [key]: coercible }), `${factory.name}.${key}`).rejects.toThrow(
+          TypeError,
+        );
+        expect(coercions, `${factory.name}.${key}`).toEqual([]);
+      }
+    }
+    expect(mocks.enforceRateLimit).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
+  });
+
+  it("refuses an inherited policy or floor name without running the inherited getter", async () => {
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const { cronRoute } = await import("@server/http/cronAuthorization");
+    const { getRateLimitPolicy } = await import("@server/http/rateLimitPolicy");
+    const operation = () => NextResponse.json({ ok: true });
+    const inheritedReads: string[] = [];
+    const inheritedKeys = ["reviewPolicy", "reviewFloor"];
+    for (const key of inheritedKeys) {
+      Object.defineProperty(Object.prototype, key, {
+        configurable: true,
+        get() {
+          inheritedReads.push(key);
+          return { windowMs: 60_000, max: 100 };
+        },
+      });
+    }
+
+    try {
+      expect(() =>
+        protectedRouteOperation({
+          auth: "editor",
+          rateLimit: "reviewPolicy" as "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation,
+        }),
+      ).toThrow(TypeError);
+      expect(() =>
+        protectedRouteOperation({
+          auth: "reviewFloor" as "editor",
+          rateLimit: "editorSmallWrite",
+          unexpectedErrorLabel: "test:",
+          operation,
+        }),
+      ).toThrow(TypeError);
+      expect(() =>
+        cronRoute(async () => new Response(null), { rateLimit: "reviewPolicy" as "diagnosticRead" }),
+      ).toThrow(TypeError);
+      expect(() => getRateLimitPolicy("reviewPolicy" as "editorSmallWrite")).toThrow(TypeError);
+      expect(getRateLimitPolicy("editorSmallWrite")).toEqual({ name: "editorSmallWrite", windowMs: 60_000, max: 20 });
+    } finally {
+      for (const key of inheritedKeys) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+
+    expect(inheritedReads).toEqual([]);
+    expect(mocks.enforceRateLimit).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
   });
 
   it("gates every route through the role floor it declares, contributor included", async () => {

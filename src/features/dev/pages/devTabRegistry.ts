@@ -35,7 +35,7 @@ const CORPUS_WITH_LAYOUTS: ReadonlySet<DevTabDataNeed> = new Set<DevTabDataNeed>
   "contributors",
   "layouts",
 ]);
-const SHELL: DevTabDestination = { kind: "shell" };
+const SHELL = { kind: "shell" } as const satisfies DevTabDestination;
 
 const REGISTRY = [
   {
@@ -336,6 +336,7 @@ const REGISTRY = [
 export type DevModeTab = (typeof REGISTRY)[number]["id"];
 export type DevChromeTab = Extract<(typeof REGISTRY)[number], { group: "chrome" }>["id"];
 export type DevTabDescriptor = DevTabDescriptorOf<DevModeTab>;
+export type DevShellTab = Extract<(typeof REGISTRY)[number], { destination: { kind: "shell" } }>["id"];
 
 export const DEV_TAB_REGISTRY: readonly DevTabDescriptor[] = REGISTRY;
 
@@ -380,6 +381,10 @@ export function findDevTab(id: DevModeTab): DevTabDescriptor;
 export function findDevTab(id: string): DevTabDescriptor | undefined;
 export function findDevTab(id: string): DevTabDescriptor | undefined {
   return hasOwn(BY_ID, id) ? BY_ID[id] : undefined;
+}
+
+export function isShellDevTab(id: DevModeTab): id is DevShellTab {
+  return findDevTab(id).destination.kind === "shell";
 }
 
 export function getDevTabHeading(tool: DevModeTab, viewerRole: AppRole | null = null) {

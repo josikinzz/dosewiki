@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import type { ServerDataWriteCapability } from "@server/data/serverWriteCapability";
-import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isRateLimitPolicyName, type RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isGuardString, optionalGuardOption, plainGuardOptions } from "@server/http/guardOptions";
 
 type CitationEvidenceOperationInput = {
   request: Request;
@@ -16,19 +17,30 @@ export function citationEvidenceRouteOperation(options: {
   mapError?: (error: unknown) => NextResponse | null;
   operation: (input: CitationEvidenceOperationInput) => Promise<NextResponse> | NextResponse;
 }) {
+  const {
+    rateLimit,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+    mapError,
+    operation,
+  } = plainGuardOptions(options, {
+    rateLimit: optionalGuardOption(isRateLimitPolicyName),
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
+  });
   return protectedRouteOperation({
     auth: "editor",
-    rateLimit: options.rateLimit ?? "editorSmallWrite",
+    rateLimit: rateLimit ?? "editorSmallWrite",
     capabilities: [{ type: "dataWrite" }],
-    unexpectedErrorLabel: options.unexpectedErrorLabel,
-    unexpectedErrorMessage: options.unexpectedErrorMessage,
-    mapError: options.mapError,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+    mapError,
     operation: ({ request, actorEmail, dataWrite }) => {
       if (!dataWrite) {
         throw new Error("Postgres write capability is required.");
       }
 
-      return options.operation({
+      return operation({
         request,
         actorEmail,
         dataWrite,

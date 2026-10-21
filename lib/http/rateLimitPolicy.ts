@@ -39,6 +39,13 @@ const rateLimitPolicies = {
   authCredentialAttempt: { windowMs: 10 * ONE_MINUTE_MS, max: 10 },
 } satisfies Record<RateLimitPolicyName, Omit<RateLimitPolicy, "name">>;
 
+export function isRateLimitPolicyName(value: unknown): value is RateLimitPolicyName {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(rateLimitPolicies, value);
+}
+
 export function getRateLimitPolicy(name: RateLimitPolicyName): RateLimitPolicy {
+  if (!isRateLimitPolicyName(name)) {
+    throw new TypeError("Unknown rate limit policy.");
+  }
   return { name, ...rateLimitPolicies[name] };
 }

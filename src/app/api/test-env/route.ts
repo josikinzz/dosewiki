@@ -3,6 +3,7 @@ import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { getServerDataWriteHealth } from "@server/data/serverWriteHealth";
 import { getDiagnosticsRuntimeConfig } from "@server/runtime/envContract";
 import { createDiagnosticsDisclosureView } from "@server/runtime/diagnosticsDisclosurePolicy";
+import { testEnvRoute } from "./testEnvRoute";
 
 export const runtime = "nodejs";
 
@@ -42,13 +43,4 @@ const testEnvOperation = protectedRouteOperation({
   },
 });
 
-export async function POST(request: Request) {
-  const diagnosticsConfig = getDiagnosticsRuntimeConfig();
-  const production = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
-
-  if (production && !diagnosticsConfig.testEnvRouteEnabledInProduction) {
-    return NextResponse.json({ error: "Not found." }, { status: 404 });
-  }
-
-  return testEnvOperation(request);
-}
+export const POST = testEnvRoute(testEnvOperation);

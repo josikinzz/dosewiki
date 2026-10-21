@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export const FEEDBACK_QUEUE_ORDERS = ["oldest", "newest", "importance"] as const;
 export type FeedbackQueueOrder = (typeof FEEDBACK_QUEUE_ORDERS)[number];
@@ -50,11 +51,23 @@ const MAX_CURSOR_LENGTH = 1024;
 class InvalidQueueRequestError extends Error {}
 
 export function feedbackQueueRoute<Status extends string>(options: FeedbackQueueRouteOptions<Status>) {
+  const {
+    isStatus,
+    getStore,
+    StorageConfigurationError,
+    sourceLabel,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options, {
+    sourceLabel: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
+  });
   return protectedRouteOperation({
     auth: "editor",
     rateLimit: "diagnosticRead",
-    unexpectedErrorLabel: options.unexpectedErrorLabel,
-    unexpectedErrorMessage: options.unexpectedErrorMessage,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
     mapError: (error) => {
       if (error instanceof InvalidQueueRequestError) {
         return NextResponse.json({ error: error.message }, { status: 400 });
@@ -65,14 +78,14 @@ export function feedbackQueueRoute<Status extends string>(options: FeedbackQueue
           { status: 400 },
         );
       }
-      if (error instanceof options.StorageConfigurationError) {
+      if (error instanceof StorageConfigurationError) {
         return NextResponse.json({ error: error.message }, { status: 503 });
       }
       return null;
     },
     operation: async ({ request }) => {
-      const filters = parseFilters(new URL(request.url).searchParams, options);
-      const store = await options.getStore();
+      const filters = parseFilters(new URL(request.url).searchParams, isStatus, sourceLabel);
+      const store = await getStore();
       const page = await store.page(filters);
       const total = filters.status === FEEDBACK_QUEUE_UNRESOLVED
         ? page.counts.new + page.counts.reviewing
@@ -87,11 +100,12 @@ export function feedbackQueueRoute<Status extends string>(options: FeedbackQueue
 
 function parseFilters<Status extends string>(
   params: URLSearchParams,
-  options: FeedbackQueueRouteOptions<Status>,
+  isStatus: (value: unknown) => value is Status,
+  sourceLabel: string,
 ): FeedbackQueuePageFilters<Status> {
   const status = params.get("status");
-  if (status && status !== "all" && status !== FEEDBACK_QUEUE_UNRESOLVED && !options.isStatus(status)) {
-    throw new InvalidQueueRequestError(`Unknown ${options.sourceLabel} feedback status: ${status}`);
+  if (status && status !== "all" && status !== FEEDBACK_QUEUE_UNRESOLVED && !isStatus(status)) {
+    throw new InvalidQueueRequestError(`Unknown ${sourceLabel} feedback status: ${status}`);
   }
 
   const order = params.get("order") ?? "oldest";

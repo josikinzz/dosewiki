@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackItemRouteContext = {
   params: Promise<{ id: string }>;
@@ -21,25 +22,36 @@ export type FeedbackItemRouteOptions = {
 const MAX_ID_LENGTH = 200;
 
 export function feedbackItemRoute(options: FeedbackItemRouteOptions) {
+  const {
+    getStore,
+    StorageConfigurationError,
+    notFoundMessage,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options, {
+    notFoundMessage: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
+  });
   return async function GET(request: Request, context: FeedbackItemRouteContext) {
     return protectedRouteOperation({
       auth: "editor",
       rateLimit: "diagnosticRead",
-      unexpectedErrorLabel: options.unexpectedErrorLabel,
-      unexpectedErrorMessage: options.unexpectedErrorMessage,
+      unexpectedErrorLabel,
+      unexpectedErrorMessage,
       mapError: (error) =>
-        error instanceof options.StorageConfigurationError
+        error instanceof StorageConfigurationError
           ? NextResponse.json({ error: error.message }, { status: 503 })
           : null,
       operation: async () => {
         const { id } = await Promise.resolve(context.params);
         if (!id || id.length > MAX_ID_LENGTH) {
-          return NextResponse.json({ error: options.notFoundMessage }, { status: 404 });
+          return NextResponse.json({ error: notFoundMessage }, { status: 404 });
         }
-        const store = await options.getStore();
+        const store = await getStore();
         const feedback = await store.get(id);
         if (!feedback) {
-          return NextResponse.json({ error: options.notFoundMessage }, { status: 404 });
+          return NextResponse.json({ error: notFoundMessage }, { status: 404 });
         }
         return NextResponse.json({ ok: true, feedback });
       },

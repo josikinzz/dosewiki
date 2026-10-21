@@ -6,7 +6,13 @@ const APP_ROLES = ["admin", "editor_translator", "editor", "translator", "contri
 
 export type AppRole = (typeof APP_ROLES)[number];
 
-export type RoleFloor = "admin" | "editor" | "translator" | "contributor";
+const ROLE_FLOORS = ["admin", "editor", "translator", "contributor"] as const;
+
+export type RoleFloor = (typeof ROLE_FLOORS)[number];
+
+export function isRoleFloor(value: unknown): value is RoleFloor {
+  return typeof value === "string" && ROLE_FLOORS.includes(value as RoleFloor);
+}
 
 const ROLE_CAPABILITIES: Record<AppRole, readonly RoleFloor[]> = {
   admin: ["admin", "editor", "translator", "contributor"],

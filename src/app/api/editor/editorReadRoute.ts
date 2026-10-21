@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
 import { foreignOriginResponse } from "@/lib/http/requestOrigin";
-import type { RoleFloor } from "@/lib/auth/roles";
+import { isRoleFloor, type RoleFloor } from "@/lib/auth/roles";
 import { getServerDataReadClient, type ServerReadClient } from "@server/data/serverClient";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type EditorReadOperation = (input: {
   params: URLSearchParams;
@@ -23,14 +24,15 @@ export function editorReadRoute(options: {
   label: string;
   read: EditorReadOperation;
 }) {
+  const { auth, label, read } = plainGuardOptions(options, { auth: isRoleFloor, label: isGuardString });
   const operation = protectedRouteOperation({
-    auth: options.auth,
+    auth,
     rateLimit: "editorPolledRead",
-    unexpectedErrorLabel: `Failed to load ${options.label} via Next route:`,
-    unexpectedErrorMessage: `The ${options.label} could not be loaded.`,
+    unexpectedErrorLabel: `Failed to load ${label} via Next route:`,
+    unexpectedErrorMessage: `The ${label} could not be loaded.`,
     operation: async ({ request }) => {
       const params = new URL(request.url).searchParams;
-      const result = await options.read({ params, client: getServerDataReadClient() });
+      const result = await read({ params, client: getServerDataReadClient() });
       return NextResponse.json(result ?? null);
     },
   });

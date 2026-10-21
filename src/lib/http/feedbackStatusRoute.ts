@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
 import { JsonBodyError } from "@/lib/http/readJsonBody";
+import { isGuardString, plainGuardOptions } from "@server/http/guardOptions";
 
 export type FeedbackStatusRouteContext = {
   params: Promise<{ id: string }>;
@@ -33,9 +34,41 @@ export type FeedbackStatusRouteOptions<Status extends string> = {
 
 const MAX_STATUS_BODY_BYTES = 16 * 1024;
 
-export function feedbackStatusRoute<Status extends string>(
-  options: FeedbackStatusRouteOptions<Status>,
-) {
+export function feedbackStatusRoute<Status extends string>(options: FeedbackStatusRouteOptions<Status>) {
+  const {
+    isStatus,
+    isOutcome,
+    getStore,
+    NotFoundError,
+    StorageConfigurationError,
+    notFoundMessage,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+  } = plainGuardOptions(options, {
+    notFoundMessage: isGuardString,
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: isGuardString,
+  });
+  const mapError = (error: unknown): NextResponse | null => {
+    if (error instanceof JsonBodyError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    if (error instanceof NotFoundError) {
+      return NextResponse.json({ error: notFoundMessage }, { status: 404 });
+    }
+
+    if (error instanceof StorageConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+
+    if (error instanceof Error && error.message.startsWith("Illegal transition:")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return null;
+  };
+
   return async function POST(request: Request, context: FeedbackStatusRouteContext) {
     return protectedRouteOperation<StatusBody, { status: Status; note?: string; outcome?: string }>({
       auth: "admin",
@@ -43,20 +76,20 @@ export function feedbackStatusRoute<Status extends string>(
       body: {
         maxBytes: MAX_STATUS_BODY_BYTES,
         parse: (body) => {
-          const outcome = parseOutcome(body.outcome, options.isOutcome);
+          const outcome = parseOutcome(body.outcome, isOutcome);
           return {
-            status: parseStatus(body.status, options.isStatus),
+            status: parseStatus(body.status, isStatus),
             note: parseNote(body.note),
             ...(outcome ? { outcome } : {}),
           };
         },
       },
-      unexpectedErrorLabel: options.unexpectedErrorLabel,
-      unexpectedErrorMessage: options.unexpectedErrorMessage,
-      mapError: (error) => mapStatusRouteError(error, options),
+      unexpectedErrorLabel,
+      unexpectedErrorMessage,
+      mapError,
       operation: async ({ actorEmail, body }) => {
         const { id } = await Promise.resolve(context.params);
-        const store = await options.getStore();
+        const store = await getStore();
         const feedback = await store.transition(id, {
           status: body.status,
           actorEmail,
@@ -102,27 +135,4 @@ function parseNote(value: unknown): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function mapStatusRouteError<Status extends string>(
-  error: unknown,
-  options: FeedbackStatusRouteOptions<Status>,
-): NextResponse | null {
-  if (error instanceof JsonBodyError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
-  }
-
-  if (error instanceof options.NotFoundError) {
-    return NextResponse.json({ error: options.notFoundMessage }, { status: 404 });
-  }
-
-  if (error instanceof options.StorageConfigurationError) {
-    return NextResponse.json({ error: error.message }, { status: 503 });
-  }
-
-  if (error instanceof Error && error.message.startsWith("Illegal transition:")) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return null;
 }

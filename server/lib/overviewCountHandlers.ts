@@ -1,33 +1,18 @@
 import type { QueryCtx } from "../../lib/postgres/runtime/server";
-import type { Doc } from "../../lib/postgres/runtime/dataModel";
+import type { PublicOverviewCounts } from "../../lib/postgres/runtime/projectionReads";
 import { buildLibrary } from "../../src/data/builders/libraryBuilder";
 import { parseManualConfig } from "../../src/data/builders/manualIndexLoader";
 import type { LibraryArticleInput } from "../../src/data/builders/articleNormalization";
 
-export type PublicOverviewCounts = {
-  substanceCount: number;
-  effectCount: number;
-  reportCount: number;
-  replicationCount: number;
-  aboutConfigured: boolean;
-  psychoactiveCategoryCount: number;
-};
-
-type CountReader = {
-  getPublicOverviewCounts: () => Promise<PublicOverviewCounts>;
-  getAboutAggregateSubstanceRows: () => Promise<Doc<"substanceIndex">[]>;
-};
-
 export async function getPublicOverviewCountsHandler(ctx: QueryCtx): Promise<PublicOverviewCounts> {
-  return (ctx.db as typeof ctx.db & CountReader).getPublicOverviewCounts();
+  return ctx.db.getPublicOverviewCounts();
 }
 
 export async function getAboutEditorAggregates(ctx: QueryCtx) {
-  const reader = ctx.db as typeof ctx.db & CountReader;
   const [rows, layouts, overview] = await Promise.all([
-    reader.getAboutAggregateSubstanceRows(),
+    ctx.db.getAboutAggregateSubstanceRows(),
     ctx.db.query("indexLayouts").collect(),
-    reader.getPublicOverviewCounts(),
+    ctx.db.getPublicOverviewCounts(),
   ]);
   const byType = new Map(layouts.map((layout) => [layout.type, layout]));
   const empty = { version: 1, categories: [] };

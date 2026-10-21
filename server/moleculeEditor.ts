@@ -14,16 +14,6 @@ import { requireRole } from "./lib/auth";
 
 const MAX_PAGE_SIZE = 200;
 
-type MoleculeDatabase = QueryCtx["db"] & {
-  getMoleculePickerPage(options: { numItems: number; cursor: string | null }): Promise<{
-    page: Array<{ article: Doc<"substanceIndex">; hasOverride: boolean }>;
-    continueCursor: string;
-    isDone: boolean;
-  }>;
-  getMoleculeSourceBySlug(slug: string): Promise<Doc<"substanceIndex"> | null>;
-  getMoleculeEditSourceBySlug(slug: string): Promise<Doc<"moleculeOverrides"> | null>;
-};
-
 type ManualClass = { key: string; label: string; parents?: string[] };
 const CLASS_TREE = buildChemicalClassTree(chemicalIndexManual.classes as ManualClass[]);
 
@@ -102,7 +92,7 @@ export const listPickerPage = query({
   returns: pickerPage,
   handler: async (ctx, args) => {
     await authorize(ctx, args);
-    const result = await (ctx.db as MoleculeDatabase).getMoleculePickerPage({
+    const result = await ctx.db.getMoleculePickerPage({
       cursor: args.paginationOpts.cursor,
       numItems: pageSize(args.paginationOpts.numItems),
     });
@@ -121,7 +111,7 @@ export const getSource = query({
   ),
   handler: async (ctx, args) => {
     await authorize(ctx, args);
-    const article = await (ctx.db as MoleculeDatabase).getMoleculeSourceBySlug(args.slug);
+    const article = await ctx.db.getMoleculeSourceBySlug(args.slug);
     if (!article) return null;
     const rawSmiles = (article.identification as { smiles?: unknown } | undefined)?.smiles;
     return {
@@ -145,7 +135,7 @@ export const getEditSource = query({
   ),
   handler: async (ctx, args) => {
     await authorize(ctx, args);
-    const override = await (ctx.db as MoleculeDatabase).getMoleculeEditSourceBySlug(args.slug);
+    const override = await ctx.db.getMoleculeEditSourceBySlug(args.slug);
     if (!override) return null;
     return {
       slug: override.slug,
@@ -167,7 +157,7 @@ export const listClassMembers = query({
   handler: async (ctx, args) => {
     await authorize(ctx, args);
     const eligible = new Set([args.classKey, ...CLASS_TREE.descendantsOf(args.classKey)]);
-    const result = await (ctx.db as MoleculeDatabase).getMoleculePickerPage({
+    const result = await ctx.db.getMoleculePickerPage({
       cursor: args.paginationOpts.cursor,
       numItems: pageSize(args.paginationOpts.numItems),
     });

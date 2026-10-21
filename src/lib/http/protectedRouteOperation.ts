@@ -1,13 +1,14 @@
 import { isDataWriteFrozenError } from "@server/runtime/dataWriteFreeze";
 import { NextResponse } from "next/server";
 import { requireRoleSession, type RoleSessionGranted } from "@/lib/auth/requireEditorSession";
-import type { RoleFloor } from "@/lib/auth/roles";
+import { isRoleFloor, type RoleFloor } from "@/lib/auth/roles";
 import { dataRejectionResponse } from "@/lib/http/dataRejection";
 import { JsonBodyError, readJsonBody } from "@/lib/http/readJsonBody";
 import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
-import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isRateLimitPolicyName, type RateLimitPolicyName } from "@server/http/rateLimitPolicy";
+import { isGuardString, optionalGuardOption, plainGuardOptions } from "@server/http/guardOptions";
 
 type DataWriteCapabilityPolicy = {
   type: "dataWrite";
@@ -51,40 +52,54 @@ function mapDefaultError(error: unknown): NextResponse | null {
   return null;
 }
 
-export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>(
-  options: ProtectedRouteOperationOptions<RawBody, ParsedBody>,
-) {
+export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>(options: ProtectedRouteOperationOptions<RawBody, ParsedBody>) {
+  const {
+    auth: authFloor,
+    rateLimit,
+    rateLimitKeySuffix,
+    body,
+    capabilities,
+    unexpectedErrorLabel,
+    unexpectedErrorMessage,
+    mapError,
+    operation,
+  } = plainGuardOptions(options, {
+    auth: isRoleFloor,
+    rateLimit: isRateLimitPolicyName,
+    rateLimitKeySuffix: optionalGuardOption(isGuardString),
+    unexpectedErrorLabel: isGuardString,
+    unexpectedErrorMessage: optionalGuardOption(isGuardString),
+  });
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
       const foreign = foreignOriginResponse(request, "editorWrite");
       if (foreign) return foreign;
     }
-    const rateLimited = await enforceRateLimit(request, options.rateLimit, { keySuffix: options.rateLimitKeySuffix });
+    const rateLimited = await enforceRateLimit(request, rateLimit, { keySuffix: rateLimitKeySuffix });
     if (rateLimited) {
       return rateLimited;
     }
 
-    const auth = await requireRoleSession(options.auth);
+    const auth = await requireRoleSession(authFloor);
     if (auth.ok === false) {
       return auth.response;
     }
 
     const actorEmail = auth.session.user.email;
+    const dataWritePolicy = capabilities?.find((policy) => policy.type === "dataWrite");
     let dataWrite: ServerDataWriteCapability | undefined;
-    for (const capabilityPolicy of options.capabilities ?? []) {
-      if (capabilityPolicy.type === "dataWrite") {
-        const capability = getServerDataWriteCapability();
-        if (capability.ok === false) {
-          return NextResponse.json(
-            {
-              error: capabilityPolicy.errorMessage?.(capability.failure) ?? capability.failure.message,
-            },
-            { status: 500 },
-          );
-        }
-
-        dataWrite = capability.capability;
+    if (dataWritePolicy) {
+      const capability = getServerDataWriteCapability();
+      if (capability.ok === false) {
+        return NextResponse.json(
+          {
+            error: dataWritePolicy.errorMessage?.(capability.failure) ?? capability.failure.message,
+          },
+          { status: 500 },
+        );
       }
+
+      dataWrite = capability.capability;
     }
 
     try {
@@ -94,12 +109,12 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         actorEmail,
         dataWrite,
       };
-      const rawBody = options.body
-        ? await readJsonBody<RawBody>(request, { maxBytes: options.body.maxBytes })
+      const rawBody = body
+        ? await readJsonBody<RawBody>(request, { maxBytes: body.maxBytes })
         : (undefined as RawBody);
-      const parsedBody = options.body?.parse ? options.body.parse(rawBody, context) : (rawBody as unknown as ParsedBody);
+      const parsedBody = body?.parse ? body.parse(rawBody, context) : (rawBody as unknown as ParsedBody);
 
-      return await options.operation({
+      return await operation({
         request,
         auth,
         actorEmail,
@@ -107,20 +122,20 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         dataWrite,
       });
     } catch (error) {
-      const mapped = options.mapError?.(error) ?? mapDefaultError(error);
+      const mapped = mapError?.(error) ?? mapDefaultError(error);
       if (mapped) {
         return mapped;
       }
 
       const rejection = dataRejectionResponse(error);
       if (rejection) {
-        console.warn(options.unexpectedErrorLabel, error);
+        console.warn(unexpectedErrorLabel, error);
         return rejection;
       }
 
-      console.error(options.unexpectedErrorLabel, error);
+      console.error(unexpectedErrorLabel, error);
       return NextResponse.json(
-        { error: options.unexpectedErrorMessage ?? "Internal server error." },
+        { error: unexpectedErrorMessage ?? "Internal server error." },
         { status: 500 },
       );
     }

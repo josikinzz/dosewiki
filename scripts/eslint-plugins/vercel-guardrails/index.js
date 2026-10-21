@@ -1,3 +1,6 @@
+const fs = require('node:fs');
+const path = require('node:path');
+
 const noHardcodedSecrets = {
   meta: {
     type: 'problem',
@@ -454,6 +457,407 @@ const requireRateLimit = {
   },
 };
 
+const HTTP_METHODS = new Set(['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
+
+const ROUTE_GUARD_FACTORIES = new Map([
+  ['src/lib/http/protectedRouteOperation#protectedRouteOperation', 'authOption'],
+  ['src/app/api/editor/editorReadRoute#editorReadRoute', 'authOption'],
+  ['src/app/api/citation-evidence/_shared#citationEvidenceRouteOperation', 'fixedFloor'],
+  ['src/lib/http/feedbackItemRoute#feedbackItemRoute', 'fixedFloor'],
+  ['src/lib/http/feedbackQueueRoute#feedbackQueueRoute', 'fixedFloor'],
+  ['src/lib/http/feedbackStatusRoute#feedbackStatusRoute', 'fixedFloor'],
+  ['src/app/api/glossary-feedback/reviewRoutes#glossaryReviewRead', 'fixedFloor'],
+  ['lib/http/cronAuthorization#cronRoute', 'fixedFloor'],
+  ['lib/next/replicationViewerEditorPolicy#replicationViewerEditorRoute', 'wrapsHandler'],
+  ['src/app/api/test-env/testEnvRoute#testEnvRoute', 'wrapsHandler'],
+]);
+
+const MODULE_ALIASES = [
+  ['@/', 'src/'],
+  ['@server/', 'lib/'],
+  ['@lib/', 'lib/'],
+];
+
+const ROUTE_ACCESS_KINDS = ['public', 'intake', 'bootstrap', 'service', 'local-fixture'];
+
+const FUNCTION_TYPES = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
+const TYPE_ONLY_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression']);
+const TYPE_ONLY_DECLARATIONS = new Set(['TSTypeAliasDeclaration', 'TSInterfaceDeclaration', 'TSDeclareFunction']);
+const unsupportedBinding = { kind: 'unsupported' };
+
+function collectPatternNames(pattern, names = []) {
+  if (!pattern) return names;
+  if (TYPE_ONLY_WRAPPERS.has(pattern.type)) return collectPatternNames(pattern.expression, names);
+  if (pattern.type === 'Identifier') names.push(pattern.name);
+  if (pattern.type === 'ObjectPattern') {
+    for (const property of pattern.properties) collectPatternNames(property.type === 'RestElement' ? property : property.value, names);
+  }
+  if (pattern.type === 'ArrayPattern') for (const element of pattern.elements) collectPatternNames(element, names);
+  if (pattern.type === 'RestElement') collectPatternNames(pattern.argument, names);
+  if (pattern.type === 'AssignmentPattern') collectPatternNames(pattern.left, names);
+  return names;
+}
+
+function collectWrittenNames(node, written = new Set()) {
+  if (!node || typeof node.type !== 'string') return written;
+  const target =
+    node.type === 'AssignmentExpression' ? node.left
+      : node.type === 'UpdateExpression' ? node.argument
+        : ['ForInStatement', 'ForOfStatement'].includes(node.type) && node.left.type !== 'VariableDeclaration' ? node.left
+          : null;
+  for (const name of collectPatternNames(target)) written.add(name);
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'parent' || !value || typeof value !== 'object') continue;
+    for (const child of Array.isArray(value) ? value : [value]) collectWrittenNames(child, written);
+  }
+  return written;
+}
+
+function declaredBindings(declaration) {
+  if (!declaration || TYPE_ONLY_DECLARATIONS.has(declaration.type)) return [];
+  if (declaration.type === 'FunctionDeclaration') {
+    return declaration.id ? [[declaration.id.name, { kind: 'value', node: declaration }, declaration]] : [];
+  }
+  if (declaration.type === 'VariableDeclaration') {
+    return declaration.declarations.flatMap(declarator => {
+      const isConstValue = declaration.kind === 'const' && !declaration.declare && declarator.id.type === 'Identifier' && declarator.init;
+      return isConstValue
+        ? [[declarator.id.name, { kind: 'value', node: declarator.init }, declarator]]
+        : collectPatternNames(declarator.id).map(name => [name, unsupportedBinding, declarator]);
+    });
+  }
+  return declaration.id?.type === 'Identifier' ? [[declaration.id.name, unsupportedBinding, declaration]] : [];
+}
+
+function readModuleBindings(program) {
+  const locals = new Map();
+  const exports = new Map();
+  let hasStarExport = false;
+  const declareLocal = (name, binding) => locals.set(name, locals.has(name) ? unsupportedBinding : binding);
+  const declareExport = (name, binding) => exports.set(name, exports.has(name) ? unsupportedBinding : binding);
+
+  for (const statement of program.body) {
+    if (statement.type === 'ImportDeclaration') {
+      for (const specifier of statement.specifiers) {
+        declareLocal(specifier.local.name, {
+          kind: 'import',
+          source: statement.source.value,
+          imported: specifier.type === 'ImportSpecifier' ? specifier.imported.name : 'default',
+        });
+      }
+      continue;
+    }
+    if (statement.type === 'ExportAllDeclaration') {
+      hasStarExport = true;
+      continue;
+    }
+
+    const exported = statement.type === 'ExportNamedDeclaration';
+    for (const [name, binding, node] of declaredBindings(exported ? statement.declaration : statement)) {
+      declareLocal(name, binding);
+      if (exported) declareExport(name, { kind: 'local', name, node });
+    }
+    if (exported && !statement.declaration) {
+      for (const specifier of statement.specifiers) {
+        declareExport(
+          specifier.exported.name ?? specifier.exported.value,
+          statement.source
+            ? { kind: 'import', source: statement.source.value, imported: specifier.local.name, node: specifier }
+            : { kind: 'local', name: specifier.local.name, node: specifier },
+        );
+      }
+    }
+  }
+
+  return { locals, exports, hasStarExport, written: collectWrittenNames(program), program };
+}
+
+function resolveRelativeModule(fromFile, source) {
+  if (!source.startsWith('.')) return null;
+  const base = path.resolve(path.dirname(fromFile), source);
+  const candidates = [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts')];
+  return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null;
+}
+
+function hasInlineAuthFloor(optionsNode) {
+  if (optionsNode?.type !== 'ObjectExpression') return false;
+  const authIndex = optionsNode.properties.findLastIndex(property =>
+    property.type === 'Property' &&
+    property.kind === 'init' &&
+    !property.computed &&
+    (property.key.name === 'auth' || property.key.value === 'auth'),
+  );
+  return authIndex !== -1 && !optionsNode.properties.slice(authIndex + 1).some(property => property.type === 'SpreadElement');
+}
+
+function hasDeferredAccessor(node) {
+  if (!node || typeof node.type !== 'string') return false;
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return hasDeferredAccessor(node.expression);
+  if (node.type === 'ObjectExpression') {
+    return node.properties.some(property =>
+      property.type === 'Property' && (property.kind !== 'init' || hasDeferredAccessor(property.value)),
+    );
+  }
+  if (node.type === 'ArrayExpression') return node.elements.some(hasDeferredAccessor);
+  return false;
+}
+
+function resolveModuleId(root, fromFile, source) {
+  const alias = MODULE_ALIASES.find(([prefix]) => source.startsWith(prefix));
+  const absolute = source.startsWith('.')
+    ? path.resolve(path.dirname(fromFile), source)
+    : alias
+      ? path.resolve(root, alias[1], source.slice(alias[0].length))
+      : null;
+  if (!absolute) return null;
+  return path.relative(root, absolute).replaceAll('\\', '/').replace(/\.tsx?$/, '');
+}
+
+const PRIMITIVE_LITERAL_TYPES = new Set(['string', 'number', 'boolean']);
+const PRIMITIVE_UNARY_OPERATORS = new Set(['-', '+', '!']);
+const PRIMITIVE_BINARY_OPERATORS = new Set(['+', '-', '*', '/', '%', '**']);
+
+function isPrimitiveLiteral(node) {
+  return node.type === 'Literal' && !node.regex && node.bigint === undefined &&
+    (node.value === null || PRIMITIVE_LITERAL_TYPES.has(typeof node.value));
+}
+
+function isConstantExpression(node) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isConstantExpression(node.expression);
+  if (node.type === 'Literal') return isPrimitiveLiteral(node);
+  if (node.type === 'TemplateLiteral') return node.expressions.length === 0;
+  if (node.type === 'UnaryExpression') return PRIMITIVE_UNARY_OPERATORS.has(node.operator) && isConstantExpression(node.argument);
+  if (node.type === 'BinaryExpression') {
+    return PRIMITIVE_BINARY_OPERATORS.has(node.operator) && isConstantExpression(node.left) && isConstantExpression(node.right);
+  }
+  return false;
+}
+
+function isCallableReference(node, parent) {
+  switch (parent?.type) {
+    case 'FunctionDeclaration':
+      return parent.id === node;
+    case 'CallExpression':
+      return parent.callee === node;
+    case 'Property':
+      return parent.value === node || (parent.key === node && !parent.computed);
+    case 'MemberExpression':
+      return parent.property === node && !parent.computed;
+    case 'TSTypeQuery':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function usedOnlyAsCallback(program, name) {
+  const pending = [[program, null]];
+  while (pending.length > 0) {
+    const [node, parent] = pending.pop();
+    if (node.type === 'Identifier' && node.name === name && !isCallableReference(node, parent)) return false;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'parent' || !value || typeof value !== 'object') continue;
+      for (const child of Array.isArray(value) ? value : [value]) {
+        if (child && typeof child.type === 'string') pending.push([child, node]);
+      }
+    }
+  }
+  return true;
+}
+
+function isPlainLocalValue(module, name, shadowed) {
+  if (shadowed?.has(name) || module.written.has(name) || module.exports.has(name)) return false;
+  const binding = module.locals.get(name);
+  if (binding?.kind !== 'value') return false;
+  if (binding.node.type === 'FunctionDeclaration') return usedOnlyAsCallback(module.program, name);
+  return isConstantExpression(binding.node);
+}
+
+function isPlainOptionValue(module, node, shadowed) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isPlainOptionValue(module, node.expression, shadowed);
+  switch (node.type) {
+    case 'Identifier':
+      return isPlainLocalValue(module, node.name, shadowed);
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      return true;
+    case 'ArrayExpression':
+      return node.elements.every(element => element !== null && isPlainOptionValue(module, element, shadowed));
+    case 'ObjectExpression':
+      return isPlainOptionsLiteral(module, node, shadowed);
+    default:
+      return isConstantExpression(node);
+  }
+}
+
+function isPlainOptionsLiteral(module, node, shadowed) {
+  if (TYPE_ONLY_WRAPPERS.has(node.type)) return isPlainOptionsLiteral(module, node.expression, shadowed);
+  return node.type === 'ObjectExpression' && node.properties.every(property =>
+    property.type === 'Property' && property.kind === 'init' && !property.computed && isPlainOptionValue(module, property.value, shadowed),
+  );
+}
+
+function forwardsRouteArguments(params, args) {
+  return (
+    params.every(param => param.type === 'Identifier') &&
+    args.length > 0 &&
+    args.length <= params.length &&
+    args.every((arg, index) => arg.type === 'Identifier' && arg.name === params[index].name)
+  );
+}
+
+function createRouteGuardClassifier(root, parseModule) {
+  const unguarded = { guarded: false };
+  const unsupported = { guarded: false, unsupported: true };
+
+  function classifyBinding(module, binding, canFollowImport) {
+    if (!binding) return unguarded;
+    if (binding.kind === 'unsupported') return unsupported;
+    if (binding.kind === 'value') return classifyHandler(module, binding.node, { canFollowImport });
+    if (binding.kind === 'local') {
+      return module.written.has(binding.name) ? unsupported : classifyBinding(module, module.locals.get(binding.name), canFollowImport);
+    }
+    if (!canFollowImport) return unguarded;
+    const target = parseModule(module.file, binding.source);
+    if (!target) return unguarded;
+    return classifyBinding(target, target.exports.get(binding.imported), false);
+  }
+
+  function classifyFactoryCall(module, node, scope) {
+    const calleeName = node.callee.type === 'Identifier' ? node.callee.name : null;
+    const callee = calleeName && !scope.shadowed?.has(calleeName) ? module.locals.get(calleeName) : null;
+    const moduleId = callee?.kind === 'import' ? resolveModuleId(root, module.file, callee.source) : null;
+    const factory = moduleId ? callee.imported : null;
+    const kind = ROUTE_GUARD_FACTORIES.get(`${moduleId}#${factory}`);
+    if (kind === 'wrapsHandler') {
+      return node.arguments.length === 1 ? classifyHandler(module, node.arguments[0], scope) : unguarded;
+    }
+    if (!kind || node.arguments.some(hasDeferredAccessor)) return unguarded;
+    if (scope.perRequest && !node.arguments.every(argument => isPlainOptionsLiteral(module, argument, scope.shadowed))) return unguarded;
+    if (kind === 'fixedFloor') return { guarded: true };
+    return hasInlineAuthFloor(node.arguments[0]) ? { guarded: true } : { guarded: false, missingFloor: factory };
+  }
+
+  function classifyForwardingFunction(module, node, scope) {
+    const body = node.body;
+    const delegated = body.type !== 'BlockStatement'
+      ? body
+      : body.body.length === 1 && body.body[0].type === 'ReturnStatement'
+        ? body.body[0].argument
+        : null;
+    if (node.generator || delegated?.type !== 'CallExpression') return unguarded;
+    if (!forwardsRouteArguments(node.params, delegated.arguments)) return unguarded;
+    return classifyHandler(module, delegated.callee, {
+      canFollowImport: scope.canFollowImport,
+      perRequest: true,
+      shadowed: new Set(node.params.map(param => param.name)),
+    });
+  }
+
+  function classifyHandler(module, node, scope) {
+    if (!node) return unguarded;
+    if (node.type === 'Identifier') {
+      return scope.shadowed?.has(node.name) ? unguarded : classifyBinding(module, { kind: 'local', name: node.name }, scope.canFollowImport);
+    }
+    if (node.type === 'CallExpression') return classifyFactoryCall(module, node, scope);
+    if (!scope.perRequest && FUNCTION_TYPES.has(node.type)) return classifyForwardingFunction(module, node, scope);
+    return unguarded;
+  }
+
+  return { classifyBinding };
+}
+
+const requireRouteAccess = {
+  meta: {
+    type: 'problem',
+    docs: {
+      description: 'Require every exported API route handler to reach protectedRouteOperation, a recognized guard factory, or a named exception',
+      category: 'Security',
+    },
+    messages: {
+      unguardedHandler:
+        'Exported {{method}} handler does not reach protectedRouteOperation({ auth, ... }) or a recognized guard factory. Wrap it in protectedRouteOperation. The route access exceptions in eslint.config.mjs name only handlers that predate this rule.',
+      unsupportedBinding:
+        'Exported {{method}} handler goes through a binding the rule cannot check. Export a single const initialized to the guard, or a function whose only statement returns one, and never reassign it.',
+      missingFloor: '{{factory}} needs an inline `auth` floor in its options object.',
+      staleException:
+        'The route access exceptions list {{method}} for this file, but that handler is guarded or no longer exported. Remove the exception.',
+      starExport: 'API route modules must export handlers by name so route access can be checked.',
+    },
+    schema: [
+      {
+        type: 'object',
+        properties: {
+          exceptions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                route: { type: 'string' },
+                methods: { type: 'array', items: { enum: [...HTTP_METHODS] }, minItems: 1 },
+                access: { enum: ROUTE_ACCESS_KINDS },
+              },
+              required: ['route', 'methods', 'access'],
+              additionalProperties: false,
+            },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
+  },
+  create(context) {
+    const filename = getContextFilename(context);
+    const route = path.relative(context.cwd, filename).replaceAll('\\', '/');
+    const exceptedMethods = new Set(
+      (context.options[0]?.exceptions ?? [])
+        .filter(exception => exception.route === route)
+        .flatMap(exception => exception.methods),
+    );
+    const parser = context.languageOptions.parser;
+    const parsedModules = new Map();
+
+    function parseModule(fromFile, source) {
+      const file = resolveRelativeModule(fromFile, source);
+      if (!file) return null;
+      if (!parsedModules.has(file)) {
+        const code = fs.readFileSync(file, 'utf8');
+        const options = { ecmaVersion: 'latest', sourceType: 'module', filePath: file, jsx: file.endsWith('.tsx') };
+        const program = parser.parseForESLint ? parser.parseForESLint(code, options).ast : parser.parse(code, options);
+        parsedModules.set(file, { file, ...readModuleBindings(program) });
+      }
+      return parsedModules.get(file);
+    }
+
+    const { classifyBinding } = createRouteGuardClassifier(context.cwd, parseModule);
+
+    return {
+      Program(program) {
+        const module = { file: filename, ...readModuleBindings(program) };
+        if (module.hasStarExport) context.report({ node: program, messageId: 'starExport' });
+
+        const handlerMethods = new Set();
+        for (const [method, binding] of module.exports) {
+          if (!HTTP_METHODS.has(method)) continue;
+          handlerMethods.add(method);
+          const verdict = classifyBinding(module, binding, true);
+          const reportNode = binding.node ?? program;
+          if (verdict.guarded) {
+            if (exceptedMethods.has(method)) context.report({ node: reportNode, messageId: 'staleException', data: { method } });
+          } else if (verdict.missingFloor) {
+            context.report({ node: reportNode, messageId: 'missingFloor', data: { factory: verdict.missingFloor } });
+          } else if (!exceptedMethods.has(method)) {
+            context.report({ node: reportNode, messageId: verdict.unsupported ? 'unsupportedBinding' : 'unguardedHandler', data: { method } });
+          }
+        }
+        for (const method of exceptedMethods) {
+          if (!handlerMethods.has(method)) context.report({ node: program, messageId: 'staleException', data: { method } });
+        }
+      },
+    };
+  },
+};
+
 module.exports = {
   meta: {
     name: 'eslint-plugin-vercel-guardrails',
@@ -464,6 +868,7 @@ module.exports = {
     'enforce-env-prefix': enforceEnvPrefix,
     'no-unsafe-api-patterns': noUnsafeApiPatterns,
     'require-rate-limit': requireRateLimit,
+    'require-route-access': requireRouteAccess,
   },
   configs: {
     recommended: {

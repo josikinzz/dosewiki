@@ -20,7 +20,45 @@ const pureFreezeImports = [
   },
 ];
 
-const commentOnlyFiles = ['*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}', 'scripts/eslint-plugins/**', 'tools/**'];
+const apiRoute = (route, methods, access) => ({ route: `src/app/api/${route}/route.ts`, methods, access });
+const routeAccessExceptions = [
+  apiRoute('auth/[...nextauth]', ['GET', 'POST'], 'bootstrap'),
+  apiRoute('invite/redeem', ['POST'], 'bootstrap'),
+  apiRoute('reset-password', ['POST'], 'bootstrap'),
+  apiRoute('dev/revalidate-article', ['POST'], 'service'),
+  apiRoute('public-cache/revalidate', ['POST'], 'service'),
+  apiRoute('dev/screenshot-viewer/session', ['GET'], 'local-fixture'),
+  apiRoute('article-feedback', ['POST'], 'intake'),
+  apiRoute('csp-report', ['POST'], 'intake'),
+  apiRoute('glossary-feedback', ['POST'], 'intake'),
+  apiRoute('glossary-feedback/identity', ['GET'], 'intake'),
+  apiRoute('site-feedback', ['POST'], 'intake'),
+  apiRoute('subscribe', ['OPTIONS', 'POST'], 'intake'),
+  apiRoute('trip-report-submissions', ['POST'], 'intake'),
+  apiRoute('glossary-usage', ['GET'], 'public'),
+  apiRoute('history/[entryId]', ['GET'], 'public'),
+  apiRoute('molecules/[slug]', ['GET'], 'public'),
+  apiRoute('molecules/classes/[key]', ['GET'], 'public'),
+  apiRoute('reagent-proxy', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('replications/embed', ['GET'], 'public'),
+  apiRoute('replications/gallery', ['GET'], 'public'),
+  apiRoute('replications/showcase', ['GET'], 'public'),
+  apiRoute('reports', ['GET'], 'public'),
+  apiRoute('search-manifest', ['GET'], 'public'),
+  apiRoute('search-suggestions', ['GET'], 'public'),
+  apiRoute('v1/effects/[slug]/replications', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/meta', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/molecules/[slug]', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/openapi.json', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/replications', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/replications/[slug]', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/substances', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/substances/[slug]', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/substances/[slug]/reagent-tests', ['OPTIONS', 'GET'], 'public'),
+  apiRoute('v1/substances/[slug]/replications', ['OPTIONS', 'GET'], 'public'),
+];
+
+const commentOnlyFiles =['*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}', 'scripts/eslint-plugins/**', 'tools/**'];
 const existingConfig = tseslint.config(
   {
     ignores: [
@@ -187,6 +225,12 @@ const existingConfig = tseslint.config(
       'vercel-guardrails/no-hardcoded-secrets': 'error',
       'vercel-guardrails/no-unsafe-api-patterns': 'error',
       'vercel-guardrails/require-rate-limit': 'warn',
+    },
+  },
+  {
+    files: ['src/app/api/**/route.ts'],
+    rules: {
+      'vercel-guardrails/require-route-access': ['error', { exceptions: routeAccessExceptions }],
     },
   },
   {
