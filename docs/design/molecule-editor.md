@@ -71,7 +71,9 @@ the InChI/canonical-SMILES stereo guards and class-template substructure alignme
   canvas only. It does not delete or publish anything; the article changes only on Save.
   **Revert to saved** reloads the stored depiction and drops canvas changes, also without a
   write. **Remove override** (substances and classes) is the only way to delete a saved row: an
-  explicit `DELETE` behind a confirmation, after which the page falls back to its automatic layout.
+  explicit `DELETE` behind a confirmation. The saved row is the only published depiction, so the
+  public page then shows no structure until someone saves a new one. The automatic layout from
+  **Revert to auto** exists only on the editor canvas.
 - **Session and URL:** the open structure lives at `/dev/molecule-editor/<mode>/<slug>`
   (`moleculeEditorRoute.ts`; older `/dev/molecules/<slug>` links open a substance). All
   per-structure state lives in `MoleculeEditorSession`, keyed on `mode:selected`, so switching
