@@ -1,7 +1,7 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { PGlite } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PublicDataReadAdapter } from "../data/publicData.reads";
+import { migratedPGlite, routeTransportToPGlite } from "../../src/test/pglite";
 import { segmentHash } from "../../scripts/translation/segment-manifest.mjs";
 import { localizeRecord } from "./liveTranslation";
 import { readNarrativeReview, writeNarrativeReview } from "./narrativeReview";
@@ -81,10 +81,8 @@ async function correct(slug: string, field: string, target: string) {
 
 let db: PGlite;
 beforeAll(async () => {
-  db = new PGlite();
-  for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
-  transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
+  db = await migratedPGlite();
+  routeTransportToPGlite(transport, db);
 }, 180_000);
 beforeEach(async () => {
   vi.stubEnv("DATA_WRITES_FROZEN", "0");

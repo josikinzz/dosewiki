@@ -1,8 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
-import { PGlite } from "@electric-sql/pglite";
-import type { Pool } from "pg";
+import type { PGlite } from "@electric-sql/pglite";
 import { PostgresClient } from "@server/postgres/runtime/client";
+import { migratedPGlite, pglitePool } from "@/test/pglite";
 import { roleSessionFor } from "@/test/routeSession";
 import { POST } from "./route";
 
@@ -46,22 +45,8 @@ const glossaryRow = async (term: string) =>
   (await database.query(`SELECT * FROM "translationGlossary" WHERE locale = $1 AND term = $2`, [LOCALE, term])).rows[0];
 
 beforeAll(async () => {
-  database = new PGlite();
-  for (const filename of readdirSync("lib/postgres/migrations").filter((file) => file.endsWith(".sql")).sort())
-    await database.exec(readFileSync(`lib/postgres/migrations/${filename}`, "utf8"));
-  const connection = {
-    query: async (sql: string, params?: unknown[]) => {
-      if (!params?.length && sql.includes(";")) {
-        const results = await database.exec(sql);
-        const result = results[results.length - 1];
-        return { rows: result?.rows ?? [], rowCount: result?.affectedRows ?? 0 };
-      }
-      const result = await database.query(sql, params);
-      return { rows: result.rows, rowCount: result.affectedRows ?? 0 };
-    },
-    release() {},
-  };
-  seam.client = new PostgresClient({ on() {}, connect: async () => connection } as unknown as Pool);
+  database = await migratedPGlite();
+  seam.client = new PostgresClient(pglitePool(database));
 }, 30000);
 beforeEach(async () => {
   vi.stubEnv("DATA_WRITES_FROZEN", "0");

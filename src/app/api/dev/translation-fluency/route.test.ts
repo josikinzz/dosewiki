@@ -1,7 +1,6 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { PGlite } from "@electric-sql/pglite";
-import type { Pool } from "pg";
+import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { migratedPGlite, pglitePool } from "@/test/pglite";
 import { roleSessionFor } from "@/test/routeSession";
 import { PostgresClient } from "@server/postgres/runtime/client";
 import { segmentsOf } from "@server/translation/liveTranslation";
@@ -54,22 +53,8 @@ const FLUENT = "2-苄基哌啶是一种兴奋剂，与其他哌甲酯类在结�
 let database: PGlite;
 
 beforeAll(async () => {
-  database = new PGlite();
-  for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort())
-    await database.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  const connection = {
-    query: async (sql: string, params?: unknown[]) => {
-      if (!params?.length && sql.includes(";")) {
-        const results = await database.exec(sql);
-        const result = results[results.length - 1];
-        return { rows: result?.rows ?? [], rowCount: result?.affectedRows ?? 0 };
-      }
-      const result = await database.query(sql, params);
-      return { rows: result.rows, rowCount: result.affectedRows ?? 0 };
-    },
-    release() {},
-  };
-  seam.client = new PostgresClient({ on() {}, connect: async () => connection } as unknown as Pool);
+  database = await migratedPGlite();
+  seam.client = new PostgresClient(pglitePool(database));
 }, 240_000);
 beforeEach(async () => {
   vi.stubEnv("DATA_WRITES_FROZEN", "0");

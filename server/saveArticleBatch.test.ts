@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { PGlite } from "@electric-sql/pglite";
-import { readFile, readdir } from "node:fs/promises";
+import type { PGlite } from "@electric-sql/pglite";
+import { migratedPGlite } from "../src/test/pglite";
 import { PostgresClient } from "../lib/postgres/runtime/client";
 import { PostgresDatabaseWriter, serialExecutor } from "../lib/postgres/runtime/db";
 import { api } from "../lib/postgres/runtime/api";
@@ -36,8 +36,7 @@ const sql = async (statement: string, values?: unknown[]) => {
 };
 
 beforeAll(async () => {
-  database = new PGlite();
-  for (const name of (await readdir("lib/postgres/migrations")).filter(name => name.endsWith(".sql")).sort()) await database.exec(await readFile(`lib/postgres/migrations/${name}`, "utf8"));
+  database = await migratedPGlite();
   client = new PostgresClient({ on() {}, connect: async () => ({ query: sql, release() {} }), end: async () => {} } as never);
 }, 30_000);
 afterAll(async () => { await database.close(); });

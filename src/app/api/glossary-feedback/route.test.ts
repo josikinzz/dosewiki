@@ -8,10 +8,8 @@ import {
   it,
   vi,
 } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { PGlite } from "@electric-sql/pglite";
-import type { Pool } from "pg";
+import type { PGlite } from "@electric-sql/pglite";
 import { NextRequest } from "next/server";
 import { PostgresClient } from "@server/postgres/runtime/client";
 import { ServerDataWriteClient } from "@server/data/serverWriteCapability";
@@ -21,6 +19,7 @@ import {
   publicGlossaryRendering,
 } from "@server/translation/publicGlossaryRendering";
 import { renderingVersion } from "@/features/language-glossary/languageGlossary";
+import { migratedPGlite, pglitePool } from "@/test/pglite";
 import { POST } from "./route";
 
 vi.setConfig({ testTimeout: 30000 });
@@ -71,32 +70,8 @@ function request(body: Record<string, unknown>, origin = "https://dose.wiki") {
   });
 }
 beforeAll(async () => {
-  database = new PGlite();
-  for (const filename of readdirSync("lib/postgres/migrations")
-    .filter((file) => file.endsWith(".sql"))
-    .sort())
-    await database.exec(
-      readFileSync(`lib/postgres/migrations/${filename}`, "utf8"),
-    );
-  const connection = {
-    query: async (sql: string, params?: unknown[]) => {
-      if (!params?.length && sql.includes(";")) {
-        const results = await database.exec(sql);
-        const result = results[results.length - 1];
-        return {
-          rows: result?.rows ?? [],
-          rowCount: result?.affectedRows ?? 0,
-        };
-      }
-      const result = await database.query(sql, params);
-      return { rows: result.rows, rowCount: result.affectedRows ?? 0 };
-    },
-    release() {},
-  };
-  client = new PostgresClient({
-    on() {},
-    connect: async () => connection,
-  } as unknown as Pool);
+  database = await migratedPGlite();
+  client = new PostgresClient(pglitePool(database));
   await database.exec(`INSERT INTO "memberships" ("_id", "_creationTime", email, role, "glossaryLocales", "createdAt", "updatedAt") VALUES
     ('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 1, 'reviewer@example.test', 'translator', '["nl"]', 'now', 'now'),
     ('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 1, 'other@example.test', 'translator', '["ar"]', 'now', 'now');`);
