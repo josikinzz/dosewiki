@@ -1,7 +1,9 @@
 # Replications Becomes a Top-Level Section
 
-**Status:** Accepted; implemented.
-**Current implementation:** `src/config/siteFlavor.ts` orders the dose.wiki primary nav as Substances · Effects · Reports · Replications, with About secondary; Effect Index remains Effects · Replications · Reports, with About secondary. `src/features/effects/pages/EffectsIndexExplorer.tsx` migrates `/effects#gallery` to `/replications`.
+**Status:** Accepted; implemented, except the effect focus route, which is superseded.
+**Current implementation:** `src/config/siteFlavor.ts` orders the dose.wiki primary nav as Substances · Effects · Reports · Replications, with About secondary; Effect Index orders Effects · Replications · Substances · Reports, with About secondary. `src/features/effects/pages/EffectsIndexExplorer.tsx` migrates `/effects#gallery` to `/replications`.
+
+**Superseded in part.** The effect focus route that this decision introduced no longer exists. `next.config.ts` permanently redirects `/replications/effect/<slug>` to the effect article at `/effects/<slug>`, which carries that effect's replications. It also redirects `/replications/substance/<slug>` to the substance article at `/<slug>`. Neither route exists under `src/app/replications/`. The artist focus route `/replications/artist/<key>` stands as decided. The text below records the original decision.
 
 The replication gallery moves out of the Subjective Effect Index (where it was the `#gallery` tab on `/effects`) and becomes the default view of a top-level `/replications` section with tabs (Gallery, Tutorials, Audio, plus an external r/replications link). dose.wiki's homepage quick links and sticky header gain Replications in position four (Substances · Effects · Reports · Replications · About); Effect Index's preserved original nav order is untouched, though the shared `/replications` page restructure and the new `hugeicons:ai-image` route-chrome icon apply to both flavors. Gallery focus views ("see all X" by artist or effect) get canonical path routes (`/replications/artist/<key>`, `/replications/effect/<slug>`) with query parameters reserved for transient filters.
 

@@ -390,7 +390,7 @@ The public `/replications` destination. It opens directly into the Replication G
 _Avoid_: replications landing page, gallery tab, SEI gallery
 
 **Replication Gallery**:
-The default `/replications` tab, grouping the browsable corpus by artist or effect. Artist focus uses the canonical path `/replications/artist/<key>`; an effect's collection lives on its `/effects/<slug>` article, and the retired `/replications/effect/<slug>` and `/replications/substance/<slug>` addresses permanently redirect there. Transient filters use query parameters.
+The default `/replications` tab, grouping the browsable corpus by artist or effect. Artist focus uses the canonical path `/replications/artist/<key>`; an effect's collection lives on its `/effects/<slug>` article. The retired `/replications/effect/<slug>` address permanently redirects to `/effects/<slug>`, and the retired `/replications/substance/<slug>` address permanently redirects to the substance article at `/<slug>`. Transient filters use query parameters.
 _Avoid_: effects gallery, `/effects#gallery`, unaddressable gallery view
 
 **Gallery Focus View**:
