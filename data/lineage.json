@@ -1331,7 +1331,7 @@
       "inputs": [
         "editor saves recorded before the Postgres changelog table existed"
       ],
-      "freshnessRule": "Frozen static history. Postgres changelog rows are the live record, written by server/changelog.ts, server/lib/articleRevisionJournal.ts and server/saveArticleBatch.ts. Readers merge these static entries with the Postgres rows. Do not append new entries here.",
+      "freshnessRule": "Frozen static history. Postgres changelog rows are the live record, written by server/changelog.ts, server/lib/articleRevisionJournal.ts and server/saveArticleBatch.ts. The editor change log feed and public profile history merge these static entries with the Postgres rows, and a public history diff falls back to the static entry with the same id. Public article history and recent changes read Postgres only. Do not append new entries here.",
       "sourceDeployment": "historical GitHub repository contents",
       "targetDeployment": null,
       "schemaVersion": "src/data/changelog/changeLog.ts (ChangeLogEntry)",
