@@ -1,5 +1,5 @@
-import { TAG_FIELDS, type TagRegistryInput } from "@/utils/data/tagRegistry";
-import { readFieldValues } from "@/utils/data/tagRegistry.shared";
+import { TAG_FIELDS, type TagRegistryInput } from "@/data/tags/tagRegistry";
+import { readFieldValues } from "@/data/tags/tagRegistry.shared";
 import { slugify } from "@/utils/slug";
 
 export type TagDraft = {

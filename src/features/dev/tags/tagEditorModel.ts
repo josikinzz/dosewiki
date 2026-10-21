@@ -5,7 +5,7 @@ import {
   type TagField,
   type TagRegistry,
   type TagUsage,
-} from "@/utils/data/tagRegistry";
+} from "@/data/tags/tagRegistry";
 
 export const usageKey = (usage: Pick<TagUsage, "field" | "key">): string => `${usage.field}:${usage.key}`;
 

@@ -8,7 +8,7 @@ import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualE
 import { ArticleDisplayNameInput, ArticlePrioritySelect } from "@/features/dev/forms/ArticleDisplayFields";
 import { EditorField, Notice, isWriteFreezeRefusal, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import { proposalSubmittedNotice } from "../proposalSubmission";
 import { canDraft } from "@/lib/auth/roles";
 

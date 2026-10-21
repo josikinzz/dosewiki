@@ -1,4 +1,4 @@
-import { buildArticleChangelog, collectDiff, type DiffEntry } from "../../src/utils/data/changelog";
+import { buildArticleChangelog, collectDiff, type DiffEntry } from "../../src/data/changelog/diff";
 import { truncateDiffMarkdown } from "../../lib/proposals/diffMarkdown";
 import { articleFieldChanges, type ArticlePatch } from "../../lib/proposals/articlePatch";
 import { proposalComparableDocument } from "../../lib/proposals/proposalBaseline";

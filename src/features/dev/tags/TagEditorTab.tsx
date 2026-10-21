@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { flushSync } from "react-dom";
 
-import { buildTagRegistry, type TagMutation, type TagMutationResult } from "@/utils/data/tagRegistry";
+import { buildTagRegistry, type TagMutation, type TagMutationResult } from "@/data/tags/tagRegistry";
 import type { SubstanceArticle } from "@/schema";
 import type { TagRegistryEntry } from "../../../../server/lib/substanceTagRegistryProjection";
 import { resolveEditorArticleSlug } from "../context/devModeUtils";
@@ -16,7 +16,7 @@ import {
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import { devHref } from "@/utils/devHref";
-import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField, type TagUsage } from "@/utils/data/tagRegistry";
+import { TAG_FIELD_LABELS, TAG_FIELDS, type TagField, type TagUsage } from "@/data/tags/tagRegistry";
 
 import { useModifierKeyLabel } from "../pages/DevCommandPalette";
 import { OnwardLink, RowSkeletons } from "../tools/home/homeParts";

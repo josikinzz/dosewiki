@@ -1,7 +1,7 @@
 import type { ChangeLogArticleSummary, ChangeLogEntry } from "@/data/changelog/changeLog";
 import type { SaveArticlePayload, SaveArticleResult } from "@/hooks/useApiMutations";
 import type { SubstanceArticle } from "@/schema";
-import type { DatasetChangelogResult } from "@/utils/data/changelog";
+import type { DatasetChangelogResult } from "@/data/changelog/diff";
 import { slugify } from "@/utils/slug";
 import { DEV_TAB_REGISTRY, findDevTab, type DevChromeTab, type DevModeTab } from "./devTabRegistry";
 

@@ -14,7 +14,7 @@ import type {
   NoticeMessage,
 } from "@/features/dev/components";
 import { useEditorDocument } from "@/features/dev/context/editorDocumentSession";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
 import type { AboutCopyNotice } from "./aboutEditorUtils";
 import { CopyIndexRefusal, useCopyIndexOperation } from "../useCopyIndexOperation";
