@@ -79,7 +79,7 @@ function unclassifiedRawSqlWriters(detections) {
     .sort();
 }
 
-const INDIRECT_WRITE_KINDS =["data-cli-write", "http-write", "library-write", "subprocess-write"];
+const INDIRECT_WRITE_KINDS = ["http-write", "library-write", "subprocess-write"];
 
 function unclassifiedIndirectWriters(detections) {
   const classified = new Set([
@@ -201,6 +201,14 @@ describe("production writer command surface", () => {
     ["scripts/fixture/rclone-upload.mjs", `const copy = ["copy", root, remote];\nspawnSync("rclone", copy);`],
     ["scripts/fixture/schema-launch.ts", `const command = ["bunx", "drizzle-kit", "migrate"];\nspawnSync(command[0], command.slice(1));`],
     ["scripts/fixture/parameterized-put.ts", `const send = (method, url) => fetch(url, { method });\nawait send("PUT", key);`],
+    ["scripts/fixture/shell-rclone.mjs", `execSync("rclone copy src remote:");`],
+    ["scripts/fixture/shell-migrate.mjs", `execSync("bunx drizzle-kit migrate --config drizzle.config.ts");`],
+    ["scripts/fixture/shell-template.mjs", `execSync(\`rclone copy \${src} \${remote}\`);`],
+    ["scripts/fixture/aliased-launcher.mjs", `import { spawnSync as launch } from "node:child_process";\nlaunch("rclone", ["copy", src, dst]);`],
+    ["scripts/fixture/required-launcher.cjs", `const { execFileSync: run } = require("node:child_process");\nrun("rclone", ["sync", src, dst]);`],
+    ["scripts/fixture/shadowed-args.mjs", `const args = ["lsjson", remote];\nspawnSync("rclone", args);\nfunction upload(args) { return spawnSync("rclone", args); }\nupload(["copy", src, dst]);`],
+    ["scripts/fixture/computed-method.mjs", `const method = options.write ? "PUT" : "GET";\nawait fetch(url, { method });`],
+    ["scripts/fixture/method-wrapped-put.mjs", `const storage = { signed: (method, url) => fetch(url, { method }) };\nawait storage.signed("PUT", key);`],
   ])("fails admission for an unclassified write in %s", (path, source) => {
     const detection = detectProductionWriteSignals(source, path);
     expect(unclassifiedIndirectWriters([...activeScriptDetections, { path, detection }])).toEqual([path]);
@@ -212,6 +220,8 @@ describe("production writer command surface", () => {
     ["scripts/fixture/rclone-read.mjs", `execFile("rclone", ["lsjson", remote]);`],
     ["scripts/fixture/schema-generate.ts", `spawnSync("bunx", ["drizzle-kit", "generate"]);`],
     ["scripts/fixture/static-read.ts", `const head = (method, url) => fetch(url, { method: "HEAD" });\nawait head("PUT", key);`],
+    ["scripts/fixture/rclone-read-with-labels.mjs", `spawnSync("rclone", ["lsjson", remote]);\nconst reportLabels = ["copy", "notes"];`],
+    ["scripts/fixture/wrapped-head.mjs", `const request = (method, url) => fetch(url, { method });\nrecordLabel("PUT");\nawait request("HEAD", url);`],
   ])("raises no write signal for the read-only %s", (path, source) => {
     expect(detectProductionWriteSignals(source, path).signals).toEqual([]);
   });

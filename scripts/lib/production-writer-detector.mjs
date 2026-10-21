@@ -10,12 +10,15 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const MODULE_EXTENSIONS = ["", ".ts", ".tsx", ".mjs", ".js", "/index.ts", "/index.mjs", "/index.js"];
 const LIBRARY_ROOTS = ["lib/", "server/"];
 const FREEZE_GUARD = "assertDataWritesNotFrozen";
+const CHILD_PROCESS_MODULES = new Set(["child_process", "node:child_process"]);
 const CHILD_PROCESS_LAUNCHERS = new Set(["spawn", "spawnSync", "execFile", "execFileSync", "exec", "execSync"]);
+const SHELL_LAUNCHERS = new Set(["exec", "execSync"]);
 const PACKAGE_RUNNERS = new Set(["bunx", "npx"]);
 const SUBPROCESS_WRITE_VERBS = new Map([
   ["rclone", new Set(["copy", "copyto", "sync", "move", "moveto", "delete", "deletefile", "purge", "rcat"])],
   ["drizzle-kit", new Set(["migrate", "push", "drop"])],
 ]);
+const UNRESOLVED = Symbol("unresolved");
 
 function propertyNameText(node) {
   if (!node) return null;
@@ -23,26 +26,64 @@ function propertyNameText(node) {
   return null;
 }
 
-function evaluateStaticString(node, constants) {
-  if (!node) return null;
-  if (ts.isStringLiteralLike(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-    return node.text;
+function unwrap(node) {
+  while (
+    node &&
+    (ts.isParenthesizedExpression(node) ||
+      ts.isAsExpression(node) ||
+      ts.isSatisfiesExpression(node) ||
+      ts.isNonNullExpression(node) ||
+      ts.isTypeAssertionExpression(node))
+  ) {
+    node = node.expression;
   }
-  if (ts.isIdentifier(node)) {
-    return constants.get(node.text) ?? null;
-  }
-  if (ts.isParenthesizedExpression(node)) {
-    return evaluateStaticString(node.expression, constants);
-  }
+  return node;
+}
+
+function bindSource(sourceFile) {
+  const host = {
+    getSourceFile: (name) => (name === sourceFile.fileName ? sourceFile : undefined),
+    fileExists: (name) => name === sourceFile.fileName,
+    readFile: () => undefined,
+    getDefaultLibFileName: () => "lib.d.ts",
+    writeFile: () => {},
+    getCurrentDirectory: () => "/",
+    getCanonicalFileName: (name) => name,
+    useCaseSensitiveFileNames: () => true,
+    getNewLine: () => "\n",
+  };
+  const program = ts.createProgram([sourceFile.fileName], { noLib: true, noResolve: true, allowJs: true, types: [] }, host);
+  return program.getTypeChecker();
+}
+
+function declarationOf(identifier, checker) {
+  const symbol = ts.isShorthandPropertyAssignment(identifier.parent) && identifier.parent.name === identifier
+    ? checker.getShorthandAssignmentValueSymbol(identifier.parent)
+    : checker.getSymbolAtLocation(identifier);
+  return symbol?.valueDeclaration ?? symbol?.declarations?.[0] ?? null;
+}
+
+function constInitializer(identifier, checker) {
+  const declaration = declarationOf(identifier, checker);
+  if (!declaration || !ts.isVariableDeclaration(declaration) || !declaration.initializer) return null;
+  return ts.getCombinedNodeFlags(declaration) & ts.NodeFlags.Const ? declaration.initializer : null;
+}
+
+function evaluateStaticString(node, checker, seen = new Set()) {
+  node = unwrap(node);
+  if (!node || seen.has(node)) return null;
+  seen.add(node);
+  if (ts.isStringLiteralLike(node)) return node.text;
+  if (ts.isIdentifier(node)) return evaluateStaticString(constInitializer(node, checker), checker, seen);
   if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-    const left = evaluateStaticString(node.left, constants);
-    const right = evaluateStaticString(node.right, constants);
+    const left = evaluateStaticString(node.left, checker, seen);
+    const right = evaluateStaticString(node.right, checker, seen);
     return left === null || right === null ? null : left + right;
   }
   if (ts.isTemplateExpression(node)) {
     let value = node.head.text;
     for (const span of node.templateSpans) {
-      const expression = evaluateStaticString(span.expression, constants);
+      const expression = evaluateStaticString(span.expression, checker, seen);
       if (expression === null) return null;
       value += expression + span.literal.text;
     }
@@ -51,90 +92,32 @@ function evaluateStaticString(node, constants) {
   return null;
 }
 
-function collectInitializers(sourceFile) {
-  const initializers = new Map();
-  function visit(node) {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer &&
-      !initializers.has(node.name.text)
-    ) {
-      initializers.set(node.name.text, node.initializer);
-    }
-    ts.forEachChild(node, visit);
-  }
-  visit(sourceFile);
-  return initializers;
-}
-
-function leadingLiteralText(node, initializers, seen = new Set()) {
-  if (!node) return null;
-  if (ts.isStringLiteralLike(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-    return node.text;
-  }
+function leadingLiteralText(node, checker, seen = new Set()) {
+  node = unwrap(node);
+  if (!node || seen.has(node)) return null;
+  seen.add(node);
+  if (ts.isStringLiteralLike(node)) return node.text;
   if (ts.isTemplateExpression(node)) return node.head.text;
-  if (ts.isParenthesizedExpression(node)) {
-    return leadingLiteralText(node.expression, initializers, seen);
-  }
   if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-    return leadingLiteralText(node.left, initializers, seen);
+    return leadingLiteralText(node.left, checker, seen);
   }
-  if (ts.isIdentifier(node) && !seen.has(node.text)) {
-    seen.add(node.text);
-    return leadingLiteralText(initializers.get(node.text), initializers, seen);
-  }
+  if (ts.isIdentifier(node)) return leadingLiteralText(constInitializer(node, checker), checker, seen);
   return null;
 }
 
-function isQueryMember(node, constants) {
-  if (ts.isPropertyAccessExpression(node)) {
-    return node.name.text === "query";
-  }
-  if (ts.isElementAccessExpression(node)) {
-    return evaluateStaticString(node.argumentExpression, constants) === "query";
-  }
+function isMember(node, name, checker) {
+  node = unwrap(node);
+  if (ts.isPropertyAccessExpression(node)) return node.name.text === name;
+  if (ts.isElementAccessExpression(node)) return evaluateStaticString(node.argumentExpression, checker) === name;
   return false;
 }
 
-function collectConstants(sourceFile) {
-  const declarations = [];
-  function visit(node) {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer
-    ) {
-      declarations.push(node);
-    }
-    ts.forEachChild(node, visit);
-  }
-  visit(sourceFile);
-
-  const constants = new Map();
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const declaration of declarations) {
-      if (constants.has(declaration.name.text)) continue;
-      const value = evaluateStaticString(declaration.initializer, constants);
-      if (value !== null) {
-        constants.set(declaration.name.text, value);
-        changed = true;
-      }
-    }
-  }
-  return constants;
-}
-
-function isMutationMember(node, constants) {
-  if (ts.isPropertyAccessExpression(node)) {
-    return node.name.text === "mutation";
-  }
-  if (ts.isElementAccessExpression(node)) {
-    return evaluateStaticString(node.argumentExpression, constants) === "mutation";
-  }
-  return false;
+function isMutationCallee(callee, checker) {
+  callee = unwrap(callee);
+  if (isMember(callee, "mutation", checker)) return true;
+  if (!ts.isIdentifier(callee)) return false;
+  const initializer = constInitializer(callee, checker);
+  return initializer !== null && isMember(initializer, "mutation", checker);
 }
 
 function parseSource(source, fileName) {
@@ -229,89 +212,232 @@ function isLibraryWriterCall(node, { direct, namespaces }) {
   );
 }
 
-function launcherName(callee) {
+function isRequireOf(node, modules, checker) {
+  node = unwrap(node);
+  return (
+    node !== undefined &&
+    ts.isCallExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    node.expression.text === "require" &&
+    modules.has(evaluateStaticString(node.arguments[0], checker) ?? "")
+  );
+}
+
+function aliasedLauncher(identifier, checker) {
+  const declaration = declarationOf(identifier, checker);
+  if (!declaration) return null;
+  if (ts.isImportSpecifier(declaration)) {
+    const importDeclaration = declaration.parent.parent.parent;
+    const imported = (declaration.propertyName ?? declaration.name).text;
+    return CHILD_PROCESS_MODULES.has(importDeclaration.moduleSpecifier.text) && CHILD_PROCESS_LAUNCHERS.has(imported) ? imported : null;
+  }
+  if (ts.isBindingElement(declaration)) {
+    const imported = propertyNameText(declaration.propertyName ?? declaration.name);
+    const source = declaration.parent.parent;
+    return ts.isVariableDeclaration(source) && isRequireOf(source.initializer, CHILD_PROCESS_MODULES, checker) && CHILD_PROCESS_LAUNCHERS.has(imported)
+      ? imported
+      : null;
+  }
+  const initializer = unwrap(constInitializer(identifier, checker));
+  if (initializer && ts.isCallExpression(initializer) && /^(?:util\.)?promisify$/.test(initializer.expression.getText())) {
+    return launcherOf(initializer.arguments[0], checker);
+  }
+  return null;
+}
+
+function launcherOf(callee, checker) {
+  callee = unwrap(callee);
+  if (!callee) return null;
+  if (ts.isPropertyAccessExpression(callee)) {
+    return CHILD_PROCESS_LAUNCHERS.has(callee.name.text) ? callee.name.text : null;
+  }
+  if (!ts.isIdentifier(callee)) return null;
+  return aliasedLauncher(callee, checker) ?? (CHILD_PROCESS_LAUNCHERS.has(callee.text) ? callee.text : null);
+}
+
+function arrayTokens(node, checker, seen = new Set()) {
+  node = unwrap(node);
+  if (!node || seen.has(node)) return null;
+  seen.add(node);
+  if (ts.isIdentifier(node)) return arrayTokens(constInitializer(node, checker), checker, seen);
+  if (ts.isArrayLiteralExpression(node)) {
+    const tokens = [];
+    for (const element of node.elements) {
+      if (ts.isSpreadElement(element)) {
+        const spread = arrayTokens(element.expression, checker, seen);
+        if (spread === null) return [...tokens, UNRESOLVED];
+        tokens.push(...spread);
+        if (spread.includes(UNRESOLVED)) return tokens;
+        continue;
+      }
+      tokens.push(evaluateStaticString(element, checker) ?? UNRESOLVED);
+    }
+    return tokens;
+  }
+  if (
+    ts.isCallExpression(node) &&
+    ts.isPropertyAccessExpression(node.expression) &&
+    node.expression.name.text === "slice" &&
+    node.arguments.length <= 1
+  ) {
+    const base = arrayTokens(node.expression.expression, checker, seen);
+    const start = node.arguments[0] ? Number(unwrap(node.arguments[0]).getText()) : 0;
+    if (base === null || !Number.isInteger(start) || start < 0) return null;
+    const unresolvedAt = base.indexOf(UNRESOLVED);
+    return unresolvedAt !== -1 && unresolvedAt < start ? [UNRESOLVED] : base.slice(start);
+  }
+  return null;
+}
+
+function commandToken(node, checker) {
+  node = unwrap(node);
+  if (node && ts.isElementAccessExpression(node)) {
+    const base = arrayTokens(node.expression, checker);
+    const index = Number(unwrap(node.argumentExpression).getText());
+    if (base !== null && Number.isInteger(index) && !base.slice(0, index).includes(UNRESOLVED)) {
+      return base[index] ?? UNRESOLVED;
+    }
+  }
+  return evaluateStaticString(node, checker) ?? UNRESOLVED;
+}
+
+function shellWords(node, checker) {
+  node = unwrap(node);
+  const text = evaluateStaticString(node, checker);
+  if (text !== null) return text.split(/\s+/).filter(Boolean);
+  if (node && ts.isIdentifier(node)) {
+    const initializer = constInitializer(node, checker);
+    if (initializer) return shellWords(initializer, checker);
+  }
+  if (node && ts.isTemplateExpression(node)) {
+    const words = node.head.text.split(/\s+/).filter(Boolean);
+    if (!/\s$/.test(node.head.text)) words.pop();
+    return [...words, UNRESOLVED];
+  }
+  return [UNRESOLVED];
+}
+
+function launchArgv(call, launcher, checker) {
+  const [command, args] = call.arguments;
+  const argvArray = arrayTokens(command, checker);
+  if (argvArray !== null) return argvArray;
+  if (SHELL_LAUNCHERS.has(launcher)) return shellWords(command, checker);
+  const head = commandToken(command, checker);
+  if (!args || ts.isObjectLiteralExpression(unwrap(args))) return [head];
+  return [head, ...(arrayTokens(args, checker) ?? [UNRESOLVED])];
+}
+
+function withoutPackageRunner(tokens) {
+  return PACKAGE_RUNNERS.has(tokens[0]) ? tokens.slice(1) : tokens;
+}
+
+function classifyLaunch(argv) {
+  const [tool, verb] = withoutPackageRunner(argv);
+  if (typeof tool !== "string") return { unresolvedTool: null };
+  const verbs = SUBPROCESS_WRITE_VERBS.get(tool);
+  if (!verbs) return "read";
+  if (verb === UNRESOLVED) return { unresolvedTool: tool };
+  return verbs.has(verb) ? "write" : "read";
+}
+
+function isUnresolvedLaunchWriteArray(tokens, unresolvedTools) {
+  const [first, second] = withoutPackageRunner(tokens);
+  return [...unresolvedTools].some((tool) =>
+    tool === null ? SUBPROCESS_WRITE_VERBS.get(first)?.has(second) : SUBPROCESS_WRITE_VERBS.get(tool).has(first),
+  );
+}
+
+function methodExpression(property) {
+  if (ts.isPropertyAssignment(property) && propertyNameText(property.name) === "method") return property.initializer;
+  if (ts.isShorthandPropertyAssignment(property) && property.name.text === "method") return property.name;
+  return null;
+}
+
+function requestMethods(call) {
+  const methods = [];
+  for (const argument of call.arguments) {
+    if (!ts.isObjectLiteralExpression(argument)) continue;
+    for (const property of argument.properties) {
+      const expression = methodExpression(property);
+      if (expression) methods.push(expression);
+    }
+  }
+  return methods;
+}
+
+function enclosingParameterIndex(expression, checker) {
+  expression = unwrap(expression);
+  if (!ts.isIdentifier(expression)) return null;
+  const declaration = declarationOf(expression, checker);
+  if (!declaration || !ts.isParameter(declaration) || !ts.isIdentifier(declaration.name)) return null;
+  return { owner: declaration.parent, index: declaration.parent.parameters.indexOf(declaration) };
+}
+
+function functionName(node) {
+  if ((ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node)) && node.name) return node.name.text;
+  if (ts.isMethodDeclaration(node)) return propertyNameText(node.name);
+  const parent = node.parent;
+  if (ts.isVariableDeclaration(parent) && ts.isIdentifier(parent.name)) return parent.name.text;
+  if (ts.isPropertyAssignment(parent)) return propertyNameText(parent.name);
+  return null;
+}
+
+function calleeName(callee) {
+  callee = unwrap(callee);
   if (ts.isIdentifier(callee)) return callee.text;
   if (ts.isPropertyAccessExpression(callee)) return callee.name.text;
   return null;
 }
 
-function staticStrings(elements, constants) {
-  const strings = [];
-  for (const element of elements) {
-    const value = evaluateStaticString(element, constants);
-    if (value === null) break;
-    strings.push(value);
-  }
-  return PACKAGE_RUNNERS.has(strings[0]) ? strings.slice(1) : strings;
-}
-
-function isSubprocessWriteInvocation([tool, verb], launchedTools) {
-  if (SUBPROCESS_WRITE_VERBS.get(tool)?.has(verb)) return true;
-  return [...launchedTools].some((launched) => SUBPROCESS_WRITE_VERBS.get(launched)?.has(tool));
-}
-
-function collectLaunchedTools(sourceFile, constants) {
-  const tools = new Set();
-  let launches = false;
+function collectCalls(sourceFile) {
+  const calls = [];
   function visit(node) {
-    if (ts.isCallExpression(node) && CHILD_PROCESS_LAUNCHERS.has(launcherName(node.expression))) {
-      launches = true;
-      const [command, args] = node.arguments;
-      const tool = evaluateStaticString(command, constants);
-      if (tool !== null && !PACKAGE_RUNNERS.has(tool)) tools.add(tool);
-      if (tool !== null && PACKAGE_RUNNERS.has(tool) && args && ts.isArrayLiteralExpression(args)) {
-        const [runnerTool] = staticStrings(args.elements, constants);
-        if (runnerTool) tools.add(runnerTool);
-      }
-    }
+    if (ts.isCallExpression(node)) calls.push(node);
     ts.forEachChild(node, visit);
   }
   visit(sourceFile);
-  return launches ? tools : null;
+  return calls;
 }
 
-function hasDynamicFetchMethod(sourceFile, constants) {
-  let found = false;
-  function visit(node) {
-    if (found) return;
-    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "fetch") {
-      for (const argument of node.arguments) {
-        if (!ts.isObjectLiteralExpression(argument)) continue;
-        for (const property of argument.properties) {
-          const isMethod =
-            (ts.isPropertyAssignment(property) && propertyNameText(property.name) === "method" && evaluateStaticString(property.initializer, constants) === null) ||
-            (ts.isShorthandPropertyAssignment(property) && property.name.text === "method" && !constants.has("method"));
-          if (isMethod) found = true;
-        }
+function collectMethodWrappers(calls, checker) {
+  const wrappers = new Map();
+  function register(parameter) {
+    if (!parameter) return false;
+    const name = functionName(parameter.owner);
+    if (!name || wrappers.get(name)?.has(parameter.index)) return false;
+    wrappers.set(name, new Set([...(wrappers.get(name) ?? []), parameter.index]));
+    return true;
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const call of calls) {
+      for (const expression of requestMethods(call)) {
+        changed = register(enclosingParameterIndex(expression, checker)) || changed;
+      }
+      for (const index of wrappers.get(calleeName(call.expression)) ?? []) {
+        changed = register(enclosingParameterIndex(call.arguments[index], checker)) || changed;
       }
     }
-    ts.forEachChild(node, visit);
   }
-  visit(sourceFile);
-  return found;
+  return wrappers;
+}
+
+function isWriteMethod(expression, checker) {
+  return HTTP_WRITE_METHODS.has(evaluateStaticString(expression, checker)?.toUpperCase());
+}
+
+function isUnresolvedMethod(expression, checker) {
+  return evaluateStaticString(expression, checker) === null && enclosingParameterIndex(expression, checker) === null;
 }
 
 export function detectProductionWriteSignals(source, fileName = "script.mjs") {
   const sourceFile = parseSource(source, fileName);
-  const constants = collectConstants(sourceFile);
+  const checker = bindSource(sourceFile);
   const libraryWriters = collectLibraryWriterBindings(sourceFile, fileName);
-  const launchedTools = collectLaunchedTools(sourceFile, constants);
-  const parameterizedFetch = hasDynamicFetchMethod(sourceFile, constants);
-  const initializers = collectInitializers(sourceFile);
-  const mutationAliases = new Set();
-
-  function collectAliases(node) {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer &&
-      isMutationMember(node.initializer, constants)
-    ) {
-      mutationAliases.add(node.name.text);
-    }
-    ts.forEachChild(node, collectAliases);
-  }
-  collectAliases(sourceFile);
+  const calls = collectCalls(sourceFile);
+  const methodWrappers = collectMethodWrappers(calls, checker);
+  const unresolvedTools = new Set();
 
   const signals = [];
   function add(kind, node) {
@@ -319,64 +445,49 @@ export function detectProductionWriteSignals(source, fileName = "script.mjs") {
     signals.push({ kind, line: position.line + 1, column: position.character + 1 });
   }
 
-  function visit(node) {
-    if (launchedTools && ts.isArrayLiteralExpression(node)) {
-      if (isSubprocessWriteInvocation(staticStrings(node.elements, constants), launchedTools)) {
+  for (const call of calls) {
+    const launcher = launcherOf(call.expression, checker);
+    if (launcher) {
+      const launch = classifyLaunch(launchArgv(call, launcher, checker));
+      if (launch === "write") add("subprocess-write", call);
+      else if (launch !== "read") unresolvedTools.add(launch.unresolvedTool);
+    }
+
+    if (isLibraryWriterCall(call, libraryWriters)) {
+      add("library-write", call);
+    }
+
+    const methods = requestMethods(call);
+    const forwardsUnresolvedMethod =
+      calleeName(call.expression) === "fetch" && methods.some((expression) => isUnresolvedMethod(expression, checker));
+    const wrapperWritesMethod = [...(methodWrappers.get(calleeName(call.expression)) ?? [])].some((index) =>
+      isWriteMethod(call.arguments[index], checker),
+    );
+    if (forwardsUnresolvedMethod || wrapperWritesMethod || methods.some((expression) => isWriteMethod(expression, checker))) {
+      add("http-write", call);
+    }
+
+    if (isMutationCallee(call.expression, checker)) {
+      add("data-mutation", call);
+    }
+
+    if (isMember(call.expression, "query", checker)) {
+      const statement = leadingLiteralText(call.arguments[0], checker);
+      if (statement !== null && SQL_WRITE_STATEMENT.test(statement)) {
+        add("raw-sql-write", call);
+      }
+    }
+  }
+
+  if (unresolvedTools.size > 0) {
+    function visitArrays(node) {
+      if (ts.isArrayLiteralExpression(node) && isUnresolvedLaunchWriteArray(arrayTokens(node, checker), unresolvedTools)) {
         add("subprocess-write", node);
       }
+      ts.forEachChild(node, visitArrays);
     }
-
-    if (ts.isCallExpression(node)) {
-      if (isLibraryWriterCall(node, libraryWriters)) {
-        add("library-write", node);
-      }
-
-      if (
-        parameterizedFetch &&
-        ts.isIdentifier(node.expression) &&
-        HTTP_WRITE_METHODS.has(evaluateStaticString(node.arguments[0], constants)?.toUpperCase())
-      ) {
-        add("http-write", node);
-      }
-
-      if (
-        isMutationMember(node.expression, constants) ||
-        (ts.isIdentifier(node.expression) && mutationAliases.has(node.expression.text))
-      ) {
-        add("data-mutation", node);
-      }
-
-      if (isQueryMember(node.expression, constants)) {
-        const statement = leadingLiteralText(node.arguments[0], initializers);
-        if (statement !== null && SQL_WRITE_STATEMENT.test(statement)) {
-          add("raw-sql-write", node);
-        }
-      }
-
-      for (const argument of node.arguments) {
-        if (!ts.isObjectLiteralExpression(argument)) continue;
-        for (const property of argument.properties) {
-          let method = null;
-          if (
-            ts.isPropertyAssignment(property) &&
-            propertyNameText(property.name) === "method"
-          ) {
-            method = evaluateStaticString(property.initializer, constants)?.toUpperCase();
-          } else if (
-            ts.isShorthandPropertyAssignment(property) &&
-            property.name.text === "method"
-          ) {
-            method = constants.get(property.name.text)?.toUpperCase();
-          }
-          if (method && HTTP_WRITE_METHODS.has(method)) {
-            add("http-write", node);
-          }
-        }
-      }
-    }
-    ts.forEachChild(node, visit);
+    visitArrays(sourceFile);
   }
-  visit(sourceFile);
 
   return {
     fileName,
