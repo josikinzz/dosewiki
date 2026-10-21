@@ -124,13 +124,8 @@ function callsProductionAuthorizer(source) {
 }
 
 function hasStrongBoundary(source) {
-  const composesFullProductionBoundary =
-    source.includes("assertProductionWriteAllowed(") &&
-    source.includes("assertDataWritesNotFrozen(") &&
-    source.includes("guardTarget(");
   return (
-    (source.includes("production-write-command.mjs") &&
-      (/authorizeProductionWrite\(|executeProductionWrite\(/.test(source) || composesFullProductionBoundary)) ||
+    (source.includes("production-write-command.mjs") && /authorizeProductionWrite\(|executeProductionWrite\(/.test(source)) ||
     (source.includes("assertDataOpsWriteAllowed") &&
       source.includes("data-ops-run-context.mjs")) ||
     source.includes("createBatchTargetClient")
@@ -273,6 +268,13 @@ describe("production writer command surface", () => {
     (path) => {
       const source = readFileSync(resolve(repoRoot, path), "utf8");
       expect(hasStrongBoundary(source)).toBe(true);
+    },
+  );
+
+  it.each(productionWriterClassifications.guardedIndirectEntrypoint.filter((path) => path.startsWith("scripts/translation/")))(
+    "%s authorizes translation writes with authorizeProductionWrite",
+    (path) => {
+      expect(callsProductionAuthorizer(readFileSync(resolve(repoRoot, path), "utf8"))).toBe(true);
     },
   );
 
