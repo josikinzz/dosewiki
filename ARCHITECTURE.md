@@ -14,7 +14,7 @@ The repository builds three Next.js applications from one route tree:
 
 ## Runtime data
 
-PlanetScale Postgres is the production runtime source of truth. `DATA_BACKEND=postgres` runs the authored `server/` handlers in-process through `lib/postgres/runtime/`. There is no alternate backend. `server/schema.ts` owns persisted document validation, and `src/schema/substance.schema.ts` owns the stricter article shape.
+PlanetScale Postgres is the production runtime source of truth. `DATA_BACKEND=postgres` runs the authored `server/` handlers in-process through `lib/postgres/runtime/`. There is no alternate backend. `server/schema.ts` owns persisted document validation, and `src/schema/substance/` owns the stricter article shape.
 
 Public DoseWiki and Effect Index carry no admin or editorial credential. Public DoseWiki may hold `DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE`, which lets its intake routes run only the create-only service mutations listed in [Auth](docs/architecture/auth.md#token-checked-exceptions). Only the editor deployment carries the editorial write tier. Every surface needs `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries through `lib/runtime/dataWriteFreeze.ts`. [Data credentials](docs/operations/data-credentials.md) owns targets, credential tiers, and the production write ceremony.
 
@@ -36,7 +36,7 @@ Public DoseWiki and Effect Index carry no admin or editorial credential. Public 
 | `src/app/` | App Router pages, layouts, metadata routes, and API route handlers (`src/app/api/`) |
 | `src/features/` | Feature UI and editor workflows; the editor kit is `src/features/dev/components/` |
 | `src/components/` | Shared UI: `ui/` primitives, `common/` recipes, `layout/` page chrome, `pages/` route-owned public pages ([UI kit](docs/design/ui-kit.md)) |
-| `src/schema/` | Canonical Zod schemas, including `substance.schema.ts` and the adapter `substance/contract.ts` |
+| `src/schema/` | Canonical Zod schemas. The article schema and its adapter `contract.ts` live in `substance/`, and `substance.schema.ts` re-exports them |
 | `src/data/` | Content loaders, static configuration, and generated schema helpers (`src/data/schema/`) |
 | `src/lib/`, `src/utils/`, `src/hooks/` | Client and shared helpers: auth roles, HTTP route wrappers, routing, SEO, slugs, hooks |
 | `src/styles/`, `src/theme/` | Global CSS partials, theme tokens, and the appearance palette sources ([visual style guide](docs/design/visual-style-guide.md)) |
