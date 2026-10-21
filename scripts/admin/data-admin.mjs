@@ -3,6 +3,7 @@
 import { createDataClient } from "../lib/data-client.ts";
 
 import {
+  authorizeProductionWrite,
   createProductionWriteCommand,
   executeProductionWrite,
   printProductionWriteCommand,
@@ -130,6 +131,7 @@ async function runMutation({ argv, functionName, parsedArgs }) {
   const operation = operationForFunction(functionName);
   const command = createProductionWriteCommand({ operation, argv });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log(`Function: ${functionName}`);
   console.log("Args:", redactSensitiveArgs(parsedArgs));
 

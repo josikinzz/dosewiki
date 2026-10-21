@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -31,6 +31,7 @@ if (requestedType !== undefined && INDEX_FILES.length === 0) {
 
 async function seedIndexLayouts() {
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const layouts = [];
 
@@ -81,7 +82,6 @@ async function seedIndexLayouts() {
   console.log(`\nUploading ${layouts.length} layouts to Postgres...`);
 
   try {
-    assertProductionWriteAllowed(command);
     const credential = requireProductionWriteCredential("seed-index-layouts");
     const client = createDataClient({ target: command.targetUrl }).client;
     const result = await client.mutation(api.indexLayouts.bulkImport, {

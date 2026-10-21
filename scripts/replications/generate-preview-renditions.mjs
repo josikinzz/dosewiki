@@ -8,7 +8,7 @@ import { spawnSync } from "node:child_process";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -221,6 +221,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const batchSize = Number(getFlagValue(argv, "--batch-size") ?? 5);
   const limit = getFlagValue(argv, "--limit") ? Number(getFlagValue(argv, "--limit")) : null;
@@ -286,7 +287,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

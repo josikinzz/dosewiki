@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createDataClient } from "../lib/data-client.ts";
 import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -268,6 +268,7 @@ async function verify(client, apiKey, items) {
 async function main() {
   const command = createProductionWriteCommand({ operation: OPERATION, startDir: ROOT });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   if (!command.targetUrl) {
     throw new Error("Set TARGET_POSTGRES_URL or --target for the production comparison.");
   }
@@ -348,7 +349,6 @@ async function main() {
   console.log(JSON.stringify(summary, null, 2));
   if (command.dryRun) return;
 
-  assertProductionWriteAllowed(command);
   if (!process.argv.includes("--confirm-date-backfill")) {
     throw new Error("Write requires --confirm-date-backfill.");
   }

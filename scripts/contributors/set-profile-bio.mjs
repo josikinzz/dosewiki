@@ -4,7 +4,7 @@ import { createDataClient, resolvePostgresSource, postgresFingerprintFromUrl } f
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -38,6 +38,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const key = getFlagValue(argv, "--key")?.trim().toUpperCase();
   const bioFile = getFlagValue(argv, "--bio-file");
@@ -73,7 +74,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("profileMediaWrite");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

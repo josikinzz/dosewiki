@@ -15,6 +15,7 @@ import {
   normalizeRouteName,
 } from "../../lib/article/normalization.mjs";
 import {
+  authorizeProductionWrite,
   createProductionWriteCommand,
   executeProductionWrite,
   printProductionWriteCommand,
@@ -248,6 +249,7 @@ async function main(argv) {
   console.log("\nPharmacology Schema Migration");
   console.log("=".repeat(50));
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log(`Scope: ${onlySlug ? `article "${onlySlug}"` : "every article (--all)"}`);
 
   const sourceClient = createDataClient({ target: requireReadUrl(command, sourceUrl) }).client;

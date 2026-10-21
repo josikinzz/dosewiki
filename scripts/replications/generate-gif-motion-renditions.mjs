@@ -11,7 +11,7 @@ import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import { getFlagValue, hasFlag } from "../lib/data-ops-run-context.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -261,6 +261,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const force = hasFlag(argv, "--force");
   const limitValue = getFlagValue(argv, "--limit");
@@ -311,7 +312,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential(
     "replicationMaintenance",
   );

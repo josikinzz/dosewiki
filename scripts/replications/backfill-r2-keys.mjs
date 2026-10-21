@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -79,6 +79,7 @@ async function main() {
   const argv = process.argv.slice(2);
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const ledgerPath = getFlagValue(argv, "--ledger");
   if (!ledgerPath) {
@@ -125,7 +126,6 @@ async function main() {
   if (plan.stale.length > 0) {
     throw new Error("Refusing to write while any planned row is stale; rebuild the ledger first.");
   }
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

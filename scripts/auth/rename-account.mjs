@@ -4,7 +4,7 @@ import { createDataClient, postgresFingerprintFromUrl } from "../lib/data-client
 import { makeFunctionReference } from "../../lib/postgres/runtime/api.ts";
 import { getFlagValue } from "../lib/data-ops-run-context.mjs";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -30,12 +30,12 @@ async function main() {
 
   const command = createProductionWriteCommand({ operation: OPERATION, argv });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log(`Plan: rename ${plan.fromUsername} to ${plan.toUsername} (${plan.toEmail}), shown as ${plan.toName}.`);
   if (command.dryRun) {
     console.log("Dry run: pass --write to rename.");
     return;
   }
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("legacyAdmin");
 
   const client = createDataClient({ target: command.targetUrl }).client;

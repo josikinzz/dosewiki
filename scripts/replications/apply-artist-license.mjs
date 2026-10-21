@@ -2,7 +2,7 @@
 import { createDataClient, resolvePostgresSource } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts"
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -93,6 +93,7 @@ async function main() {
   }
 
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
   console.log(`Artist: ${artist}`);
   console.log(`Licence: ${license.name} (${license.url})`);
 
@@ -128,7 +129,6 @@ async function main() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const { token: apiKey } = requireProductionWriteCredential("replicationMaintenance");
   const writeClient = createDataClient({ target: command.targetUrl }).client;
 

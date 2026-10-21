@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -16,6 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const command = createProductionWriteCommand({ operation: "seed-site-config" });
 printProductionWriteCommand(command);
+if (command.writeRequested) authorizeProductionWrite(command);
 
 const aboutMarkdown = fs.readFileSync(
   path.join(__dirname, "../../content/about/about.md"),
@@ -47,7 +48,6 @@ if (command.dryRun) {
 }
 
 try {
-  assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("editorArticleWrite");
   const client = createDataClient({ target: command.targetUrl }).client;
   const result = await client.mutation(api.siteConfig.saveAbout, {

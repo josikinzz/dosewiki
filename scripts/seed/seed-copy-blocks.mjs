@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import { createDataClient } from "../lib/data-client.ts";
 import { api } from "../../lib/postgres/runtime/api.ts";
 import {
-  assertProductionWriteAllowed,
+  authorizeProductionWrite,
   createProductionWriteCommand,
   printProductionWriteCommand,
   requireProductionWriteCredential,
@@ -98,6 +98,7 @@ function describe(block) {
 async function seedCopyBlocks() {
   const command = createProductionWriteCommand({ operation: "seed-copy-blocks" });
   printProductionWriteCommand(command);
+  if (command.writeRequested) authorizeProductionWrite(command);
 
   const onlyKey = getFlag("key");
   const overwrite = hasFlag("overwrite");
@@ -120,7 +121,6 @@ async function seedCopyBlocks() {
     return;
   }
 
-  assertProductionWriteAllowed(command);
   const credential = requireProductionWriteCredential("editorArticleWrite");
   const client = createDataClient({ target: command.targetUrl }).client;
 
