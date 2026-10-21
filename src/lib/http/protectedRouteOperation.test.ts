@@ -141,13 +141,20 @@ describe("protectedRouteOperation", () => {
     );
     const { protectedRouteOperation } = await import("./protectedRouteOperation");
     const optionReads: PropertyKey[] = [];
+    const recordReads = <T extends object>(target: T, label: string) =>
+      new Proxy(target, {
+        get(record, key, receiver) {
+          optionReads.push(`${label}.${String(key)}`);
+          return Reflect.get(record, key, receiver);
+        },
+      });
     const options = new Proxy(
       {
         auth: "editor" as const,
         rateLimit: "editorSmallWrite" as const,
         rateLimitKeySuffix: "probe",
-        body: { maxBytes: 1024 },
-        capabilities: [{ type: "dataWrite" as const }],
+        body: recordReads({ maxBytes: 1024 }, "body"),
+        capabilities: recordReads([recordReads({ type: "dataWrite" as const }, "policy")], "capabilities"),
         unexpectedErrorLabel: "test:",
         unexpectedErrorMessage: "failed",
         mapError: () => null,
@@ -167,6 +174,40 @@ describe("protectedRouteOperation", () => {
     expect((await handler(request())).status).toBe(401);
 
     expect(optionReads).toEqual([]);
+  });
+
+  it("reads no nested option record before auth when built inside a request", async () => {
+    mocks.requireRoleSession.mockResolvedValue(
+      {
+        ok: false,
+        response: NextResponse.json({ error: "Authentication required." }, { status: 401 }),
+      },
+    );
+    const { protectedRouteOperation } = await import("./protectedRouteOperation");
+    const nestedReads: string[] = [];
+    const recordReads = <T extends object>(target: T, label: string) =>
+      new Proxy(target, {
+        get(record, key, receiver) {
+          nestedReads.push(`${label}.${String(key)}`);
+          return Reflect.get(record, key, receiver);
+        },
+      });
+    const body = recordReads({ maxBytes: 1024 }, "body");
+    const capabilities = recordReads([recordReads({ type: "dataWrite" as const }, "policy")], "capabilities");
+    const handle = (incoming: Request) =>
+      protectedRouteOperation({
+        auth: "editor",
+        rateLimit: "editorSmallWrite",
+        body,
+        capabilities,
+        unexpectedErrorLabel: "test:",
+        operation: () => NextResponse.json({ ok: true }),
+      })(incoming);
+
+    expect((await handle(request())).status).toBe(401);
+    expect((await handle(request())).status).toBe(401);
+
+    expect(nestedReads).toEqual([]);
   });
 
   it("gates every route through the role floor it declares, contributor included", async () => {

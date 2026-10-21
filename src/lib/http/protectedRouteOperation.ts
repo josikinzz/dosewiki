@@ -62,10 +62,6 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
   mapError,
   operation,
 }: ProtectedRouteOperationOptions<RawBody, ParsedBody>) {
-  const maxBodyBytes = body?.maxBytes;
-  const parseBody = body?.parse;
-  const dataWritePolicy = capabilities?.find((policy) => policy.type === "dataWrite");
-  const dataWriteErrorMessage = dataWritePolicy?.errorMessage;
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
       const foreign = foreignOriginResponse(request, "editorWrite");
@@ -82,13 +78,14 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
     }
 
     const actorEmail = auth.session.user.email;
+    const dataWritePolicy = capabilities?.find((policy) => policy.type === "dataWrite");
     let dataWrite: ServerDataWriteCapability | undefined;
     if (dataWritePolicy) {
       const capability = getServerDataWriteCapability();
       if (capability.ok === false) {
         return NextResponse.json(
           {
-            error: dataWriteErrorMessage?.(capability.failure) ?? capability.failure.message,
+            error: dataWritePolicy.errorMessage?.(capability.failure) ?? capability.failure.message,
           },
           { status: 500 },
         );
@@ -104,10 +101,10 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
         actorEmail,
         dataWrite,
       };
-      const rawBody = maxBodyBytes !== undefined
-        ? await readJsonBody<RawBody>(request, { maxBytes: maxBodyBytes })
+      const rawBody = body
+        ? await readJsonBody<RawBody>(request, { maxBytes: body.maxBytes })
         : (undefined as RawBody);
-      const parsedBody = parseBody ? parseBody(rawBody, context) : (rawBody as unknown as ParsedBody);
+      const parsedBody = body?.parse ? body.parse(rawBody, context) : (rawBody as unknown as ParsedBody);
 
       return await operation({
         request,
