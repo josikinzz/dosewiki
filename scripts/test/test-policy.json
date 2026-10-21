@@ -200,6 +200,7 @@
       "lib/data/publicData.substanceContract.test.ts",
       "lib/dataArticleLifecycleValidation.test.ts",
       "lib/parserContracts.test.ts",
+      "lib/translation/safetyLocalization.test.ts",
       "scripts/legality/apply-draft.test.mjs",
       "scripts/legality/validate-draft.test.mjs",
       "scripts/translation/engineProtection.test.mjs",
