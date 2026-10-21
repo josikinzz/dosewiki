@@ -44,7 +44,7 @@ For production-shaped planning, follow the literal environment and guard sequenc
 
 A read-only script receives no mutation capability and must reject `--write`. Remote Postgres reads still require an explicit target plus the remote-host guard. Public DoseWiki and Effect Index remain credential-free read-only flavors.
 
-Before changing generated output, inspect `data/lineage.json`, change the recorded producer input, and rerun its recorded command. Do not hand-edit generated article-schema helpers or native data runtime registries.
+Before changing generated output, inspect `data/lineage.json`, change the recorded producer input, and follow its `refresh` entry. Do not hand-edit generated article-schema helpers or native data runtime registries.
 
 For nightly molecule operations, follow [nightly molecule reads](../docs/operations/data-credentials.md#nightly-molecule-reads) and the workflow source. Activation, configuration and source-revision changes require owner evidence and approval; do not create credentials or infer live state from a cached documentation claim.
 
