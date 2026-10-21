@@ -105,10 +105,32 @@ function unclassifiedIndirectWriters(detections) {
     .sort();
 }
 
+const ASSERTION_ONLY_WRITER = `import { assertProductionWriteAllowed, createProductionWriteCommand } from "../lib/production-write-command.mjs";
+const command = createProductionWriteCommand({ operation: "fixture" });
+writeFileSync("public/fixture.json", "{}");
+assertProductionWriteAllowed(command);`;
+
+const AUTHORIZED_WRITER = `import { authorizeProductionWrite, createProductionWriteCommand } from "../lib/production-write-command.mjs";
+const command = createProductionWriteCommand({ operation: "fixture" });
+if (command.writeRequested) authorizeProductionWrite(command);
+writeFileSync("public/fixture.json", "{}");`;
+
+function callsProductionAuthorizer(source) {
+  return (
+    source.includes("production-write-command.mjs") &&
+    source.includes("authorizeProductionWrite(") &&
+    !source.includes("assertProductionWriteAllowed(")
+  );
+}
+
 function hasStrongBoundary(source) {
+  const composesFullProductionBoundary =
+    source.includes("assertProductionWriteAllowed(") &&
+    source.includes("assertDataWritesNotFrozen(") &&
+    source.includes("guardTarget(");
   return (
     (source.includes("production-write-command.mjs") &&
-      /authorizeProductionWrite|assertProductionWriteAllowed|executeProductionWrite/.test(source)) ||
+      (/authorizeProductionWrite\(|executeProductionWrite\(/.test(source) || composesFullProductionBoundary)) ||
     (source.includes("assertDataOpsWriteAllowed") &&
       source.includes("data-ops-run-context.mjs")) ||
     source.includes("createBatchTargetClient")
@@ -205,12 +227,21 @@ describe("production writer command surface", () => {
     expect(detectProductionWriteSignals(source, path).signals).toEqual([]);
   });
 
+  it("rejects a production writer that only asserts the ceremony", () => {
+    expect(callsProductionAuthorizer(ASSERTION_ONLY_WRITER)).toBe(false);
+    expect(hasStrongBoundary(ASSERTION_ONLY_WRITER)).toBe(false);
+    expect(callsProductionAuthorizer(AUTHORIZED_WRITER)).toBe(true);
+    expect(hasStrongBoundary(AUTHORIZED_WRITER)).toBe(true);
+  });
+
   it.each(productionWriterClassifications.productionBoundary)(
-    "%s uses the explicit production-write boundary",
+    "%s calls authorizeProductionWrite, which enforces the freeze, ceremony, and host guard",
     (path) => {
       const source = readFileSync(resolve(repoRoot, path), "utf8");
-      expect(source).toContain("production-write-command.mjs");
-      expect(source).toMatch(/authorizeProductionWrite|assertProductionWriteAllowed|executeProductionWrite/);
+      expect(
+        callsProductionAuthorizer(source),
+        `${path} must call authorizeProductionWrite before its first side effect; run node scripts/util/authorize-production-writers.mjs`,
+      ).toBe(true);
       expect(sourceWithoutGuardedDryRunReadFallbacks(source)).not.toMatch(
         /process\.env\.(?:POSTGRES_POOLED_URL|POSTGRES_DIRECT_URL)/,
       );
