@@ -33,6 +33,7 @@
       "scripts/lib/data-ops-run-context.test.mjs",
       "scripts/lib/production-write-command-surface.test.mjs",
       "scripts/lib/production-write-command.test.mjs",
+      "scripts/lib/storage-write-authorization.test.mjs",
       "scripts/migrate/migrate-pharmacology-schema.test.mjs",
       "scripts/postgres/import-document-snapshot.test.mjs",
       "scripts/postgres/migrate.test.mjs",
