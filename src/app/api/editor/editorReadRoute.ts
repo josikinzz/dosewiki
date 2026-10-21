@@ -24,7 +24,7 @@ export function editorReadRoute(options: {
   label: string;
   read: EditorReadOperation;
 }) {
-  const { auth, label, read } = plainGuardOptions(options);
+  const { auth, label, read } = plainGuardOptions(options, { required: ["auth", "label"] });
   const operation = protectedRouteOperation({
     auth,
     rateLimit: "editorPolledRead",

@@ -58,7 +58,9 @@ export function feedbackQueueRoute<Status extends string>(options: FeedbackQueue
     sourceLabel,
     unexpectedErrorLabel,
     unexpectedErrorMessage,
-  } = plainGuardOptions(options);
+  } = plainGuardOptions(options, {
+    required: ["sourceLabel", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+  });
   return protectedRouteOperation({
     auth: "editor",
     rateLimit: "diagnosticRead",

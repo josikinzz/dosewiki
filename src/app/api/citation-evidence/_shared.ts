@@ -23,7 +23,10 @@ export function citationEvidenceRouteOperation(options: {
     unexpectedErrorMessage,
     mapError,
     operation,
-  } = plainGuardOptions(options);
+  } = plainGuardOptions(options, {
+    required: ["unexpectedErrorLabel", "unexpectedErrorMessage"],
+    optional: ["rateLimit"],
+  });
   return protectedRouteOperation({
     auth: "editor",
     rateLimit: rateLimit ?? "editorSmallWrite",

@@ -44,7 +44,9 @@ export function feedbackStatusRoute<Status extends string>(options: FeedbackStat
     notFoundMessage,
     unexpectedErrorLabel,
     unexpectedErrorMessage,
-  } = plainGuardOptions(options);
+  } = plainGuardOptions(options, {
+    required: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+  });
   const mapError = (error: unknown): NextResponse | null => {
     if (error instanceof JsonBodyError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

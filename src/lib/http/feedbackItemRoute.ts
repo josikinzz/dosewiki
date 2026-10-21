@@ -28,7 +28,9 @@ export function feedbackItemRoute(options: FeedbackItemRouteOptions) {
     notFoundMessage,
     unexpectedErrorLabel,
     unexpectedErrorMessage,
-  } = plainGuardOptions(options);
+  } = plainGuardOptions(options, {
+    required: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+  });
   return async function GET(request: Request, context: FeedbackItemRouteContext) {
     return protectedRouteOperation({
       auth: "editor",

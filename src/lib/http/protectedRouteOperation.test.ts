@@ -22,6 +22,10 @@ vi.mock("@server/data/serverWriteCapability", () => ({
   getServerDataWriteCapability: mocks.getServerDataWriteCapability,
 }));
 
+vi.mock("@server/data/serverClient", () => ({
+  getServerDataReadClient: vi.fn(),
+}));
+
 const editorSession = {
   ok: true,
   role: "editor",
@@ -270,6 +274,105 @@ describe("protectedRouteOperation", () => {
         operation,
       }),
     ).toThrow(TypeError);
+  });
+
+  it("refuses every coercible string option of every guard factory without coercing it", async () => {
+    const operation = () => NextResponse.json({ ok: true });
+    const getStore = async () => ({});
+    const isStatus = (value: unknown): value is string => typeof value === "string";
+    const strings = { unexpectedErrorLabel: "test:", unexpectedErrorMessage: "Failed." };
+    const factories: Array<{
+      name: string;
+      build: (options: Record<string, unknown>) => unknown;
+      options: Record<string, unknown>;
+      stringKeys: string[];
+    }> = [
+      {
+        name: "protectedRouteOperation",
+        build: (options) =>
+          import("./protectedRouteOperation").then((module) => module.protectedRouteOperation(options as never)),
+        options: { auth: "editor", rateLimit: "editorSmallWrite", rateLimitKeySuffix: "x", operation, ...strings },
+        stringKeys: ["auth", "rateLimit", "rateLimitKeySuffix", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "editorReadRoute",
+        build: (options) =>
+          import("@/app/api/editor/editorReadRoute").then((module) => module.editorReadRoute(options as never)),
+        options: { auth: "editor", label: "probe", read: async () => null },
+        stringKeys: ["auth", "label"],
+      },
+      {
+        name: "feedbackItemRoute",
+        build: (options) => import("./feedbackItemRoute").then((module) => module.feedbackItemRoute(options as never)),
+        options: { getStore, StorageConfigurationError: Error, notFoundMessage: "Missing.", ...strings },
+        stringKeys: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "feedbackStatusRoute",
+        build: (options) =>
+          import("./feedbackStatusRoute").then((module) => module.feedbackStatusRoute(options as never)),
+        options: {
+          isStatus,
+          getStore,
+          NotFoundError: Error,
+          StorageConfigurationError: Error,
+          notFoundMessage: "Missing.",
+          ...strings,
+        },
+        stringKeys: ["notFoundMessage", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "feedbackQueueRoute",
+        build: (options) => import("./feedbackQueueRoute").then((module) => module.feedbackQueueRoute(options as never)),
+        options: { isStatus, getStore, StorageConfigurationError: Error, sourceLabel: "feedback", ...strings },
+        stringKeys: ["sourceLabel", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "citationEvidenceRouteOperation",
+        build: (options) =>
+          import("@/app/api/citation-evidence/_shared").then((module) =>
+            module.citationEvidenceRouteOperation(options as never),
+          ),
+        options: { rateLimit: "editorSmallWrite", operation, ...strings },
+        stringKeys: ["rateLimit", "unexpectedErrorLabel", "unexpectedErrorMessage"],
+      },
+      {
+        name: "cronRoute",
+        build: (options) =>
+          import("@server/http/cronAuthorization").then((module) =>
+            module.cronRoute(async () => new Response(null), options as never),
+          ),
+        options: { rateLimit: "diagnosticRead" },
+        stringKeys: ["rateLimit"],
+      },
+    ];
+
+    for (const factory of factories) {
+      await expect(factory.build(factory.options), factory.name).resolves.toBeTypeOf("function");
+      for (const key of factory.stringKeys) {
+        const coercions: string[] = [];
+        const coercible = {
+          toString() {
+            coercions.push("toString");
+            return "probe";
+          },
+          valueOf() {
+            coercions.push("valueOf");
+            return "probe";
+          },
+          [Symbol.toPrimitive]() {
+            coercions.push("toPrimitive");
+            return "probe";
+          },
+        };
+        await expect(factory.build({ ...factory.options, [key]: coercible }), `${factory.name}.${key}`).rejects.toThrow(
+          TypeError,
+        );
+        expect(coercions, `${factory.name}.${key}`).toEqual([]);
+      }
+    }
+    expect(mocks.enforceRateLimit).not.toHaveBeenCalled();
+    expect(mocks.requireRoleSession).not.toHaveBeenCalled();
   });
 
   it("gates every route through the role floor it declares, contributor included", async () => {

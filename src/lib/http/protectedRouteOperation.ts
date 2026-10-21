@@ -8,7 +8,7 @@ import { foreignOriginResponse } from "@/lib/http/requestOrigin";
 import { getServerDataWriteCapability, type ServerDataWriteCapability, type ServerDataWriteConfigurationFailure } from "@server/data/serverWriteCapability";
 import { enforceRateLimit } from "@server/http/nextRateLimit";
 import type { RateLimitPolicyName } from "@server/http/rateLimitPolicy";
-import { plainGuardOptions, requireStringGuardOption } from "@server/http/guardOptions";
+import { plainGuardOptions } from "@server/http/guardOptions";
 
 type DataWriteCapabilityPolicy = {
   type: "dataWrite";
@@ -63,10 +63,10 @@ export function protectedRouteOperation<RawBody = unknown, ParsedBody = RawBody>
     unexpectedErrorMessage,
     mapError,
     operation,
-  } = plainGuardOptions(options);
-  requireStringGuardOption("auth", authFloor);
-  requireStringGuardOption("rateLimit", rateLimit);
-  requireStringGuardOption("rateLimitKeySuffix", rateLimitKeySuffix, { optional: true });
+  } = plainGuardOptions(options, {
+    required: ["auth", "rateLimit", "unexpectedErrorLabel"],
+    optional: ["rateLimitKeySuffix", "unexpectedErrorMessage"],
+  });
   const handle = async (request: Request): Promise<NextResponse> => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method.toUpperCase())) {
       const foreign = foreignOriginResponse(request, "editorWrite");

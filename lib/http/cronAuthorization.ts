@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
 import { enforceRateLimit } from "./nextRateLimit";
-import { plainGuardOptions, requireStringGuardOption } from "./guardOptions";
+import { plainGuardOptions } from "./guardOptions";
 import type { RateLimitPolicyName } from "./rateLimitPolicy";
 
 export type CronAuthEnv = {
@@ -55,8 +55,7 @@ export function cronRoute(
   handler: (request: Request) => Promise<Response>,
   options: { rateLimit?: RateLimitPolicyName } = {},
 ): (request: Request) => Promise<Response> {
-  const { rateLimit } = plainGuardOptions(options);
-  requireStringGuardOption("rateLimit", rateLimit, { optional: true });
+  const { rateLimit } = plainGuardOptions(options, { optional: ["rateLimit"] });
   return withCronWriteFreeze(async (request) => {
     const limited = rateLimit ? await enforceRateLimit(request, rateLimit) : null;
     if (limited) return limited;
