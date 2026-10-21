@@ -15,13 +15,13 @@ export const UI_MESSAGE_DEFINITIONS = {
   "appearance.light": {
     source: "Light",
     context: "Appearance setting: a light color scheme. Not dose intensity or weight.",
-    locations: ["src/app/_components/SchemeToggle.tsx", "src/app/_components/ThemeToggle.tsx"],
+    locations: ["src/features/appearance/SchemeToggle.tsx", "src/features/appearance/ThemeToggle.tsx"],
     glossaryTerms: [],
   },
   "appearance.dark": {
     source: "Dark",
     context: "Appearance setting: a dark color scheme.",
-    locations: ["src/app/_components/SchemeToggle.tsx", "src/app/_components/ThemeToggle.tsx"],
+    locations: ["src/features/appearance/SchemeToggle.tsx", "src/features/appearance/ThemeToggle.tsx"],
     glossaryTerms: [],
   },
   "gallery.replications": {

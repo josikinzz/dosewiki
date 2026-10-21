@@ -11,19 +11,6 @@ import {
 } from "./lib/subjectiveEffectReadProjections";
 import { contentHash } from "../lib/proposals/contentHash";
 import { prepareEffectDraft } from "../src/features/effects/editing/effectEditorModel";
-import type { Doc } from "../lib/postgres/runtime/dataModel";
-import type { QueryCtx } from "../lib/postgres/runtime/server";
-
-async function readPublicEffectProjection(
-  ctx: QueryCtx,
-  projection: "preview" | "index" | "summary" | "slugs" | "audio" | "credits",
-  slugs?: string[],
-) {
-  const db = ctx.db as typeof ctx.db & {
-    getPublicEffectProjection: (projection: "preview" | "index" | "summary" | "slugs" | "audio" | "credits", slugs?: string[]) => Promise<Doc<"subjectiveEffects">[]>;
-  };
-  return db.getPublicEffectProjection(projection, slugs);
-}
 import { currentNarrativeRevision, narrativeRevision, recordNarrativeMaintenance, recordNarrativeRevision } from "./lib/narrativeRevisions";
 
 export const getForEditor = query({
@@ -99,22 +86,22 @@ export const getBySlug = query({
 export const getPublicPreviews = query({
   args: {},
   handler: async (ctx) => {
-    const effects = await readPublicEffectProjection(ctx, "preview");
-    return effects.map(projectPublicEffectPreview);
+    const effects = await ctx.db.getPublicEffectProjection("preview");
+    return effects.map((effect) => projectPublicEffectPreview(effect));
   },
 });
 
 export const getPublicIndex = query({
   args: {},
   handler: async (ctx) => {
-    const effects = await readPublicEffectProjection(ctx, "index");
-    return effects.map(projectPublicEffectIndexEntry);
+    const effects = await ctx.db.getPublicEffectProjection("index");
+    return effects.map((effect) => projectPublicEffectIndexEntry(effect));
   },
 });
 
 export const getPublicSlugs = query({
   args: {},
-  handler: async (ctx) => (await readPublicEffectProjection(ctx, "slugs"))
+  handler: async (ctx) => (await ctx.db.getPublicEffectProjection("slugs"))
     .map(({ slug }) => slug)
     .filter((slug): slug is string => typeof slug === "string" && slug.length > 0),
 });
@@ -122,7 +109,7 @@ export const getPublicSlugs = query({
 export const getPublicSummariesBySlugs = query({
   args: { slugs: v.array(v.string()) },
   handler: async (ctx, { slugs }) => {
-    const rows = await readPublicEffectProjection(ctx, "summary", slugs);
+    const rows = await ctx.db.getPublicEffectProjection("summary", slugs);
     return rows.map(({ slug, name, long_summary_raw, long_summary_ast, citations, subarticles }) => ({
       slug, name, long_summary_raw, long_summary_ast, citations, subarticles,
     }));
@@ -131,19 +118,16 @@ export const getPublicSummariesBySlugs = query({
 
 export const getPublicAudioIndex = query({
   args: {},
-  handler: async (ctx) => (await readPublicEffectProjection(ctx, "audio"))
+  handler: async (ctx) => (await ctx.db.getPublicEffectProjection("audio"))
     .map(({ slug, name, audio_replications }) => ({ slug, name, audio_replications })),
 });
 
 export const getPublicContributorCredits = query({
   args: { names: v.optional(v.array(v.string())) },
   handler: async (ctx, { names }) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicEffectCreditsByNames: (names: string[]) => Promise<Doc<"subjectiveEffects">[]>;
-    };
     const rows = names
-      ? await db.getPublicEffectCreditsByNames(names)
-      : await readPublicEffectProjection(ctx, "credits");
+      ? await ctx.db.getPublicEffectCreditsByNames(names)
+      : await ctx.db.getPublicEffectProjection("credits");
     return rows
       .filter((row) => !names || (row.contributors ?? []).some((name) => names.includes(name.trim().toLowerCase())))
       .map(({ slug, name, contributors }) => ({ slug, name, contributors }));
@@ -172,10 +156,10 @@ export const getPublicBySlug = query({
 export const getPublicByCategory = query({
   args: { category: v.string() },
   handler: async (ctx, args) => {
-    const effects = await readPublicEffectProjection(ctx, "preview");
+    const effects = await ctx.db.getPublicEffectProjection("preview");
     return effects
       .filter((effect) => matchesSubjectiveEffectCategory(effect, args.category))
-      .map(projectPublicEffectPreview);
+      .map((effect) => projectPublicEffectPreview(effect));
   },
 });
 

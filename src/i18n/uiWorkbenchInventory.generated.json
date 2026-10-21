@@ -4,8 +4,8 @@
     "source": "Dark",
     "context": "Appearance setting: a dark color scheme.",
     "locations": [
-      "src/app/_components/SchemeToggle.tsx",
-      "src/app/_components/ThemeToggle.tsx"
+      "src/features/appearance/SchemeToggle.tsx",
+      "src/features/appearance/ThemeToggle.tsx"
     ],
     "glossaryTerms": []
   },
@@ -14,8 +14,8 @@
     "source": "Light",
     "context": "Appearance setting: a light color scheme. Not dose intensity or weight.",
     "locations": [
-      "src/app/_components/SchemeToggle.tsx",
-      "src/app/_components/ThemeToggle.tsx"
+      "src/features/appearance/SchemeToggle.tsx",
+      "src/features/appearance/ThemeToggle.tsx"
     ],
     "glossaryTerms": []
   },
@@ -2132,7 +2132,7 @@
     "source": "Line height",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Line height"
@@ -7880,7 +7880,7 @@
     "source": "Letter spacing",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Letter spacing"
@@ -8150,7 +8150,7 @@
     "source": "Hue",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceAxes.tsx"
+      "src/features/appearance/AppearanceAxes.tsx"
     ],
     "glossaryTerms": [
       "Hue"
@@ -8719,7 +8719,7 @@
     "source": "Show colour controls",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Show colour controls"
@@ -9670,8 +9670,8 @@
     "source": "Mode",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/SchemeToggle.tsx",
-      "src/app/_components/ThemeToggle.tsx"
+      "src/features/appearance/SchemeToggle.tsx",
+      "src/features/appearance/ThemeToggle.tsx"
     ],
     "glossaryTerms": [
       "Mode"
@@ -10390,7 +10390,7 @@
     "source": "Font",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/FontPicker.tsx"
+      "src/features/appearance/FontPicker.tsx"
     ],
     "glossaryTerms": [
       "Font"
@@ -10578,7 +10578,7 @@
     "source": "System",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/ThemeToggle.tsx"
+      "src/features/appearance/ThemeToggle.tsx"
     ],
     "glossaryTerms": [
       "System"
@@ -12515,7 +12515,7 @@
     "source": "Style",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/StylePicker.tsx"
+      "src/features/appearance/StylePicker.tsx"
     ],
     "glossaryTerms": [
       "Style"
@@ -13555,7 +13555,7 @@
     "source": "Reset colors",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Reset colors"
@@ -13997,7 +13997,7 @@
     "source": "{{name}} hue",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceAxes.tsx"
+      "src/features/appearance/AppearanceAxes.tsx"
     ],
     "glossaryTerms": [
       "{{name}} hue"
@@ -14643,7 +14643,7 @@
     "source": "Clinical",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/StylePicker.tsx"
+      "src/features/appearance/StylePicker.tsx"
     ],
     "glossaryTerms": [
       "Clinical"
@@ -15183,7 +15183,7 @@
     "source": "Saturation",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceAxes.tsx"
+      "src/features/appearance/AppearanceAxes.tsx"
     ],
     "glossaryTerms": [
       "Saturation"
@@ -16350,7 +16350,7 @@
     "source": "Accent",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Accent"
@@ -17207,7 +17207,7 @@
     "source": "Vivid",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/StylePicker.tsx"
+      "src/features/appearance/StylePicker.tsx"
     ],
     "glossaryTerms": [
       "Vivid"
@@ -17240,7 +17240,7 @@
     "source": "{{name}} saturation",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceAxes.tsx"
+      "src/features/appearance/AppearanceAxes.tsx"
     ],
     "glossaryTerms": [
       "{{name}} saturation"
@@ -19895,7 +19895,7 @@
     "source": "Open Theme Lab",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceCog.tsx"
+      "src/features/appearance/AppearanceCog.tsx"
     ],
     "glossaryTerms": [
       "Open Theme Lab"
@@ -21522,7 +21522,7 @@
     "source": "Text size",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Text size"
@@ -22509,7 +22509,7 @@
     "source": "Theme Lab",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceCog.tsx"
+      "src/features/appearance/AppearanceCog.tsx"
     ],
     "glossaryTerms": [
       "Theme Lab"
@@ -22806,7 +22806,7 @@
     "source": "Reset to defaults",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Reset to defaults"
@@ -23028,7 +23028,7 @@
     "source": "Appearance settings",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceCog.tsx"
+      "src/features/appearance/AppearanceCog.tsx"
     ],
     "glossaryTerms": [
       "Appearance settings"
@@ -23635,7 +23635,7 @@
     "source": "Background",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearanceCog.tsx"
+      "src/features/appearance/AppearanceCog.tsx"
     ],
     "glossaryTerms": [
       "Background"
@@ -24153,7 +24153,7 @@
     "source": "Standard",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/FontPicker.tsx"
+      "src/features/appearance/FontPicker.tsx"
     ],
     "glossaryTerms": [
       "Standard"
@@ -24241,7 +24241,7 @@
     "source": "Show font controls",
     "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
     "locations": [
-      "src/app/_components/AppearancePanel.tsx"
+      "src/features/appearance/AppearancePanel.tsx"
     ],
     "glossaryTerms": [
       "Show font controls"

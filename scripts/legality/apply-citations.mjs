@@ -393,6 +393,7 @@ async function main() {
     runContext.dryRun = true;
     runContext.writeEnabled = false;
   }
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
   const runDir = resolve(runContext.repoRoot, "runs", "legality", slug);
   const draftPath = resolve(runDir, draftFile);

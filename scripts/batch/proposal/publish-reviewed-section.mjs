@@ -272,7 +272,6 @@ function createPublicationContext({ argv, env, repoRoot, localArtifacts }) {
   });
   return {
     ...context,
-    env: envWithCliOverrides,
     targetUrlKey: targetUrlFlag ? "--target" : context.targetUrlKey,
   };
 }
@@ -336,6 +335,7 @@ export async function publishReviewedPublication({
     repoRoot,
     localArtifacts: [relative(repoRoot, verified.proposalPath)],
   });
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
   const targetUrl = requireBatchProposalTargetUrl(context);
 
   if (verified.proposal.targetDeploymentFingerprint !== context.deploymentFingerprint) {

@@ -304,17 +304,6 @@ export type ReviewRecommendationRow = StoredRecommendation & {
   stale: boolean;
 };
 
-type ReviewRecommendationDatabase = QueryCtx["db"] & {
-  getReviewRecommendationRows(): Promise<Array<{
-    slug: string;
-    title: string;
-    status: string | null;
-    reviewedRevision: string | null;
-    recommendation: unknown;
-  }>>;
-  getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>>;
-};
-
 export async function listReviewRecommendationsHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string },
@@ -324,8 +313,7 @@ export async function listReviewRecommendationsHandler(
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
   }, "admin");
-  const db = ctx.db as ReviewRecommendationDatabase;
-  const [rows, revisions] = await Promise.all([db.getReviewRecommendationRows(), db.getPublishedArticleRevisions()]);
+  const [rows, revisions] = await Promise.all([ctx.db.getReviewRecommendationRows(), ctx.db.getPublishedArticleRevisions()]);
   const published = new Map(revisions.map(({ slug, revision }) => [slug, revision]));
   return rows
     .flatMap((row) => {
@@ -441,10 +429,6 @@ export async function replaceAgentReviewFlagsHandler(
   return { slug: args.slug, flags };
 }
 
-type ReviewRevisionDatabase = QueryCtx["db"] & {
-  getPublishedArticleRevisions(): Promise<Array<{ slug: string; revision: string }>>;
-};
-
 export async function getPublishedRevisionsHandler(
   ctx: QueryCtx,
   args: { apiKey?: string; actorEmail?: string },
@@ -454,7 +438,7 @@ export async function getPublishedRevisionsHandler(
     actorEmail: args.actorEmail,
     adminIntent: "editorArticleWrite",
   }, "editor");
-  const rows = await (ctx.db as ReviewRevisionDatabase).getPublishedArticleRevisions();
+  const rows = await ctx.db.getPublishedArticleRevisions();
   return Object.fromEntries(rows.map(({ slug, revision }) => [slug, revision]));
 }
 

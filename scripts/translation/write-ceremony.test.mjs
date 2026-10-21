@@ -36,3 +36,10 @@ test("live-mirror refuses each mutating subcommand without its own confirmation"
   assertRefused(run("scripts/translation/live-mirror.ts", ["import", "--run=missing", "--write", "--confirm-write=live-mirror-import", deployment], { ...backend, DATA_WRITES_FROZEN: "1" }), /DATA_WRITES_FROZEN/);
   assertRefused(run("scripts/translation/live-mirror.ts", ["status", "--write"], backend), /status is read-only/);
 });
+
+test("import-glossary-drafts refuses a write without the full ceremony before connecting", () => {
+  const backend = { DATA_BACKEND: "postgres" };
+  const write = ["--locales", "de", "--write", "--confirm-write=import-glossary-drafts"];
+  assertRefused(run("scripts/translation/import-glossary-drafts.ts", [...write, "--expected-deployment=other/db"], backend), /does not match target deployment/);
+  assertRefused(run("scripts/translation/import-glossary-drafts.ts", [...write, deployment], { ...backend, DATA_WRITES_FROZEN: "1" }), /DATA_WRITES_FROZEN/);
+});

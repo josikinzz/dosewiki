@@ -61,6 +61,7 @@ async function main() {
     selectedTables: ["quotes"],
     localArtifacts: [options.file],
   });
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
   const targetUrl = requireTargetUrl(context, "quote save target Postgres URL");
 
   console.log(`Slug: ${options.slug}`);

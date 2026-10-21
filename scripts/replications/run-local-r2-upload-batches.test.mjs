@@ -88,6 +88,9 @@ function runRemainingBatches(fixture, nodeArgs = []) {
     "--expected-plan-sha", fixture.planSha256,
     "--write",
     `--confirm-write=${OPERATION}`,
+    `--confirm-plan=${fixture.planSha256}`,
+    "--confirm-target=replications-r2:replications",
+    "--confirm-bucket=replications",
     "--limit-batches=2",
     "--public-verification-results", fixture.publicVerificationPath,
   ], {

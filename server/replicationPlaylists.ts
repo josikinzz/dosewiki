@@ -2,7 +2,6 @@ import { PostgresError, v } from "../lib/postgres/runtime/values";
 import { query, type MutationCtx, type QueryCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import type { Doc } from "../lib/postgres/runtime/dataModel";
-import type { PostgresDatabaseReader } from "../lib/postgres/runtime/db";
 import { auditStampFor } from "./lib/auditStamp";
 import { requireRole, roleMeetsFloor, type AuthorizedActor } from "./lib/auth";
 import { recordRevision } from "./lib/contentRevisions";
@@ -111,8 +110,7 @@ export async function listHandler(ctx: QueryCtx, args: ActorArgs) {
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
     "editor",
   );
-  const db = ctx.db as typeof ctx.db & Pick<PostgresDatabaseReader, "getReplicationPlaylistSummaryRows">;
-  const rows = await db.getReplicationPlaylistSummaryRows();
+  const rows = await ctx.db.getReplicationPlaylistSummaryRows();
   return rows.map((row) => projectPlaylistSummary(row, actor)).sort(byTitle);
 }
 
@@ -127,8 +125,7 @@ export async function listOwnedHandler(ctx: QueryCtx, args: ActorArgs) {
     { apiKey: args.apiKey, actorEmail: args.actorEmail, adminIntent: "replicationMaintenance" },
     "contributor",
   );
-  const db = ctx.db as typeof ctx.db & Pick<PostgresDatabaseReader, "getReplicationPlaylistSummaryRows">;
-  const rows = await db.getReplicationPlaylistSummaryRows(
+  const rows = await ctx.db.getReplicationPlaylistSummaryRows(
     actor.role === "admin" ? undefined : actor.email,
   );
   return rows.map((row) => projectPlaylistSummary(row, actor)).sort(byTitle);

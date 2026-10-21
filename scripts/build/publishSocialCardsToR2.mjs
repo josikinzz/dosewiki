@@ -7,6 +7,7 @@ import { execFile as execFileCallback, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
 import { loadEnvFiles } from "../lib/data-ops-run-context.mjs";
+import { authorizeStorageWrite } from "../lib/storage-write-authorization.mjs";
 import {
   CACHE_CONTROL,
   CONTENT_DISPOSITION,
@@ -48,13 +49,13 @@ Limit a preflight or canary apply without creating a selector file:
   ... --canary-selector=replications:some-slug --canary-selector=contributors:some-profile
 
 Canary apply (manifest remains untouched):
-  ... --canary=<selectors.json> --apply \\
-      --confirm-operation=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
+  ... --canary=<selectors.json> --write \\
+      --confirm-write=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
       --confirm-target=<endpoint-host-or-rclone-remote> --confirm-bucket=<bucket>
 
 Full resumable apply (requires completed canary in the same ledger):
-  ... --resume --apply \\
-      --confirm-operation=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
+  ... --resume --write \\
+      --confirm-write=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
       --confirm-target=<endpoint-host-or-rclone-remote> --confirm-bucket=<bucket>
 
 Install an object-verified candidate locally. The rollback file copies the target
@@ -63,21 +64,9 @@ published URLs. To roll back a deploy, restore the manifest committed in Git.
 Deploy afterward, then run the full verifier to gate completion:
   ... --install-candidate --candidate-manifest=<candidate.json> \\
       --target-manifest=<target.json> --rollback-manifest=<rollback.json> \\
-      --verification-ledger=<verification.jsonl> --apply \\
-      --confirm-operation=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
+      --verification-ledger=<verification.jsonl> --write \\
+      --confirm-write=${OPERATION} --confirm-plan=<dry-run-plan-digest> \\
       --confirm-target=<endpoint-host-or-rclone-remote> --confirm-bucket=<bucket>`;
-}
-
-export function requireApplyConfirmation(argv, targetIdentity, bucketIdentity, planDigest) {
-  if (!argv.includes("--apply")) throw new Error("Mutation requires explicit --apply");
-  const operation = parseFlagValue(argv, "--confirm-operation");
-  if (operation !== OPERATION) throw new Error(`Refusing apply without --confirm-operation=${OPERATION}`);
-  const confirmedPlan = parseFlagValue(argv, "--confirm-plan");
-  if (confirmedPlan !== planDigest) throw new Error(`Refusing apply: --confirm-plan must exactly equal ${planDigest}`);
-  const target = parseFlagValue(argv, "--confirm-target");
-  if (target !== targetIdentity) throw new Error(`Refusing apply: --confirm-target must exactly equal ${targetIdentity}`);
-  const bucket = parseFlagValue(argv, "--confirm-bucket");
-  if (bucket !== bucketIdentity) throw new Error(`Refusing apply: --confirm-bucket must exactly equal ${bucketIdentity}`);
 }
 
 function loadR2Config() {
@@ -208,9 +197,9 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   const preflight = argv.includes("--preflight-r2");
-  const apply = argv.includes("--apply");
+  const write = argv.includes("--write");
   const install = argv.includes("--install-candidate");
-  if (!preflight && !apply && !install) {
+  if (!preflight && !write && !install) {
     console.log("[social-cards:r2] Dry run complete: no network access, R2 writes, or installed-manifest changes.");
     return { plan, mode: "dry-run" };
   }
@@ -231,9 +220,11 @@ export async function main(argv = process.argv.slice(2)) {
     bucketIdentity = config.bucket;
     storage = createBunR2Storage(config);
   }
-  if (apply || install) requireApplyConfirmation(argv, targetIdentity, bucketIdentity, plan.planDigest);
+  if (write || install) {
+    authorizeStorageWrite(argv, { operation: OPERATION, plan: plan.planDigest, target: targetIdentity, bucket: bucketIdentity });
+  }
 
-  if (preflight && !apply && !install) {
+  if (preflight && !write && !install) {
     const selectors = await loadCanarySelectors(argv);
     const objects = selectors.length ? selectCanaryObjects(plan, selectors) : plan.objects;
     const summary = await processObjects({ plan, objects, storage, ledgerPath, mode: "preflight", concurrency, resume: true });

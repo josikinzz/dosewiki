@@ -3,7 +3,7 @@
 import type { RefObject } from "react";
 
 import { cn } from "@/lib/utils";
-import { TAG_FIELD_LABELS } from "@/utils/data/tagRegistry";
+import { TAG_FIELD_LABELS } from "@/data/tags/tagRegistry";
 
 import { DevWorkingChangesPanel } from "../pages/DevWorkingChangesPanel";
 import type { DevCommitControls } from "../pages/useDevModeSaveActions";

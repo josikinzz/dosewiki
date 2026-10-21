@@ -32,10 +32,7 @@ export const getAllDocumentsForBackup = internalQuery({
 export const getPublishedIndex = query({
   args: { kind: v.union(v.literal("article"), v.literal("blog")) },
   handler: async (ctx, { kind }) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublishedPublicationIndex: (kind: "article" | "blog") => Promise<Array<Record<string, unknown>>>;
-    };
-    const rows = await db.getPublishedPublicationIndex(kind);
+    const rows = await ctx.db.getPublishedPublicationIndex(kind);
     return rows.map((row) => {
       const body = typeof row.body_raw === "string" ? row.body_raw : undefined;
       const description = typeof row.shortDescription === "string" ? row.shortDescription : undefined;

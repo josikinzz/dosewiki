@@ -81,12 +81,8 @@ export const getAll = query({
 export const getPublicIdentities = query({
   args: { lookupKeys: v.optional(v.array(v.string())) },
   handler: async (ctx, args) => {
-    const db = ctx.db as typeof ctx.db & {
-      getPublicContributorIdentities: (lookupKeys?: readonly string[]) => Promise<StoredProfile[]>;
-    };
-    const rows = await db.getPublicContributorIdentities(args.lookupKeys);
+    const rows = await ctx.db.getPublicContributorIdentities(args.lookupKeys);
     const profiles = await Promise.all(rows
-      .filter((row) => !row.mergedIntoProfileId)
       .map((row) => materializeProfile(ctx, {
         key: row.key, displayName: row.displayName, aliases: row.aliases,
         avatarUrl: row.avatarUrl, avatarR2Key: row.avatarR2Key, avatarStorageId: row.avatarStorageId,

@@ -113,6 +113,7 @@ async function main() {
     : requireSourceUrl(runContext, "configured Postgres read target");
 
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   const client = createDataClient({ target: dataUrl }).client;
   const [articles, existingRows] = await Promise.all([
     getAllSubstanceDocuments(client, api.substanceIndex.getFullDocumentPage),

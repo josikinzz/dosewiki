@@ -11,6 +11,8 @@ import {
   resolvePostgresSource,
 } from "./data-client.ts";
 import { parsePostgresTarget } from "../../lib/postgres/runtime/target.ts";
+import { assertDataWritesNotFrozen } from "../../lib/runtime/dataWriteFreeze.ts";
+import { guardTarget } from "../postgres/targetGuard.ts";
 
 const POSTGRES_URL_KEYS = [
   "--target",
@@ -192,11 +194,13 @@ export function createDataOpsRunContext({
     backend,
     repoRoot,
     argv,
+    env,
     envFiles,
     dryRun,
     execute,
     writeRequested,
     writeEnabled,
+    allowRemote: hasFlag(argv, "--allow-remote"),
     destructive,
     sourceUrl: source.value,
     sourceUrlKey: source.key,
@@ -252,6 +256,7 @@ function describeDestructivePolicy(context) {
 }
 
 export function assertDataOpsWriteAllowed(context) {
+  assertDataWritesNotFrozen(context.operation, context.env);
   if (context.dryRun) {
     throw new Error(`${context.operation} is in dry-run mode; writes are blocked.`);
   }
@@ -281,6 +286,7 @@ export function assertDataOpsWriteAllowed(context) {
     expectedDeployment: context.expectedDeployment,
     deploymentFingerprint: context.deploymentFingerprint,
   });
+  guardTarget(context.targetUrl, context.allowRemote, context.env);
 }
 
 export function assertDeploymentConfirmed({

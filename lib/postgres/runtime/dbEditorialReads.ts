@@ -3,15 +3,20 @@ import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "..
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import { articleReviewRevision } from "../../../server/lib/articleReviewRevision";
 import { PublicProjectionReader } from "./dbPublicReads";
-import { fromProjectedRow, fromRow, quote, type Doc } from "./dbRows";
+import { fromProjectedRow, fromRow, fromTableRow, quote, type Doc } from "./dbRows";
 import {
+  editorLibraryColumns,
   moleculeEditSourceColumns,
   moleculePickerColumns,
   moleculeSourceColumns,
+  type CitationEvidenceReviewRow,
   type EditorialProjectionReads,
+  type EditorLibraryPage,
   type MoleculeEditSourceRow,
   type MoleculePickerPage,
   type MoleculeSourceRow,
+  type ReplicationPlaylistSummaryRow,
+  type ReviewRecommendationRow,
 } from "./projectionReads";
 import {
   readFeedbackQueueCounts,
@@ -50,13 +55,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     });
   }
 
-  async getReviewRecommendationRows(): Promise<Array<{
-    slug: string;
-    title: string;
-    status: string | null;
-    reviewedRevision: string | null;
-    recommendation: unknown;
-  }>> {
+  async getReviewRecommendationRows(): Promise<ReviewRecommendationRow[]> {
     const result = await this.client.query(
       `SELECT "slug", "title",
               "editorial_review"->>'status' AS "status",
@@ -79,7 +78,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     );
   }
 
-  async getEditorLibraryPage(args:{ numItems: number; cursor: string | null }) {
+  async getEditorLibraryPage(args: { numItems: number; cursor: string | null }): Promise<EditorLibraryPage> {
     const after = args.cursor
       ? decodeDocumentValue(JSON.parse(args.cursor)) as { _creationTime: number; _id: string }
       : null;
@@ -90,10 +89,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", [
-        "_id", "_creationTime", "id", "slug", "title", "priority", "index_categories",
-        "identification", "classification", "pharmacology", "subjective_effects", "editorial_review",
-      ])}, (
+      `SELECT ${losslessSelectList("substanceIndex", editorLibraryColumns)}, (
         CASE WHEN jsonb_typeof(s."references") = 'array' THEN jsonb_array_length(s."references") ELSE 0 END
         + CASE WHEN jsonb_typeof(s."source_citations") = 'array' THEN jsonb_array_length(s."source_citations") ELSE 0 END
         + CASE WHEN jsonb_typeof(s."citations") = 'array' THEN jsonb_array_length(s."citations") ELSE 0 END
@@ -107,7 +103,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     const last = rows[rows.length - 1];
     return {
       page: rows.map((row) => ({
-        article: fromRow("substanceIndex", row),
+        article: fromTableRow("substanceIndex", row),
         referenceCount: Number(row.referenceCount),
       })),
       continueCursor: last
@@ -212,10 +208,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     return readFeedbackQueueCounts(this.client, table, search);
   }
 
-  async getFeedbackCountByStatuses(
-    table: "articleFeedback" | "siteFeedback",
-    statuses: readonly string[],
-  ): Promise<number> {
+  async getFeedbackCountByStatuses(table: FeedbackQueueTable, statuses: readonly string[]): Promise<number> {
     if (statuses.length === 0) return 0;
     const result = await this.client.query(
       `SELECT count(*)::text AS "count" FROM ${quote(table)} WHERE (to_jsonb("status") #>> '{}') = ANY($1::text[])`,
@@ -224,7 +217,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     return Number(result.rows[0]?.count ?? 0);
   }
 
-  async getCitationEvidenceReviewRows(slug: string) {
+  async getCitationEvidenceReviewRows(slug: string): Promise<CitationEvidenceReviewRow[]> {
     const fields = [
       "_id", "_creationTime", "slug", "section", "claimKey", "claimText", "fieldPath",
       "referenceIds", "status", "statusReason", "severity", "confidence",
@@ -321,7 +314,7 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
     }));
   }
 
-  async getReplicationPlaylistSummaryRows(ownerEmail?: string) {
+  async getReplicationPlaylistSummaryRows(ownerEmail?: string): Promise<ReplicationPlaylistSummaryRow[]> {
     const params: unknown[] = [];
     const ownerFilter = ownerEmail === undefined
       ? ""
@@ -333,13 +326,6 @@ export class EditorialProjectionReader extends PublicProjectionReader implements
        WHERE coalesce("archived_at", '') = '' ${ownerFilter}`,
       params,
     );
-    return result.rows as Array<{
-      key: string;
-      title: string;
-      work_count: number;
-      updated_at: string;
-      updated_by: string | null;
-      owner_email: string | null;
-    }>;
+    return result.rows as ReplicationPlaylistSummaryRow[];
   }
 }

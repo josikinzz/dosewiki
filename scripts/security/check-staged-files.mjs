@@ -3,8 +3,6 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import path from "node:path";
 
-const LINTABLE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
-
 const repoRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8" }).trim();
 const staged = execFileSync("git", ["diff", "--cached", "--name-only", "--diff-filter=ACMR", "-z"], {
   cwd: repoRoot,
@@ -23,13 +21,11 @@ if (envFiles.length > 0) {
   process.exit(1);
 }
 
-const lintFiles = staged.filter((file) => LINTABLE.test(file) && !file.startsWith("vendor/openchemlib/"));
-if (lintFiles.length > 0) {
-  console.log("Linting staged JavaScript and TypeScript files...");
-  const eslint = path.join(repoRoot, "node_modules", ".bin", "eslint");
-  const result = spawnSync(eslint, ["--no-warn-ignored", "--", ...lintFiles], { cwd: repoRoot, stdio: "inherit" });
+if (staged.length > 0) {
+  const lintFiles = path.join(repoRoot, "scripts", "lint", "lint-files.mjs");
+  const result = spawnSync(process.execPath, [lintFiles, ...staged], { cwd: repoRoot, stdio: "inherit" });
   if (result.status !== 0) {
-    console.error("ESLint failed. Please fix issues before committing.");
-    process.exit(result.status ?? 1);
+    console.error("Lint checks failed on staged files. Fix them before committing.");
+    process.exit(1);
   }
 }

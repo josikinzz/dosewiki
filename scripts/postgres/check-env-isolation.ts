@@ -105,10 +105,20 @@ refuses("postgres", "a wrong --expected-deployment is refused even with an expli
   }));
 }, /Expected deployment localhost\/dosewiki does not match target deployment db\.example\.planetscale\.internal\/dosewiki/);
 
+refuses("postgres", "data-ops run context refuses a confirmed write while writes are frozen", () => {
+  const env = { ...previewPostgresEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal", DATA_WRITES_FROZEN: "1" };
+  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: [...postgresCeremony, "--allow-remote"], env, loadsEnvLocal: false, requiresExecute: true }));
+}, /Data writes are frozen/);
+
+refuses("postgres", "data-ops run context refuses a confirmed remote write without --allow-remote", () => {
+  const env = { ...previewPostgresEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal" };
+  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env, loadsEnvLocal: false, requiresExecute: true }));
+}, /Refusing non-local target db\.example\.planetscale\.internal/);
+
 allows("postgres", "explicit TARGET_POSTGRES_URL, confirm var, and fingerprint still pass the guards", () => {
   const env = { ...previewPostgresEnv, ...deliveryEnv, TARGET_POSTGRES_URL: POSTGRES_PROD, POSTGRES_IMPORT_CONFIRM: "db.example.planetscale.internal" };
   assertProductionWriteAllowed(createProductionWriteCommand({ operation: OPERATION, argv: postgresCeremony, env, loadsEnvLocal: false }));
-  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: postgresCeremony, env, loadsEnvLocal: false, requiresExecute: true }));
+  assertDataOpsWriteAllowed(createDataOpsRunContext({ operation: OPERATION, intent: "isolation", argv: [...postgresCeremony, "--allow-remote"], env, loadsEnvLocal: false, requiresExecute: true }));
   const created = createDataClient({ argv: ["--allow-remote"], env });
   if (created.fingerprint !== POSTGRES_PROD_FINGERPRINT) throw new Error(`fingerprint ${created.fingerprint}`);
 });

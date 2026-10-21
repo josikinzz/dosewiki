@@ -1,13 +1,16 @@
+import { builtinModules } from 'node:module';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import reactHooks from 'eslint-plugin-react-hooks';
 import nextPlugin from '@next/eslint-plugin-next';
 import globals from 'globals';
-import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.js';
+import codeHygiene from './scripts/eslint-plugins/code-hygiene/index.mjs';
 import { codeCommentFiles, commentExclusions, generatedCommentPaths } from './scripts/lib/comment-scope.mjs';
 import vercelGuardrails from './scripts/eslint-plugins/vercel-guardrails/index.js';
 import editorGuardrails from './scripts/eslint-plugins/editor-guardrails/index.js';
+
+const nodeBuiltinImport = `^(?:node:|(?:${builtinModules.filter((name) => !name.startsWith('_')).join('|')})(?:/|$))`;
 
 const pureFreezeImports = [
   {
@@ -246,12 +249,38 @@ const existingConfig = tseslint.config(
   },
   {
     files: [
+      'lib/article/**/*.{ts,mjs}',
+      'lib/citations/**/*.{ts,mjs}',
+      'lib/generatedPublication/**/*.{ts,mjs}',
+      'lib/proposals/**/*.ts',
+      'lib/auth/passwordPolicy.ts',
+      'lib/auth/usernamePolicy.ts',
+      'lib/contributorDirectory.ts',
+      'lib/contributorProfileIdentity.ts',
+      'lib/curatedOrder.ts',
       'lib/data/publicData.cacheTags.ts',
-      'lib/next/publicCacheContract.ts',
-      'lib/next/publicationWire.ts',
+      'lib/next/analyticsHostPolicy.ts',
+      'lib/next/effectIndexLegacyRedirects.ts',
       'lib/next/localeHostPolicy.ts',
+      'lib/next/publicCacheContract.ts',
+      'lib/next/publicHostPolicy.ts',
+      'lib/next/publicationWire.ts',
+      'lib/next/r2ImagePolicy.ts',
+      'lib/next/replicationEmbedPolicy.ts',
+      'lib/next/routeLoadingPolicy.ts',
+      'lib/next/statusRecoveryLinks.ts',
+      'lib/postgres/runtime/values.ts',
+      'lib/translation/coverageReport.ts',
+      'lib/translation/glossaryConflicts.ts',
+      'lib/translation/reviewInboxTypes.ts',
+      'lib/translation/reviewReason.ts',
+      'lib/translation/reviewTypes.ts',
+      'lib/translation/styleGuideTypes.ts',
+      'lib/translation/translatorNoteTypes.ts',
+      'lib/translation/uiTranslationTypes.ts',
       'src/features/dev/components/writeFreezeRefusal.ts',
     ],
+    ignores: ['**/*.test.{ts,mjs}'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [
@@ -266,14 +295,41 @@ const existingConfig = tseslint.config(
             message: 'Import pure cache tags from publicData.cacheTags instead of the Next cache adapter.',
           },
           {
-            regex: '^next/cache$|(?:^|/)postgres/runtime/target(?:\\.[cm]?[jt]s)?$',
-            message: 'Keep runtime adapters outside pure contracts. Cache tag imports belong in publicData.cacheTags.',
+            regex: '^(?:next|next-auth|@auth)(?:/|$)',
+            message: 'Keep Next and Auth.js adapters outside pure contracts. Cache tag imports belong in publicData.cacheTags.',
+          },
+          {
+            regex: '^(?:pg|drizzle-orm)(?:/|$)|(?:^|/)postgres/(?!runtime/values(?:\\.[cm]?[jt]s)?$)',
+            message: 'Keep database clients and Postgres runtime adapters outside pure contracts.',
+          },
+          {
+            regex: '(?:^|/)(?:auth/authOptions|server/lib/auth|lib/auth/requireEditorSession)(?:\\.[cm]?[jt]s)?$',
+            message: 'Keep session and role checks outside pure contracts. Browser code imports pure contracts.',
+          },
+          {
+            regex: '^server-only$',
+            message: 'Pure contracts are imported by browser code. Keep server-only modules out of them.',
+          },
+          {
+            regex: nodeBuiltinImport,
+            message: 'Pure contracts are imported by browser code. Keep Node built-ins out of them.',
           },
           {
             regex: '^react(?:/|$)',
             message: 'Keep pure contracts React-free. The write-freeze classifier belongs in writeFreezeRefusal.',
           },
         ],
+      }],
+    },
+  },
+  {
+    files: ['src/components/**/*.{ts,tsx}', 'src/features/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', {
+        patterns: [{
+          regex: '(?:^|/)app/_components(?:/|$)',
+          message: 'src/app/_components is route-private. Shared components belong in src/components or src/features.',
+        }],
       }],
     },
   },

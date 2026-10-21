@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from "react-dom";
 import { useTheme } from "@/context/ThemeContext";
 import { Icon } from "@/components/common/Icon";
-import { AppearanceAxes } from "@/app/_components/AppearanceAxes";
+import { AppearanceAxes } from "@/features/appearance/AppearanceAxes";
 import { AngleField } from "./AngleField";
 import { ColorField } from "./ColorField";
 import { FontField } from "./FontField";

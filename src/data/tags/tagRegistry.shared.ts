@@ -1,5 +1,5 @@
 import type { SubstanceArticle } from "../../schema";
-import { slugifyDrugName } from "../../data/builders/contentBuilder";
+import { slugifyDrugName } from "../builders/contentBuilder";
 import { ensureNormalizedTagList } from "./tagDelimiters";
 import {
   getLegacyAwareMechanismTags,

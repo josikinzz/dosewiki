@@ -3,7 +3,6 @@ import { v } from "../lib/postgres/runtime/values";
 import { query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation } from "./lib/indexedMutation";
 import { requireRole, type AuthorizedActor } from "./lib/auth";
-import type { CitationQueueSummary } from "./lib/citationQueueFilter";
 import {
   mergeArticleReferenceMetadataForReplacement,
   remapReferenceIds,
@@ -403,13 +402,6 @@ function assertEvidenceCanPublish(row: {
   );
 }
 
-type CitationEvidenceReviewReader = {
-  getCitationEvidenceReviewRows: (slug: string) => Promise<Array<
-    Record<string, unknown> & { section?: string; claimKey?: string; fieldPath?: string }
-  >>;
-  getCitationQueueSummaries: () => Promise<CitationQueueSummary[]>;
-};
-
 export const getBySlug = query({
   args: {
     apiKey: v.optional(v.string()),
@@ -423,8 +415,7 @@ export const getBySlug = query({
       adminIntent: "citationEvidenceReview",
     }, "editor");
 
-    const reader = ctx.db as typeof ctx.db & CitationEvidenceReviewReader;
-    return sortEvidenceRows(await reader.getCitationEvidenceReviewRows(args.slug));
+    return sortEvidenceRows(await ctx.db.getCitationEvidenceReviewRows(args.slug));
   },
 });
 
@@ -440,8 +431,7 @@ export const getQueueSummary = query({
       adminIntent: "citationEvidenceReview",
     }, "editor");
 
-    const reader = ctx.db as typeof ctx.db & CitationEvidenceReviewReader;
-    return await reader.getCitationQueueSummaries();
+    return await ctx.db.getCitationQueueSummaries();
   },
 });
 

@@ -225,13 +225,7 @@ export const countByStatus = query({
       "editor",
     );
 
-    const reader = ctx.db as typeof ctx.db & {
-      getFeedbackCountByStatuses: (
-        table: "articleFeedback" | "siteFeedback",
-        statuses: readonly string[],
-      ) => Promise<number>;
-    };
-    return await reader.getFeedbackCountByStatuses("articleFeedback", args.statuses);
+    return await ctx.db.getFeedbackCountByStatuses("articleFeedback", args.statuses);
   },
 });
 

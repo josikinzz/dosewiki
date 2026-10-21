@@ -193,6 +193,7 @@ console.log("SOURCE CITATIONS PREPOPULATION");
 console.log("=".repeat(60));
 console.log(`\nMode: ${dryRun ? "DRY RUN (no changes written)" : "APPLY CHANGES"}`);
 printDataOpsRunContext(runContext);
+if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
 
 console.log(`\n--- Articles ---`);
 console.log(`  Total processed:     ${stats.articlesProcessed}`);

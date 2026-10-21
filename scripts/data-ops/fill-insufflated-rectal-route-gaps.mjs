@@ -202,6 +202,7 @@ async function main() {
   }
 
   printDataOpsRunContext(runContext);
+  if (runContext.writeEnabled) assertDataOpsWriteAllowed(runContext);
   console.log(`Direction: ${options.direction}`);
   console.log(`Sections: ${options.sections.join(", ")}`);
   console.log(`Slugs: ${options.slugs?.join(", ") ?? "all"}`);

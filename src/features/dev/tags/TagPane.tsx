@@ -16,7 +16,7 @@ import {
 } from "@/features/dev/components";
 import { cn } from "@/lib/utils";
 import { viewToPath } from "@/utils/routing";
-import { TAG_FIELD_LABELS, TAG_FIELDS, normalizeTagLabel, type TagArticleRef, type TagField, type TagRegistry, type TagUsage } from "@/utils/data/tagRegistry";
+import { TAG_FIELD_LABELS, TAG_FIELDS, normalizeTagLabel, type TagArticleRef, type TagField, type TagRegistry, type TagUsage } from "@/data/tags/tagRegistry";
 
 import { CappedList, LINK_LIST_CLASS } from "../tools/home/homeParts";
 import { TagFeedback } from "./TagFeedback";

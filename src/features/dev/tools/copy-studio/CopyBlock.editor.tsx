@@ -10,7 +10,7 @@ import { Notice, EditorSection, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { CopyBlockFields } from "./CopyBlockFields";
 import { buildCopyStudioBlocks, copyBlockDocument, draftFromBlock, draftToText, blockCurrentText, type CopyBlockRow } from "./copyStudioUtils";
-import { buildTextChangelog } from "@/utils/data/changelog";
+import { buildTextChangelog } from "@/data/changelog/diff";
 import { proposeCopyBlock, useCopyBlockWrites } from "./useCopyBlockWrites";
 import { proposalSubmittedNotice } from "../proposalSubmission";
 import { canDraft } from "@/lib/auth/roles";

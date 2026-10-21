@@ -99,7 +99,7 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       filename: 'src/app/api/editor/example/route.ts',
       code: `
         import { editorReadRoute } from "../editorReadRoute";
-        export const GET = editorReadRoute({ auth: "viewer", label: "example", read: async () => null });
+        export const GET = editorReadRoute({ auth: "editor", label: "example", read: async () => null });
       `,
     },
     {
@@ -141,7 +141,7 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       filename: devRoute,
       code: `
         import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-        export const GET = protectedRouteOperation({ auth: "viewer", rateLimit: "editorPolledRead", unexpectedErrorLabel: "x", operation: () => ok() });
+        export const GET = protectedRouteOperation({ auth: "editor", rateLimit: "editorPolledRead", unexpectedErrorLabel: "x", operation: () => ok() });
         export const DELETE = async (request: Request) => Response.json({ deleted: true });
       `,
       errors: [{ messageId: 'unguardedHandler', data: { method: 'DELETE' } }],
@@ -156,6 +156,23 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
         export const PUT = protectedRouteOperation(options);
       `,
       errors: [
+        { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
+        { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
+      ],
+    },
+    {
+      name: 'an auth value that is not a literal role floor',
+      filename: devRoute,
+      code: `
+        import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
+        import { editorReadRoute } from "@/app/api/editor/editorReadRoute";
+        const floor = "editor";
+        export const GET = editorReadRoute({ auth: "viewer", label: "example", read: async () => null });
+        export const POST = protectedRouteOperation({ auth: floor, rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+        export const PUT = protectedRouteOperation({ auth: "toString", rateLimit: "editorSmallWrite", unexpectedErrorLabel: "x", operation: () => ok() });
+      `,
+      errors: [
+        { messageId: 'missingFloor', data: { factory: 'editorReadRoute' } },
         { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
         { messageId: 'missingFloor', data: { factory: 'protectedRouteOperation' } },
       ],
@@ -413,7 +430,7 @@ ruleTester.run('require-route-access', guardrails.rules['require-route-access'],
       options: [{ exceptions }],
       code: `
         import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-        export const GET = protectedRouteOperation({ auth: "viewer", rateLimit: "editorPolledRead", unexpectedErrorLabel: "x", operation: () => ok() });
+        export const GET = protectedRouteOperation({ auth: "editor", rateLimit: "editorPolledRead", unexpectedErrorLabel: "x", operation: () => ok() });
       `,
       errors: [{ messageId: 'staleException', data: { method: 'GET' } }],
     },

@@ -8,7 +8,7 @@ import { SiteVersionBadge } from "@/components/common/SiteVersionBadge";
 import { SiteWordmark } from "@/components/common/SiteWordmark";
 import { Input } from "@/components/ui/input";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { AppearanceControls } from "./AppearanceControls";
+import { AppearanceControls } from "@/features/appearance/AppearanceControls";
 import { useConstructionHomeInteractions } from "./ConstructionHomeInteractions";
 import type { HomeQuickLink } from "./homeQuickLinks";
 

@@ -6,7 +6,7 @@ import { GlobalSearch } from "../common/GlobalSearch";
 import { Icon } from "../common/Icon";
 import { SiteWordmark } from "../common/SiteWordmark";
 import { SiteVersionBadge } from "../common/SiteVersionBadge";
-import { AppearanceControls } from "@/app/_components/AppearanceControls";
+import { AppearanceControls } from "@/features/appearance/AppearanceControls";
 import type {
   AppView,
   RouteChromeModel,

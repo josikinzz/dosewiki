@@ -6,8 +6,9 @@ import { trackedCommentFiles } from "../lib/comment-scope.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fix = process.argv.includes("--fix");
+const files = process.argv.slice(2).filter((arg) => arg !== "--fix");
 let count = 0;
-for (const file of trackedCommentFiles(repoRoot, /\.css$/)) {
+for (const file of files.length > 0 ? files : trackedCommentFiles(repoRoot, /\.css$/)) {
   const filename = path.join(repoRoot, file);
   const text = readFileSync(filename, "utf8");
   const sheet = postcss.parse(text, { from: file });

@@ -216,6 +216,7 @@ async function main() {
     destructive: true,
   });
   printDataOpsRunContext(context);
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const onlySlug = getFlagValue(context.argv, "--slug");
   const targetUrl = requireTargetUrl(context);
@@ -271,7 +272,6 @@ async function main() {
   }
   if (work.length === 0) return;
 
-  assertDataOpsWriteAllowed(context);
   const applied = [];
   const failures = [];
   const audit = writeAuditLog({

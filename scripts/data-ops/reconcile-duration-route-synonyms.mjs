@@ -134,6 +134,7 @@ async function main() {
     destructive: true,
   });
   printDataOpsRunContext(context);
+  if (context.writeEnabled) assertDataOpsWriteAllowed(context);
 
   const planPath = getFlagValue(context.argv, "--plan");
   if (!planPath) throw new Error("Missing --plan=<path to plan JSON>");
@@ -185,8 +186,6 @@ async function main() {
     console.log(`\nDry run — no writes performed.`);
     return;
   }
-
-  assertDataOpsWriteAllowed(context);
 
   const backup = await backupBeforeWrite({
     sourceClient: client,
