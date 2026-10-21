@@ -169,7 +169,8 @@
     "check:test-policy": "node scripts/test/test-policy.mjs",
     "check:build-wiring": "node scripts/deploy/check-build-command-wiring.mjs",
     "check:repository-policy": "node scripts/security/check-repository-policy.mjs",
-    "verify:checkout": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run check:function-references && bun run check:build-wiring && bun run check:test-policy && bun run check:repository-policy",
+    "check:command-catalog": "node scripts/lint/check-command-catalog.mjs",
+    "verify:checkout": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run check:function-references && bun run check:build-wiring && bun run check:test-policy && bun run check:repository-policy && bun run check:command-catalog",
     "verify:drift": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run postgres:verify-migrations && bun run postgres:check-schema",
     "verify": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run security:check && bun run verify:checkout && bun run verify:drift"
   },

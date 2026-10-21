@@ -7,10 +7,31 @@
 Install with `bun install --frozen-lockfile`. Prefer package commands and place script arguments after `--`:
 
 ```bash
-npm run <command> -- <arguments>
+bun run <command> -- <arguments>
 ```
 
 Use `bun scripts/...` only when no package command exists. Postgres-backed scripts require Bun. Inspect the selected package entry and implementation before running it.
+
+## Command catalog
+
+Each package command appears in exactly one group. `bun run check:command-catalog` fails when this table and `package.json` disagree, so add each new command to its group here. The last column names what to read before you run a command in that group. `scripts/lib/production-writer-inventory.mjs` lists every script that can write production, and running one needs the [command ceremony](../docs/operations/data-credentials.md#literal-postgres-command-ceremony) and a human's approval.
+
+| Group | Commands | Read first |
+| --- | --- | --- |
+| Local development | `dev`, `predev`, `start`, `dev:screenshot-viewer`, `dev:screenshot`, `dev:journeys-server`, `test:journeys`, `hygiene:check`, `hygiene:clean`, `prepare` | [Run](../CONTRIBUTING.md#run). `predev` runs before `dev`, and `prepare` runs on install |
+| Tests and checks | `test`, `test:watch`, `test:coverage`, `test:workflow`, `test:evidence`, `typecheck`, `typecheck:scripts`, `typecheck:handlers`, `lint`, `lint:files`, `knip`, `security:check`, `provenance:check`, `schema:check`, `postgres:check-schema`, `postgres:verify-migrations`, `check:function-references`, `check:build-wiring`, `check:test-policy`, `check:repository-policy`, `check:command-catalog`, `verify`, `verify:checkout`, `verify:drift` | [Verify](../CONTRIBUTING.md#verify) |
+| Build and release | `build`, `prebuild`, `build:vercel`, `build:census`, `warm:public-routes`, `deploy:localization-preflight` | [Deployment](../docs/operations/deployment.md). `prebuild` runs before `build` |
+| Generated code and styles | `generate:schema`, `generate:postgres-schema`, `generate:postgres-functions`, `generate:appearance-palette-data`, `generate:appearance-css`, `generate:accent-css`, `generate:chroma-css`, `generate:surface-css`, `generate:appearance-sheets`, `generate:icon-data`, `generate:theme-lab-bootstrap`, `generate:home-tile-glyphs`, `generate:smiles`, `generate:favicons`, `generate:mantra-spiral`, `generate:subjective-effects-provenance` | The output's `refresh` entry in `data/lineage.json` ([format](../data/README.md)) |
+| Social cards | `generate:social-cards`, `publish:social-cards`, `verify:social-cards` | [Social cards](../docs/operations/social-cards.md) |
+| Chemistry, molecules, and reagents | `openchemlib:build`, `openchemlib:verify`, `openchemlib:test`, `molecules:setup-venv`, `molecules:smiles-coverage`, `molecules:merge-smiles`, `molecules:seed`, `molecules:seed-classes`, `molecules:rerender`, `molecules:copy-overrides`, `molecules:pack`, `audit:iupac-names`, `reagents:cache`, `reagents:check`, `reagents:import` | [OpenChemLib fork](../docs/architecture/openchemlib-fork.md), [nightly molecule reads](../docs/operations/data-credentials.md#nightly-molecule-reads), and [the ProtestKit snapshot](../docs/architecture/runtime-and-data.md#protestkit-reagent-test-snapshot) |
+| Citations | `citations:formal`, `citations:apply-workbench`, `citations:rebase-workbench`, `citations:export-workbench-task`, `citations:campaign`, `citations:plan-second-pass`, `citations:archive-production-dataset`, `citations:audit-subsections`, `citations:seed-subsection-tracker`, `citations:update-subsection-status`, `citations:verdict-audit`, `citations:verdict-export`, `citations:verdict-validate`, `citations:verdict-apply` | [Citation workflow](../docs/workflows/citations.md) |
+| Legality | `legality:audit-subsections`, `legality:audit-voice`, `legality:build-repair-drafts`, `legality:export`, `legality:validate`, `legality:apply`, `legality:cite` | [Legality workflow](../docs/workflows/legality.md) |
+| Article section batches | `batch:extract`, `batch:summary`, `batch:proposal`, `batch:publish-reviewed-section`, `batch:tolerance`, `batch:legality`, `batch:harm-potential`, `batch:history-culture`, `batch:dosage-duration`, `batch:dosage-duration:export`, `batch:dosage-duration:run`, `batch:dosage-duration:apply`, `batch:watch` | The script under `scripts/batch/`. Quote extraction follows [its contract](../docs/workflows/article-source-quote-extraction.md) |
+| Translation and locale mirrors | `translate:locale`, `translate:glossary`, `translate:glossary:import-drafts`, `translate:glosses`, `translate:charset`, `translate:audit`, `translate:ui`, `translate:evaluation-candidates`, `translate:verify-release`, `translate:registry`, `translate:packs`, `translate:packs:check`, `translate:freeodwiki`, `translate:offline`, `translate:refresh`, `translate:publication-index`, `mirror:warm` | [Translation workbench](../docs/workflows/translation-workbench.md) and [locale mirrors](../docs/operations/locale-mirrors.md) |
+| Replications | `replications:audit-provenance`, `replications:apply-provenance`, `replications:apply-dates`, `replications:regenerate-substance-galleries`, `replications:regenerate-thumbnails`, `replications:generate-gif-motion`, `replications:prepare-image-renditions` | [Replication intake](../docs/workflows/replication-intake.md) and [media delivery](../docs/operations/replication-media-delivery.md) |
+| Postgres | `postgres:local`, `postgres:migrate`, `postgres:migrate:generate`, `postgres:synthesize-export`, `postgres:import`, `postgres:rebuild-derived`, `postgres:check-env-isolation`, `postgres:rehearse-publication`, `postgres:rehearse-auth`, `postgres:rehearse-article-lifecycle`, `postgres:rehearse-citation-publication`, `postgres:rehearse-effects`, `postgres:rehearse-http-surface`, `postgres:rehearse-reports-feedback`, `postgres:rehearse-storage-fallbacks`, `postgres:rehearse-content-tools`, `postgres:rehearse-replications-identity`, `postgres:rehearse-editor-reads`, `postgres:rehearse-commands`, `postgres:rehearse-exports`, `postgres:rehearse-release` | [Schema migrations](../docs/operations/data-credentials.md#schema-migrations) and [Postgres operations](#postgres-operations) |
+| Data operations and migrations | `data:sync-production`, `data:export`, `data:normalize-dose-units`, `data:fill-route-gaps`, `data:apply-subjective-effects`, `migrate:trip-reports`, `migrate:effects`, `migrate:binding-sites`, `migrate:user-profiles`, `prompts:compare`, `prompts:migrate`, `review:export`, `review:apply`, `reports:format-flat` | [Data credentials](../docs/operations/data-credentials.md). Review runs also follow [ADR 0003](../docs/adr/0003-advisory-review-flags.md) |
+| Sources and research | `parse:sources`, `scry:query` | The source of `scripts/parse-sources.ts` or `scripts/scry-query.mjs` |
 
 ## Production data boundary
 
@@ -34,7 +55,7 @@ not authorize production work; historical snapshot IDs and provenance remain int
 For local rehearsal:
 
 ```bash
-DATA_BACKEND=postgres npm run <command> -- \
+DATA_BACKEND=postgres bun run <command> -- \
   --target postgres://localhost:5432/dosewiki
 ```
 
@@ -81,7 +102,7 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/effects/` | Subjective-effect article media repairs and embed upgrades. |
 | `scripts/generate/` | Article schema helper generation. |
 | `scripts/legality/` | Legality subsection audits, drafts, validation, and guarded application. |
-| `scripts/lib/` | Shared runtime: data client, run context, production-write boundary, command surfaces, artifact lineage, hygiene policy. |
+| `scripts/lib/` | Shared runtime: data client, run context, production-write boundary, production-writer inventory and detector, storage-write authorizer, artifact lineage, hygiene policy. |
 | `scripts/migrate/` | Effect Index and legacy-shape migrations into Postgres, prompt sync, citation restructuring. |
 | `scripts/parsers/` | Source-document parsers behind `parse:sources`. |
 | `scripts/postgres/` | Local database, migrations, snapshot import, derived-table rebuilds, and rehearsal suites. |
@@ -98,7 +119,10 @@ One row per directory that ships in the repository. Every script keeps its input
 | `scripts/replications/` | Replication corpus maintenance: provenance audits, rights metadata, R2 renditions and delivery worker, galleries, slug and credit corrections. |
 | `scripts/config/` | Secondary TypeScript configs for scripts and route handlers. |
 | `scripts/deploy/analytics-redirect/` | Vercel config for the analytics redirect project. |
-| `scripts/eslint-plugins/` | Local ESLint plugin loaded by `eslint.config.mjs`. |
+| `scripts/eslint-plugins/` | Local ESLint plugins loaded by `eslint.config.mjs`: `code-hygiene`, `editor-guardrails`, and `vercel-guardrails`. |
+| `scripts/lint/` | The CSS comment and em dash scanners, the `lint:files` dispatcher, and the command catalog check. |
+| `scripts/tools/journeys/` | Browser journeys and the deterministic fixtures behind `test:journeys` and `dev:screenshot`. |
+| `scripts/tools/screenshot-dev-tool.mjs` | Screenshots a `/dev` document for `dev:screenshot`. |
 | `scripts/tools/pi-citation-workflow/` | Citation run manifest, campaign status, and local proposal run preparation. |
 | `scripts/tools/copyRdkitAssets.mjs` | Copies the RDKit runtime into `public/rdkit/`. |
 

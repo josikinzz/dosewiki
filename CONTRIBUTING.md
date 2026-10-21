@@ -111,6 +111,38 @@ draft, focus, and each request's result. A failure writes a screenshot to
 unset builds dose.wiki. See [deployment](docs/operations/deployment.md) before
 changing build keys, hosts, or flavors.
 
+## Add an API route
+
+[ARCHITECTURE.md](ARCHITECTURE.md#where-new-code-goes) says where the
+supporting code goes. `src/app/api/dev/translation-note/route.ts` is a
+complete example of a guarded read and write.
+
+1. Put the handler in `src/app/api/<path>/route.ts`. On the editor
+   deployment, `src/middleware.ts` requires a session for every API path
+   except the sign-in, invite, and password-reset APIs, the article
+   revalidation POST, and the service crons. On public hosts it redirects `/api/auth`, `/api/dev`,
+   `/api/invite`, and `/api/reset-password` to the home page.
+2. Export each method as `protectedRouteOperation({ ... })` from
+   `src/lib/http/protectedRouteOperation.ts`. Give it an `auth` floor
+   (`admin`, `editor`, `translator`, or `contributor`), a `rateLimit` policy
+   name from `lib/http/rateLimitPolicy.ts`, and an `unexpectedErrorLabel`.
+   Add `body: { maxBytes, parse }` to read a JSON body. Add
+   `capabilities: [{ type: "dataWrite" }]` to receive the server write
+   capability as `dataWrite`.
+3. Pass the operation's `actorEmail` to every write. The Postgres handler
+   checks that member's current role with `requireRole` in
+   `server/lib/auth.ts`.
+4. Let the freeze reach the wrapper. The server write client calls
+   `assertDataWritesNotFrozen` before every mutation, and
+   `protectedRouteOperation` answers the freeze error with 503. A `mapError`
+   option returns `null` for any error it does not own.
+5. Run `bun run lint`. The rule `vercel-guardrails/require-route-access`
+   fails an exported handler that reaches neither `protectedRouteOperation`
+   nor a recognized guard factory. A route that takes no session needs an
+   entry in `routeAccessExceptions` in `eslint.config.mjs`. A route that a
+   credential alone authorizes is an exception in the AGENTS.md rule table,
+   and adding one is a judgment call for the owner.
+
 ## Verify
 
 Every pull request runs the CI verification job in
@@ -137,7 +169,8 @@ graph.
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
 | `bun run check:test-policy` | Fails when a first-party test file has no category in `scripts/test/test-policy.json`, or when the manifest names a file that no longer exists. Privacy tests count as secrets, publication-visibility tests as auth and roles, and a test that fits no category is a named exception with a reason |
 | `bun run check:repository-policy` | Fails when a `vercel.json` function exceeds the Pro plan memory or duration limit, a tracked file other than `.env.example` is named `.env*`, or a non-test file under `src/app/api/` calls `eval`, `new Function`, or `exec`/`spawn` with an interpolated template |
-| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the four `check:` entries |
+| `bun run check:command-catalog` | Fails when the command catalog in `scripts/README.md` misses a `package.json` script, lists one twice, or names one that does not exist |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the five `check:` entries |
 | `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
 | `bun run security:check` | CI's secret scan over every tracked file |
 | `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |

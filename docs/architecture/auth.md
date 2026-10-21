@@ -6,7 +6,7 @@ Auth.js owns browser identity and sessions. The Postgres `memberships` table own
 
 - `lib/auth/authOptions.ts` configures Auth.js. Its credentials provider checks a username and password against `memberships`, and its `jwt` callback re-reads the stored role on every refresh.
 - `lib/auth/passwords.ts` hashes and verifies passwords with scrypt.
-- `lib/auth/runtimePolicy.ts` owns the active auth mode, provider readiness, Auth.js secret resolution, and editor credential availability.
+- `lib/auth/runtimePolicy.ts` resolves the Auth.js secret from `AUTH_SECRET`, then `NEXTAUTH_SECRET`, then a fallback under `NODE_ENV=development` only, and reports whether sessions are available.
 - `src/lib/auth/roles.ts` defines the roles and what each one may do.
 - `src/middleware.ts` gates `/dev` and other protected routes.
 - `src/lib/http/protectedRouteOperation.ts` wraps each session-protected API route.
@@ -36,6 +36,7 @@ These callers authenticate a credential in the handler instead of a session.
 - `/api/dev/revalidate-article` accepts a bearer `citationEvidenceWrite` admin-intent token, checked by `validateAdminIntentToken`. `src/middleware.ts` lets only its POST past the editor session gate.
 - The cron routes under `src/app/api/cron/` and `src/app/api/warm/route.ts` accept `CRON_SECRET` through `cronRoute` in `lib/http/cronAuthorization.ts`. `src/middleware.ts` lets the service cron GETs listed in `lib/http/serviceCronPaths.ts` past the editor session gate.
 - `/api/public-cache/revalidate` runs on public hosts and accepts a body signed with the publication secret. It can only expire caches.
+- The public intake routes take anonymous reader posts: `/api/article-feedback`, `/api/site-feedback`, `/api/glossary-feedback` (comments and reactions), `/api/trip-report-submissions`, and `/api/subscribe`. Each writes through `getPublicIntakeWriteCapability` in `lib/data/serverWriteCapability.ts`, which holds the server's `DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE`. The feedback and submission handlers check that token as the `publicIntakeCreate` intent. `mailingList:subscribe` checks no token itself. Its only caller is `/api/subscribe`, which answers 503 when the capability is missing. `mutationAsService` refuses any mutation outside `SERVICE_MUTATION_NAMES`: these creates, `mailingList:subscribe`, and the two publication-delivery mutations the cron calls.
 - Workstation scripts call Postgres handlers with an admin-intent token. A call that names an `actorEmail` acts with that member's role. A call that names nobody resolves to `admin` in `server/lib/auth.ts`.
 
 Adding another exception is a judgment call. Public source code grants no access to editorial systems and does not authorize data writes.

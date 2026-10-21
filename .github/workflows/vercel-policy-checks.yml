@@ -82,7 +82,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # Configure required reviewers and these values in the selected environment.
+      # The selected environment supplies these values and must set RELEASE_BUILD_ENABLED=true.
       # No build credential is available to checkout verification or PR jobs.
       - name: Build with explicitly approved read-only configuration
         env:
