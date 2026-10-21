@@ -4,12 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { substanceArticleSchema, type SubstanceArticle } from "../schema";
 import { createEmptyArticle, createEmptyDosageRoute, createEmptyDurationRoute } from "../data/schema";
+import { dosageDurationRouteKey } from "../schema/substance/dosageDurationProjection";
 
 type DosageRouteValue = SubstanceArticle["dosage"]["routes"][number];
 type DurationRouteValue = SubstanceArticle["duration"]["routes"][number];
-
-const normalizeRouteName = (route: string | undefined) =>
-  String(route ?? "").trim().toLowerCase();
 
 function routesAreAligned(
   dosage: DosageRouteValue[],
@@ -28,10 +26,10 @@ export function pairRoutesByName(
   const duration: DurationRouteValue[] = [];
 
   for (const dosageRoute of dosageRoutes) {
-    const wanted = normalizeRouteName(dosageRoute.route);
+    const wanted = dosageDurationRouteKey(dosageRoute.route);
     const matchIndex = durationRoutes.findIndex(
       (durationRoute, index) =>
-        !claimed.has(index) && normalizeRouteName(durationRoute.route) === wanted,
+        !claimed.has(index) && dosageDurationRouteKey(durationRoute.route) === wanted,
     );
 
     dosage.push(dosageRoute);

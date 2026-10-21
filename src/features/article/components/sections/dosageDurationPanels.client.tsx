@@ -14,6 +14,10 @@ import type {
   DoseRange,
   DurationStage,
 } from "@/schema";
+import {
+  routeHasBioavailability,
+  routeHasHalfLife,
+} from "@/schema/substance/dosageDurationPresence";
 import { useT } from "@/i18n/client";
 import type { Translate } from "@/i18n/messages";
 import { EditableValue, useArticleEdit } from "../../editing";
@@ -240,7 +244,7 @@ export function DoseTiersTable({
           );
         })}
       </div>
-      {route.bioavailability?.trim() || canEdit ? (
+      {routeHasBioavailability(route) || canEdit ? (
         <ExpandableNoteRow
           ariaLabelBase={t("{{route}} bioavailability", { route: routeLabel })}
           label={t("Bioavailability")}
@@ -355,7 +359,7 @@ export function DurationPanelView({
           );
         })}
       </div>
-      {route.half_life?.trim() || canEdit ? (
+      {routeHasHalfLife(route) || canEdit ? (
         <ExpandableNoteRow
           ariaLabelBase={t("{{route}} half-life", { route: routeLabel })}
           label={t("Half-life")}

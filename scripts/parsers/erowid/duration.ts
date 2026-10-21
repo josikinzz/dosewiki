@@ -1,29 +1,7 @@
 import type { ParsedDurationRoute } from "../types";
 
 import { extractErowidMarkdownSection, extractErowidSubsection } from "./sections";
-
-const ROUTE_MAP: Record<string, string> = {
-  oral: "Oral",
-  insufflated: "Insufflated",
-  nasal: "Insufflated",
-  smoked: "Smoked",
-  vapourised: "Smoked",
-  vaporized: "Smoked",
-  im: "Intramuscular",
-  intramuscular: "Intramuscular",
-  iv: "Intravenous",
-  intravenous: "Intravenous",
-  sublingual: "Sublingual",
-  buccal: "Buccal",
-  rectal: "Rectal",
-  plugged: "Rectal",
-  transdermal: "Transdermal",
-};
-
-function normalizeRouteName(route: string): string {
-  const normalized = route.toLowerCase().trim();
-  return ROUTE_MAP[normalized] || route;
-}
+import { normalizeErowidRouteName } from "./routes";
 
 function normalizeTimeUnit(unit: string): "hours" | "minutes" {
   const normalized = unit.toLowerCase();
@@ -156,7 +134,7 @@ export function parseDurationSection(content: string, sourceId: string): ParsedD
 
       if (Object.keys(stages).length > 0) {
         routes.push({
-          route: normalizeRouteName(routeName),
+          route: normalizeErowidRouteName(routeName),
           source: sourceId,
           confidence: "medium",
           stages,
