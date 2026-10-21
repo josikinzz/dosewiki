@@ -135,7 +135,8 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
-| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and both `check:` entries |
+| `bun run check:test-policy` | Fails when a first-party test file has no category in `scripts/test/test-policy.json`, or when the manifest names a file that no longer exists. Privacy tests count as secrets, publication-visibility tests as auth and roles, and a test that fits no category is a named exception with a reason |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the three `check:` entries |
 | `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
 | `bun run security:check` | CI's secret scan over every tracked file |
 | `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |
