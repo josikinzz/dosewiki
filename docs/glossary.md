@@ -424,7 +424,7 @@ _Avoid_: left-aligned wrap, orphan icon row
 ## Public Host Language
 
 **Public Hosts**:
-`dose.wiki` and `www.dose.wiki`, the launched public domains served by the separate `dosewiki-public` artifact. They redirect authenticated editorial paths to the Editor Hosts and never receive editor artifacts or write credentials.
+`dose.wiki` and `www.dose.wiki`, the launched public domains served by the separate `dosewiki-public` artifact. They redirect authenticated editorial paths to the Editor Hosts and never receive editor artifacts or editorial write credentials. The only write credential they may hold is the create-only intake token described in [Auth](architecture/auth.md#token-checked-exceptions).
 _Avoid_: Construction Hosts, gated project, editor build
 
 **Editor Hosts**:

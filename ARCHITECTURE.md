@@ -16,7 +16,7 @@ The repository builds three Next.js applications from one route tree:
 
 PlanetScale Postgres is the production runtime source of truth. `DATA_BACKEND=postgres` runs the authored `server/` handlers in-process through `lib/postgres/runtime/`. There is no alternate backend. `server/schema.ts` owns persisted document validation, and `src/schema/substance.schema.ts` owns the stricter article shape.
 
-Public DoseWiki and Effect Index are read-only and carry no admin credential. Only the editor deployment carries the write credential tier. Every surface needs `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries through `lib/runtime/dataWriteFreeze.ts`. [Data credentials](docs/operations/data-credentials.md) owns targets, credential tiers, and the production write ceremony.
+Public DoseWiki and Effect Index carry no admin or editorial credential. Public DoseWiki may hold `DATA_ADMIN_TOKEN_PUBLIC_INTAKE_CREATE`, which lets its intake routes run only the create-only service mutations listed in [Auth](docs/architecture/auth.md#token-checked-exceptions). Only the editor deployment carries the editorial write tier. Every surface needs `REPLICATION_MEDIA_BASE_URL` for complete replication reads. `DATA_WRITES_FROZEN=1` closes application and operator write boundaries through `lib/runtime/dataWriteFreeze.ts`. [Data credentials](docs/operations/data-credentials.md) owns targets, credential tiers, and the production write ceremony.
 
 ## Runtime boundaries
 
