@@ -28,6 +28,7 @@ import {
   canTransitionTripReportSubmission,
   decisionNoteOrUndefined,
 } from "../src/features/reports/submissions/tripReportSubmissionStatus";
+import { tripReportSlug } from "../src/features/reports/submissions/tripReportSubmissions";
 import { appendDecision } from "../src/features/intake/decisionLog";
 
 type ReadCtx = { db: QueryCtx["db"] };
@@ -431,7 +432,7 @@ async function buildPromotionPayload(
   row: SubmissionRow,
   options: PromotionAttributionOptions,
 ) {
-  const slug = await resolveAvailableSlug(ctx, slugify(row.title));
+  const slug = await resolveAvailableSlug(ctx, tripReportSlug(row.title));
   const assignedProfileKey = await resolveEditorAssignedProfileKey(ctx, options.requestedProfileKey);
   await assertAuthorNameClaimAdjudicated(ctx, {
     authorName: row.report.subject.name,
@@ -487,13 +488,4 @@ async function tripReportSlugExists(ctx: ReadCtx, slug: string) {
 
 function clampLimit(limit: number | undefined): number {
   return Math.max(1, Math.min(limit ?? 100, 250));
-}
-
-function slugify(value: string): string {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "untitled-report"
-  );
 }

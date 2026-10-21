@@ -11,6 +11,7 @@ import {
   type ArtistCreditLinks,
 } from "@/features/effects/vcode/artistCreditLinks";
 import { t } from "@/i18n/server";
+import { slugify } from "@/utils/slug";
 import type { PublicEffectSummary } from "@server/data/publicData";
 
 import { PsychoactiveEffectLongSummary } from "./PsychoactiveEffectLongSummary";
@@ -79,10 +80,7 @@ export function PsychoactiveSummaryPage({
         {sections.map((section) => (
           <ArticleSection
             key={section.title}
-            id={section.title
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, "-")
-              .replace(/^-|-$/g, "")}
+            id={slugify(section.title)}
             icon={resolveEffectCategoryIcon(section.title) ?? section.icon ?? "lucide:layout-list"}
             heading={t(section.title)}
             spacing="effect"

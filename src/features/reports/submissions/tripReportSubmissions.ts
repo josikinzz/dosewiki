@@ -8,6 +8,7 @@ import {
   type TripReportSubmissionStatus,
 } from "./tripReportSubmissionStatus";
 import { appendDecision, type DecisionLogEntry } from "../../intake/decisionLog";
+import { slugify } from "../../../utils/slug";
 
 export {
   isTripReportSubmissionStatus,
@@ -256,7 +257,7 @@ export function buildDataTripReportImportPayload(
 
   return {
     ...row.report,
-    slug: slugify(row.title),
+    slug: tripReportSlug(row.title),
     featured: false,
   };
 }
@@ -342,11 +343,6 @@ function emptyToUndefined(value: string): string | undefined {
   return value.length > 0 ? value : undefined;
 }
 
-export function slugify(value: string): string {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "untitled-report"
-  );
+export function tripReportSlug(title: string): string {
+  return slugify(title) || "untitled-report";
 }

@@ -1,11 +1,5 @@
 import { publicHref } from "@/utils/publicHref";
-
-function mechanismToSlug(moa: string): string {
-  return moa
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+import { slugify } from "@/utils/slug";
 
 export function parseMechanismEntry(entry: string): {
   base: string;
@@ -59,8 +53,8 @@ export function splitMechanismActivity(base: string): {
 }
 
 export function getMechanismPath(base: string, qualifier?: string) {
-  const baseSlug = mechanismToSlug(base);
-  const qualifierSlug = qualifier ? mechanismToSlug(qualifier) : undefined;
+  const baseSlug = slugify(base);
+  const qualifierSlug = qualifier ? slugify(qualifier) : undefined;
 
   return {
     baseSlug,

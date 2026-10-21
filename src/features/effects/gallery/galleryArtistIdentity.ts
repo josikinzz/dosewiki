@@ -2,6 +2,7 @@ import type { PublicGalleryReplicationPreview } from "@/types/replications";
 import { hasKnownCreator } from "../components/replicationCredit";
 import { UNATTRIBUTED_LABEL } from "@/features/replications/replicationVocabulary";
 import type { GalleryGroup, GalleryMode } from "./galleryTypes";
+import { slugify } from "@/utils/slug";
 
 export const UNATTRIBUTED_KEY = "__unattributed__";
 export const UNKNOWN_ARTIST_URL_KEY = "unknown";
@@ -33,12 +34,7 @@ export function artistIdentity(artist?: string | null): {
 }
 
 function slugifyArtistLabel(label: string): string {
-  return label
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return slugify(label.normalize("NFKD").replace(/[\u0300-\u036f]/g, ""));
 }
 
 function stableKeyHash(value: string): string {

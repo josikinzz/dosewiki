@@ -1,3 +1,5 @@
+import { slugify } from "@/utils/slug";
+
 export type ReplicationPlaylistSummary = {
   key: string;
   title: string;
@@ -20,11 +22,7 @@ export type PlaylistDraft = {
 };
 
 export function playlistKeyOf(title: string): string {
-  return title
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+  return slugify(title);
 }
 
 export function applyPlaylistToCuration({

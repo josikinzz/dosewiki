@@ -9,6 +9,7 @@ import type {
   RouteChromeNavItem,
 } from "@/types/navigation";
 import { parsePath, viewToPath } from "./routing";
+import { slugify } from "./slug";
 
 const IDENTITY_TRANSLATE: Translate = (text, values) => formatMessage(text, values);
 
@@ -148,12 +149,7 @@ const NAV_ITEM_DEFINITIONS: Record<SiteNavId, Omit<RouteChromeNavItem, "active">
 };
 
 function navChildId(parentId: SiteNavId, label: string): string {
-  const slug = label
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  return `${parentId}-${slug}`;
+  return `${parentId}-${slugify(label)}`;
 }
 
 function buildSubmenu(

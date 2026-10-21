@@ -10,6 +10,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
+import { slugify } from "@/utils/slug";
 import { quickDateRange, summarizeEntry } from "./changeLogModel";
 import type { ChangelogFeedWindow } from "./useDevChangelogFeed";
 
@@ -90,9 +91,6 @@ const INITIAL_CHANGELOG_FILTERS: ChangeLogFilters = {
 const submitterKey = (value: string | null | undefined) => (value ?? "").trim().toUpperCase();
 
 const CHANGELOG_VISIBLE_BATCH_SIZE = 20;
-
-const toFileSlug = (value: string) =>
-  value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 const parseLocalDateBoundary = (value: string, boundary: "start" | "end"): number | null => {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -389,7 +387,7 @@ export function useDevModeChangeLog({
 
       try {
         const primarySlug = entry.articles[0]?.slug ?? entry.id;
-        const slug = toFileSlug(primarySlug || "entry");
+        const slug = slugify(primarySlug || "entry");
         const timestamp = entry.createdAt.replace(/[:.]/g, "-");
         const fileName = `changelog-${slug}-${timestamp}.diff`;
         const blob = new Blob([entry.markdown], { type: "text/plain" });
