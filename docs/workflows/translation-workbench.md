@@ -463,9 +463,12 @@ Do not delete recovery history to roll back a translation.
 - Stale revision, wrong locale, cross-origin mutation, and frozen writes fail.
 - Counts include missing source units and never equate an empty queue with
   complete translation, human review, or deployment.
-- Actual SQL tests cover draft, approve, conflict, restore, rollback, and retained
-  effective glossary wording, queue generation races, and segment history.
-  Browser tests cover the reviewer interactions.
+- The route tests under `src/app/api/dev/translation-*` cover role and locale
+  checks, origin checks, expected-revision conflicts, and the write freeze.
+  The `translation-workbench/approve-many`, `translation-glossary/confirm`,
+  and `translation-inbox` tests run against PGlite. No automated test covers
+  restore, rollback, queue generation races, segment history, or the reviewer
+  interactions in a browser, so check those by hand.
 
 Cantonese activation is outside this release. Choose written language and script
 with its reviewers before adding a locale; script conversion alone is not a new
