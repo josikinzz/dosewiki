@@ -128,14 +128,15 @@ the type check, or the whole graph with `bun run verify`.
 | `bun run test -- <path>` | One Vitest file under `src/`, `lib/`, or `server/` |
 | `bun run test:workflow` | Every script and tool test under `scripts/` |
 | `bun run test:workflow -- <path>...` | Only the named `scripts/` test files, each through its own runner (`node:test` or Vitest); an unknown path fails before anything runs |
-| `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed in any run |
+| `bun run test:evidence -- --runs <n>` | Reruns every suite `n` times and writes `.test-evidence/report.{json,md}`; exits 1 if any file failed or had every test skipped in any run, or if a file in `scripts/test/test-policy.json` did not run |
 | `bun run typecheck` | Application type check, with strict null checks on |
 | `bun run lint` | ESLint over the repository, then `scripts/lint/check-css-comments.mjs` and `scripts/lint/check-em-dashes.mjs` |
 | `bunx eslint <path>...` | ESLint alone on the named files; it skips the CSS comment and em-dash scanners |
 | `bun run schema:check` | Fails when the `src/data/schema/` helpers drift from `bun run generate:schema`, or when a field override or section list names an unknown or malformed path; writes nothing |
 | `bun run check:function-references` | Fails when a call site names an owned Postgres function this checkout does not define |
 | `bun run check:build-wiring` | Fails when `vercel.json`, `build:vercel`, or `.vercelignore` break the Vercel build chain |
-| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and both `check:` entries |
+| `bun run check:test-policy` | Fails when a first-party test file has no category in `scripts/test/test-policy.json`, or when the manifest names a file that no longer exists. Privacy tests count as secrets, publication-visibility tests as auth and roles, and a test that fits no category is a named exception with a reason |
+| `bun run verify:checkout` | CI's checkout-safe graph: `openchemlib:verify`, the full `test` and `test:workflow` suites, `typecheck`, `lint`, `typecheck:scripts`, `typecheck:handlers`, `provenance:check`, `schema:check`, and the three `check:` entries |
 | `bun run verify:drift` | CI's migration and Drizzle schema drift checks |
 | `bun run security:check` | CI's secret scan over every tracked file |
 | `bun run verify` | `security:check`, `verify:checkout`, then `verify:drift` |
