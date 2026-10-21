@@ -9,6 +9,8 @@ import {
   publicGalleryMembershipColumns,
   publicTripReportContributorColumns,
   publicTripReportPreviewColumns,
+  publishedArticleIndexColumns,
+  publishedBlogIndexColumns,
   type PublicArtistCreditRow,
   type PublicArtistTaxonomyRow,
   type PublicContributorIdentityRow,
@@ -19,8 +21,11 @@ import {
   type PublicGalleryMembershipRow,
   type PublicOverviewCounts,
   type PublicProjectionReads,
+  type PublicTripReportBrowseRow,
   type PublicTripReportContributorRow,
   type PublicTripReportPreviewRow,
+  type PublishedArticleIndexRow,
+  type PublishedBlogIndexRow,
 } from "./projectionReads";
 import { SubstanceProjectionReader } from "./dbSubstanceReads";
 
@@ -124,13 +129,24 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
       fromProjectedRow<"subjectiveEffects", (typeof publicEffectProjectionColumns)[Projection][number]>("subjectiveEffects", fields, row));
   }
 
-  async getPublicTripReportBrowseRows(): Promise<PublicTripReportPreviewRow[]> {
+  async getPublicTripReportBrowseRows(excerptSourceLength: number): Promise<PublicTripReportBrowseRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("tripReports", publicTripReportPreviewColumns)}
+      String.raw`SELECT ${losslessSelectList("tripReports", publicTripReportPreviewColumns)},
+         left(regexp_replace(concat_ws(' ', "introduction", (
+           SELECT string_agg(entry.value->>'description', ' ' ORDER BY timeline.phase, entry.position)
+           FROM (VALUES (1, "onset"), (2, "peak"), (3, "offset")) AS timeline(phase, entries)
+           CROSS JOIN LATERAL jsonb_array_elements(
+             CASE WHEN jsonb_typeof(timeline.entries) = 'array' THEN timeline.entries ELSE '[]'::jsonb END
+           ) WITH ORDINALITY AS entry(value, position)
+         ), "conclusion"), '[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+', ' ', 'g'), $1::int) AS "excerpt_source"
        FROM "tripReports"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
+      [excerptSourceLength],
     );
-    return result.rows.map((row) => fromProjectedRow("tripReports", publicTripReportPreviewColumns, row));
+    return result.rows.map((row) => ({
+      ...fromProjectedRow("tripReports", publicTripReportPreviewColumns, row),
+      excerpt_source: typeof row.excerpt_source === "string" ? row.excerpt_source : null,
+    }));
   }
 
   async getPublicGalleryMembershipRows(): Promise<PublicGalleryMembershipRow[]> {
@@ -237,49 +253,54 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     return result.rows.map((row) => fromProjectedRow("tripReports", publicTripReportContributorColumns, row));
   }
 
-  async getPublishedPublicationIndex(kind: "article" | "blog"): Promise<Record<string, unknown>[]> {
-    const kindPredicate = kind === "blog"
-      ? `"kind" = 'blog'`
-      : `"kind" IS DISTINCT FROM 'blog'`;
-    const result = kind === "blog"
-      ? await this.client.query(String.raw`
-          SELECT "slug", "title", "publication_status", "publicationDate", "kind",
-            "teaser", "coverImageUrl",
-            CASE WHEN btrim(COALESCE("teaser", '')) <> '' THEN NULL ELSE left(
-              btrim(regexp_replace(regexp_replace(regexp_replace(
-                COALESCE((SELECT block FROM regexp_split_to_table("body_raw", '\n{2,}') WITH ORDINALITY AS b(block, position)
-                  WHERE block !~ '^\s*$' ORDER BY position LIMIT 1), ''),
-                '\[([^\]]+)\]\([^)]*\)', '\1', 'g'), '[*_` + "`" + String.raw`#>]', '', 'g'), '\s+', ' ', 'g')),
-              256
-            ) END AS excerpt_source
-          FROM "effectIndexArticles"
-          WHERE "status" IS DISTINCT FROM 'draft' AND "publication_status" = 'published'
-            AND ${kindPredicate}
-          ORDER BY "_creationTime" ASC, "_id" ASC
-        `)
-      : await this.client.query(String.raw`
-          WITH published AS (
-            SELECT * FROM "effectIndexArticles"
-            WHERE "status" IS DISTINCT FROM 'draft' AND "publication_status" = 'published'
-              AND ${kindPredicate}
-          ), prose AS (
-            SELECT p.*,
-              btrim(regexp_replace(regexp_replace("body_raw", '\[[^\]]*\]', ' ', 'g'), '\s+', ' ', 'g')) AS reading_prose,
-              CASE WHEN btrim(COALESCE("shortDescription", '')) <> '' THEN NULL ELSE
-                btrim(regexp_replace(regexp_replace(
-                  regexp_replace("body_raw", '\[h[1-6]\][\s\S]*?\[/h[1-6]\]|^#{1,6}\s.*$', ' ', 'gn'),
-                  '\[[^\]]*\]', ' ', 'g'), '\s+', ' ', 'g'))
-              END AS description_prose
-            FROM published p
-          )
-          SELECT "slug", "title", "tags", "publication_status", "featured", "shortDescription",
-            "publicationDate", "kind", "bodyFormat",
-            left(description_prose, 256) AS description_source,
-            CASE WHEN reading_prose = '' THEN NULL
-              ELSE greatest(1, floor(array_length(string_to_array(reading_prose, ' '), 1) / 220.0 + 0.5))::integer END AS "readMinutes"
-          FROM prose ORDER BY "_creationTime" ASC, "_id" ASC
-        `);
-    return result.rows;
+  async getPublishedArticleIndex(): Promise<PublishedArticleIndexRow[]> {
+    const result = await this.client.query(String.raw`
+      WITH published AS (
+        SELECT * FROM "effectIndexArticles"
+        WHERE "status" IS DISTINCT FROM 'draft' AND "publication_status" = 'published'
+          AND "kind" IS DISTINCT FROM 'blog'
+      ), prose AS (
+        SELECT p.*,
+          btrim(regexp_replace(regexp_replace("body_raw", '\[[^\]]*\]', ' ', 'g'), '\s+', ' ', 'g')) AS reading_prose,
+          CASE WHEN btrim(COALESCE("shortDescription", '')) <> '' THEN NULL ELSE
+            btrim(regexp_replace(regexp_replace(
+              regexp_replace("body_raw", '\[h[1-6]\][\s\S]*?\[/h[1-6]\]|^#{1,6}\s.*$', ' ', 'gn'),
+              '\[[^\]]*\]', ' ', 'g'), '\s+', ' ', 'g'))
+          END AS description_prose
+        FROM published p
+      )
+      SELECT ${losslessSelectList("effectIndexArticles", publishedArticleIndexColumns)},
+        left(description_prose, 256) AS description_source,
+        CASE WHEN reading_prose = '' THEN NULL
+          ELSE greatest(1, floor(array_length(string_to_array(reading_prose, ' '), 1) / 220.0 + 0.5))::integer END AS "readMinutes"
+      FROM prose ORDER BY "_creationTime" ASC, "_id" ASC
+    `);
+    return result.rows.map((row) => ({
+      ...fromProjectedRow("effectIndexArticles", publishedArticleIndexColumns, row),
+      description_source: typeof row.description_source === "string" ? row.description_source : null,
+      readMinutes: typeof row.readMinutes === "number" ? row.readMinutes : null,
+    }));
+  }
+
+  async getPublishedBlogIndex(): Promise<PublishedBlogIndexRow[]> {
+    const result = await this.client.query(String.raw`
+      SELECT ${losslessSelectList("effectIndexArticles", publishedBlogIndexColumns)},
+        CASE WHEN btrim(COALESCE("teaser", '')) <> '' THEN NULL ELSE left(
+          btrim(regexp_replace(regexp_replace(regexp_replace(
+            COALESCE((SELECT block FROM regexp_split_to_table("body_raw", '\n{2,}') WITH ORDINALITY AS b(block, position)
+              WHERE block !~ '^\s*$' ORDER BY position LIMIT 1), ''),
+            '\[([^\]]+)\]\([^)]*\)', '\1', 'g'), '[*_` + "`" + String.raw`#>]', '', 'g'), '\s+', ' ', 'g')),
+          256
+        ) END AS excerpt_source
+      FROM "effectIndexArticles"
+      WHERE "status" IS DISTINCT FROM 'draft' AND "publication_status" = 'published'
+        AND "kind" = 'blog'
+      ORDER BY "_creationTime" ASC, "_id" ASC
+    `);
+    return result.rows.map((row) => ({
+      ...fromProjectedRow("effectIndexArticles", publishedBlogIndexColumns, row),
+      excerpt_source: typeof row.excerpt_source === "string" ? row.excerpt_source : null,
+    }));
   }
 
   async getPublicTripReportPreviewsBySubstanceNames(names: readonly string[]): Promise<PublicTripReportPreviewRow[]> {

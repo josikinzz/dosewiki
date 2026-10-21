@@ -107,6 +107,15 @@ export const publicGalleryMembershipColumns = [
   "publication_state", "replication_status",
 ] as const satisfies readonly Column<"replications">[];
 
+export const publishedArticleIndexColumns = [
+  "slug", "title", "tags", "publication_status", "featured", "shortDescription",
+  "publicationDate", "kind", "bodyFormat", "authors",
+] as const satisfies readonly Column<"effectIndexArticles">[];
+
+export const publishedBlogIndexColumns = [
+  "slug", "title", "publication_status", "publicationDate", "kind", "teaser", "coverImageUrl",
+] as const satisfies readonly Column<"effectIndexArticles">[];
+
 export const publicArtistCreditColumns = [
   "_id", "_creationTime", "artist", "artist_url", "effect_slug", "storage_id", "r2_key", "url",
 ] as const satisfies readonly Column<"replications">[];
@@ -132,10 +141,18 @@ export type PublicEffectProjectionRow<Projection extends PublicEffectProjection>
 export type PublicEffectGalleryOrderRow = ProjectedRow<"subjectiveEffects", typeof publicEffectGalleryOrderColumns>;
 export type PublicContributorIdentityRow = ProjectedRow<"contributorProfiles", typeof publicContributorIdentityColumns>;
 export type PublicTripReportPreviewRow = ProjectedRow<"tripReports", typeof publicTripReportPreviewColumns>;
+export type PublicTripReportBrowseRow = PublicTripReportPreviewRow & { excerpt_source: string | null };
 export type PublicTripReportContributorRow = ProjectedRow<"tripReports", typeof publicTripReportContributorColumns>;
 export type PublicGalleryMembershipRow = ProjectedRow<"replications", typeof publicGalleryMembershipColumns>;
 export type PublicArtistCreditRow = ProjectedRow<"replications", typeof publicArtistCreditColumns>;
 export type PublicArtistTaxonomyRow = { key: string; primary_type: unknown; artist_type_tags: unknown };
+export type PublishedArticleIndexRow = ProjectedRow<"effectIndexArticles", typeof publishedArticleIndexColumns> & {
+  description_source: string | null;
+  readMinutes: number | null;
+};
+export type PublishedBlogIndexRow = ProjectedRow<"effectIndexArticles", typeof publishedBlogIndexColumns> & {
+  excerpt_source: string | null;
+};
 
 export type PublicOverviewCounts = {
   substanceCount: number;
@@ -223,14 +240,15 @@ export interface PublicProjectionReads extends SubstanceProjectionReads {
   ): Promise<PublicEffectProjectionRow<Projection>[]>;
   getPublicEffectCreditsByNames(names: readonly string[]): Promise<PublicEffectProjectionRow<"credits">[]>;
   getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<PublicEffectGalleryOrderRow[]>;
-  getPublicTripReportBrowseRows(): Promise<PublicTripReportPreviewRow[]>;
+  getPublicTripReportBrowseRows(excerptSourceLength: number): Promise<PublicTripReportBrowseRow[]>;
   getPublicTripReportPreviewsBySubstanceNames(names: readonly string[]): Promise<PublicTripReportPreviewRow[]>;
   getPublicTripReportsByContributor(profileKey: string, authorNames: readonly string[]): Promise<PublicTripReportContributorRow[]>;
   getPublicGalleryMembershipRows(): Promise<PublicGalleryMembershipRow[]>;
   getPublicArtistCreditRows(): Promise<PublicArtistCreditRow[]>;
   getReplicationsBySlugs(slugs: readonly string[]): Promise<Doc<"replications">[]>;
   getPublicEffectReplicationPage(args: { effectSlug: string; cursor?: string; limit: number }): Promise<PublicEffectReplicationPage>;
-  getPublishedPublicationIndex(kind: "article" | "blog"): Promise<Record<string, unknown>[]>;
+  getPublishedArticleIndex(): Promise<PublishedArticleIndexRow[]>;
+  getPublishedBlogIndex(): Promise<PublishedBlogIndexRow[]>;
 }
 
 export interface EditorialProjectionReads extends PublicProjectionReads {
