@@ -322,6 +322,17 @@ const existingConfig = tseslint.config(
       }],
     },
   },
+  {
+    files: ['src/components/**/*.{ts,tsx}', 'src/features/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', {
+        patterns: [{
+          regex: '(?:^|/)app/_components(?:/|$)',
+          message: 'src/app/_components is route-private. Shared components belong in src/components or src/features.',
+        }],
+      }],
+    },
+  },
 );
 
 export default [
