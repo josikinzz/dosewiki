@@ -30,9 +30,8 @@ import { useModifierKeyLabel } from "../../pages/DevCommandPalette";
 import { stripDiffHeading } from "../about/aboutEditorUtils";
 import { proposalSubmittedNotice } from "../proposalSubmission";
 import { CopyIndexRefusal } from "../useCopyIndexOperation";
-import { useCopyIndexSource } from "../useCopyIndexSource";
 import { CopyBlockPane } from "./CopyBlockPane";
-import { proposeCopyBlock, useCopyBlockWrites } from "./useCopyBlockWrites";
+import { copyConflictNotice, LOADED_LATEST_NOTICE, proposeCopyBlock, useCopyBlockSource, useCopyBlockWrites } from "./useCopyBlockWrites";
 import {
   blockCurrentText,
   buildCopyStudioBlocks,
@@ -144,7 +143,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     () => (closed ? null : blocks.find((block) => block.key === activeKey) ?? (activeKey && !catalogueReady ? null : groupBlocks[0] ?? null)),
     [blocks, groupBlocks, activeKey, closed, catalogueReady],
   );
-  const detailSource = useCopyIndexSource<{ document: CopyBlockRow | null; revision: number }>(activeBlock ? `/api/dev/copy-block?key=${encodeURIComponent(activeBlock.key)}` : null);
+  const detailSource = useCopyBlockSource(activeBlock?.key ?? null);
   const selectedSnapshot = detailSource.data;
 
   useEffect(() => {
@@ -287,39 +286,24 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
     );
   }, [activeBlock, currentText, draftText, isDirty]);
 
-  const askLoadLatest = useCallback((key: string) => {
-    confirm({
-      title: "Load the latest version?",
-      description: "Your edits here are dropped and the editor shows the block as it is published now. Note anything you want to keep first.",
-      confirmLabel: "Load latest",
-      destructive: true,
-      onConfirm: () => {
-        replaceOnNext.current = { key, stale: selectedSnapshot };
-        detailSource.reload();
-        void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
-        setNotice({ tone: "info", message: "Loaded the latest version. Apply your edits again, then publish." });
-      },
-    });
-  }, [confirm, detailSource, invalidateEditorReads, selectedSnapshot]);
+  const loadLatest = useCallback((key: string) => {
+    replaceOnNext.current = { key, stale: selectedSnapshot };
+    detailSource.reload();
+    void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
+  }, [detailSource, invalidateEditorReads, selectedSnapshot]);
 
   const failureNotice = useCallback((error: unknown, title: string, fallback: string, frozenCopy: string, key: string): NoticeMessage => {
     if (error instanceof CopyIndexRefusal && error.conflict) {
-      return {
-        tone: "danger",
-        title: "Someone published this block after you opened it.",
-        message: "Your edits are still here. Note what you changed, then load the latest version and apply them again.",
-        actions: (
-          <Button type="button" variant="outline" size="sm" onClick={() => askLoadLatest(key)}>
-            Load the latest version
-          </Button>
-        ),
-      };
+      return copyConflictNotice(confirm, () => {
+        loadLatest(key);
+        setNotice(LOADED_LATEST_NOTICE);
+      });
     }
     if ((error instanceof CopyIndexRefusal && error.frozen) || freeze.frozen) {
       return { tone: "danger", title, message: frozenCopy };
     }
     return { tone: "danger", title, message: error instanceof Error ? error.message : fallback };
-  }, [askLoadLatest, freeze.frozen]);
+  }, [confirm, loadLatest, freeze.frozen]);
 
   const handleSave = useCallback(async (): Promise<boolean> => {
     if (!activeBlock || selectedSnapshot === undefined || loadedBlock?.key !== activeBlock.key) {
@@ -347,12 +331,16 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
         current: { body: "body" in block ? block.body : "", items: "items" in block ? block.items : [] },
         source: "data",
       };
-      awaitingWrite.current = savedBlock;
       setLoadedBlock(savedBlock);
-      setBaselineRow({ ...block, revision: receipt.revision });
-      setBaselineRevision(receipt.revision);
-      detailSource.reload();
-      void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
+      if (receipt.replayed) {
+        loadLatest(activeBlock.key);
+      } else {
+        awaitingWrite.current = savedBlock;
+        setBaselineRow({ ...block, revision: receipt.revision });
+        setBaselineRevision(receipt.revision);
+        detailSource.reload();
+        void invalidateEditorReads(["copyBlocks:getEditorCatalogue"]);
+      }
 
       setSaveState("idle");
       setNotice({
@@ -371,7 +359,7 @@ export function CopyStudioTab({ initialKey, canApprove }: CopyStudioTabProps) {
       ));
       return false;
     }
-  }, [activeBlock, baselineRow, baselineRevision, canApprove, draft, publish, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, failureNotice]);
+  }, [activeBlock, baselineRow, baselineRevision, canApprove, draft, publish, selectedSnapshot, loadedBlock, detailSource, invalidateEditorReads, loadLatest, failureNotice]);
 
   const requestPublish = useCallback(() => {
     if (!activeBlock || !isDirty || saving || !ready) return;
