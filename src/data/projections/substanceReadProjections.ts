@@ -168,7 +168,9 @@ export type SubstanceEditorArticleProjection = SubstanceArticleRecord & {
 };
 
 
-export function projectLookup(article: SubstanceArticleRecord): SubstanceLookupProjection {
+export function projectLookup(
+  article: Pick<SubstanceArticleRecord, "slug" | "title" | "priority">,
+): SubstanceLookupProjection {
   return {
     slug: resolveSubstanceSlug(article),
     name: article.title,

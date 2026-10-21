@@ -2,13 +2,13 @@ import chemicalIndexManual from "@data/substances/chemicalIndexManual.json";
 import { buildChemicalClassTree } from "../src/data/builders/chemicalClassTree";
 import { resolveChemicalClassKey } from "../src/data/indexes/chemicalClassLookup";
 import { projectLookup } from "../src/data/projections/substanceReadProjections";
-import { resolveSubstanceSlug, type SubstanceArticleRecord } from "../src/data/projections/substanceProjectionCore";
+import { resolveSubstanceSlug } from "../src/data/projections/substanceProjectionCore";
 import {
   isDirectUrlOnlySubstance,
   isHiddenSubstance,
 } from "../src/schema/substance/substanceVisibilityPolicy";
 import { paginationOptsValidator, query, type QueryCtx } from "../lib/postgres/runtime/server";
-import type { Doc } from "../lib/postgres/runtime/dataModel";
+import type { MoleculePickerRow } from "../lib/postgres/runtime/projectionReads";
 import { v } from "../lib/postgres/runtime/values";
 import { requireRole } from "./lib/auth";
 
@@ -29,8 +29,8 @@ async function authorize(ctx: QueryCtx, args: { apiKey?: string; actorEmail?: st
   );
 }
 
-function projectPickerRow(article: Doc<"substanceIndex">, hasOverride: boolean) {
-  const lookup = projectLookup(article as SubstanceArticleRecord);
+function projectPickerRow(article: MoleculePickerRow, hasOverride: boolean) {
+  const lookup = projectLookup(article);
   return {
     slug: lookup.slug,
     title: lookup.name,
@@ -49,7 +49,7 @@ function chemicalClasses(classification: unknown): string[] {
     : [];
 }
 
-function isClassMember(eligible: ReadonlySet<string>, article: Doc<"substanceIndex">): boolean {
+function isClassMember(eligible: ReadonlySet<string>, article: MoleculePickerRow): boolean {
   if (
     isHiddenSubstance(article.index_categories as string[] | null | undefined) ||
     isDirectUrlOnlySubstance(article.priority as string | null | undefined)
@@ -115,7 +115,7 @@ export const getSource = query({
     if (!article) return null;
     const rawSmiles = (article.identification as { smiles?: unknown } | undefined)?.smiles;
     return {
-      slug: resolveSubstanceSlug(article as SubstanceArticleRecord),
+      slug: resolveSubstanceSlug(article),
       smiles: typeof rawSmiles === "string" ? rawSmiles.trim() : "",
     };
   },

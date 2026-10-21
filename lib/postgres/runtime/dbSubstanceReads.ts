@@ -1,22 +1,21 @@
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
-import { fromRow, fromTableRow, type Doc, type SqlExecutor } from "./dbRows";
-import type { Doc as TableDoc } from "./dataModel";
-import type { SubstanceProjectionReads } from "./projectionReads";
+import { fromProjectedRow, fromRow, type Doc, type SqlExecutor } from "./dbRows";
+import {
+  aboutAggregateSubstanceColumns,
+  type AboutAggregateSubstanceRow,
+  type SubstanceProjectionReads,
+} from "./projectionReads";
 
 export class SubstanceProjectionReader implements SubstanceProjectionReads {
   constructor(protected readonly client: SqlExecutor) {}
 
-  async getAboutAggregateSubstanceRows(): Promise<TableDoc<"substanceIndex">[]> {
-    const fields = [
-      "_id", "_creationTime", "id", "title", "slug", "priority",
-      "index_categories", "identification", "classification", "pharmacology",
-    ];
+  async getAboutAggregateSubstanceRows(): Promise<AboutAggregateSubstanceRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex", fields)}
+      `SELECT ${losslessSelectList("substanceIndex", aboutAggregateSubstanceColumns)}
        FROM "substanceIndex"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
     );
-    return result.rows.map((row) => fromTableRow("substanceIndex", row));
+    return result.rows.map((row) => fromProjectedRow("substanceIndex", aboutAggregateSubstanceColumns, row));
   }
 
   async getPublicSubstanceMechanismRows(): Promise<Doc[]> {
