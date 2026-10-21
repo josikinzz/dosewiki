@@ -1,10 +1,10 @@
 {
   "zh-Hans": {
-    "compiledAt": "2026-10-21T04:08:41.891Z",
-    "catalogDigest": "ebcdb8ff7d9e8030c140754c33263fa95ecd9484362ffc07ab2a42c8b59e60d2",
+    "compiledAt": "2026-10-21T04:10:09.968Z",
+    "catalogDigest": "5037a68bbe87d542fa84e86917127d1014a7aae4c7256e8ed985ddf7d7c5ec4d",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "3ef0b7cb92b2b2185e2e2aafbd49bf9d7cddd145a6d83e8e9e343b04f7ae05d1",
+    "sourceInventoryDigest": "e4edfcb2da03944a844bbb8299680883087c4db8c308db4b8ea996d69095fc38",
     "pendingRefresh": [
       {
         "catalogKey": "The remaining effect categories are summarized below. Open any effect for its full article, replications, and analysis.",
@@ -1086,6 +1086,11 @@
         "target": "在网站上查看此句",
         "targetDigest": "6c4d7560af522a33e2ae511034a4f99c712d5ae6bd0c8c160e12f3d668b02be6"
       },
+      "tripReport.approximateDate": {
+        "source": "around {{date}}",
+        "target": "约 {{date}}",
+        "targetDigest": "d6d041f4170e23fca50808984690e1bd71ef90516109bd6426a6ddd8d3824d27"
+      },
       "translationCredits.title": {
         "source": "Translation contributors",
         "target": "翻译贡献者",
@@ -1094,11 +1099,11 @@
     }
   },
   "ru": {
-    "compiledAt": "2026-10-21T04:08:42.749Z",
-    "catalogDigest": "e631c681df83c140960fe8884747b2b305569780bc4c5a36e6e1f0d8e662d828",
+    "compiledAt": "2026-10-21T04:10:10.296Z",
+    "catalogDigest": "f0593edf023b8fe9806fee0bd9fa3fd85f55c0a83f3a861d491d6a17dbb1e9ec",
     "approvedUiDigest": null,
     "approvedUiSource": "offline-unverified",
-    "sourceInventoryDigest": "3ef0b7cb92b2b2185e2e2aafbd49bf9d7cddd145a6d83e8e9e343b04f7ae05d1",
+    "sourceInventoryDigest": "e4edfcb2da03944a844bbb8299680883087c4db8c308db4b8ea996d69095fc38",
     "pendingRefresh": [],
     "pendingRefreshStatus": "not-refreshed",
     "qaGlossaryMisses": [],
@@ -1187,6 +1192,11 @@
         "source": "See this sentence on the site",
         "target": "Открыть это предложение на сайте",
         "targetDigest": "54f6dfc8cf2b3ff4d0150ed3ea78a8200912aa849cc66383c33daf3c3ee23666"
+      },
+      "tripReport.approximateDate": {
+        "source": "around {{date}}",
+        "target": "примерно {{date}}",
+        "targetDigest": "6949630c952f923a5d28f47637c8f589b9c794e49f828b27f2b82ff317507297"
       },
       "translationCredits.title": {
         "source": "Translation contributors",

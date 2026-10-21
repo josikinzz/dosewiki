@@ -2416,6 +2416,7 @@
   "Trip reports are contributor-authored personal accounts. dose.wiki publishes legacy reports with permission, but they are not part of the covered material. Link to them freely. If the report's license marker permits it, or if the author agrees, you can republish or commercially use a report.": "Отчёты о психоактивном опыте – это личные рассказы, написанные авторами и редакторами. dose.wiki публикует унаследованные отчёты с разрешения, но они не входят в охватываемый материал. Ссылаться на них можно свободно. Если маркер лицензии отчёта это позволяет или автор согласен, отчёт можно переиздавать или использовать в коммерческих целях.",
   "Trip reports submitted through the current report form.": "Отчёты о психоактивном опыте, отправленные через текущую форму отчётов.",
   "Trip reports, article feedback, site feedback, and mailing-list signups require no sign-in.": "Отчёты о психоактивном опыте, отзывы о статьях, отзывы о сайте и подписки на рассылку не требуют входа в систему.",
+  "tripReport.approximateDate": "примерно {{date}}",
   "TripSit": "TripSit",
   "TripSit interaction ratings and combination guidance.": "Оценки взаимодействий и рекомендации по сочетаниям от TripSit.",
   "Tropane": "Тропан",

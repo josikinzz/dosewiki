@@ -2428,6 +2428,7 @@
   "Trip reports are contributor-authored personal accounts. dose.wiki publishes legacy reports with permission, but they are not part of the covered material. Link to them freely. If the report's license marker permits it, or if the author agrees, you can republish or commercially use a report.": "体验报告是由贡献者撰写的个人记述。dose.wiki 经许可发布历史报告，但这些报告不属于所涵盖的材料。可以自由链接它们。如果报告的许可标记允许，或作者同意，你可以转载或商业使用某份报告。",
   "Trip reports submitted through the current report form.": "通过当前报告表单提交的体验报告。",
   "Trip reports, article feedback, site feedback, and mailing-list signups require no sign-in.": "体验报告、文章反馈、站点反馈和邮件列表注册无需登录。",
+  "tripReport.approximateDate": "约 {{date}}",
   "TripSit": "TripSit",
   "TripSit interaction ratings and combination guidance.": "TripSit 相互作用评级与联用指导。",
   "Tropane": "托品烷",
