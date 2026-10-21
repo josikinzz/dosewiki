@@ -164,6 +164,7 @@
       "src/features/dev/context/useDevArticlesState.test.tsx",
       "src/features/dev/pages/useStagedArticlesRecovery.baselines.test.tsx",
       "src/features/dev/pages/useStagedArticlesRecovery.test.tsx",
+      "src/features/dev/tools/copy-studio/CopyBlock.editor.test.tsx",
       "src/features/replications/replicationTaxonomyCas.test.ts",
       "src/lib/generatedPublication.test.ts"
     ],
