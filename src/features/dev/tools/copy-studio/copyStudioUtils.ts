@@ -226,6 +226,20 @@ function normalizeItems(items: readonly string[]): string[] {
   return items.map((item) => item.trim()).filter((item) => item.length > 0);
 }
 
+export type CopyBlockDocument = Pick<CopyStudioBlock, "key" | "flavor" | "kind" | "label" | "group"> &
+  ({ items: string[] } | { body: string });
+
+export function copyBlockDocument(block: CopyStudioBlock, draft: CopyStudioDraft): CopyBlockDocument {
+  return {
+    key: block.key,
+    flavor: block.flavor,
+    kind: block.kind,
+    label: block.label,
+    group: block.group,
+    ...(block.kind === "list" ? { items: normalizeItems(draft.items) } : { body: draft.body }),
+  };
+}
+
 export function isDraftDirty(block: CopyStudioBlock, draft: CopyStudioDraft): boolean {
   if (block.kind === "list") {
     const next = normalizeItems(draft.items);

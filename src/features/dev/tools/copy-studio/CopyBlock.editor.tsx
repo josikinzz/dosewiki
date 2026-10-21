@@ -9,10 +9,10 @@ import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualE
 import { Notice, EditorSection, useConfirm } from "@/features/dev/components";
 import { DiffPreview } from "@/features/dev/components/DiffPreview";
 import { CopyBlockFields } from "./CopyBlockFields";
-import { buildCopyStudioBlocks, draftFromBlock, draftToText, blockCurrentText, type CopyBlockRow } from "./copyStudioUtils";
+import { buildCopyStudioBlocks, copyBlockDocument, draftFromBlock, draftToText, blockCurrentText, type CopyBlockRow } from "./copyStudioUtils";
 import { buildTextChangelog } from "@/utils/data/changelog";
-import { useCopyIndexOperation } from "../useCopyIndexOperation";
-import { proposalSubmittedNotice, submitToolProposal } from "../proposalSubmission";
+import { proposeCopyBlock, useCopyBlockWrites } from "./useCopyBlockWrites";
+import { proposalSubmittedNotice } from "../proposalSubmission";
 import { canDraft } from "@/lib/auth/roles";
 
 export default function CopyBlock({ copyKey, children }: { copyKey: string; children?: ReactNode }) {
@@ -30,7 +30,7 @@ function CopySession({ copyKey, close }: { copyKey: string; close: () => void })
 function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: string; initial: CopyBlockRow | null; initialRevision: number; close: () => void }) {
   const [baseline, setBaseline] = useState(initial);
   const [revision, setRevision] = useState(initialRevision);
-  const { serialize: publicationBody, acknowledge, uncertain } = useCopyIndexOperation();
+  const { publish: publishCopy, uncertain } = useCopyBlockWrites();
   const block = useMemo(() => buildCopyStudioBlocks(baseline ? [baseline] : []).find((row) => row.key === copyKey), [baseline, copyKey]);
   const [draft, setDraft] = useState(() => block ? draftFromBlock(block) : { body: "", items: [] });
   const [notice, setNotice] = useState("");
@@ -49,17 +49,15 @@ function CopyBody({ copyKey, initial, initialRevision, close }: { copyKey: strin
   async function publish() {
     if (!block) return;
     setSaving(true); setNotice(""); setProposalId(null);
-    const document = { key: block.key, flavor: block.flavor, kind: block.kind, label: block.label, group: block.group, ...(block.kind === "list" ? { items: previewItems } : { body: draft.body }) };
+    const document = copyBlockDocument(block, draft);
     try {
       if (!canApprove) {
-        const result = await submitToolProposal({ payload: { copyBlocks: [document] }, summary: `Update ${block.label}`, baselines: [{ kind: "copyBlock", key: copyKey, document: baseline }] });
+        const result = await proposeCopyBlock(document, baseline, `Update ${block.label}`);
         setProposalId(result.proposalId);
         return;
       }
-      const response = await fetch("/api/dev/copy-block", { method: "POST", headers: { "Content-Type": "application/json" }, body: publicationBody({ ...document, expected: baseline, expectedRevision: revision }) });
-      const payload = await response.json();
-      acknowledge(response, payload);
-      setRevision(payload.revision); setBaseline({ ...document, revision: payload.revision }); setNotice(payload.unchanged ? "No publication was needed; this content is unchanged." : payload.replayed ? "Your earlier publication went through. Someone may have published changes since." : `Published “${block.label}”. The public pages reading this key are refreshing with it now.`); router.refresh();
+      const receipt = await publishCopy(document, baseline, revision);
+      setRevision(receipt.revision); setBaseline({ ...document, revision: receipt.revision }); setNotice(receipt.unchanged ? "No publication was needed; this content is unchanged." : receipt.replayed ? "Your earlier publication went through. Someone may have published changes since." : `Published “${block.label}”. The public pages reading this key are refreshing with it now.`); router.refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Publication failed. Your draft is preserved."); }
     finally { setSaving(false); }
   }
