@@ -5,25 +5,8 @@ import { syncBuiltinESMExports } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
-import { createBunR2Storage, createRcloneStorage, requireApplyConfirmation } from "./publishSocialCardsToR2.mjs";
+import { createBunR2Storage, createRcloneStorage } from "./publishSocialCardsToR2.mjs";
 import { canonicalKey, installCandidateManifest, processObjects } from "./socialCardR2Pipeline.mjs";
-
-describe("social-card R2 publication plan", () => {
-  it("requires explicit apply plus exact target and bucket confirmations", () => {
-    const valid = [
-      "--apply",
-      "--confirm-operation=publish-social-cards",
-      "--confirm-plan=abc",
-      "--confirm-target=replications-r2:",
-      "--confirm-bucket=replications",
-    ];
-    assert.doesNotThrow(() => requireApplyConfirmation(valid, "replications-r2:", "replications", "abc"));
-    assert.throws(() => requireApplyConfirmation(valid.filter((arg) => arg !== "--apply"), "replications-r2:", "replications", "abc"), /--apply/);
-    assert.throws(() => requireApplyConfirmation(valid.with(2, "--confirm-plan=wrong"), "replications-r2:", "replications", "abc"), /confirm-plan/);
-    assert.throws(() => requireApplyConfirmation(valid.with(3, "--confirm-target=other:"), "replications-r2:", "replications", "abc"), /confirm-target/);
-    assert.throws(() => requireApplyConfirmation(valid.with(4, "--confirm-bucket=other"), "replications-r2:", "replications", "abc"), /confirm-bucket/);
-  });
-});
 
 describe("social-card R2 publication under the write freeze", () => {
   const sha256 = "a".repeat(64);

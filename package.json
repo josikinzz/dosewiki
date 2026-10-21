@@ -166,8 +166,9 @@
     "prepare": "husky || true",
     "security:check": "node scripts/security/scan-secrets.mjs --tracked",
     "check:function-references": "node scripts/build/check-function-references.mjs",
+    "check:test-policy": "node scripts/test/test-policy.mjs",
     "check:build-wiring": "node scripts/deploy/check-build-command-wiring.mjs",
-    "verify:checkout": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run check:function-references && bun run check:build-wiring",
+    "verify:checkout": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run openchemlib:verify && bun run test && bun run test:workflow && bun run typecheck && bun run lint && bun run typecheck:scripts && bun run typecheck:handlers && bun run provenance:check && bun run schema:check && bun run check:function-references && bun run check:build-wiring && bun run check:test-policy",
     "verify:drift": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run postgres:verify-migrations && bun run postgres:check-schema",
     "verify": "export DATA_BACKEND=postgres DATA_WRITES_FROZEN=1 && bun run security:check && bun run verify:checkout && bun run verify:drift"
   },

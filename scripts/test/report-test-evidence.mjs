@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { discoverWorkflowTests } from "./workflow-test-manifest.mjs";
+import { policyFiles, readTestPolicy } from "./test-policy.mjs";
 
 export const SETUP_COST_PATTERN = /initRDKitModule|@rdkit|openchemlib|wasm|OclEditor/;
 export const SETUP_COST_TAG = "setup:rdkit-or-wasm";
@@ -60,9 +61,11 @@ export function mergeRuns(runs) {
   const files = [];
   const flaky = [];
   const deterministic = [];
+  const wholeFileSkipped = [];
   for (const merged of byFile.values()) {
     const failures = merged.outcomes.filter((o) => o === "failed").length;
     const skips = merged.outcomes.filter((o) => o === "skipped").length;
+    if (skips > 0) wholeFileSkipped.push(merged.file);
     let status;
     if (failures === merged.outcomes.length) {
       status = "failed";
@@ -89,15 +92,21 @@ export function mergeRuns(runs) {
   files.sort((a, b) => b.durationMs - a.durationMs || a.file.localeCompare(b.file));
   flaky.sort();
   deterministic.sort();
-  return { files, flaky, deterministic };
+  wholeFileSkipped.sort();
+  return { files, flaky, deterministic, wholeFileSkipped };
+}
+
+export function findMissingFiles(expectedFiles, files) {
+  const ran = new Set(files.map((row) => row.file));
+  return expectedFiles.filter((file) => !ran.has(file)).sort();
 }
 
 export function tagSetupCost(file, source) {
   return SETUP_COST_PATTERN.test(source) ? [SETUP_COST_TAG] : [];
 }
 
-export function computeExitCode(merged) {
-  return merged.deterministic.length > 0 || merged.flaky.length > 0 ? 1 : 0;
+export function computeExitCode({ deterministic, flaky, wholeFileSkipped, missing }) {
+  return [deterministic, flaky, wholeFileSkipped, missing].some((files) => files.length > 0) ? 1 : 0;
 }
 
 
@@ -190,7 +199,8 @@ function laneTotals(files) {
   return totals;
 }
 
-export function buildReport(merged, { runs, command, generatedAt }) {
+export function buildReport(merged, { runs, command, generatedAt, expectedFiles }) {
+  const missing = findMissingFiles(expectedFiles, merged.files);
   const tagged = merged.files.filter((row) => row.tags.includes(SETUP_COST_TAG));
   const skipped = merged.files.filter((row) => row.status === "skipped" || row.skippedCases.length > 0);
   const failed = merged.files.filter((row) => row.status === "failed" || row.status === "flaky");
@@ -198,7 +208,7 @@ export function buildReport(merged, { runs, command, generatedAt }) {
     generatedAt,
     command,
     runs,
-    exitCode: computeExitCode(merged),
+    exitCode: computeExitCode({ ...merged, missing }),
     laneTotals: laneTotals(merged.files),
     setupCost: {
       tag: SETUP_COST_TAG,
@@ -211,6 +221,8 @@ export function buildReport(merged, { runs, command, generatedAt }) {
     failed: failed.map((row) => ({ file: row.file, lane: row.lane, status: row.status, outcomes: row.outcomes })),
     flaky: merged.flaky,
     deterministic: merged.deterministic,
+    wholeFileSkipped: merged.wholeFileSkipped,
+    missing,
   };
 }
 
@@ -245,6 +257,16 @@ export function renderMarkdown(report) {
     lines.push(`- ${row.file} (${row.lane}, ${row.status})`);
     for (const title of row.skippedCases) lines.push(`  - ${title}`);
   }
+  lines.push("");
+
+  lines.push("## Wholly skipped files (fail the report)", "");
+  if (report.wholeFileSkipped.length === 0) lines.push("None.");
+  for (const file of report.wholeFileSkipped) lines.push(`- ${file}`);
+  lines.push("");
+
+  lines.push("## Test policy files that did not run (fail the report)", "");
+  if (report.missing.length === 0) lines.push("None.");
+  for (const file of report.missing) lines.push(`- ${file}`);
   lines.push("");
 
   lines.push("## Failed files", "");
@@ -306,6 +328,7 @@ function main() {
     runs,
     command: `node scripts/test/report-test-evidence.mjs --runs ${runs}`,
     generatedAt: new Date().toISOString(),
+    expectedFiles: policyFiles(readTestPolicy(repoRoot)),
   });
 
   const outDir = path.join(repoRoot, ".test-evidence");
