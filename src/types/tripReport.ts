@@ -109,29 +109,31 @@ type TripReportExcerptInput = Partial<Pick<
   "introduction" | "onset" | "peak" | "offset" | "conclusion"
 >>;
 
-export const getTripReportExcerpt = (
-  report: TripReportExcerptInput,
-  maxLength = 170,
-): string => {
+export const TRIP_REPORT_EXCERPT_LENGTH = 170;
+
+export const formatTripReportExcerpt = (text: string): string => {
+  const normalized = text.replace(/\s+/g, " ").trim();
+
+  return normalized.length <= TRIP_REPORT_EXCERPT_LENGTH
+    ? normalized
+    : `${normalized.slice(0, TRIP_REPORT_EXCERPT_LENGTH).trimEnd()}…`;
+};
+
+export const getTripReportExcerpt = (report: TripReportExcerptInput): string => {
   const timelineText = [
     ...(report.onset ?? []),
     ...(report.peak ?? []),
     ...(report.offset ?? []),
   ].map((entry) => entry.description);
-  const normalized = [
+
+  return formatTripReportExcerpt([
     report.introduction,
     ...timelineText,
     report.conclusion,
   ]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value))
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return normalized.length <= maxLength
-    ? normalized
-    : `${normalized.slice(0, maxLength).trimEnd()}…`;
+    .join(" "));
 };
 
 export const toPublicReportPreview = (

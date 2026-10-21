@@ -141,6 +141,7 @@ export type PublicEffectProjectionRow<Projection extends PublicEffectProjection>
 export type PublicEffectGalleryOrderRow = ProjectedRow<"subjectiveEffects", typeof publicEffectGalleryOrderColumns>;
 export type PublicContributorIdentityRow = ProjectedRow<"contributorProfiles", typeof publicContributorIdentityColumns>;
 export type PublicTripReportPreviewRow = ProjectedRow<"tripReports", typeof publicTripReportPreviewColumns>;
+export type PublicTripReportBrowseRow = PublicTripReportPreviewRow & { excerpt_source: string | null };
 export type PublicTripReportContributorRow = ProjectedRow<"tripReports", typeof publicTripReportContributorColumns>;
 export type PublicGalleryMembershipRow = ProjectedRow<"replications", typeof publicGalleryMembershipColumns>;
 export type PublicArtistCreditRow = ProjectedRow<"replications", typeof publicArtistCreditColumns>;
@@ -239,7 +240,7 @@ export interface PublicProjectionReads extends SubstanceProjectionReads {
   ): Promise<PublicEffectProjectionRow<Projection>[]>;
   getPublicEffectCreditsByNames(names: readonly string[]): Promise<PublicEffectProjectionRow<"credits">[]>;
   getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<PublicEffectGalleryOrderRow[]>;
-  getPublicTripReportBrowseRows(): Promise<PublicTripReportPreviewRow[]>;
+  getPublicTripReportBrowseRows(excerptSourceLength: number): Promise<PublicTripReportBrowseRow[]>;
   getPublicTripReportPreviewsBySubstanceNames(names: readonly string[]): Promise<PublicTripReportPreviewRow[]>;
   getPublicTripReportsByContributor(profileKey: string, authorNames: readonly string[]): Promise<PublicTripReportContributorRow[]>;
   getPublicGalleryMembershipRows(): Promise<PublicGalleryMembershipRow[]>;

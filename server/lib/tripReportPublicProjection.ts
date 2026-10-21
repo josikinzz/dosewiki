@@ -1,10 +1,7 @@
-import { getTripReportExcerpt } from "../../src/types/tripReport";
-
 import type { Doc } from "../../lib/postgres/runtime/dataModel"
 
 type TripReportPreviewInput =
-  Pick<Doc<"tripReports">, "_creationTime" | "slug" | "title" | "featured" | "subject" | "substances" | "attribution_review">
-  & Partial<Pick<Doc<"tripReports">, "introduction" | "onset" | "peak" | "offset" | "conclusion">>;
+  Pick<Doc<"tripReports">, "_creationTime" | "slug" | "title" | "featured" | "subject" | "substances" | "attribution_review">;
 
 export function publicTripReport(
   report: Pick<
@@ -31,14 +28,14 @@ export function publicTripReport(
   };
 }
 
-export function publicTripReportPreview(report: TripReportPreviewInput) {
+export function publicTripReportPreview(report: TripReportPreviewInput, excerpt: string) {
   return {
     slug: report.slug,
     title: report.title,
     featured: report.featured,
     subject: report.subject,
     substances: report.substances,
-    excerpt: getTripReportExcerpt(report),
+    excerpt,
     published_at: new Date(report._creationTime).toISOString(),
     attribution_locked: !!report.attribution_review,
   };

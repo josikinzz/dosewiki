@@ -21,6 +21,7 @@ import {
   type PublicGalleryMembershipRow,
   type PublicOverviewCounts,
   type PublicProjectionReads,
+  type PublicTripReportBrowseRow,
   type PublicTripReportContributorRow,
   type PublicTripReportPreviewRow,
   type PublishedArticleIndexRow,
@@ -128,13 +129,24 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
       fromProjectedRow<"subjectiveEffects", (typeof publicEffectProjectionColumns)[Projection][number]>("subjectiveEffects", fields, row));
   }
 
-  async getPublicTripReportBrowseRows(): Promise<PublicTripReportPreviewRow[]> {
+  async getPublicTripReportBrowseRows(excerptSourceLength: number): Promise<PublicTripReportBrowseRow[]> {
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("tripReports", publicTripReportPreviewColumns)}
+      String.raw`SELECT ${losslessSelectList("tripReports", publicTripReportPreviewColumns)},
+         left(regexp_replace(concat_ws(' ', "introduction", (
+           SELECT string_agg(entry.value->>'description', ' ' ORDER BY timeline.phase, entry.position)
+           FROM (VALUES (1, "onset"), (2, "peak"), (3, "offset")) AS timeline(phase, entries)
+           CROSS JOIN LATERAL jsonb_array_elements(
+             CASE WHEN jsonb_typeof(timeline.entries) = 'array' THEN timeline.entries ELSE '[]'::jsonb END
+           ) WITH ORDINALITY AS entry(value, position)
+         ), "conclusion"), '[\t\n\v\f\r \u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000\ufeff]+', ' ', 'g'), $1::int) AS "excerpt_source"
        FROM "tripReports"
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC`,
+      [excerptSourceLength],
     );
-    return result.rows.map((row) => fromProjectedRow("tripReports", publicTripReportPreviewColumns, row));
+    return result.rows.map((row) => ({
+      ...fromProjectedRow("tripReports", publicTripReportPreviewColumns, row),
+      excerpt_source: typeof row.excerpt_source === "string" ? row.excerpt_source : null,
+    }));
   }
 
   async getPublicGalleryMembershipRows(): Promise<PublicGalleryMembershipRow[]> {

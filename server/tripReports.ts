@@ -14,6 +14,7 @@ import {
 } from "./lib/tripReportSubstanceIndex";
 import { backfillPublicReadIndexPage, getPublicReadIndexStatus } from "./lib/publicReadIndexBackfill";
 import { publicTripReport, publicTripReportPreview } from "./lib/tripReportPublicProjection";
+import { formatTripReportExcerpt, getTripReportExcerpt, TRIP_REPORT_EXCERPT_LENGTH } from "../src/types/tripReport";
 import {
   assignOwnerHandler,
   getPortalRecordHandler,
@@ -58,7 +59,7 @@ export const getPublicPreviewsPage = query({
           title: report.title,
           introduction: report.introduction,
         }))
-        : result.page.map(publicTripReportPreview),
+        : result.page.map((report) => publicTripReportPreview(report, getTripReportExcerpt(report))),
       cursor: result.continueCursor,
       isDone: result.isDone,
     };
@@ -68,7 +69,8 @@ export const getPublicPreviewsPage = query({
 export const getPublicBrowseIndex = query({
   args: {},
   handler: async (ctx) => {
-    return (await ctx.db.getPublicTripReportBrowseRows()).map((report) => publicTripReportPreview(report));
+    return (await ctx.db.getPublicTripReportBrowseRows(TRIP_REPORT_EXCERPT_LENGTH * 2)).map((report) =>
+      publicTripReportPreview(report, formatTripReportExcerpt(report.excerpt_source ?? "")));
   },
 });
 
@@ -111,7 +113,7 @@ export const getBySubstanceNames = query({
   args: { substanceNames: v.array(v.string()) },
   handler: async (ctx, args) => {
     const reports = await ctx.db.getPublicTripReportPreviewsBySubstanceNames(args.substanceNames);
-    return reports.map((report) => publicTripReportPreview(report));
+    return reports.map((report) => publicTripReportPreview(report, ""));
   },
 });
 
