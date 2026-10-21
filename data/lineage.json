@@ -1234,12 +1234,12 @@
       "id": "smiles-gap-fill-batches",
       "path": "data/chemistry/smiles-gap-fills/*.json",
       "role": "reviewed-research-input",
-      "producer": "SMILES gap-fill research batches (PubChem and Wikipedia lookups, RDKit-validated)",
+      "producer": "hand-run SMILES gap-fill research; no tracked script writes these files. Each batch-N-input.json lists substances that lacked a SMILES, and batch-N-output.json holds the RDKit-validated PubChem or Wikipedia structures found for them",
       "consumers": [
         "scripts/data/mergeGeneratedSmiles.mjs"
       ],
       "inputs": [
-        "batch-*-input.json substance lists emitted by scripts/data/resolveSmilesCoverage.mjs",
+        "data/chemistry/smiles-gaps.json, the gap list scripts/data/resolveSmilesCoverage.mjs writes, from which each batch input is selected",
         "PubChem and Wikipedia structure lookups"
       ],
       "freshnessRule": "Append a reviewed batch pair when new substances lack inline SMILES, then merge with npm run molecules:merge-smiles.",
