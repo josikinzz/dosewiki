@@ -5,6 +5,24 @@ are the entry points: [README](../README.md), [ARCHITECTURE](../ARCHITECTURE.md)
 [CONTRIBUTING](../CONTRIBUTING.md), and [AGENTS](../AGENTS.md). When prose and
 source disagree, the source is right.
 
+Start every task with AGENTS.md, the ARCHITECTURE.md map, and the row below
+that matches the task. Open the other documents on this page only when the
+task reaches them.
+
+## Find the document for a task
+
+| Task | Read first |
+| --- | --- |
+| Place a new module or helper | [ARCHITECTURE.md](../ARCHITECTURE.md#where-new-code-goes) |
+| Add or change an API route | [CONTRIBUTING.md](../CONTRIBUTING.md#add-an-api-route), then [auth](architecture/auth.md) |
+| Run the checks for a change | [CONTRIBUTING.md](../CONTRIBUTING.md#verify) |
+| Find or run a package command | [scripts/README.md](../scripts/README.md#command-catalog) |
+| Change article shape or a generated file | [ARCHITECTURE.md](../ARCHITECTURE.md#generated-code) and [data/README.md](../data/README.md) |
+| Write production data or run a migration | [data credentials](operations/data-credentials.md) |
+| Release a build or change a host | [deployment](operations/deployment.md) |
+| Build or change shared UI | [UI kit](design/ui-kit.md) |
+| Run a citation, legality, translation, or replication workflow | The matching row under [Workflows](#workflows) |
+
 ## Reference
 
 | Document | Purpose |
