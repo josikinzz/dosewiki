@@ -85,14 +85,14 @@ Before initial activation or any configuration or source-revision change, verify
 ## Remote build deploy token
 
 The remote build workflow (see [security CI](security-ci.md#remote-build-workflow))
-authenticates to Vercel with one token per GitHub environment, beside the
-org id and the surface's project id. Provisioning it is a human step:
+authenticates to Vercel with one token per GitHub environment. Provisioning it
+is a human step:
 
 - Create the token in Vercel with the narrowest scope the account offers (the
   team that owns the three projects, nothing wider). Vercel tokens cannot be
-  restricted to "deploy but never alias"; the workflow's lack of an alias or
-  `--prod` step is the control, so the token is production-capable and the
-  environment must require a reviewer.
+  restricted to "deploy but never alias", so the token is production-capable.
+  The workflow's lack of an alias or promote step is what keeps it from
+  promoting.
 - Store it only as `VERCEL_TOKEN` in the GitHub environment for that surface,
   never in `.env.local`, argv, logs, or this file.
 - Record here the token's scope, the environment it lives in, and the date it
@@ -104,35 +104,50 @@ org id and the surface's project id. Provisioning it is a human step:
 | `remote-build-editor` | editor | team `josies-projects`, no expiry | 2026-09-23 | token `github-remote-build-editor`; `VERCEL_PROJECT_ID` is `dosewiki-admin` |
 | `remote-build-effectindex` | effectindex | team `josies-projects`, no expiry | 2026-09-23 | token `github-remote-build-effectindex`; `VERCEL_PROJECT_ID` is `effectindex` |
 
-Each environment holds `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, and
-`RELEASE_BUILD_ENABLED=true`. The remote build workflow reads no database
-URL: Vercel builds the upload with the project's own environment. The
-repository-level `POSTGRES_POOLED_READONLY_URL` and `REPLICATION_MEDIA_BASE_URL`
-remain for the policy workflow. Each `VERCEL_TOKEN` is created in the Vercel
-dashboard (the API refuses to mint tokens from a CLI login session) and scoped
-to the team, not one project: the CLI reads the user and team before any
-project call, and a project-scoped token is refused both, so `vercel pull`
-fails with "Could not retrieve Project Settings", and so does `vercel deploy`. The token has no expiry by
-owner decision, so rotation is manual:
-revoke it under Account Settings, Tokens, create a replacement with the same
-name and scope, and set it with `gh secret set VERCEL_TOKEN --env <environment>`. The repository's
-GitHub plan does not support the required-reviewer rule on a private repository,
-so no environment has one; only collaborators with write access can dispatch.
+Each `VERCEL_TOKEN` is created in the Vercel dashboard (the API refuses to mint
+tokens from a CLI login session) and scoped to the team, not one project. The
+CLI reads the user and team before any project call. A project-scoped token is
+refused both, so `vercel pull` and `vercel deploy` fail with "Could not
+retrieve Project Settings". The token has no expiry by owner decision, so
+rotation is manual: revoke it under Account Settings, Tokens, create a
+replacement with the same name and scope, and set it with
+`gh secret set VERCEL_TOKEN --env <environment>`.
 
-Each environment the workflow can select must hold exactly these values and
-nothing that can write:
+### Environment contents
+
+`.github/workflows/remote-build.yml` reads exactly these values from the
+selected environment:
 
 | Name | Kind | Purpose |
 | ---- | ---- | ------- |
-| `VERCEL_TOKEN` | secret | Deploy token described above |
+| `VERCEL_TOKEN` | secret | Deploy token described above. It can create production deployments. |
 | `VERCEL_ORG_ID` | secret | The Vercel team id |
 | `VERCEL_PROJECT_ID` | secret | The project id for this surface only |
-| `POSTGRES_POOLED_READONLY_URL` | secret | Read-only pooled Postgres URL the build reads from |
-| `RELEASE_BUILD_ENABLED` | variable | Must be `true`; the explicit gate shared with the policy workflow |
-| `REPLICATION_MEDIA_BASE_URL` | variable | Media base the build embeds; a missing value fails the build |
+| `RELEASE_BUILD_ENABLED` | variable | Must be `true`. The same explicit gate the policy workflow uses. |
 
-No environment used by the workflow may hold `DATA_ADMIN_KEY`, any
+It reads no database URL, because Vercel builds the upload with the project's
+own environment. `POSTGRES_POOLED_READONLY_URL` (secret) and
+`REPLICATION_MEDIA_BASE_URL` (variable) belong to the `release-build` job in
+`.github/workflows/vercel-policy-checks.yml`. That job builds on the runner
+and resolves them from its selected environment or the repository. No
+environment either workflow selects may hold `DATA_ADMIN_KEY`, any
 `DATA_ADMIN_TOKEN_*`, or a Postgres URL with write grants.
+
+### Environment protection
+
+Read on 2026-10-20 with `gh api repos/josikinzz/dosewiki/environments`:
+`remote-build-public`, `remote-build-editor`, and `remote-build-effectindex`
+have no protection rules (no required reviewer, no wait timer) and no
+deployment branch policy. The repository is public, and GitHub offers required
+reviewers on public repositories on every plan. The earlier "private
+repository" reason for having none no longer applies. Adding a reviewer is an
+owner decision.
+
+Until then, anyone with write access can dispatch a build of any ref into any
+of these environments, including a `target: production` upload. That upload
+holds no domain. Promotion stays the manual release ceremony in
+[deployment](deployment.md#build-and-release-sequence). Re-read the live state
+before you rely on it.
 
 ## Application rollback
 

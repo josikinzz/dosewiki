@@ -49,18 +49,19 @@ What it can do:
 What it cannot do, by construction:
 
 - build on the runner or upload prebuilt output;
-- hold a database URL: the build reads the Vercel project's own read-only
+- hold a database URL: the build reads the Vercel project's own
   environment, never a GitHub secret;
 - assign a domain or promote: every production upload passes
   `--skip-domain`, and there is no `alias` or `promote` step;
-- run on push or on a schedule: `workflow_dispatch` only, gated by the
-  selected environment's required reviewers and its `RELEASE_BUILD_ENABLED`
-  variable.
+- run on push or on a schedule: `workflow_dispatch` only, so a dispatcher
+  needs write access, and the selected environment must set
+  `RELEASE_BUILD_ENABLED=true`. The environments have no required reviewer;
+  [data credentials](data-credentials.md#environment-protection) records the
+  live state.
 
-The Vercel token it uses is a team token: Vercel does not scope tokens below
+The Vercel token it uses is a team token. Vercel does not scope tokens below
 deploy capability, so the only thing keeping it from promoting is the absence
-of a step that would. Treat it as production-capable, keep it in a
-reviewer-gated environment, and record its scope in
+of a step that would. Treat it as production-capable and record its scope in
 [data credentials](data-credentials.md#remote-build-deploy-token). A dry run
 (`dry_run: true`) prints the commit, surface, target, and staged cron paths,
 and uploads nothing.
