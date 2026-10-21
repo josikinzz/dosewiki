@@ -44,6 +44,25 @@ const GENERATED_OUTPUT_GLOBS = [
   "vendor/openchemlib/artifact-manifest.json",
   "vendor/openchemlib/dist/*",
 ];
+const AUTHORED_FILE_GLOBS = [
+  "content/prompts/extraction/*.md",
+  "content/prompts/formal-citations/*.md",
+  "content/prompts/generator.md",
+  "content/prompts/registry.json",
+  "content/prompts/sections/*.md",
+  "content/taxonomy/drug-classes.json",
+  "content/taxonomy/effect-categories.json",
+  "content/taxonomy/psychoactive-summaries.json",
+  "data/chemistry/smiles-gap-fills/*.json",
+  "data/effects/effectIndexFeaturedReplications.json",
+  "data/i18n/glossary/glosses/*.json",
+  "data/lineage.json",
+  "data/substances/chemicalIndexManual.json",
+  "data/substances/psychoactiveIndexManual.json",
+  "data/substances/routeSynonyms.json",
+  "data/substances/usStateFlagMappings.json",
+  "lib/postgres/runtime/functionOwnership.json",
+];
 const FILES_NEEDING_THEIR_OWN_ENTRY = {
   authored: [
     "data/i18n/glossary/zh-Hans.drafts-2026-09-12.json",
@@ -443,19 +462,23 @@ export function collectArtifactLineageVerification({
     }
   }
 
-  const generatedOutputPatterns = [GENERATED_OUTPUT_NAME, ...GENERATED_OUTPUT_GLOBS.map(pathPatternToRegex)];
+  const inventoryPatterns = [
+    ...[GENERATED_OUTPUT_NAME, ...GENERATED_OUTPUT_GLOBS.map(pathPatternToRegex)].map((regex) => ({ kind: "generated output", regex })),
+    ...AUTHORED_FILE_GLOBS.map((pattern) => ({ kind: "authored file", regex: pathPatternToRegex(pattern) })),
+  ];
   const ownEntryPatterns = Object.entries(FILES_NEEDING_THEIR_OWN_ENTRY).flatMap(([kind, patterns]) =>
     patterns.map((pattern) => ({ kind, regex: pathPatternToRegex(pattern) })));
   for (const filePath of trackedFiles) {
     const ownEntryKind = ownEntryPatterns.find(({ regex }) => regex.test(filePath))?.kind;
-    if (!ownEntryKind && !generatedOutputPatterns.some((pattern) => pattern.test(filePath))) {
+    const inventoryKind = inventoryPatterns.find(({ regex }) => regex.test(filePath))?.kind;
+    if (!ownEntryKind && !inventoryKind) {
       continue;
     }
     const entry = findArtifactLineageEntry(filePath, { rootDir, manifest: sourceManifest });
     if (ownEntryKind && (!entry || entry.path.includes("*"))) {
       errors.push(`${ownEntryKind} file inside a generated output glob needs its own lineage entry: ${filePath}`);
     } else if (!entry) {
-      errors.push(`tracked generated output has no lineage entry: ${filePath}`);
+      errors.push(`tracked ${inventoryKind} has no lineage entry: ${filePath}`);
     }
   }
 
