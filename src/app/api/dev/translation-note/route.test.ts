@@ -1,7 +1,7 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { PGlite } from "@electric-sql/pglite";
+import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { roleSessionFor } from "@/test/routeSession";
+import { migratedPGlite, routeTransportToPGlite } from "@/test/pglite";
 import type { TranslatorNotePacket } from "@server/translation/translatorNoteTypes";
 import { readApprovedTranslatorNotes } from "@server/translation/translatorNotes";
 import { localizeRecord } from "@server/translation/liveTranslation";
@@ -37,10 +37,8 @@ const NOTE = "在中国，2-苄基哌啶未被单独列管，但可能按类似�
 let db: PGlite;
 
 beforeAll(async () => {
-  db = new PGlite();
-  for (const file of readdirSync("lib/postgres/migrations").filter((name) => name.endsWith(".sql")).sort()) await db.exec(readFileSync(`lib/postgres/migrations/${file}`, "utf8"));
-  transport.sql.mockImplementation(async (query: string, params: unknown[] = []) => (await db.query(query, params)).rows);
-  transport.sqlTransaction.mockImplementation((operation: (tx: { query: typeof db.query }) => Promise<unknown>) => db.transaction((tx) => operation({ query: tx.query.bind(tx) as typeof db.query })));
+  db = await migratedPGlite();
+  routeTransportToPGlite(transport, db);
 }, 180_000);
 beforeEach(async () => {
   vi.stubEnv("DATA_WRITES_FROZEN", "0");
