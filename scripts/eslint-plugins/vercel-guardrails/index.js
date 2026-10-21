@@ -342,6 +342,55 @@ const noUnsafeApiPatterns = {
   },
 };
 
+const RATE_LIMIT_CALLS = new Set([
+  'rateLimit',
+  'enforceRateLimit',
+  'protectedRouteOperation',
+  'citationEvidenceRouteOperation',
+  'feedbackStatusRoute',
+  'feedbackQueueRoute',
+  'feedbackItemRoute',
+  'editorReadRoute',
+  'glossaryReviewRead',
+  'createSubscribeRateLimiter',
+  'authorizeCronRequest',
+  'cronRoute',
+]);
+const RATE_LIMIT_SOURCES = ['rateLimit', 'rate-limit', 'protectedRouteOperation', '@upstash/ratelimit'];
+
+function importsRateLimit(node) {
+  return (
+    RATE_LIMIT_SOURCES.some(fragment => node.source.value.includes(fragment)) ||
+    node.specifiers.some(specifier => RATE_LIMIT_CALLS.has(specifier.imported?.name) || RATE_LIMIT_CALLS.has(specifier.local.name))
+  );
+}
+
+function callsRateLimit(node) {
+  return (
+    (node.callee.type === 'Identifier' && RATE_LIMIT_CALLS.has(node.callee.name)) ||
+    (node.callee.type === 'MemberExpression' && node.callee.property?.name === 'limit')
+  );
+}
+
+function someNode(node, predicate) {
+  if (Array.isArray(node)) return node.some(child => someNode(child, predicate));
+  if (!node || typeof node.type !== 'string') return false;
+  return predicate(node) || Object.entries(node).some(([key, value]) => key !== 'parent' && someNode(value, predicate));
+}
+
+function usesRateLimit(program) {
+  return (
+    program.body.some(node => node.type === 'ImportDeclaration' && importsRateLimit(node)) &&
+    someNode(program.body, node => node.type === 'CallExpression' && callsRateLimit(node))
+  );
+}
+
+function parseFile(parser, file) {
+  const code = fs.readFileSync(file, 'utf8');
+  const options = { ecmaVersion: 'latest', sourceType: 'module', filePath: file, jsx: file.endsWith('.tsx') };
+  return parser.parseForESLint ? parser.parseForESLint(code, options).ast : parser.parse(code, options);
+}
+
 const requireRateLimit = {
   meta: {
     type: 'suggestion',
@@ -365,93 +414,32 @@ const requireRateLimit = {
 
     if (!isApiRoute) return {};
 
-    let hasRateLimitImport = false;
-    let hasRateLimitCall = false;
-    let hasDelegatedHandlerCall = false;
+    let delegates = false;
     const delegatedHandlerNames = new Set();
-    const httpHandlerNames = new Set([
-      'GET',
-      'HEAD',
-      'POST',
-      'PUT',
-      'DELETE',
-      'PATCH',
-      'OPTIONS',
-    ]);
-    const rateLimitAwareCallNames = new Set([
-      'rateLimit',
-      'enforceRateLimit',
-      'protectedRouteOperation',
-      'citationEvidenceRouteOperation',
-      'feedbackStatusRoute',
-      'feedbackQueueRoute',
-      'feedbackItemRoute',
-      'editorReadRoute',
-      'createSubscribeRateLimiter',
-      'authorizeCronRequest',
-      'cronRoute',
-    ]);
 
     return {
       ImportDeclaration(node) {
         const source = node.source.value;
-        if (
-          source.includes('rateLimit') ||
-          source.includes('rate-limit') ||
-          source.includes('protectedRouteOperation') ||
-          source.includes('@upstash/ratelimit')
-        ) {
-          hasRateLimitImport = true;
-        }
-
-        for (const specifier of node.specifiers ?? []) {
-          const importedName = specifier.imported?.name ?? specifier.local?.name ?? '';
-          const localName = specifier.local?.name ?? '';
-          if (rateLimitAwareCallNames.has(importedName) || rateLimitAwareCallNames.has(localName)) {
-            hasRateLimitImport = true;
+        if (!source.startsWith('.') || !/(?:^|\/)route(?:\.[cm]?[jt]sx?)?$/.test(source)) return;
+        for (const specifier of node.specifiers) {
+          if (specifier.type === 'ImportSpecifier' && HTTP_METHODS.has(specifier.imported.name)) {
+            delegatedHandlerNames.add(specifier.local.name);
           }
         }
+      },
 
-        const isRelativeRouteModule =
-          typeof source === 'string' &&
-          source.startsWith('.') &&
-          /(?:^|\/)route(?:\.[cm]?[jt]sx?)?$/.test(source);
-        if (isRelativeRouteModule) {
-          for (const specifier of node.specifiers ?? []) {
-            if (
-              specifier.type === 'ImportSpecifier' &&
-              httpHandlerNames.has(specifier.imported?.name) &&
-              specifier.local?.name
-            ) {
-              delegatedHandlerNames.add(specifier.local.name);
-            }
-          }
-        }
+      ExportNamedDeclaration(node) {
+        if (!node.source || !node.specifiers.some(specifier => HTTP_METHODS.has(specifier.exported.name ?? specifier.exported.value))) return;
+        const file = resolveRelativeModule(filename, node.source.value);
+        if (file && usesRateLimit(parseFile(context.languageOptions.parser, file))) delegates = true;
       },
 
       CallExpression(node) {
-        if (
-          (node.callee.type === 'Identifier' && rateLimitAwareCallNames.has(node.callee.name)) ||
-          (node.callee.type === 'MemberExpression' &&
-           node.callee.property?.name === 'limit')
-        ) {
-          hasRateLimitCall = true;
-        }
-        if (
-          node.callee.type === 'Identifier' &&
-          delegatedHandlerNames.has(node.callee.name)
-        ) {
-          hasDelegatedHandlerCall = true;
-        }
+        if (node.callee.type === 'Identifier' && delegatedHandlerNames.has(node.callee.name)) delegates = true;
       },
 
       'Program:exit'(node) {
-        if ((!hasRateLimitImport || !hasRateLimitCall) && !hasDelegatedHandlerCall) {
-          context.report({
-            node,
-            messageId: 'missingRateLimit',
-          });
-        }
+        if (!delegates && !usesRateLimit(node)) context.report({ node, messageId: 'missingRateLimit' });
       },
     };
   },
@@ -824,10 +812,7 @@ const requireRouteAccess = {
       const file = resolveRelativeModule(fromFile, source);
       if (!file) return null;
       if (!parsedModules.has(file)) {
-        const code = fs.readFileSync(file, 'utf8');
-        const options = { ecmaVersion: 'latest', sourceType: 'module', filePath: file, jsx: file.endsWith('.tsx') };
-        const program = parser.parseForESLint ? parser.parseForESLint(code, options).ast : parser.parse(code, options);
-        parsedModules.set(file, { file, ...readModuleBindings(program) });
+        parsedModules.set(file, { file, ...readModuleBindings(parseFile(parser, file)) });
       }
       return parsedModules.get(file);
     }
