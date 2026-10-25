@@ -38,6 +38,7 @@ function publishedArticleIndexEntry(row: PublishedArticleIndexRow) {
   return presentFields({
     slug: row.slug, title: row.title, tags: row.tags, publication_status: row.publication_status,
     featured: row.featured, publicationDate: row.publicationDate, authors: row.authors,
+    authorProfileKeys: row.authorProfileKeys,
     kind: row.kind, bodyFormat: row.bodyFormat,
     shortDescription: description,
     indexDescription: description?.trim() ? description : deriveDescription(row.description_source ?? undefined),
