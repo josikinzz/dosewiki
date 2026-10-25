@@ -131,28 +131,27 @@ export function formatAuthorLine(authors: readonly string[] | undefined): string
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-export function selectFeaturedArticle(
-  articles: readonly HomeArticleInput[],
+export function pickFeaturedArticle<Article extends HomeArticleInput>(
+  articles: readonly Article[],
   seed: number,
-  formatReadTime: (body: string | undefined) => string | undefined = () => undefined,
-): HomeFeaturedArticle | null {
-  const featured = rotateBySeed(
+): Article | null {
+  return rotateBySeed(
     articles.filter((article) => article.featured === true),
     seed,
-  );
+  )[0] ?? null;
+}
 
-  const [article] = featured;
-
-  if (!article) {
-    return null;
-  }
-
+export function toHomeFeaturedArticle(
+  article: HomeArticleInput,
+  bylineNames: readonly string[],
+  formatReadTime: (body: string | undefined) => string | undefined = () => undefined,
+): HomeFeaturedArticle {
   const description = article.shortDescription?.trim();
 
   return {
     slug: article.slug,
     title: article.title,
-    authorLine: formatAuthorLine(article.authors),
+    authorLine: formatAuthorLine(bylineNames.length > 0 ? bylineNames : article.authors),
     dateLabel: formatFeaturedArticleDate(article.publicationDate),
     readTimeLabel: article.readMinutes ? `${article.readMinutes} min read` : formatReadTime(article.body_raw),
     description: description && description.length > 0 ? description : undefined,

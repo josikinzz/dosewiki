@@ -29,7 +29,7 @@ export type ArticleRouteResult =
     }>
   | NotFoundRouteResult;
 
-async function resolveArticleBylineAuthors(
+export async function resolveArticleBylineAuthors(
   article: Pick<PublicEffectIndexArticle, "authorProfileKeys">,
 ): Promise<ArticleBylineAuthor[]> {
   const keys = article.authorProfileKeys ?? [];

@@ -109,7 +109,7 @@ export const publicGalleryMembershipColumns = [
 
 export const publishedArticleIndexColumns = [
   "slug", "title", "tags", "publication_status", "featured", "shortDescription",
-  "publicationDate", "kind", "bodyFormat", "authors",
+  "publicationDate", "kind", "bodyFormat", "authors", "authorProfileKeys",
 ] as const satisfies readonly Column<"effectIndexArticles">[];
 
 export const publishedBlogIndexColumns = [

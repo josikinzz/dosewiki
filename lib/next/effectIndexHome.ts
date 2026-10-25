@@ -12,12 +12,14 @@ import {
 import featuredReplicationsConfig from "@data/effects/effectIndexFeaturedReplications.json";
 import { articleReadMinutes } from "../../src/features/articles/domain/articlesIndex";
 import {
+  pickFeaturedArticle,
   resolveFeaturedReplications,
-  selectFeaturedArticle,
   selectFeaturedEffectGroups,
   selectFeaturedReports,
+  toHomeFeaturedArticle,
   type EffectIndexHomeData,
 } from "../../src/features/effect-index/home/homeModel";
+import { resolveArticleBylineAuthors } from "./routeLoaders.publications";
 
 export const EFFECT_INDEX_FEATURED_REPLICATION_SLUGS: readonly string[] =
   featuredReplicationsConfig.slugs;
@@ -47,14 +49,18 @@ export const loadEffectIndexHomeData = cache(
     ]);
 
     const effectNamesBySlug = new Map(effects.map((effect) => [effect.slug, effect.name]));
+    const featured = pickFeaturedArticle(articles, seed);
+    const bylineAuthors = featured ? await resolveArticleBylineAuthors(featured) : [];
 
     return {
       effectCount: effects.length,
       effectGroups: selectFeaturedEffectGroups(effects),
-      featuredArticle: selectFeaturedArticle(articles, seed, (body) => {
-        const minutes = articleReadMinutes(body);
-        return minutes ? `${minutes} min read` : undefined;
-      }),
+      featuredArticle: featured
+        ? toHomeFeaturedArticle(featured, bylineAuthors.map((author) => author.name), (body) => {
+          const minutes = articleReadMinutes(body);
+          return minutes ? `${minutes} min read` : undefined;
+        })
+        : null,
       featuredReports: selectFeaturedReports(reports, seed),
       featuredReplications: resolveFeaturedReplications(
         featuredSlugs,
