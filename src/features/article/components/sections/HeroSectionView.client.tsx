@@ -91,7 +91,7 @@ export const HeroSectionView = memo(function HeroSectionView({
   const heroRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const moleculeUrl = resolvedMoleculeAsset?.url ?? null;
-  const { moleculeBelowTitle, moleculeTopOffset, titleFitPx } =
+  const { moleculeBelowTitle, titleFitPx } =
     useHeroTitleFit({ heroRef, titleRef, moleculeUrl, title });
 
   const hasTitle = title.trim().length > 0;
@@ -122,13 +122,12 @@ export const HeroSectionView = memo(function HeroSectionView({
           {t("Preview")}
         </div>
       )}
-      {moleculeUrl && (
+      {moleculeUrl && !moleculeBelowTitle && (
         <DesktopMoleculeImage
           key={`desktop:${moleculeUrl}`}
           src={moleculeUrl}
           alt={moleculeAlt}
-          placement={hasTitle && moleculeBelowTitle ? "below-title" : "top"}
-          topOffset={moleculeTopOffset}
+          placement="top"
         />
       )}
 
@@ -145,6 +144,14 @@ export const HeroSectionView = memo(function HeroSectionView({
             {title}
           </EditableValue>
         </h1>
+      )}
+      {moleculeUrl && moleculeBelowTitle && (
+        <DesktopMoleculeImage
+          key={`desktop:${moleculeUrl}`}
+          src={moleculeUrl}
+          alt={moleculeAlt}
+          placement="below-title"
+        />
       )}
       {!hasTitle && (
         <EditableSlot

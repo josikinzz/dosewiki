@@ -30,7 +30,6 @@ export function useHeroTitleFit({
   title,
 }: HeroTitleFitOptions) {
   const [moleculeBelowTitle, setMoleculeBelowTitle] = useState(false);
-  const [moleculeTopOffset, setMoleculeTopOffset] = useState(0);
   const [titleFitPx, setTitleFitPx] = useState<number | null>(null);
 
   useIsomorphicLayoutEffect(() => {
@@ -75,12 +74,6 @@ export function useHeroTitleFit({
         setMoleculeBelowTitle((current) =>
           current === nextBelowTitle ? current : nextBelowTitle,
         );
-        if (nextBelowTitle) {
-          const nextOffset = titleElement.getBoundingClientRect().height + 16;
-          setMoleculeTopOffset((current) =>
-            current === nextOffset ? current : nextOffset,
-          );
-        }
       }
 
       const isDesktop =
@@ -180,7 +173,7 @@ export function useHeroTitleFit({
       document.fonts?.removeEventListener("loadingdone", scheduleMeasurement);
       if (frameId !== null) window.cancelAnimationFrame(frameId);
     };
-  }, [heroRef, titleRef, moleculeUrl, moleculeBelowTitle, title]);
+  }, [heroRef, titleRef, moleculeUrl, title]);
 
-  return { moleculeBelowTitle, moleculeTopOffset, titleFitPx };
+  return { moleculeBelowTitle, titleFitPx };
 }
