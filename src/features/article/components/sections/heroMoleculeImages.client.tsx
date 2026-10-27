@@ -10,21 +10,18 @@ function revealLoadedMolecule(event: SyntheticEvent<HTMLImageElement>) {
 interface DesktopMoleculeImageProps {
   alt: string;
   placement: "top" | "below-title";
-  topOffset: number;
   src: string;
 }
 
 export function DesktopMoleculeImage({
   alt,
   placement,
-  topOffset,
   src,
 }: DesktopMoleculeImageProps) {
   return (
     <div
       data-hero-molecule-layout={placement}
-      className="mb-3 hidden w-48 md:float-right md:block md:w-64"
-      style={placement === "below-title" ? { marginTop: topOffset } : undefined}
+      className={`mb-3 hidden w-48 md:float-right md:block md:w-64${placement === "below-title" ? " mt-4" : ""}`}
     >
       <MoleculeImage
         src={src}
