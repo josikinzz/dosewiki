@@ -11,15 +11,21 @@ import {
   CANONICAL_STATUS_LABELS,
   type CanonicalLegalStatus,
 } from "@/schema/substance/legalStatuses";
-import { getCountryCode } from "@/utils/data/countryCodes";
+import worldMap from "@/data/geo/worldMap.generated.json";
+import {
+  getCountryCode,
+  getNationalCountryCode,
+} from "@/utils/data/countryCodes";
 import usStateFlagMappings from "@data/substances/usStateFlagMappings.json";
 import { buildFieldPath, EditableSlot, EditableValue } from "../../editing";
 import { ArticleText, CitedText } from "../CitedText";
 import { ArticleGapNotice } from "./ArticleGapNotice";
 import {
+  LegalityMapView,
   LegalityRowView,
   LegalitySectionView,
   ToneGroupHeading,
+  type LegalityMapShape,
   type LegalityTone,
 } from "./LegalitySectionView.client";
 
@@ -123,6 +129,110 @@ export function orderCountryLegalityEntries(
   );
 }
 
+type MapGeometry = { d?: string; dot?: number[] };
+const COUNTRY_SHAPES: Record<string, MapGeometry> = worldMap.countries;
+const US_STATE_SHAPES: Record<string, MapGeometry> = worldMap.usStates;
+const US_CITY_POINTS: Record<string, number[]> = worldMap.usCities;
+
+function slug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function point(value?: number[]): [number, number] | undefined {
+  return value ? [value[0], value[1]] : undefined;
+}
+
+function countryAnchorIds(entries: [string, CountryLegality][]) {
+  const ids = new Map<string, string>();
+  const seen = new Set<string>();
+  for (const [name] of entries) {
+    const code = getNationalCountryCode(name);
+    if (!code || seen.has(code)) continue;
+    seen.add(code);
+    ids.set(name, `legality-${code}`);
+  }
+  return ids;
+}
+
+function stateAnchorId(usAnchorId: string, state: string) {
+  return `${usAnchorId}-${slug(state)}`;
+}
+
+function buildMapShapes(
+  entries: [string, CountryLegality][],
+  anchorIds: Map<string, string>,
+  usStates: [string, USStateLegality][],
+) {
+  const shapes: LegalityMapShape[] = [];
+  let federal: { anchorId: string; status: ReturnType<typeof badge> } | undefined;
+  for (const [name, info] of entries) {
+    const anchorId = anchorIds.get(name);
+    const code = getNationalCountryCode(name);
+    if (!anchorId || !code) continue;
+    const resolved = badge(info);
+    if (code === "us") {
+      federal = { anchorId, status: resolved };
+      continue;
+    }
+    const geometry = COUNTRY_SHAPES[code];
+    if (!geometry) continue;
+    shapes.push({
+      key: code,
+      anchorId,
+      name,
+      kind: "country",
+      tone: resolved.tone,
+      status: resolved.label,
+      d: geometry.d,
+      dot: point(geometry.dot),
+    });
+  }
+  if (!federal) return shapes;
+  const federalLabel = federal.status.label;
+  const differsFromFederal = (label: string) =>
+    label !== federalLabel ? federalLabel : undefined;
+  const stateInfo = new Map(usStates);
+  for (const [state, geometry] of Object.entries(US_STATE_SHAPES)) {
+    const info = stateInfo.get(state);
+    const resolved = info ? badge(info) : federal.status;
+    shapes.push({
+      key: `us/${state}`,
+      anchorId: info
+        ? stateAnchorId(federal.anchorId, state)
+        : federal.anchorId,
+      name: state,
+      kind: "state",
+      tone: resolved.tone,
+      status: resolved.label,
+      federalStatus: info ? differsFromFederal(resolved.label) : undefined,
+      inherited: !info,
+      d: geometry.d,
+      dot: point(geometry.dot),
+    });
+  }
+  for (const [state, info] of usStates) {
+    for (const [city, cityInfo] of Object.entries(info.cities ?? {})) {
+      const location = point(US_CITY_POINTS[`${state}/${city}`]);
+      if (!location) continue;
+      const resolved = badge(cityInfo);
+      shapes.push({
+        key: `us/${state}/${city}`,
+        anchorId: `${stateAnchorId(federal.anchorId, state)}-${slug(city)}`,
+        name: city,
+        kind: "city",
+        tone: resolved.tone,
+        status: resolved.label,
+        federalStatus: differsFromFederal(resolved.label),
+        dot: location,
+      });
+    }
+  }
+  return shapes;
+}
+
 function badge(info: LegalityEntry) {
   const canonical = info.canonicalStatus;
   const raw = info.status ? stripCitationTokens(info.status) : "";
@@ -145,6 +255,7 @@ function Row({
   pathParts,
   flag,
   footer,
+  anchorId,
 }: {
   article: SubstanceArticle;
   name: string;
@@ -153,6 +264,7 @@ function Row({
   pathParts?: readonly string[];
   flag?: ReactNode;
   footer?: ReactNode;
+  anchorId?: string;
 }) {
   const resolved = badge(info);
   const note = info.notes || "";
@@ -218,6 +330,11 @@ function Row({
           {cities.map(([city, cityInfo]) => (
             <Row
               key={city}
+              anchorId={
+                anchorId && variant === "state"
+                  ? `${anchorId}-${slug(city)}`
+                  : undefined
+              }
               article={article}
               name={city}
               info={cityInfo}
@@ -232,6 +349,7 @@ function Row({
   );
   return (
     <LegalityRowView
+      anchorId={anchorId}
       name={name}
       variant={variant}
       flag={flag}
@@ -253,10 +371,12 @@ function States({
   article,
   note,
   states,
+  usAnchorId,
 }: {
   article: SubstanceArticle;
   note?: string;
   states: [string, USStateLegality][];
+  usAnchorId?: string;
 }) {
   return (
     <div className="mt-4 pt-4">
@@ -298,6 +418,9 @@ function States({
               name={name}
               info={info}
               variant="state"
+              anchorId={
+                usAnchorId ? stateAnchorId(usAnchorId, name) : undefined
+              }
               flag={
                 file ? (
                   <img
@@ -348,6 +471,8 @@ export const LegalitySection = memo(function LegalitySection({
       ))}
     </div>
   ) : undefined;
+  const anchorIds = countryAnchorIds(countries);
+  const mapShapes = buildMapShapes(countries, anchorIds, states);
   const groups = GROUPS.map((group) => ({
     ...group,
     entries: countries.filter(([, info]) => badge(info).tone === group.tone),
@@ -377,6 +502,7 @@ export const LegalitySection = memo(function LegalitySection({
                           name={name}
                           info={info}
                           variant="country"
+                          anchorId={anchorIds.get(name)}
                           pathParts={["legality", "countries", name]}
                           flag={
                             code ? (
@@ -392,6 +518,7 @@ export const LegalitySection = memo(function LegalitySection({
                           footer={
                             name === "United States" && states.length ? (
                               <States
+                                usAnchorId={anchorIds.get(name)}
                                 article={article}
                                 note={legality.usStatesNote}
                                 states={states}
@@ -409,8 +536,19 @@ export const LegalitySection = memo(function LegalitySection({
         ))}
       </div>
     ) : undefined;
+  const map = mapShapes.length ? (
+    <LegalityMapView
+      width={worldMap.width}
+      height={worldMap.height}
+      shapes={mapShapes}
+      legend={GROUPS.filter((group) =>
+        mapShapes.some((shape) => shape.tone === group.tone),
+      )}
+    />
+  ) : undefined;
   return (
     <LegalitySectionView
+      map={map}
       internationalContent={international}
       countryGroups={countryGroups}
     />

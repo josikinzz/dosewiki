@@ -90,6 +90,18 @@ const COUNTRY_CODES: Record<string, string> = {
   [msg("Vietnam")]: "vn",
   [msg("Yemen")]: "ye",
   [msg("Zambia")]: "zm",
+  [msg("Gabon")]: "ga",
+  [msg("Guernsey")]: "gg",
+  [msg("Isle of Man")]: "im",
+  [msg("Jamaica")]: "jm",
+  [msg("Jersey")]: "je",
+  [msg("Kazakhstan")]: "kz",
+  [msg("Uruguay")]: "uy",
+  [msg("Vanuatu")]: "vu",
+}
+
+export function getNationalCountryCode(name: string): string | null {
+  return COUNTRY_CODES[name] ?? null;
 }
 
 export function getCountryCode(name: string): string | null {
