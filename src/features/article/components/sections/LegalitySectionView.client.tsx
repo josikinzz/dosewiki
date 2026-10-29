@@ -38,6 +38,7 @@ const ROW_VARIANT = {
 } as const;
 
 export function LegalityRowView({
+  anchorId,
   name,
   variant,
   flag,
@@ -46,6 +47,7 @@ export function LegalityRowView({
   statusTone,
   details,
 }: {
+  anchorId?: string;
   name: string;
   variant: LegalityRowVariant;
   flag?: ReactNode;
@@ -67,6 +69,21 @@ export function LegalityRowView({
     return () => el.removeEventListener("beforematch", expand);
   }, []);
   useEffect(() => {
+    if (!anchorId) return;
+    const reveal = () => {
+      const hash = decodeURIComponent(window.location.hash.slice(1));
+      const target = hash ? document.getElementById(hash) : null;
+      if (
+        target &&
+        (target.id === anchorId || detailsRef.current?.contains(target))
+      )
+        setIsExpanded(true);
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    return () => window.removeEventListener("hashchange", reveal);
+  }, [anchorId]);
+  useEffect(() => {
     const el = detailsRef.current;
     if (!el) return;
     if (isExpanded) el.removeAttribute("hidden");
@@ -74,8 +91,10 @@ export function LegalityRowView({
   }, [isExpanded]);
   return (
     <div
+      id={anchorId}
       className={cn(
         "min-w-0",
+        anchorId && "scroll-mt-24",
         variant === "city" && "pl-4",
         variant === "country" &&
           "-mx-2 rounded-xl px-2 transition-colors motion-reduce:transition-none",
@@ -131,10 +150,132 @@ export function LegalityRowView({
   );
 }
 
+export type LegalityMapShape = {
+  key: string;
+  anchorId: string;
+  name: string;
+  kind: "country" | "state" | "city";
+  tone: LegalityTone;
+  status: string;
+  federalStatus?: string;
+  inherited?: boolean;
+  d?: string;
+  dot?: [number, number];
+};
+
+const MAP_DOT_RADIUS = { country: 3.5, state: 2.2, city: 1.8 } as const;
+
+function useMapTitle() {
+  const t = useT();
+  return (shape: LegalityMapShape) => {
+    const name = t(shape.name);
+    if (!shape.status) return name;
+    const status = t(shape.status);
+    if (shape.inherited)
+      return t("{{name}}: {{status}} (federal law, no state entry)", {
+        name,
+        status,
+      });
+    if (shape.federalStatus)
+      return t("{{name}}: {{status}} (federal: {{federal}})", {
+        name,
+        status,
+        federal: t(shape.federalStatus),
+      });
+    return `${name}: ${status}`;
+  };
+}
+
+export function LegalityMapView({
+  width,
+  height,
+  shapes,
+  legend,
+}: {
+  width: number;
+  height: number;
+  shapes: LegalityMapShape[];
+  legend: { tone: LegalityTone; label: string }[];
+}) {
+  const t = useT();
+  const title = useMapTitle();
+  return (
+    <figure className="mb-6" data-testid="legality-map">
+      <div
+        className="relative w-full"
+        style={{ aspectRatio: `${width} / ${height}` }}
+      >
+        <div
+          aria-hidden
+          className="theme-legality-map-borders absolute inset-0"
+        />
+        <svg
+          aria-hidden
+          viewBox={`0 0 ${width} ${height}`}
+          className="absolute inset-0 h-full w-full overflow-visible"
+        >
+          {shapes.map((shape) =>
+            shape.d ? (
+              <a
+                key={shape.key}
+                href={`#${shape.anchorId}`}
+                tabIndex={-1}
+                className="theme-legality-map-country"
+                data-badge-tone={shape.tone}
+                data-map-kind={shape.kind}
+              >
+                <title>{title(shape)}</title>
+                <path d={shape.d} />
+              </a>
+            ) : null,
+          )}
+          {shapes.map((shape) =>
+            shape.dot ? (
+              <a
+                key={`${shape.key}:dot`}
+                href={`#${shape.anchorId}`}
+                tabIndex={-1}
+                className="theme-legality-map-country"
+                data-badge-tone={shape.tone}
+                data-map-kind={shape.kind}
+              >
+                <title>{title(shape)}</title>
+                <circle
+                  cx={shape.dot[0]}
+                  cy={shape.dot[1]}
+                  r={MAP_DOT_RADIUS[shape.kind]}
+                />
+              </a>
+            ) : null,
+          )}
+        </svg>
+      </div>
+      <figcaption className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs theme-text-muted">
+        {legend.map((item) => (
+          <span key={item.tone} className="inline-flex items-center gap-2">
+            <span
+              aria-hidden
+              className="theme-legality-map-swatch"
+              data-badge-tone={item.tone}
+            />
+            {t(item.label)}
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-2">
+          <span aria-hidden className="theme-legality-map-swatch" />
+          {t("Nothing on file")}
+        </span>
+      </figcaption>
+    </figure>
+  );
+}
+
 export function LegalitySectionView({
+  map,
   internationalContent,
   countryGroups,
 }: {
+  map?: ReactNode;
   internationalContent?: ReactNode;
   countryGroups?: ReactNode;
 }) {
@@ -145,6 +286,7 @@ export function LegalitySectionView({
       icon={SUBSTANCE_SECTION_ICONS.legality}
       heading={t("Legality")}
     >
+      {map}
       {internationalContent ? (
         <ArticleSection.Group
           icon="lucide:globe"

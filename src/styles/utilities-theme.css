@@ -2821,6 +2821,80 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
   color: var(--theme-semantic-neutral-badge-text);
 }
 
+.theme-legality-map-borders {
+  background-color: var(--theme-text-faint);
+  opacity: 0.6;
+  -webkit-mask: url("/maps/world-borders.svg") center / 100% 100% no-repeat;
+  mask: url("/maps/world-borders.svg") center / 100% 100% no-repeat;
+}
+
+.theme-legality-map-country,
+.theme-legality-map-swatch {
+  color: var(--theme-semantic-neutral-badge-text);
+}
+
+.theme-legality-map-country {
+  fill: color-mix(in oklab, currentColor 55%, transparent);
+  stroke: currentColor;
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 150ms ease;
+}
+
+.theme-legality-map-country:hover {
+  fill: color-mix(in oklab, currentColor 80%, transparent);
+}
+
+.theme-legality-map-country[data-map-kind="state"] {
+  stroke-width: 0.35;
+}
+
+.theme-legality-map-country[data-map-kind="city"] {
+  fill: currentColor;
+  stroke: var(--theme-text-primary);
+  stroke-width: 0.5;
+}
+
+.theme-legality-map-swatch {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.625rem;
+  border: 1px solid var(--theme-text-faint);
+  border-radius: 2px;
+}
+
+.theme-legality-map-swatch[data-badge-tone] {
+  border-color: currentColor;
+  background: color-mix(in oklab, currentColor 55%, transparent);
+}
+
+.theme-legality-map-country[data-badge-tone="red"],
+.theme-legality-map-swatch[data-badge-tone="red"] {
+  color: var(--theme-semantic-danger-badge-text);
+}
+
+.theme-legality-map-country[data-badge-tone="yellow"],
+.theme-legality-map-swatch[data-badge-tone="yellow"] {
+  color: var(--theme-semantic-caution-badge-text);
+}
+
+.theme-legality-map-country[data-badge-tone="blue"],
+.theme-legality-map-swatch[data-badge-tone="blue"] {
+  color: var(--theme-semantic-info-badge-text);
+}
+
+.theme-legality-map-country[data-badge-tone="green"],
+.theme-legality-map-swatch[data-badge-tone="green"] {
+  color: var(--theme-semantic-success-badge-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-legality-map-country {
+    transition: none;
+  }
+}
+
 .theme-country-flag {
   border-radius: 9999px;
   box-shadow: var(--theme-flag-shadow);

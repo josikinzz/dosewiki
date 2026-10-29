@@ -1799,6 +1799,56 @@
       "schemaVersion": "src/features/psychoactive-summaries/summaryDefinitions.ts (PsychoactiveSummaryDefinition)",
       "editPolicy": "editable-by-psychoactive-taxonomy-maintainers",
       "refresh": { "kind": "manual", "instructions": "Edit by hand. No generator." }
+    },
+    {
+      "id": "legality-world-map-geometry",
+      "path": "src/data/geo/worldMap.generated.json",
+      "role": "derived-asset",
+      "producer": "scripts/build/generateWorldMap.ts",
+      "consumers": [
+        "src/features/article/components/sections/LegalitySection.tsx"
+      ],
+      "inputs": [
+        "world-atlas countries-110m.json and countries-50m.json (Natural Earth, public domain)",
+        "us-atlas states-10m.json (US Census Bureau cartographic boundaries, public domain)",
+        "US_CITIES coordinates in scripts/build/generateWorldMap.ts",
+        "i18n-iso-countries numeric to alpha-2 codes"
+      ],
+      "freshnessRule": "Regenerate after changing the projection, simplification or world-atlas version. Keyed by lowercase ISO alpha-2, matching src/utils/data/countryCodes.ts.",
+      "sourceDeployment": "local devDependencies",
+      "targetDeployment": null,
+      "schemaVersion": "{ width, height, countries: { [alpha2]: { d?, dot? } }, usStates: { [name]: { d?, dot? } }, usCities: { [state/city]: [x, y] } }",
+      "editPolicy": "do-not-edit-by-hand",
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "script": "generate:world-map"
+        }
+      }
+    },
+    {
+      "id": "legality-world-map-borders",
+      "path": "public/maps/world-borders.svg",
+      "role": "derived-asset",
+      "producer": "scripts/build/generateWorldMap.ts",
+      "consumers": [
+        "src/styles/utilities-theme.css"
+      ],
+      "inputs": [
+        "world-atlas countries-110m.json (Natural Earth, public domain)",
+        "us-atlas states-10m.json interior state borders"
+      ],
+      "freshnessRule": "Regenerated together with src/data/geo/worldMap.generated.json so both share one projection.",
+      "sourceDeployment": "local devDependencies",
+      "targetDeployment": null,
+      "schemaVersion": "SVG border mesh used as a CSS mask",
+      "editPolicy": "do-not-edit-by-hand",
+      "refresh": {
+        "kind": "command",
+        "command": {
+          "script": "generate:world-map"
+        }
+      }
     }
   ]
 }

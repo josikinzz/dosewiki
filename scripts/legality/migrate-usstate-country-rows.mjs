@@ -10,8 +10,19 @@ createDataOpsRunContext,
 getFlagValue,
 requireAdminIntentToken,
 requireTargetUrl,  } from "../lib/data-ops-run-context.mjs"; import { updateAuditLog, writeAuditLog } from "../lib/data-ops-audit.mjs"
+import usStateFlagMappings from "../../data/substances/usStateFlagMappings.json" with { type: "json" };
 
 const STATE_KEY = /^United States\s*[-\u2013\u2014]\s*(\S.*)$/;
+const COUNTRY_NAMED_STATES = new Set(["Georgia"]);
+const US_STATES = new Set(
+  Object.keys(usStateFlagMappings).filter((name) => !COUNTRY_NAMED_STATES.has(name)),
+);
+
+function misfiledState(key) {
+  const prefixed = key.match(STATE_KEY)?.[1]?.trim();
+  if (prefixed) return prefixed;
+  return US_STATES.has(key) ? key : null;
+}
 
 function stableJson(value) {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
@@ -82,7 +93,7 @@ export async function main(argv = process.argv.slice(2)) {
   const countries = { ...(legality.countries ?? {}) };
   const usStates = { ...(legality.usStates ?? {}) };
 
-  const misfiled = Object.keys(countries).filter((key) => STATE_KEY.test(key));
+  const misfiled = Object.keys(countries).filter((key) => misfiledState(key));
   for (const key of misfiled) {
     if (!expectations.has(key)) {
       throw new Error(`Live misfiled key not covered by --expect: ${key}`);
@@ -96,7 +107,8 @@ export async function main(argv = process.argv.slice(2)) {
     if (hash(entry) !== expected) {
       throw new Error(`Stale expectation for ${key}: live content hash differs.`);
     }
-    const state = key.match(STATE_KEY)[1].trim();
+    const state = misfiledState(key);
+    if (!state) throw new Error(`Expected key is not a US state: ${key}`);
     if (usStates[state]) {
       dropped.push({ key, state });
     } else {
