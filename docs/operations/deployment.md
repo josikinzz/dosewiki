@@ -171,7 +171,7 @@ scheduler configuration. Each release tree keeps only the jobs its project owns:
 | `/open-data/TripReports.json`       | `0 9 * * *`   | `dosewiki-public`, Effect Index project   | Daily open-data export                         |
 | `/api/warm`                         | `0 * * * *`   | `dosewiki-public`, Effect Index project   | Hourly public route warming                    |
 | `/api/cron/publication-delivery`    | `* * * * *`   | `dosewiki-admin` only                     | Publication outbox delivery (writer)           |
-| `/api/cron/translation-bulk`        | `* * * * *`   | `dosewiki-admin` only                     | Bulk translation lane (writer)                 |
+| `/api/cron/translation-bulk`        | `* * * * *`   | `dosewiki-admin` only                     | Bulk translation lane (writer); no-op when no job is due |
 | `/api/cron/translation-refresh`     | `*/5 * * * *` | `dosewiki-admin` only                     | Incremental translation lane (writer)          |
 
 Remove all three writer jobs from the public DoseWiki and Effect Index trees.

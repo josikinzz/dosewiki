@@ -319,6 +319,20 @@ export async function requeueExhaustedTranslationJobs(locale: string, runId: str
   return rows.map((row) => row.slug);
 }
 
+export async function hasClaimableTranslationJobs(mode: TranslationJobMode = "incremental", locale?: string): Promise<boolean> {
+  const rows = await getPostgresClient().sql<{ present: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM "translationJobs"
+       WHERE "mode" = $1 AND ($2::text IS NULL OR "locale" = $2::text)
+         AND "completed_at" IS NULL AND "attempts" < $3::int
+         AND ("claimed_at" IS NULL OR "claimed_at" < $4::bigint - $5::bigint)
+         AND ("next_attempt_at" IS NULL OR "next_attempt_at" <= $4::bigint)
+     ) AS present`,
+    [mode, locale ?? null, MAX_TRANSLATION_JOB_ATTEMPTS, Date.now(), JOB_LEASE_MS],
+  );
+  return rows[0]?.present === true;
+}
+
 export async function claimTranslationJobs(limit: number, mode: TranslationJobMode = "incremental", locale?: string): Promise<TranslationJobRow[]> {
   assertDataWritesNotFrozen("claimTranslationJobs");
   const now = Date.now();

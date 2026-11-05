@@ -110,7 +110,7 @@ export async function deleteDocument(client: SqlClient, table: TableName, id: st
 export async function withTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
-    await client.query(beginWithTimeouts(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN"));
+    await beginWithTimeouts(client, isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
     try {
       const result = await fn(client);
       await client.query("COMMIT");

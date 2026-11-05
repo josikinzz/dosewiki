@@ -15,6 +15,7 @@ import {
 import { TRANSLATION_REQUEST_QUOTA, createTranslationRequestPool } from "./requestPool";
 import {
   MAX_TRANSLATION_JOB_ATTEMPTS,
+  hasClaimableTranslationJobs,
   claimTranslationJobs,
   completeTranslationJob,
   failTranslationJob,
@@ -28,6 +29,7 @@ import {
 
 const RUN_BUDGET_MS = 200_000;
 const MIN_JOB_BUDGET_MS = 60_000;
+const CLAIM_BATCH_SIZE = 8;
 const MODEL_LEASE = "glm-5.3-flash";
 const laneLease = (mode: TranslationJobMode) => `${MODEL_LEASE}:${mode}`;
 
@@ -61,7 +63,9 @@ export async function runTranslationJobs(
     run.leaseHeld = await acquireTranslationWorkerLease(lease, leaseOwner, RUN_BUDGET_MS + 30_000);
     if (run.leaseHeld) {
       try {
-        await processTranslationJobs(apiKey, config, run, started);
+        if (await hasClaimableTranslationJobs(config.mode)) {
+          await processTranslationJobs(apiKey, config, run, started);
+        }
       } finally {
         await releaseTranslationWorkerLease(lease, leaseOwner);
       }
@@ -167,10 +171,18 @@ async function processTranslationJobs(
 
   const workers = await Promise.allSettled(Array.from({ length: config.jobsPerRun }, async () => {
     while (!signal.aborted && Date.now() - started < RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
-      const [job] = await claimTranslationJobs(1, config.mode);
-      if (!job) break;
-      run.claimed += 1;
-      await processJob(job);
+      const jobs = await claimTranslationJobs(CLAIM_BATCH_SIZE, config.mode);
+      if (jobs.length === 0) break;
+      for (const job of jobs) {
+        if (signal.aborted || Date.now() - started >= RUN_BUDGET_MS - MIN_JOB_BUDGET_MS) {
+          for (const pending of jobs.slice(jobs.indexOf(job))) {
+            await failTranslationJob(pending, "Released before processing: run budget exhausted", { progressed: true });
+          }
+          return;
+        }
+        run.claimed += 1;
+        await processJob(job);
+      }
     }
   }));
   const failure = workers.find((worker) => worker.status === "rejected");
