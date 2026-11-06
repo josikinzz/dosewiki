@@ -517,7 +517,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-citation-needed-marker {
-  color: var(--theme-text-faint);
+  color: var(--theme-text-muted);
 }
 
 .theme-citation-needed-marker::before {
@@ -2584,7 +2584,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 @media (min-width: 768px) {
   .theme-article-hero-summary--has-molecule::before {
-    right: 18rem;
+    right: 0;
   }
 }
 

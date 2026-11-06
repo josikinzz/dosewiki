@@ -17,7 +17,7 @@ import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryTypes";
 const ARROW_SCROLL_RATIO = 0.8;
 
 const GROUP_MASONRY_CLASS = "columns-2 gap-1.5 sm:columns-3 [column-fill:_balance]";
-const GROUP_MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid";
+const GROUP_MASONRY_TILE_CLASS = "mb-4 w-full break-inside-avoid";
 
 const STICKY_LABEL_TOP =
   "top-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+var(--replications-control-bar-height))]";

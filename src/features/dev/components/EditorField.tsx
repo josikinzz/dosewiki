@@ -91,7 +91,7 @@ export function EditorField({
                 "shrink-0 text-xs tabular-nums",
                 hasError
                   ? "text-[color:var(--theme-danger-text)]"
-                  : "theme-text-faint",
+                  : "theme-text-muted",
               )}
             >
               {counter}
@@ -103,7 +103,7 @@ export function EditorField({
       {typeof children === "function" ? children(controlProps) : children}
 
       {description ? (
-        <p id={descriptionId} className="theme-text-faint text-xs leading-5">
+        <p id={descriptionId} className="theme-text-muted text-[0.8125rem] leading-5">
           {description}
         </p>
       ) : null}
