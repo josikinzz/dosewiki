@@ -10,6 +10,7 @@
       "lib/postgres/documentStore.test.ts",
       "lib/postgres/postgresErrors.test.ts",
       "lib/postgres/runtime/transientRetry.test.ts",
+      "lib/postgres/transactionTimeouts.test.ts",
       "lib/proposals/proposalStatus.test.ts",
       "scripts/admin/data-admin.test.mjs",
       "scripts/batch/generate-section-proposal.test.mjs",
