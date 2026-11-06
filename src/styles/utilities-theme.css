@@ -2583,8 +2583,8 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 @media (min-width: 768px) {
-  .theme-article-hero-summary--has-molecule::before {
-    right: 0;
+  .theme-article-hero-summary--has-molecule {
+    display: flow-root;
   }
 }
 
@@ -4140,6 +4140,7 @@ html[data-visual-style] .theme-search-highlight-mark.theme-search-title-mark {
 
 .theme-toc-strip-bar:has(.theme-toc-strip[data-fade-end="true"])::after {
   content: "\203A";
+  content: "\203A" / "";
   position: absolute;
   top: 50%;
   right: max(0.5rem, env(safe-area-inset-right));
@@ -4148,4 +4149,28 @@ html[data-visual-style] .theme-search-highlight-mark.theme-search-title-mark {
   font-size: 1.25rem;
   line-height: 1;
   pointer-events: none;
+}
+
+@media (width < 48rem) {
+  .theme-replications-tabs[data-fade-end="true"] > nav {
+    mask-image: linear-gradient(to left, transparent 1.5rem, #000 3.25rem);
+  }
+
+  .theme-replications-tabs[data-fade-end="true"]::after {
+    content: "\203A";
+    content: "\203A" / "";
+    position: absolute;
+    inset-block: 0;
+    right: -0.25rem;
+    display: flex;
+    width: 2.25rem;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.25rem;
+    background: linear-gradient(to right, transparent, var(--theme-body-bg) 55%);
+    color: var(--theme-text-muted);
+    font-size: 1.25rem;
+    line-height: 1;
+    pointer-events: none;
+  }
 }
