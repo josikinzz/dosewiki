@@ -42,7 +42,7 @@ export function ReplicationsTabNav({
     >
       <nav
         aria-label={t("Replications sections")}
-        className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
+        className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] max-md:[mask-image:linear-gradient(to_left,transparent,#000_2rem)] md:mx-0 md:px-0"
       >
         <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
           {SECTION_TABS.map((tab) => {

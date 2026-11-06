@@ -347,7 +347,7 @@ function WritingPreview({
   return (
     <section aria-label="Preview" className={cn("min-w-0 space-y-3", sticky && "xl:sticky xl:top-24")}>
       <p className="type-meta-label theme-text-muted">{`Preview, as ${rowKind === "blog" ? "a blog post" : "an article"}`}</p>
-      <div className="max-h-none overflow-hidden rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-4 py-5 sm:px-6 xl:max-h-[calc(100dvh-9rem)] xl:overflow-y-auto">
+      <div className="theme-writing-preview-frame max-h-none overflow-hidden rounded-card border border-[color:var(--editor-panel-border)] bg-[var(--editor-panel-bg-subtle)] px-4 py-5 sm:px-6 xl:max-h-[calc(100dvh-9rem)] xl:overflow-y-auto">
         {parsedBody.error ? (
           <p className="theme-text-muted text-sm">Fix the body markup to see the preview.</p>
         ) : !draft.title.trim() && !draft.body.trim() ? (

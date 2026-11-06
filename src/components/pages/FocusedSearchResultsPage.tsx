@@ -202,7 +202,7 @@ export function FocusedSearchResultsPage({
                               text={match.label}
                               query={highlightQuery}
                               className="theme-search-suggestion-title min-w-0 max-w-full break-words text-[1.0625rem] font-semibold leading-6 [overflow-wrap:anywhere]"
-                              markClassName="theme-search-highlight-mark"
+                              markClassName="theme-search-highlight-mark theme-search-title-mark"
                             />
                             {aliasPreview ? (
                               <HighlightedText

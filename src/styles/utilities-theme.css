@@ -4112,3 +4112,22 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   background-color: var(--theme-field-surface);
   box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
 }
+
+.theme-writing-preview-frame {
+  container-type: inline-size;
+}
+
+.theme-writing-preview-frame h1 {
+  font-size: clamp(1.75rem, 8cqi, 2.75rem);
+  line-height: 1.1;
+}
+
+.theme-search-highlight-mark.theme-search-title-mark,
+html[data-visual-style] .theme-search-highlight-mark.theme-search-title-mark {
+  background: transparent;
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--theme-accent);
+  text-underline-offset: 3px;
+}
