@@ -4026,6 +4026,11 @@ html[data-theme="light"]:not([data-visual-style="pro"])
   color: var(--theme-danger-text-vivid);
 }
 
+.theme-beta-disclaimer-callout {
+  border-color: color-mix(in srgb, var(--theme-danger-text-vivid) 32%, transparent);
+  background: color-mix(in srgb, var(--theme-danger-text-vivid) 7%, transparent);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   @supports (-webkit-background-clip: text) or (background-clip: text) {
     .theme-beta-shimmer {
@@ -4126,8 +4131,5 @@ html[data-theme="light"]:not([data-visual-style="pro"])
 html[data-visual-style] .theme-search-highlight-mark.theme-search-title-mark {
   background: transparent;
   color: inherit;
-  text-decoration-line: underline;
-  text-decoration-thickness: 2px;
-  text-decoration-color: var(--theme-accent);
-  text-underline-offset: 3px;
+  font-weight: 800;
 }

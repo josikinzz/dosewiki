@@ -12,17 +12,17 @@ export function BetaDisclaimer({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "theme-beta-disclaimer-shell relative mx-auto block w-fit px-7",
-        "max-md:max-w-[24rem] max-md:px-10 max-md:[text-wrap:pretty]",
+        "theme-beta-disclaimer-shell theme-beta-disclaimer-callout mx-auto flex w-fit max-w-full items-start gap-2.5 rounded-lg border px-3.5 py-2",
+        "max-md:max-w-[24rem] max-md:[text-wrap:pretty]",
         className,
       )}
     >
       <Icon
         icon="lucide:construction"
         size="1.25rem"
-        className="theme-beta-disclaimer-icon absolute left-0 top-1/2 -translate-y-1/2 max-md:h-7 max-md:w-7"
+        className="theme-beta-disclaimer-icon mt-[0.1em] shrink-0"
       />
-      <span className="theme-beta-shimmer">
+      <span className="theme-beta-shimmer min-w-0">
         {t("dose.wiki is still in beta. Entries may contain inaccuracies and/or lack citations. See")}{" "}
         <SmartLink
           href="/docs/how"
@@ -32,11 +32,6 @@ export function BetaDisclaimer({ className }: { className?: string }) {
         </SmartLink>{" "}
         {t("for more info.")}
       </span>
-      <Icon
-        icon="lucide:construction"
-        size="1.25rem"
-        className="theme-beta-disclaimer-icon absolute right-0 top-1/2 -translate-y-1/2 max-md:h-7 max-md:w-7"
-      />
     </span>
   );
 }
