@@ -1238,7 +1238,7 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-search-suggestion-aliases {
-  color: var(--theme-search-suggestion-aliases-color);
+  color: color-mix(in srgb, var(--theme-search-suggestion-aliases-color) 45%, var(--theme-text-secondary));
 }
 
 .theme-search-suggestion-secondary {
@@ -4132,4 +4132,20 @@ html[data-visual-style] .theme-search-highlight-mark.theme-search-title-mark {
   background: transparent;
   color: inherit;
   font-weight: 800;
+}
+
+.theme-toc-strip-bar {
+  position: relative;
+}
+
+.theme-toc-strip-bar:has(.theme-toc-strip[data-fade-end="true"])::after {
+  content: "\203A";
+  position: absolute;
+  top: 50%;
+  right: max(0.5rem, env(safe-area-inset-right));
+  transform: translateY(-50%);
+  color: var(--theme-text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  pointer-events: none;
 }

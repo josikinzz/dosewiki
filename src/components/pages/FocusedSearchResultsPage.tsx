@@ -55,11 +55,19 @@ const getSuggestionIcon = (match: SearchSuggestion): IconName => {
   }
 };
 
+const isSystematicName = (alias: string) => alias.length > 28 || /[[\]()]|\d,\d/.test(alias);
+
+const commonNamesFirst = (aliases: readonly string[]) =>
+  aliases
+    .map((alias, index) => ({ alias, index, systematic: isSystematicName(alias) }))
+    .sort((a, b) => Number(a.systematic) - Number(b.systematic) || a.index - b.index)
+    .map(({ alias }) => alias);
+
 const getAliasPreview = (match: SearchSuggestion) =>
   match.type === "report"
     ? match.secondary ?? ""
     : match.type === "substance" && match.aliases && match.aliases.length > 0
-      ? match.aliases.slice(0, 4).join(" · ")
+      ? commonNamesFirst(match.aliases.slice(0, 4)).join(" · ")
       : "";
 
 const getDescriptionText = (match: SearchSuggestion) =>
@@ -208,7 +216,7 @@ export function FocusedSearchResultsPage({
                               <HighlightedText
                                 text={aliasPreview}
                                 query={highlightQuery}
-                                className="theme-search-suggestion-aliases min-w-0 truncate text-xs font-medium leading-4"
+                                className="theme-search-suggestion-aliases min-w-0 truncate text-[0.8125rem] font-medium leading-5"
                                 markClassName="theme-search-highlight-mark"
                               />
                             ) : null}

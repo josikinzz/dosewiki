@@ -208,9 +208,9 @@ export function MediaRail({
           className={cn(
             "flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1",
             "[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]",
-            canScroll.right && !canScroll.left && "[mask-image:linear-gradient(to_left,transparent,#000_3rem)]",
-            canScroll.left && !canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_3rem)]",
-            canScroll.left && canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_3rem,#000_calc(100%-3rem),transparent)]",
+            canScroll.right && !canScroll.left && "[mask-image:linear-gradient(to_left,transparent,#000_1.5rem)]",
+            canScroll.left && !canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_1.5rem)]",
+            canScroll.left && canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)]",
           )}
         >
           {preview.map((replication) => (
