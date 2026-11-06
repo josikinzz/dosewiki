@@ -38,7 +38,15 @@ export async function resolveFunction(
   return { name, fn };
 }
 
+const DEFAULT_MAX_CONNECTIONS = 2;
 const MAX_TRANSIENT_ATTEMPTS = 6;
+
+function resolveMaxConnections(value: string | undefined): number {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 4 ? parsed : DEFAULT_MAX_CONNECTIONS;
+}
+
+const RUNTIME_MAX_CONNECTIONS = resolveMaxConnections(process.env.POSTGRES_RUNTIME_POOL_MAX);
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -123,6 +131,7 @@ export class PostgresClient {
   }
 
   static fromUrl(connectionString: string, max = 4): PostgresClient {
+    max = Math.min(max, RUNTIME_MAX_CONNECTIONS);
     assertDeploymentEnv();
     return new PostgresClient(new Pool({ connectionString, max, ...RUNTIME_POOL_OPTIONS }));
   }
@@ -135,7 +144,7 @@ export class PostgresClient {
     return retryTransient(async () => {
       const client = await this.pool.connect();
       try {
-        await client.query(beginWithTimeouts(isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN"));
+        await beginWithTimeouts(client, isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
         try {
           const result = await client.query<Row>(text, values);
           await client.query("COMMIT");
@@ -170,7 +179,7 @@ export class PostgresClient {
       const client = await this.pool.connect();
       let lost: Error | undefined;
       try {
-        await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY"));
+        await beginWithTimeouts(client, "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
         try {
           const executor = serialExecutor(client);
           const startedAt = performance.now();
@@ -199,7 +208,7 @@ export class PostgresClient {
     return retryTransient(async (attempt) => {
       const client = await this.pool.connect();
       try {
-        await client.query(beginWithTimeouts("BEGIN ISOLATION LEVEL SERIALIZABLE"));
+        await beginWithTimeouts(client, "BEGIN ISOLATION LEVEL SERIALIZABLE");
         try {
           const executor = serialExecutor(client);
           const startedAt = performance.now();

@@ -10,16 +10,19 @@ export const RUNTIME_POOL_OPTIONS = {
   connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS,
 } as const satisfies PoolConfig;
 
-const TRANSACTION_TIMEOUTS_SQL = `
-  SET LOCAL statement_timeout = '30s';
-  SET LOCAL lock_timeout = '5s';
-  SET LOCAL idle_in_transaction_session_timeout = '30s'
-`;
+const TRANSACTION_TIMEOUTS = [
+  "SET LOCAL statement_timeout = '30s'",
+  "SET LOCAL lock_timeout = '5s'",
+  "SET LOCAL idle_in_transaction_session_timeout = '30s'",
+] as const;
 
-export async function setTransactionTimeouts(client: Pick<PoolClient, "query">): Promise<void> {
-  await client.query(TRANSACTION_TIMEOUTS_SQL);
+export async function beginWithTimeouts(client: Pick<PoolClient, "query">, begin: string): Promise<void> {
+  await client.query(begin);
+  await setTransactionTimeouts(client);
 }
 
-export function beginWithTimeouts(begin: string): string {
-  return `${begin};${TRANSACTION_TIMEOUTS_SQL}`;
+export async function setTransactionTimeouts(client: Pick<PoolClient, "query">): Promise<void> {
+  for (const statement of TRANSACTION_TIMEOUTS) {
+    await client.query(statement);
+  }
 }

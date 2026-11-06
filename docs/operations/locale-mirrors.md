@@ -151,7 +151,10 @@ See [the publication boundary](../architecture/runtime-and-data.md#editor-save-a
 The five-minute translation-refresh cron remains the one-record incremental lane
 for editorial freshness. Operator-started main translations and glossary
 retranslations receive a stable `run_id` and `mode=bulk`; the separate
-translation-bulk cron claims up to 100 of those records every minute. Each lane
+translation-bulk cron can process up to 100 of those records every minute,
+claiming them eight at a time. Each run first checks whether any job is due
+(`hasClaimableTranslationJobs`); an empty or fully exhausted queue costs one
+read instead of 100 claim updates. Each lane
 holds its own database lease (`glm-5.3-flash:bulk`, `glm-5.3-flash:incremental`),
 so invocations of one lane never overlap and editorial refreshes keep running
 while a bulk campaign holds the bulk lease. The 100-request GLM 5.3 Flash
