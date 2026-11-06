@@ -37,7 +37,7 @@ export function ReplicationsTabNav({
     <div
       className={cn(
         "relative mx-auto mt-2 flex w-full max-w-7xl items-center gap-4",
-        "max-md:after:pointer-events-none max-md:after:absolute max-md:after:right-0 max-md:after:top-1/2 max-md:after:-translate-y-1/2 max-md:after:text-xl max-md:after:leading-none max-md:after:text-[var(--theme-text-muted)] max-md:after:content-['›']",
+        "max-md:after:pointer-events-none max-md:after:absolute max-md:after:-right-1 max-md:after:inset-y-0 max-md:after:flex max-md:after:w-9 max-md:after:items-center max-md:after:justify-end max-md:after:pr-1 max-md:after:bg-[linear-gradient(to_right,transparent,var(--theme-body-bg)_55%)] max-md:after:text-xl max-md:after:leading-none max-md:after:text-[var(--theme-text-muted)] max-md:after:content-['›']",
         className,
       )}
     >

@@ -198,7 +198,7 @@ export function FocusedSearchResultsPage({
                       ) : null}
                       <SmartLink
                         href={getMatchHref(match)}
-                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 theme-focus-ring sm:px-5"
+                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-3.5 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 theme-focus-ring sm:px-5"
                         data-highlighted={isBestMatch}
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -216,7 +216,7 @@ export function FocusedSearchResultsPage({
                               <HighlightedText
                                 text={aliasPreview}
                                 query={highlightQuery}
-                                className="theme-search-suggestion-aliases min-w-0 truncate text-[0.8125rem] font-medium leading-5"
+                                className="theme-search-suggestion-aliases min-w-0 max-w-[80ch] truncate text-[0.8125rem] font-medium leading-5"
                                 markClassName="theme-search-highlight-mark"
                               />
                             ) : null}

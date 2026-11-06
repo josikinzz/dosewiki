@@ -266,7 +266,7 @@ export function WritingTab({
               </div>
 
               <div className="space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-3 pb-3">
                   <EditorSegmentedControl
                     label="Kind"
                     value={kind}
