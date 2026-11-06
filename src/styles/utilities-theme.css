@@ -1220,9 +1220,9 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--theme-search-suggestion-highlighted-true-border-color);
-  background: var(--theme-search-suggestion-highlighted-background);
-  box-shadow: var(--theme-search-suggestion-highlighted-true-box-shadow);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--theme-accent) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--theme-accent);
 }
 
 .theme-search-suggestion-icon {
@@ -3470,7 +3470,7 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
 }
 
 .theme-toc-strip[data-fade-end="true"] {
-  mask-image: linear-gradient(to left, transparent, #000 2.25rem);
+  mask-image: linear-gradient(to left, transparent 1.75rem, #000 3.5rem);
 }
 
 .theme-toc-strip[data-fade-start="true"][data-fade-end="true"] {
@@ -3478,8 +3478,8 @@ html:not([data-theme="light"]) [data-molecule-colorway="pro-light"] {
     to right,
     transparent,
     #000 2.25rem,
-    #000 calc(100% - 2.25rem),
-    transparent
+    #000 calc(100% - 3.5rem),
+    transparent calc(100% - 1.75rem)
   );
 }
 

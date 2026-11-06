@@ -236,7 +236,7 @@ export function FocusedSearchResultsPage({
                             <HighlightedText
                               text={descriptionText}
                               query={highlightQuery}
-                              className="theme-search-suggestion-secondary line-clamp-3 text-[0.8125rem] leading-5 sm:line-clamp-2"
+                              className="theme-search-suggestion-secondary line-clamp-3 max-w-[80ch] text-[0.8125rem] leading-5 sm:line-clamp-2"
                               markClassName="theme-search-highlight-mark"
                             />
                           ) : null}
