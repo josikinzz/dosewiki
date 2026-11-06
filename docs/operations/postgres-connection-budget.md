@@ -21,7 +21,7 @@ from several regions. PlanetScale reported 58 instances of Postgres error 25001
 2. **Multi-statement BEGIN.** `beginWithTimeouts` returned a single string of
    `BEGIN; SET LOCAL ...; SET LOCAL ...`. node-postgres sends that through the
    simple query protocol, whose bookkeeping allowed a new `BEGIN` on a client
-   still inside the previous transaction — the exact 25001 bursts seen at
+   still inside the previous transaction - the exact 25001 bursts seen at
    12:54 UTC.
 3. **Per-instance pool multiplication.** Every warm serverless instance held a
    `pg.Pool` of up to 4 connections. With multiple concurrent public, editor,
@@ -50,9 +50,9 @@ translation work.
 ## What still needs the owner
 
 - **Deploy the editor project** with this branch (and redeploy the public
-  project for the pool-cap change) — requires Josie's explicit yes.
+  project for the pool-cap change) - requires Josie's explicit yes.
 - **Requeue exhausted translations** (106 bulk jobs at `attempts = 5` are never
-  claimed again) — a production data write, requires Josie's explicit yes.
+  claimed again) - a production data write, requires Josie's explicit yes.
 - **Paid PlanetScale capacity:** not required for this fix. Only consider a
   plan/connection-limit increase if CPU remains saturated after the above is
   deployed; propose before buying.
