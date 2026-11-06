@@ -13,7 +13,7 @@ import {
 } from "@/theme/appearanceTypography";
 
 const TITLE_MOLECULE_GAP_PX = 16;
-const MOBILE_MOLECULE_SLOT_PX = 108;
+const MOBILE_MOLECULE_SLOT_PX = 140;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 

@@ -141,7 +141,7 @@ export function FocusedSearchResultsPage({
       className="theme-page-shell theme-search-page-shell min-h-screen px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
     >
       <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-4">
-        <div role="status" aria-live="polite" aria-atomic="true" className="theme-text-primary min-h-7 px-1 font-display text-lg font-semibold leading-7">
+        <div role="status" aria-live="polite" aria-atomic="true" className="theme-text-primary min-h-8 px-1 font-display text-2xl font-semibold leading-8">
           {isLoading
             ? displayedResults.length > 0
               ? t("Updating results for “{{query}}”. Previous or partial matches remain visible.", { query: trimmed })

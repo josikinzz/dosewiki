@@ -36,13 +36,14 @@ export function ReplicationsTabNav({
   return (
     <div
       className={cn(
-        "mx-auto mt-2 flex w-full max-w-7xl items-center gap-4",
+        "relative mx-auto mt-2 flex w-full max-w-7xl items-center gap-4",
+        "max-md:after:pointer-events-none max-md:after:absolute max-md:after:right-0 max-md:after:top-1/2 max-md:after:-translate-y-1/2 max-md:after:text-xl max-md:after:leading-none max-md:after:text-[var(--theme-text-muted)] max-md:after:content-['›']",
         className,
       )}
     >
       <nav
         aria-label={t("Replications sections")}
-        className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] max-md:[mask-image:linear-gradient(to_left,transparent,#000_2rem)] md:mx-0 md:px-0"
+        className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] max-md:[mask-image:linear-gradient(to_left,transparent_1.5rem,#000_3.25rem)] md:mx-0 md:px-0"
       >
         <div className="theme-route-tabs-list theme-text-muted flex w-max min-w-full items-center justify-start gap-1.5 md:min-w-0">
           {SECTION_TABS.map((tab) => {
