@@ -39,16 +39,16 @@ export function DesktopMoleculeImage({
 
 export function MobileMoleculeImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="flex justify-center my-3 md:hidden">
+    <div className="shrink-0 md:hidden">
       <MoleculeImage
         src={src}
         alt={alt}
         width={288}
         height={288}
         priority
-        sizes="(max-width: 767px) min(85vw, 18rem), 0px"
+        sizes="(max-width: 767px) 6rem, 0px"
         onLoad={revealLoadedMolecule}
-        className="theme-molecule-image h-auto w-48 max-w-[60%] object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)]"
+        className="theme-molecule-image h-24 w-24 object-contain drop-shadow-[0_8px_16px_color-mix(in_srgb,var(--theme-accent)_30%,transparent)]"
       />
     </div>
   );

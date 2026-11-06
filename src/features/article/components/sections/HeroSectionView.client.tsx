@@ -131,20 +131,33 @@ export const HeroSectionView = memo(function HeroSectionView({
         />
       )}
 
-      {hasTitle && (
-        <h1
-          ref={titleRef}
-          data-hero-title-scale={titleFitPx === null ? "normal" : "fitted"}
-          className="type-page-title theme-accent-heading text-4xl sm:text-5xl md:text-6xl"
-          style={
-            titleFitPx === null ? undefined : { fontSize: `${titleFitPx}px` }
-          }
-        >
-          <EditableValue label="Title" path="title" value={title}>
-            {title}
-          </EditableValue>
-        </h1>
-      )}
+      <div className="max-md:flex max-md:items-center max-md:gap-3">
+        {hasTitle && (
+          <h1
+            ref={titleRef}
+            data-hero-title-scale={titleFitPx === null ? "normal" : "fitted"}
+            className="type-page-title theme-accent-heading text-4xl max-md:min-w-0 max-md:flex-1 sm:text-5xl md:text-6xl"
+            style={
+              titleFitPx === null ? undefined : { fontSize: `${titleFitPx}px` }
+            }
+          >
+            <EditableValue label="Title" path="title" value={title}>
+              {title}
+            </EditableValue>
+          </h1>
+        )}
+        {!hasTitle && (
+          <EditableSlot
+            emptyLabel="Add a title"
+            label="Title"
+            path="title"
+            value={title ?? ""}
+          />
+        )}
+        {moleculeUrl && (
+          <MobileMoleculeImage key={`mobile:${moleculeUrl}`} src={moleculeUrl} alt={moleculeAlt} />
+        )}
+      </div>
       {moleculeUrl && moleculeBelowTitle && (
         <DesktopMoleculeImage
           key={`desktop:${moleculeUrl}`}
@@ -153,19 +166,7 @@ export const HeroSectionView = memo(function HeroSectionView({
           placement="below-title"
         />
       )}
-      {!hasTitle && (
-        <EditableSlot
-          emptyLabel="Add a title"
-          label="Title"
-          path="title"
-          value={title ?? ""}
-        />
-      )}
       {stubBanner}
-
-      {moleculeUrl && (
-        <MobileMoleculeImage key={`mobile:${moleculeUrl}`} src={moleculeUrl} alt={moleculeAlt} />
-      )}
 
       {identification.substitutive_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
@@ -285,7 +286,7 @@ export const HeroSectionView = memo(function HeroSectionView({
       )}
 
       {hasClassification && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-5 space-y-3 md:mt-6 md:space-y-4">
           {classification.psychoactive_class.length > 0 && (
             <div className="flex items-start gap-3">
               <Icon
