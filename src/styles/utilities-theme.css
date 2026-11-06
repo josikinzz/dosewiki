@@ -2584,7 +2584,13 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 
 @media (min-width: 768px) {
   .theme-article-hero-summary--has-molecule {
+    padding-top: 0;
+  }
+
+  .theme-article-hero-summary--has-molecule::before {
+    position: static;
     display: flow-root;
+    margin-bottom: 1.5rem;
   }
 }
 
