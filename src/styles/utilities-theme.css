@@ -1181,7 +1181,6 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
   box-shadow: var(--theme-search-page-card-box-shadow);
 }
 
-.theme-search-page-shell .theme-search-highlight-mark,
 .theme-search-page-shell .theme-search-suggestion-icon {
   border-color: transparent;
   background: var(--theme-search-page-chip-background);
@@ -1254,10 +1253,11 @@ html[data-nav-pending="true"] .theme-beta-disclaimer-shell {
 }
 
 .theme-search-highlight-mark {
-  border-radius: 0.35em;
-  background: var(--theme-frosted-control-on-panel-bg);
-  color: var(--theme-search-highlight-mark-color);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  border-radius: 0.2em;
+  background: color-mix(in srgb, var(--theme-accent) 22%, transparent);
+  color: inherit;
+  font-weight: 600;
+  box-shadow: none;
 }
 
 .theme-searching-dots {

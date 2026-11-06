@@ -208,7 +208,7 @@ export function FocusedSearchResultsPage({
                               <HighlightedText
                                 text={aliasPreview}
                                 query={highlightQuery}
-                                className="theme-search-suggestion-aliases min-w-0 truncate text-[0.6875rem] font-medium leading-4"
+                                className="theme-search-suggestion-aliases min-w-0 truncate text-xs font-medium leading-4"
                                 markClassName="theme-search-highlight-mark"
                               />
                             ) : null}

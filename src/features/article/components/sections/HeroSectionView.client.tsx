@@ -114,7 +114,7 @@ export const HeroSectionView = memo(function HeroSectionView({
     <div
       id="introduction"
       ref={heroRef}
-      className="theme-article-hero relative scroll-mt-6 overflow-hidden rounded-2xl p-6 shadow-[var(--theme-elevation-2xl)] sm:p-8"
+      className="theme-article-hero relative scroll-mt-6 overflow-hidden rounded-2xl p-4 shadow-[var(--theme-elevation-2xl)] sm:p-8"
     >
       {showPreviewBadge && (
         <div className="type-chip-label theme-badge-surface absolute right-4 top-4 flex items-center gap-1.5 rounded-full px-2.5 py-1">
@@ -174,7 +174,7 @@ export const HeroSectionView = memo(function HeroSectionView({
             size={20}
             className="theme-icon-accent mt-0.5 flex-shrink-0"
           />
-          <span>
+          <span className="min-w-0 max-md:[word-break:break-word] max-md:[overflow-wrap:anywhere] max-md:[line-break:anywhere]">
             <EditableValue
               label="Substitutive name"
               path="identification.substitutive_name"

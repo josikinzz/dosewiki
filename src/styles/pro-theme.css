@@ -550,7 +550,7 @@ html[data-visual-style="pro"] .theme-search-best-match {
 html[data-visual-style="pro"] .theme-search-highlight-mark {
   background: var(--theme-search-highlight-bg);
   color: var(--theme-search-highlight-text);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  box-shadow: none;
 }
 
 html[data-visual-style="pro"] .theme-home-search-input {
