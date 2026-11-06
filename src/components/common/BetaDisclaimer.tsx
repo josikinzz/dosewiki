@@ -12,8 +12,8 @@ export function BetaDisclaimer({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "theme-beta-disclaimer-shell theme-beta-disclaimer-callout mx-auto flex w-fit max-w-full items-start gap-2.5 rounded-lg border px-3.5 py-2",
-        "max-md:max-w-[24rem] max-md:[text-wrap:pretty]",
+        "theme-beta-disclaimer-shell theme-beta-disclaimer-callout flex w-full items-start gap-2.5 rounded-lg border px-4 py-2.5 text-left",
+        "max-md:[text-wrap:pretty]",
         className,
       )}
     >

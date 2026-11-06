@@ -197,7 +197,7 @@ export function FocusedSearchResultsPage({
                           <span className="theme-search-suggestion-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
                             <Icon icon={getSuggestionIcon(match)} size={16} />
                           </span>
-                          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
                             <HighlightedText
                               text={match.label}
                               query={highlightQuery}
@@ -223,12 +223,12 @@ export function FocusedSearchResultsPage({
                             </span>
                           ) : null}
                         </div>
-                        <div className="flex min-w-0 flex-col gap-0.5 pl-9">
+                        <div className="flex min-w-0 flex-col gap-0.5 sm:pl-9">
                           {descriptionText ? (
                             <HighlightedText
                               text={descriptionText}
                               query={highlightQuery}
-                              className="theme-search-suggestion-secondary line-clamp-2 text-[0.8125rem] leading-5"
+                              className="theme-search-suggestion-secondary line-clamp-3 text-[0.8125rem] leading-5 sm:line-clamp-2"
                               markClassName="theme-search-highlight-mark"
                             />
                           ) : null}
