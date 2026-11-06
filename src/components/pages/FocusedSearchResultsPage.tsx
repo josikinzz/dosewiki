@@ -197,11 +197,11 @@ export function FocusedSearchResultsPage({
                           <span className="theme-search-suggestion-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
                             <Icon icon={getSuggestionIcon(match)} size={16} />
                           </span>
-                          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <HighlightedText
                               text={match.label}
                               query={highlightQuery}
-                              className="theme-search-suggestion-title min-w-0 max-w-full break-words text-base font-semibold leading-6 [overflow-wrap:anywhere]"
+                              className="theme-search-suggestion-title min-w-0 max-w-full break-words text-[1.0625rem] font-semibold leading-6 [overflow-wrap:anywhere]"
                               markClassName="theme-search-highlight-mark"
                             />
                             {aliasPreview ? (
