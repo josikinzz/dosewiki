@@ -515,9 +515,9 @@ html[data-visual-style="pro"] .ring-\[rgb\(var\(--c-brand\)\/0\.22\)\] {
 }
 
 html[data-visual-style="pro"] .theme-search-suggestion[data-highlighted="true"] {
-  border-color: var(--ei-accent-edge-strong);
+  border-color: transparent;
   background: var(--ei-surface-sunk);
-  box-shadow: none;
+  box-shadow: inset 3px 0 0 var(--ei-accent-edge-strong);
 }
 
 @media (hover: hover) {
@@ -550,7 +550,7 @@ html[data-visual-style="pro"] .theme-search-best-match {
 html[data-visual-style="pro"] .theme-search-highlight-mark {
   background: var(--theme-search-highlight-bg);
   color: var(--theme-search-highlight-text);
-  box-shadow: var(--theme-frosted-control-on-panel-shadow);
+  box-shadow: none;
 }
 
 html[data-visual-style="pro"] .theme-home-search-input {

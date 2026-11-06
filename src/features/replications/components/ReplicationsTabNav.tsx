@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Icon, type IconName } from "@/components/common/Icon";
 import { msg, useT } from "@/i18n/client";
@@ -32,15 +32,35 @@ export function ReplicationsTabNav({
 }) {
   const pathname = usePathname();
   const t = useT();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const navRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const nav = navRef.current;
+    if (!root || !nav) {
+      return;
+    }
+    const sync = () => {
+      root.dataset.fadeEnd = nav.scrollLeft < nav.scrollWidth - nav.clientWidth - 4 ? "true" : "false";
+    };
+    sync();
+    nav.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    return () => {
+      nav.removeEventListener("scroll", sync);
+      window.removeEventListener("resize", sync);
+    };
+  }, []);
 
   return (
     <div
-      className={cn(
-        "mx-auto mt-2 flex w-full max-w-7xl items-center gap-4",
-        className,
-      )}
+      ref={rootRef}
+      data-fade-end="false"
+      className={cn("theme-replications-tabs relative mx-auto mt-2 flex w-full max-w-7xl items-center gap-4", className)}
     >
       <nav
+        ref={navRef}
         aria-label={t("Replications sections")}
         className="-mx-4 min-w-0 flex-1 overflow-x-auto px-4 [scrollbar-width:thin] md:mx-0 md:px-0"
       >

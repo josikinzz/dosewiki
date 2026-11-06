@@ -13,6 +13,7 @@ import {
 } from "@/theme/appearanceTypography";
 
 const TITLE_MOLECULE_GAP_PX = 16;
+const MOBILE_MOLECULE_SLOT_PX = 140;
 const useIsomorphicLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -79,7 +80,8 @@ export function useHeroTitleFit({
       const isDesktop =
         typeof window.matchMedia !== "function" ||
         window.matchMedia("(min-width: 768px)").matches;
-      const availableWidth = contentRight - titleRect.left;
+      const mobileMoleculeSlot = !isDesktop && moleculeUrl ? MOBILE_MOLECULE_SLOT_PX : 0;
+      const availableWidth = contentRight - titleRect.left - mobileMoleculeSlot;
       const overflows = titleRect.width > availableWidth;
       let nextTitleFitPx: number | null = null;
       if (

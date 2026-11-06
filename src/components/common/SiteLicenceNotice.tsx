@@ -15,7 +15,7 @@ interface SiteLicenceNoticeProps {
   notice?: SiteLicenceNoticeCopy;
 }
 
-const LINK_CLASS_NAME = "theme-link-muted transition-colors";
+const LINK_CLASS_NAME = "theme-link-muted underline decoration-1 underline-offset-[3px] transition-colors hover:decoration-2";
 
 export function SiteLicenceNotice({
   className = "theme-text-faint text-xs leading-5",

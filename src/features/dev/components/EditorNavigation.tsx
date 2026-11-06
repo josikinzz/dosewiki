@@ -183,6 +183,7 @@ export function EditorSegmentedControl({
             onClick={() => onChange(option.value)}
             className={cn(
               "shrink-0 [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:min-h-0",
+              "data-[selected]:border data-[selected]:border-[color:color-mix(in_srgb,var(--theme-accent)_55%,transparent)] data-[selected]:bg-[color-mix(in_srgb,var(--theme-accent)_14%,var(--editor-panel-bg))] data-[selected]:font-semibold data-[selected]:text-[var(--theme-accent-strong)]",
               TOUCH_HALO_Y,
             )}
           >

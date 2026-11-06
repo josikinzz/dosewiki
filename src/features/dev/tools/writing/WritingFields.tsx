@@ -111,6 +111,7 @@ export function WritingFields({
         {(control) => (
           <Textarea
             {...control}
+            textareaSize="sm"
             className="leading-6"
             rows={2}
             value={draft.teaser}
@@ -274,7 +275,7 @@ export function WritingFields({
 
 function FieldGroup({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset className="min-w-0 space-y-5">
+    <fieldset className="min-w-0 space-y-4">
       <legend className="type-meta-label theme-text-muted mb-4">{title}</legend>
       {children}
     </fieldset>

@@ -55,11 +55,19 @@ const getSuggestionIcon = (match: SearchSuggestion): IconName => {
   }
 };
 
+const isSystematicName = (alias: string) => alias.length > 28 || /[[\]()]|\d,\d/.test(alias);
+
+const commonNamesFirst = (aliases: readonly string[]) =>
+  aliases
+    .map((alias, index) => ({ alias, index, systematic: isSystematicName(alias) }))
+    .sort((a, b) => Number(a.systematic) - Number(b.systematic) || a.index - b.index)
+    .map(({ alias }) => alias);
+
 const getAliasPreview = (match: SearchSuggestion) =>
   match.type === "report"
     ? match.secondary ?? ""
     : match.type === "substance" && match.aliases && match.aliases.length > 0
-      ? match.aliases.slice(0, 4).join(" · ")
+      ? commonNamesFirst(match.aliases.slice(0, 4)).join(" · ")
       : "";
 
 const getDescriptionText = (match: SearchSuggestion) =>
@@ -132,8 +140,8 @@ export function FocusedSearchResultsPage({
       tabIndex={-1}
       className="theme-page-shell theme-search-page-shell min-h-screen px-4 py-6 focus:outline-none sm:px-6 lg:px-8"
     >
-      <section className="mx-auto flex w-full max-w-[62rem] flex-col gap-4">
-        <div role="status" aria-live="polite" aria-atomic="true" className="theme-search-suggestion-secondary min-h-10 text-sm leading-5">
+      <section className="mx-auto flex w-full max-w-[54rem] flex-col gap-4">
+        <div role="status" aria-live="polite" aria-atomic="true" className="theme-text-primary min-h-8 px-1 font-display text-2xl font-semibold leading-8">
           {isLoading
             ? displayedResults.length > 0
               ? t("Updating results for “{{query}}”. Previous or partial matches remain visible.", { query: trimmed })
@@ -190,25 +198,25 @@ export function FocusedSearchResultsPage({
                       ) : null}
                       <SmartLink
                         href={getMatchHref(match)}
-                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-4 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 theme-focus-ring sm:px-5"
+                        className="theme-search-suggestion flex h-auto w-full flex-col items-stretch justify-start gap-2.5 whitespace-normal rounded-xl border border-transparent bg-transparent px-4 py-3.5 text-left text-sm transition-[background-color,border-color,box-shadow,color] duration-200 theme-focus-ring sm:px-5"
                         data-highlighted={isBestMatch}
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
                           <span className="theme-search-suggestion-icon inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
                             <Icon icon={getSuggestionIcon(match)} size={16} />
                           </span>
-                          <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <div className="flex min-w-0 flex-1 flex-col gap-1">
                             <HighlightedText
                               text={match.label}
                               query={highlightQuery}
-                              className="theme-search-suggestion-title min-w-0 max-w-full break-words text-base font-semibold leading-6 [overflow-wrap:anywhere]"
-                              markClassName="theme-search-highlight-mark"
+                              className="theme-search-suggestion-title min-w-0 max-w-full break-words text-[1.0625rem] font-semibold leading-6 [overflow-wrap:anywhere]"
+                              markClassName="theme-search-highlight-mark theme-search-title-mark"
                             />
                             {aliasPreview ? (
                               <HighlightedText
                                 text={aliasPreview}
                                 query={highlightQuery}
-                                className="theme-search-suggestion-aliases min-w-0 truncate text-[0.6875rem] font-medium leading-4"
+                                className="theme-search-suggestion-aliases min-w-0 max-w-[80ch] truncate text-[0.8125rem] font-medium leading-5"
                                 markClassName="theme-search-highlight-mark"
                               />
                             ) : null}
@@ -223,12 +231,12 @@ export function FocusedSearchResultsPage({
                             </span>
                           ) : null}
                         </div>
-                        <div className="flex min-w-0 flex-col gap-0.5 pl-9">
+                        <div className="flex min-w-0 flex-col gap-0.5 sm:pl-9">
                           {descriptionText ? (
                             <HighlightedText
                               text={descriptionText}
                               query={highlightQuery}
-                              className="theme-search-suggestion-secondary line-clamp-2 text-[0.8125rem] leading-5"
+                              className="theme-search-suggestion-secondary line-clamp-3 max-w-[80ch] text-[0.8125rem] leading-5 sm:line-clamp-2"
                               markClassName="theme-search-highlight-mark"
                             />
                           ) : null}
