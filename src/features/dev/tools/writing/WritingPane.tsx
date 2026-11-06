@@ -218,7 +218,7 @@ export function WritingPane({
         ) : null}
       </header>
 
-      <div className="space-y-7 px-4 py-5 sm:px-5 [&_:is(input,button,textarea)]:scroll-mb-40 [&_:is(input,button,textarea)]:scroll-mt-28">
+      <div className="space-y-5 px-4 py-5 sm:px-5 [&_:is(input,button,textarea)]:scroll-mb-40 [&_:is(input,button,textarea)]:scroll-mt-28">
         {rowFailed ? (
           <LoadErrorState what={`“${selection.type === "row" ? selection.slug : "this page"}”`} message={controller.rowError ?? ""} onRetry={controller.retryRow} />
         ) : loadingRow ? (
