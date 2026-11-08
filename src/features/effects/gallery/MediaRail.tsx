@@ -17,7 +17,7 @@ import { RAIL_PREVIEW_LIMIT, type GalleryGroup } from "./galleryTypes";
 const ARROW_SCROLL_RATIO = 0.8;
 
 const GROUP_MASONRY_CLASS = "columns-2 gap-1.5 sm:columns-3 [column-fill:_balance]";
-const GROUP_MASONRY_TILE_CLASS = "mb-4 w-full break-inside-avoid";
+const GROUP_MASONRY_TILE_CLASS = "mb-1.5 w-full break-inside-avoid";
 
 const STICKY_LABEL_TOP =
   "top-[calc(var(--site-header-height)+var(--site-header-sticky-gap)+var(--replications-control-bar-height))]";
@@ -208,9 +208,6 @@ export function MediaRail({
           className={cn(
             "flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 scroll-px-1",
             "[scrollbar-width:thin] [-webkit-overflow-scrolling:touch]",
-            canScroll.right && !canScroll.left && "[mask-image:linear-gradient(to_left,transparent,#000_1.5rem)]",
-            canScroll.left && !canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_1.5rem)]",
-            canScroll.left && canScroll.right && "[mask-image:linear-gradient(to_right,transparent,#000_1.5rem,#000_calc(100%-1.5rem),transparent)]",
           )}
         >
           {preview.map((replication) => (

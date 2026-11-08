@@ -263,7 +263,7 @@ export function GalleryMediaTile({
           mobileCompact && "max-md:px-0",
         )}
       >
-        <p className="theme-text-secondary line-clamp-2 min-h-[2lh] break-words text-sm font-medium leading-snug">
+        <p className="theme-text-secondary truncate text-sm font-medium">
           {replication.title}
         </p>
         {showByline ? (

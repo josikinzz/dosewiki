@@ -1188,10 +1188,7 @@ function GalleryExplorer({
 
             {chrome === "full" ? (
               <div
-                className={cn(
-                  "mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 px-1",
-                  hasRemovableFilters || narrowing || corpusLoading ? "min-h-11" : "min-h-0",
-                )}
+                className="mt-3 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2 px-1"
               >
                 <p
                   role="status"

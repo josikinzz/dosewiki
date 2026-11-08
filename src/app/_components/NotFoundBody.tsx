@@ -25,7 +25,7 @@ export function NotFoundBody({
   const t = useT();
 
   return (
-    <div className="relative text-center">
+    <div className="relative">
       <p className="theme-text-faint text-[11px] font-semibold uppercase tracking-[0.24em]">
         404
       </p>
@@ -34,18 +34,18 @@ export function NotFoundBody({
         {t(title ?? "Page not found")}
       </h1>
 
-      <p className="theme-text-secondary mx-auto mt-4 max-w-md text-base leading-7">
+      <p className="theme-text-secondary mt-4 max-w-md text-base leading-7">
         {t(body ?? "That page doesn’t exist or may have moved.")}
       </p>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+      <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
         <Button asChild variant="accent" size="lg">
           <Link href={substancesHref}>{t("Browse substances")}</Link>
         </Button>
         <div className="flex items-center gap-x-3 text-sm">
           <Link
             href={effectsHref}
-            className="rounded-sm py-1 font-medium text-[var(--theme-accent-strong)] underline decoration-1 underline-offset-4 transition-colors hover:decoration-2 theme-focus-ring"
+            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline theme-focus-ring"
           >
             {t(effectsLabel)}
           </Link>
@@ -54,7 +54,7 @@ export function NotFoundBody({
           </span>
           <Link
             href={reportsHref}
-            className="rounded-sm py-1 font-medium text-[var(--theme-accent-strong)] underline decoration-1 underline-offset-4 transition-colors hover:decoration-2 theme-focus-ring"
+            className="theme-text-muted rounded-sm py-1 underline-offset-4 transition-colors hover:text-dose-text hover:underline theme-focus-ring"
           >
             {t(reportsLabel)}
           </Link>
