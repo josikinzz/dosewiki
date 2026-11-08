@@ -120,7 +120,7 @@ export function CitationNeededMarker({ markerOrdinal }: { markerOrdinal?: number
       ? findMarker(fieldMarkers.markers, "needed", markerOrdinal)
       : null;
   const className =
-    "theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.72em] italic leading-none";
+    "theme-citation-needed-marker relative -top-[0.42em] ml-0.5 inline-block whitespace-nowrap align-baseline text-[0.62em] italic leading-none";
 
   if (fieldMarkers && marker) {
     return (

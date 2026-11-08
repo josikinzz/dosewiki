@@ -27,13 +27,13 @@ export function Footer({ model = getRouteChromeModel("/") }: FooterProps) {
               .map((paragraph, index) => (
                 <p
                   key={index}
-                  className="theme-text-muted text-sm leading-6 [&+&]:mt-2"
+                  className="theme-text-faint text-xs leading-5 [&+&]:mt-2"
                 >
                   {paragraph}
                 </p>
               ))}
 
-            <SiteLicenceNotice className="theme-text-muted text-sm leading-6 mt-4" />
+            <SiteLicenceNotice className="theme-text-faint text-xs leading-5 mt-4" />
           </div>
 
           <div className="flex w-full items-end justify-between gap-4 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end">
