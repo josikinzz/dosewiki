@@ -95,7 +95,24 @@ function useManualScrollRestoration() {
     const previousScrollRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
 
+    const scrollToHash = () => {
+      const raw = window.location.hash.slice(1);
+      if (!raw) {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        return;
+      }
+      let id: string;
+      try {
+        id = decodeURIComponent(raw);
+      } catch {
+        id = raw;
+      }
+      document.getElementById(id)?.scrollIntoView({ behavior: "auto", block: "start" });
+    };
+    window.addEventListener("hashchange", scrollToHash);
+
     return () => {
+      window.removeEventListener("hashchange", scrollToHash);
       window.history.scrollRestoration = previousScrollRestoration;
     };
   }, []);
