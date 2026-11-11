@@ -11,6 +11,9 @@ import {
 } from "./publicData.reportProfileProjection";
 import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
 import { getPublicDataReadAdapter } from "./publicData.reads";
+import { drainPublicCorpusPages, type QueryArgs, type QueryTransport } from "./publicData.pagination";
+import { publicDataReadCatalog } from "./publicData.readCatalog";
+import { queryData } from "./serverClient";
 import type { PublicReportPreview, TripReportDetailRecord, TripReportRecord } from "./publicData.shared";
 import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import { getTripReportExcerpt } from "../../src/types/tripReport";
@@ -49,12 +52,22 @@ export const getPublicReportSearchSummaries = cache(publicDataCache(async (): Pr
   tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.reports],
 }));
 
-const getPublicTripReportDetailRecords = cache(publicDataCache(async (): Promise<TripReportDetailRecord[]> => {
-  return await getPublicDataReadAdapter().getPublicTripReportRecords();
-}, ["data-public-trip-report-detail-records-v1"], {
-  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.reports],
-}));
+const readTripReportDetailPage = publicDataCache(
+  async (name: string, args: QueryArgs) => queryData<unknown, QueryArgs>(name, args),
+  ["data-public-trip-report-detail-page-v1"],
+  {
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    awaitRefresh: true,
+    tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.reports],
+  },
+);
+
+const getPublicTripReportDetailRecords = cache(async (): Promise<TripReportDetailRecord[]> =>
+  drainPublicCorpusPages<TripReportDetailRecord>(
+    readTripReportDetailPage as QueryTransport,
+    publicDataReadCatalog.publicTripReportRecords,
+  ),
+);
 
 const getPublicTripReportRecordBySlug = cache(publicDataCache(async (
   slug: string,

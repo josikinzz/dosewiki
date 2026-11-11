@@ -1,6 +1,7 @@
 import type { Doc } from "../../lib/postgres/runtime/dataModel"
 import type { QueryCtx } from "../../lib/postgres/runtime/server"
 import { v } from "../../lib/postgres/runtime/values"
+import { publicGalleryPageProjection, type PublicGalleryPageRow } from "../../lib/postgres/runtime/projectionReads";
 import { findContributorProfileByAuthorName } from "../../lib/contributorProfileIdentity";
 import { replicationDateKind } from "./replicationDateValidators";
 import {
@@ -75,7 +76,7 @@ export function clampPublicGalleryPageSize(requested: number): number {
   return Math.min(Math.max(normalized, 1), PUBLIC_GALLERY_PAGE_SIZE);
 }
 
-function isPublishableGalleryRow(row: Doc<"replications">): boolean {
+function isPublishableGalleryRow(row: PublicGalleryPageRow): boolean {
   return (
     (row.role ?? "replication") === "replication" &&
     isPublishedState(row.publication_state) &&
@@ -168,7 +169,7 @@ export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
 
 async function projectGalleryRow(
   urls: StorageUrlReader,
-  row: Doc<"replications">,
+  row: PublicGalleryPageRow,
   orderByEffect: ReadonlyMap<string, ReadonlyMap<string, number>>,
 ) {
   const resolved = await resolveReplicationUrls(urls, {
@@ -241,7 +242,7 @@ export async function getPublicGalleryPageHandler(
   }
   const limit = clampPublicGalleryPageSize(args.limit);
   const result = args.effectSlug === undefined
-    ? await ctx.db.query("replications").paginate({
+    ? await ctx.db.query("replications").select(publicGalleryPageProjection).paginate({
         cursor: args.cursor ?? null,
         numItems: limit,
       })

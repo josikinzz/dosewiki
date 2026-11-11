@@ -1,5 +1,6 @@
 import { v } from "../lib/postgres/runtime/values";
 import { paginationOptsValidator, query, type MutationCtx } from "../lib/postgres/runtime/server";
+import { publicSubstanceArticleProjection } from "../lib/postgres/runtime/projectionReads";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { substanceArticleLightValidator } from "./lib/validators";
@@ -316,7 +317,7 @@ export const getPublicLibraryInputPage = query({
 export const getPublicArticleTextInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const result = await ctx.db.query("substanceIndex").paginate({
+    const result = await ctx.db.query("substanceIndex").select(publicSubstanceArticleProjection).paginate({
       cursor: args.cursor ?? null,
       numItems: Math.min(4, clampPublicCorpusPageSize(args.limit)),
     });
@@ -331,7 +332,7 @@ export const getPublicArticleTextInputPage = query({
 export const getPublicTranslationTextInputPage = query({
   args: publicCorpusPageArgs,
   handler: async (ctx, args) => {
-    const result = await ctx.db.query("substanceIndex").paginate({
+    const result = await ctx.db.query("substanceIndex").select(publicSubstanceArticleProjection).paginate({
       cursor: args.cursor ?? null,
       numItems: Math.min(32, clampPublicCorpusPageSize(args.limit)),
     });
@@ -395,6 +396,7 @@ export const getPublicBySlug = query({
     const matches = await ctx.db
       .query("substanceIndex")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .select(publicSubstanceArticleProjection)
       .take(2);
     return matches.length === 1 ? projectPublicArticle(matches[0]) : null;
   },

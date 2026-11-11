@@ -63,7 +63,7 @@ describe("public replication gallery pagination", () => {
     });
     const ctx = {
       db: {
-        query: vi.fn(() => ({ paginate })),
+        query: vi.fn(() => ({ select: () => ({ paginate }) })),
       },
       storage: {
         getUrl: vi.fn(async (storageId: string) => `https://media.example/${storageId}`),

@@ -1,5 +1,6 @@
 import type { QueryCtx } from "../../lib/postgres/runtime/server"
 import type { Doc } from "../../lib/postgres/runtime/dataModel";
+import { replicationArtistProjection } from "../../lib/postgres/runtime/projectionReads";
 import { normalizeProfileAlias } from "../../lib/contributorProfileIdentity";
 import { hasKnownCreator } from "../../src/features/effects/components/replicationCredit";
 import { memoizedStorageUrls, resolveReplicationUrls } from "./replicationUrls";
@@ -161,13 +162,15 @@ export async function getByArtistNamesPageHandler(
     return { items: [], cursor: "", isDone: true };
   }
 
-  const result = await ctx.db.query("replications").paginate({
+  const result = await ctx.db.query("replications").select(replicationArtistProjection).paginate({
     cursor: args.cursor ?? null,
     numItems: clampContributorReplicationScanLimit(args.limit),
   });
-  const matched = result.page.filter((row) =>
-    replicationMatchesArtistNames(row, matchNames),
-  );
+  const matchedIds = result.page
+    .filter((row) => replicationMatchesArtistNames(row, matchNames))
+    .map((row) => row._id);
+  const matched = (await ctx.db.getMany("replications", matchedIds))
+    .filter((row) => row !== null);
 
   return {
     items: await resolveRows(ctx, matched),

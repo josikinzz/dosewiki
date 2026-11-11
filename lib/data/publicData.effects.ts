@@ -1,6 +1,7 @@
 import "server-only";
 
 import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { publicDataChunkedCache } from "./publicData.chunkedCache";
 import { publicEffectTag, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { cache } from "react";
 import { contributorMatchNames, profileMatchesName } from "../contributorProfileIdentity";
@@ -19,6 +20,7 @@ import {
 const PUBLIC_REPLICATION_PAGE_LIMIT = 64;
 const PUBLIC_REPLICATION_MAX_PAGES = 512;
 const PUBLIC_REPLICATION_MAX_ROWS = 20_000;
+export const PUBLIC_EFFECT_ARTICLE_CHUNK_SIZE = 48;
 
 
 export const getPublicEffects = cache(publicDataCache(async (): Promise<PublicEffectPreview[]> => {
@@ -42,12 +44,20 @@ export const getPublicEffectBySlug = cache(publicDataCache(async (slug: string):
   tags: (slug) => [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects, publicEffectTag(slug)],
 }));
 
-export const getPublicEffectArticles = cache(publicDataCache(async (): Promise<PublicEffectArticle[]> => {
-  return await getPublicDataReadAdapter().getPublicEffectArticles();
-}, ["data-public-effect-articles"], {
-  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects],
-}));
+const readPublicEffectArticles = publicDataChunkedCache(
+  async (): Promise<PublicEffectArticle[]> => getPublicDataReadAdapter().getPublicEffectArticles(),
+  ["data-public-effect-articles-chunked-v1"],
+  (articles) => ({ shell: null, items: articles }),
+  (_shell, articles) => articles,
+  {
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: () => [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.effects],
+    chunkSize: PUBLIC_EFFECT_ARTICLE_CHUNK_SIZE,
+  },
+);
+
+export const getPublicEffectArticles = cache(async (): Promise<PublicEffectArticle[]> =>
+  (await readPublicEffectArticles()) ?? []);
 
 export const getPublicEffectSlugs = cache(publicDataCache(async (): Promise<string[]> => {
   return getPublicDataReadAdapter().getPublicEffectSlugs();

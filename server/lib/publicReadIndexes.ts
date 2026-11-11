@@ -24,7 +24,9 @@ export function galleryCandidateKeys(row: Doc<"replications">): string[] {
   ])];
 }
 
-export function galleryMatchProjection(row: Doc<"replications">) {
+export function galleryMatchProjection(row: Pick<Doc<"replications">,
+  "slug" | "title" | "type" | "role" | "effect_slug" | "title_drugs" | "title_class_mentions"
+  | "showcase_excluded" | "replication_status" | "publication_state">) {
   return {
     slug: row.slug, title: row.title, type: row.type,
     ...(row.role !== undefined ? { role: row.role } : {}),

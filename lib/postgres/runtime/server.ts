@@ -46,6 +46,10 @@ export const paginationOptsValidator = v.object({
 export interface Query<T> extends AsyncIterable<T> {
   order(direction: "asc" | "desc"): Query<T>;
   filter(predicate: (q: FilterBuilder) => unknown): Query<T>;
+  select<Columns extends keyof T & string>(projection: {
+    readonly columns: readonly Columns[];
+    readonly expressions?: Partial<Record<Columns, string>>;
+  }): Query<Pick<T, Columns>>;
   collect(): Promise<T[]>;
   take(count: number): Promise<T[]>;
   first(): Promise<T | null>;
@@ -62,6 +66,7 @@ export interface DatabaseReader extends EditorialProjectionReads {
   getGlossaryReactionTotals(locale: string): Promise<Array<{ term: string; target: string; version: string; right: number; improve: number }>>;
   get<Table extends TableNames>(id: Id<Table>): Promise<Doc<Table> | null>;
   get<Table extends TableNames>(table: Table, id: Id<Table>): Promise<Doc<Table> | null>;
+  getMany<Table extends TableNames>(table: Table, ids: readonly Id<Table>[]): Promise<Array<Doc<Table> | null>>;
   query<Table extends TableNames>(table: Table): QueryInitializer<Doc<Table>>;
   normalizeId<Table extends TableNames>(table: Table, id: string): Id<Table> | null;
   system: { get(id: Id<"_storage"> | Id<"_scheduled_functions">): Promise<null>; query(table: string): never };

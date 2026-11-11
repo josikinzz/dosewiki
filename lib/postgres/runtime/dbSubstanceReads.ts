@@ -1,8 +1,12 @@
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
 import type { Doc } from "./dataModel";
 import { fromProjectedRow, fromTableRow, quote, type SqlExecutor, type StoredRow } from "./dbRows";
+import { projectedSelectList } from "./dbQuery";
 import {
   aboutAggregateSubstanceColumns,
+  editorialReviewStatusExpression,
+  libraryReferenceIdentifiersExpression,
+  publicSubstanceArticleProjection,
   publicSubstanceCoverageColumns,
   publicSubstanceEffectMembershipColumns,
   publicSubstanceLibraryInputColumns,
@@ -54,7 +58,7 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
   async getPublicAboutPreviewRows(limit: number): Promise<Doc<"substanceIndex">[]> {
     const bounded = Math.min(Math.max(Math.floor(limit), 1), 12);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("substanceIndex")}
+      `SELECT ${projectedSelectList("substanceIndex", publicSubstanceArticleProjection)}
        FROM "substanceIndex"
        WHERE COALESCE(to_jsonb("priority") #>> '{}', 'normal') NOT IN ('low', 'hide_for_now')
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC
@@ -166,9 +170,8 @@ export class SubstanceProjectionReader implements SubstanceProjectionReads {
        (CASE WHEN jsonb_typeof("harm_potential") = 'object'
          THEN jsonb_build_object('addiction_liability', "harm_potential"->'addiction_liability')
          ELSE "harm_potential" END)::text AS "harm_potential",
-       (CASE WHEN jsonb_typeof("editorial_review") = 'object'
-         THEN jsonb_build_object('status', "editorial_review"->'status')
-         ELSE "editorial_review" END)::text AS "editorial_review"
+       (${editorialReviewStatusExpression})::text AS "editorial_review",
+       (${libraryReferenceIdentifiersExpression})::text AS "references"
        FROM "substanceIndex" ${where}
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
       params,

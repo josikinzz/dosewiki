@@ -101,7 +101,7 @@ export const getByArticleSlug = query({
       const links = await ctx.db.query("articleHistory")
         .withIndex("by_slug_created", (q) => q.eq("slug", args.slug))
         .order("desc").take(limit);
-      const rows = await Promise.all(links.map((link) => ctx.db.get(link.changelog_id)));
+      const rows = await ctx.db.getMany("changelog", links.map((link) => link.changelog_id));
       return rows.filter((row) => row !== null).map(projectPublicChangelog);
     }
     const slug = args.slug;
@@ -131,7 +131,7 @@ export const getByArticleSlugSummaries = query({
         .withIndex("by_slug_created", (query) => query.eq("slug", args.slug))
         .order("desc")
         .take(limit);
-      rows = (await Promise.all(links.map((link) => ctx.db.get(link.changelog_id))))
+      rows = (await ctx.db.getMany("changelog", links.map((link) => link.changelog_id)))
         .filter((row) => row !== null);
     } else {
       rows = [];
