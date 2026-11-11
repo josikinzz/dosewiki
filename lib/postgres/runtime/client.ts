@@ -60,7 +60,7 @@ async function retryTransient<T>(attempt: (attempt: number) => Promise<T>, retry
       const retryable = classifyPostgresError(error) === "transient" || (retryConnectionLoss && isConnectionLoss(error));
       if (!retryable || count >= MAX_TRANSIENT_ATTEMPTS) throw error;
       if (retryConnectionLoss && isConnectionLoss(error)) console.warn(`postgres: connection lost, rerunning read-only query (attempt ${count + 1}): ${(error as Error).message}`);
-      await sleep(Math.random() * 100 * 2 ** count);
+      await sleep(25 + Math.random() * 100 * 2 ** count);
     }
   }
 }

@@ -1,5 +1,6 @@
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import type { Doc, TableNames } from "./dataModel";
+import { tableColumns } from "../schema.generated";
 import type { Doc as StoredDocument } from "./dbRows";
 import type { FeedbackQueuePageOptions, FeedbackQueueStatusCounts, FeedbackQueueTable } from "./feedbackQueuePage";
 
@@ -73,13 +74,7 @@ const publicReferencesExpression = `CASE WHEN jsonb_typeof("references") = 'arra
   ELSE "references" END`;
 
 export const publicSubstanceArticleProjection = {
-  columns: [
-    "_id", "_creationTime", "id", "title", "slug", "priority", "index_categories",
-    "identification", "classification", "summary", "dosage", "duration",
-    "subjective_effects", "comparisons", "pharmacology", "interactions",
-    "reagent_testing", "tolerance", "harm_potential", "history_culture", "legality",
-    "editorial_review", "section_gaps", "references", "source_citations", "citations",
-  ],
+  columns: Object.keys(tableColumns.substanceIndex) as Array<Column<"substanceIndex"> & string>,
   expressions: {
     editorial_review: editorialReviewStatusExpression,
     references: publicReferencesExpression,
