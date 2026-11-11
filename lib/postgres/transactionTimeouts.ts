@@ -1,11 +1,12 @@
 import type { PoolClient, PoolConfig } from "pg";
 
-export const POOL_ACQUISITION_TIMEOUT_MS = 10_000;
+export const POOL_ACQUISITION_TIMEOUT_MS = 5_000;
 
 export const QUERY_READ_TIMEOUT_MS = 45_000;
 
 export const RUNTIME_POOL_OPTIONS = {
   keepAlive: true,
+  idleTimeoutMillis: 5_000,
   query_timeout: QUERY_READ_TIMEOUT_MS,
   connectionTimeoutMillis: POOL_ACQUISITION_TIMEOUT_MS,
 } as const satisfies PoolConfig;
