@@ -34,6 +34,7 @@ import { getPublicGalleryBySubstanceHandler, getSubstanceGalleryMembers } from "
 import { getCurationDetailHandler, uniqueSubstanceBySlug } from "./lib/substanceGalleryCurationReads";
 import { resolvedReplication } from "./lib/replicationValidators";
 import { galleryMatchProjection } from "./lib/publicReadIndexes";
+import { publicMatchableReplicationProjection } from "../lib/postgres/runtime/projectionReads";
 
 const MAX_GALLERY_CURATION_SLUGS = GALLERY_CURATION_SLUG_CAP;
 
@@ -195,7 +196,7 @@ export async function getPublicMatchableReplicationsPageHandler(
   ctx: QueryCtx,
   args: { cursor?: string; limit?: number },
 ) {
-  const page = await ctx.db.query("replications").paginate({
+  const page = await ctx.db.query("replications").select(publicMatchableReplicationProjection).paginate({
     cursor: args.cursor ?? null,
     numItems: clampPublicMatchableReplicationsPageSize(args.limit),
   });

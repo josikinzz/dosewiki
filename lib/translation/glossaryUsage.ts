@@ -224,7 +224,9 @@ async function buildGlossaryUsages(terms: readonly string[]): Promise<GlossaryUs
   return Object.fromEntries([...new Set(terms)].map((term) => [term, queryGlossaryUsage(index, term)]));
 }
 
-export const getGlossaryUsages = publicDataCache(
+const GLOSSARY_USAGE_CHUNK_TERMS = 100;
+
+const readGlossaryUsageChunk = publicDataCache(
   buildGlossaryUsages,
   ["glossary-usage-disclosures-v1"],
   {
@@ -239,3 +241,12 @@ export const getGlossaryUsages = publicDataCache(
     ],
   },
 );
+
+export async function getGlossaryUsages(terms: readonly string[]): Promise<GlossaryUsageMap> {
+  const unique = [...new Set(terms)];
+  const chunks: string[][] = [];
+  for (let offset = 0; offset < unique.length; offset += GLOSSARY_USAGE_CHUNK_TERMS) {
+    chunks.push(unique.slice(offset, offset + GLOSSARY_USAGE_CHUNK_TERMS));
+  }
+  return Object.assign({}, ...await Promise.all(chunks.map((chunk) => readGlossaryUsageChunk(chunk))));
+}

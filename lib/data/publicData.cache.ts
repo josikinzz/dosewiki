@@ -45,8 +45,9 @@ export function publicDataCache<Args extends unknown[], Result>(
     const cached = await unstable_cache(async (...values: Args): Promise<PublicCachedValue<Result>> => {
       const result = await (currentRead ??= callback(...values));
       const entry = { cacheable: true as const, value: result };
-      const body = JSON.stringify(entry);
-      if (Buffer.byteLength(JSON.stringify(body), "utf8") > MAX_PUBLIC_CACHE_BYTES) {
+      const bytes = Buffer.byteLength(JSON.stringify(JSON.stringify(entry)), "utf8");
+      if (bytes > MAX_PUBLIC_CACHE_BYTES) {
+        console.warn(`public-data-cache: skipped ${keyParts.join("/")} at ${bytes} bytes (limit ${MAX_PUBLIC_CACHE_BYTES})`);
         return { cacheable: false };
       }
       return entry;

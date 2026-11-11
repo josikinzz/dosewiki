@@ -1,6 +1,7 @@
 import { PostgresError } from "../../lib/postgres/runtime/values"
 import type { Doc } from "../../lib/postgres/runtime/dataModel"
 import type { QueryCtx } from "../../lib/postgres/runtime/server"
+import { publicSubstanceGalleryTargetProjection } from "../../lib/postgres/runtime/projectionReads";
 import {
   includeDirectlyAssociatedRows,
   matchSubstanceGalleryReplications,
@@ -31,13 +32,14 @@ async function uniqueSubstanceBySlug(ctx: QueryCtx, slug: string) {
   const matches = await ctx.db
     .query("substanceIndex")
     .withIndex("by_slug", (q) => q.eq("slug", slug))
+    .select(publicSubstanceGalleryTargetProjection)
     .take(2);
   return matches.length === 1 ? matches[0] : null;
 }
 
 export async function getSubstanceGalleryMembers(
   ctx: QueryCtx,
-  substance: Doc<"substanceIndex">,
+  substance: Pick<Doc<"substanceIndex">, "slug" | "classification">,
   gallery: Doc<"substanceGalleries"> | null,
 ) {
   if (gallery?.disabled) return [];
@@ -81,9 +83,10 @@ export async function getPublicGalleryBySubstanceHandler(
   }
 
   const urls = memoizedStorageUrls(ctx);
+  const rows = await ctx.db.getMany("replications", merged.map(({ row }) => row.replication_id));
   const resolved = await Promise.all(
-    merged.map(async ({ row: candidate, provenance }) => {
-      const row = await ctx.db.get(candidate.replication_id);
+    merged.map(async ({ provenance }, index) => {
+      const row = rows[index];
       if (!row) return null;
       const { url, thumbnail_url, preview_url, motion_url, motion_poster_url } =
         await resolveReplicationUrls(urls, row);

@@ -1,12 +1,14 @@
 import { getFunctionName, type ArgsAndOptions, type FunctionReference, type FunctionReturnType, type OptionalRestArgs, type HttpMutationOptions, type FunctionKind } from "./api";
 import type { RegisteredFunction, QueryCtx, MutationCtx } from "./server";
 import { Pool } from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 import { assertDeploymentEnv } from "./deploymentEnv";
 import { loadIdTableMap, taggedIdTable, PostgresDatabaseReader, PostgresDatabaseWriter, serialExecutor, type IdTableMap, type SqlExecutor } from "./db";
 import { validateValue, validateReturn } from "./validate";
 import { RUNTIME_POOL_OPTIONS, beginWithTimeouts } from "../transactionTimeouts";
 import { withTransaction, type SqlClient } from "../documentStore";
 import { parsePostgresTarget } from "./target";
+import { postgresApplicationName, queryTag } from "./querySource";
 import { classifyPostgresError, isConnectionLoss } from "../postgresErrors";
 import { assertDataWritesNotFrozen, isDataWriteFreezeActive } from "../../runtime/dataWriteFreeze";
 
@@ -39,7 +41,7 @@ export async function resolveFunction(
 }
 
 const DEFAULT_MAX_CONNECTIONS = 2;
-const MAX_TRANSIENT_ATTEMPTS = 6;
+const MAX_TRANSIENT_ATTEMPTS = 3;
 
 function resolveMaxConnections(value: string | undefined): number {
   const parsed = Number(value);
@@ -58,7 +60,7 @@ async function retryTransient<T>(attempt: (attempt: number) => Promise<T>, retry
       const retryable = classifyPostgresError(error) === "transient" || (retryConnectionLoss && isConnectionLoss(error));
       if (!retryable || count >= MAX_TRANSIENT_ATTEMPTS) throw error;
       if (retryConnectionLoss && isConnectionLoss(error)) console.warn(`postgres: connection lost, rerunning read-only query (attempt ${count + 1}): ${(error as Error).message}`);
-      await sleep(10 * 2 ** count + Math.random() * 20);
+      await sleep(25 + Math.random() * 100 * 2 ** count);
     }
   }
 }
@@ -133,7 +135,9 @@ export class PostgresClient {
   static fromUrl(connectionString: string, max = 4): PostgresClient {
     max = Math.min(max, RUNTIME_MAX_CONNECTIONS);
     assertDeploymentEnv();
-    return new PostgresClient(new Pool({ connectionString, max, ...RUNTIME_POOL_OPTIONS }));
+    const pool = new Pool({ connectionString, max, application_name: postgresApplicationName(), ...RUNTIME_POOL_OPTIONS });
+    if (process.env.NEXT_RUNTIME) attachDatabasePool(pool);
+    return new PostgresClient(pool);
   }
 
   async end(): Promise<void> {
@@ -146,7 +150,7 @@ export class PostgresClient {
       try {
         await beginWithTimeouts(client, isDataWriteFreezeActive() ? "BEGIN READ ONLY" : "BEGIN");
         try {
-          const result = await client.query<Row>(text, values);
+          const result = await client.query<Row>(`${text} ${queryTag("sql")}`, values);
           await client.query("COMMIT");
           return result.rows;
         } catch (error) {
@@ -181,7 +185,7 @@ export class PostgresClient {
       try {
         await beginWithTimeouts(client, "BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
         try {
-          const executor = serialExecutor(client);
+          const executor = serialExecutor(client, queryTag(name));
           const startedAt = performance.now();
           const idMap = await this.prepareArguments(executor, name, fn, args);
           const result = await this.runQueryOn(executor, idMap, name, fn, args);
@@ -210,7 +214,7 @@ export class PostgresClient {
       try {
         await beginWithTimeouts(client, "BEGIN ISOLATION LEVEL SERIALIZABLE");
         try {
-          const executor = serialExecutor(client);
+          const executor = serialExecutor(client, queryTag(name));
           const startedAt = performance.now();
           const idMap = await this.prepareArguments(executor, name, fn, args);
           const result = await this.runMutationOn(executor, idMap, name, fn, args);

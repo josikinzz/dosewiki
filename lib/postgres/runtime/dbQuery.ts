@@ -1,15 +1,27 @@
 import { decodeDocumentValue, encodeDocumentValue, losslessSelectList } from "../documentCodec";
-import { tableIndexes, type TableName } from "../schema.generated";
+import { tableColumns, tableIndexes, type ColumnSpec, type TableName } from "../schema.generated";
 import { evaluate, filterBuilder, lit, readPath, type Expr } from "./dbFilter";
 import { boundToSql, columnExpr, IndexRange, SQL_TYPE, sqlParam, type Fetch } from "./dbIndexRange";
 import { fromRow, quote, type Doc, type SqlExecutor } from "./dbRows";
 
 type Order = "asc" | "desc";
 type PaginationResult = { page: Doc[]; isDone: boolean; continueCursor: string };
+type Projection = { readonly columns: readonly string[]; readonly expressions?: Readonly<Record<string, string | undefined>> };
+
+export function projectedSelectList(table: TableName, projection: Projection): string {
+  const specs: Record<string, ColumnSpec> = tableColumns[table];
+  return projection.columns.map((column) => {
+    const expression = projection.expressions?.[column];
+    if (expression === undefined) return losslessSelectList(table, [column]);
+    if (!specs[column]) throw new Error(`Unknown column ${table}.${column}`);
+    return `(${expression})${specs[column].kind === "jsonb" ? "::text" : ""} AS ${quote(column)}`;
+  }).join(", ");
+}
 
 class Query implements AsyncIterable<Doc> {
   private orderDirection: Order = "asc";
   private filters: Expr[] = [];
+  private projection: Projection | null = null;
 
   constructor(
     private readonly client: SqlExecutor,
@@ -27,6 +39,19 @@ class Query implements AsyncIterable<Doc> {
   filter(predicate: (q: typeof filterBuilder) => unknown) {
     this.filters.push(lit(predicate(filterBuilder)));
     return this;
+  }
+
+  select(projection: Projection) {
+    const columns = new Set([...projection.columns, ...this.orderKeys().map((key) => key.split(".")[0])]);
+    this.projection = { columns: [...columns], expressions: projection.expressions };
+    return this;
+  }
+
+  private decode(row: Record<string, unknown>): Doc {
+    const doc = fromRow(this.table, row);
+    if (!this.projection) return doc;
+    const selected = new Set(this.projection.columns);
+    return Object.fromEntries(Object.entries(doc).filter(([field]) => selected.has(field))) as Doc;
   }
 
   private orderKeys(): string[] {
@@ -84,13 +109,15 @@ class Query implements AsyncIterable<Doc> {
     }
     const orderBy = keys.map((k) => `${columnExpr(this.table, k).sql} ${direction}`).join(", ");
     const where = fetch.where.length ? `WHERE ${fetch.where.join(" AND ")}` : "";
+    if (this.projection && this.filters.length) throw new Error(`${this.table}: select() cannot be combined with filter()`);
     let offset = 0;
     let limit = wanted === undefined ? 128 : this.filters.length ? Math.max(16, wanted * 4) : wanted;
     for (;;) {
-      const sql = `SELECT ${losslessSelectList(this.table)} FROM ${quote(this.table)} ${where} ORDER BY ${orderBy} LIMIT ${limit} OFFSET ${offset}`;
+      const select = this.projection ? projectedSelectList(this.table, this.projection) : losslessSelectList(this.table);
+      const sql = `SELECT ${select} FROM ${quote(this.table)} ${where} ORDER BY ${orderBy} LIMIT ${limit} OFFSET ${offset}`;
       const result = await this.client.query(sql, fetch.params);
       for (const row of result.rows) {
-        const doc = fromRow(this.table, row as Record<string, unknown>);
+        const doc = this.decode(row as Record<string, unknown>);
         this.onRow(doc._id, this.table);
         if (this.matches(doc)) yield doc;
       }

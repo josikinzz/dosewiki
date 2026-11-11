@@ -10,7 +10,7 @@ export type SqlExecutor = {
   readonly statements: number;
 };
 
-export function serialExecutor(client: PoolClient): SqlExecutor {
+export function serialExecutor(client: PoolClient, tag = ""): SqlExecutor {
   let tail: Promise<unknown> = Promise.resolve();
   let statements = 0;
   return {
@@ -19,7 +19,7 @@ export function serialExecutor(client: PoolClient): SqlExecutor {
     },
     query(sql, params) {
       statements += 1;
-      const run = tail.then(() => client.query(sql, params));
+      const run = tail.then(() => client.query(tag ? `${sql} ${tag}` : sql, params));
       tail = run.catch(() => undefined);
       return run as Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }>;
     },

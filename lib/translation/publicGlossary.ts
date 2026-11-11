@@ -32,7 +32,7 @@ export const readRequiredGlossaryTerms = publicDataCache(
   ["public-glossary-required-terms"],
   { revalidate: 300 },
 );
-export const readPublicLanguageGlossary = publicDataCache(
+const readPublicLanguageGlossaryBase = publicDataCache(
   async (locale: string) => {
     const language = glossaryLanguage(locale);
     if (!language) return null;
@@ -50,10 +50,7 @@ export const readPublicLanguageGlossary = publicDataCache(
       (releases as LanguageRelease[]).find((row) => row.locale === locale) ??
       null;
     const projected = projectGlossary([...definitions.values()], rows);
-    const [usages, examples] = await Promise.all([
-      getGlossaryUsages(projected.map((entry) => entry.term)),
-      readGlossaryExamples(locale, projected),
-    ]);
+    const examples = await readGlossaryExamples(locale, projected);
     const entries = projected.map((entry) => ({
       ...entry,
       example: examples.get(entry.term) ?? null,
@@ -61,7 +58,6 @@ export const readPublicLanguageGlossary = publicDataCache(
     return {
       language,
       entries,
-      usages,
       readiness: languageReadiness(
         locale,
         required.map((row) => row.term),
@@ -70,9 +66,20 @@ export const readPublicLanguageGlossary = publicDataCache(
       ),
     };
   },
-  ["public-language-glossary"],
+  ["public-language-glossary-base"],
   { revalidate: 60 },
 );
+
+export async function readPublicLanguageGlossary(locale: string) {
+  const page = await readPublicLanguageGlossaryBase(locale);
+  if (!page) return null;
+  return {
+    language: page.language,
+    entries: page.entries,
+    usages: await getGlossaryUsages(page.entries.map((entry) => entry.term)),
+    readiness: page.readiness,
+  };
+}
 
 export const readPublicLanguageDirectory = publicDataCache(
   async () => {
@@ -80,7 +87,7 @@ export const readPublicLanguageDirectory = publicDataCache(
       glossaryLanguages.map((language) => language.code),
     );
     const pages = await Promise.all(
-      summaries.map((row) => readPublicLanguageGlossary(row.locale)),
+      summaries.map((row) => readPublicLanguageGlossaryBase(row.locale)),
     );
     return pages.flatMap((page) =>
       page

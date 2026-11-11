@@ -1,5 +1,6 @@
 import type { CitationQueueSummary } from "../../../server/lib/citationQueueFilter";
 import type { Doc, TableNames } from "./dataModel";
+import { tableColumns } from "../schema.generated";
 import type { Doc as StoredDocument } from "./dbRows";
 import type { FeedbackQueuePageOptions, FeedbackQueueStatusCounts, FeedbackQueueTable } from "./feedbackQueuePage";
 
@@ -36,16 +37,76 @@ export const publicSubstanceEffectMembershipColumns = [
   "index_categories", "identification", "classification", "subjective_effects",
 ] as const satisfies readonly SubstanceColumn[];
 
+export type ColumnProjection<Table extends TableNames, Columns extends Column<Table> & string = Column<Table> & string> = {
+  readonly columns: readonly Columns[];
+  readonly expressions?: Partial<Record<Columns, string>>;
+};
+
 export const publicSubstanceLibraryInputColumns = [
   "_id", "_creationTime", "id", "title", "slug", "priority",
   "index_categories", "identification", "classification", "summary",
   "dosage", "duration", "subjective_effects", "pharmacology", "interactions",
-  "reagent_testing", "tolerance", "references", "source_citations", "citations",
+  "reagent_testing", "tolerance", "source_citations", "citations",
 ] as const satisfies readonly SubstanceColumn[];
 
 export const publicSubstanceLibraryInputNarrowedColumns = [
-  "harm_potential", "editorial_review",
+  "harm_potential", "editorial_review", "references",
 ] as const satisfies readonly SubstanceColumn[];
+
+export const editorialReviewStatusExpression = `CASE WHEN jsonb_typeof("editorial_review") = 'object'
+  THEN jsonb_build_object('status', "editorial_review"->'status')
+  ELSE "editorial_review" END`;
+
+export const libraryReferenceIdentifiersExpression = `CASE WHEN jsonb_typeof("references") = 'array'
+  THEN (SELECT COALESCE(jsonb_agg(CASE WHEN jsonb_typeof(reference.value) = 'object'
+      THEN (SELECT COALESCE(jsonb_object_agg(identifier.key, reference.value->identifier.key), '{}'::jsonb)
+        FROM unnest(ARRAY['url', 'doi', 'pmid', 'isbn']) AS identifier(key)
+        WHERE reference.value ? identifier.key)
+      ELSE reference.value END ORDER BY reference.position), '[]'::jsonb)
+    FROM jsonb_array_elements("references") WITH ORDINALITY AS reference(value, position))
+  ELSE "references" END`;
+
+const publicReferencesExpression = `CASE WHEN jsonb_typeof("references") = 'array'
+  THEN (SELECT COALESCE(jsonb_agg(CASE WHEN jsonb_typeof(reference.value) = 'object'
+      THEN reference.value - 'metadataProvenance'
+      ELSE reference.value END ORDER BY reference.position), '[]'::jsonb)
+    FROM jsonb_array_elements("references") WITH ORDINALITY AS reference(value, position))
+  ELSE "references" END`;
+
+export const publicSubstanceArticleProjection = {
+  columns: Object.keys(tableColumns.substanceIndex) as Array<Column<"substanceIndex"> & string>,
+  expressions: {
+    editorial_review: editorialReviewStatusExpression,
+    references: publicReferencesExpression,
+  },
+} as const satisfies ColumnProjection<"substanceIndex">;
+
+export const publicSubstanceGalleryTargetProjection = {
+  columns: ["_id", "_creationTime", "slug", "classification"],
+} as const satisfies ColumnProjection<"substanceIndex">;
+
+export const publicGalleryPageProjection = {
+  columns: [
+    "_id", "_creationTime", "slug", "title", "artist", "artist_url", "role",
+    "publication_state", "replication_status", "type", "format", "effect_slug",
+    "effect_tags", "viewing_mode_tags", "title_drugs", "drug_classes", "content_family",
+    "storage_id", "thumbnail_storage_id", "preview_storage_id", "motion_storage_id",
+    "motion_poster_storage_id", "r2_key", "thumbnail_r2_key", "preview_r2_key",
+    "motion_r2_key", "motion_poster_r2_key", "url", "thumbnail_url",
+    "width", "height", "duration", "has_audio", "created_at", "date_info",
+  ],
+} as const satisfies ColumnProjection<"replications">;
+
+export const publicMatchableReplicationProjection = {
+  columns: [
+    "_id", "_creationTime", "slug", "title", "type", "role", "effect_slug", "title_drugs",
+    "title_class_mentions", "showcase_excluded", "replication_status", "publication_state",
+  ],
+} as const satisfies ColumnProjection<"replications">;
+
+export const replicationArtistProjection = {
+  columns: ["_id", "_creationTime", "artist"],
+} as const satisfies ColumnProjection<"replications">;
 
 export const publicSubstanceCoverageColumns = [
   "_id", "_creationTime", "title", "slug", "priority", "index_categories",
@@ -145,6 +206,7 @@ export type PublicTripReportBrowseRow = PublicTripReportPreviewRow & { excerpt_s
 export type PublicTripReportContributorRow = ProjectedRow<"tripReports", typeof publicTripReportContributorColumns>;
 export type PublicGalleryMembershipRow = ProjectedRow<"replications", typeof publicGalleryMembershipColumns>;
 export type PublicArtistCreditRow = ProjectedRow<"replications", typeof publicArtistCreditColumns>;
+export type PublicGalleryPageRow = ProjectedRow<"replications", typeof publicGalleryPageProjection.columns>;
 export type PublicArtistTaxonomyRow = { key: string; primary_type: unknown; artist_type_tags: unknown };
 export type PublishedArticleIndexRow = ProjectedRow<"effectIndexArticles", typeof publishedArticleIndexColumns> & {
   description_source: string | null;
@@ -182,7 +244,7 @@ export type EditorLibraryPage = {
 };
 
 export type PublicEffectReplicationPage = {
-  page: Doc<"replications">[];
+  page: PublicGalleryPageRow[];
   continueCursor: string;
   isDone: boolean;
 };

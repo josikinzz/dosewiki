@@ -1,6 +1,7 @@
 import "server-only";
 
 import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "./publicData.cache";
+import { publicDataChunkedCache } from "./publicData.chunkedCache";
 import { publicSubstanceGalleryTag, PUBLIC_DATA_CACHE_TAGS } from "./publicData.cacheTags";
 import { cache } from "react";
 import { contributorMatchNames, findContributorProfileByAuthorName } from "../contributorProfileIdentity";
@@ -32,6 +33,7 @@ export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatc
 
 const PUBLIC_MATCHABLE_CORPUS_MAX_PAGES = 512;
 const PUBLIC_MATCHABLE_CORPUS_MAX_ROWS = 20_000;
+export const PUBLIC_SUBSTANCE_GALLERY_CHUNK_SIZE = 256;
 
 const getPublicReplicationArtistTaxonomyBatch = cache(publicDataCache(async (
   keys: string[],
@@ -123,19 +125,23 @@ const getPublicSubstanceGalleryCuration = cache(publicDataCache(async (
   ],
 }));
 
-const readPublicSubstanceGalleryFastPath = cache(publicDataCache(async (
-  substanceSlug: string,
-): Promise<PublicSubstanceGallery | null> => {
-  return await getPublicDataReadAdapter().getPublicSubstanceGallery(substanceSlug);
-}, ["data-public-substance-gallery-v2"], {
-  revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
-  tags: (slug) => [
-    PUBLIC_DATA_CACHE_TAGS.all,
-    PUBLIC_DATA_CACHE_TAGS.replications,
-    PUBLIC_DATA_CACHE_TAGS.substances,
-    publicSubstanceGalleryTag(slug),
-  ],
-}));
+const readPublicSubstanceGalleryFastPath = cache(publicDataChunkedCache(
+  async (substanceSlug: string): Promise<PublicSubstanceGallery | null> =>
+    getPublicDataReadAdapter().getPublicSubstanceGallery(substanceSlug),
+  ["data-public-substance-gallery-chunked-v3"],
+  ({ items, ...shell }) => ({ shell, items }),
+  (shell, items) => ({ items, ...shell }),
+  {
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: (slug) => [
+      PUBLIC_DATA_CACHE_TAGS.all,
+      PUBLIC_DATA_CACHE_TAGS.replications,
+      PUBLIC_DATA_CACHE_TAGS.substances,
+      publicSubstanceGalleryTag(slug),
+    ],
+    chunkSize: PUBLIC_SUBSTANCE_GALLERY_CHUNK_SIZE,
+  },
+));
 
 const assemblePublicSubstanceGalleryFromCorpus = cache(async (
   substance: NonNullable<Awaited<ReturnType<typeof getPublicSubstanceBySlug>>>,

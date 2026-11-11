@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isDataWriteFrozenError } from "../runtime/dataWriteFreeze";
+import { runWithQuerySource } from "../postgres/runtime/querySource";
 import { enforceRateLimit } from "./nextRateLimit";
 import { optionalGuardOption, plainGuardOptions } from "./guardOptions";
 import { isRateLimitPolicyName, type RateLimitPolicyName } from "./rateLimitPolicy";
@@ -63,7 +64,7 @@ export function cronRoute(
     if (!decision.allowed) {
       return NextResponse.json({ error: decision.reason }, { status: decision.status });
     }
-    return handler(request);
+    return runWithQuerySource("cron", () => handler(request));
   });
 }
 

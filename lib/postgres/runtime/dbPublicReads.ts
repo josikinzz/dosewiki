@@ -7,6 +7,7 @@ import {
   publicEffectGalleryOrderColumns,
   publicEffectProjectionColumns,
   publicGalleryMembershipColumns,
+  publicGalleryPageProjection,
   publicTripReportContributorColumns,
   publicTripReportPreviewColumns,
   publishedArticleIndexColumns,
@@ -201,7 +202,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
       : "";
     params.push(limit + 1);
     const result = await this.client.query(
-      `SELECT ${losslessSelectList("replications")} FROM "replications"
+      `SELECT ${losslessSelectList("replications", publicGalleryPageProjection.columns)} FROM "replications"
        WHERE ("effect_slug" COLLATE "C" = $1::text COLLATE "C" OR "effect_tags" @> jsonb_build_array($1::text))
        ${continuation}
        ORDER BY "_creationTime" ASC, "_id" COLLATE "C" ASC LIMIT $${params.length}`,
@@ -210,7 +211,7 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     const page = result.rows.slice(0, limit);
     const last = page[page.length - 1];
     return {
-      page: page.map((row) => fromTableRow("replications", row)),
+      page: page.map((row) => fromProjectedRow("replications", publicGalleryPageProjection.columns, row)),
       continueCursor: last
         ? prefix + JSON.stringify({ effectSlug: args.effectSlug, _creationTime: last._creationTime, _id: last._id })
         : (args.cursor ?? ""),

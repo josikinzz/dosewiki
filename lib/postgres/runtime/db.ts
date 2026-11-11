@@ -66,6 +66,22 @@ export class PostgresDatabaseReader extends EditorialProjectionReader {
     return row ? fromRow(table, row) : null;
   }
 
+  async getMany(table: string, ids: readonly string[]): Promise<Array<Doc | null>> {
+    const name = assertTable(table);
+    if (!ids.length) return [];
+    const result = await this.client.query(
+      `SELECT ${losslessSelectList(name)} FROM ${quote(name)} WHERE "_id" = ANY($1::text[])`,
+      [[...new Set(ids)]],
+    );
+    const byId = new Map<string, Doc>();
+    for (const row of result.rows as Record<string, unknown>[]) {
+      const doc = fromRow(name, row);
+      this.rememberTable(doc._id, name);
+      byId.set(doc._id, doc);
+    }
+    return ids.map((id) => byId.get(id) ?? null);
+  }
+
   query(table: string) {
     return new QueryInitializer(this.client, assertTable(table), (id, t) => this.rememberTable(id, t));
   }
