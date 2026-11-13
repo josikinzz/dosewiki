@@ -164,7 +164,6 @@ export const publicDataReadCatalog = {
     args: (artistNames: string[], cursor?: string) => ({
       artistNames,
       ...(cursor ? { cursor } : {}),
-      limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
     }),
   },
   publicMatchableReplicationsPage: {
@@ -237,13 +236,17 @@ export const publicDataReadCatalog = {
     args: (slug: string, limit: number) => ({ slug, limit }),
   },
   publicChangelogRecent: { functionName: "changelog:getRecent", args: (limit: number) => ({ limit }) },
-  publicChangelogSummariesByArticleSlug: {
-    functionName: "changelog:getByArticleSlugSummaries",
+  publicChangelogEntryIdsByArticleSlug: {
+    functionName: "changelog:getArticleHistoryEntryIds",
     args: (slug: string, limit: number) => ({ slug, limit }),
   },
-  publicChangelogRecentSummaries: {
-    functionName: "changelog:getRecentSummaries",
+  publicChangelogRecentEntryIds: {
+    functionName: "changelog:getRecentEntryIds",
     args: (limit: number) => ({ limit }),
+  },
+  publicChangelogEntrySummaries: {
+    functionName: "changelog:getEntrySummaries",
+    args: (ids: string[]) => ({ ids }),
   },
   publicReplicationIdentityAttribution: {
     functionName: "publicReplicationIdentitySocial:getAttributionByReplicationId",

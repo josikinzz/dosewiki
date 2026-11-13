@@ -260,10 +260,9 @@ export function mergeSourceChurn<
   return merged;
 }
 
-export function sliceArticleDiff(
+export function articleDiffSlicer(
   markdown: string,
-  article: ChangeLogArticleSummary,
-): string {
+): (article: ChangeLogArticleSummary) => string {
   const lines = markdown.split("\n");
   const sections: { heading: string; body: string[] }[] = [];
   let current: { heading: string; body: string[] } | null = null;
@@ -279,28 +278,38 @@ export function sliceArticleDiff(
   }
 
   if (sections.length === 0) {
-    return markdown.trim();
+    const whole = markdown.trim();
+    return () => whole;
   }
 
-  const title = article.title.trim().toLowerCase();
-  const idSuffix = `#${article.id}`;
-  const match =
-    sections.find((section) => {
-      const heading = section.heading.toLowerCase();
-      return (
-        heading === title ||
-        heading.endsWith(`· ${idSuffix}`) ||
-        heading === idSuffix
-      );
-    }) ?? (sections.length === 1 ? sections[0] : null);
+  return (article) => {
+    const title = article.title.trim().toLowerCase();
+    const idSuffix = `#${article.id}`;
+    const match =
+      sections.find((section) => {
+        const heading = section.heading.toLowerCase();
+        return (
+          heading === title ||
+          heading.endsWith(`· ${idSuffix}`) ||
+          heading === idSuffix
+        );
+      }) ?? (sections.length === 1 ? sections[0] : null);
 
-  if (!match) {
-    return "";
-  }
+    if (!match) {
+      return "";
+    }
 
-  const body = match.body.join("\n").trim();
-  return body === "No differences detected." ||
-    body === "No data available for comparison."
-    ? ""
-    : body;
+    const body = match.body.join("\n").trim();
+    return body === "No differences detected." ||
+      body === "No data available for comparison."
+      ? ""
+      : body;
+  };
+}
+
+export function sliceArticleDiff(
+  markdown: string,
+  article: ChangeLogArticleSummary,
+): string {
+  return articleDiffSlicer(markdown)(article);
 }

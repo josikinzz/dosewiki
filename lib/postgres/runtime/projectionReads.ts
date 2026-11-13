@@ -141,10 +141,6 @@ export const publicEffectProjectionColumns = {
   credits: ["_id", "_creationTime", "slug", "name", "contributors"],
 } as const satisfies Record<string, readonly Column<"subjectiveEffects">[]>;
 
-export const publicEffectGalleryOrderColumns = [
-  "_id", "_creationTime", "slug", "gallery_order",
-] as const satisfies readonly Column<"subjectiveEffects">[];
-
 export const publicContributorIdentityColumns = [
   "_id", "_creationTime", "key", "displayName", "aliases", "avatarUrl", "avatarR2Key",
   "avatarStorageId", "exclude_from_gallery", "approved_replicator", "archival",
@@ -199,7 +195,7 @@ export type EditorLibraryArticleRow = SubstanceRow<typeof editorLibraryColumns>;
 export type PublicEffectProjection = keyof typeof publicEffectProjectionColumns;
 export type PublicEffectProjectionRow<Projection extends PublicEffectProjection> =
   ProjectedRow<"subjectiveEffects", (typeof publicEffectProjectionColumns)[Projection]>;
-export type PublicEffectGalleryOrderRow = ProjectedRow<"subjectiveEffects", typeof publicEffectGalleryOrderColumns>;
+export type PublicEffectGalleryPositionRow = { effect_slug: string; slug: string; position: number };
 export type PublicContributorIdentityRow = ProjectedRow<"contributorProfiles", typeof publicContributorIdentityColumns>;
 export type PublicTripReportPreviewRow = ProjectedRow<"tripReports", typeof publicTripReportPreviewColumns>;
 export type PublicTripReportBrowseRow = PublicTripReportPreviewRow & { excerpt_source: string | null };
@@ -301,7 +297,7 @@ export interface PublicProjectionReads extends SubstanceProjectionReads {
     slugs?: readonly string[],
   ): Promise<PublicEffectProjectionRow<Projection>[]>;
   getPublicEffectCreditsByNames(names: readonly string[]): Promise<PublicEffectProjectionRow<"credits">[]>;
-  getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<PublicEffectGalleryOrderRow[]>;
+  getPublicEffectGalleryPositions(effectSlugs: readonly string[], slugs: readonly string[]): Promise<PublicEffectGalleryPositionRow[]>;
   getPublicTripReportBrowseRows(excerptSourceLength: number): Promise<PublicTripReportBrowseRow[]>;
   getPublicTripReportPreviewsBySubstanceNames(names: readonly string[]): Promise<PublicTripReportPreviewRow[]>;
   getPublicTripReportsByContributor(profileKey: string, authorNames: readonly string[]): Promise<PublicTripReportContributorRow[]>;

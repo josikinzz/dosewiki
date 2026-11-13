@@ -102,6 +102,22 @@ async function resolvePrimaryUrl(urls: StorageUrlReader, row: Doc<"replications"
   return row.url || null;
 }
 
+async function readEffectGalleryPositions(
+  ctx: QueryCtx,
+  effectSlugs: readonly string[],
+  rows: readonly { slug: string }[],
+): Promise<Map<string, Map<string, number>>> {
+  const orderByEffect = new Map<string, Map<string, number>>();
+  if (effectSlugs.length === 0) return orderByEffect;
+  const positions = await ctx.db.getPublicEffectGalleryPositions(effectSlugs, [...new Set(rows.map((row) => row.slug))]);
+  for (const { effect_slug, slug, position } of positions) {
+    let order = orderByEffect.get(effect_slug);
+    if (!order) orderByEffect.set(effect_slug, order = new Map());
+    order.set(slug, position);
+  }
+  return orderByEffect;
+}
+
 export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
   const [storedRows, profiles] = await Promise.all([
     ctx.db.getPublicGalleryMembershipRows(),
@@ -118,17 +134,11 @@ export async function getPublicGalleryMembershipHandler(ctx: QueryCtx) {
   );
   const artistKeys = [...new Set(visible.map((row) => row.artist.trim().toLowerCase()).filter(Boolean))];
   const effectSlugs = [...new Set(visible.flatMap(depictedEffects))];
-  const [artists, effects] = await Promise.all([
+  const [artists, orderByEffect] = await Promise.all([
     ctx.db.getPublicArtistTaxonomyByKeys(artistKeys),
-    ctx.db.getPublicEffectGalleryOrders(effectSlugs),
+    readEffectGalleryPositions(ctx, effectSlugs, visible),
   ]);
   const artistByKey = new Map(artists.map((artist) => [artist.key, artist]));
-  const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
-  for (const effect of effects) {
-    if (effect.gallery_order) {
-      orderByEffect.set(effect.slug, new Map(effect.gallery_order.map((slug, index) => [slug, index])));
-    }
-  }
   const urls = memoizedStorageUrls(ctx);
   const projected = await Promise.all(visible.map(async (row) => {
     const url = await resolvePrimaryUrl(urls, row);
@@ -252,18 +262,7 @@ export async function getPublicGalleryPageHandler(
         limit,
       });
   const rows = result.page.filter(isPublishableGalleryRow);
-  const orderByEffect = new Map<string, ReadonlyMap<string, number>>();
-
-  const effectSlugs = [...new Set(rows.flatMap(depictedEffects))];
-  const effects = effectSlugs.length ? await ctx.db.getPublicEffectGalleryOrders(effectSlugs) : [];
-  for (const effect of effects) {
-    if (effect.gallery_order) {
-      orderByEffect.set(
-        effect.slug,
-        new Map(effect.gallery_order.map((slug, index) => [slug, index])),
-      );
-    }
-  }
+  const orderByEffect = await readEffectGalleryPositions(ctx, [...new Set(rows.flatMap(depictedEffects))], rows);
 
   const urls = memoizedStorageUrls(ctx);
   const projected = await Promise.all(

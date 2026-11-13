@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { protectedRouteOperation } from "@/lib/http/protectedRouteOperation";
-import { readPublicLanguageGlossary } from "@server/translation/publicGlossary";
+import { readPublicLanguageReadiness } from "@server/translation/publicGlossary";
 import releases from "@/i18n/languageReleases.json";
 import {
   glossaryAccessibleLocales,
@@ -18,11 +18,11 @@ export const GET = protectedRouteOperation({
     );
     const denied = glossaryLocaleAccess(auth, locale);
     if (denied) return denied;
-    const page = await readPublicLanguageGlossary(locale);
+    const readiness = await readPublicLanguageReadiness(locale);
     return NextResponse.json(
       {
         locale,
-        readiness: page?.readiness ?? null,
+        readiness,
         evidence:
           (releases as Array<{ locale: string }>).find(
             (release) => release.locale === locale,

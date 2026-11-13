@@ -64,7 +64,6 @@ export const getByArtistNamesArgs = v.object({ artistNames: v.array(v.string()) 
 export const getByArtistNamesPageArgs = v.object({
   artistNames: v.array(v.string()),
   cursor: v.optional(v.string()),
-  limit: v.optional(v.number()),
 });
 export const getBySlugsArgs = v.object({ slugs: v.array(v.string()) });
 export const resolveStorageUrlsArgs = v.object({ storageIds: v.array(v.string()) });
