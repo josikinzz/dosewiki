@@ -2624,6 +2624,17 @@
       "See a wording that could be better? Tap the suggest button on any term to propose a fix. A person reviews every suggestion before anything changes."
     ]
   },
+  "legacy.17d86195f633af32fb08f350df77965a14131a69d3937ebc6a8be92fa5669dbe": {
+    "catalogKey": "{{name}}: {{status}} (federal law, no state entry)",
+    "source": "{{name}}: {{status}} (federal law, no state entry)",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/components/sections/LegalitySectionView.client.tsx"
+    ],
+    "glossaryTerms": [
+      "{{name}}: {{status}} (federal law, no state entry)"
+    ]
+  },
   "legacy.17e4a6e27589d44080df57f026e837e1eb1e62c52a0414cb718274e738bfe80f": {
     "catalogKey": "trip reports",
     "source": "trip reports",
@@ -3737,6 +3748,17 @@
     ],
     "glossaryTerms": [
       "Dephenylmethane"
+    ]
+  },
+  "legacy.235a23e8933674b9ce913a2a28bff696f19b74f7a3744a90969303d0845e3b45": {
+    "catalogKey": "Nothing on file",
+    "source": "Nothing on file",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/components/sections/LegalitySectionView.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Nothing on file"
     ]
   },
   "legacy.2373e707a926bbab76e03422a72851821a0cc81ba7ac7290135f15beab223756": {
@@ -5438,6 +5460,17 @@
       "works by {{artist}}"
     ]
   },
+  "legacy.34096f96f68fb8fa37a92e0f42e33a14ccf82a11660d05b015357ad1fd407535": {
+    "catalogKey": "Isle of Man",
+    "source": "Isle of Man",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Isle of Man"
+    ]
+  },
   "legacy.340dd75270c1823c188b6c03d0f8d46cf2d70101de4533bf9ff5d67d704168e9": {
     "catalogKey": "Seizure Risk",
     "source": "Seizure Risk",
@@ -7055,6 +7088,17 @@
       "`/reports/submit`: trip-report intake. `/about/feedback`: site feedback; each article also has a feedback box."
     ]
   },
+  "legacy.42c298ba17fed5da36b79be3d5ad4eb769ca0d31febae3ba921058068a25014a": {
+    "catalogKey": "Jamaica",
+    "source": "Jamaica",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Jamaica"
+    ]
+  },
   "legacy.42da1273aa4a99e8ad2aabd20a810b27c74f24c7a55623c94129fc0458e128e7": {
     "catalogKey": "Third-party software, fonts, and datasets bundled with the code keep their own licenses. The repository's `NOTICE.md` lists each one with its source, license, and any modifications.",
     "source": "Third-party software, fonts, and datasets bundled with the code keep their own licenses. The repository's `NOTICE.md` lists each one with its source, license, and any modifications.",
@@ -7631,6 +7675,17 @@
     ],
     "glossaryTerms": [
       "Browse substances"
+    ]
+  },
+  "legacy.48a7d2f0cf1b0f0c12516cc6e5395383ff6e597b0c236b2e6d3cc3e4c9fb700d": {
+    "catalogKey": "Log a dose: {{route}}",
+    "source": "Log a dose: {{route}}",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/journal/JournalLogMenu.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Log a dose: {{route}}"
     ]
   },
   "legacy.48aa80eadae48949880a893f12ebc0b7f81cddb28fe401bb86eeaf011e4d2ead": {
@@ -11231,17 +11286,6 @@
       "Racetam and peptide-like"
     ]
   },
-  "legacy.6ee0a5916d7136578f5b644e02a5a84d71d28cc82c1903f5627c725a7890fb57": {
-    "catalogKey": "Log a dose in Piru: {{route}}",
-    "source": "Log a dose in Piru: {{route}}",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "src/features/article/piru/PiruLinks.client.tsx"
-    ],
-    "glossaryTerms": [
-      "Log a dose in Piru: {{route}}"
-    ]
-  },
   "legacy.6ee6c6c71f7f383a9b41e9a2884a4e74cea36ae2b15fc3d558b1bfa0bbe3a23d": {
     "catalogKey": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
     "source": "Effect Index's indexing and written material is available for non-commercial reuse under [CC BY-NC-SA 4.0](/copyright-disclaimer), with attribution. Replications, multimedia and non-SEI artwork belong to their original creators; the copyright disclaimer covers commercial enquiries and how to request that artwork be removed or reattributed.",
@@ -11915,6 +11959,17 @@
       "Expand trip reports"
     ]
   },
+  "legacy.75c02b8d2f91ba67aa6445c054c45bf11355321835a2e545cf18d054d2b4ebd8": {
+    "catalogKey": "Kazakhstan",
+    "source": "Kazakhstan",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Kazakhstan"
+    ]
+  },
   "legacy.75f68fa3088f00542d778311de15010672fdb2071d33b4107afa88d0873b8a4f": {
     "catalogKey": "Check back as article coverage grows.",
     "source": "Check back as article coverage grows.",
@@ -11948,6 +12003,17 @@
       "Site-wide recent changes"
     ]
   },
+  "legacy.764a8c04ad4520a7e1319b4e4e483017b4baf95f7e90e3ee11611f10bc15b6fd": {
+    "catalogKey": "Jersey",
+    "source": "Jersey",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Jersey"
+    ]
+  },
   "legacy.76604c3803f9e9c87eb855262f5db45eb1f7098d486ef854eaf5f2e8aafc052f": {
     "catalogKey": "compiled this article's foundation from information published across the web.",
     "source": "compiled this article's foundation from information published across the web.",
@@ -11979,6 +12045,17 @@
     ],
     "glossaryTerms": [
       "one"
+    ]
+  },
+  "legacy.769ef033ffeb6295cfaea253fd89a152e792f485f9965031d69f9bc43916761e": {
+    "catalogKey": "Log in a journal app",
+    "source": "Log in a journal app",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/journal/JournalLogMenu.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Log in a journal app"
     ]
   },
   "legacy.76be39a58b5c20db9da05a88bc5e0df230f3992d87cf9d8e05a985663ddb2700": {
@@ -12497,6 +12574,17 @@
     ],
     "glossaryTerms": [
       "Current maintained corpus."
+    ]
+  },
+  "legacy.7e222a78e771f1b9b5692f4df889961e98152756af6391b1340366632e57b6ae": {
+    "catalogKey": "Gabon",
+    "source": "Gabon",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Gabon"
     ]
   },
   "legacy.7e5344d4f7f4ee72b8e414935c48b77114680aa6b839867610146d19e3a59dcc": {
@@ -15167,17 +15255,6 @@
       "`src/features/article/` renders sections, tables, and citations."
     ]
   },
-  "legacy.9935fa728f4051e46f4d20d47843e7e4b5d8b54e6f8dd78f1e75bcb76fad8b0d": {
-    "catalogKey": "Log in Piru",
-    "source": "Log in Piru",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "src/features/article/piru/PiruLinks.client.tsx"
-    ],
-    "glossaryTerms": [
-      "Log in Piru"
-    ]
-  },
   "legacy.993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477": {
     "catalogKey": "Saturation",
     "source": "Saturation",
@@ -16074,6 +16151,17 @@
       "Legal / decriminalized"
     ]
   },
+  "legacy.a2bbcfbb56021087721308119be88cf39fc71ca24e4fe5993dbcb32b408f8d59": {
+    "catalogKey": "{{name}}: {{status}} (federal: {{federal}})",
+    "source": "{{name}}: {{status}} (federal: {{federal}})",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/components/sections/LegalitySectionView.client.tsx"
+    ],
+    "glossaryTerms": [
+      "{{name}}: {{status}} (federal: {{federal}})"
+    ]
+  },
   "legacy.a2ea3384e02f917ad5a79542bfa9e29ad3dc2b1ee573811803f3057d0715e10b": {
     "catalogKey": "Slovakia",
     "source": "Slovakia",
@@ -16387,6 +16475,17 @@
     ],
     "glossaryTerms": [
       "Visual distortions are any subjective effect which alters and changes the perception or appearance of pre-existing visual data without adding any entirely new content."
+    ]
+  },
+  "legacy.a665b92ee727018cfe3bb4134af055c42ecb728cadd0772807f2a5c8118d534a": {
+    "catalogKey": "Log dose",
+    "source": "Log dose",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/features/article/journal/JournalLogMenu.client.tsx"
+    ],
+    "glossaryTerms": [
+      "Log dose"
     ]
   },
   "legacy.a6895ef3fc60fc6bc3a640e2a93c35cf54919160e32c6852b25ed6960963f421": {
@@ -18515,6 +18614,17 @@
       "{{title}}, work {{position}} of {{total}}"
     ]
   },
+  "legacy.b9c48cb1fe9aa884659e0632256c4a0154ab64b61b8cec1993d9c2aa3a0102bc": {
+    "catalogKey": "Guernsey",
+    "source": "Guernsey",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Guernsey"
+    ]
+  },
   "legacy.b9ca3788576f6a3dd48c68710b18126eec48a3214057df58d3212212189ab2e3": {
     "catalogKey": "Morphinans are a chemical class of organic compounds built on a fused tetracyclic carbon skeleton derived from the morphine framework, including a partially hydrogenated phenanthrene core with a nitrogen-containing ring bridged across it. Members differ by which oxygen-bearing groups sit on the rings, by the presence or absence of an oxygen bridge linking two rings, and by the substituent on the nitrogen. Most morphinans act at opioid receptors, functioning as analgesics, though the exact profile ranges from full agonists to antagonists. The morphine molecule itself, along with codeine and many semi-synthetic opioids, is a variation on this shared rigid scaffold.",
     "source": "Morphinans are a chemical class of organic compounds built on a fused tetracyclic carbon skeleton derived from the morphine framework, including a partially hydrogenated phenanthrene core with a nitrogen-containing ring bridged across it. Members differ by which oxygen-bearing groups sit on the rings, by the presence or absence of an oxygen bridge linking two rings, and by the substituent on the nitrogen. Most morphinans act at opioid receptors, functioning as analgesics, though the exact profile ranges from full agonists to antagonists. The morphine molecule itself, along with codeine and many semi-synthetic opioids, is a variation on this shared rigid scaffold.",
@@ -19756,6 +19866,17 @@
     ],
     "glossaryTerms": [
       "{{collection}} matching “{{query}}”"
+    ]
+  },
+  "legacy.c5b2a6de9d5ae20a21a551d160d6e6bdb1322f7dbe94c6f30d1f88f092af50a1": {
+    "catalogKey": "Vanuatu",
+    "source": "Vanuatu",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Vanuatu"
     ]
   },
   "legacy.c5e206e62402f4bf0f01d3c0a4b7c14cd5ca26c4f32fb4e54617c4f7d53863b2": {
@@ -23366,17 +23487,6 @@
       "Drug"
     ]
   },
-  "legacy.e801fc0006496e5d7f080860d2ce4723da2f1df0f2898cd3422cc7f0af3097c4": {
-    "catalogKey": "Open in Piru",
-    "source": "Open in Piru",
-    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
-    "locations": [
-      "src/features/article/piru/PiruLinks.client.tsx"
-    ],
-    "glossaryTerms": [
-      "Open in Piru"
-    ]
-  },
   "legacy.e81dd633583a0908225b61df2d27fe3ce5bd9bb62ce8e2239da30809e68b4b46": {
     "catalogKey": "Project history",
     "source": "Project history",
@@ -25525,6 +25635,17 @@
     ],
     "glossaryTerms": [
       "Tertiary alcohol"
+    ]
+  },
+  "legacy.fe2403f25e8f398ea308d20d8cc98e63aecbb42218b1bf1805da008c0daea537": {
+    "catalogKey": "Uruguay",
+    "source": "Uruguay",
+    "context": "UI label or copy rendered through the translation catalog. Inspect source locations for its usage.",
+    "locations": [
+      "src/utils/data/countryCodes.ts"
+    ],
+    "glossaryTerms": [
+      "Uruguay"
     ]
   },
   "legacy.fe3d07bba7f8ba1071ea46cdff40eb86e6e050b10bef578db4b83511748e6904": {

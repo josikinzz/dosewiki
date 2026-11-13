@@ -7,7 +7,8 @@ import { Icon, type IconName } from "@/components/common/Icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useT } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-import { PiruLogLink } from "../../piru/PiruLinks.client";
+import { JournalLogMenu } from "../../journal/JournalLogMenu.client";
+import type { JournalAppId } from "../../journal/journalApps";
 
 export interface DosageDurationRouteView {
   key: string;
@@ -20,11 +21,13 @@ export const DosageDurationSectionView = memo(
   function DosageDurationSectionView({
     routes,
     initialRoute,
-    piruSlug,
+    journalSlug,
+    journalAppIds = [],
   }: {
     routes: readonly DosageDurationRouteView[];
     initialRoute: string;
-    piruSlug?: string;
+    journalSlug?: string;
+    journalAppIds?: readonly JournalAppId[];
   }) {
     const t = useT();
     const [activeRoute, setActiveRoute] = useState(initialRoute);
@@ -78,9 +81,10 @@ export const DosageDurationSectionView = memo(
                 );
               })}
             </TabsList>
-            {piruSlug && activeRouteView ? (
-              <PiruLogLink
-                slug={piruSlug}
+            {journalSlug && activeRouteView ? (
+              <JournalLogMenu
+                slug={journalSlug}
+                appIds={journalAppIds}
                 routeKey={activeRouteView.key}
                 routeLabel={activeRouteView.label}
                 className="ml-auto"

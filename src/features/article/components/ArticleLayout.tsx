@@ -13,7 +13,7 @@ import {
 import { BetaDisclaimer } from "@/components/common/BetaDisclaimer";
 import { IconSpriteScope } from "@/components/common/IconSprite";
 import { SITE_FLAVOR_CONFIG } from "@/config/siteFlavor";
-import { PiruOpenChip } from "../piru/PiruLinks.client";
+import { enabledJournalAppIds } from "../journal/journalApps";
 import { HeroSection } from "./sections/HeroSection";
 import { HeroSummaryContent } from "./sections/HeroSummaryContent";
 import { DosageDurationSection } from "./sections/DosageDurationSection";
@@ -152,9 +152,7 @@ export function ArticleLayout({
       ]
     : (content?.moleculeAssets ?? []);
 
-  const piruSlug = SITE_FLAVOR_CONFIG.showPiruLinks
-    ? fromSubstanceSlug
-    : undefined;
+  const journalAppIds = enabledJournalAppIds(SITE_FLAVOR_CONFIG);
 
   return (
     <IconSpriteScope>
@@ -232,9 +230,6 @@ export function ArticleLayout({
           }
           linkableCategoryKeys={linkableCategoryKeys}
           showPreviewBadge={false}
-          nameRowAction={
-            piruSlug ? <PiruOpenChip slug={piruSlug} /> : undefined
-          }
         />
 
         <div className={articleMovementsClassName}>
@@ -250,7 +245,8 @@ export function ArticleLayout({
               <DosageDurationSection
                 article={article}
                 dosageDisclaimer={dosageDisclaimer}
-                piruSlug={piruSlug}
+                journalSlug={fromSubstanceSlug}
+                journalAppIds={journalAppIds}
               />
               {translatorNotes?.["dosage-duration"]}
             </DeferredSection>

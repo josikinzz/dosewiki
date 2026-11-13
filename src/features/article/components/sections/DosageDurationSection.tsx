@@ -10,11 +10,13 @@ import {
   DosageDurationSectionView,
   type DosageDurationRouteView,
 } from "./DosageDurationSectionView.client";
+import type { JournalAppId } from "../../journal/journalApps";
 
 interface DosageDurationSectionProps {
   article: SubstanceArticle;
   dosageDisclaimer?: string;
-  piruSlug?: string;
+  journalSlug?: string;
+  journalAppIds?: readonly JournalAppId[];
 }
 
 function renderNoteLines(
@@ -46,7 +48,8 @@ function renderNoteLines(
 export const DosageDurationSection = memo(function DosageDurationSection({
   article,
   dosageDisclaimer,
-  piruSlug,
+  journalSlug,
+  journalAppIds,
 }: DosageDurationSectionProps) {
   const { dosage, duration } = article;
   const panels = projectDosageDurationRoutes(
@@ -149,7 +152,8 @@ export const DosageDurationSection = memo(function DosageDurationSection({
     <DosageDurationSectionView
       routes={routes}
       initialRoute={panels[0].key}
-      piruSlug={piruSlug}
+      journalSlug={journalSlug}
+      journalAppIds={journalAppIds}
     />
   );
 });
