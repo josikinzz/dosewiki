@@ -20,7 +20,6 @@ interface HeroSectionProps {
   ) => void;
   linkableCategoryKeys?: readonly string[];
   showPreviewBadge?: boolean;
-  nameRowAction?: ReactNode;
 }
 
 export const HeroSection = memo(function HeroSection({
@@ -33,7 +32,6 @@ export const HeroSection = memo(function HeroSection({
   onSelectClassification,
   linkableCategoryKeys,
   showPreviewBadge = true,
-  nameRowAction,
 }: HeroSectionProps) {
   const chemistryPresentation =
     providedChemistryPresentation ?? buildArticleChemistryPresentation(article);
@@ -68,7 +66,6 @@ export const HeroSection = memo(function HeroSection({
       onSelectClassification={onSelectClassification}
       linkableCategoryKeys={linkableCategoryKeys}
       showPreviewBadge={showPreviewBadge}
-      nameRowAction={nameRowAction}
     />
   );
 });

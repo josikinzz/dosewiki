@@ -57,7 +57,6 @@ export interface HeroSectionViewProps {
   ) => void;
   linkableCategoryKeys?: readonly string[];
   showPreviewBadge?: boolean;
-  nameRowAction?: ReactNode;
 }
 export const HeroSectionView = memo(function HeroSectionView({
   title,
@@ -74,7 +73,6 @@ export const HeroSectionView = memo(function HeroSectionView({
   onSelectClassification,
   linkableCategoryKeys,
   showPreviewBadge = true,
-  nameRowAction,
 }: HeroSectionViewProps) {
   const t = useT();
   const moleculeAlt = chemistryPresentation.molecule.hasLookupTitle
@@ -243,18 +241,10 @@ export const HeroSectionView = memo(function HeroSectionView({
                     ariaControls={alternativeNamesPanelId}
                   />
                 )}
-                {nameRowAction ? (
-                  <span className="ml-2 inline-flex empty:hidden">
-                    {nameRowAction}
-                  </span>
-                ) : null}
               </span>
             </div>
           );
         })()}
-      {nameRowAction && !identification.alternative_names?.length ? (
-        <div className="mt-3 flex empty:hidden">{nameRowAction}</div>
-      ) : null}
 
       {identification.botanical_name && (
         <div className="type-supporting-copy theme-text-secondary mt-3 flex items-start gap-3 type-reading-measure">
