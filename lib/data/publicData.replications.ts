@@ -34,6 +34,7 @@ export type { PublicSubstanceGallery, SubstanceGalleryItem, SubstanceGalleryMatc
 const PUBLIC_MATCHABLE_CORPUS_MAX_PAGES = 512;
 const PUBLIC_MATCHABLE_CORPUS_MAX_ROWS = 20_000;
 export const PUBLIC_SUBSTANCE_GALLERY_CHUNK_SIZE = 256;
+const PUBLIC_GALLERY_MEMBERSHIP_CHUNK_SIZE = 512;
 
 const getPublicReplicationArtistTaxonomyBatch = cache(publicDataCache(async (
   keys: string[],
@@ -269,9 +270,25 @@ export function projectPublicGalleryReplicationPreview(
   };
 }
 
-export const getPublicGalleryReplications = cache(async (): Promise<PublicGalleryReplicationPreview[]> =>
-  getPublicDataReadAdapter().getPublicGalleryMembershipRows(),
+const readPublicGalleryMembership = publicDataChunkedCache(
+  async (): Promise<PublicGalleryReplicationPreview[]> => getPublicDataReadAdapter().getPublicGalleryMembershipRows(),
+  ["data-public-gallery-membership-chunked-v1"],
+  (rows) => ({ shell: null, items: rows }),
+  (_shell, rows) => rows,
+  {
+    revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+    tags: () => [
+      PUBLIC_DATA_CACHE_TAGS.all,
+      PUBLIC_DATA_CACHE_TAGS.replications,
+      PUBLIC_DATA_CACHE_TAGS.effects,
+      PUBLIC_DATA_CACHE_TAGS.contributors,
+    ],
+    chunkSize: PUBLIC_GALLERY_MEMBERSHIP_CHUNK_SIZE,
+  },
 );
+
+export const getPublicGalleryReplications = cache(async (): Promise<PublicGalleryReplicationPreview[]> =>
+  (await readPublicGalleryMembership()) ?? []);
 
 const getPublicArtistCreditRecords = cache(publicDataCache(
   async () => getPublicDataReadAdapter().getPublicArtistCreditRows(),

@@ -6,8 +6,7 @@ import { getPublicContributorDirectory, getPublicEffects, getPublicGalleryReplic
 import { getPublicGalleryReplicationsBySlugs } from "@server/data/publicData.replications";
 import { publicDataCache, PUBLIC_DATA_CACHE_REVALIDATE_SECONDS } from "@server/data/publicData.cache";
 import { PUBLIC_DATA_CACHE_TAGS } from "@server/data/publicData.cacheTags";
-import { getPostgresClient } from "@server/postgres/runtime/backend";
-import { getLocalizedLeaves } from "@server/translation/localizedRecords";
+import { getLocalizedLeaves, getLocalizedLeavesRevision } from "@server/translation/localizedRecords";
 import { localizeRecords } from "@server/translation/liveTranslation";
 import { isDisplayable } from "@/features/effects/gallery/galleryArtistIdentity";
 import type { PublicGalleryReplicationPreview } from "@/types/replications";
@@ -56,14 +55,6 @@ async function buildCanonicalIndex(): Promise<CanonicalIndex> {
 let canonicalCache: { revision: string; value: Promise<CanonicalIndex> } | undefined;
 let localizedCache: { revision: string; value: Promise<CanonicalIndex> } | undefined;
 
-async function translationRevision(locale: string, hashes: string[]): Promise<string> {
-  const rows = await getPostgresClient().sql<{ revision: string | null }>(
-    'SELECT md5(jsonb_agg(jsonb_build_array("hash", "target") ORDER BY "hash")::text) AS revision FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
-    [locale, hashes],
-  );
-  return rows[0]?.revision ?? "empty";
-}
-
 export async function getGalleryBrowseIndex(locale: UiLocale): Promise<GalleryBrowseIndex> {
   const revision = await sourceRevision();
   if (canonicalCache?.revision !== revision) {
@@ -74,7 +65,7 @@ export async function getGalleryBrowseIndex(locale: UiLocale): Promise<GalleryBr
   }
   const canonical = await canonicalCache.value;
   if (locale === "en") return { ...canonical, canonical, revision: canonical.contentRevision, cacheIdentity: revision };
-  const localizedRevision = `${canonical.contentRevision}:${await translationRevision(locale, canonical.translationHashes)}`;
+  const localizedRevision = `${canonical.contentRevision}:${await getLocalizedLeavesRevision(locale, canonical.translationHashes)}`;
   const cacheIdentity = `${revision}:${localizedRevision}`;
   if (localizedCache?.revision !== cacheIdentity) {
     const value = (async () => {

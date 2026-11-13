@@ -1,5 +1,6 @@
 import "server-only";
 
+import { createHash } from "node:crypto";
 import { cache } from "react";
 
 import type { PublicEffectIndexArticle } from "@server/data/publicData.shared";
@@ -51,13 +52,32 @@ export async function getLocalizedLeaves(
   );
 }
 
-export async function getLocalizedLeavesRevision(locale: string, hashes: readonly string[]): Promise<string> {
-  if (hashes.length === 0 || locale === "en") return "empty";
+const LEAVES_REVISION_TTL_MS = 60_000;
+const leavesRevisions = new Map<string, { expiresAt: number; revision: Promise<string> }>();
+
+async function readLocalizedLeavesRevision(locale: string, hashes: readonly string[]): Promise<string> {
   const rows = await getPostgresClient().sql<{ revision: string | null }>(
     'SELECT md5(jsonb_agg(jsonb_build_array("hash", "target") ORDER BY "hash")::text) AS revision FROM "translationSegments" WHERE "locale" = $1 AND "hash" = ANY($2::text[])',
     [locale, hashes],
   );
   return rows[0]?.revision ?? "empty";
+}
+
+export function getLocalizedLeavesRevision(locale: string, hashes: readonly string[]): Promise<string> {
+  if (hashes.length === 0 || locale === "en") return Promise.resolve("empty");
+  const now = Date.now();
+  const key = `${locale}:${createHash("sha256").update(hashes.join("\n")).digest("hex")}`;
+  const memo = leavesRevisions.get(key);
+  if (memo && memo.expiresAt > now) return memo.revision;
+  for (const [entryKey, entry] of leavesRevisions) {
+    if (entry.expiresAt <= now) leavesRevisions.delete(entryKey);
+  }
+  const entry = { expiresAt: now + LEAVES_REVISION_TTL_MS, revision: readLocalizedLeavesRevision(locale, hashes) };
+  leavesRevisions.set(key, entry);
+  entry.revision.catch(() => {
+    if (leavesRevisions.get(key) === entry) leavesRevisions.delete(key);
+  });
+  return entry.revision;
 }
 
 export const getLocalizedPublicEffectBySlug = cache(async (
