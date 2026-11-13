@@ -645,7 +645,8 @@ const readPublicSubstanceProjectionPage = publicDataCache(
       PUBLIC_DATA_CACHE_TAGS.all,
       PUBLIC_DATA_CACHE_TAGS.substances,
       name === publicDataReadCatalog.publicSubstanceCoverageInput.functionName ||
-      name === publicDataReadCatalog.publicSubstanceFullDocuments.functionName
+      name === publicDataReadCatalog.publicSubstanceFullDocuments.functionName ||
+      name === publicDataReadCatalog.publicSubstanceDocumentsPage.functionName
         ? PUBLIC_SUBSTANCE_DOCUMENTS_TAG
         : PUBLIC_SUBSTANCE_CONTENT_TAG,
     ],
@@ -660,7 +661,8 @@ const queryDefaultPublicData: QueryTransport = async <
     name === publicDataReadCatalog.publicSubstanceLibraryInput.functionName ||
     name === publicDataReadCatalog.publicSubstanceMechanismRouteInput.functionName ||
     name === publicDataReadCatalog.publicSubstanceCoverageInput.functionName ||
-    name === publicDataReadCatalog.publicSubstanceFullDocuments.functionName
+    name === publicDataReadCatalog.publicSubstanceFullDocuments.functionName ||
+    name === publicDataReadCatalog.publicSubstanceDocumentsPage.functionName
   ) {
     return await readPublicSubstanceProjectionPage(name, args) as Result;
   }

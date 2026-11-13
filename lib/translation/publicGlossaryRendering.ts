@@ -17,7 +17,7 @@ export const PUBLIC_GLOSSARY_RENDERING_SELECT = `SELECT g."term",
   CASE WHEN ${LIVE} THEN g."target" ELSE COALESCE(r."draft"->>'target', g."target") END AS "target",
   CASE WHEN ${LIVE} THEN 'approved' WHEN r."draft"->>'target' IS NOT NULL THEN 'draft' ELSE g."status" END AS "status",
   ${PROVENANCE} AS "provenance",
-  g."updated_at", COALESCE(r."revision", 0) AS "review_revision"
+  g."updated_at", COALESCE(r."revision", 0) AS "review_revision", g."locale"
   FROM "translationGlossary" g LEFT JOIN "translationReviewEntries" r
     ON r."locale" = g."locale" AND r."scope" = 'glossary' AND r."source_id" = g."term"`;
 

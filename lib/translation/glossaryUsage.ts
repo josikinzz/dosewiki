@@ -19,6 +19,8 @@ import { effectIndexViewPath } from "../../src/utils/indexViewRoutes";
 import { publicHref } from "../../src/utils/publicHref";
 import { getPublicRoutePath } from "../../src/utils/publicRouteIdentity";
 import { getPublicDataReadAdapter, type PublicDataReadAdapter } from "../data/publicData.reads";
+import { getPublicEffectArticles } from "../data/publicData.effects";
+import { getPublishedEffectIndexArticles } from "../data/publicData.articles";
 import { PUBLIC_DATA_CACHE_TAGS, PUBLIC_SUBSTANCE_CONTENT_TAG } from "../data/publicData.cacheTags";
 import { publicDataCache } from "../data/publicData.cache";
 import { resolveRuntimePostgresTarget } from "../postgres/runtime/target";
@@ -58,7 +60,12 @@ function addNode(index: GlossaryUsageIndex, seen: Set<string>, node: GlossaryUsa
   }
 }
 
-export async function buildGlossaryUsageIndex(reads: PublicDataReadAdapter): Promise<GlossaryUsageIndex> {
+export type GlossaryUsageReads = Pick<
+  PublicDataReadAdapter,
+  "getPublicSubstanceDocuments" | "getPublicEffectArticles" | "getPublishedEffectIndexArticles"
+>;
+
+export async function buildGlossaryUsageIndex(reads: GlossaryUsageReads): Promise<GlossaryUsageIndex> {
   const index: GlossaryUsageIndex = { nodes: [], labels: new Map(), postings: new Map() };
   const seen = new Set<string>();
   const add = (id: string, href: string, title: string, context: string, text: string, kind: GlossaryUsageNode["kind"] = "label", hash?: string) =>
@@ -194,7 +201,16 @@ async function getGlossaryUsageIndex(): Promise<GlossaryUsageIndex> {
   const reads = getPublicDataReadAdapter();
   const target = resolveRuntimePostgresTarget().url;
   if (!snapshot || snapshot.target !== target || snapshot.reads !== reads || snapshot.expiresAt <= Date.now()) {
-    const next = { target, reads, expiresAt: Infinity, promise: buildGlossaryUsageIndex(reads) };
+    const next = {
+      target,
+      reads,
+      expiresAt: Infinity,
+      promise: buildGlossaryUsageIndex({
+        getPublicSubstanceDocuments: () => reads.getPublicSubstanceDocuments(),
+        getPublicEffectArticles,
+        getPublishedEffectIndexArticles,
+      }),
+    };
     snapshot = next;
     next.promise.then(() => { next.expiresAt = Date.now() + CACHE_TTL_MS; }, () => { if (snapshot === next) snapshot = undefined; });
   }
