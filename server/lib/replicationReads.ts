@@ -141,21 +141,11 @@ export async function getByArtistNamesHandler(
   return await resolveRows(ctx, matched);
 }
 
-const PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT = 64;
-
-function clampContributorReplicationScanLimit(requested?: number): number {
-  const normalized = typeof requested === "number" && Number.isFinite(requested)
-    ? Math.floor(requested)
-    : PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT;
-  return Math.min(
-    Math.max(normalized, 1),
-    PUBLIC_CONTRIBUTOR_REPLICATION_SCAN_LIMIT,
-  );
-}
+const CONTRIBUTOR_ARTIST_SCAN_ROWS = 16_384;
 
 export async function getByArtistNamesPageHandler(
   ctx: QueryCtx,
-  args: { artistNames: string[]; cursor?: string; limit?: number },
+  args: { artistNames: string[]; cursor?: string },
 ) {
   const matchNames = contributorArtistMatchSet(args.artistNames);
   if (matchNames.size === 0) {
@@ -164,7 +154,7 @@ export async function getByArtistNamesPageHandler(
 
   const result = await ctx.db.query("replications").select(replicationArtistProjection).paginate({
     cursor: args.cursor ?? null,
-    numItems: clampContributorReplicationScanLimit(args.limit),
+    numItems: CONTRIBUTOR_ARTIST_SCAN_ROWS,
   });
   const matchedIds = result.page
     .filter((row) => replicationMatchesArtistNames(row, matchNames))

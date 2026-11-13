@@ -15,7 +15,7 @@ type PublicCorpusPage<Item> = {
 
 type PublicCorpusPageSource = {
   functionName: string;
-  args: (cursor?: string) => { cursor?: string; limit: number };
+  args: (cursor?: string) => { cursor?: string; limit?: number };
 };
 
 type PublicCorpusDrainLimits = {
@@ -36,7 +36,7 @@ export async function visitPublicCorpusPages<Item>(
   let rowCount = 0;
 
   for (let pageNumber = 1; pageNumber <= limits.maxPages; pageNumber += 1) {
-    const page = await query<PublicCorpusPage<Item>, { cursor?: string; limit: number }>(
+    const page = await query<PublicCorpusPage<Item>, { cursor?: string; limit?: number }>(
       source.functionName,
       source.args(cursor),
     );

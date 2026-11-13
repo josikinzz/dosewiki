@@ -164,7 +164,6 @@ export const publicDataReadCatalog = {
     args: (artistNames: string[], cursor?: string) => ({
       artistNames,
       ...(cursor ? { cursor } : {}),
-      limit: PUBLIC_REPLICATION_GALLERY_PAGE_SIZE,
     }),
   },
   publicMatchableReplicationsPage: {
