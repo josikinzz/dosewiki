@@ -113,9 +113,10 @@ describe("public replication gallery pagination", () => {
           ],
           continueCursor: "scoped-next", isDone: false,
         }),
-        getPublicEffectGalleryOrders: async () => [
-          { slug: "drifting", gallery_order: ["tagged", "owner"] },
-          { slug: "geometry", gallery_order: ["tagged"] },
+        getPublicEffectGalleryPositions: async () => [
+          { effect_slug: "drifting", slug: "tagged", position: 0 },
+          { effect_slug: "drifting", slug: "owner", position: 1 },
+          { effect_slug: "geometry", slug: "tagged", position: 0 },
         ],
       },
       storage: {

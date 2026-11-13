@@ -4,7 +4,6 @@ import type { Doc } from "./dataModel";
 import {
   publicArtistCreditColumns,
   publicContributorIdentityColumns,
-  publicEffectGalleryOrderColumns,
   publicEffectProjectionColumns,
   publicGalleryMembershipColumns,
   publicGalleryPageProjection,
@@ -15,7 +14,7 @@ import {
   type PublicArtistCreditRow,
   type PublicArtistTaxonomyRow,
   type PublicContributorIdentityRow,
-  type PublicEffectGalleryOrderRow,
+  type PublicEffectGalleryPositionRow,
   type PublicEffectProjection,
   type PublicEffectProjectionRow,
   type PublicEffectReplicationPage,
@@ -170,15 +169,30 @@ export class PublicProjectionReader extends SubstanceProjectionReader implements
     return result.rows.map((row) => fromTableRow("replications", row));
   }
 
-  async getPublicEffectGalleryOrders(slugs: readonly string[]): Promise<PublicEffectGalleryOrderRow[]> {
-    if (slugs.length === 0) return [];
+  async getPublicEffectGalleryPositions(
+    effectSlugs: readonly string[],
+    slugs: readonly string[],
+  ): Promise<PublicEffectGalleryPositionRow[]> {
+    if (effectSlugs.length === 0 || slugs.length === 0) return [];
     const result = await this.client.query(
-      `SELECT DISTINCT ON ("slug" COLLATE "C") ${losslessSelectList("subjectiveEffects", publicEffectGalleryOrderColumns)}
-       FROM "subjectiveEffects" WHERE "slug" COLLATE "C" = ANY($1::text[])
-       ORDER BY "slug" COLLATE "C", "_creationTime" ASC, "_id" COLLATE "C" ASC`,
-      [slugs],
+      `SELECT "effect"."slug" AS "effect_slug", "entry"."value" #>> '{}' AS "slug", max("entry"."position")::int - 1 AS "position"
+       FROM (
+         SELECT DISTINCT ON ("slug" COLLATE "C") "slug", "gallery_order"
+         FROM "subjectiveEffects" WHERE "slug" COLLATE "C" = ANY($1::text[])
+         ORDER BY "slug" COLLATE "C", "_creationTime" ASC, "_id" COLLATE "C" ASC
+       ) AS "effect"
+       CROSS JOIN LATERAL jsonb_array_elements(
+         CASE WHEN jsonb_typeof("effect"."gallery_order") = 'array' THEN "effect"."gallery_order" ELSE '[]'::jsonb END
+       ) WITH ORDINALITY AS "entry"("value", "position")
+       WHERE jsonb_typeof("entry"."value") = 'string' AND ("entry"."value" #>> '{}') COLLATE "C" = ANY($2::text[])
+       GROUP BY "effect"."slug", "entry"."value" #>> '{}'`,
+      [effectSlugs, slugs],
     );
-    return result.rows.map((row) => fromProjectedRow("subjectiveEffects", publicEffectGalleryOrderColumns, row));
+    return result.rows.map((row) => ({
+      effect_slug: String(row.effect_slug),
+      slug: String(row.slug),
+      position: Number(row.position),
+    }));
   }
 
   async getPublicEffectReplicationPage(args: { effectSlug: string; cursor?: string; limit: number }): Promise<PublicEffectReplicationPage> {
