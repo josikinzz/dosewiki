@@ -4,7 +4,7 @@ import type { NormalizedUserProfile } from "../../src/data/userProfiles";
 import type { SubstanceEffectMembershipInput } from "../../src/data/projections/substanceReadProjections";
 import type { SubstanceSearchSummaryProjection as SubstanceSearchSummary } from "../../src/data/projections/substanceReadProjections";
 import type { PublicOverviewCounts } from "./publicData.shared";
-import type { PublicChangelogSummary } from "../changelog/publicChangelogSummary";
+import type { PublicChangelogEntrySummary } from "../changelog/publicChangelogSummary";
 import type { CoverageRow } from "../../src/features/coverage/coverageModel";
 import type {
   GalleryReplication,
@@ -179,8 +179,9 @@ export type PublicDataReadAdapter = {
   getPublicChangelogBySubmitters(submitters: string[], limit: number): Promise<PublicChangelogRow[]>;
   getPublicChangelogByArticleSlug(slug: string, limit: number): Promise<PublicChangelogRow[]>;
   getPublicRecentChangelog(limit: number): Promise<PublicChangelogRow[]>;
-  getPublicChangelogSummariesByArticleSlug(slug: string, limit: number): Promise<PublicChangelogSummary[]>;
-  getPublicRecentChangelogSummaries(limit: number): Promise<PublicChangelogSummary[]>;
+  getPublicChangelogEntryIdsByArticleSlug(slug: string, limit: number): Promise<string[]>;
+  getPublicRecentChangelogEntryIds(limit: number): Promise<string[]>;
+  getPublicChangelogEntrySummaries(ids: string[]): Promise<Array<PublicChangelogEntrySummary | null>>;
   getPublicChangelogById(entryId: string): Promise<PublicChangelogRow | null>;
   getPublicReplicationIdentityAttribution(replicationId: string): Promise<PublicReplicationIdentityAttribution | null>;
   getPublicContributorIdentityByKey(key: string): Promise<PublicContributorIdentity | null>;
@@ -582,15 +583,20 @@ export function createDataPublicDataReadAdapter(query: QueryTransport = queryDat
       );
       return override ? { svg: override.svg, updatedAt: override.updatedAt } : null;
     },
-    getPublicChangelogSummariesByArticleSlug: (slug, limit) =>
-      query<PublicChangelogSummary[], { slug: string; limit: number }>(
-        publicDataReadCatalog.publicChangelogSummariesByArticleSlug.functionName,
-        publicDataReadCatalog.publicChangelogSummariesByArticleSlug.args(slug, limit),
+    getPublicChangelogEntryIdsByArticleSlug: (slug, limit) =>
+      query<string[], { slug: string; limit: number }>(
+        publicDataReadCatalog.publicChangelogEntryIdsByArticleSlug.functionName,
+        publicDataReadCatalog.publicChangelogEntryIdsByArticleSlug.args(slug, limit),
       ),
-    getPublicRecentChangelogSummaries: (limit) =>
-      query<PublicChangelogSummary[], { limit: number }>(
-        publicDataReadCatalog.publicChangelogRecentSummaries.functionName,
-        publicDataReadCatalog.publicChangelogRecentSummaries.args(limit),
+    getPublicRecentChangelogEntryIds: (limit) =>
+      query<string[], { limit: number }>(
+        publicDataReadCatalog.publicChangelogRecentEntryIds.functionName,
+        publicDataReadCatalog.publicChangelogRecentEntryIds.args(limit),
+      ),
+    getPublicChangelogEntrySummaries: (ids) =>
+      query<Array<PublicChangelogEntrySummary | null>, { ids: string[] }>(
+        publicDataReadCatalog.publicChangelogEntrySummaries.functionName,
+        publicDataReadCatalog.publicChangelogEntrySummaries.args(ids),
       ),
     getPublicChangelogBySubmitters: (submitters, limit) =>
       query<PublicChangelogRow[], { submitters: string[]; limit: number }>(

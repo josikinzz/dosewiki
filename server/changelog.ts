@@ -3,10 +3,8 @@ import { query, type MutationCtx } from "../lib/postgres/runtime/server";
 import { mutation, internalMutation } from "./lib/indexedMutation";
 import { requireRole } from "./lib/auth";
 import { projectPublicChangelog } from "../lib/changelog/publicChangelog";
-import {
-  projectPublicChangelogSummaries,
-  type PublicChangelogSummaryInput,
-} from "../lib/changelog/publicChangelogSummary";
+import { projectPublicChangelogEntrySummary } from "../lib/changelog/publicChangelogSummary";
+import type { Id } from "../lib/postgres/runtime/dataModel";
 import { publicReadIndexReady } from "./lib/publicReadIndexes";
 
 export const getAll = query({
@@ -34,7 +32,7 @@ export const getRecent = query({
   },
 });
 
-export const getRecentSummaries = query({
+export const getRecentEntryIds = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const limit = Math.min(args.limit ?? 50, 500);
@@ -42,8 +40,22 @@ export const getRecentSummaries = query({
       .query("changelog")
       .withIndex("by_created_at")
       .order("desc")
+      .select({ columns: ["_id"] })
       .take(limit);
-    return projectPublicChangelogSummaries(rows, null);
+    return rows.map((row) => row._id);
+  },
+});
+
+export const CHANGELOG_ENTRY_SUMMARY_BATCH_LIMIT = 500;
+
+export const getEntrySummaries = query({
+  args: { ids: v.array(v.id("changelog")) },
+  handler: async (ctx, args) => {
+    if (args.ids.length > CHANGELOG_ENTRY_SUMMARY_BATCH_LIMIT) {
+      throw new Error(`changelog:getEntrySummaries accepts at most ${CHANGELOG_ENTRY_SUMMARY_BATCH_LIMIT} ids`);
+    }
+    const rows = await ctx.db.getMany("changelog", args.ids);
+    return rows.map((row) => row ? projectPublicChangelogEntrySummary(row) : null);
   },
 });
 
@@ -118,30 +130,29 @@ export const getByArticleSlug = query({
   },
 });
 
-export const getByArticleSlugSummaries = query({
+export const getArticleHistoryEntryIds = query({
   args: {
     slug: v.string(),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 8, 1), 50);
-    let rows: PublicChangelogSummaryInput[];
     if (await publicReadIndexReady(ctx, "history")) {
       const links = await ctx.db.query("articleHistory")
         .withIndex("by_slug_created", (query) => query.eq("slug", args.slug))
         .order("desc")
         .take(limit);
-      rows = (await ctx.db.getMany("changelog", links.map((link) => link.changelog_id)))
-        .filter((row) => row !== null);
-    } else {
-      rows = [];
-      for await (const row of ctx.db.query("changelog").withIndex("by_created_at").order("desc")) {
-        if (!row.articles.some((article) => article.slug === args.slug)) continue;
-        rows.push(row);
-        if (rows.length >= limit) break;
-      }
+      return links.map((link) => link.changelog_id);
     }
-    return projectPublicChangelogSummaries(rows, args.slug);
+    const ids: Id<"changelog">[] = [];
+    const rows = ctx.db.query("changelog").withIndex("by_created_at").order("desc")
+      .select({ columns: ["_id", "articles"] });
+    for await (const row of rows) {
+      if (!row.articles.some((article) => article.slug === args.slug)) continue;
+      ids.push(row._id);
+      if (ids.length >= limit) break;
+    }
+    return ids;
   },
 });
 

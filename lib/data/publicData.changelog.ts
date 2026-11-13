@@ -17,8 +17,10 @@ import {
 } from "../../src/data/changelog/articleRecentChanges";
 import { publicChangelogSubmitter, redactChangelogEmails } from "../changelog/publicChangelog";
 import {
+  assemblePublicChangelogSummaries,
   PUBLIC_CHANGELOG_DIFF_CHAR_LIMIT,
   truncatePublicChangelogDiff,
+  type PublicChangelogEntrySummary,
   type PublicChangelogSummary,
 } from "../changelog/publicChangelogSummary";
 import type { ContributorDirectory } from "../contributorDirectory";
@@ -136,12 +138,57 @@ export const PUBLIC_CHANGES_PAGE_LIMIT = 60;
 
 type StampedArticleChange = PublicChangelogSummary;
 
+type EntrySummaryBatch = { ids: Set<string>; read: Promise<Map<string, PublicChangelogEntrySummary | null>> };
+
+const ENTRY_SUMMARY_BATCH_SIZE = 200;
+
+let pendingEntrySummaryBatch: EntrySummaryBatch | null = null;
+
+function loadEntrySummary(id: string): Promise<PublicChangelogEntrySummary | null> {
+  let batch = pendingEntrySummaryBatch;
+  if (!batch) {
+    const ids = new Set<string>();
+    const created: EntrySummaryBatch = {
+      ids,
+      read: new Promise((resolve) => setTimeout(resolve, 0)).then(async () => {
+        if (pendingEntrySummaryBatch === created) pendingEntrySummaryBatch = null;
+        const batchIds = [...ids];
+        const chunks = Array.from(
+          { length: Math.ceil(batchIds.length / ENTRY_SUMMARY_BATCH_SIZE) },
+          (_, index) => batchIds.slice(index * ENTRY_SUMMARY_BATCH_SIZE, (index + 1) * ENTRY_SUMMARY_BATCH_SIZE),
+        );
+        const entries = (await Promise.all(
+          chunks.map((chunk) => getPublicDataReadAdapter().getPublicChangelogEntrySummaries(chunk)),
+        )).flat();
+        return new Map(batchIds.map((batchId, index) => [batchId, entries[index] ?? null]));
+      }),
+    };
+    pendingEntrySummaryBatch = batch = created;
+  }
+  batch.ids.add(id);
+  return batch.read.then((entries) => entries.get(id) ?? null);
+}
+
+const readChangelogEntrySummary = cache(
+  publicDataCache(
+    loadEntrySummary,
+    ["data-public-changelog-entry-summary", "v1"],
+    {
+      revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
+      tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.changelog, PUBLIC_CHANGELOG_LISTS_TAG],
+    },
+  ),
+);
+
+async function assembleChangelogSummaries(ids: string[], subjectSlug: string | null): Promise<StampedArticleChange[]> {
+  return assemblePublicChangelogSummaries(await Promise.all(ids.map((id) => readChangelogEntrySummary(id))), subjectSlug);
+}
 
 const readChangelogByArticleSlug = cache(
   publicDataCache(
   async (slug: string, limit: number): Promise<StampedArticleChange[]> =>
-    getPublicDataReadAdapter().getPublicChangelogSummariesByArticleSlug(slug, limit),
-  ["data-public-changelog-by-article-slug", "summaries-v3"],
+    assembleChangelogSummaries(await getPublicDataReadAdapter().getPublicChangelogEntryIdsByArticleSlug(slug, limit), slug),
+  ["data-public-changelog-by-article-slug", "summaries-v4"],
   {
     revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
     tags: (slug) => [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.changelog, publicArticleHistoryTag(slug)],
@@ -151,8 +198,8 @@ const readChangelogByArticleSlug = cache(
 const readRecentChangelog = cache(
   publicDataCache(
     async (limit: number): Promise<StampedArticleChange[]> =>
-      getPublicDataReadAdapter().getPublicRecentChangelogSummaries(limit),
-  ["data-public-changelog-recent-changes", "summaries-v3"],
+      assembleChangelogSummaries(await getPublicDataReadAdapter().getPublicRecentChangelogEntryIds(limit), null),
+  ["data-public-changelog-recent-changes", "summaries-v4"],
   {
     revalidate: PUBLIC_DATA_CACHE_REVALIDATE_SECONDS,
     tags: [PUBLIC_DATA_CACHE_TAGS.all, PUBLIC_DATA_CACHE_TAGS.changelog, PUBLIC_CHANGELOG_LISTS_TAG],
