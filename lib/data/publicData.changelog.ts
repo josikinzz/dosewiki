@@ -160,7 +160,10 @@ function loadEntrySummary(id: string): Promise<PublicChangelogEntrySummary | nul
         const entries = (await Promise.all(
           chunks.map((chunk) => getPublicDataReadAdapter().getPublicChangelogEntrySummaries(chunk)),
         )).flat();
-        return new Map(batchIds.map((batchId, index) => [batchId, entries[index] ?? null]));
+        if (entries.length !== batchIds.length) {
+          throw new Error(`changelog entry summaries returned ${entries.length} rows for ${batchIds.length} ids`);
+        }
+        return new Map(batchIds.map((batchId, index) => [batchId, entries[index]]));
       }),
     };
     pendingEntrySummaryBatch = batch = created;
