@@ -119,7 +119,7 @@ export function SubstanceFilterControl({
             aria-label={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
             title={active !== null ? t("Substance filter, {{substance}} active", { substance: active }) : t("Filter by substance")}
           >
-            <Icon icon="lucide:flask-conical" className="h-4 w-4 shrink-0" aria-hidden />
+            <Icon icon="lucide:list-filter" className="h-4 w-4 shrink-0" aria-hidden />
             <span className={cn(CONTROL_TRIGGER_LABEL_CLASS, "min-w-0 flex-1 truncate")}>
               {active ?? t("Filter")}
             </span>
@@ -186,7 +186,7 @@ export function SubstanceFilterControl({
           ) : null}
         </PopoverContent>
       </Popover>
-      <div className="h-10 w-10 shrink-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:h-9 md:w-9">
+      <div className={cn("h-10 w-10 shrink-0 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11 md:block md:h-9 md:w-9", active === null && "hidden")}>
       {active !== null ? (
         <Button
           type="button"
