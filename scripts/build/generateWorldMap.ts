@@ -62,7 +62,7 @@ function alpha2(item: Feature) {
 const coarse = load(countries110m, "countries", COUNTRY_KEEP);
 const fine = load(countries50m, "countries", COUNTRY_KEEP);
 const states = load(usStates10m, "states", STATE_KEEP);
-const projection = geoNaturalEarth1().fitWidth(WIDTH, coarse.collection);
+const projection = geoNaturalEarth1().precision(0).fitWidth(WIDTH, coarse.collection);
 const top = geoPath(projection).bounds(coarse.collection)[0][1];
 projection.translate([projection.translate()[0], projection.translate()[1] - top]);
 const path = geoPath(projection).digits(1);
