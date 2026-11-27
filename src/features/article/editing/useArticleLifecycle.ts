@@ -333,9 +333,11 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     } finally { requestLock.current = false; setBusy(false); setAutosaving(false); setPendingAction(null); }
   }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, feedbackRef, readSnapshot, adoptSnapshot]);
   const retry = useCallback(async () => {
-    if (!pending.current) return;
+    if (!pending.current) return false;
     const request = JSON.parse(pending.current.identity);
-    await act(request.action, request.summary, request.revisionId, request.article, { autosave: request.autosave === true });
+    const autosave = request.autosave === true;
+    await act(request.action, request.summary, request.revisionId, request.article, { autosave });
+    return autosave;
   }, [act]);
   const discardLocal = useCallback(() => {
     if (requestLock.current || pending.current || baselineRefreshRequired || recovery) return;

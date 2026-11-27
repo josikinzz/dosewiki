@@ -131,6 +131,7 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     result = { draft: { version, baseHash: args.baseHash }, draftVersion: version, baseHash: args.baseHash, changeId: args.changeId };
   } else {
     if (args.baseHash !== baseHash) articleConflict();
+    if (args.action === "publish" && args.autosave && draft?.article) articleConflict("You have a saved private draft of this article. Load the latest version to continue from it; autosave stays off until you publish or discard that draft.");
     const summary = args.summary?.trim() ?? "";
     if (!summary || summary.length > 500) throw new PostgresError({ code: "ARTICLE_SUMMARY_REQUIRED", message: "Describe this change in 1–500 characters." });
     let proposed = args.article;

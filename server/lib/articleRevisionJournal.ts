@@ -28,6 +28,8 @@ async function openChangelogSession(ctx: MutationCtx, slug: string, actorEmail: 
   if (!head || head.slug !== slug || head.actorEmail !== actorEmail || !head.before) return null;
   const age = now.getTime() - Date.parse(head.createdAt);
   if (!(age >= 0 && age <= CHANGELOG_SESSION_WINDOW_MS)) return null;
+  const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
+  if (!latest || latest.actorEmail !== actorEmail || Date.parse(latest.createdAt) !== Date.parse(entry.createdAt)) return null;
   return { entry, before: head.before as ArticleDocument };
 }
 

@@ -277,7 +277,7 @@ The action that makes a change live for readers. Only admins publish; an editor'
 _Avoid_: deploy, push, apply to production
 
 **Autosave**:
-How an admin's article edits publish without Save draft or Review: each edit goes live when the admin leaves the field or saves the section form. It is on by default for admins and switched per browser with Save edits as I make them in the editing options menu. It pauses while a saved private draft, a loaded proposal or a merged newer version holds edits that were not made this way. Dose, duration and interaction changes are never autosaved; they wait for Review and its confirmation. Autosaved edits by one admin to one article within ten minutes share one public changelog entry, while every edit keeps its own article revision.
+How an admin's article edits publish without Save draft or Review: each edit goes live when the admin leaves the field or saves the section form. It is on by default for admins and switched per browser with Save edits as I make them in the editing options menu. It pauses while a saved private draft, a loaded proposal or a merged newer version holds edits that were not made this way, and an autosave is refused if a private draft of the article was saved from another tab. Dose, duration and interaction changes are never autosaved; they wait for Review and its confirmation. Autosaved edits by one admin to one article within ten minutes share one public changelog entry until someone else's revision lands on the article. Every save keeps its own article revision, and edits made within a few seconds of each other can share one save.
 _Avoid_: live draft, instant publish
 
 **Submit for review**:

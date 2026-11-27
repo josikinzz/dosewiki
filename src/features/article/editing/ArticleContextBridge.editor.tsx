@@ -172,7 +172,9 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     return () => { inlineDrafts.current.delete(path); setInlineDirty(inlineDrafts.current.size > 0); };
   }, []);
   const [formEpoch, setFormEpoch] = useState(0);
-  const form = useArticleForm({ article: lifecycle.article, preserveStructure: section !== "dosage", onMutate: () => setFormDirty(true) });
+  const formSource = useRef(lifecycle.article);
+  if (!formDirty) formSource.current = lifecycle.article;
+  const form = useArticleForm({ article: formSource.current, preserveStructure: section !== "dosage", onMutate: () => setFormDirty(true) });
   const resetEpoch = useRef(formEpoch);
   useEffect(() => {
     if (resetEpoch.current === formEpoch) return;
@@ -359,7 +361,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     if (lifecycle.publication && slug) startReceipt([{ kind: "article", slug }], lifecycle.publication.receipts);
   }, [lifecycle.publication, slug, startReceipt]);
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
-    void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
+    void attempt(async () => {
+      const autosaved = await lifecycle.retry();
+      if (!autosaved) { setFormDirty(false); setFormEpoch((value) => value + 1); closePanel(); }
+      setRestore(null); router.refresh();
+    });
   }}>Retry unconfirmed change</Button> : null;
   const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
   const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
@@ -553,7 +559,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {otherPending > 0 ? <SessionLine key="pending" icon="lucide:inbox" tone="warning" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>See them</Button>}>
       {otherPending === 1 ? `1 ${pendingChipId ? "other " : ""}proposal on this article is waiting for review.` : `${otherPending} ${pendingChipId ? "other " : ""}proposals on this article are waiting for review.`}{canPublish ? " Publishing over it may make it stale." : ""}
     </SessionLine> : null}
-    {lifecycle.feedbackRef ? <SessionLine key="feedback" icon="lucide:message-square-text" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>}>
+    {lifecycle.feedbackRef ? <SessionLine key="feedback" icon="lucide:message-square-text" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={requestLocked || autosaving} onClick={detachCorrection}>Detach</Button>}>
       <span data-feedback-correction>Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
     </SessionLine> : null}
     {returnTo ? <SessionLine key="back" icon="lucide:arrow-left" actions={<SessionLink href={returnTo}>Back to feedback</SessionLink>}>You opened this from reader feedback.</SessionLine> : null}
@@ -613,7 +619,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           </p>}
           {lifecycle.feedbackRef && <p data-feedback-correction className="theme-text-muted flex shrink-0 flex-wrap items-center gap-1 text-xs">
             <span className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5">Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
-            <Button variant="ghost" size="sm" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>
+            <Button variant="ghost" size="sm" disabled={requestLocked || autosaving} onClick={detachCorrection}>Detach</Button>
           </p>}
           {returnTo && <Link href={returnTo} className="theme-text-primary shrink-0 text-xs underline-offset-2 hover:underline">Back to feedback</Link>}
         </div>
