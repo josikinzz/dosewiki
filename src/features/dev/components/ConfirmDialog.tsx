@@ -127,9 +127,9 @@ export function ConfirmDialog({ request, onClose, returnFocus: returnFocusTarget
   );
 }
 
-export function useConfirm(): { confirm: (request: ConfirmRequest) => void; dialog: ReactNode } {
+export function useConfirm(): { confirm: (request: ConfirmRequest) => void; dialog: ReactNode; open: boolean } {
   const [request, setRequest] = useState<ConfirmRequest | null>(null);
   const close = useCallback(() => setRequest(null), []);
   const dialog = useMemo(() => <ConfirmDialog request={request} onClose={close} />, [request, close]);
-  return { confirm: setRequest, dialog };
+  return { confirm: setRequest, dialog, open: request !== null };
 }

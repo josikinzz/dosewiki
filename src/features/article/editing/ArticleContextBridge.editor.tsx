@@ -185,7 +185,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const [summaryEdited, setSummaryEdited] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
-  const { confirm, dialog: confirmDialog } = useConfirm();
+  const { confirm, dialog: confirmDialog, open: confirming } = useConfirm();
   const openOnSection = requestedSection ?? correctionSection;
   useEffect(() => { if (openOnSection && active) setSection(openOnSection); }, [openOnSection, active]);
   useEffect(() => { onDirtyChange?.(lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked); return () => onDirtyChange?.(false); }, [onDirtyChange, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
@@ -213,13 +213,13 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     onWorkChange?.();
   };
   const discardLocal = () => {
-    if (operationLocked) return;
+    if (controlsLocked) return;
     resetProposalNotes.current();
     for (const draft of inlineDrafts.current.values()) draft.discard();
     inlineDrafts.current.clear(); setInlineDirty(false);
     lifecycle.discardLocal(); setFormDirty(false); setFormEpoch((value) => value + 1);
   };
-  guardRef.current = { ...(operationLocked || proposalNotesDirty ? {} : { save: saveDraft }), discard: discardLocal, canDiscard: !operationLocked };
+  guardRef.current = { ...(operationLocked || proposalNotesDirty ? {} : { save: saveDraft }), discard: discardLocal, canDiscard: !controlsLocked };
   if (draftGuardRef) draftGuardRef.current = guardRef.current;
   useEffect(() => {
     context.setDirty(guardKey, lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked);
@@ -227,8 +227,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   }, [context.setDirty, guardKey, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
   useEffect(() => context.registerDraftGuard(guardKey, {
     ...(operationLocked || proposalNotesDirty ? {} : { save: async () => { await guardRef.current.save?.(); } }),
-    discard: () => guardRef.current.discard(), canDiscard: !operationLocked,
-  }), [context.registerDraftGuard, guardKey, operationLocked, proposalNotesDirty]);
+    discard: () => guardRef.current.discard(), canDiscard: !controlsLocked,
+  }), [context.registerDraftGuard, guardKey, operationLocked, controlsLocked, proposalNotesDirty]);
   const attempt = async (operation: () => Promise<void>) => {
     setLocalError(null);
     try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The change was not confirmed. Your edits are kept."); }
@@ -238,7 +238,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     reason: proposalNotesDirty ? "Unposted discussion and rejection notes cannot be saved as an article draft." : undefined,
     onSave: operationLocked || proposalNotesDirty ? undefined : saveDraft,
     onDiscard: discardLocal,
-    canDiscard: !operationLocked,
+    canDiscard: !controlsLocked,
     warnOnUnload: false,
   });
   const localDirty = lifecycle.dirty || formDirty || inlineDirty;
@@ -337,11 +337,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   autosaveRef.current = runAutosave;
   const autosaving = lifecycle.autosaving;
   useEffect(() => {
-    if (!armed || operationLocked || autosaving || handledTick.current === editTick) return;
+    if (!armed || operationLocked || autosaving || confirming || handledTick.current === editTick) return;
     const wait = Math.max(AUTOSAVE_SETTLE_MS, lastAutosaveAt.current + AUTOSAVE_MIN_INTERVAL_MS - Date.now());
     const timer = window.setTimeout(() => { handledTick.current = editTick; void autosaveRef.current(); }, wait);
     return () => window.clearTimeout(timer);
-  }, [armed, operationLocked, autosaving, editTick]);
+  }, [armed, operationLocked, autosaving, confirming, editTick]);
   const lifecycleCommit = lifecycle.commit;
   const commitField: ArticleEditContextValue["commit"] = useCallback(async (path, value, expected) => {
     const stored = await lifecycleCommit(path, value, expected);
