@@ -10,7 +10,7 @@ import { Surface } from "@/components/ui/surface";
 import { TOUCH_ICON } from "@/components/ui/touchTargets";
 import { Icon } from "@/components/common/Icon";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ExpandButton } from "@/components/common/ExpandButton";
 import { ContextualEditorPanel } from "@/features/contextual-editing/ContextualEditorPanel";
@@ -41,7 +41,7 @@ import { Notice, SaveLine } from "@/features/dev/components";
 import { RelativeDay } from "@/features/dev/tools/home/homeParts";
 import { useModifierKeyLabel } from "@/features/dev/pages/DevCommandPalette";
 import { ButtonKeyCap, DockBlocker, DraftStatePhrase, SaveDock, SessionLine, SessionLink, SessionStrip } from "./ArticleWorkbenchChrome";
-import { countChanges, describeChangedSections, describeDraftState, describeLifecycleFailure, PENDING_WORDS, safetyChanges } from "./articleSessionModel";
+import { autosaveCandidate, countChanges, describeAutosaveState, describeChangedSections, describeDraftState, describeLifecycleFailure, PENDING_WORDS, safetyChanges } from "./articleSessionModel";
 import { ARTICLE_EDITOR_SECTIONS, articleSectionForPath } from "./articleSections";
 import { articleDoseWarnings } from "@/features/dev/forms/doseRouteChecks";
 import { INTERACTION_TIER_LABELS, interactionOverlaps } from "@/features/dev/forms/interactionChecks";
@@ -61,6 +61,10 @@ export type ArticleContextBridgeProps = {
   header?: ReactNode;
   onWorkChange?: () => void;
 };
+
+const AUTOSAVE_STORAGE_KEY = "dosewiki:article-autosave";
+const AUTOSAVE_SETTLE_MS = 250;
+const AUTOSAVE_MIN_INTERVAL_MS = 4000;
 
 export default function ArticleContextBridge(props: ArticleContextBridgeProps) {
   const context = useContextualEditing();
@@ -125,6 +129,17 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const resetProposalNotes = useRef<() => void>(() => {});
   const requestLocked = lifecycle.busy || lifecycle.uncertain || proposalBusy;
   const operationLocked = requestLocked || !!lifecycle.recovery || lifecycle.baselineRefreshRequired;
+  const controlsLocked = operationLocked || lifecycle.autosaving;
+  const [autosavePref, setAutosavePref] = useState(true);
+  useEffect(() => {
+    try { if (window.localStorage.getItem(AUTOSAVE_STORAGE_KEY) === "off") setAutosavePref(false); } catch { return; }
+  }, []);
+  const [autosaveHold, setAutosaveHold] = useState(false);
+  const [autosaveFailed, setAutosaveFailed] = useState(false);
+  const [editTick, setEditTick] = useState(0);
+  const handledTick = useRef(0);
+  const lastAutosaveAt = useRef(0);
+  const markEdited = useCallback(() => { setAutosaveFailed(false); setEditTick((value) => value + 1); }, []);
   const [section, setSection] = useState<ArticleEditorSection | null>(null);
   const [review, setReview] = useState(false);
   const [correction] = useState(() => typeof window === "undefined" || workbench ? null : readCorrectionParams(window.location.search));
@@ -157,7 +172,9 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     return () => { inlineDrafts.current.delete(path); setInlineDirty(inlineDrafts.current.size > 0); };
   }, []);
   const [formEpoch, setFormEpoch] = useState(0);
-  const form = useArticleForm({ article: lifecycle.article, preserveStructure: section !== "dosage", onMutate: () => setFormDirty(true) });
+  const formSource = useRef(lifecycle.article);
+  if (!formDirty) formSource.current = lifecycle.article;
+  const form = useArticleForm({ article: formSource.current, preserveStructure: section !== "dosage", onMutate: () => setFormDirty(true) });
   const resetEpoch = useRef(formEpoch);
   useEffect(() => {
     if (resetEpoch.current === formEpoch) return;
@@ -168,7 +185,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const [summaryEdited, setSummaryEdited] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [restore, setRestore] = useState<ArticleRevision | null>(null);
-  const { confirm, dialog: confirmDialog } = useConfirm();
+  const { confirm, dialog: confirmDialog, open: confirming } = useConfirm();
   const openOnSection = requestedSection ?? correctionSection;
   useEffect(() => { if (openOnSection && active) setSection(openOnSection); }, [openOnSection, active]);
   useEffect(() => { onDirtyChange?.(lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked); return () => onDirtyChange?.(false); }, [onDirtyChange, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
@@ -180,8 +197,15 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     for (const draft of inlineDrafts.current.values()) await draft.save();
     return formDirty && formRef.current ? formRef.current.collect() : lifecycle.getArticle();
   };
+  const applyForm = async () => {
+    const edited = formDirty;
+    lifecycle.preview(await collect());
+    setFormDirty(false);
+    if (edited) markEdited();
+  };
   const saveDraft = async () => {
     if (operationLocked) throw new Error("Retry the unconfirmed change before saving a private draft.");
+    if (lifecycle.autosaving) throw new Error("Your last edit is still saving. Try again in a moment.");
     if (proposalNotesDirty) throw new Error("Post or discard the proposal notes before saving an article draft.");
     const candidate = await collect();
     await lifecycle.act("saveDraft", summary, undefined, candidate);
@@ -189,13 +213,13 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     onWorkChange?.();
   };
   const discardLocal = () => {
-    if (operationLocked) return;
+    if (controlsLocked) return;
     resetProposalNotes.current();
     for (const draft of inlineDrafts.current.values()) draft.discard();
     inlineDrafts.current.clear(); setInlineDirty(false);
     lifecycle.discardLocal(); setFormDirty(false); setFormEpoch((value) => value + 1);
   };
-  guardRef.current = { ...(operationLocked || proposalNotesDirty ? {} : { save: saveDraft }), discard: discardLocal, canDiscard: !operationLocked };
+  guardRef.current = { ...(operationLocked || proposalNotesDirty ? {} : { save: saveDraft }), discard: discardLocal, canDiscard: !controlsLocked };
   if (draftGuardRef) draftGuardRef.current = guardRef.current;
   useEffect(() => {
     context.setDirty(guardKey, lifecycle.dirty || formDirty || inlineDirty || proposalNotesDirty || operationLocked);
@@ -203,8 +227,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   }, [context.setDirty, guardKey, lifecycle.dirty, formDirty, inlineDirty, proposalNotesDirty, operationLocked]);
   useEffect(() => context.registerDraftGuard(guardKey, {
     ...(operationLocked || proposalNotesDirty ? {} : { save: async () => { await guardRef.current.save?.(); } }),
-    discard: () => guardRef.current.discard(), canDiscard: !operationLocked,
-  }), [context.registerDraftGuard, guardKey, operationLocked, proposalNotesDirty]);
+    discard: () => guardRef.current.discard(), canDiscard: !controlsLocked,
+  }), [context.registerDraftGuard, guardKey, operationLocked, controlsLocked, proposalNotesDirty]);
   const attempt = async (operation: () => Promise<void>) => {
     setLocalError(null);
     try { await operation(); } catch (failure) { setLocalError(failure instanceof Error ? failure.message : "The change was not confirmed. Your edits are kept."); }
@@ -214,7 +238,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     reason: proposalNotesDirty ? "Unposted discussion and rejection notes cannot be saved as an article draft." : undefined,
     onSave: operationLocked || proposalNotesDirty ? undefined : saveDraft,
     onDiscard: discardLocal,
-    canDiscard: !operationLocked,
+    canDiscard: !controlsLocked,
     warnOnUnload: false,
   });
   const localDirty = lifecycle.dirty || formDirty || inlineDirty;
@@ -240,18 +264,18 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     }),
   });
   const preview = async () => {
-    lifecycle.preview(await collect()); setFormDirty(false); setFormEpoch((value) => value + 1); closePanel();
+    await applyForm(); setFormEpoch((value) => value + 1); closePanel();
   };
   const prepareReview = async () => {
-    lifecycle.preview(await collect()); setFormDirty(false); setSection(null); setReview(true);
+    await applyForm(); setSection(null); setReview(true);
   };
   const openSection = (next: ArticleEditorSection) => {
-    void attempt(async () => { lifecycle.preview(await collect()); setFormDirty(false); setFormEpoch((value) => value + 1); setSection(next); setReview(false); setLocalError(null); });
+    void attempt(async () => { await applyForm(); setFormEpoch((value) => value + 1); setSection(next); setReview(false); setLocalError(null); });
   };
   const refreshBaseline = async () => {
     if (requestLocked || proposalNotesDirty) throw new Error("Finish the unconfirmed change or the proposal notes before loading the latest published version.");
-    lifecycle.preview(await collect());
-    setFormDirty(false); setFormEpoch((value) => value + 1); closePanel();
+    await applyForm();
+    setFormEpoch((value) => value + 1); closePanel();
     await lifecycle.refresh();
   };
   const refreshControl = lifecycle.loaded ? <Button variant="outline" size="sm" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onClick={() => { void attempt(refreshBaseline); }}>Load latest published version</Button> : null;
@@ -262,6 +286,21 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     setSummary(synthesizeChangeNote(changes));
   }, [review, summaryEdited, changes]);
   const canPublish = role === "admin" && !lifecycle.revisionOf;
+  const armed = autosavePref && canPublish && active && lifecycle.ready && !lifecycle.hasDraft && !autosaveHold;
+  const heldCount = safetyChanges(changes).length;
+  const unsavedCount = changes.length - heldCount;
+  useEffect(() => {
+    if (autosaveHold && changes.length === 0 && !lifecycle.dirty) setAutosaveHold(false);
+  }, [autosaveHold, changes.length, lifecycle.dirty]);
+  const toggleAutosave = (next: boolean) => {
+    setAutosavePref(next);
+    if (next && (changes.length > 0 || lifecycle.dirty)) setAutosaveHold(true);
+    try { window.localStorage.setItem(AUTOSAVE_STORAGE_KEY, next ? "on" : "off"); } catch { return; }
+  };
+  const autosavePausedReason = !autosavePref || role !== "admin" || !lifecycle.ready || armed ? null
+    : lifecycle.revisionOf ? "Autosave is off while you revise a proposal."
+      : lifecycle.hasDraft ? "Autosave is paused while you have a saved private draft. Publish or discard it to resume."
+        : "Autosave is paused until you publish or discard the edits already here.";
   const sheetActions: PublishAction[] = canPublish ? ["Publish", "Submit for review"] : ["Submit for review"];
   const countLabel = changes.length === 1 ? "1 change" : `${changes.length} changes`;
   const submitted = () => {
@@ -278,6 +317,43 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     if (linkedFeedback) detachCorrection();
     setSummary(""); setSummaryEdited(false); setReview(false);
   });
+  const runAutosave = async () => {
+    const candidate = autosaveCandidate(lifecycle.published, lifecycle.getArticle());
+    const pending = articleFieldChanges(lifecycle.published, candidate);
+    if (pending.length === 0) return;
+    const linkedFeedback = !!lifecycle.feedbackRef;
+    setLocalError(null);
+    lastAutosaveAt.current = Date.now();
+    try {
+      await lifecycle.act("publish", synthesizeChangeNote(pending), undefined, candidate, { autosave: true });
+    } catch {
+      setAutosaveFailed(true);
+      return;
+    }
+    onWorkChange?.();
+    if (linkedFeedback) detachCorrection();
+  };
+  const autosaveRef = useRef(runAutosave);
+  autosaveRef.current = runAutosave;
+  const autosaving = lifecycle.autosaving;
+  useEffect(() => {
+    if (!armed || operationLocked || autosaving || confirming || handledTick.current === editTick) return;
+    const wait = Math.max(AUTOSAVE_SETTLE_MS, lastAutosaveAt.current + AUTOSAVE_MIN_INTERVAL_MS - Date.now());
+    const timer = window.setTimeout(() => { handledTick.current = editTick; void autosaveRef.current(); }, wait);
+    return () => window.clearTimeout(timer);
+  }, [armed, operationLocked, autosaving, confirming, editTick]);
+  const lifecycleCommit = lifecycle.commit;
+  const commitField: ArticleEditContextValue["commit"] = useCallback(async (path, value, expected) => {
+    const stored = await lifecycleCommit(path, value, expected);
+    markEdited();
+    return stored;
+  }, [lifecycleCommit, markEdited]);
+  const lifecycleAddReference = lifecycle.addReference;
+  const addEditedReference: NonNullable<ArticleEditContextValue["addReference"]> = useCallback((reference) => {
+    const id = lifecycleAddReference!(reference);
+    markEdited();
+    return id;
+  }, [lifecycleAddReference, markEdited]);
   const publicPath = `/${slug ?? ""}`;
   const receipt = usePublicationReceipt();
   const startReceipt = receipt.start;
@@ -285,7 +361,11 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     if (lifecycle.publication && slug) startReceipt([{ kind: "article", slug }], lifecycle.publication.receipts);
   }, [lifecycle.publication, slug, startReceipt]);
   const retryControl = lifecycle.uncertain ? <Button variant="outline" disabled={lifecycle.busy} onClick={() => {
-    void attempt(async () => { await lifecycle.retry(); setFormDirty(false); setFormEpoch((value) => value + 1); setRestore(null); closePanel(); router.refresh(); });
+    void attempt(async () => {
+      const autosaved = await lifecycle.retry();
+      if (!autosaved) { setFormDirty(false); setFormEpoch((value) => value + 1); closePanel(); }
+      setRestore(null); router.refresh();
+    });
   }}>Retry unconfirmed change</Button> : null;
   const pendingProposals = lifecycle.proposals.filter((proposal) => proposal.status === "submitted").length;
   const submittedStatus = lifecycle.proposals.find((proposal) => proposal._id === lifecycle.submittedProposalId)?.status;
@@ -300,7 +380,10 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
   const fieldIssue = useCallback((path: string) => fieldIssueMessage(problems, path), [problems]);
   const [dismissedResult, setDismissedResult] = useState<string | null>(null);
   const saveDraftRef = useRef<() => void>(() => {});
-  saveDraftRef.current = () => { if (lifecycle.ready && !operationLocked && !proposalNotesDirty) void attempt(saveDraft); };
+  saveDraftRef.current = () => {
+    if (armed) { markEdited(); return; }
+    if (lifecycle.ready && !operationLocked && !proposalNotesDirty) void attempt(saveDraft);
+  };
   useEffect(() => {
     if (!dock || !active) return;
     const onKey = (event: KeyboardEvent) => {
@@ -312,7 +395,9 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [dock, active]);
-  const status = lifecycle.uncertain ? "Your last change was not confirmed. Editing is paused until you retry it." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft") : lifecycle.busy ? "Loading or saving" : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
+  const publicDelivery = lifecycle.publication ? receipt.receipt?.public ?? lifecycle.publication.delivery : null;
+  const autosaveState = describeAutosaveState({ saving: autosaving, unsavedCount, failed: autosaveFailed, heldCount, delivery: publicDelivery });
+  const status = lifecycle.uncertain ? "Your last change was not confirmed. Editing is paused until you retry it." : !lifecycle.loaded ? (lifecycle.error ? "Article editing state could not be loaded." : "Loading article and private draft") : lifecycle.busy ? "Loading or saving" : armed ? autosaveState.text : lifecycle.publication ? "Saved on the editor host" : lifecycle.notice ?? (lifecycle.dirty || formDirty || inlineDirty ? "Unsaved local edits" : lifecycle.hasDraft ? "Private draft loaded" : "Published article loaded");
   if (!active) return <>
     {dock ? header : null}
     {viewing && lifecycle.hasDraft && <div className="mx-auto flex max-w-[1500px] justify-end px-[max(1rem,env(safe-area-inset-left))] pt-3 sm:px-6">
@@ -334,6 +419,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     </Surface>
     {children}
   </>;
+  const autosaveToggle = role === "admin" ? <DropdownMenuCheckboxItem className="min-h-11" checked={autosavePref} onCheckedChange={(checked) => toggleAutosave(checked === true)}>Save edits as I make them</DropdownMenuCheckboxItem> : null;
   const articleName = lifecycle.article.title || lifecycle.article.identification?.common_name || slug || "This article";
   const issueLines = (text: string) => text.split("\n").filter(Boolean);
   const errorText = localError || lifecycle.error;
@@ -346,12 +432,16 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     </div> : null}
     {retryControl || refreshControl ? <div className="flex flex-wrap gap-2">{retryControl}{lifecycle.error ? refreshControl : null}</div> : null}
     <EditorToolbar variant="compact" label="Section editing actions" className="flex-wrap gap-2">
-      <Button variant="accent" size="sm" disabled={operationLocked} onClick={() => { void attempt(preview); }}>Apply to preview</Button>
-      <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>Review</Button>
-      <Button variant="outline" size="sm" disabled={operationLocked} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(saveDraft); }}>Save draft<ButtonKeyCap label={saveKeyLabel} /></Button>
+      {armed ? <Button variant="accent" size="sm" disabled={controlsLocked} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(preview); }}>Save<ButtonKeyCap label={saveKeyLabel} /></Button> : <>
+        <Button variant="accent" size="sm" disabled={controlsLocked} onClick={() => { void attempt(preview); }}>Apply to preview</Button>
+        <Button variant="outline" size="sm" disabled={controlsLocked} onClick={() => { void attempt(prepareReview); }}>Review</Button>
+        <Button variant="outline" size="sm" disabled={controlsLocked} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(saveDraft); }}>Save draft<ButtonKeyCap label={saveKeyLabel} /></Button>
+      </>}
       <Button variant="ghost" size="sm" disabled={operationLocked} onClick={() => leaveGuard.guard(closePanel)}>Cancel</Button>
     </EditorToolbar>
-    <p className="theme-text-faint text-xs max-sm:hidden">Apply to preview shows the change in the article here. Nothing leaves this browser until you save a draft{canPublish ? ", submit or publish" : " or submit"}.</p>
+    <p className="theme-text-faint text-xs max-sm:hidden">{armed
+      ? "Save sends this section to the live article. Dose, duration and interaction changes wait for your review first."
+      : `Apply to preview shows the change in the article here. Nothing leaves this browser until you save a draft${canPublish ? ", submit or publish" : " or submit"}.`}</p>
   </div>;
 
   const result: { key: string; tone: "danger" | "warning" | "success" | "info"; title?: string; message: ReactNode; actions?: ReactNode; testId?: string; dismiss?: () => void } | null = lifecycle.uncertain
@@ -366,7 +456,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       }
       : errorText && !section
         ? { key: `error:${errorText}`, tone: "danger", message: issueLines(errorText).length > 1 ? <ul className="list-disc space-y-0.5 ps-5">{issueLines(errorText).map((line) => <li key={line}>{line}</li>)}</ul> : errorText, actions: !lifecycle.loaded ? <Button type="button" variant="outline" size="sm" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}>Try again</Button> : undefined }
-        : lifecycle.publication
+        : lifecycle.publication && !armed
           ? { key: `publication:${lifecycle.publication.message}`, tone: receipt.receipt?.public === "failed" || lifecycle.publication.delivery === "failed" ? "warning" : "success", testId: "article-publication-notice", message: <span className="space-y-2">
             <span className="block">{publicationMessage(receipt.receipt?.public ?? lifecycle.publication.delivery)} <SessionLink href={lifecycle.publication.path} external>Open the public article</SessionLink></span>
             {receipt.receipt ? <PublicationReceiptChips receipt={receipt.receipt} /> : null}
@@ -401,12 +491,17 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     pending={pendingText}
     blocker={blocker}
     actions={<>
-      <Button type="button" variant={changes.length > 0 && !operationLocked ? "accent" : "outline"} size="sm" disabled={operationLocked || !lifecycle.ready} onClick={() => { void attempt(prepareReview); }}>
-        {changes.length > 0 ? `Review ${countChanges(changes.length)}` : "Review"}
-      </Button>
-      <Button type="button" variant="outline" size="sm" disabled={operationLocked || !lifecycle.ready || proposalNotesDirty} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(saveDraft); }}>
-        Save draft<ButtonKeyCap label={saveKeyLabel} />
-      </Button>
+      {armed ? <>
+        {heldCount > 0 ? <Button type="button" variant="accent" size="sm" disabled={controlsLocked} onClick={() => { void attempt(prepareReview); }}>Review {countChanges(heldCount)}</Button> : null}
+        {autosaveFailed && unsavedCount > 0 ? <Button type="button" variant="outline" size="sm" disabled={controlsLocked} onClick={markEdited}>Retry save</Button> : null}
+      </> : <>
+        <Button type="button" variant={changes.length > 0 && !operationLocked ? "accent" : "outline"} size="sm" disabled={controlsLocked || !lifecycle.ready} onClick={() => { void attempt(prepareReview); }}>
+          {changes.length > 0 ? `Review ${countChanges(changes.length)}` : "Review"}
+        </Button>
+        <Button type="button" variant="outline" size="sm" disabled={controlsLocked || !lifecycle.ready || proposalNotesDirty} aria-keyshortcuts="Meta+S Control+S" onClick={() => { void attempt(saveDraft); }}>
+          Save draft<ButtonKeyCap label={saveKeyLabel} />
+        </Button>
+      </>}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="outline" size="sm" disabled={!lifecycle.ready || operationLocked}>
@@ -423,33 +518,38 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           </DropdownMenuItem>)}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button type="button" variant="ghost" size="sm" className="max-sm:hidden" disabled={operationLocked || !localDirty} onClick={requestDiscardLocal}>Discard edits</Button>
+      <Button type="button" variant="ghost" size="sm" className="max-sm:hidden" disabled={controlsLocked || !localDirty} onClick={requestDiscardLocal}>Discard edits</Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button type="button" variant="ghost" size="icon" className={`sm:ms-auto ${TOUCH_ICON}`} aria-label="Editing options" title="Editing options"><Icon icon="lucide:ellipsis" size={16} /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" collisionPadding={16} className="w-72 max-w-[calc(100vw-2rem)]">
           <p className="theme-text-primary px-2 py-2 text-sm">{status}</p>
+          {autosavePausedReason ? <p className="theme-text-muted px-2 pb-2 text-sm">{autosavePausedReason}</p> : null}
+          {autosaveToggle}
           {lifecycle.loaded && <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="min-h-11" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Load latest published version</DropdownMenuItem>
+            <DropdownMenuItem className="min-h-11" disabled={requestLocked || autosaving || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Load latest published version</DropdownMenuItem>
           </>}
-          {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
-          {lifecycle.ready && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} />History and proposals</DropdownMenuItem>}
-          {lifecycle.ready && <DropdownMenuItem className="min-h-11 sm:hidden" disabled={operationLocked || !localDirty} onSelect={requestDiscardLocal}><Icon icon="lucide:undo-2" size={16} />Discard edits</DropdownMenuItem>}
+          {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={controlsLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
+          {lifecycle.ready && <DropdownMenuItem className="min-h-11" disabled={controlsLocked} onSelect={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} />History and proposals</DropdownMenuItem>}
+          {lifecycle.ready && <DropdownMenuItem className="min-h-11 sm:hidden" disabled={controlsLocked || !localDirty} onSelect={requestDiscardLocal}><Icon icon="lucide:undo-2" size={16} />Discard edits</DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
     </>}
-    state={<DraftStatePhrase text={draftState.text} unsaved={draftState.unsaved} />}
-    saveLine={<SaveLine model="record" destination={canPublish ? "live" : "proposal"} />}
+    state={armed ? <DraftStatePhrase text={autosaveState.text} unsaved={autosaveState.unsaved} /> : <DraftStatePhrase text={draftState.text} unsaved={draftState.unsaved} />}
+    saveLine={<SaveLine model={armed ? "instant" : "record"} destination={canPublish ? "live" : "proposal"} />}
   />;
   const otherPending = lifecycle.proposals.filter((proposal) => proposal.status === "submitted" && proposal._id !== pendingChipId).length;
   const dockStrip = <SessionStrip>
     {lifecycle.hasDraft ? <SessionLine key="draft" icon="lucide:file-pen-line" tone="accent">
       You are looking at your private draft{lifecycle.draftSavedAt ? <>, saved <RelativeDay iso={lifecycle.draftSavedAt} /></> : null}. Readers still see the published article.
-    </SessionLine> : changes.length > 0 ? <SessionLine key="preview" icon="lucide:eye" tone="accent">
+    </SessionLine> : armed ? (heldCount > 0 ? <SessionLine key="held" icon="lucide:shield-alert" tone="warning">
+      Dose, duration and interaction changes wait for your review. Readers still see the published values.
+    </SessionLine> : null) : changes.length > 0 ? <SessionLine key="preview" icon="lucide:eye" tone="accent">
       This page shows your edits. Readers still see the published article.
     </SessionLine> : null}
+    {autosavePausedReason && !lifecycle.hasDraft ? <SessionLine key="autosave-paused" icon="lucide:circle-pause">{autosavePausedReason}</SessionLine> : null}
     {lifecycle.revisionOf ? <SessionLine key="revision" icon="lucide:git-branch">
       This draft revises proposal #{lifecycle.revisionOf.slice(0, 6)}, so it goes to review when you submit it.
     </SessionLine> : null}
@@ -459,7 +559,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
     {otherPending > 0 ? <SessionLine key="pending" icon="lucide:inbox" tone="warning" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>See them</Button>}>
       {otherPending === 1 ? `1 ${pendingChipId ? "other " : ""}proposal on this article is waiting for review.` : `${otherPending} ${pendingChipId ? "other " : ""}proposals on this article are waiting for review.`}{canPublish ? " Publishing over it may make it stale." : ""}
     </SessionLine> : null}
-    {lifecycle.feedbackRef ? <SessionLine key="feedback" icon="lucide:message-square-text" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>}>
+    {lifecycle.feedbackRef ? <SessionLine key="feedback" icon="lucide:message-square-text" actions={<Button type="button" variant="link" size="quiet" className="h-auto p-0" disabled={requestLocked || autosaving} onClick={detachCorrection}>Detach</Button>}>
       <span data-feedback-correction>Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
     </SessionLine> : null}
     {returnTo ? <SessionLine key="back" icon="lucide:arrow-left" actions={<SessionLink href={returnTo}>Back to feedback</SessionLink>}>You opened this from reader feedback.</SessionLine> : null}
@@ -488,7 +588,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       <ul className="list-disc space-y-1 ps-5">{doseWarnings.map((line) => <li key={line}>{line}</li>)}</ul>
     </section> : null}
   </div>;
-  const articleView = <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: lifecycle.commit, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: lifecycle.addReference, references: lifecycle.article.references ?? [], isChanged: lifecycle.isFieldChanged, fieldIssue } : null}>
+  const articleView = <ArticleEditProvider value={lifecycle.ready && !operationLocked ? { commit: commitField, registerDraft, refreshStoredValue: lifecycle.refreshStoredValue, addReference: addEditedReference, references: lifecycle.article.references ?? [], isChanged: lifecycle.isFieldChanged, fieldIssue } : null}>
     <ArticleLayout {...layoutProps} content={layoutProps?.content ? { ...layoutProps.content, chemistryPresentation: buildArticleChemistryPresentation(lifecycle.article) } : undefined} fromSubstanceSlug={slug} article={lifecycle.article} />
   </ArticleEditProvider>;
   return <ArticleSectionEditorContext.Provider value={lifecycle.ready && !operationLocked ? openSection : null}>
@@ -510,8 +610,8 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       {saveDock}
     </StickyArticleEditorLayout> : <StickyArticleEditorLayout actions={<>
       <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <div className="min-w-0 flex-1 basis-full sm:flex sm:basis-auto sm:items-center sm:gap-3">
-          <p className="theme-text-primary shrink-0 text-sm font-semibold">{changes.length > 0 ? "Private preview" : "Editing"}</p>
+        <div className={`min-w-0 flex-1 sm:flex sm:basis-auto sm:items-center sm:gap-3 ${armed && heldCount === 0 && !autosaveFailed ? "basis-0" : "basis-full"}`}>
+          <p className="theme-text-primary shrink-0 text-sm font-semibold">{armed ? "Editing live" : changes.length > 0 ? "Private preview" : "Editing"}</p>
           <p className="theme-text-muted truncate text-xs" role="status" title={status}>{status}</p>
           {(pendingChipId || pendingProposals > 0) && <p className="theme-text-muted flex shrink-0 flex-wrap items-center gap-2 text-xs">
             {pendingChipId && <Link href={`/dev/queue/${encodeURIComponent(pendingChipId)}`} className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5 underline-offset-2 hover:underline">Proposal #{pendingChipId.slice(0, 6)} pending</Link>}
@@ -519,15 +619,19 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           </p>}
           {lifecycle.feedbackRef && <p data-feedback-correction className="theme-text-muted flex shrink-0 flex-wrap items-center gap-1 text-xs">
             <span className="theme-text-primary rounded-full border border-dose-border px-2 py-0.5">Correcting reader feedback #{lifecycle.feedbackRef.id.slice(-6)}</span>
-            <Button variant="ghost" size="sm" disabled={requestLocked} onClick={detachCorrection}>Detach</Button>
+            <Button variant="ghost" size="sm" disabled={requestLocked || autosaving} onClick={detachCorrection}>Detach</Button>
           </p>}
           {returnTo && <Link href={returnTo} className="theme-text-primary shrink-0 text-xs underline-offset-2 hover:underline">Back to feedback</Link>}
         </div>
         <div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center gap-1">
-          {lifecycle.ready ? <>
-            <Button variant="ghost" size="sm" disabled={operationLocked || !localDirty} onClick={requestDiscardLocal}>Discard</Button>
-            <Button variant="outline" size="sm" disabled={operationLocked} onClick={() => { void attempt(saveDraft); }}>Save draft</Button>
-            <Button size="sm" className="h-auto min-h-9 max-w-full whitespace-normal px-3" disabled={operationLocked} onClick={() => { void attempt(prepareReview); }}>{changes.length > 0 ? `Review (${countLabel})` : "Review"}</Button>
+          {lifecycle.ready && armed ? <>
+            {localDirty && !autosaving && (heldCount > 0 || autosaveFailed) ? <Button variant="ghost" size="sm" disabled={controlsLocked} onClick={requestDiscardLocal}>Discard</Button> : null}
+            {autosaveFailed && unsavedCount > 0 ? <Button variant="outline" size="sm" disabled={controlsLocked} onClick={markEdited}>Retry save</Button> : null}
+            {heldCount > 0 ? <Button size="sm" className="h-auto min-h-9 max-w-full whitespace-normal px-3" disabled={controlsLocked} onClick={() => { void attempt(prepareReview); }}>Review ({countChanges(heldCount)})</Button> : null}
+          </> : lifecycle.ready ? <>
+            <Button variant="ghost" size="sm" disabled={controlsLocked || !localDirty} onClick={requestDiscardLocal}>Discard</Button>
+            <Button variant="outline" size="sm" disabled={controlsLocked} onClick={() => { void attempt(saveDraft); }}>Save draft</Button>
+            <Button size="sm" className="h-auto min-h-9 max-w-full whitespace-normal px-3" disabled={controlsLocked} onClick={() => { void attempt(prepareReview); }}>{changes.length > 0 ? `Review (${countLabel})` : "Review"}</Button>
           </> :!lifecycle.loaded && <Button variant="outline" size="icon" aria-label="Load private draft" title="Load private draft" disabled={requestLocked} onClick={() => { void lifecycle.load(); }}><Icon icon="lucide:download" size={16} /></Button>}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -535,18 +639,22 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" collisionPadding={16} className="w-72 max-w-[calc(100vw-2rem)]">
               <p className="theme-text-primary px-2 py-2 text-sm">{status}</p>
-              <p className="theme-text-muted px-2 pb-2 text-sm">Nothing publishes automatically. Save a private draft, or review the changed fields before submitting or publishing.</p>
+              <p className="theme-text-muted px-2 pb-2 text-sm">{armed
+                ? "Each edit saves to the live article when you click away. Dose, duration and interaction changes wait for your review first."
+                : autosavePausedReason ?? "Nothing publishes automatically. Save a private draft, or review the changed fields before submitting or publishing."}</p>
+              {autosaveToggle}
               {lifecycle.loaded && <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="min-h-11" disabled={requestLocked || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Load latest published version</DropdownMenuItem>
+                <DropdownMenuItem className="min-h-11" disabled={requestLocked || autosaving || !!lifecycle.recovery || proposalNotesDirty} onSelect={() => { void attempt(refreshBaseline); }}><Icon icon="lucide:refresh-cw" size={16} />Load latest published version</DropdownMenuItem>
               </>}
-              {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={operationLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
+              {lifecycle.ready && lifecycle.hasDraft && <DropdownMenuItem className="min-h-11" disabled={controlsLocked} onSelect={requestDiscardDraft}><Icon icon="lucide:trash-2" size={16} />Discard saved draft</DropdownMenuItem>}
+              {lifecycle.ready && armed && <DropdownMenuItem className="min-h-11" disabled={controlsLocked} onSelect={() => { void attempt(prepareReview); }}><Icon icon="lucide:history" size={16} />History and proposals</DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
       {!lifecycle.ready && lifecycle.loaded && <p role="alert" className="theme-text-primary px-1 py-2 text-sm">{lifecycle.baselineRefreshRequired ? "The saved draft was discarded. Load the latest published version and merge your edits before editing; your local copy remains here." : "Article saving is paused. Your edits remain here; nothing is saved or published automatically after sign-in."}</p>}
-      {lifecycle.publication && <div data-testid="article-publication-notice" className="theme-text-primary space-y-2 px-1 py-2 text-sm">
+      {lifecycle.publication && !armed && <div data-testid="article-publication-notice" className="theme-text-primary space-y-2 px-1 py-2 text-sm">
         <p>
           {publicationMessage(receipt.receipt?.public ?? lifecycle.publication.delivery)}{" "}
           <Link href={lifecycle.publication.path} className="underline underline-offset-2">Open the public article</Link>
@@ -581,11 +689,14 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
       if (open) return;
       leaveGuard.guard(closePanel);
     }}
-    description={dock ? `${articleName}. Changes stay private until you ${canPublish ? "publish them or submit them" : "submit them"} for review.` : undefined}
+    description={dock ? armed
+      ? `${articleName}. Changes save to the live article as you make them.`
+      : `${articleName}. Changes stay private until you ${canPublish ? "publish them or submit them" : "submit them"} for review.` : undefined}
     onKeyDown={(event) => {
       if (!section || !(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s" || event.altKey || event.shiftKey) return;
       event.preventDefault();
-      if (!operationLocked && !proposalNotesDirty) void attempt(saveDraft);
+      if (controlsLocked || proposalNotesDirty) return;
+      void attempt(armed ? preview : saveDraft);
     }}
     footer={section ? sectionFooter : undefined}>
       <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
@@ -648,6 +759,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
               if (fresh.draft) throw new Error("A private draft exists. Discard it explicitly before loading this proposal.");
               lifecycle.preview({ ...fresh.article, ...patch, id: fresh.article.id, editorial_review: fresh.article.editorial_review });
               lifecycle.setRevisionOf(revisionOf);
+              setAutosaveHold(true);
               setSummary(revisionOf ? `Revision of proposal ${revisionOf}` : "New submission following review feedback");
               setReview(false); setSection("summary");
             }}
@@ -668,7 +780,7 @@ function ArticleEditingSession({ slug, article, children, layoutProps, workbench
           <ArticleChangeDiff before={lifecycle.recovery.draft.article} after={lifecycle.article} />
         </section>}
         <div className="flex flex-wrap gap-2">
-          <Button className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked || lifecycle.merge.unresolved.length > 0} onClick={() => { void attempt(async () => { lifecycle.reconcile(true); setFormEpoch((value) => value + 1); setReview(true); }); }}>Use the merged draft</Button>
+          <Button className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked || lifecycle.merge.unresolved.length > 0} onClick={() => { void attempt(async () => { lifecycle.reconcile(true); setAutosaveHold(true); setFormEpoch((value) => value + 1); setReview(true); }); }}>Use the merged draft</Button>
           <Button variant="outline" className="h-auto min-h-11 max-w-full whitespace-normal" disabled={requestLocked} onClick={() => { void attempt(async () => { lifecycle.reconcile(false); setFormEpoch((value) => value + 1); }); }}>{lifecycle.recovery.draft ? "Discard local edits and load saved draft" : "Discard local edits and load published article"}</Button>
           <Button variant="ghost" disabled={requestLocked} onClick={() => lifecycle.cancelRecovery()}>Keep my current version</Button>
         </div>

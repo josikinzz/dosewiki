@@ -8,6 +8,30 @@ import { articleChangePatch, articleDocument, type ArticleDocument } from "./art
 import { articleContentFingerprint, articleFingerprintOf, articleReviewRevision } from "./articleReviewRevision";
 import { encodeFieldPathKey, getArticleValueByPath } from "../../src/data/schema/fieldPath";
 import { REVIEW_INITIAL_REVISION } from "../../src/schema/substance/editorial";
+import { articleFieldChanges } from "../../lib/proposals/articlePatch";
+import { synthesizeChangeNote } from "../../src/features/article/editing/changeNote";
+
+export const CHANGELOG_SESSION_WINDOW_MS = 10 * 60 * 1000;
+const CHANGELOG_SESSION_PREFIX = "article-session-";
+const CHANGELOG_SESSION_SCAN_LIMIT = 8;
+
+function changedFieldsLine(changed: string[], title: string): string {
+  return `Changed ${changed.join(", ")} on ${title}.`;
+}
+
+async function openChangelogSession(ctx: MutationCtx, slug: string, actorEmail: string, now: Date) {
+  const recent = await ctx.db.query("changelog").withIndex("by_submitted_by", (q) => q.eq("submittedBy", deriveSubmittedBy(actorEmail)))
+    .order("desc").take(CHANGELOG_SESSION_SCAN_LIMIT);
+  const entry = recent.find((row) => row.articles.some((article) => article.slug === slug));
+  if (!entry || !entry.entryId.startsWith(CHANGELOG_SESSION_PREFIX)) return null;
+  const head = await ctx.db.get(entry.entryId.slice(CHANGELOG_SESSION_PREFIX.length) as Id<"articleRevisions">);
+  if (!head || head.slug !== slug || head.actorEmail !== actorEmail || !head.before) return null;
+  const age = now.getTime() - Date.parse(head.createdAt);
+  if (!(age >= 0 && age <= CHANGELOG_SESSION_WINDOW_MS)) return null;
+  const latest = await ctx.db.query("articleRevisions").withIndex("by_slug", (q) => q.eq("slug", slug)).order("desc").first();
+  if (!latest || latest.actorEmail !== actorEmail || Date.parse(latest.createdAt) !== Date.parse(entry.createdAt)) return null;
+  return { entry, before: head.before as ArticleDocument };
+}
 
 export async function loadArticle(ctx: QueryCtx | MutationCtx, slug: string) {
   const rows = await ctx.db.query("substanceIndex").withIndex("by_slug", (q) => q.eq("slug", slug)).take(2);
@@ -74,11 +98,15 @@ async function markChangedArticleEvidence(ctx: MutationCtx, before: ArticleDocum
 export async function recordArticleRevision(ctx: MutationCtx, input: {
   before: ArticleDocument; after: ArticleDocument; actor: Pick<AuthorizedActor, "email" | "role">;
   changeId: string; baseHash: string; summary: string; restoredFrom?: Id<"articleRevisions">; publicChangelog?: boolean;
-  markEvidence?: boolean;
+  markEvidence?: boolean; changelogSession?: boolean;
 }) {
-  const now = new Date().toISOString();
+  const started = new Date();
+  const now = started.toISOString();
   const changed = Object.keys(articleChangePatch(input.before, input.after));
   if (input.markEvidence !== false) await markChangedArticleEvidence(ctx, input.before, input.after, input.actor.email, changed);
+  const session = input.changelogSession && input.publicChangelog !== false
+    ? await openChangelogSession(ctx, input.after.slug!, input.actor.email, started)
+    : null;
   const revisionId = await ctx.db.insert("articleRevisions", {
     slug: input.after.slug!, changeId: input.changeId, actorEmail: input.actor.email, actorRole: input.actor.role,
     before: input.before, after: input.after, baseHash: input.baseHash, resultHash: "", summary: input.summary,
@@ -86,12 +114,21 @@ export async function recordArticleRevision(ctx: MutationCtx, input: {
   });
   const resultHash = contentHash({ article: input.after, revision: revisionId });
   await ctx.db.patch(revisionId, { resultHash });
-  if (input.publicChangelog !== false) {
+  const articles = [{ id: input.after.id ?? 0, title: input.after.title, slug: input.after.slug! }];
+  if (session) {
+    const sessionChanged = Object.keys(articleChangePatch(session.before, input.after));
+    await ctx.db.patch(session.entry._id, {
+      createdAt: now,
+      message: synthesizeChangeNote(articleFieldChanges(session.before, input.after)) || input.summary,
+      markdown: changedFieldsLine(sessionChanged.length ? sessionChanged : changed, input.after.title),
+      articles,
+    });
+  } else if (input.publicChangelog !== false) {
     await ctx.db.insert("changelog", {
-      entryId: `article-${revisionId}`, createdAt: now, message: input.summary,
-      markdown: `Changed ${changed.join(", ")} on ${input.after.title}.`,
+      entryId: `${input.changelogSession ? CHANGELOG_SESSION_PREFIX : "article-"}${revisionId}`, createdAt: now, message: input.summary,
+      markdown: changedFieldsLine(changed, input.after.title),
       submittedBy: deriveSubmittedBy(input.actor.email),
-      articles: [{ id: input.after.id ?? 0, title: input.after.title, slug: input.after.slug! }],
+      articles,
     });
   }
   return { revisionId, article: input.after, baseHash: resultHash, changeId: input.changeId };

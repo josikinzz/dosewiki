@@ -150,6 +150,7 @@
       "scripts/citations/verdict-apply.test.mjs",
       "server/lib/replicationStudio.test.ts",
       "server/moleculeOverrides.test.ts",
+      "server/articleLifecycleAutosave.test.ts",
       "server/saveArticleBatch.test.ts",
       "src/app/api/dev/molecule-override/route.test.ts",
       "src/app/api/dev/proposals/[id]/approve/route.test.ts",

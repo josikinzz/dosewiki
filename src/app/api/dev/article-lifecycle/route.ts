@@ -26,10 +26,10 @@ export const GET = protectedRouteOperation({
 });
 
 type Action = "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
-type Body = { action?: unknown; slug?: unknown; baseHash?: unknown; changeId?: unknown; article?: unknown; summary?: unknown; revisionId?: unknown; revisionOf?: unknown; draftVersion?: unknown; feedbackRef?: unknown };
-type Parsed = { action: Action; slug: string; baseHash: string; changeId: string; article?: Infer<typeof substanceArticleLightValidator>; summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number; feedbackRef?: FeedbackRef };
+type Body = { action?: unknown; slug?: unknown; baseHash?: unknown; changeId?: unknown; article?: unknown; summary?: unknown; revisionId?: unknown; revisionOf?: unknown; draftVersion?: unknown; feedbackRef?: unknown; autosave?: unknown };
+type Parsed = { action: Action; slug: string; baseHash: string; changeId: string; article?: Infer<typeof substanceArticleLightValidator>; summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number; feedbackRef?: FeedbackRef; autosave?: true };
 export const POST = protectedRouteOperation<Body, Parsed>({
-  auth: "editor", rateLimit: "editorHeavyWrite", capabilities: [{ type: "dataWrite" }],
+  auth: "editor", rateLimit: "editorArticleWrite", capabilities: [{ type: "dataWrite" }],
   body: { maxBytes: 2 * 1024 * 1024, parse: (raw) => {
     if (!["saveDraft", "discardDraft", "publish", "submit", "restore"].includes(String(raw.action))) throw new JsonBodyError(400, "Choose a supported article action.");
     if (typeof raw.slug !== "string" || !slugPattern.test(raw.slug)) throw new JsonBodyError(400, "A valid article slug is required.");
@@ -46,6 +46,7 @@ export const POST = protectedRouteOperation<Body, Parsed>({
       ...(typeof raw.revisionOf === "string" ? { revisionOf: raw.revisionOf as Id<"changeProposals"> } : {}),
       ...(typeof raw.draftVersion === "number" ? { draftVersion: raw.draftVersion } : {}),
       ...(feedbackRef ? { feedbackRef } : {}),
+      ...(raw.action === "publish" && raw.autosave === true ? { autosave: true as const } : {}),
     };
   } },
   unexpectedErrorLabel: "Failed to write article lifecycle:", unexpectedErrorMessage: "Unable to complete this article action. Your local changes are preserved.",

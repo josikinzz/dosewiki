@@ -72,12 +72,14 @@ const writeArgs = {
   article: v.optional(substanceArticleLightValidator), summary: v.optional(v.string()),
   revisionId: v.optional(v.id("articleRevisions")), revisionOf: v.optional(v.id("changeProposals")), draftVersion: v.optional(v.number()),
   feedbackRef: v.optional(v.object({ id: v.string(), section: v.optional(v.string()) })),
+  autosave: v.optional(v.boolean()),
 };
 type WriteArgs = {
   apiKey?: string; actorEmail?: string; action: "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
   slug: string; baseHash: string; changeId: string; article?: { id: number | null; title: string; slug?: string } & Record<string, unknown>;
   summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number;
   feedbackRef?: FeedbackRef;
+  autosave?: boolean;
 };
 
 async function checkedFeedbackRef(ctx: MutationCtx, ref: FeedbackRef | undefined, slug: string): Promise<FeedbackRef | undefined> {
@@ -129,6 +131,7 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
     result = { draft: { version, baseHash: args.baseHash }, draftVersion: version, baseHash: args.baseHash, changeId: args.changeId };
   } else {
     if (args.baseHash !== baseHash) articleConflict();
+    if (args.action === "publish" && args.autosave && draft?.article) articleConflict("You have a saved private draft of this article. Load the latest version to continue from it; autosave stays off until you publish or discard that draft.");
     const summary = args.summary?.trim() ?? "";
     if (!summary || summary.length > 500) throw new PostgresError({ code: "ARTICLE_SUMMARY_REQUIRED", message: "Describe this change in 1–500 characters." });
     let proposed = args.article;
@@ -157,6 +160,7 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
       result = await commitArticleChange(ctx, {
         row, before, after: article, actor, changeId: args.changeId, baseHash, summary,
         ...(args.action === "restore" ? { restoredFrom: args.revisionId } : {}),
+        ...(args.action === "publish" && args.autosave ? { changelogSession: true } : {}),
       });
       if (feedbackRef) {
         await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "revision", id: String(result.revisionId) } });
