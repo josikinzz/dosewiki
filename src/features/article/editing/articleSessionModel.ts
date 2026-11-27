@@ -54,7 +54,9 @@ export function describeChangedSections(changes: readonly ArticleFieldChange[]):
   return `You changed ${joinWords(sections)}.`;
 }
 
-const SAFETY_HEADS = new Set(["dosage", "duration", "interactions"]);
+export const SAFETY_ARTICLE_KEYS = ["dosage", "duration", "interactions"] as const;
+
+const SAFETY_HEADS = new Set<string>(SAFETY_ARTICLE_KEYS);
 
 export function safetyChanges(changes: readonly ArticleFieldChange[]): ArticleFieldChange[] {
   return changes.filter((change) => SAFETY_HEADS.has(change.path.split(/[.[ ]/, 1)[0]));
@@ -80,3 +82,45 @@ export const PENDING_WORDS: Record<LifecycleAction, string> = {
   submit: "Submitting for review",
   restore: "Restoring",
 };
+
+export function autosaveCandidate<T extends object>(published: T, article: T): T {
+  const live = published as Record<string, unknown>;
+  const candidate = { ...article } as Record<string, unknown>;
+  for (const key of SAFETY_ARTICLE_KEYS) {
+    if (key in live) candidate[key] = live[key];
+    else delete candidate[key];
+  }
+  return candidate as T;
+}
+
+export function rebaseOntoSaved<T extends object>(sent: T, local: T, saved: T): T {
+  const before = sent as Record<string, unknown>;
+  const mine = local as Record<string, unknown>;
+  const next = { ...saved } as Record<string, unknown>;
+  for (const key of new Set([...Object.keys(before), ...Object.keys(mine)])) {
+    if (JSON.stringify(mine[key]) === JSON.stringify(before[key])) continue;
+    if (key in mine) next[key] = mine[key];
+    else delete next[key];
+  }
+  return next as T;
+}
+
+const AUTOSAVE_DELIVERY_WORDS: Record<"done" | "pending" | "failed" | "unknown", string> = {
+  done: "Saved. Readers see this now.",
+  pending: "Saved. Reaching the public site.",
+  failed: "Saved here, but public delivery did not go through.",
+  unknown: "Saved.",
+};
+
+export function describeAutosaveState({ saving, unsavedCount, failed, heldCount, delivery }: {
+  saving: boolean; unsavedCount: number; failed: boolean; heldCount: number;
+  delivery: "done" | "pending" | "failed" | "unknown" | null;
+}): { text: string; unsaved: boolean } {
+  if (saving || (unsavedCount > 0 && !failed)) return { text: "Saving your edit", unsaved: true };
+  if (unsavedCount > 0) return { text: "Not saved. Your edit is still here.", unsaved: true };
+  if (heldCount > 0) {
+    return { text: `${countChanges(heldCount)} to doses, durations or interactions ${heldCount === 1 ? "waits" : "wait"} for your review`, unsaved: true };
+  }
+  if (delivery) return { text: AUTOSAVE_DELIVERY_WORDS[delivery], unsaved: false };
+  return { text: "Edits save as you make them", unsaved: false };
+}

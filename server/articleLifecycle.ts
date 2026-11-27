@@ -72,12 +72,14 @@ const writeArgs = {
   article: v.optional(substanceArticleLightValidator), summary: v.optional(v.string()),
   revisionId: v.optional(v.id("articleRevisions")), revisionOf: v.optional(v.id("changeProposals")), draftVersion: v.optional(v.number()),
   feedbackRef: v.optional(v.object({ id: v.string(), section: v.optional(v.string()) })),
+  autosave: v.optional(v.boolean()),
 };
 type WriteArgs = {
   apiKey?: string; actorEmail?: string; action: "saveDraft" | "discardDraft" | "publish" | "submit" | "restore";
   slug: string; baseHash: string; changeId: string; article?: { id: number | null; title: string; slug?: string } & Record<string, unknown>;
   summary?: string; revisionId?: Id<"articleRevisions">; revisionOf?: Id<"changeProposals">; draftVersion?: number;
   feedbackRef?: FeedbackRef;
+  autosave?: boolean;
 };
 
 async function checkedFeedbackRef(ctx: MutationCtx, ref: FeedbackRef | undefined, slug: string): Promise<FeedbackRef | undefined> {
@@ -157,6 +159,7 @@ export async function writeHandler(ctx: MutationCtx, args: WriteArgs) {
       result = await commitArticleChange(ctx, {
         row, before, after: article, actor, changeId: args.changeId, baseHash, summary,
         ...(args.action === "restore" ? { restoredFrom: args.revisionId } : {}),
+        ...(args.action === "publish" && args.autosave ? { changelogSession: true } : {}),
       });
       if (feedbackRef) {
         await recordFeedbackCorrectionLink(ctx, { feedbackId: feedbackRef.id, slug: args.slug, actor: actor.email, change: { kind: "revision", id: String(result.revisionId) } });

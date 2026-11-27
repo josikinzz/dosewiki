@@ -11,7 +11,7 @@ import type { ProposalSummary } from "@/features/dev/tools/queue/queueModel";
 import { articlePublicationNotice, type ArticlePublicationNotice } from "./publicationNotice";
 import { articleSectionForPath, type ArticleEditorSection } from "./articleSections";
 import { placeWords } from "./changeNote";
-import { classifyLifecycleFailure, type LifecycleAction, type LifecycleFailure } from "./articleSessionModel";
+import { classifyLifecycleFailure, rebaseOntoSaved, type LifecycleAction, type LifecycleFailure } from "./articleSessionModel";
 import type { FeedbackRef } from "@/features/intake/feedbackCorrection";
 import { articleArrayIdentity } from "../../../../lib/proposals/articlePatch";
 import { mergeThreeWay, type MergeSide } from "../../../../lib/proposals/threeWayMerge";
@@ -111,6 +111,7 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   const [publication, setPublication] = useState<ArticlePublicationNotice | null>(null);
   const [submittedProposalId, setSubmittedProposalId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [autosaving, setAutosaving] = useState(false);
   const [pendingAction, setPendingAction] = useState<LifecycleAction | null>(null);
   const [failure, setFailure] = useState<LifecycleFailure | null>(null);
   const [loading, setLoading] = useState(false);
@@ -234,7 +235,8 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
     setError(null); setFailure(null);
   }, [recovery, merge, preview, adoptSnapshot]);
 
-  const act = useCallback(async (action: ArticleLifecycleAction, summary = "", revisionId?: string, candidate?: SubstanceArticle) => {
+  const act = useCallback(async (action: ArticleLifecycleAction, summary = "", revisionId?: string, candidate?: SubstanceArticle, options: { autosave?: boolean } = {}) => {
+    const autosave = action === "publish" && options.autosave === true;
     if (!snapshot || expired || baselineRefreshRequired || recovery || requestLock.current) throw new Error("Article saving is unavailable. Load the latest published version and merge your edits; your local changes are kept.");
     const nextArticle = candidate ?? current.current;
     if (action === "publish" || action === "submit") {
@@ -251,13 +253,16 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       summary, ...(version === undefined ? {} : { draftVersion: version }),
       ...((action === "saveDraft" || action === "submit") && revisionOf ? { revisionOf } : {}),
       ...((action === "submit" || action === "publish") && feedbackRef ? { feedbackRef } : {}),
+      ...(autosave ? { autosave: true } : {}),
     };
     const identity = JSON.stringify(body);
     if (pending.current && pending.current.identity !== identity) throw new Error("Your last change was not confirmed. Retry it before changing or discarding this draft.");
     if (!pending.current) pending.current = { identity, changeId: crypto.randomUUID() };
-    if (candidate) preview(candidate);
+    if (candidate && !autosave) preview(candidate);
     requestLock.current = true;
-    setBusy(true); setError(null); setNotice(null); setPublication(null); setFailure(null); setPendingAction(action);
+    setError(null); setNotice(null); setFailure(null);
+    if (autosave) setAutosaving(true);
+    else { setBusy(true); setPublication(null); setPendingAction(action); }
     try {
       const response = await fetch("/api/dev/article-lifecycle", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -303,6 +308,13 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
         setFeedbackRef(undefined);
         if (typeof data.proposalId === "string") setSubmittedProposalId(data.proposalId);
         setNotice("Submitted for review. Published content has not changed.");
+      } else if (autosave) {
+        const rebased = rebaseOntoSaved(nextArticle, current.current, data.article as SubstanceArticle);
+        current.current = rebased;
+        setArticle(rebased); setSavedArticle(data.article); setBaseHash(data.baseHash);
+        setFeedbackRef(undefined);
+        setSnapshot((previous) => ({ ...(previous ?? snapshot), article: data.article, baseHash: data.baseHash, draft: null, draftVersion: data.draftVersion }));
+        setPublication(articlePublicationNotice(slug, data.publication));
       } else {
         preview(data.article); setSavedArticle(data.article); setBaseHash(data.baseHash);
         setRevisionOf(undefined);
@@ -318,12 +330,12 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
       const message = failure instanceof Error ? failure.message : "No confirmation received. Keep your draft and retry the same action to confirm it.";
       setUncertain(pending.current !== null);
       setError(pending.current ? `No confirmation received. Retry your last change to confirm it. ${message}` : message); throw failure;
-    } finally { requestLock.current = false; setBusy(false); setPendingAction(null); }
+    } finally { requestLock.current = false; setBusy(false); setAutosaving(false); setPendingAction(null); }
   }, [snapshot, expired, baselineRefreshRequired, recovery, slug, baseHash, version, preview, revisionOf, feedbackRef, readSnapshot, adoptSnapshot]);
   const retry = useCallback(async () => {
     if (!pending.current) return;
     const request = JSON.parse(pending.current.identity);
-    await act(request.action, request.summary, request.revisionId, request.article);
+    await act(request.action, request.summary, request.revisionId, request.article, { autosave: request.autosave === true });
   }, [act]);
   const discardLocal = useCallback(() => {
     if (requestLock.current || pending.current || baselineRefreshRequired || recovery) return;
@@ -340,6 +352,6 @@ export function useArticleLifecycle(slug: string, initialArticle: SubstanceArtic
   }, [published, article]);
   const dirty = useMemo(() => JSON.stringify(article) !== JSON.stringify(savedArticle) || !!snapshot?.draft && baseHash !== snapshot.draft.baseHash, [article, savedArticle, snapshot?.draft, baseHash]);
   return { article, published, isFieldChanged, history: snapshot?.history ?? [],
-    hasDraft: !!snapshot?.draft, draftSavedAt: snapshot?.draft?.updatedAt ?? null, pendingAction, failure, clearFailure: () => setFailure(null), publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
+    hasDraft: !!snapshot?.draft, draftSavedAt: snapshot?.draft?.updatedAt ?? null, pendingAction, failure, clearFailure: () => setFailure(null), publishedHash: snapshot?.baseHash, loaded: !!snapshot, expired, ready: !!snapshot && !expired && !baselineRefreshRequired, busy: busy || loading, autosaving, error, notice, publication, commit, refreshStoredValue, addReference, preview, act, discardLocal,
     dirty, load, refresh, recovery, merge, mergeChoices, chooseMerge, reconcile, cancelRecovery: () => setRecovery(null), baselineRefreshRequired, getArticle, uncertain, retry, revisionOf, setRevisionOf, feedbackRef, setFeedbackRef, proposals: snapshot?.proposals ?? [], submittedProposalId };
 }

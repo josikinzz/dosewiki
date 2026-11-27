@@ -6,6 +6,7 @@ import { ContextualEditingContext, type ContextualEditingState } from "@/feature
 import type { SubstanceArticle } from "@/schema";
 import ArticleContextBridge from "./ArticleContextBridge.editor";
 import ArticleSectionEditor from "./ArticleSectionEditor.editor";
+import { autosaveCandidate, rebaseOntoSaved } from "./articleSessionModel";
 
 const mocks = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mocks.refresh }), useSelectedLayoutSegments: () => [] }));
@@ -66,6 +67,52 @@ describe("private article session boundaries", () => {
 const published = (summary: string) => Response.json({
   ok: true, revisionId: "rev-1", changeId: "change-1", draftVersion: 2,
   article: { ...article, summary }, baseHash: "published-revision",
+});
+
+describe("autosaving edits to the live article", () => {
+  const posts = (request: ReturnType<typeof vi.fn>) => request.mock.calls
+    .filter(([, init]) => init?.method === "POST")
+    .map(([, init]) => JSON.parse(String(init?.body)) as Record<string, unknown>);
+  const editSummary = async (role: "admin" | "editor", button: string) => {
+    const request = vi.fn()
+      .mockResolvedValueOnce(Response.json(snapshot(null)))
+      .mockResolvedValueOnce(published("Corrected summary"))
+      .mockResolvedValue(Response.json(snapshot(null)));
+    vi.stubGlobal("fetch", request);
+    render(view({ ...state, role }, "summary"));
+    fireEvent.change(await screen.findByDisplayValue("Public article"), { target: { value: "Corrected summary" } });
+    fireEvent.click(screen.getByRole("button", { name: button }));
+    return request;
+  };
+
+  it("publishes an admin's edit without a draft, a review or a confirmation", async () => {
+    const request = await editSummary("admin", "Save");
+    await waitFor(() => expect(posts(request)).toHaveLength(1));
+    expect(posts(request)[0]).toMatchObject({
+      action: "publish", autosave: true, baseHash: "public-revision", article: { summary: "Corrected summary" },
+    });
+    expect(String(posts(request)[0].summary).length).toBeGreaterThan(0);
+    await screen.findByText("Saved.");
+    expect(screen.queryByRole("dialog", { name: /Publish this change/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Save draft" })).toBeNull();
+  });
+
+  it("never autosaves an editor's edit", async () => {
+    const request = await editSummary("editor", "Apply to preview");
+    await screen.findByText("Unsaved local edits");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    expect(posts(request)).toHaveLength(0);
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeTruthy();
+  });
+
+  it("keeps dose, duration and interaction changes out of an autosave", () => {
+    const live = { title: "Fixture", summary: "Public article", dosage: { oral: "10 mg" }, interactions: ["a"] };
+    const edited = { ...live, summary: "Corrected summary", dosage: { oral: "100 mg" }, duration: { total: "6 h" }, interactions: [] };
+    const candidate = autosaveCandidate(live, edited as typeof live);
+    expect(candidate).toEqual({ ...live, summary: "Corrected summary" });
+    expect(rebaseOntoSaved(candidate, edited as typeof live, { ...candidate, summary: "Corrected summary." }))
+      .toEqual({ ...edited, summary: "Corrected summary." });
+  });
 });
 
 describe("reconciling a draft with a newer published article", () => {

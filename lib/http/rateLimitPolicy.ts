@@ -1,6 +1,7 @@
 export type RateLimitPolicyName =
   | "editorHeavyWrite"
   | "editorSmallWrite"
+  | "editorArticleWrite"
   | "authenticatedProfileWrite"
   | "publicTripReportSubmit"
   | "publicArticleFeedbackSubmit"
@@ -25,6 +26,7 @@ const ONE_MINUTE_MS = 60_000;
 const rateLimitPolicies = {
   editorHeavyWrite: { windowMs: ONE_MINUTE_MS, max: 5 },
   editorSmallWrite: { windowMs: ONE_MINUTE_MS, max: 20 },
+  editorArticleWrite: { windowMs: ONE_MINUTE_MS, max: 20 },
   authenticatedProfileWrite: { windowMs: ONE_MINUTE_MS, max: 5 },
   publicTripReportSubmit: { windowMs: ONE_MINUTE_MS, max: 4 },
   publicArticleFeedbackSubmit: { windowMs: ONE_MINUTE_MS, max: 3 },
